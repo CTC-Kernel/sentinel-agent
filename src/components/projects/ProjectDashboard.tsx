@@ -4,7 +4,7 @@ import { Project, ProjectMilestone, Risk } from '../../types';
 import { TrendingUp, TrendingDown, AlertTriangle, Target, Calendar, CheckCircle2, Clock, Layers } from '../ui/Icons';
 import {
     PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar,
-    RadialBarChart, RadialBar, ComposedChart, Area, Line
+    RadialBarChart, RadialBar, ComposedChart, Area, Line, Sector
 } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
@@ -22,16 +22,13 @@ const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
     return (
         <g>
-            <defs>
-                <filter id="projectPieGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                    <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                </filter>
-            </defs>
-            <Pie
+            <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
+                {payload.name}
+            </text>
+            <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
+                {payload.value} ({(percent * 100).toFixed(0)}%)
+            </text>
+            <Sector
                 cx={cx}
                 cy={cy}
                 innerRadius={innerRadius - 6}
@@ -39,20 +36,18 @@ const renderActiveShape = (props: any) => {
                 startAngle={startAngle}
                 endAngle={endAngle}
                 fill={fill}
+                style={{ filter: 'url(#projectGlow)' }}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={innerRadius - 4}
+                outerRadius={outerRadius}
+                fill={fill}
                 stroke="none"
-                style={{ filter: 'url(#projectPieGlow)' }}
-                data={[{ value: 1 }]}
-                dataKey="value"
-                isAnimationActive={false}
-            >
-                <Cell fill={fill} />
-            </Pie>
-            <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
-                {payload.name}
-            </text>
-            <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
-                {payload.value} ({(percent * 100).toFixed(0)}%)
-            </text>
+            />
         </g>
     );
 };
@@ -406,13 +401,12 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                 transition={{ delay: 0.25 + index * 0.05 }}
                                 className="flex items-center gap-4 group"
                             >
-                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black text-white shadow-lg transition-transform group-hover:scale-110 ${
-                                    milestone.status === 'achieved'
-                                        ? 'bg-gradient-to-br from-emerald-400 to-emerald-600'
-                                        : milestone.status === 'missed'
-                                            ? 'bg-gradient-to-br from-red-400 to-red-600'
-                                            : 'bg-gradient-to-br from-slate-400 to-slate-600'
-                                }`}>
+                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black text-white shadow-lg transition-transform group-hover:scale-110 ${milestone.status === 'achieved'
+                                    ? 'bg-gradient-to-br from-emerald-400 to-emerald-600'
+                                    : milestone.status === 'missed'
+                                        ? 'bg-gradient-to-br from-red-400 to-red-600'
+                                        : 'bg-gradient-to-br from-slate-400 to-slate-600'
+                                    }`}>
                                     {milestone.status === 'achieved' ? (
                                         <CheckCircle2 className="w-5 h-5" />
                                     ) : milestone.status === 'missed' ? (
@@ -432,13 +426,12 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                         <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{milestone.description}</p>
                                     )}
                                 </div>
-                                <div className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                                    milestone.status === 'achieved'
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                        : milestone.status === 'missed'
-                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400'
-                                }`}>
+                                <div className={`px-3 py-1.5 rounded-xl text-xs font-bold ${milestone.status === 'achieved'
+                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                    : milestone.status === 'missed'
+                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400'
+                                    }`}>
                                     {milestone.status === 'achieved' ? 'Atteint' : milestone.status === 'missed' ? 'Manqué' : 'En attente'}
                                 </div>
                             </motion.div>

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-    BarChart, Bar, Legend, CartesianGrid, XAxis, YAxis, RadialBarChart, RadialBar
+    BarChart, Bar, Legend, CartesianGrid, XAxis, YAxis, RadialBarChart, RadialBar, Sector
 } from 'recharts';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { slideUpVariants } from '../../ui/animationVariants';
@@ -22,16 +22,13 @@ const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
     return (
         <g>
-            <defs>
-                <filter id="continuityPieGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                    <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                </filter>
-            </defs>
-            <Pie
+            <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
+                {payload.name}
+            </text>
+            <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
+                {payload.value} ({(percent * 100).toFixed(0)}%)
+            </text>
+            <Sector
                 cx={cx}
                 cy={cy}
                 innerRadius={innerRadius - 6}
@@ -39,20 +36,18 @@ const renderActiveShape = (props: any) => {
                 startAngle={startAngle}
                 endAngle={endAngle}
                 fill={fill}
+                style={{ filter: 'url(#continuityGlow)' }}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={innerRadius - 4}
+                outerRadius={outerRadius}
+                fill={fill}
                 stroke="none"
-                style={{ filter: 'url(#continuityPieGlow)' }}
-                data={[{ value: 1 }]}
-                dataKey="value"
-                isAnimationActive={false}
-            >
-                <Cell fill={fill} />
-            </Pie>
-            <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
-                {payload.name}
-            </text>
-            <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
-                {payload.value} ({(percent * 100).toFixed(0)}%)
-            </text>
+            />
         </g>
     );
 };

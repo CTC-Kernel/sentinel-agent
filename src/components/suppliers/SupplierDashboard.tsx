@@ -6,7 +6,7 @@ import { Supplier, Criticality } from '../../types';
 import { Building, ShieldAlert, FileText, CheckCircle2, TrendingUp, AlertTriangle, Star } from '../ui/Icons';
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    RadialBarChart, RadialBar
+    RadialBarChart, RadialBar, Sector
 } from 'recharts';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../theme/chartTheme';
@@ -23,16 +23,13 @@ const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
     return (
         <g>
-            <defs>
-                <filter id="supplierPieGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                    <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                </filter>
-            </defs>
-            <Pie
+            <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
+                {payload.name}
+            </text>
+            <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
+                {payload.value} ({(percent * 100).toFixed(0)}%)
+            </text>
+            <Sector
                 cx={cx}
                 cy={cy}
                 innerRadius={innerRadius - 6}
@@ -40,20 +37,18 @@ const renderActiveShape = (props: any) => {
                 startAngle={startAngle}
                 endAngle={endAngle}
                 fill={fill}
+                style={{ filter: 'url(#supplierGlow)' }}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={innerRadius - 4}
+                outerRadius={outerRadius}
+                fill={fill}
                 stroke="none"
-                style={{ filter: 'url(#supplierPieGlow)' }}
-                data={[{ value: 1 }]}
-                dataKey="value"
-                isAnimationActive={false}
-            >
-                <Cell fill={fill} />
-            </Pie>
-            <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
-                {payload.name}
-            </text>
-            <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
-                {payload.value} ({(percent * 100).toFixed(0)}%)
-            </text>
+            />
         </g>
     );
 };
@@ -391,12 +386,11 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                     transition={{ delay: index * 0.1 }}
                                     className="flex items-center gap-4 p-3 bg-white/50 dark:bg-white/5 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 transition-all group cursor-pointer"
                                 >
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black text-white ${
-                                        index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black text-white ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
                                         index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' :
-                                        index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
-                                        'bg-gradient-to-br from-brand-400 to-brand-600'
-                                    }`}>
+                                            index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
+                                                'bg-gradient-to-br from-brand-400 to-brand-600'
+                                        }`}>
                                         #{index + 1}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -406,11 +400,10 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                         <div className="text-xs text-muted-foreground truncate">{supplier.category}</div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className={`px-2.5 py-1 rounded-lg text-xs font-black ${
-                                            (supplier.securityScore || 0) >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                        <div className={`px-2.5 py-1 rounded-lg text-xs font-black ${(supplier.securityScore || 0) >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                                             (supplier.securityScore || 0) >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                        }`}>
+                                                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                            }`}>
                                             {supplier.securityScore}
                                         </div>
                                     </div>

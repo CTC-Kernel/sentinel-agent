@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { LayoutDashboard, List, Grid3x3, Target, Scale, Calculator } from '../components/ui/Icons';
+import { LayoutDashboard, List, Grid3x3, Target, Scale, Calculator, Siren } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
 import { DEFAULT_VIEWS, SavedView } from '../components/ui/SavedViewsBar';
@@ -351,11 +351,7 @@ export const Risks: React.FC = () => {
                 title={t('risks.title')}
                 subtitle={t('risks.subtitle')}
                 icon={
-                    <img
-                        src="/images/risques.png"
-                        alt="RISQUES"
-                        className="w-full h-full object-contain"
-                    />
+                    <Siren className="text-red-600 dark:text-red-400" />
                 }
             />
 

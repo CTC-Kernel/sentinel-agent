@@ -7,7 +7,7 @@ import { RiskResidualChart } from './RiskResidualChart';
 import { RiskTreatmentChart } from './RiskTreatmentChart';
 import {
     RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend,
-    ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid
+    ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Sector
 } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../theme/chartTheme';
@@ -20,39 +20,35 @@ interface RiskDashboardProps {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
+
     return (
         <g>
-            <defs>
-                <filter id="riskPieGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                    <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                </filter>
-            </defs>
-            <Pie
-                cx={cx}
-                cy={cy}
-                innerRadius={innerRadius - 8}
-                outerRadius={outerRadius + 12}
-                startAngle={startAngle}
-                endAngle={endAngle}
-                fill={fill}
-                stroke="none"
-                style={{ filter: 'url(#riskPieGlow)' }}
-                data={[{ value: 1 }]}
-                dataKey="value"
-                isAnimationActive={false}
-            >
-                <Cell fill={fill} />
-            </Pie>
             <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-lg">
                 {payload.name}
             </text>
             <text x={cx} y={cy + 14} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
                 {payload.value} ({(percent * 100).toFixed(0)}%)
             </text>
+            <Sector
+                cx={cx}
+                cy={cy}
+                innerRadius={innerRadius - 6}
+                outerRadius={outerRadius + 8}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                fill={fill}
+                style={{ filter: 'url(#riskGlow)' }}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={innerRadius - 4}
+                outerRadius={outerRadius}
+                fill={fill}
+                stroke="none"
+            />
         </g>
     );
 };

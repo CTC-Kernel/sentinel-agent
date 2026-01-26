@@ -19,7 +19,8 @@ import {
     RadialBarChart,
     RadialBar,
     ComposedChart,
-    Line
+    Line,
+    Sector
 } from 'recharts';
 import { Incident, Criticality } from '../../../types';
 import type { SentinelAgent } from '../../../types/agent';
@@ -264,21 +265,26 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 <text x={cx} y={cy + 12} textAnchor="middle" className="text-[10px] fill-slate-500 font-bold uppercase">
                     {payload.name}
                 </text>
-                <Pie
+                <Sector
+                    cx={cx}
+                    cy={cy}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius + 8}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    fill={fill}
+                    style={{ filter: 'url(#glowSeverity)', transition: 'all 0.3s ease' }}
+                />
+                <Sector
                     cx={cx}
                     cy={cy}
                     startAngle={startAngle}
                     endAngle={endAngle}
                     innerRadius={innerRadius}
-                    outerRadius={outerRadius + 8}
+                    outerRadius={outerRadius}
                     fill={fill}
-                    dataKey="value"
-                    data={[{ value: 1 }]}
                     stroke="none"
-                    style={{ filter: 'url(#glowSeverity)', transition: 'all 0.3s ease' }}
-                >
-                    <Cell fill={fill} />
-                </Pie>
+                />
             </g>
         );
     };
