@@ -49,10 +49,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         {label && (
                             <ListboxLabel className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
-                                -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md text-brand-600 dark:text-brand-400
-                                ${error ? '!text-red-500' : ''}
+                                -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md text-slate-500 dark:text-slate-400 peer-focus:text-brand-600
+                                ${error ? '!text-destructive' : ''}
                             `}>
-                                {label} {required && <span className="text-red-500">*</span>}
+                                {label} {required && <span className="text-destructive">*</span>}
                             </ListboxLabel>
                         )}
 
@@ -62,7 +62,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 transition-all duration-300 outline-none min-h-[50px] backdrop-blur-sm
                                 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
                                 ${error
-                                    ? 'border border-red-500/60 bg-red-500/5 dark:bg-red-500/10 text-destructive'
+                                    ? 'border border-destructive/60 bg-destructive/5 dark:bg-destructive/10 text-destructive'
                                     : open
                                         ? 'border border-brand-500 bg-white/80 dark:bg-white/5 shadow-lg shadow-brand-500/10 ring-2 ring-brand-500/20'
                                         : 'glass-input'
@@ -111,7 +111,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                             </ListboxOptions>
                         </div>
                         {error && (
-                            <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                            <p className="text-destructive text-xs mt-1.5 ml-1 font-medium animate-fade-in">
                                 {error}
                             </p>
                         )}

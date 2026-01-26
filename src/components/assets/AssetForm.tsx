@@ -619,7 +619,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         <button
                             type="button"
                             onClick={handleAutoClassify}
-                            className="text-xs normal-case font-medium text-brand-500 hover:text-brand-600 flex items-center bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-colors"
+                            className="text-xs normal-case font-bold text-brand-700 dark:text-brand-300 hover:text-brand-800 flex items-center bg-brand-50 dark:bg-brand-900/30 px-3 py-1.5 rounded-lg transition-colors border border-brand-100 dark:border-brand-800/50"
                         >
                             <Sparkles className="h-3 w-3 mr-1.5" /> Auto-Classifier (Règles)
                         </button>
@@ -655,8 +655,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 key={scope}
                                 htmlFor={`scope-${scope}`}
                                 className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
-                                    ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold'
-                                    : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
+                                    ? 'bg-brand-50 dark:bg-brand-900/30 border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-300 font-bold'
+                                    : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'
                                     }`}
                             >
                                 <input

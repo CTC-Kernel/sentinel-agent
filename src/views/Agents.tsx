@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { useStore } from '../store';
 import { motion } from 'framer-motion';
@@ -7,7 +8,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { subscribeToAgents } from '../services/AgentService';
 import { SentinelAgent } from '../types/agent';
 import {
-    Download, Settings, Search, LayoutGrid, List
+    Download, Settings, Search, LayoutGrid, List, Shield, Package, Layers
 } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -16,6 +17,9 @@ import { AgentFleetDashboard } from '../components/agents/AgentFleetDashboard';
 import { AgentHealthGrid } from '../components/agents/AgentHealthGrid';
 import { AgentComplianceHeatmap } from '../components/agents/AgentComplianceHeatmap';
 import { AgentLiveView } from '../components/agents/AgentLiveView';
+import AgentPolicies from './AgentPolicies';
+import SoftwareInventory from './SoftwareInventory';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 
 // Skeleton for loading state
 const AgentsSkeleton: React.FC = () => (
@@ -34,6 +38,7 @@ const AgentsSkeleton: React.FC = () => (
 // Main Agents View Component
 export const Agents: React.FC = () => {
     const { user } = useStore();
+    const navigate = useNavigate();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +46,7 @@ export const Agents: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
     const [selectedAgent, setSelectedAgent] = useState<SentinelAgent | null>(null);
     const [isLiveViewOpen, setIsLiveViewOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('overview');
 
     // Handle agent click to open live view
     const handleAgentClick = useCallback((agent: SentinelAgent) => {
@@ -110,131 +116,169 @@ export const Agents: React.FC = () => {
                 animate="visible"
                 className="flex flex-col gap-6 sm:gap-8"
             >
-                {/* Header */}
-                <motion.div
-                    variants={slideUpVariants}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">
-                            Agents
-                        </h1>
-                        <p className="text-muted-foreground text-sm mt-1">
-                            Surveillez et gérez votre flotte d'agents Sentinel en temps réel
-                        </p>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <div className="flex justify-center mb-6">
+                        <TabsList className="bg-muted/50 p-1 rounded-xl">
+                            <TabsTrigger value="overview" className="flex items-center gap-2">
+                                <Layers className="h-4 w-4" />
+                                <span>Supervision</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="policies" className="flex items-center gap-2">
+                                <Shield className="h-4 w-4" />
+                                <span>Politiques</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="software" className="flex items-center gap-2">
+                                <Package className="h-4 w-4" />
+                                <span>Inventaire Logiciels</span>
+                            </TabsTrigger>
+                        </TabsList>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" className="gap-2">
-                            <Download className="h-4 w-4" />
-                            <span className="hidden sm:inline">Télécharger Agent</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-2">
-                            <Settings className="h-4 w-4" />
-                            <span className="hidden sm:inline">Configuration</span>
-                        </Button>
-                    </div>
-                </motion.div>
 
-                {/* Fleet Dashboard with KPIs, OS Distribution, and Trends */}
-                <AgentFleetDashboard agents={agents} loading={loading} />
+                    <TabsContent value="overview">
+                        <motion.div
+                            variants={slideUpVariants}
+                            className="flex flex-col gap-6 sm:gap-8"
+                        >
+                            {/* Header */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">
+                                        Agents
+                                    </h1>
+                                    <p className="text-muted-foreground text-sm mt-1">
+                                        Surveillez et gérez votre flotte d'agents Sentinel en temps réel
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                        onClick={() => navigate('/settings?tab=agents')}
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Télécharger Agent</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                        onClick={() => navigate('/agent-policies')}
+                                    >
+                                        <Settings className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Configuration</span>
+                                    </Button>
+                                </div>
+                            </div>
 
-                {/* Search, Filters, and View Mode */}
-                <motion.div
-                    variants={slideUpVariants}
-                    className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
-                >
-                    <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Rechercher un agent..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9"
+                            {/* Fleet Dashboard with KPIs, OS Distribution, and Trends */}
+                            <AgentFleetDashboard agents={agents} loading={loading} />
+
+                            {/* Search, Filters, and View Mode */}
+                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                                <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                                    <div className="relative flex-1 max-w-md">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Rechercher un agent..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-9"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant={statusFilter === 'all' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setStatusFilter('all')}
+                                        >
+                                            Tous
+                                        </Button>
+                                        <Button
+                                            variant={statusFilter === 'active' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setStatusFilter('active')}
+                                            className="gap-1"
+                                        >
+                                            <span className="w-2 h-2 rounded-full bg-success" />
+                                            Actifs
+                                        </Button>
+                                        <Button
+                                            variant={statusFilter === 'offline' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setStatusFilter('offline')}
+                                            className="gap-1"
+                                        >
+                                            <span className="w-2 h-2 rounded-full bg-muted-foreground" />
+                                            Hors ligne
+                                        </Button>
+                                    </div>
+                                </div>
+                                {/* View Mode Toggle */}
+                                <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                                    <Button
+                                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                                        size="sm"
+                                        onClick={() => setViewMode('grid')}
+                                        className="h-8 w-8 p-0"
+                                        title="Vue grille"
+                                    >
+                                        <LayoutGrid className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant={viewMode === 'compact' ? 'default' : 'ghost'}
+                                        size="sm"
+                                        onClick={() => setViewMode('compact')}
+                                        className="h-8 w-8 p-0"
+                                        title="Vue liste"
+                                    >
+                                        <List className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Agents Health Grid */}
+                            <AgentHealthGrid
+                                agents={filteredAgents}
+                                viewMode={viewMode}
+                                onAgentClick={handleAgentClick}
+                                onAgentAction={(agent, action) => {
+                                    if (action === 'view') {
+                                        handleAgentClick(agent);
+                                    }
+                                    // TODO: Handle other agent actions (configure, refresh, delete)
+                                    console.log('Agent action:', agent.id, action);
+                                }}
                             />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant={statusFilter === 'all' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setStatusFilter('all')}
-                            >
-                                Tous
-                            </Button>
-                            <Button
-                                variant={statusFilter === 'active' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setStatusFilter('active')}
-                                className="gap-1"
-                            >
-                                <span className="w-2 h-2 rounded-full bg-success" />
-                                Actifs
-                            </Button>
-                            <Button
-                                variant={statusFilter === 'offline' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setStatusFilter('offline')}
-                                className="gap-1"
-                            >
-                                <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-                                Hors ligne
-                            </Button>
-                        </div>
-                    </div>
-                    {/* View Mode Toggle */}
-                    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                        <Button
-                            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('grid')}
-                            className="h-8 w-8 p-0"
-                            title="Vue grille"
-                        >
-                            <LayoutGrid className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant={viewMode === 'compact' ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('compact')}
-                            className="h-8 w-8 p-0"
-                            title="Vue liste"
-                        >
-                            <List className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </motion.div>
 
-                {/* Agents Health Grid */}
-                <AgentHealthGrid
-                    agents={filteredAgents}
-                    viewMode={viewMode}
-                    onAgentClick={handleAgentClick}
-                    onAgentAction={(agent, action) => {
-                        if (action === 'view') {
-                            handleAgentClick(agent);
-                        }
-                        // TODO: Handle other agent actions (configure, refresh, delete)
-                        console.log('Agent action:', agent.id, action);
-                    }}
-                />
+                            {/* Compliance Heatmap - Only show when we have agents */}
+                            {agents.length > 0 && (
+                                <motion.div variants={slideUpVariants}>
+                                    <AgentComplianceHeatmap
+                                        agents={filteredAgents}
+                                        onAgentClick={handleAgentClick}
+                                        onCellClick={(agentId, checkId) => {
+                                            // Find the agent and open live view
+                                            const agent = agents.find(a => a.id === agentId);
+                                            if (agent) {
+                                                handleAgentClick(agent);
+                                            }
+                                            console.log('Cell clicked:', agentId, checkId);
+                                        }}
+                                    />
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    </TabsContent>
 
-                {/* Compliance Heatmap - Only show when we have agents */}
-                {agents.length > 0 && (
-                    <motion.div variants={slideUpVariants}>
-                        <AgentComplianceHeatmap
-                            agents={filteredAgents}
-                            onAgentClick={handleAgentClick}
-                            onCellClick={(agentId, checkId) => {
-                                // Find the agent and open live view
-                                const agent = agents.find(a => a.id === agentId);
-                                if (agent) {
-                                    handleAgentClick(agent);
-                                }
-                                console.log('Cell clicked:', agentId, checkId);
-                            }}
-                        />
-                    </motion.div>
-                )}
+                    <TabsContent value="policies" className="mt-0">
+                        <AgentPolicies />
+                    </TabsContent>
+
+                    <TabsContent value="software" className="mt-0">
+                        <SoftwareInventory />
+                    </TabsContent>
+                </Tabs>
             </motion.div>
 
             {/* Agent Live View Drawer */}

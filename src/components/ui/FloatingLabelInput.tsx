@@ -83,7 +83,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         peer-focus:text-primary
                         ${error
                             ? 'text-destructive'
-                            : 'text-brand-600 dark:text-brand-500'
+                            : 'text-slate-500 dark:text-slate-400 peer-focus:text-primary dark:peer-focus:text-primary'
                         }
                         ${Icon ? 'ml-7' : ''}
                     `}

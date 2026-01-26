@@ -69,7 +69,9 @@ export const Vulnerabilities: React.FC = () => {
     } = useVulnerabilitiesData(user?.organizationId);
 
     const filteredVulnerabilities = React.useMemo(() => {
-        return vulnerabilities.filter(v => (v.title || '').toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));
+        return vulnerabilities
+            .filter(v => v.source === 'agent')
+            .filter(v => (v.title || '').toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));
     }, [vulnerabilities, filter]);
 
     const loading = authLoading || loadingData;
