@@ -1,15 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, FieldValues } from 'react-hook-form';
 
 /**
  * Hook to persist form state to localStorage and restore it on mount.
- * @param key Unique key for localStorage
- * @param formMethods react-hook-form methods object
- * @param options Configuration options
  */
-export function useFormPersistence<T extends Object>(
+export function useFormPersistence<T extends FieldValues>(
     key: string,
-    formMethods: UseFormReturn<any>,
+    formMethods: Pick<UseFormReturn<T>, 'watch' | 'reset'>,
     options: {
         enabled?: boolean;
         excludeFields?: string[];
@@ -38,16 +35,19 @@ export function useFormPersistence<T extends Object>(
         } catch (e) {
             console.error(`Failed to load form draft for key ${key}`, e);
         }
-    }, [key, enabled, reset]); // eslint-disable-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key, enabled, reset]);
 
     // Save draft on change
     useEffect(() => {
         if (!enabled) return;
 
         const subscription = watch((value) => {
-            // Filter out excluded fields if needed (omitted for performance unless deep clone needed)
             const dataToSave = { ...value };
-            excludeFields.forEach(f => delete (dataToSave as any)[f]);
+            excludeFields.forEach((f) => {
+                // Safe delete with type assertion that is not 'any'
+                delete dataToSave[f as keyof typeof dataToSave];
+            });
 
             try {
                 localStorage.setItem(key, JSON.stringify(dataToSave));

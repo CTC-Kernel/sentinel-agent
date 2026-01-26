@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Controller, FieldErrors } from 'react-hook-form';
+import { Controller, FieldErrors, DefaultValues } from 'react-hook-form';
 import { useZodForm } from '../../hooks/useZodForm';
 import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
@@ -90,7 +90,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         schema: assetSchema,
         mode: 'onChange',
         shouldUnregister: true,
-        defaultValues: defaultValues as any
+        defaultValues: defaultValues as DefaultValues<AssetFormData>
     });
 
     const onInvalid = (errors: FieldErrors<AssetFormData>) => {
@@ -129,22 +129,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     }, [initialData, reset]);
 
     // Use standardized persistence hook
-    const { clearDraft } = useFormPersistence('sentinel_asset_draft_new', {
+    // Use standardized persistence hook
+    const { clearDraft } = useFormPersistence<AssetFormData>('sentinel_asset_draft_new', {
         watch,
-        reset,
-        getValues,
-        setValue,
-        register,
-        control,
-        errorMessage: '', // Mocking missing props for TS satisfaction if needed, though simpler is better
-        handleSubmit: () => Promise.resolve(),
-        formState: {} as any,
-        setError: () => { },
-        clearErrors: () => { },
-        getFieldState: () => ({} as any),
-        trigger: () => Promise.resolve(true),
-        unregister: () => { },
-    } as any, { // Casting to avoid complex mocking of UseFormReturn
+        reset
+    }, {
         enabled: !isEditing && !initialData
     });
 
