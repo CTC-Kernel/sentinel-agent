@@ -180,11 +180,9 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 documentId: id,
                 documentTitle: title,
                 organizationId: user.organizationId,
-                userId: user.uid,
-                userEmail: user.email || 'unknown'
+                user
             });
 
-            await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document et liens supprimés", "info");
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
@@ -339,11 +337,9 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
             const count = await DocumentService.importDocumentsFromCSV(
                 lines,
                 user.organizationId,
-                user.uid,
-                user.displayName || 'Utilisateur'
+                user
             );
 
-            await logAction(user, 'IMPORT', 'Document', `Import CSV de ${count} documents`);
             addToast(`Import de ${count} documents réussi`, "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useDocumentActions.importDocuments');

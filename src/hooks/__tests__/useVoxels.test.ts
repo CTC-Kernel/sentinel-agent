@@ -14,8 +14,8 @@ vi.mock('firebase/firestore', () => ({
     collection: vi.fn(),
     query: vi.fn(),
     where: vi.fn(),
-    getDocs: (...args: unknown[]) => mockGetDocs(...args),
-    onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
+    getDocs: (q: unknown) => mockGetDocs(q),
+    onSnapshot: (q: unknown, onNext: unknown, onError?: unknown) => mockOnSnapshot(q, onNext, onError),
 }));
 
 vi.mock('../../firebase', () => ({

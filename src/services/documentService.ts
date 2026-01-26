@@ -1,9 +1,11 @@
 import { collection, doc, writeBatch, getDocs, query, where, arrayRemove, limit, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { FunctionsService } from './FunctionsService';
-import { Control } from '../types';
+import { Control, UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { AuditLogService } from './auditLogService';
+import { canDeleteResource, canEditResource } from '../utils/permissions';
 
 export interface DocumentDependencies {
     hasDependencies: boolean;
@@ -18,8 +20,7 @@ export interface DeleteDocumentOptions {
     documentId: string;
     documentTitle: string;
     organizationId: string;
-    userId: string;
-    userEmail: string;
+    user: UserProfile;
 }
 
 type DocumentCsvRow = Record<string, string>;
@@ -108,7 +109,10 @@ export class DocumentService {
      * This ensures referential integrity across the system
      */
     static async deleteDocumentWithCascade(options: DeleteDocumentOptions): Promise<void> {
-        const { documentId, organizationId } = options;
+        const { documentId, documentTitle, organizationId, user } = options;
+
+        if (!canDeleteResource(user, 'Document')) throw new Error("Permission refusée");
+        if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
 
         try {
             // Re-query dependencies to ensure consistency during atomic delete phase
@@ -199,6 +203,15 @@ export class DocumentService {
             // Finally, delete the document itself (Server-side permission check)
             try {
                 await FunctionsService.deleteResource('documents', documentId);
+
+                await AuditLogService.logDelete(
+                    organizationId,
+                    { id: user.uid, name: user.displayName || user.email, email: user.email },
+                    'document',
+                    documentId,
+                    { title: documentTitle },
+                    documentTitle
+                );
             } catch (err) {
                 ErrorLogger.error(err, 'DocumentService.deleteDocumentWithCascade.finalDelete');
                 throw err;
@@ -215,9 +228,11 @@ export class DocumentService {
     static async importDocumentsFromCSV(
         data: DocumentCsvRow[],
         organizationId: string,
-        userId: string,
-        userDisplayName: string
+        user: UserProfile
     ): Promise<number> {
+        if (!canEditResource(user, 'Document')) throw new Error("Permission refusée");
+        if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
+
         try {
             const batch = writeBatch(db);
             let count = 0;
@@ -232,8 +247,8 @@ export class DocumentService {
                     type: row.Type || 'Autre',
                     version: row.Version || '1.0',
                     status: row.Statut || 'Brouillon',
-                    owner: row.Proprietaire || userDisplayName,
-                    ownerId: userId, // Default to importer if not specified or mapped
+                    owner: row.Proprietaire || user.displayName || 'Utilisateur',
+                    ownerId: user.uid, // Default to importer if not specified or mapped
                     nextReviewDate: row.Prochaine_Revue ? new Date(row.Prochaine_Revue).toISOString() : null,
                     description: row.Description || '',
                     url: row.URL || '',
@@ -253,6 +268,15 @@ export class DocumentService {
 
             if (count > 0) {
                 await batch.commit();
+
+                // Audit Log
+                await AuditLogService.logImport(
+                    organizationId,
+                    { id: user.uid, name: user.displayName || user.email, email: user.email },
+                    'document',
+                    count,
+                    'CSV Import'
+                );
             }
 
             return count;

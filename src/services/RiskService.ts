@@ -6,7 +6,7 @@ import { RiskCalculator } from '../utils/RiskCalculator';
 import { riskSchema } from '../schemas/riskSchema';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
-import { canEditResource } from '../utils/permissions';
+import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { DependencyService } from './dependencyService';
 import { FunctionsService } from './FunctionsService';
 import { AuditLogService } from './auditLogService';
@@ -158,7 +158,7 @@ export class RiskService {
      * Delete a Risk
      */
     static async deleteRisk(user: UserProfile, id: string, currentRisk?: Risk): Promise<{ success: boolean; error?: string }> {
-        if (!canEditResource(user, 'Risk')) return { success: false, error: "Permission refusée" };
+        if (!canDeleteResource(user, 'Risk')) return { success: false, error: "Permission refusée" };
 
         if (currentRisk && !this.verifyOwnership(user, currentRisk.organizationId)) {
             return { success: false, error: "Accès non autorisé" };
