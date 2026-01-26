@@ -15,8 +15,8 @@
     },
     "windows": {
       "version": "1.0.1",
-      "filename": "SentinelAgentSetup-latest.msi",
-      "format": "msi",
+      "filename": "SentinelAgentSetup-latest.zip",
+      "format": "zip",
       "minOsVersion": "10",
       "architecture": "x64",
       "releaseDate": "2026-01-26",
