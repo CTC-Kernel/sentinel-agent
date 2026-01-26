@@ -27,14 +27,166 @@ const db = admin.firestore();
 // Express app for agent API
 const app = express();
 
-// CORS - Allow agent requests (no browser origin)
+// CORS - Restrict to known origins (FIXED: was allowing all origins)
+const ALLOWED_ORIGINS = [
+    'https://app.cyber-threat-consulting.com',
+    'https://sentinel-grc-a8701.web.app',
+    'https://sentinel-grc-a8701.firebaseapp.com',
+    // Agents don't send Origin header, so null/undefined is allowed
+];
+
 app.use(cors({
-    origin: true, // Agents don't have browser origin
+    origin: (origin, callback) => {
+        // Allow requests with no origin (agents, curl, etc.)
+        if (!origin) return callback(null, true);
+        if (ALLOWED_ORIGINS.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('CORS not allowed'), false);
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Agent-ID', 'X-Agent-Certificate'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Agent-ID', 'X-Agent-Certificate', 'X-Agent-Signature', 'X-Request-Timestamp'],
 }));
 
 app.use(express.json({ limit: '1mb' }));
+
+// ============================================================================
+// Agent Authentication Middleware (FIXED: Added certificate/signature validation)
+// ============================================================================
+const crypto = require('crypto');
+
+/**
+ * Validates agent certificate or HMAC signature
+ * Agents must provide either:
+ * - X-Agent-Certificate header matching stored certificate
+ * - X-Agent-Signature header with HMAC-SHA256 of request body
+ */
+async function validateAgentAuth(req, res, next) {
+    const agentId = req.params.agentId;
+    const providedCert = req.headers['x-agent-certificate'];
+    const providedSignature = req.headers['x-agent-signature'];
+    const requestTimestamp = req.headers['x-request-timestamp'];
+
+    if (!agentId) {
+        return res.status(400).json({ error: 'Agent ID is required' });
+    }
+
+    // Find agent
+    const agentQuery = await db
+        .collectionGroup('agents')
+        .where('id', '==', agentId)
+        .limit(1)
+        .get();
+
+    if (agentQuery.empty) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+
+    const agentDoc = agentQuery.docs[0];
+    const agentData = agentDoc.data();
+
+    // Attach agent data to request for downstream handlers
+    req.agentDoc = agentDoc;
+    req.agentData = agentData;
+
+    // Method 1: Certificate validation
+    if (providedCert) {
+        const storedCert = agentData.clientCertificate;
+        if (!storedCert) {
+            logger.warn(`Agent ${agentId} has no stored certificate`);
+            return res.status(401).json({ error: 'Agent certificate not configured' });
+        }
+
+        // Compare certificates (constant-time comparison to prevent timing attacks)
+        const certMatch = crypto.timingSafeEqual(
+            Buffer.from(providedCert),
+            Buffer.from(storedCert)
+        );
+
+        if (!certMatch) {
+            logger.warn(`Invalid certificate for agent ${agentId}`);
+            // Log failed auth attempt
+            await logFailedAuthAttempt(agentData.organizationId, agentId, 'invalid_certificate', req.ip);
+            return res.status(401).json({ error: 'Invalid agent certificate' });
+        }
+
+        return next();
+    }
+
+    // Method 2: HMAC signature validation (for lightweight auth)
+    if (providedSignature && requestTimestamp) {
+        // Check timestamp freshness (prevent replay attacks - 5 minute window)
+        const timestampMs = parseInt(requestTimestamp, 10);
+        const now = Date.now();
+        const MAX_TIME_DRIFT_MS = 5 * 60 * 1000; // 5 minutes
+
+        if (isNaN(timestampMs) || Math.abs(now - timestampMs) > MAX_TIME_DRIFT_MS) {
+            logger.warn(`Request timestamp too old/invalid for agent ${agentId}`);
+            return res.status(401).json({ error: 'Request timestamp invalid or expired' });
+        }
+
+        // Get agent's secret key (derived from client key)
+        const clientKey = agentData.clientKey;
+        if (!clientKey) {
+            logger.warn(`Agent ${agentId} has no client key for signature validation`);
+            return res.status(401).json({ error: 'Agent signature key not configured' });
+        }
+
+        // Compute expected signature: HMAC-SHA256(timestamp + method + path + body)
+        const signaturePayload = `${requestTimestamp}:${req.method}:${req.path}:${JSON.stringify(req.body || {})}`;
+        const expectedSignature = crypto
+            .createHmac('sha256', Buffer.from(clientKey, 'base64'))
+            .update(signaturePayload)
+            .digest('hex');
+
+        // Constant-time comparison
+        try {
+            const sigMatch = crypto.timingSafeEqual(
+                Buffer.from(providedSignature, 'hex'),
+                Buffer.from(expectedSignature, 'hex')
+            );
+
+            if (!sigMatch) {
+                logger.warn(`Invalid signature for agent ${agentId}`);
+                await logFailedAuthAttempt(agentData.organizationId, agentId, 'invalid_signature', req.ip);
+                return res.status(401).json({ error: 'Invalid request signature' });
+            }
+
+            return next();
+        } catch (e) {
+            logger.warn(`Signature comparison error for agent ${agentId}:`, e);
+            return res.status(401).json({ error: 'Invalid signature format' });
+        }
+    }
+
+    // No authentication provided - reject
+    // NOTE: For backward compatibility during migration, you can temporarily allow unauthenticated
+    // requests by uncommenting the next line. Remove after all agents are updated.
+    // return next();
+
+    logger.warn(`No authentication provided for agent ${agentId}`);
+    return res.status(401).json({
+        error: 'Authentication required',
+        message: 'Provide X-Agent-Certificate or X-Agent-Signature header'
+    });
+}
+
+/**
+ * Log failed authentication attempt for security monitoring
+ */
+async function logFailedAuthAttempt(organizationId, agentId, reason, ipAddress) {
+    try {
+        await db.collection('organizations').doc(organizationId).collection('securityEvents').add({
+            type: 'agent_auth_failed',
+            agentId,
+            reason,
+            ipAddress: ipAddress || 'unknown',
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        });
+    } catch (e) {
+        logger.error('Failed to log auth attempt:', e);
+    }
+}
 
 // Offline threshold: 3 missed heartbeats (3 minutes with 60s interval)
 const OFFLINE_THRESHOLD_MS = 3 * 60 * 1000;
@@ -197,16 +349,16 @@ app.post('/v1/agents/enroll', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Heartbeat
+// Agent Heartbeat (SECURED with authentication middleware)
 // POST /v1/agents/:agentId/heartbeat
 // ============================================================================
-app.post('/v1/agents/:agentId/heartbeat', async (req, res) => {
+app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
+        // Agent data already validated and attached by middleware
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
 
         const {
             timestamp,
@@ -221,21 +373,6 @@ app.post('/v1/agents/:agentId/heartbeat', async (req, res) => {
             pending_sync_count,
             self_check_result,
         } = req.body;
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
-        const organizationId = agentData.organizationId;
 
         // Prepare update data
         const updateData = {
@@ -321,30 +458,15 @@ app.post('/v1/agents/:agentId/heartbeat', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Config
+// Agent Config (SECURED with authentication middleware)
 // GET /v1/agents/:agentId/config
 // ============================================================================
-app.get('/v1/agents/:agentId/config', async (req, res) => {
+app.get('/v1/agents/:agentId/config', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
+        // Agent data already validated and attached by middleware
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
         const organizationId = agentData.organizationId;
 
         // Get organization settings
@@ -401,16 +523,16 @@ app.get('/v1/agents/:agentId/config', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Results Upload
+// Agent Results Upload (SECURED with authentication middleware)
 // POST /v1/agents/:agentId/results
 // ============================================================================
-app.post('/v1/agents/:agentId/results', async (req, res) => {
+app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
+        // Agent data already validated and attached by middleware
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
 
         const {
             check_id,
@@ -436,21 +558,6 @@ app.post('/v1/agents/:agentId/results', async (req, res) => {
                 error: `status must be one of: ${validStatuses.join(', ')}`,
             });
         }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
-        const organizationId = agentData.organizationId;
 
         // Create result document
         const resultData = {
@@ -491,16 +598,15 @@ app.post('/v1/agents/:agentId/results', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Logs Upload (Story 12.1 AC4)
+// Agent Logs Upload (Story 12.1 AC4) - SECURED
 // POST /v1/agents/:agentId/logs
 // ============================================================================
-app.post('/v1/agents/:agentId/logs', async (req, res) => {
+app.post('/v1/agents/:agentId/logs', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
 
         const { entries, uploaded_at } = req.body;
 
@@ -510,21 +616,6 @@ app.post('/v1/agents/:agentId/logs', async (req, res) => {
                 error: 'entries array is required',
             });
         }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
-        const organizationId = agentData.organizationId;
 
         // Store logs in a subcollection
         const batch = db.batch();
@@ -569,33 +660,17 @@ app.post('/v1/agents/:agentId/logs', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Diagnostics Upload (Story 12.4)
+// Agent Diagnostics Upload (Story 12.4) - SECURED
 // POST /v1/agents/:agentId/diagnostics
 // ============================================================================
-app.post('/v1/agents/:agentId/diagnostics', async (req, res) => {
+app.post('/v1/agents/:agentId/diagnostics', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
 
         const diagnosticData = req.body;
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
-        const organizationId = agentData.organizationId;
 
         // Store diagnostic result
         const diagnosticRef = await db
@@ -622,30 +697,14 @@ app.post('/v1/agents/:agentId/diagnostics', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Vulnerabilities Upload
+// Agent Vulnerabilities Upload - SECURED
 // POST /v1/agents/:agentId/vulnerabilities
 // ============================================================================
-app.post('/v1/agents/:agentId/vulnerabilities', async (req, res) => {
+app.post('/v1/agents/:agentId/vulnerabilities', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
 
         // Delegate to vulnerability handler
         return await uploadVulnerabilities(req, res, agentId, agentDoc, agentData);
@@ -656,30 +715,14 @@ app.post('/v1/agents/:agentId/vulnerabilities', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Incident Report
+// Agent Incident Report - SECURED
 // POST /v1/agents/:agentId/incidents
 // ============================================================================
-app.post('/v1/agents/:agentId/incidents', async (req, res) => {
+app.post('/v1/agents/:agentId/incidents', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
 
         // Delegate to incident handler
         return await reportIncident(req, res, agentId, agentDoc, agentData);
@@ -690,16 +733,15 @@ app.post('/v1/agents/:agentId/incidents', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Network Snapshot Upload
+// Agent Network Snapshot Upload - SECURED
 // POST /v1/agents/:agentId/network
 // ============================================================================
-app.post('/v1/agents/:agentId/network', async (req, res) => {
+app.post('/v1/agents/:agentId/network', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
 
         const {
             timestamp,
@@ -716,21 +758,6 @@ app.post('/v1/agents/:agentId/network', async (req, res) => {
         if (!interfaces || !Array.isArray(interfaces)) {
             return res.status(400).json({ error: 'interfaces array is required' });
         }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
-        const organizationId = agentData.organizationId;
 
         // Store network snapshot
         const snapshotData = {
@@ -826,16 +853,15 @@ app.post('/v1/agents/:agentId/network', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Network Security Alert
+// Agent Network Security Alert - SECURED
 // POST /v1/agents/:agentId/network/alerts
 // ============================================================================
-app.post('/v1/agents/:agentId/network/alerts', async (req, res) => {
+app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
 
         const {
             alert_type,
@@ -855,21 +881,6 @@ app.post('/v1/agents/:agentId/network/alerts', async (req, res) => {
                 error: 'alert_type, severity, and title are required',
             });
         }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
-        const organizationId = agentData.organizationId;
 
         // Map network alert severity to incident severity
         const severityMap = {
@@ -949,30 +960,14 @@ app.post('/v1/agents/:agentId/network/alerts', async (req, res) => {
 });
 
 // ============================================================================
-// Agent Software Inventory Upload
+// Agent Software Inventory Upload - SECURED
 // POST /v1/agents/:agentId/software
 // ============================================================================
-app.post('/v1/agents/:agentId/software', async (req, res) => {
+app.post('/v1/agents/:agentId/software', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
 
         // Delegate to software handler
         return await uploadSoftwareInventory(req, res, agentId, agentDoc, agentData);
@@ -983,30 +978,14 @@ app.post('/v1/agents/:agentId/software', async (req, res) => {
 });
 
 // ============================================================================
-// Agent CIS Benchmark Results Upload
+// Agent CIS Benchmark Results Upload - SECURED
 // POST /v1/agents/:agentId/cis
 // ============================================================================
-app.post('/v1/agents/:agentId/cis', async (req, res) => {
+app.post('/v1/agents/:agentId/cis', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentDoc = agentQuery.docs[0];
-        const agentData = agentDoc.data();
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
 
         // Delegate to CIS handler
         return await uploadCISResults(req, res, agentId, agentDoc, agentData);
@@ -1017,29 +996,13 @@ app.post('/v1/agents/:agentId/cis', async (req, res) => {
 });
 
 // ============================================================================
-// Get Authorized Software List
+// Get Authorized Software List - SECURED
 // GET /v1/agents/:agentId/software/authorized
 // ============================================================================
-app.get('/v1/agents/:agentId/software/authorized', async (req, res) => {
+app.get('/v1/agents/:agentId/software/authorized', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentData = agentQuery.docs[0].data();
+        const agentData = req.agentData;
 
         // Delegate to authorized software handler
         return await getAuthorizedSoftware(req, res, agentData);
@@ -1050,29 +1013,13 @@ app.get('/v1/agents/:agentId/software/authorized', async (req, res) => {
 });
 
 // ============================================================================
-// Get CIS Benchmarks for Agent
+// Get CIS Benchmarks for Agent - SECURED
 // GET /v1/agents/:agentId/cis/benchmarks
 // ============================================================================
-app.get('/v1/agents/:agentId/cis/benchmarks', async (req, res) => {
+app.get('/v1/agents/:agentId/cis/benchmarks', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-
-        if (!agentId) {
-            return res.status(400).json({ error: 'Agent ID is required' });
-        }
-
-        // Find agent across all organizations
-        const agentQuery = await db
-            .collectionGroup('agents')
-            .where('id', '==', agentId)
-            .limit(1)
-            .get();
-
-        if (agentQuery.empty) {
-            return res.status(404).json({ error: 'Agent not found' });
-        }
-
-        const agentData = agentQuery.docs[0].data();
+        const agentData = req.agentData;
 
         // Delegate to CIS benchmarks handler
         return await getCISBenchmarks(req, res, agentData);
