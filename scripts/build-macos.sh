@@ -111,6 +111,83 @@ cp -R "$APP_BUNDLE" "$DMG_TEMP/"
 # Create Applications symlink
 ln -s /Applications "$DMG_TEMP/Applications"
 
+# Create installer script (double-click to install)
+cat > "$DMG_TEMP/Installer.command" << 'INSTALLER_EOF'
+#!/bin/bash
+# Sentinel Agent Installer
+# Double-cliquez sur ce fichier pour installer l'application
+
+clear
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║           INSTALLATION DE SENTINEL AGENT                     ║"
+echo "║           Cyber Threat Consulting                            ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+
+# Get the directory where this script is located (the mounted DMG)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_NAME="Sentinel Agent.app"
+SOURCE_APP="$SCRIPT_DIR/$APP_NAME"
+DEST_APP="/Applications/$APP_NAME"
+
+# Check if source app exists
+if [ ! -d "$SOURCE_APP" ]; then
+    echo "❌ Erreur: Application non trouvée dans le DMG"
+    echo "   Chemin attendu: $SOURCE_APP"
+    echo ""
+    read -p "Appuyez sur Entrée pour fermer..."
+    exit 1
+fi
+
+echo "📦 Copie de l'application vers /Applications..."
+
+# Remove existing installation if present
+if [ -d "$DEST_APP" ]; then
+    echo "   ⚠️  Une version existante a été trouvée, suppression..."
+    rm -rf "$DEST_APP"
+fi
+
+# Copy app to Applications
+cp -R "$SOURCE_APP" "$DEST_APP"
+
+if [ $? -ne 0 ]; then
+    echo "❌ Erreur lors de la copie. Essayez avec les droits administrateur:"
+    echo "   sudo cp -R \"$SOURCE_APP\" \"$DEST_APP\""
+    echo ""
+    read -p "Appuyez sur Entrée pour fermer..."
+    exit 1
+fi
+
+echo "✅ Application copiée avec succès"
+echo ""
+
+echo "🔓 Suppression de la quarantaine macOS..."
+xattr -cr "$DEST_APP"
+echo "✅ Quarantaine supprimée"
+echo ""
+
+echo "═══════════════════════════════════════════════════════════════"
+echo "✅ INSTALLATION TERMINÉE !"
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "Vous pouvez maintenant:"
+echo "  1. Lancer Sentinel Agent depuis le Launchpad"
+echo "  2. Ou depuis /Applications/Sentinel Agent.app"
+echo ""
+
+read -p "Voulez-vous lancer l'application maintenant ? (o/n) " -n 1 -r
+echo ""
+if [[ $REPLY =~ ^[Oo]$ ]]; then
+    echo "🚀 Lancement de Sentinel Agent..."
+    open "$DEST_APP"
+fi
+
+echo ""
+echo "Vous pouvez éjecter le DMG et fermer cette fenêtre."
+echo ""
+INSTALLER_EOF
+chmod +x "$DMG_TEMP/Installer.command"
+
 # Create README
 cat > "$DMG_TEMP/LISEZ-MOI.txt" << EOF
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -118,13 +195,20 @@ cat > "$DMG_TEMP/LISEZ-MOI.txt" << EOF
 ║                     Cyber Threat Consulting                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-INSTALLATION
-============
+INSTALLATION (MÉTHODE RECOMMANDÉE)
+==================================
+1. Double-cliquez sur "Installer.command"
+2. Suivez les instructions à l'écran
+3. C'est tout ! L'application est prête à utiliser.
+
+INSTALLATION MANUELLE
+=====================
 1. Glissez "Sentinel Agent" vers le dossier "Applications"
-2. Lancez l'application depuis le Launchpad
-3. Si macOS affiche "endommagé" ou bloque l'app, exécutez dans Terminal :
+2. Ouvrez Terminal et exécutez :
    xattr -cr "/Applications/Sentinel Agent.app"
-4. Autorisez l'application si macOS le demande (Préférences Système > Sécurité)
+3. Lancez l'application depuis le Launchpad
+4. Si macOS demande une autorisation, allez dans :
+   Préférences Système > Sécurité > "Ouvrir quand même"
 
 FONCTIONNALITÉS
 ===============
