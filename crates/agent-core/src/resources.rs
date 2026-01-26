@@ -31,11 +31,12 @@ pub struct ResourceLimits {
 impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
-            max_cpu_idle: 0.5,
-            max_cpu_active: 5.0,
-            max_memory_bytes: 100 * 1024 * 1024, // 100 MB
-            max_disk_iops: 10,
-            max_startup_ms: 5000, // 5 seconds
+            // Realistic limits - 0.5% idle is too strict for any real-world process
+            max_cpu_idle: 3.0,      // 3% idle is reasonable
+            max_cpu_active: 15.0,   // 15% during active scans
+            max_memory_bytes: 150 * 1024 * 1024, // 150 MB
+            max_disk_iops: 50,
+            max_startup_ms: 10000, // 10 seconds
         }
     }
 }
@@ -78,6 +79,8 @@ pub struct ResourceMonitor {
     #[allow(dead_code)]
     last_cpu_time: AtomicU64,
     sample_count: AtomicU64,
+    /// Last time a warning was logged (for rate limiting).
+    last_warning_time: AtomicU64,
 }
 
 impl ResourceMonitor {
@@ -93,6 +96,7 @@ impl ResourceMonitor {
             start_time: Instant::now(),
             last_cpu_time: AtomicU64::new(0),
             sample_count: AtomicU64::new(0),
+            last_warning_time: AtomicU64::new(0),
         }
     }
 
@@ -135,28 +139,34 @@ impl ResourceMonitor {
     }
 
     /// Check if current usage is within limits.
+    /// Warnings are rate-limited to once per 60 seconds to avoid log spam.
     pub fn check_limits(&self, is_active: bool) -> bool {
         let usage = self.get_usage();
 
-        if is_active {
-            if !usage.is_within_active_limits(&self.limits) {
+        let within_limits = if is_active {
+            usage.is_within_active_limits(&self.limits)
+        } else {
+            usage.is_within_idle_limits(&self.limits)
+        };
+
+        if !within_limits {
+            // Rate-limit warnings to once per 60 seconds
+            let now_secs = self.start_time.elapsed().as_secs();
+            let last_warning = self.last_warning_time.load(Ordering::Relaxed);
+
+            if now_secs >= last_warning + 60 {
+                self.last_warning_time.store(now_secs, Ordering::Relaxed);
+                let state = if is_active { "active" } else { "idle" };
                 warn!(
-                    "Resource limits exceeded during active state: CPU={:.2}%, MEM={}MB",
+                    "Resource limits exceeded during {} state: CPU={:.2}%, MEM={}MB",
+                    state,
                     usage.cpu_percent,
                     usage.memory_bytes / (1024 * 1024)
                 );
-                return false;
             }
-        } else if !usage.is_within_idle_limits(&self.limits) {
-            warn!(
-                "Resource limits exceeded during idle state: CPU={:.2}%, MEM={}MB",
-                usage.cpu_percent,
-                usage.memory_bytes / (1024 * 1024)
-            );
-            return false;
         }
 
-        true
+        within_limits
     }
 
     /// Get the configured limits.
@@ -604,11 +614,11 @@ mod tests {
     #[test]
     fn test_resource_limits_default() {
         let limits = ResourceLimits::default();
-        assert!((limits.max_cpu_idle - 0.5).abs() < f64::EPSILON);
-        assert!((limits.max_cpu_active - 5.0).abs() < f64::EPSILON);
-        assert_eq!(limits.max_memory_bytes, 100 * 1024 * 1024);
-        assert_eq!(limits.max_disk_iops, 10);
-        assert_eq!(limits.max_startup_ms, 5000);
+        assert!((limits.max_cpu_idle - 3.0).abs() < f64::EPSILON);
+        assert!((limits.max_cpu_active - 15.0).abs() < f64::EPSILON);
+        assert_eq!(limits.max_memory_bytes, 150 * 1024 * 1024);
+        assert_eq!(limits.max_disk_iops, 50);
+        assert_eq!(limits.max_startup_ms, 10000);
     }
 
     #[test]
@@ -627,7 +637,7 @@ mod tests {
     fn test_resource_usage_exceeds_idle_limits() {
         let limits = ResourceLimits::default();
         let usage = ResourceUsage {
-            cpu_percent: 1.0, // Exceeds 0.5%
+            cpu_percent: 5.0, // Exceeds 3%
             memory_bytes: 50 * 1024 * 1024,
             disk_iops: 5,
             uptime_ms: 1000,
