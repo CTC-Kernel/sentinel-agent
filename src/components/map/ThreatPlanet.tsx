@@ -5,6 +5,22 @@ import { AlertTriangle } from '../ui/Icons';
 import * as THREE from 'three';
 import { EarthCountries } from './EarthCountries';
 
+// --- THEME CONSTANTS (Tailwind Mapped) ---
+// Extracted to avoid hardcoded magic strings and align with design system
+const THEME = {
+    colors: {
+        slate950: '#020617', // bg-slate-950
+        slate900: '#0f172a', // bg-slate-900
+        slate500: '#64748b', // text-slate-500
+        blue900: '#1e3a8a',  // blue-900 (emissive)
+        sky500: '#0ea5e9',   // sky-500 (grid)
+        sky400: '#38bdf8',   // sky-400 (glow)
+        purple400: '#c084fc', // purple-400 (light)
+        red500: '#ef4444',   // red-500 (critical)
+        orange500: '#f97316' // orange-500 (warning)
+    }
+};
+
 interface ThreatData {
     country: string;
     value: number;
@@ -25,8 +41,7 @@ const latLonToVector3 = (lat: number, lon: number, radius: number): THREE.Vector
     return new THREE.Vector3(x, y, z);
 };
 
-
-// Optimized Marker Component (No useFrame)
+// Optimized Marker Component
 const ThreatMarker = React.memo(({ position, name, intensity, country, type, severity, markerRef, beamRef }: {
     position: THREE.Vector3;
     name: string;
@@ -40,11 +55,11 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
     const [hovered, setHovered] = useState(false);
 
     const isHigh = intensity > 5 || severity === 'Critical';
-    const color = isHigh ? "#ef4444" : "#f97316";
+    const color = isHigh ? THEME.colors.red500 : THEME.colors.orange500;
     const beamHeight = 0.5 + (intensity / 10) * 2.5;
 
     // Orient group to face center (so Y axis points OUT)
-    const lookAtPos = new THREE.Vector3(0, 0, 0);
+    const lookAtPos = useMemo(() => new THREE.Vector3(0, 0, 0), []);
 
     return (
         <group position={position} lookAt={lookAtPos}>
@@ -70,10 +85,13 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
                 <meshBasicMaterial color={color} transparent opacity={0.6} blending={THREE.AdditiveBlending} />
             </mesh>
 
-            {/* Tooltip */}
+            {/* Tooltip - Managed via Html */}
             {hovered && (
                 <Html distanceFactor={10} zIndexRange={[100, 0]}>
-                    <div className="bg-slate-900/95 text-white min-w-[240px] p-3 rounded-xl border border-white/10 shadow-2xl backdrop-blur-xl select-none pointer-events-none transform -translate-x-1/2 -translate-y-[120%] mb-2">
+                    <div
+                        role="tooltip"
+                        className="bg-slate-900/95 text-white min-w-[240px] p-3 rounded-xl border border-white/10 shadow-2xl backdrop-blur-xl select-none pointer-events-none transform -translate-x-1/2 -translate-y-[120%] mb-2"
+                    >
                         {/* Header */}
                         <div className="flex justify-between items-start mb-2 pb-2 border-b border-white/10">
                             <div className="font-bold text-sm tracking-wide">{country}</div>
@@ -113,7 +131,11 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
             )}
 
             {/* Hitbox */}
-            <mesh onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }} onPointerOut={(e) => { e.stopPropagation(); setHovered(false); }} visible={false}>
+            <mesh
+                onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
+                onPointerOut={(e) => { e.stopPropagation(); setHovered(false); }}
+                visible={false}
+            >
                 <sphereGeometry args={[0.3, 8, 8]} />
             </mesh>
         </group>
@@ -148,34 +170,41 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             groupRef.current.rotation.y += 0.0005;
         }
 
-        // Animate all markers in one loop
-        markerRefs.current.forEach((ref) => {
-            if (ref && ref.mesh) {
-                const scale = 1 + Math.sin(t * 3) * 0.3;
+        // Optimized Animation Loop:
+        // Use for-loop instead of forEach for better performance with large arrays in render loop
+        const refs = markerRefs.current;
+        for (let i = 0; i < refs.length; i++) {
+            const ref = refs[i];
+            if (!ref) continue;
+
+            const sineWave = Math.sin(t * 3);
+
+            if (ref.mesh) {
+                const scale = 1 + sineWave * 0.3;
                 ref.mesh.scale.setScalar(scale);
             }
-            if (ref && ref.beam) {
+            if (ref.beam) {
                 // Pulse beam height and opacity
                 ref.beam.scale.y = 1 + Math.sin(t * 2 + ref.position.x) * 0.2;
                 if (ref.beam.material instanceof THREE.MeshBasicMaterial) {
                     ref.beam.material.opacity = 0.5 + Math.sin(t * 4) * 0.2;
                 }
             }
-        });
+        }
     });
 
     return (
         <group ref={groupRef}>
             {/* Core black void sphere to block background */}
             <Sphere args={[2, 64, 64]}>
-                <meshBasicMaterial color="#020617" />
+                <meshBasicMaterial color={THEME.colors.slate950} />
             </Sphere>
 
             {/* Earth Surface Texture/Mesh */}
             <Sphere args={[2.01, 64, 64]}>
                 <meshStandardMaterial
-                    color="#0f172a" // Slate-900
-                    emissive="#1e3a8a" // Blue-900 glow
+                    color={THEME.colors.slate900}
+                    emissive={THEME.colors.blue900}
                     emissiveIntensity={0.2}
                     roughness={0.7}
                     metalness={0.6}
@@ -185,7 +214,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             {/* Wireframe / Grid Layer */}
             <Sphere args={[2.02, 32, 32]}>
                 <meshBasicMaterial
-                    color="#0ea5e9" // Sky-500
+                    color={THEME.colors.sky500}
                     wireframe
                     transparent
                     opacity={0.15}
@@ -194,12 +223,12 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             </Sphere>
 
             {/* Country Borders */}
-            <EarthCountries color="#38bdf8" />
+            <EarthCountries color={THEME.colors.sky400} />
 
             {/* Atmosphere Glow Halo */}
             <Sphere args={[2.2, 64, 64]}>
                 <meshBasicMaterial
-                    color="#38bdf8" // Sky-400
+                    color={THEME.colors.sky400}
                     transparent
                     opacity={0.05}
                     side={THREE.BackSide}
@@ -235,11 +264,15 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
 
 export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
     return (
-        <div className="w-full h-full bg-slate-950 rounded-5xl overflow-hidden relative isolate">
+        <div
+            className="w-full h-full bg-slate-950 rounded-5xl overflow-hidden relative isolate"
+            role="region"
+            aria-label="Interactive 3D Threat Map"
+        >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950/80 to-slate-950 z-0 pointer-events-none" />
 
             {/* HUD Overlay */}
-            <div className="absolute top-6 left-8 z-10 pointer-events-none">
+            <div className="absolute top-6 left-8 z-10 pointer-events-none" aria-hidden="true">
                 <div className="text-cyan-500 text-xs font-mono mb-1 tracking-widest">SYSTEM STATUS</div>
                 <div className="text-white text-xl font-bold tracking-tighter flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -247,10 +280,10 @@ export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
                 </div>
             </div>
 
-            <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
+            <Canvas camera={{ position: [0, 0, 7], fov: 45 }} aria-label="3D Globe showing active cyber threats">
                 <ambientLight intensity={0.2} />
-                <pointLight position={[15, 15, 15]} intensity={1} color="#38bdf8" />
-                <pointLight position={[-10, -10, -5]} intensity={0.5} color="#c084fc" />
+                <pointLight position={[15, 15, 15]} intensity={1} color={THEME.colors.sky400} />
+                <pointLight position={[-10, -10, -5]} intensity={0.5} color={THEME.colors.purple400} />
 
                 <Stars radius={150} depth={50} count={3000} factor={4} saturation={0} fade speed={0.5} />
 
@@ -258,7 +291,7 @@ export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
                 <OrbitControls enablePan={false} minDistance={4} maxDistance={10} enableZoom={true} />
             </Canvas>
 
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-slate-500 font-mono pointer-events-none flex gap-4">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-slate-500 font-mono pointer-events-none flex gap-4" aria-hidden="true">
                 <span>ROTATION: AUTO</span>
                 <span>GRID: ACTIVE</span>
                 <span>THREATS: {data.reduce((acc, curr) => acc + curr.markers.length, 0)} DETECTED</span>

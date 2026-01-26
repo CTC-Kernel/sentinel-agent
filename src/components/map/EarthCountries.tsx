@@ -21,7 +21,7 @@ interface GeoJsonData {
     features: GeoJsonFeature[];
 }
 
-export const EarthCountries: React.FC<EarthCountriesProps> = ({ color = '#38bdf8' }) => {
+export const EarthCountries: React.FC<EarthCountriesProps> = ({ color = '#38bdf8' /* sky-400 */ }) => {
     const [geoJson, setGeoJson] = useState<GeoJsonData | null>(null);
 
     useEffect(() => {

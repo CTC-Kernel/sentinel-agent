@@ -6,8 +6,8 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { Document, UserProfile } from '../types';
 import { getUserAvatarUrl } from '../utils/avatarUtils';
 import { canEditResource } from '../utils/permissions';
-import { Plus, MoreVertical, FileText, Upload, FileSpreadsheet, LayoutDashboard, FolderOpen } from '../components/ui/Icons';
-import { CardSkeleton, ListSkeleton } from '../components/ui/Skeleton';
+import { Plus, MoreVertical, FileText, Upload, FileSpreadsheet, LayoutDashboard, FolderOpen, Lock } from '../components/ui/Icons';
+import { Skeleton, ListSkeleton } from '../components/ui/Skeleton';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -40,6 +40,34 @@ import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { Menu, Transition } from '@headlessui/react';
 import { OnboardingService } from '../services/onboardingService';
+
+// --- Premium Skeleton (Matches Card Layout) ---
+const DocumentCardSkeleton = () => (
+    <div className="glass-premium p-5 rounded-3xl border border-white/5 flex flex-col gap-4 relative overflow-hidden">
+        <div className="flex-1 space-y-3">
+            <Skeleton className="h-5 w-3/4 rounded-md" />
+            <div className="flex items-center gap-2 mt-2">
+                <Skeleton className="h-3 w-12 rounded" />
+                <span className="text-slate-200">.</span>
+                <Skeleton className="h-3 w-8 rounded" />
+                <span className="text-slate-200">.</span>
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <Skeleton className="h-3 w-24 rounded" />
+            </div>
+        </div>
+        <div className="shrink-0 flex items-center">
+            <Skeleton className="h-7 w-24 rounded-2xl" />
+        </div>
+    </div>
+);
+
+const DocumentGridSkeleton = ({ count = 6 }) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {Array.from({ length: count }).map((_, i) => (
+            <DocumentCardSkeleton key={i} />
+        ))}
+    </div>
+);
 
 export const Documents: React.FC = () => {
     const { user, t } = useStore();
@@ -383,158 +411,164 @@ export const Documents: React.FC = () => {
                         exit="exit"
                     >
                         <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
-                        {/* Folder Tree Sidebar */}
-                        <div className="w-full lg:w-72 flex-shrink-0 glass-premium rounded-3xl border border-border/50 shadow-apple-sm overflow-hidden flex flex-col min-w-0">
-                            <FolderTree
-                                folders={folders}
-                                selectedFolderId={selectedFolderId}
-                                onSelectFolder={setSelectedFolderId}
-                                onCreateFolder={handleCreateFolder}
-                                onUpdateFolder={handleUpdateFolder}
-                                onDeleteFolder={handleDeleteFolderClick}
-                            />
-                        </div>
-
-                        {/* Main Content Area */}
-                        <div className="flex-1 min-w-0 flex flex-col gap-6 overflow-hidden">
-                            <div className="mb-6">
-                                <PremiumPageControl
-                                    onViewModeChange={setViewMode}
-                                    searchQuery={filter}
-                                    onSearchChange={setFilter}
-                                    actions={
-                                        <div className="flex items-center gap-2">
-                                            {/* Secondary Actions Menu */}
-                                            <Menu as="div" className="relative inline-block text-left">
-                                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                                    <MoreVertical className="h-5 w-5" />
-                                                </Menu.Button>
-                                                <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                                        <div className="p-1">
-                                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.actions.title')}</div>
-                                                            <Menu.Item>
-                                                                {({ active }) => (
-                                                                    <button aria-label={t('documents.newDocument')} onClick={handleCreateClick} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm md:hidden`}>
-                                                                        <Plus className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('documents.newDocument')}
-                                                                    </button>
-                                                                )}
-                                                            </Menu.Item>
-                                                            <Menu.Item>
-                                                                {({ active }) => (
-                                                                    <button
-                                                                        aria-label={t('documents.exportCsv')}
-                                                                        onClick={handleExportClick}
-                                                                        disabled={isExportingCSV}
-                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 disabled:cursor-wait`}
-                                                                    >
-                                                                        <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'} ${isExportingCSV ? 'animate-pulse' : ''}`} />
-                                                                        {isExportingCSV ? 'Export...' : t('documents.exportCsv')}
-                                                                    </button>
-                                                                )}
-                                                            </Menu.Item>
-                                                            <Menu.Item>
-                                                                {({ active }) => (
-                                                                    <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                                        <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
-                                                                    </button>
-                                                                )}
-                                                            </Menu.Item>
-                                                        </div>
-                                                    </Menu.Items>
-                                                </Transition>
-                                            </Menu>
-
-                                            {canCreate && (
-                                                <>
-                                                    <CustomTooltip content="Créer depuis un modèle">
-                                                        <Button
-                                                            aria-label="Créer depuis un modèle"
-                                                            onClick={handleOpenTemplateModal}
-                                                            variant="outline"
-                                                            className="gap-2"
-                                                        >
-                                                            <FileText className="h-4 w-4" />
-                                                            Modèles
-                                                        </Button>
-                                                    </CustomTooltip>
-                                                    <CustomTooltip content={t('documents.newDocument')}>
-                                                        <Button
-                                                            aria-label={t('documents.newDocument')}
-                                                            onClick={handleCreateClick}
-                                                            className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
-                                                        >
-                                                            <Plus className="h-4 w-4" />
-                                                            {t('documents.newDocument')}
-                                                        </Button>
-                                                    </CustomTooltip>
-                                                </>
-                                            )}
-                                        </div>
-                                    }
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <label className="flex items-center gap-2 cursor-pointer bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-transparent hover:border-brand-200 transition-all">
-                                            <input checked={isDigitalSafeMode} onChange={handleDigitalSafeToggle}
-                                                aria-label={t('documents.digitalSafe')}
-                                                type="checkbox"
-                                                className="rounded text-brand-600 focus-visible:ring-brand-500"
-                                            />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">{t('documents.digitalSafe')}</span>
-                                        </label>
-
-                                        <select
-                                            value={categoryFilter}
-                                            onChange={handleCategoryChange}
-                                            className="bg-slate-100 dark:bg-white/5 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus-visible:ring-brand-500"
-                                        >
-                                            <option value="all">{t('documents.allCategories')}</option>
-                                            <option value="Politique">{t('documents.category.policy')}</option>
-                                            <option value="Procédure">{t('documents.category.procedure')}</option>
-                                            <option value="Preuve">{t('documents.category.evidence')}</option>
-                                            <option value="Contrat">{t('documents.category.contract')}</option>
-                                        </select>
-                                    </div>
-                                </PremiumPageControl>
+                            {/* Folder Tree Sidebar */}
+                            <div className="w-full lg:w-72 flex-shrink-0 glass-premium rounded-3xl border border-border/50 shadow-apple-sm overflow-hidden flex flex-col min-w-0">
+                                <FolderTree
+                                    folders={folders}
+                                    selectedFolderId={selectedFolderId}
+                                    onSelectFolder={setSelectedFolderId}
+                                    onCreateFolder={handleCreateFolder}
+                                    onUpdateFolder={handleUpdateFolder}
+                                    onDeleteFolder={handleDeleteFolderClick}
+                                />
                             </div>
 
-                            {loading ? (
-                                viewMode === 'list' ? (
-                                    <ListSkeleton items={6} />
+                            {/* Main Content Area */}
+                            <div className="flex-1 min-w-0 flex flex-col gap-6 overflow-hidden">
+                                <div className="mb-6">
+                                    <PremiumPageControl
+                                        onViewModeChange={setViewMode}
+                                        searchQuery={filter}
+                                        onSearchChange={setFilter}
+                                        actions={
+                                            <div className="flex items-center gap-2">
+                                                {/* Secondary Actions Menu */}
+                                                <Menu as="div" className="relative inline-block text-left">
+                                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                        <MoreVertical className="h-5 w-5" />
+                                                    </Menu.Button>
+                                                    <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                            <div className="p-1">
+                                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.actions.title')}</div>
+                                                                <Menu.Item>
+                                                                    {({ active }) => (
+                                                                        <button aria-label={t('documents.newDocument')} onClick={handleCreateClick} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm md:hidden`}>
+                                                                            <Plus className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('documents.newDocument')}
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                                <Menu.Item>
+                                                                    {({ active }) => (
+                                                                        <button
+                                                                            aria-label={t('documents.exportCsv')}
+                                                                            onClick={handleExportClick}
+                                                                            disabled={isExportingCSV}
+                                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 disabled:cursor-wait`}
+                                                                        >
+                                                                            <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'} ${isExportingCSV ? 'animate-pulse' : ''}`} />
+                                                                            {isExportingCSV ? 'Export...' : t('documents.exportCsv')}
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                                <Menu.Item>
+                                                                    {({ active }) => (
+                                                                        <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                                            <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                            </div>
+                                                        </Menu.Items>
+                                                    </Transition>
+                                                </Menu>
+
+                                                {canCreate && (
+                                                    <>
+                                                        <CustomTooltip content="Créer depuis un modèle">
+                                                            <Button
+                                                                aria-label="Créer depuis un modèle"
+                                                                onClick={handleOpenTemplateModal}
+                                                                variant="outline"
+                                                                className="gap-2"
+                                                            >
+                                                                <FileText className="h-4 w-4" />
+                                                                Modèles
+                                                            </Button>
+                                                        </CustomTooltip>
+                                                        <CustomTooltip content={t('documents.newDocument')}>
+                                                            <Button
+                                                                aria-label={t('documents.newDocument')}
+                                                                onClick={handleCreateClick}
+                                                                className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+                                                            >
+                                                                <Plus className="h-4 w-4" />
+                                                                {t('documents.newDocument')}
+                                                            </Button>
+                                                        </CustomTooltip>
+                                                    </>
+                                                )}
+                                            </div>
+                                        }
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant={isDigitalSafeMode ? "default" : "outline"}
+                                                onClick={handleDigitalSafeToggle}
+                                                aria-label={t('documents.digitalSafe')}
+                                                aria-pressed={isDigitalSafeMode}
+                                                className={`gap-2 transition-all ${isDigitalSafeMode
+                                                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 border-indigo-500'
+                                                    : 'text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 border-slate-200 dark:border-white/10'
+                                                    }`}
+                                            >
+                                                <Lock className={`w-4 h-4 ${isDigitalSafeMode ? 'text-white' : 'text-current'}`} />
+                                                <span className="text-sm font-medium hidden sm:inline">{t('documents.digitalSafe')}</span>
+                                            </Button>
+
+                                            <select
+                                                value={categoryFilter}
+                                                onChange={handleCategoryChange}
+                                                className="bg-slate-100 dark:bg-white/5 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus-visible:ring-brand-500"
+                                                aria-label={t('documents.category.filter')}
+                                            >
+                                                <option value="all">{t('documents.allCategories')}</option>
+                                                <option value="Politique">{t('documents.category.policy')}</option>
+                                                <option value="Procédure">{t('documents.category.procedure')}</option>
+                                                <option value="Preuve">{t('documents.category.evidence')}</option>
+                                                <option value="Contrat">{t('documents.category.contract')}</option>
+                                            </select>
+                                        </div>
+                                    </PremiumPageControl>
+                                </div>
+
+                                {loading ? (
+                                    viewMode === 'list' ? (
+                                        <ListSkeleton items={6} />
+                                    ) : (
+                                        <DocumentGridSkeleton count={6} />
+                                    )
+                                ) : filteredDocuments.length === 0 ? (
+                                    <EmptyState
+                                        icon={FileText}
+                                        title={t('documents.emptyTitle')}
+                                        description={t('documents.emptyDesc')}
+                                        actionLabel={t('documents.newDocument')}
+                                        onAction={canCreate ? handleCreateClick : undefined}
+                                    />
                                 ) : (
-                                    <CardSkeleton count={6} />
-                                )
-                            ) : filteredDocuments.length === 0 ? (
-                                <EmptyState
-                                    icon={FileText}
-                                    title={t('documents.emptyTitle')}
-                                    description={t('documents.emptyDesc')}
-                                    actionLabel={t('documents.newDocument')}
-                                    onAction={canCreate ? handleCreateClick : undefined}
-                                />
-                            ) : (
-                                <div
-                                    className={`
+                                    <div
+                                        className={`
                                 grid gap-6 
                                 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : ''}
                                 ${viewMode === 'list' ? 'grid-cols-1' : ''}
                             `}
-                                >
-                                    {filteredDocuments.map(doc => (
-                                        <MemoizedDocumentCard
-                                            key={doc.id}
-                                            doc={doc}
-                                            viewMode={viewMode}
-                                            onSelect={setSelectedDocument}
-                                            users={effectiveUsers}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                                    >
+                                        {filteredDocuments.map(doc => (
+                                            <MemoizedDocumentCard
+                                                key={doc.id}
+                                                doc={doc}
+                                                viewMode={viewMode}
+                                                onSelect={setSelectedDocument}
+                                                users={effectiveUsers}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
-            )}
+                    </motion.div>
+                )}
             </AnimatePresence>
 
             {/* Document Details Drawer (Inspector) */}
