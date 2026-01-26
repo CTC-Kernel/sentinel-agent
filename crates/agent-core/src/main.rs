@@ -507,9 +507,8 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
 
         // Use WaitUntil with 1 second interval to check shutdown periodically
         // This keeps CPU near 0% while still responding to Ctrl+C within 1s
-        *control_flow = ControlFlow::WaitUntil(
-            std::time::Instant::now() + std::time::Duration::from_secs(1)
-        );
+        *control_flow =
+            ControlFlow::WaitUntil(std::time::Instant::now() + std::time::Duration::from_secs(1));
     })
 }
 
