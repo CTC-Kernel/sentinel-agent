@@ -366,7 +366,7 @@ mod tests {
         let config = AgentConfig::default();
         assert_eq!(
             config.server_url,
-            "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net"
+            "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi"
         );
         assert_eq!(config.check_interval_secs, 3600);
         assert_eq!(config.offline_mode_days, 7);
@@ -526,7 +526,9 @@ mod tests {
         let path = AgentConfig::platform_data_dir();
         #[cfg(windows)]
         assert!(path.to_string_lossy().contains("ProgramData"));
-        #[cfg(not(windows))]
+        #[cfg(target_os = "macos")]
+        assert!(path.to_string_lossy().contains("Sentinel"));
+        #[cfg(all(not(windows), not(target_os = "macos")))]
         assert!(path.to_string_lossy().contains("/var/lib"));
     }
 
@@ -614,7 +616,7 @@ mod tests {
         let config = result.unwrap();
         assert_eq!(
             config.server_url,
-            "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net"
+            "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi"
         );
     }
 
