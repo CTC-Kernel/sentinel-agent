@@ -217,6 +217,30 @@ pub struct HeartbeatRequest {
     /// Self-check result (first heartbeat after startup).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub self_check_result: Option<SelfCheckResult>,
+
+    /// Memory usage percentage.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memory_percent: Option<f32>,
+
+    /// Total memory in bytes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memory_total_bytes: Option<u64>,
+
+    /// Disk usage percentage.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disk_percent: Option<f32>,
+
+    /// Disk used bytes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disk_used_bytes: Option<u64>,
+
+    /// Disk total bytes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disk_total_bytes: Option<u64>,
+
+    /// System uptime in seconds.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uptime_seconds: Option<u64>,
 }
 
 /// Self-check result sent in first heartbeat.
