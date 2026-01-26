@@ -88,8 +88,6 @@ interface ReleaseInfo {
 }
 
 // Download API base URL
-const RELEASE_API_URL = 'https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/downloadRelease';
-
 // Agent Status Colors
 const AGENT_STATUS_COLORS = {
     active: SENTINEL_PALETTE.success,
@@ -155,7 +153,18 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
 );
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true, loading = false }) => {
-    const downloadUrl = `${RELEASE_API_URL}/agent/${platform}/latest`;
+    // Use local static files instead of cloud function
+    const getDownloadUrl = (platform: string) => {
+        // Map platform to filenames found in public/downloads/agents/
+        switch (platform) {
+            case 'windows': return '/downloads/agents/SentinelAgent-Windows-1.0.0.zip'; // Using zip as installer
+            case 'macos': return '/downloads/agents/SentinelAgent-macOS-1.0.1.zip';
+            // Fallback or placeholders for others until files exist
+            default: return '#';
+        }
+    };
+
+    const downloadUrl = getDownloadUrl(platform);
 
     const content = (
         <>
@@ -421,11 +430,11 @@ export const AgentManagement: React.FC = () => {
                     releaseDate: undefined,
                     changelogUrl: 'https://github.com/sentinel/agent/releases',
                     platforms: {
-                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: '#', directUrl: null },
-                        macos: { displayName: 'macOS (DMG)', available: true, downloadUrl: '#', directUrl: null },
-                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: '#', directUrl: null },
-                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: '#', directUrl: null },
-                        linux_appimage: { displayName: 'Linux (AppImage)', available: true, downloadUrl: '#', directUrl: null },
+                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Windows-1.0.0.zip', directUrl: null },
+                        macos: { displayName: 'macOS (DMG)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-macOS-1.0.1.zip', directUrl: null },
+                        linux_deb: { displayName: 'Linux (DEB)', available: false, downloadUrl: '#', directUrl: null },
+                        linux_rpm: { displayName: 'Linux (RPM)', available: false, downloadUrl: '#', directUrl: null },
+                        linux_appimage: { displayName: 'Linux (AppImage)', available: false, downloadUrl: '#', directUrl: null },
                     },
                     mobile: {
                         ios: { available: true, appStoreUrl: '#', comingSoon: true },

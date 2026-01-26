@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Controller, FieldErrors } from 'react-hook-form';
 import { useZodForm } from '../../hooks/useZodForm';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -39,6 +40,7 @@ interface AssetFormProps {
     isEditing?: boolean;
     isLoading?: boolean;
     readOnly?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const AssetForm: React.FC<AssetFormProps> = ({
@@ -49,43 +51,46 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     suppliers,
     isEditing = false,
     isLoading = false,
-    readOnly = false
+    readOnly = false,
+    onDirtyChange
 }) => {
-    const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useZodForm<typeof assetSchema>({
-        schema: assetSchema,
-        mode: 'onChange', // Changed to onChange for immediate feedback
-        shouldUnregister: true,
-        defaultValues: {
-            name: '',
-            type: 'Matériel',
-            owner: '',
-            confidentiality: Criticality.LOW,
-            integrity: Criticality.LOW,
-            availability: Criticality.LOW,
-            location: '',
-            purchaseDate: '',
-            purchasePrice: 0,
-            warrantyEnd: '',
-            lifecycleStatus: 'Neuf',
-            scope: [],
-            supplierId: '',
-            ipAddress: '',
-            version: '',
-            licenseExpiry: '',
-            email: '',
-            role: '',
-            department: '',
-            // Service details
-            serviceDetails: { providerUrl: '', sla: '', supportContact: '', hostingLocation: '' },
-            // Data details
-            dataDetails: {
-                format: 'Numérique',
-                retentionPeriod: '',
-                hasWorm: false,
-                isEncrypted: false,
-                dataCategory: 'Financier'
-            }
+    const defaultValues: Partial<AssetFormData> = {
+        name: '',
+        type: 'Matériel',
+        owner: '',
+        confidentiality: Criticality.LOW,
+        integrity: Criticality.LOW,
+        availability: Criticality.LOW,
+        location: '',
+        purchaseDate: '',
+        purchasePrice: 0,
+        warrantyEnd: '',
+        lifecycleStatus: 'Neuf',
+        scope: [],
+        supplierId: '',
+        ipAddress: '',
+        version: '',
+        licenseExpiry: '',
+        email: '',
+        role: '',
+        department: '',
+        // Service details
+        serviceDetails: { providerUrl: '', sla: '', supportContact: '', hostingLocation: '' },
+        // Data details
+        dataDetails: {
+            format: 'Numérique',
+            retentionPeriod: '',
+            hasWorm: false,
+            isEncrypted: false,
+            dataCategory: 'Financier'
         }
+    };
+
+    const { control, handleSubmit, reset, formState: { errors, isDirty }, setValue, watch, getValues, register } = useZodForm<typeof assetSchema>({
+        schema: assetSchema,
+        mode: 'onChange',
+        shouldUnregister: true,
+        defaultValues: defaultValues as any
     });
 
     const onInvalid = (errors: FieldErrors<AssetFormData>) => {
@@ -122,6 +127,37 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             });
         }
     }, [initialData, reset]);
+
+    // Use standardized persistence hook
+    const { clearDraft } = useFormPersistence('sentinel_asset_draft_new', {
+        watch,
+        reset,
+        getValues,
+        setValue,
+        register,
+        control,
+        errorMessage: '', // Mocking missing props for TS satisfaction if needed, though simpler is better
+        handleSubmit: () => Promise.resolve(),
+        formState: {} as any,
+        setError: () => { },
+        clearErrors: () => { },
+        getFieldState: () => ({} as any),
+        trigger: () => Promise.resolve(true),
+        unregister: () => { },
+    } as any, { // Casting to avoid complex mocking of UseFormReturn
+        enabled: !isEditing && !initialData
+    });
+
+    const handleFormSubmit = async (data: AssetFormData) => {
+        await onSubmit(data);
+        // Clear draft on success
+        clearDraft();
+    };
+
+    // Propagate dirty state
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Accessibility: Handle Escape key to close modal
     useEffect(() => {
@@ -233,7 +269,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         <form
             onSubmit={(e) => {
                 e.preventDefault();
-                handleSubmit(onSubmit, onInvalid)(e);
+                handleSubmit(handleFormSubmit, onInvalid)(e);
             }}
             className="space-y-8 p-4 sm:p-6"
         >

@@ -92,6 +92,8 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     // Agent Download Modal State
     const [showAgentModal, setShowAgentModal] = React.useState(false);
     const [createdAssetName, setCreatedAssetName] = React.useState<string>('');
+    const [isFormDirty, setIsFormDirty] = React.useState(false);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     // Use standardized Inspector hook
     const {
@@ -105,25 +107,38 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         moduleName: 'Asset',
         actions: {
             onUpdate: async (id, data) => {
-                const result = await onUpdate(id, data as AssetFormData);
-                return result;
+                setIsSubmitting(true);
+                try {
+                    const result = await onUpdate(id, data as AssetFormData);
+                    if (result) setIsFormDirty(false);
+                    return result;
+                } finally {
+                    setIsSubmitting(false);
+                }
             },
             onCreate: async (data) => {
+                setIsSubmitting(true);
                 const formData = data as AssetFormData;
-                const result = await onCreate(formData);
+                try {
+                    const result = await onCreate(formData);
 
-                if (result === true || typeof result === 'string') {
-                    // Check if IT Asset to propose agent
-                    if (formData.type === 'Matériel') {
-                        setCreatedAssetName(formData.name);
-                        setShowAgentModal(true);
-                        // Do NOT close inspector immediately to allow modal to show
-                        // Inspector will be closed when user dismisses modal or downloads
-                    } else {
-                        onClose();
+                    if (result === true || typeof result === 'string') {
+                        setIsFormDirty(false);
+                        // Check if IT Asset to propose agent
+                        // Check if IT Asset to propose agent
+                        if (formData.type === 'Matériel') {
+                            setCreatedAssetName(formData.name);
+                            setShowAgentModal(true);
+                            // Do NOT close inspector immediately to allow modal to show
+                            // Inspector will be closed when user dismisses modal or downloads
+                        } else {
+                            onClose();
+                        }
                     }
+                    return result;
+                } finally {
+                    setIsSubmitting(false);
                 }
-                return result;
             },
             onDelete: async (id, name) => onDelete(id, name)
         },
@@ -131,8 +146,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     });
 
     const handleDownloadAgent = () => {
-        // Mock download logic - eventually point to real binary
-        window.open('https://github.com/sentinel-cornery/sentinel-agent/releases/latest', '_blank');
+        // Now handled inside the modal for simulation, but we ensure state is cleared
         setShowAgentModal(false);
         onClose();
     };
@@ -221,6 +235,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            hasUnsavedChanges={isFormDirty}
         >
 
             <AgentDownloadModal
@@ -247,6 +262,8 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             isEditing={!!selectedAsset}
                             onCancel={onClose}
                             readOnly={!canEdit}
+                            onDirtyChange={setIsFormDirty}
+                            isLoading={isSubmitting}
                         />
 
                     </div>

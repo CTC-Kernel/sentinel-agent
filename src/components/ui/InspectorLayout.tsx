@@ -29,6 +29,7 @@ interface InspectorLayoutProps {
     footer?: React.ReactNode;
     disableContentPadding?: boolean;
     disableContentScroll?: boolean;
+    hasUnsavedChanges?: boolean;
 }
 
 export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
@@ -49,7 +50,8 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
     disableFocusTrap = true,
     footer,
     disableContentPadding = false,
-    disableContentScroll = false
+    disableContentScroll = false,
+    hasUnsavedChanges = false // Default to false
 }) => {
     return (
         <Drawer
@@ -58,7 +60,8 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             width={width}
             breadcrumbs={breadcrumbs}
             disableFocusTrap={disableFocusTrap}
-            disableScroll={true} // Always let InspectorLayout manage the scroll structure
+            disableScroll={true}
+            hasUnsavedChanges={hasUnsavedChanges}
             title={
                 <div className="flex items-center gap-3 relative z-10">
                     {Icon && (
