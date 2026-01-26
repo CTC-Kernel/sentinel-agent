@@ -14,6 +14,13 @@ const admin = require('firebase-admin');
 // Import vulnerability and incident handlers
 const { uploadVulnerabilities } = require('./vulnerabilities');
 const { reportIncident } = require('./incidents');
+// Import software inventory and CIS handlers
+const {
+    uploadSoftwareInventory,
+    uploadCISResults,
+    getAuthorizedSoftware,
+    getCISBenchmarks,
+} = require('./software');
 
 const db = admin.firestore();
 
@@ -937,6 +944,140 @@ app.post('/v1/agents/:agentId/network/alerts', async (req, res) => {
         });
     } catch (error) {
         logger.error('Network alert upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Agent Software Inventory Upload
+// POST /v1/agents/:agentId/software
+// ============================================================================
+app.post('/v1/agents/:agentId/software', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+
+        // Delegate to software handler
+        return await uploadSoftwareInventory(req, res, agentId, agentDoc, agentData);
+    } catch (error) {
+        logger.error('Software inventory upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Agent CIS Benchmark Results Upload
+// POST /v1/agents/:agentId/cis
+// ============================================================================
+app.post('/v1/agents/:agentId/cis', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+
+        // Delegate to CIS handler
+        return await uploadCISResults(req, res, agentId, agentDoc, agentData);
+    } catch (error) {
+        logger.error('CIS results upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Get Authorized Software List
+// GET /v1/agents/:agentId/software/authorized
+// ============================================================================
+app.get('/v1/agents/:agentId/software/authorized', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentData = agentQuery.docs[0].data();
+
+        // Delegate to authorized software handler
+        return await getAuthorizedSoftware(req, res, agentData);
+    } catch (error) {
+        logger.error('Get authorized software error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Get CIS Benchmarks for Agent
+// GET /v1/agents/:agentId/cis/benchmarks
+// ============================================================================
+app.get('/v1/agents/:agentId/cis/benchmarks', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentData = agentQuery.docs[0].data();
+
+        // Delegate to CIS benchmarks handler
+        return await getCISBenchmarks(req, res, agentData);
+    } catch (error) {
+        logger.error('Get CIS benchmarks error:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });

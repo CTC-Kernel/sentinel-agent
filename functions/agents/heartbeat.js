@@ -119,9 +119,61 @@ exports.agentHeartbeat = onRequest(
       if (self_check_result) {
         updateData.selfCheckResult = self_check_result;
       }
+      // Extended metrics
+      if (typeof req.body.memory_percent === 'number') {
+        updateData.memoryPercent = req.body.memory_percent;
+      }
+      if (typeof req.body.memory_total_bytes === 'number') {
+        updateData.memoryTotalBytes = req.body.memory_total_bytes;
+      }
+      if (typeof req.body.disk_percent === 'number') {
+        updateData.diskPercent = req.body.disk_percent;
+      }
+      if (typeof req.body.disk_used_bytes === 'number') {
+        updateData.diskUsedBytes = req.body.disk_used_bytes;
+      }
+      if (typeof req.body.disk_total_bytes === 'number') {
+        updateData.diskTotalBytes = req.body.disk_total_bytes;
+      }
+      if (typeof req.body.uptime_seconds === 'number') {
+        updateData.uptimeSeconds = req.body.uptime_seconds;
+      }
 
       // Update agent document
       await agentDoc.ref.update(updateData);
+
+      // Store metrics history (keep last 288 points = 24h at 5min intervals)
+      if (typeof cpu_percent === 'number' || typeof memory_bytes === 'number') {
+        const metricsRef = db
+          .collection('organizations')
+          .doc(organizationId)
+          .collection('agents')
+          .doc(agentId)
+          .collection('metrics_history');
+
+        await metricsRef.add({
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          cpuPercent: cpu_percent || 0,
+          memoryBytes: memory_bytes || 0,
+          memoryPercent: req.body.memory_percent || null,
+          diskPercent: req.body.disk_percent || null,
+          diskUsedBytes: req.body.disk_used_bytes || null,
+          diskTotalBytes: req.body.disk_total_bytes || null,
+        });
+
+        // Cleanup old metrics (keep only last 24h = 1440 entries at 1min interval)
+        const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const oldMetrics = await metricsRef
+          .where('timestamp', '<', cutoffTime)
+          .limit(100)
+          .get();
+
+        const batch = db.batch();
+        oldMetrics.docs.forEach(doc => batch.delete(doc.ref));
+        if (!oldMetrics.empty) {
+          await batch.commit();
+        }
+      }
 
       // Check for pending commands
       const commandsSnapshot = await db
@@ -228,6 +280,64 @@ exports.getAgentStatus = onCall(
     } catch (error) {
       console.error('Get agent status error:', error);
       throw new HttpsError('internal', 'Failed to get agent status');
+    }
+  }
+);
+
+/**
+ * Get agent metrics history (callable from frontend)
+ * Returns last 24h of metrics for charts
+ */
+exports.getAgentMetricsHistory = onCall(
+  {
+    region: 'europe-west1',
+    memory: '256MiB',
+  },
+  async (request) => {
+    const { auth } = request;
+    if (!auth) {
+      throw new HttpsError('unauthenticated', 'Authentication required');
+    }
+
+    const { agentId, organizationId, hours = 24 } = request.data;
+
+    if (!agentId || !organizationId) {
+      throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
+    }
+
+    try {
+      const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+      const metricsSnapshot = await db
+        .collection('organizations')
+        .doc(organizationId)
+        .collection('agents')
+        .doc(agentId)
+        .collection('metrics_history')
+        .where('timestamp', '>=', cutoffTime)
+        .orderBy('timestamp', 'asc')
+        .limit(1440) // Max 24h at 1min interval
+        .get();
+
+      const metrics = metricsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          timestamp: data.timestamp?.toDate?.().toISOString() || new Date().toISOString(),
+          cpuPercent: data.cpuPercent || 0,
+          memoryPercent: data.memoryPercent || 0,
+          memoryBytes: data.memoryBytes || 0,
+          diskPercent: data.diskPercent || null,
+        };
+      });
+
+      return {
+        agentId,
+        metrics,
+        lastUpdated: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Get agent metrics history error:', error);
+      throw new HttpsError('internal', 'Failed to get agent metrics history');
     }
   }
 );

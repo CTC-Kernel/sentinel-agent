@@ -14,6 +14,10 @@ const { weeklyDORARiskAlerts, checkDORARisks } = require('./doraRiskAlerts');
 const { dailyContractExpirationCheck, weeklyContractExpirationDigest, checkContractExpirations } = require('./doraContractAlerts');
 // AUDIT FIX: NIS2 72h notification compliance
 const { nis2DeadlineChecker, onSignificantIncident, onNewSignificantIncident } = require('./nis2IncidentAlerts');
+// Sprint 1 - Task 1.3: Agent Offline Alerts
+const { checkAgentOfflineAlerts } = require('./agentOfflineAlerts');
+// Sprint 5 - CVE Enrichment from NVD/EPSS
+const { dailyCveEnrichment, dailyVulnerabilityCorrelation } = require('./cveEnrichment');
 
 // Audit Triggers
 const { generateAuditTrigger } = require('../services/auditTriggers');
@@ -224,3 +228,11 @@ exports.cleanupRateLimits = onSchedule({
         logger.error("Error cleaning up rate limits", error);
     }
 });
+
+// --- AGENT MONITORING (Sprint 1 - Task 1.3) ---
+exports.checkAgentOfflineAlerts = checkAgentOfflineAlerts;
+
+// --- CVE ENRICHMENT (Sprint 5) ---
+// Daily enrichment from NVD API and EPSS scores
+exports.dailyCveEnrichment = dailyCveEnrichment;
+exports.dailyVulnerabilityCorrelation = dailyVulnerabilityCorrelation;

@@ -1,6 +1,6 @@
 /**
  * AI Module - Gemini AI Functions
- * Domain: AI Content Generation, Chat, API Key Management
+ * Domain: AI Content Generation, Chat, API Key Management, Predictive Compliance
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -10,6 +10,14 @@ const { defineSecret } = require("firebase-functions/params");
 const crypto = require("crypto");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { checkCallableRateLimit } = require("../utils/rateLimiter");
+
+// Predictive Compliance Functions
+const {
+    generateCompliancePredictions,
+    generateRecommendedActions,
+    dailyPredictionRefresh,
+    recordScoreSnapshot
+} = require('./predictiveCompliance');
 
 // Secrets
 const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
@@ -501,3 +509,12 @@ exports.migrateUserKeys = onCall({
 
     return { success: true, migratedCount: totalMigrated };
 });
+
+// ============================================================================
+// Predictive Compliance Exports
+// ============================================================================
+
+exports.generateCompliancePredictions = generateCompliancePredictions;
+exports.generateRecommendedActions = generateRecommendedActions;
+exports.dailyPredictionRefresh = dailyPredictionRefresh;
+exports.recordScoreSnapshot = recordScoreSnapshot;

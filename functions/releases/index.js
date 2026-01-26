@@ -20,20 +20,20 @@ const bucket = getStorage().bucket('sentinel-grc-a8701.firebasestorage.app');
 // Release metadata configuration
 const RELEASE_CONFIG = {
     agent: {
-        currentVersion: '1.0.0',
-        releaseDate: '2026-01-24',
+        currentVersion: '1.0.1',
+        releaseDate: '2026-01-26',
         changelogUrl: 'https://github.com/sentinel/agent/releases',
         platforms: {
             windows: {
                 filename: 'SentinelAgent-Windows-{version}.zip',
-                latestFilename: 'SentinelAgent-Windows-1.0.0.zip',
+                latestFilename: 'SentinelAgent-Windows-1.0.1.zip',
                 checksumFilename: 'SentinelAgent-Windows-{version}.zip.sha256',
                 contentType: 'application/zip',
                 displayName: 'Windows (ZIP)',
             },
             macos: {
                 filename: 'SentinelAgent-macOS-{version}.zip',
-                latestFilename: 'SentinelAgent-macOS-1.0.0.zip',
+                latestFilename: 'SentinelAgent-macOS-1.0.1.zip',
                 checksumFilename: 'SentinelAgent-macOS-{version}.zip.sha256',
                 contentType: 'application/zip',
                 displayName: 'macOS (ZIP)',
