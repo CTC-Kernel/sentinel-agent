@@ -7,7 +7,8 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../firebase';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { db, functions, storage } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import {
     SentinelAgent,
@@ -375,6 +376,82 @@ export async function getAgentMetricsHistory(
     }
 }
 
+/**
+ * Agent download manifest type
+ */
+export interface AgentDownloadInfo {
+    platform: 'macos' | 'windows';
+    version: string;
+    filename: string;
+    downloadUrl: string;
+    size: number;
+    sha256: string;
+}
+
+/**
+ * Get download URL for agent installer
+ */
+export async function getAgentDownloadUrl(
+    platform: 'macos' | 'windows'
+): Promise<AgentDownloadInfo> {
+    try {
+        // Get manifest first
+        const manifestRef = ref(storage, 'releases/agents/manifest.json');
+        const manifestUrl = await getDownloadURL(manifestRef);
+
+        const response = await fetch(manifestUrl);
+        const manifest = await response.json();
+
+        const platformInfo = manifest.agents[platform];
+        if (!platformInfo) {
+            throw new Error(`No agent available for platform: ${platform}`);
+        }
+
+        // Get download URL for the agent file
+        const agentRef = ref(storage, `releases/agents/${platformInfo.filename}`);
+        const downloadUrl = await getDownloadURL(agentRef);
+
+        return {
+            platform,
+            version: platformInfo.version,
+            filename: platformInfo.filename,
+            downloadUrl,
+            size: platformInfo.size,
+            sha256: platformInfo.sha256,
+        };
+    } catch (error) {
+        ErrorLogger.error(error, 'AgentService.getAgentDownloadUrl', {
+            component: 'AgentService',
+            action: 'getAgentDownloadUrl',
+            metadata: { platform }
+        });
+        throw error;
+    }
+}
+
+/**
+ * Get all available agent downloads
+ */
+export async function getAgentDownloads(): Promise<AgentDownloadInfo[]> {
+    const downloads: AgentDownloadInfo[] = [];
+
+    try {
+        const macosInfo = await getAgentDownloadUrl('macos');
+        downloads.push(macosInfo);
+    } catch {
+        // macOS not available
+    }
+
+    try {
+        const windowsInfo = await getAgentDownloadUrl('windows');
+        downloads.push(windowsInfo);
+    } catch {
+        // Windows not available
+    }
+
+    return downloads;
+}
+
 export const AgentService = {
     subscribeToAgents,
     subscribeToTokens,
@@ -385,6 +462,8 @@ export const AgentService = {
     revokeEnrollmentToken,
     updateAgentConfig,
     getAgentResults,
+    getAgentDownloadUrl,
+    getAgentDownloads,
 };
 
 export default AgentService;
