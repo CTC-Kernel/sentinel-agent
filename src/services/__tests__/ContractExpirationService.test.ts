@@ -63,8 +63,7 @@ const createMockProvider = (overrides: Partial<ICTProvider> = {}): ICTProvider =
     ...overrides
 });
 
-// TODO: Tests need updating
-describe.skip('ContractExpirationService', () => {
+describe('ContractExpirationService', () => {
     const defaultThresholds: ExpirationThresholds = {
         critical: 30,
         warning: 60,

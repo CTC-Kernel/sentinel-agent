@@ -54,16 +54,21 @@ vi.mock('../logger', () => ({
     logAction: vi.fn(),
 }));
 
+vi.mock('../AuditLogService', () => ({
+    AuditLogService: {
+        logCreate: vi.fn().mockResolvedValue(undefined),
+        logUpdate: vi.fn().mockResolvedValue(undefined),
+        logDelete: vi.fn().mockResolvedValue(undefined),
+    },
+}));
+
 vi.mock('../../utils/dataSanitizer', () => ({
     sanitizeData: vi.fn((data) => data),
 }));
 
 vi.mock('../../utils/permissions', () => ({
-    canEditResource: vi.fn((user, resourceType) => {
-        if (user.role === 'admin' || user.role === 'rssi') return true;
-        if (user.role === 'user' && resourceType === 'Risk') return false;
-        return true;
-    }),
+    canEditResource: vi.fn().mockReturnValue(true),
+    canDeleteResource: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock('../../utils/RiskCalculator', () => ({
@@ -98,10 +103,9 @@ vi.mock('../../utils/diffUtils', () => ({
 import { addDoc, updateDoc } from 'firebase/firestore';
 import { FunctionsService } from '../FunctionsService';
 import { DependencyService } from '../dependencyService';
-import { canEditResource } from '../../utils/permissions';
+import { canEditResource, canDeleteResource } from '../../utils/permissions';
 
-// TODO: Tests need updating - service API changed
-describe.skip('RiskService', () => {
+describe('RiskService', () => {
     const mockAdminUser: UserProfile = {
         uid: 'admin-1',
         email: 'admin@test.com',
@@ -134,6 +138,9 @@ describe.skip('RiskService', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        // Reset permission mocks to default true
+        vi.mocked(canEditResource).mockReturnValue(true);
+        vi.mocked(canDeleteResource).mockReturnValue(true);
     });
 
     describe('validateLogic', () => {
@@ -319,7 +326,7 @@ describe.skip('RiskService', () => {
         });
 
         it('should reject deletion when user lacks permission', async () => {
-            vi.mocked(canEditResource).mockReturnValueOnce(false);
+            vi.mocked(canDeleteResource).mockReturnValueOnce(false);
 
             const result = await RiskService.deleteRisk(mockRegularUser, 'risk-1');
 
