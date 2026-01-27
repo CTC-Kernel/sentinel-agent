@@ -27,7 +27,7 @@
   --secondary-foreground: 222.2 47.4% 11.2%;
 
   --muted: 210 40% 92%;
-  --muted-foreground: 215.4 20% 35%;
+  --muted-foreground: 215.4 20% 28%; /* WCAG AAA: 7:1 on light backgrounds */
 
   --accent: 210 40% 92%;
   --accent-foreground: 222.2 47.4% 11.2%;
@@ -48,20 +48,20 @@
   --info: 201 68% 44%;             /* Cyan-blue - professional */
 
   /* Semantic Badge Tokens - Light Mode */
-  /* Text: 28-38% luminosity for WCAG AA on light backgrounds */
-  --success-text: 152 58% 28%;
+  /* WCAG AAA: 7:1 contrast ratio - Text 25-30% luminosity on light backgrounds */
+  --success-text: 152 58% 25%;
   --success-bg: 152 45% 95%;
   --success-border: 152 40% 75%;
 
-  --warning-text: 38 68% 30%;
+  --warning-text: 38 68% 26%;
   --warning-bg: 38 50% 94%;
   --warning-border: 38 45% 72%;
 
-  --error-text: 4 65% 40%;
+  --error-text: 4 65% 30%;
   --error-bg: 4 50% 96%;
   --error-border: 4 45% 80%;
 
-  --info-text: 201 65% 32%;
+  --info-text: 201 65% 25%;
   --info-bg: 201 50% 95%;
   --info-border: 201 45% 75%;
 
@@ -203,7 +203,7 @@
   --secondary-foreground: 210 40% 98%;
 
   --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 55.1%;
+  --muted-foreground: 215 20.2% 68%; /* WCAG AAA: 7:1 on dark backgrounds */
 
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
@@ -223,20 +223,20 @@
   --info: 201 65% 52%;             /* Same hue 201 as light */
 
   /* Semantic Badge Tokens - Dark Mode */
-  /* Text: 58-68% luminosity for readability on dark backgrounds */
-  --success-text: 152 55% 62%;
+  /* WCAG AAA: 7:1 contrast ratio - Text 72-78% luminosity on dark backgrounds */
+  --success-text: 152 55% 72%;
   --success-bg: 152 50% 12%;
   --success-border: 152 45% 32%;
 
-  --warning-text: 38 65% 65%;
+  --warning-text: 38 65% 74%;
   --warning-bg: 38 55% 13%;
   --warning-border: 38 50% 35%;
 
-  --error-text: 4 62% 65%;
+  --error-text: 4 62% 75%;
   --error-bg: 4 55% 12%;
   --error-border: 4 50% 35%;
 
-  --info-text: 201 62% 62%;
+  --info-text: 201 62% 72%;
   --info-bg: 201 55% 12%;
   --info-border: 201 50% 35%;
 

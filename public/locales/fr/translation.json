@@ -4548,7 +4548,9 @@
       "updateFailed": "Erreur lors de la mise à jour",
       "assignFailed": "Erreur lors de l'assignation",
       "deleteFailed": "Erreur lors de la suppression",
-      "courseNotFound": "Formation introuvable"
+      "courseNotFound": "Formation introuvable",
+      "dashboardLoadFailed": "Échec du chargement du tableau de bord",
+      "reminderFailed": "Échec de l'envoi du rappel"
     },
     "empty": {
       "catalog": "Aucune formation dans le catalogue",
@@ -4558,7 +4560,11 @@
       "campaigns": "Aucune campagne",
       "campaignsDesc": "Créez une campagne pour former vos équipes.",
       "noResults": "Aucun résultat",
-      "noResultsDesc": "Essayez de modifier vos filtres."
+      "noResultsDesc": "Essayez de modifier vos filtres.",
+      "noData": "Aucune donnée disponible",
+      "noDataDesc": "Les données apparaîtront une fois que des formations seront assignées.",
+      "noTrendData": "Aucune activité récente",
+      "noTrendDataDesc": "Les tendances apparaîtront après les premières assignations."
     },
     "myCoursesDesc": "Suivez votre progression et complétez vos formations assignées.",
     "viewContent": "Voir le contenu",
@@ -4566,6 +4572,27 @@
     "certificate": {
       "download": "Télécharger l'attestation",
       "comingSoon": "La génération d'attestation sera bientôt disponible."
+    },
+    "dashboard": {
+      "title": "Tableau de bord Formation",
+      "description": "Vue d'ensemble de la conformité formation de votre organisation",
+      "exportCSV": "Exporter CSV",
+      "byDepartment": "Completion par département",
+      "byDepartmentDesc": "Taux de completion par équipe",
+      "overdueTrainings": "Formations en retard",
+      "requiresAttention": "nécessitent une action",
+      "daysOverdue": "jours de retard",
+      "remind": "Rappeler",
+      "reminderSent": "Rappel envoyé avec succès",
+      "reminderComingSoon": "La fonction de rappel sera bientôt disponible",
+      "noOverdue": "Aucune formation en retard",
+      "noOverdueDesc": "Toutes les formations sont à jour !",
+      "trend30Days": "Tendance 30 jours",
+      "trend30DaysDesc": "Évolution des assignations et completions",
+      "completed": "Complétées",
+      "assigned": "Assignées",
+      "completedLabel": "complétées",
+      "assignedLabel": "assignées"
     },
     "nis2": {
       "article": "Article 21.2(g)",

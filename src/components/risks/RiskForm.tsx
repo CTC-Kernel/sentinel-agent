@@ -390,7 +390,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     <div className="relative mb-4"><FloatingLabelInput label="Rechercher une menace..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={Search} /></div>
                     <div className="max-h-[60vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
                         {filteredLibraryThreats.map((t) => (
-                            <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} className="border border-slate-200 dark:border-white/10 p-4 rounded-xl hover:border-brand-500 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:shadow-md group">
+                            <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(t)} role="button" tabIndex={0} aria-label={`Sélectionner la menace ${t.name}`} className="border border-slate-200 dark:border-white/10 p-4 rounded-xl hover:border-brand-500 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-brand-500" /><span className="font-bold text-slate-900 dark:text-white line-clamp-1">{t.name}</span></div>
                                     <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 border px-1.5 py-0.5 rounded">{t.framework}</span>

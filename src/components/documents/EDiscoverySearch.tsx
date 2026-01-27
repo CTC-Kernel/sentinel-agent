@@ -336,7 +336,13 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 key={search.id}
                 className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-300 transition-colors"
               >
-                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => applySavedSearch(search)}>
+                <div
+                  className="flex-1 min-w-0 cursor-pointer"
+                  onClick={() => applySavedSearch(search)}
+                  onKeyDown={(e) => e.key === 'Enter' && applySavedSearch(search)}
+                  role="button"
+                  tabIndex={0}
+                >
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-slate-900 dark:text-white truncate">
                       {search.name}
@@ -395,12 +401,14 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 onChange={(e) => setKeywords(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
                 placeholder="Rechercher dans les details..."
+                aria-label="Mots-clés de recherche"
                 className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400"
               />
             </div>
             <select
               value={booleanOperator}
               onChange={(e) => setBooleanOperator(e.target.value as BooleanOperator)}
+              aria-label="Opérateur booléen"
               className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
             >
               <option value="AND">ET</option>
@@ -444,9 +452,11 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
         {/* Advanced Filters Toggle */}
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-label={showAdvanced ? "Masquer les filtres avancés" : "Afficher les filtres avancés"}
           className="text-sm text-brand-600 hover:text-brand-700 flex items-center gap-1"
         >
-          {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {showAdvanced ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
           Filtres avances
         </button>
 
@@ -464,6 +474,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   type="date"
                   value={dateRange.start}
                   onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                  aria-label="Date de début"
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 />
               </div>
@@ -476,6 +487,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   type="date"
                   value={dateRange.end}
                   onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                  aria-label="Date de fin"
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 />
               </div>
@@ -492,6 +504,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 value={userFilter}
                 onChange={(e) => setUserFilter(e.target.value)}
                 placeholder="ID de l'utilisateur"
+                aria-label="Filtrer par ID utilisateur"
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
@@ -507,6 +520,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 value={documentIds}
                 onChange={(e) => setDocumentIds(e.target.value)}
                 placeholder="doc1, doc2, doc3"
+                aria-label="IDs des documents"
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
@@ -625,9 +639,11 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                         {/* Expandable Details */}
                         <button
                           onClick={() => toggleResultExpand(entry.id)}
+                          aria-expanded={isExpanded}
+                          aria-label={isExpanded ? "Masquer les détails" : "Afficher les détails"}
                           className="mt-2 text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1"
                         >
-                          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                          {isExpanded ? <ChevronUp className="h-3 w-3" aria-hidden="true" /> : <ChevronDown className="h-3 w-3" aria-hidden="true" />}
                           Details
                         </button>
 

@@ -13,3 +13,7 @@ export { TrainingCourseForm } from './TrainingCourseForm';
 export { TrainingAssignmentForm } from './TrainingAssignmentForm';
 export { TrainingProgressCard } from './TrainingProgressCard';
 export { MyTrainingPage } from './MyTrainingPage';
+export { TrainingDashboard } from './TrainingDashboard';
+
+// Widgets
+export * from './widgets';

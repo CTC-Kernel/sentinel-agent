@@ -3,10 +3,11 @@ import { cn } from "@/lib/utils"
 
 const Avatar = React.forwardRef<
     HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement>
+    React.HTMLAttributes<HTMLDivElement> & { 'aria-label'?: string }
 >(({ className, ...props }, ref) => (
     <div
         ref={ref}
+        role="img"
         className={cn(
             "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-black/5 dark:ring-white/10 shadow-sm",
             className
@@ -16,16 +17,25 @@ const Avatar = React.forwardRef<
 ))
 Avatar.displayName = "Avatar"
 
-const AvatarImage = React.forwardRef<
-    HTMLImageElement,
-    React.ImgHTMLAttributes<HTMLImageElement>
->(({ className, ...props }, ref) => (
-    <img
-        ref={ref}
-        className={cn("aspect-square h-full w-full", className)}
-        {...props}
-    />
-))
+/**
+ * AvatarImage - WCAG AAA compliant
+ * @param alt - Required for accessibility. Use empty string "" for decorative images.
+ */
+interface AvatarImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'alt'> {
+    /** Required alt text for screen readers. Use "" for decorative images. */
+    alt: string;
+}
+
+const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
+    ({ className, alt, ...props }, ref) => (
+        <img
+            ref={ref}
+            alt={alt}
+            className={cn("aspect-square h-full w-full object-cover", className)}
+            {...props}
+        />
+    )
+)
 AvatarImage.displayName = "AvatarImage"
 
 const AvatarFallback = React.forwardRef<

@@ -4284,7 +4284,9 @@
       "updateFailed": "Error updating",
       "assignFailed": "Error assigning",
       "deleteFailed": "Error deleting",
-      "courseNotFound": "Course not found"
+      "courseNotFound": "Course not found",
+      "dashboardLoadFailed": "Failed to load dashboard",
+      "reminderFailed": "Failed to send reminder"
     },
     "empty": {
       "catalog": "No courses in catalog",
@@ -4294,7 +4296,11 @@
       "campaigns": "No campaigns",
       "campaignsDesc": "Create a campaign to train your teams.",
       "noResults": "No results",
-      "noResultsDesc": "Try adjusting your filters."
+      "noResultsDesc": "Try adjusting your filters.",
+      "noData": "No data available",
+      "noDataDesc": "Data will appear once trainings are assigned.",
+      "noTrendData": "No recent activity",
+      "noTrendDataDesc": "Trends will appear after the first assignments."
     },
     "myCoursesDesc": "Track your progress and complete your assigned trainings.",
     "viewContent": "View content",
@@ -4302,6 +4308,27 @@
     "certificate": {
       "download": "Download certificate",
       "comingSoon": "Certificate generation coming soon."
+    },
+    "dashboard": {
+      "title": "Training Dashboard",
+      "description": "Overview of your organization's training compliance",
+      "exportCSV": "Export CSV",
+      "byDepartment": "Completion by Department",
+      "byDepartmentDesc": "Completion rate by team",
+      "overdueTrainings": "Overdue Trainings",
+      "requiresAttention": "require attention",
+      "daysOverdue": "days overdue",
+      "remind": "Remind",
+      "reminderSent": "Reminder sent successfully",
+      "reminderComingSoon": "Reminder function coming soon",
+      "noOverdue": "No overdue trainings",
+      "noOverdueDesc": "All trainings are up to date!",
+      "trend30Days": "30-Day Trend",
+      "trend30DaysDesc": "Assignment and completion evolution",
+      "completed": "Completed",
+      "assigned": "Assigned",
+      "completedLabel": "completed",
+      "assignedLabel": "assigned"
     },
     "nis2": {
       "article": "Article 21.2(g)",

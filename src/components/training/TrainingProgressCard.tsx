@@ -175,9 +175,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
   const { t } = useStore();
 
   // Check if overdue
-  const dueDate = assignment.dueDate instanceof Date
-    ? assignment.dueDate
-    : new Date(assignment.dueDate);
+  const dueDate = assignment.dueDate.toDate();
   const isOverdue = dueDate < new Date() && assignment.status !== 'completed';
 
   // Status config
@@ -327,7 +325,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
               {t('training.status.completed')}
             </div>
             <div className="text-xs text-muted-foreground">
-              {new Date(assignment.completedAt).toLocaleDateString()}
+              {assignment.completedAt.toDate().toLocaleDateString()}
               {assignment.score !== undefined && ` • Score: ${assignment.score}%`}
             </div>
           </div>

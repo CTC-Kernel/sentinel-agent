@@ -187,7 +187,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 h-full">
                         {/* 1. Risk Metric */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/risks')}>
+                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" onClick={() => navigate('/risks')} onKeyDown={(e) => e.key === 'Enter' && navigate('/risks')} role="button" tabIndex={0} aria-label="Voir les risques">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risques</span>
                                 <AlertTriangle className="w-4 h-4 text-warning group-hover/item:text-warning/80 transition-colors" />
@@ -205,7 +205,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         </div>
 
                         {/* 2. Compliance Metric */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/compliance')}>
+                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" onClick={() => navigate('/compliance')} onKeyDown={(e) => e.key === 'Enter' && navigate('/compliance')} role="button" tabIndex={0} aria-label="Voir la conformité">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Conformité</span>
                                 <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-success group-hover/item:text-success/80' :
@@ -247,7 +247,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         </div>
 
                         {/* 3. Financial Metric */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/risks')}>
+                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" onClick={() => navigate('/risks')} onKeyDown={(e) => e.key === 'Enter' && navigate('/risks')} role="button" tabIndex={0} aria-label="Voir l'exposition financière">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Financier</span>
                                 <Activity className="w-4 h-4 text-info group-hover/item:text-info/80 transition-colors" />

@@ -75,7 +75,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
                     case 'controls': {
                         const control = item as Control;
                         return (
-                            <div key={control.id} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5" onClick={() => setSelectedControl(control)}>
+                            <div key={control.id} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
                                 <LinkedControlItem control={control} />
                             </div>
                         );

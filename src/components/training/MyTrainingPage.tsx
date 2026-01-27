@@ -97,9 +97,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
 
   // Check if assignment is overdue
   const isOverdue = useCallback((assignment: TrainingAssignment): boolean => {
-    const dueDate = assignment.dueDate instanceof Date
-      ? assignment.dueDate
-      : new Date(assignment.dueDate);
+    const dueDate = assignment.dueDate.toDate();
     return dueDate < new Date() && assignment.status !== 'completed';
   }, []);
 
@@ -136,8 +134,8 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
       if (bOverdue && !aOverdue) return 1;
 
       // Then by due date
-      const aDate = a.dueDate instanceof Date ? a.dueDate : new Date(a.dueDate);
-      const bDate = b.dueDate instanceof Date ? b.dueDate : new Date(b.dueDate);
+      const aDate = a.dueDate.toDate();
+      const bDate = b.dueDate.toDate();
       return aDate.getTime() - bDate.getTime();
     });
 
@@ -206,13 +204,13 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
     }
   }, []);
 
-  const handleDownloadCertificate = useCallback((assignment: TrainingAssignment) => {
+  const handleDownloadCertificate = useCallback((_assignment: TrainingAssignment) => {
     // TODO: Implement certificate generation/download
     toast.info(t('training.certificate.comingSoon'));
   }, [t]);
 
   // Filter buttons config
-  const filterButtons: { value: FilterType; label: string; icon: React.ElementType; count: number }[] = [
+  const filterButtons: { value: FilterType; label: string; icon: React.ElementType<{ className?: string }>; count: number }[] = [
     { value: 'all', label: 'common.all', icon: GraduationCap, count: stats.total },
     { value: 'pending', label: 'training.status.assigned', icon: Clock, count: stats.pending },
     { value: 'in_progress', label: 'training.status.in_progress', icon: TrendingUp, count: stats.inProgress },
