@@ -163,7 +163,8 @@ export const PrivacyService = {
                 user.organizationId,
                 activity.id,
                 activity.name,
-                DPIA_TEMPLATE
+                DPIA_TEMPLATE,
+                { uid: user.uid, email: user.email, displayName: user.displayName }
             );
 
             // 3. Update Activity

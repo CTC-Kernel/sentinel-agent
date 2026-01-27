@@ -41,7 +41,7 @@ vi.mock('../../store', () => ({
 // Mock Firebase
 const mockGetDocs = vi.fn();
 const mockUnsubscribe = vi.fn();
-const mockOnSnapshot = vi.fn(() => mockUnsubscribe);
+const mockOnSnapshot = vi.fn((_q: unknown, _onNext: unknown, _onError?: unknown) => mockUnsubscribe);
 
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(),

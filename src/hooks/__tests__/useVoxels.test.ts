@@ -9,7 +9,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 // Mock Firebase Firestore
 const mockGetDocs = vi.fn();
 const mockUnsubscribe = vi.fn();
-const mockOnSnapshot = vi.fn(() => mockUnsubscribe);
+const mockOnSnapshot = vi.fn((_q: unknown, _onNext: unknown, _onError?: unknown) => mockUnsubscribe);
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(),
     query: vi.fn(),
