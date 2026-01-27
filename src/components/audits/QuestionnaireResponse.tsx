@@ -117,8 +117,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 owner: user.displayName || user.email,
                 ownerId: user.uid,
                 relatedAuditIds: [questionnaire.auditId]
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            }) as any);
+            }));
 
             if (docId) {
                 setEvidence(prev => ({

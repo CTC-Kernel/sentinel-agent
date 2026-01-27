@@ -4123,5 +4123,473 @@
     "technicalInfo": "Informations techniques",
     "unknownError": "Erreur inconnue",
     "retry": "Réessayer"
+  },
+  "errorLogger": {
+    "UNKNOWN_ERROR": {
+      "message": "Une erreur inattendue s'est produite",
+      "hint": "Essayez de rafraîchir la page. Si le problème persiste, contactez le support.",
+      "action": "Rafraîchir"
+    },
+    "NETWORK_ERROR": {
+      "message": "Connexion impossible",
+      "hint": "Vérifiez votre connexion internet et réessayez.",
+      "action": "Réessayer"
+    },
+    "PERMISSION_DENIED": {
+      "message": "Accès refusé",
+      "hint": "Vous n'avez pas les droits nécessaires. Contactez votre administrateur pour obtenir l'accès.",
+      "action": "Voir mes droits"
+    },
+    "MISSING_INDEX": {
+      "message": "Configuration en cours",
+      "hint": "La base de données se configure. Réessayez dans quelques instants."
+    },
+    "AUTH_FAILED": {
+      "message": "Connexion impossible",
+      "hint": "Vérifiez vos identifiants. Mot de passe oublié ?",
+      "action": "Réinitialiser"
+    },
+    "AUTH_EXPIRED": {
+      "message": "Session expirée",
+      "hint": "Pour votre sécurité, reconnectez-vous.",
+      "action": "Se reconnecter"
+    },
+    "AUTH_INVALID_EMAIL": {
+      "message": "Email invalide",
+      "hint": "Format attendu : exemple@domaine.com"
+    },
+    "AUTH_INVALID_PASSWORD": {
+      "message": "Mot de passe incorrect",
+      "hint": "Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.",
+      "action": "Mot de passe oublié ?"
+    },
+    "INVITE_FAILED": {
+      "message": "Invitation échouée",
+      "hint": "Vérifiez que l'email est correct et que l'utilisateur n'est pas déjà membre."
+    },
+    "FETCH_FAILED": {
+      "message": "Chargement impossible",
+      "hint": "Les données n'ont pas pu être récupérées. Vérifiez votre connexion.",
+      "action": "Réessayer"
+    },
+    "CREATE_FAILED": {
+      "message": "Création impossible",
+      "hint": "Vérifiez que tous les champs obligatoires sont remplis correctement."
+    },
+    "UPDATE_FAILED": {
+      "message": "Mise à jour impossible",
+      "hint": "Les modifications n'ont pas pu être enregistrées. L'élément a peut-être été modifié par quelqu'un d'autre."
+    },
+    "DELETE_FAILED": {
+      "message": "Suppression impossible",
+      "hint": "Cet élément est peut-être lié à d'autres données. Vérifiez ses dépendances."
+    },
+    "EMAIL_SEND_FAILED": {
+      "message": "Email non envoyé",
+      "hint": "Vérifiez l'adresse email et réessayez."
+    },
+    "VALIDATION_FAILED": {
+      "message": "Données invalides",
+      "hint": "Vérifiez les champs en rouge et corrigez les erreurs indiquées."
+    },
+    "REQUIRED_FIELD": {
+      "message": "Champ obligatoire",
+      "hint": "Ce champ doit être rempli pour continuer."
+    },
+    "INVALID_FORMAT": {
+      "message": "Format incorrect",
+      "hint": "Vérifiez le format attendu pour ce champ."
+    },
+    "FILE_UPLOAD_FAILED": {
+      "message": "Téléversement échoué",
+      "hint": "Vérifiez la taille du fichier (max 10 Mo) et le format autorisé."
+    },
+    "FILE_TOO_LARGE": {
+      "message": "Fichier trop volumineux",
+      "hint": "La taille maximale est de 10 Mo. Compressez votre fichier ou utilisez un format plus léger."
+    },
+    "FILE_INVALID_TYPE": {
+      "message": "Format non supporté",
+      "hint": "Formats acceptés : PDF, DOC, DOCX, XLS, XLSX, PNG, JPG."
+    },
+    "QUOTA_EXCEEDED": {
+      "message": "Quota atteint",
+      "hint": "Vous avez atteint la limite de votre forfait.",
+      "action": "Voir les forfaits"
+    },
+    "RATE_LIMIT_EXCEEDED": {
+      "message": "Trop de requêtes",
+      "hint": "Patientez quelques secondes avant de réessayer."
+    },
+    "ASSET_NOT_FOUND": {
+      "message": "Actif introuvable",
+      "hint": "Cet actif a peut-être été supprimé ou vous n'y avez pas accès.",
+      "action": "Voir tous les actifs"
+    },
+    "RISK_NOT_FOUND": {
+      "message": "Risque introuvable",
+      "hint": "Ce risque a peut-être été supprimé ou archivé.",
+      "action": "Voir les risques"
+    },
+    "PROJECT_NOT_FOUND": {
+      "message": "Projet introuvable",
+      "hint": "Ce projet a peut-être été supprimé ou vous n'y avez pas accès.",
+      "action": "Voir les projets"
+    },
+    "DOCUMENT_NOT_FOUND": {
+      "message": "Document introuvable",
+      "hint": "Ce document a peut-être été supprimé ou déplacé.",
+      "action": "Voir les documents"
+    },
+    "AUDIT_NOT_FOUND": {
+      "message": "Audit introuvable",
+      "hint": "Cet audit a peut-être été supprimé ou archivé.",
+      "action": "Voir les audits"
+    },
+    "SCAN_FAILED": {
+      "message": "Scan échoué",
+      "hint": "Le scan de sécurité n'a pas pu être effectué. Vérifiez la configuration de l'actif.",
+      "action": "Configurer"
+    },
+    "REPORT_GENERATION_FAILED": {
+      "message": "Génération échouée",
+      "hint": "Le rapport n'a pas pu être généré. Vérifiez que toutes les données nécessaires sont disponibles."
+    },
+    "AI_ERROR": {
+      "message": "Analyse IA indisponible",
+      "hint": "Le service d'analyse est temporairement indisponible. Réessayez plus tard."
+    },
+    "HIBP_FAILED": {
+      "message": "Vérification impossible",
+      "hint": "Le service de vérification des fuites de données est indisponible."
+    },
+    "DELETE_ACCOUNT_FAILED": {
+      "message": "Suppression impossible",
+      "hint": "Votre compte ne peut pas être supprimé actuellement. Contactez le support.",
+      "action": "Contacter le support"
+    },
+    "LINK_GEN_FAILED": {
+      "message": "Lien non généré",
+      "hint": "Le lien de partage n'a pas pu être créé. Réessayez."
+    },
+    "PORTAL_ACCESS_FAILED": {
+      "message": "Accès au portail impossible",
+      "hint": "Vérifiez que le lien est valide et non expiré."
+    }
+  },
+  "backup": {
+    "title": "Sauvegardes & Restauration",
+    "subtitle": "Gérez vos points de restauration et la sécurité de vos données.",
+    "newBackup": "Nouvelle Sauvegarde",
+    "restore": "Restauration",
+    "schedule": "Planifier",
+    "daily": "Quotidien",
+    "weekly": "Hebdo",
+    "monthly": "Mensuel",
+    "launchBackup": "Lancer la sauvegarde",
+    "launchRestore": "Lancer la restauration",
+    "launchSimulation": "Lancer la simulation",
+    "restoreData": "Restaurer les données",
+    "selectBackup": "Sélectionnez une sauvegarde dans la liste pour commencer",
+    "selectedBackup": "Sauvegarde sélectionnée",
+    "collectionsToRestore": "Collections à restaurer",
+    "overwriteExisting": "Écraser les données existantes",
+    "overwriteDesc": "Si coché, les données actuelles seront remplacées par celles de la sauvegarde.",
+    "dryRun": "Simulation (Dry Run)",
+    "dryRunDesc": "Vérifie l'intégrité sans modifier les données.",
+    "deleteBackup": "Supprimer le backup",
+    "deleteBackupConfirm": "Êtes-vous sûr de vouloir supprimer le backup {{id}} ?",
+    "tabs": {
+      "backup": "Sauvegarder",
+      "restore": "Restaurer"
+    },
+    "collections": {
+      "documents": "Documents",
+      "assets": "Actifs",
+      "risks": "Risques",
+      "controls": "Contrôles",
+      "audits": "Audits",
+      "projects": "Projets",
+      "suppliers": "Fournisseurs",
+      "incidents": "Incidents",
+      "users": "Utilisateurs",
+      "comments": "Commentaires"
+    },
+    "success": {
+      "created": "Sauvegarde créée avec succès",
+      "scheduled": "Backup programmé ({{frequency}})",
+      "simulationComplete": "Simulation de restauration réussie",
+      "restoreComplete": "Restauration effectuée avec succès",
+      "deleted": "Sauvegarde supprimée"
+    },
+    "errors": {
+      "loadFailed": "Erreur lors du chargement des sauvegardes",
+      "createFailed": "Erreur lors de la création de la sauvegarde",
+      "scheduleFailed": "Erreur lors de la programmation",
+      "selectBackup": "Veuillez sélectionner une sauvegarde",
+      "selectCollection": "Veuillez sélectionner au moins une collection",
+      "restoreFailed": "Erreur lors de la restauration",
+      "deleteFailed": "Erreur lors de la suppression",
+      "downloadFailed": "Erreur lors du téléchargement"
+    }
+  },
+  "threatRegistry": {
+    "title": "Bibliothèque de Menaces",
+    "subtitle": "Référentiel des menaces et vulnérabilités (ISO 27005).",
+    "newThreat": "Nouvelle Menace",
+    "editThreat": "Modifier la menace",
+    "importStandard": "Importer Standard",
+    "searchPlaceholder": "Rechercher une menace, un scénario...",
+    "noThreatsFound": "Aucune menace trouvée",
+    "noThreatsDesc": "Commencez par importer la bibliothèque standard ou créez votre première menace.",
+    "importStandardAction": "Importer les modèles standards",
+    "form": {
+      "title": "Titre",
+      "description": "Description",
+      "framework": "Cadre / Framework",
+      "field": "Domaine / Champ",
+      "threat": "Menace (Cause)",
+      "vulnerability": "Vulnérabilité",
+      "scenario": "Scénario",
+      "probability": "Probabilité (Ref)",
+      "impact": "Impact (Ref)",
+      "strategy": "Stratégie par défaut"
+    },
+    "confirm": {
+      "importTitle": "Importer la bibliothèque standard ?",
+      "importMessage": "La bibliothèque contient déjà des menaces. Voulez-vous vraiment importer les modèles standards (doublons possibles) ?",
+      "deleteTitle": "Supprimer cette menace ?",
+      "deleteMessage": "Cette action est irréversible."
+    },
+    "actions": {
+      "save": "Enregistrer les modifications",
+      "create": "Créer la menace",
+      "cancel": "Annuler"
+    }
+  },
+  "integrations": {
+    "title": "Intégrations",
+    "subtitle": "Connectez vos outils pour automatiser la collecte de preuves.",
+    "searchPlaceholder": "Rechercher une intégration...",
+    "tabs": {
+      "providers": "Connecteurs",
+      "jobs": "Tâches & Scans"
+    },
+    "categories": {
+      "all": "Tout",
+      "cloud": "Cloud",
+      "code": "Code",
+      "security": "Sécurité"
+    },
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "apiKeyModal": {
+      "title": "Connecter {{provider}}",
+      "description": "Veuillez saisir votre clé API (ou Token) pour permettre à Sentinel GRC d'accéder aux données de {{provider}}.",
+      "label": "Clé API / Token",
+      "placeholder": "sk_live_...",
+      "hint": "Cette clé sera stockée de manière sécurisée et utilisée uniquement pour la synchronisation.",
+      "connectButton": "Connecter l'intégration",
+      "connecting": "Connexion..."
+    },
+    "confirm": {
+      "disconnectTitle": "Déconnecter l'intégration",
+      "disconnectMessage": "Voulez-vous vraiment déconnecter {{provider}} ?"
+    },
+    "success": {
+      "connected": "Connecté à {{provider}} avec succès",
+      "connectedDemo": "Connecté à {{provider}} (Démo)",
+      "disconnected": "Déconnecté de {{provider}}"
+    },
+    "errors": {
+      "noPermission": "Vous n'avez pas la permission de connecter des services.",
+      "invalidApiKey": "Veuillez saisir une clé API valide.",
+      "connectFailed": "Échec de la connexion à {{provider}}",
+      "disconnectFailed": "Erreur lors de la déconnexion"
+    }
+  },
+  "training": {
+    "title": "Formation & Sensibilisation",
+    "subtitle": "Gérez les formations et la sensibilisation cyber de votre organisation.",
+    "dashboard": "Tableau de bord Formation",
+    "catalog": "Catalogue des formations",
+    "myCourses": "Mes formations",
+    "campaigns": "Campagnes",
+    "categories": {
+      "security": "Sécurité",
+      "compliance": "Conformité",
+      "awareness": "Sensibilisation",
+      "technical": "Technique"
+    },
+    "sources": {
+      "anssi": "ANSSI",
+      "cnil": "CNIL",
+      "internal": "Interne",
+      "external": "Externe"
+    },
+    "contentTypes": {
+      "video": "Vidéo",
+      "document": "Document",
+      "quiz": "Quiz",
+      "external_link": "Lien externe"
+    },
+    "status": {
+      "assigned": "À faire",
+      "in_progress": "En cours",
+      "completed": "Terminé",
+      "overdue": "En retard"
+    },
+    "campaignStatus": {
+      "draft": "Brouillon",
+      "active": "Active",
+      "completed": "Terminée",
+      "cancelled": "Annulée"
+    },
+    "course": {
+      "title": "Titre",
+      "description": "Description",
+      "category": "Catégorie",
+      "source": "Source",
+      "duration": "Durée (minutes)",
+      "isRequired": "Formation obligatoire",
+      "targetRoles": "Rôles cibles",
+      "frameworkMappings": "Mapping référentiels",
+      "content": "Contenu",
+      "contentUrl": "URL du contenu",
+      "create": "Créer une formation",
+      "edit": "Modifier la formation",
+      "archive": "Archiver la formation",
+      "passingScore": "Score de réussite (%)",
+      "validityPeriod": "Validité (mois)"
+    },
+    "assignment": {
+      "assign": "Assigner",
+      "assignTo": "Assigner à",
+      "selectUsers": "Sélectionner les utilisateurs",
+      "selectCourse": "Sélectionner une formation",
+      "dueDate": "Date limite",
+      "start": "Commencer",
+      "continue": "Continuer",
+      "markComplete": "Marquer comme terminé",
+      "downloadCertificate": "Télécharger l'attestation",
+      "score": "Score",
+      "timeSpent": "Temps passé",
+      "selectDetails": "Détails de l'assignation",
+      "usersSelected": "utilisateur(s) sélectionné(s)",
+      "preview": "Aperçu",
+      "previewTitle": "Aperçu de l'assignation",
+      "totalAssignments": "Assignations",
+      "users": "utilisateurs",
+      "assignees": "Personnes assignées",
+      "requiredWarningTitle": "Formation obligatoire",
+      "requiredWarningDesc": "Cette formation est marquée comme obligatoire et sera suivie dans les rapports de conformité.",
+      "confirmAndAssign": "Confirmer et assigner",
+      "confirmTitle": "Confirmer l'assignation",
+      "confirmDesc": "Vous êtes sur le point d'assigner la formation \"{{course}}\" à {{count}} personne(s)."
+    },
+    "campaign": {
+      "create": "Créer une campagne",
+      "name": "Nom de la campagne",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "scope": "Périmètre",
+      "scopeAll": "Toute l'organisation",
+      "scopeDepartment": "Par département",
+      "scopeRole": "Par rôle",
+      "courses": "Formations incluses",
+      "recurrence": "Récurrence",
+      "recurrenceEnabled": "Activer la récurrence",
+      "frequency": {
+        "monthly": "Mensuelle",
+        "quarterly": "Trimestrielle",
+        "yearly": "Annuelle"
+      },
+      "launch": "Lancer la campagne",
+      "progress": "Progression"
+    },
+    "stats": {
+      "total": "Total formations",
+      "completed": "Complétées",
+      "inProgress": "En cours",
+      "overdue": "En retard",
+      "completionRate": "Taux de complétion",
+      "byDepartment": "Par département",
+      "trend": "Tendance 30 jours"
+    },
+    "kpi": {
+      "totalAssignments": "Assignations totales",
+      "completedAssignments": "Formations complétées",
+      "overdueAssignments": "En retard",
+      "averageScore": "Score moyen"
+    },
+    "validation": {
+      "contentRequired": "Le contenu est requis selon le type sélectionné",
+      "dueDateFuture": "La date limite doit être dans le futur",
+      "selectUsers": "Veuillez sélectionner au moins un utilisateur",
+      "selectCourses": "Veuillez sélectionner au moins une formation",
+      "endDateAfterStart": "La date de fin doit être après la date de début",
+      "scopeFilterRequired": "Veuillez sélectionner les critères de périmètre"
+    },
+    "success": {
+      "courseCreated": "Formation créée avec succès",
+      "courseUpdated": "Formation mise à jour",
+      "courseArchived": "Formation archivée",
+      "assignmentCreated": "Formation assignée avec succès",
+      "assignmentsCreated": "{{count}} formations assignées avec succès",
+      "assignmentDeleted": "Assignation supprimée",
+      "assignmentCompleted": "Formation terminée ! Félicitations !",
+      "campaignCreated": "Campagne créée avec succès",
+      "campaignLaunched": "Campagne lancée"
+    },
+    "errors": {
+      "loadFailed": "Erreur lors du chargement des formations",
+      "createFailed": "Erreur lors de la création",
+      "updateFailed": "Erreur lors de la mise à jour",
+      "assignFailed": "Erreur lors de l'assignation",
+      "deleteFailed": "Erreur lors de la suppression",
+      "courseNotFound": "Formation introuvable"
+    },
+    "empty": {
+      "catalog": "Aucune formation dans le catalogue",
+      "catalogDesc": "Créez votre première formation pour commencer.",
+      "assignments": "Aucune formation assignée",
+      "assignmentsDesc": "Toutes vos formations sont à jour !",
+      "campaigns": "Aucune campagne",
+      "campaignsDesc": "Créez une campagne pour former vos équipes."
+    },
+    "nis2": {
+      "article": "Article 21.2(g)",
+      "description": "Pratiques de base en matière d'hygiène cyber et formation à la cybersécurité"
+    },
+    "form": {
+      "basicInfo": "Informations générales",
+      "titlePlaceholder": "Ex: Sensibilisation au phishing",
+      "descriptionPlaceholder": "Décrivez le contenu et les objectifs de cette formation...",
+      "content": "Contenu de la formation",
+      "contentType": "Type de contenu",
+      "contentUrl": "URL du contenu",
+      "externalUrl": "URL externe",
+      "videoDuration": "Durée de la vidéo (minutes)",
+      "frameworkMappings": "Mapping référentiels",
+      "selectRoles": "Sélectionner les rôles cibles",
+      "rolesHint": "Sélectionnez les rôles auxquels cette formation s'applique. Laissez vide pour cibler tous les utilisateurs.",
+      "requiredHint": "Les formations obligatoires apparaîtront dans le tableau de bord des utilisateurs concernés.",
+      "tags": "Étiquettes",
+      "tagsLabel": "Étiquettes (séparées par des virgules)",
+      "tagsPlaceholder": "Ex: phishing, social engineering, email",
+      "quizId": "Identifiant du quiz"
+    },
+    "roles": {
+      "all": "Tous les utilisateurs",
+      "executives": "Direction",
+      "managers": "Managers",
+      "it_staff": "Équipe IT",
+      "developers": "Développeurs",
+      "security_team": "Équipe Sécurité",
+      "hr": "Ressources Humaines",
+      "finance": "Finance",
+      "operations": "Opérations",
+      "new_employees": "Nouveaux arrivants"
+    }
   }
 }

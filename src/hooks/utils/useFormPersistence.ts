@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { UseFormReturn, FieldValues } from 'react-hook-form';
+import { ErrorLogger } from '@/services/errorLogger';
 
 /**
  * Hook to persist form state to localStorage and restore it on mount.
@@ -33,7 +34,7 @@ export function useFormPersistence<T extends FieldValues>(
                 setIsRestored(true);
             }
         } catch (e) {
-            console.error(`Failed to load form draft for key ${key}`, e);
+            ErrorLogger.error(e, `useFormPersistence.loadDraft(${key})`);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key, enabled, reset]);
@@ -52,7 +53,7 @@ export function useFormPersistence<T extends FieldValues>(
             try {
                 localStorage.setItem(key, JSON.stringify(dataToSave));
             } catch (e) {
-                console.error(`Failed to save draft for key ${key}`, e);
+                ErrorLogger.error(e, `useFormPersistence.saveDraft(${key})`);
             }
         });
 

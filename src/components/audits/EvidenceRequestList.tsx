@@ -27,7 +27,7 @@ interface EvidenceRequestListProps {
 }
 
 export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditId, organizationId, users, controls, canEdit }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { hasFeature, planId } = usePlanLimits();
     const [isCreating, setIsCreating] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             }));
-            addToast("Demande de preuve créée", "success");
+            addToast(t('audits.evidence.requestCreated') || "Demande de preuve créée", "success");
             setIsCreating(false);
             reset();
             refresh();

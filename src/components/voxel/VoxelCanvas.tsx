@@ -11,6 +11,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { VoxelScene } from './VoxelScene';
+import { ErrorLogger } from '@/services/errorLogger';
 
 /** Background color per Digital Galaxy theme */
 const CANVAS_BACKGROUND = '#0F172A';
@@ -75,7 +76,7 @@ export const VoxelCanvas: React.FC<VoxelCanvasProps> = ({
         }}
         onCreated={handleCreated}
         onError={(error) => {
-          console.error('[VoxelCanvas] Canvas error:', error);
+          ErrorLogger.error(error, 'VoxelCanvas');
           onError?.(error instanceof Error ? error : new Error(String(error)));
         }}
         style={{

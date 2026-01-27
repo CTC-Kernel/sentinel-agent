@@ -58,8 +58,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                         const config = PHASE_CONFIG[phase];
                         const styles = PHASE_STYLES[phase];
                         const phaseData = program.phases[phase];
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const Icon = config.icon as any;
+                        const Icon = config.icon as React.ComponentType<{ className?: string }>;
                         const isCurrentPhase = program.currentPhase === phase;
                         const phaseMilestones = getMilestonesByPhase(phase);
 
@@ -150,8 +149,7 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
     const config = PHASE_CONFIG[phase];
     const styles = PHASE_STYLES[phase];
     const phaseData = program.phases[phase];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = config.icon as any;
+    const Icon = config.icon as React.ComponentType<{ className?: string }>;
 
     const completedMilestones = milestones.filter(m => m.status === 'completed').length;
 

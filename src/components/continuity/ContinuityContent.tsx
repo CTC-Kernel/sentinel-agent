@@ -14,6 +14,7 @@ import { TlptCampaign } from '../../types/tlpt';
 import { TlptDashboard } from './tlpt/TlptDashboard';
 import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { useTranslation } from 'react-i18next';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ContinuityContentProps {
     activeTab: 'overview' | 'strategies' | 'pra' | 'bia' | 'drills' | 'crisis' | 'tlpt' | 'methods';
@@ -196,7 +197,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                 {activeTab === 'methods' && (
                     <ContinuityMethodsWorkshops
                         onStartWorkshop={(templateId) => {
-                            console.log('Starting continuity workshop:', templateId);
+                            ErrorLogger.debug(`Starting continuity workshop: ${templateId}`, 'ContinuityContent');
                         }}
                     />
                 )}

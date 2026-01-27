@@ -86,6 +86,7 @@ import type {
 } from '@/types/vault';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ErrorLogger } from '@/services/errorLogger';
 
 interface RetentionDashboardProps {
   className?: string;
@@ -165,7 +166,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
       setStats(statsData);
       setAgeDistribution(distributionData);
     } catch (error) {
-      console.error('Error loading retention data:', error);
+      ErrorLogger.error(error, 'RetentionDashboard.loadData');
       toast.error(t('retention.error.loadFailed', 'Erreur lors du chargement'));
     } finally {
       setLoading(false);
@@ -182,7 +183,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
       setNearExpiry(nearExpiryData);
       setExpired(expiredData);
     } catch (error) {
-      console.error('Error loading expiry data:', error);
+      ErrorLogger.error(error, 'RetentionDashboard.loadExpiryData');
     }
   }, [organizationId, expiryFilter]);
 
@@ -258,7 +259,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
       resetForm();
       loadData();
     } catch (error) {
-      console.error('Error saving policy:', error);
+      ErrorLogger.error(error, 'RetentionDashboard.savePolicy');
       toast.error(t('retention.error.saveFailed', 'Erreur lors de la sauvegarde'));
     } finally {
       setFormLoading(false);
@@ -276,7 +277,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
       setPolicyToDelete(null);
       loadData();
     } catch (error) {
-      console.error('Error deleting policy:', error);
+      ErrorLogger.error(error, 'RetentionDashboard.deletePolicy');
       toast.error(t('retention.error.deleteFailed', 'Erreur lors de la suppression'));
     }
   };

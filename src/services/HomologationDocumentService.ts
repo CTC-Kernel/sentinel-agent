@@ -19,6 +19,7 @@ import { db } from '../firebase';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { ErrorLogger } from './errorLogger';
 import type {
   HomologationDossier,
   HomologationDocumentType
@@ -688,7 +689,7 @@ export async function fetchEbiosData(
       residualRisks
     };
   } catch (error) {
-    console.error('Error fetching EBIOS data:', error);
+    ErrorLogger.error(error, 'HomologationDocumentService.fetchEbiosData');
     return null;
   }
 }

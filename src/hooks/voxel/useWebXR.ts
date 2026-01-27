@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -132,7 +133,7 @@ async function checkSessionSupport(mode: XRSessionMode): Promise<boolean> {
     const supported = await navigator.xr?.isSessionSupported(mode);
     return supported ?? false;
   } catch (error) {
-    console.warn(`[useWebXR] Error checking ${mode} support:`, error);
+    ErrorLogger.warn(`Error checking ${mode} support`, 'useWebXR', { metadata: { error } });
     return false;
   }
 }
@@ -258,7 +259,7 @@ export function useWebXR(options: UseWebXROptions = {}): UseWebXRReturn {
     }
 
     if (session) {
-      console.warn('[useWebXR] A session is already active');
+      ErrorLogger.warn('A session is already active', 'useWebXR');
       return session;
     }
 
@@ -300,7 +301,7 @@ export function useWebXR(options: UseWebXROptions = {}): UseWebXRReturn {
     }
 
     if (session) {
-      console.warn('[useWebXR] A session is already active');
+      ErrorLogger.warn('A session is already active', 'useWebXR');
       return session;
     }
 
@@ -346,7 +347,7 @@ export function useWebXR(options: UseWebXROptions = {}): UseWebXRReturn {
         setSession(null);
         setStatus((prev) => ({ ...prev, activeSession: null }));
       } catch (error) {
-        console.error('[useWebXR] Error ending session:', error);
+        ErrorLogger.error(error, 'useWebXR.endSession');
       }
     }
   }, [session]);

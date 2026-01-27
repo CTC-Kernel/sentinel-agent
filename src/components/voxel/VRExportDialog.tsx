@@ -19,6 +19,7 @@ import {
   validateVRExportOptions,
   getVRPlatformInstructions,
 } from '@/services/voxelExportService';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -351,7 +352,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
       setExportResult(result);
       onExportComplete?.(result);
     } catch (error) {
-      console.error('[VRExportDialog] Export failed:', error);
+      ErrorLogger.error(error, 'VRExportDialog.export');
       onExportError?.(error instanceof Error ? error : new Error('Export failed'));
     } finally {
       setIsExporting(false);

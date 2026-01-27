@@ -21,6 +21,7 @@ import type { ViewPreset } from '@/types/voxel';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -126,7 +127,7 @@ export function useViewPresets(): UseViewPresetsReturn {
       views.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
       setCustomViews(views);
     } catch (error) {
-      console.error('Failed to load custom views:', error);
+      ErrorLogger.error(error, 'useViewPresets.refreshCustomViews');
     } finally {
       setIsLoadingCustomViews(false);
     }
@@ -190,7 +191,7 @@ export function useViewPresets(): UseViewPresetsReturn {
     // Validate before saving
     const validation = validatePresetConfig(customView);
     if (!validation.success) {
-      console.error('Invalid custom view config:', validation.error);
+      ErrorLogger.error(validation.error, 'useViewPresets.saveCurrentAsCustom.validation');
       return null;
     }
 
@@ -205,7 +206,7 @@ export function useViewPresets(): UseViewPresetsReturn {
       setCustomViews(prev => [customView, ...prev]);
       return customView;
     } catch (error) {
-      console.error('Failed to save custom view:', error);
+      ErrorLogger.error(error, 'useViewPresets.saveCurrentAsCustom');
       return null;
     }
   }, [user?.uid, filters, ui]);
@@ -233,7 +234,7 @@ export function useViewPresets(): UseViewPresetsReturn {
       ));
       return true;
     } catch (error) {
-      console.error('Failed to update custom view:', error);
+      ErrorLogger.error(error, 'useViewPresets.updateCustomView');
       return false;
     }
   }, [user?.uid, customViews]);
@@ -251,7 +252,7 @@ export function useViewPresets(): UseViewPresetsReturn {
       setCustomViews(prev => prev.filter(v => v.id !== id));
       return true;
     } catch (error) {
-      console.error('Failed to delete custom view:', error);
+      ErrorLogger.error(error, 'useViewPresets.deleteCustomView');
       return false;
     }
   }, [user?.uid, customViews]);

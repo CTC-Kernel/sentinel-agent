@@ -73,8 +73,11 @@ export function createDraftSchema<T extends z.ZodRawShape>(
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return z.object(newShape) as any;
+  return z.object(newShape) as z.ZodObject<{
+    [K in keyof T]: K extends (typeof options.requiredFields)[number]
+    ? T[K]
+    : z.ZodOptional<T[K]>;
+  }>;
 }
 
 /**
@@ -110,19 +113,17 @@ function wrapWithLocalizedRequired<T extends z.ZodTypeAny>(
   if (schema instanceof z.ZodString) {
     // Note: We access Zod's internal _def.checks array to inspect existing validations.
     // This is necessary because Zod doesn't expose a public API to check if min() was called.
-    // The 'any' casts are required because _def is not part of Zod's public TypeScript types.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const checks = (schema as any)._def.checks || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hasMinCheck = checks.some((check: any) => check.kind === 'min');
+    interface ZodStringCheck { kind: string; value?: number }
+    const def = schema._def as { checks?: ZodStringCheck[] };
+    const checks = def.checks || [];
+    const hasMinCheck = checks.some((check) => check.kind === 'min');
 
     if (!hasMinCheck) {
       // Add min(1) with localized message
       return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;
     } else {
       // Replace existing min(1) error message with localized version
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const firstMinCheck = checks.find((check: any) => check.kind === 'min' && check.value === 1);
+      const firstMinCheck = checks.find((check) => check.kind === 'min' && check.value === 1);
       if (firstMinCheck) {
         // Schema already has min(1), redefine with localized message
         return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;

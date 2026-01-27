@@ -21,6 +21,7 @@
 import React from 'react';
 import type { VoxelNode as VoxelNodeType } from '@/types/voxel';
 import { VoxelNode, type VoxelNodeProps } from './VoxelNode';
+import { ErrorLogger } from '@/services/errorLogger';
 
 export interface RiskNodeProps extends Omit<VoxelNodeProps, 'data'> {
   /** Risk node data */
@@ -34,7 +35,7 @@ export interface RiskNodeProps extends Omit<VoxelNodeProps, 'data'> {
 export const RiskNode: React.FC<RiskNodeProps> = ({ data, ...props }) => {
   // Validate node type
   if (data.type !== 'risk') {
-    console.warn(`RiskNode received non-risk node type: ${data.type}`);
+    ErrorLogger.warn(`RiskNode received non-risk node type: ${data.type}`, 'RiskNode');
   }
 
   return <VoxelNode data={data} {...props} />;

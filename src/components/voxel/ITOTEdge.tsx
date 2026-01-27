@@ -12,6 +12,7 @@
 import React, { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Line, Billboard, Html } from '@react-three/drei';
+import * as THREE from 'three';
 import {
   Vector3,
   AdditiveBlending,
@@ -131,8 +132,7 @@ const GradientLine: React.FC<GradientLineProps> = React.memo(
     // Animate dash offset
     useFrame(({ clock }) => {
       if (lineRef.current?.material && animated && dashed) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const material = lineRef.current.material as any;
+        const material = lineRef.current.material as THREE.LineDashedMaterial & { dashOffset?: number };
         if (material.dashOffset !== undefined) {
           material.dashOffset = -clock.getElapsedTime() * 2;
         }
@@ -219,8 +219,7 @@ interface DMZWaypointProps {
 }
 
 const DMZWaypoint: React.FC<DMZWaypointProps> = React.memo(({ position, isHighlighted }) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const meshRef = useRef<any>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((_, delta) => {
     if (meshRef.current) {

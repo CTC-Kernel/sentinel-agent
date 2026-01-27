@@ -54,6 +54,7 @@ import {
 } from '../ui/dropdown-menu';
 import { cn } from '../../utils/cn';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface GroupManagerProps {
     agents?: SentinelAgent[];
@@ -96,7 +97,7 @@ const GroupFormModal: React.FC<{
             });
             onClose();
         } catch (error) {
-            console.error('Error saving group:', error);
+            ErrorLogger.error(error, 'GroupManager.saveGroup');
         } finally {
             setSaving(false);
         }
@@ -547,7 +548,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
                 setExpandedIds(new Set(data.map(g => g.id)));
             },
             (error) => {
-                console.error('Error loading groups:', error);
+                ErrorLogger.error(error, 'GroupManager.subscribeToGroups');
                 setLoading(false);
             }
         );

@@ -276,8 +276,9 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
       // Update sync timestamp
       setLastSyncAt(new Date());
 
-      console.log(
-        `[VoxelRealtime] Flushed updates: +${updates.added.length} ~${updates.modified.length} -${updates.removed.length}`
+      ErrorLogger.debug(
+        `Flushed updates: +${updates.added.length} ~${updates.modified.length} -${updates.removed.length}`,
+        'VoxelRealtime'
       );
     }
 
@@ -345,7 +346,7 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     (collectionName: string, orgId: string) => {
       const nodeType = COLLECTION_TO_NODE_TYPE[collectionName];
       if (!nodeType) {
-        console.warn(`[VoxelRealtime] Unknown collection: ${collectionName}`);
+        ErrorLogger.warn(`Unknown collection: ${collectionName}`, 'VoxelRealtime');
         return;
       }
 
@@ -398,8 +399,9 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
                 { metadata: { collectionName, error: error.message, delay } }
               );
 
-              console.warn(
-                `[VoxelRealtime] Error in ${collectionName} listener, retry ${nextAttempt}/${mergedConfig.maxRetries} in ${Math.round(delay)}ms`
+              ErrorLogger.warn(
+                `Error in ${collectionName} listener, retry ${nextAttempt}/${mergedConfig.maxRetries} in ${Math.round(delay)}ms`,
+                'VoxelRealtime'
               );
 
               // Schedule retry using ref to avoid accessing variable before declaration
@@ -416,8 +418,9 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
                 { metadata: { collectionName, maxRetries: mergedConfig.maxRetries } }
               );
 
-              console.error(
-                `[VoxelRealtime] Max retries (${mergedConfig.maxRetries}) exceeded for ${collectionName} listener`
+              ErrorLogger.error(
+                new Error(`Max retries (${mergedConfig.maxRetries}) exceeded for ${collectionName} listener`),
+                'VoxelRealtime.maxRetriesExceeded'
               );
             }
           }
@@ -428,7 +431,6 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
         ErrorLogger.error(error, 'useVoxelRealtime.setupCollectionListener.setupFailed', {
           metadata: { collectionName },
         });
-        console.error(`[VoxelRealtime] Failed to setup ${collectionName} listener:`, error);
       }
     },
     [handleSnapshotChanges, updateSyncStatus, calculateBackoff, mergedConfig.maxRetries]
@@ -453,7 +455,7 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     }
     isInitializedRef.current = true;
 
-    console.log('[VoxelRealtime] Setting up listeners for org:', organizationId);
+    ErrorLogger.debug(`Setting up listeners for org: ${organizationId}`, 'VoxelRealtime');
     setSyncStatus('syncing');
 
     // Reset retry state
@@ -473,7 +475,7 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
 
     // Cleanup function
     return () => {
-      console.log('[VoxelRealtime] Cleaning up listeners');
+      ErrorLogger.debug('Cleaning up listeners', 'VoxelRealtime');
 
       // Clear all unsubscribers
       currentUnsubscribers.forEach((unsub) => unsub());
@@ -515,11 +517,11 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     );
 
     if (failedCollections.length === 0) {
-      console.log('[VoxelRealtime] All collections already connected');
+      ErrorLogger.debug('All collections already connected', 'VoxelRealtime');
       return;
     }
 
-    console.log('[VoxelRealtime] Retrying failed collections:', failedCollections);
+    ErrorLogger.info(`Retrying failed collections: ${failedCollections.join(', ')}`, 'VoxelRealtime');
 
     // Reset retry attempts for failed collections
     failedCollections.forEach((col) => {
@@ -533,7 +535,7 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
    */
   useEffect(() => {
     const handleOnline = () => {
-      console.log('[VoxelRealtime] Network online - retrying failed listeners');
+      ErrorLogger.info('Network online - retrying failed listeners', 'VoxelRealtime');
       retryAllFailed();
     };
 

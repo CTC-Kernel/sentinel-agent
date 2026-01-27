@@ -3,6 +3,7 @@ import { where, orderBy, collection, onSnapshot, query } from 'firebase/firestor
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile, Incident, TlptCampaign, RecoveryPlan } from '../../types';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export const useContinuityData = (organizationId?: string) => {
     const { demoMode } = useStore();
@@ -46,7 +47,7 @@ export const useContinuityData = (organizationId?: string) => {
                 setLoading(false);
             }).catch(err => {
                 if (mounted) {
-                    console.error('[useContinuityData] Failed to load mock data:', err);
+                    ErrorLogger.error(err, 'useContinuityData.loadMockData');
                     setLoading(false);
                 }
             });

@@ -77,6 +77,7 @@ import {
 } from '../ui/dropdown-menu';
 import { cn } from '../../utils/cn';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface PolicyEditorProps {
     groups?: AgentGroup[];
@@ -352,7 +353,7 @@ const PolicyForm: React.FC<{
                 deploymentStatus: 'draft',
             });
         } catch (error) {
-            console.error('Error saving policy:', error);
+            ErrorLogger.error(error, 'PolicyEditor.savePolicy');
             setErrors(['Erreur lors de la sauvegarde']);
         } finally {
             setSaving(false);
@@ -660,7 +661,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                 setLoading(false);
             },
             (error) => {
-                console.error('Error loading policies:', error);
+                ErrorLogger.error(error, 'PolicyEditor.subscribeToPolicies');
                 setLoading(false);
             }
         );

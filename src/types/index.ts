@@ -21,3 +21,4 @@ export * from './dora';
 export * from './homologation';
 export * from './framework';
 export * from './compliance';
+export * from './training';

@@ -17,6 +17,7 @@ import { FileCode, FileSpreadsheet, FileText, Trash2, Clock, User, FileDown, Loa
 import { DORAExportService, DORAExportRecord, ExportFormat } from '../../services/DORAExportService';
 import { useStore } from '../../store';
 import { cn } from '../../lib/utils';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ExportHistoryPanelProps {
     className?: string;
@@ -46,7 +47,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
             const history = await DORAExportService.getExportHistory(organization.id);
             setExports(history);
         } catch (error) {
-            console.error('Failed to load export history:', error);
+            ErrorLogger.error(error, 'ExportHistoryPanel.loadExports');
             toast.error(t('dora.export.historyError'));
         } finally {
             setLoading(false);
@@ -64,7 +65,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
             setExports(prev => prev.filter(e => e.id !== exportId));
             toast.success(t('dora.export.deleted'));
         } catch (error) {
-            console.error('Failed to delete export:', error);
+            ErrorLogger.error(error, 'ExportHistoryPanel.deleteExport');
             toast.error(t('common.error'));
         } finally {
             setDeletingId(null);

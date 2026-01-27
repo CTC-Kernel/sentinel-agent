@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { X, Shield, Activity, Globe, Award, TrendingUp, Calendar, Target, Zap } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { HunterProfileService, HunterProfile as HunterProfileData } from '../../services/HunterProfileService';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface HunterProfile {
     name: string;
@@ -234,7 +235,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                 const profile = await HunterProfileService.getHunterProfileByName(hunterName);
                 setHunterProfile(profile);
             } catch (error) {
-                console.error('Error fetching hunter profile:', error);
+                ErrorLogger.error(error, 'HunterProfileModal.fetchHunterProfile');
                 setHunterProfile(null);
             } finally {
                 // Loading state removed

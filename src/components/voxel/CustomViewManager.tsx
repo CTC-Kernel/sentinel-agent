@@ -15,6 +15,7 @@ import {
   LayoutGrid,
   Camera,
 } from '../ui/Icons';
+import { ErrorLogger } from '@/services/errorLogger';
 import {
   Dialog,
   DialogContent,
@@ -297,7 +298,7 @@ export function CustomViewManager({
     try {
       await deleteCustomView(deleteConfirmView.id);
     } catch (err) {
-      console.error('Failed to delete view:', err);
+      ErrorLogger.error(err, 'CustomViewManager.handleDelete');
     } finally {
       setDeleteConfirmView(null);
     }

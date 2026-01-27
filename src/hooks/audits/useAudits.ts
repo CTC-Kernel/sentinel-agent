@@ -126,7 +126,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
                 setMockFindings(findings);
                 setMockLoading(false);
             }).catch(err => {
-                console.error('[useAudits] Failed to load mock data:', err);
+                ErrorLogger.error(err, 'useAudits.loadMockData');
                 setMockLoading(false);
             });
         }

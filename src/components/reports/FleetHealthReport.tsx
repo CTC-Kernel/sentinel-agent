@@ -392,7 +392,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                 onExport(format);
             }
 
-            console.log('Report generated:', reportId);
+            ErrorLogger.debug(`Report generated: ${reportId}`, 'FleetHealthReport.handleExport');
         } catch (err) {
             ErrorLogger.error(err, 'FleetHealthReport.handleExport');
         } finally {

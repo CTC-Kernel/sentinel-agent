@@ -392,9 +392,8 @@ export const OTNodeMesh: React.FC<OTNodeMeshProps> = React.memo(
     // Determine if critical (safety-critical OT asset)
     const isCritical = criticality === 'safety';
 
-    // @ts-expect-error: react-spring types might be missing group proxy
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const AnimatedGroup = animated.group as any;
+    const AnimatedGroup = (animated as any).group;
 
     return (
       <group position={position}>

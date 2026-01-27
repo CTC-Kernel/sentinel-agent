@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { ErrorLogger } from '@/services/errorLogger';
 import {
   Clock,
   AlertTriangle,
@@ -149,7 +150,7 @@ export const HomologationValidityWidget: React.FC<HomologationValidityWidgetProp
       const validityStats = await HomologationService.getValidityStats(organization.id);
       setStats(validityStats);
     } catch (error) {
-      console.error('Error fetching validity stats:', error);
+      ErrorLogger.error(error, 'HomologationValidityWidget.fetchStats');
     } finally {
       setLoading(false);
     }

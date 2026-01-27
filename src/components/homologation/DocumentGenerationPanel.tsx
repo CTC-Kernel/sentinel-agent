@@ -36,6 +36,7 @@ import type {
   HomologationDocumentType
 } from '../../types/homologation';
 import { DOCUMENT_TYPE_INFO, REQUIRED_DOCUMENTS } from '../../types/homologation';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface DocumentGenerationPanelProps {
   dossier: HomologationDossier;
@@ -137,7 +138,7 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
 
         onDocumentGenerated();
       } catch (error) {
-        console.error('Error generating document:', error);
+        ErrorLogger.error(error, 'DocumentGenerationPanel.generateDocument');
         toast.error(
           t('common.error', 'Erreur'),
           t('homologation.documents.generateError', 'Erreur lors de la génération.')
@@ -180,7 +181,7 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
 
       onDocumentGenerated();
     } catch (error) {
-      console.error('Error generating all documents:', error);
+      ErrorLogger.error(error, 'DocumentGenerationPanel.generateAllDocuments');
       toast.error(
         t('common.error', 'Erreur'),
         t('homologation.documents.generateError', 'Erreur lors de la génération.')
@@ -210,7 +211,7 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
           t('homologation.documents.downloadedDesc', 'Le document a été téléchargé.')
         );
       } catch (error) {
-        console.error('Error downloading PDF:', error);
+        ErrorLogger.error(error, 'DocumentGenerationPanel.downloadPDF');
         toast.error(
           t('common.error', 'Erreur'),
           t('homologation.documents.downloadError', 'Erreur lors du téléchargement.')

@@ -28,6 +28,7 @@ import { DependencyMatrix } from '../vendor-concentration/DependencyMatrix';
 import { SPOFAlerts } from '../vendor-concentration/SPOFAlerts';
 import { ConcentrationRecommendations } from '../vendor-concentration/ConcentrationRecommendations';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
+import { ErrorLogger } from '../../services/errorLogger';
 import type {
     ConcentrationMetrics,
     SPOFSummary,
@@ -197,7 +198,7 @@ export const SupplierConcentrationTab: React.FC = () => {
             setTrends(trendsData);
             setDependencyMatrix(matrixData);
         } catch (error) {
-            console.error('Failed to load concentration data:', error);
+            ErrorLogger.error(error, 'SupplierConcentrationTab.loadData');
         } finally {
             setIsLoading(false);
             setIsRefreshing(false);

@@ -134,8 +134,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                             <label className="text-sm font-medium text-slate-500 block mb-1">Phase PDCA</label>
                             <div className="flex items-center gap-2">
                                 {(() => {
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    const PhaseIcon = phaseConfig.icon as any;
+                                    const PhaseIcon = phaseConfig.icon as React.ComponentType<{ className?: string }>;
                                     return <PhaseIcon className={cn("w-4 h-4", phaseStyle.text)} />;
                                 })()}
                                 <span className="text-slate-900 dark:text-white">{phaseConfig.label} - {phaseConfig.description}</span>

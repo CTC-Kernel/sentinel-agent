@@ -106,7 +106,6 @@ export class DashboardService {
             } catch (error: unknown) {
                 const err = error as { message?: string } | null;
                 // Log the full error to see the "create index" link if missing
-                console.error(`[DashboardService] Failed to fetch ${label} count:`, error);
                 ErrorLogger.warn(`Failed to fetch ${label} count: ${err?.message || 'Unknown error'}`, `DashboardService.getAggregatedStats`, { metadata: { error } });
                 // Track the failure
                 failedQueries.push(label);

@@ -47,6 +47,7 @@ import { DocumentGenerationPanel } from './DocumentGenerationPanel';
 import { HomologationAIAssistant } from './HomologationAIAssistant';
 import type { HomologationDossier, HomologationLevel, HomologationStatus } from '../../types/homologation';
 import { LEVEL_INFO, DOCUMENT_TYPE_INFO } from '../../types/homologation';
+import { ErrorLogger } from '../../services/errorLogger';
 
 // ============================================================================
 // Constants
@@ -120,7 +121,7 @@ export const HomologationDossierDetail: React.FC = () => {
       setDossier(fetchedDossier);
       setDocuments(fetchedDocuments);
     } catch (err) {
-      console.error('Error fetching dossier:', err);
+      ErrorLogger.error(err, 'HomologationDossierDetail.fetchData');
       setError(err instanceof Error ? err : new Error('Failed to load dossier'));
     } finally {
       setLoading(false);
@@ -191,7 +192,7 @@ export const HomologationDossierDetail: React.FC = () => {
       await fetchData();
       setIsEditing(false);
     } catch (err) {
-      console.error('Error saving document:', err);
+      ErrorLogger.error(err, 'HomologationDossierDetail.saveDocument');
       toast.error(
         t('common.error', 'Erreur'),
         t('homologation.documents.saveError', 'Erreur lors de l\'enregistrement.')
@@ -214,7 +215,7 @@ export const HomologationDossierDetail: React.FC = () => {
           t('homologation.updatedDesc', 'Les modifications ont été appliquées.')
         );
       } catch (err) {
-        console.error('Error updating dossier:', err);
+        ErrorLogger.error(err, 'HomologationDossierDetail.updateDossier');
         toast.error(
           t('common.error', 'Erreur'),
           t('homologation.updateError', 'Erreur lors de la mise à jour.')
@@ -252,7 +253,7 @@ export const HomologationDossierDetail: React.FC = () => {
 
         await fetchData();
       } catch (err) {
-        console.error('Error updating status:', err);
+        ErrorLogger.error(err, 'HomologationDossierDetail.statusChange');
         toast.error(
           t('common.error', 'Erreur'),
           t('homologation.statusUpdateError', 'Erreur lors de la mise à jour.')

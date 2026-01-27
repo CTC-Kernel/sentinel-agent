@@ -3859,5 +3859,473 @@
     "technicalInfo": "Technical Information",
     "unknownError": "Unknown error",
     "retry": "Retry"
+  },
+  "backup": {
+    "title": "Backup & Restore",
+    "subtitle": "Manage your restore points and data security.",
+    "newBackup": "New Backup",
+    "restore": "Restore",
+    "schedule": "Schedule",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "launchBackup": "Launch backup",
+    "launchRestore": "Launch restore",
+    "launchSimulation": "Launch simulation",
+    "restoreData": "Restore data",
+    "selectBackup": "Select a backup from the list to get started",
+    "selectedBackup": "Selected backup",
+    "collectionsToRestore": "Collections to restore",
+    "overwriteExisting": "Overwrite existing data",
+    "overwriteDesc": "If checked, current data will be replaced by backup data.",
+    "dryRun": "Dry Run (Simulation)",
+    "dryRunDesc": "Verifies integrity without modifying data.",
+    "deleteBackup": "Delete backup",
+    "deleteBackupConfirm": "Are you sure you want to delete backup {{id}}?",
+    "tabs": {
+      "backup": "Backup",
+      "restore": "Restore"
+    },
+    "collections": {
+      "documents": "Documents",
+      "assets": "Assets",
+      "risks": "Risks",
+      "controls": "Controls",
+      "audits": "Audits",
+      "projects": "Projects",
+      "suppliers": "Suppliers",
+      "incidents": "Incidents",
+      "users": "Users",
+      "comments": "Comments"
+    },
+    "success": {
+      "created": "Backup created successfully",
+      "scheduled": "Backup scheduled ({{frequency}})",
+      "simulationComplete": "Restore simulation successful",
+      "restoreComplete": "Restore completed successfully",
+      "deleted": "Backup deleted"
+    },
+    "errors": {
+      "loadFailed": "Error loading backups",
+      "createFailed": "Error creating backup",
+      "scheduleFailed": "Error scheduling backup",
+      "selectBackup": "Please select a backup",
+      "selectCollection": "Please select at least one collection",
+      "restoreFailed": "Error during restore",
+      "deleteFailed": "Error deleting backup",
+      "downloadFailed": "Error downloading backup"
+    }
+  },
+  "threatRegistry": {
+    "title": "Threat Library",
+    "subtitle": "Threat and vulnerability repository (ISO 27005).",
+    "newThreat": "New Threat",
+    "editThreat": "Edit threat",
+    "importStandard": "Import Standard",
+    "searchPlaceholder": "Search for a threat, scenario...",
+    "noThreatsFound": "No threats found",
+    "noThreatsDesc": "Start by importing the standard library or create your first threat.",
+    "importStandardAction": "Import standard templates",
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "framework": "Framework",
+      "field": "Domain / Field",
+      "threat": "Threat (Cause)",
+      "vulnerability": "Vulnerability",
+      "scenario": "Scenario",
+      "probability": "Probability (Ref)",
+      "impact": "Impact (Ref)",
+      "strategy": "Default strategy"
+    },
+    "confirm": {
+      "importTitle": "Import standard library?",
+      "importMessage": "The library already contains threats. Do you really want to import standard templates (duplicates possible)?",
+      "deleteTitle": "Delete this threat?",
+      "deleteMessage": "This action is irreversible."
+    },
+    "actions": {
+      "save": "Save changes",
+      "create": "Create threat",
+      "cancel": "Cancel"
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "subtitle": "Connect your tools to automate evidence collection.",
+    "searchPlaceholder": "Search for an integration...",
+    "tabs": {
+      "providers": "Connectors",
+      "jobs": "Tasks & Scans"
+    },
+    "categories": {
+      "all": "All",
+      "cloud": "Cloud",
+      "code": "Code",
+      "security": "Security"
+    },
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "apiKeyModal": {
+      "title": "Connect {{provider}}",
+      "description": "Please enter your API key (or Token) to allow Sentinel GRC to access {{provider}} data.",
+      "label": "API Key / Token",
+      "placeholder": "sk_live_...",
+      "hint": "This key will be stored securely and used only for synchronization.",
+      "connectButton": "Connect integration",
+      "connecting": "Connecting..."
+    },
+    "confirm": {
+      "disconnectTitle": "Disconnect integration",
+      "disconnectMessage": "Do you really want to disconnect {{provider}}?"
+    },
+    "success": {
+      "connected": "Connected to {{provider}} successfully",
+      "connectedDemo": "Connected to {{provider}} (Demo)",
+      "disconnected": "Disconnected from {{provider}}"
+    },
+    "errors": {
+      "noPermission": "You don't have permission to connect services.",
+      "invalidApiKey": "Please enter a valid API key.",
+      "connectFailed": "Failed to connect to {{provider}}",
+      "disconnectFailed": "Error disconnecting"
+    }
+  },
+  "errorLogger": {
+    "UNKNOWN_ERROR": {
+      "message": "An unexpected error occurred",
+      "hint": "Try refreshing the page. If the problem persists, contact support.",
+      "action": "Refresh"
+    },
+    "NETWORK_ERROR": {
+      "message": "Connection failed",
+      "hint": "Check your internet connection and try again.",
+      "action": "Retry"
+    },
+    "PERMISSION_DENIED": {
+      "message": "Access denied",
+      "hint": "You don't have the required permissions. Contact your administrator for access.",
+      "action": "View my permissions"
+    },
+    "MISSING_INDEX": {
+      "message": "Configuration in progress",
+      "hint": "The database is being configured. Please try again in a moment."
+    },
+    "AUTH_FAILED": {
+      "message": "Login failed",
+      "hint": "Check your credentials. Forgot your password?",
+      "action": "Reset"
+    },
+    "AUTH_EXPIRED": {
+      "message": "Session expired",
+      "hint": "For your security, please log in again.",
+      "action": "Log in"
+    },
+    "AUTH_INVALID_EMAIL": {
+      "message": "Invalid email",
+      "hint": "Expected format: example@domain.com"
+    },
+    "AUTH_INVALID_PASSWORD": {
+      "message": "Incorrect password",
+      "hint": "Password must contain at least 8 characters, one uppercase letter, and one number.",
+      "action": "Forgot password?"
+    },
+    "INVITE_FAILED": {
+      "message": "Invitation failed",
+      "hint": "Check that the email is correct and the user is not already a member."
+    },
+    "FETCH_FAILED": {
+      "message": "Loading failed",
+      "hint": "Data could not be retrieved. Check your connection.",
+      "action": "Retry"
+    },
+    "CREATE_FAILED": {
+      "message": "Creation failed",
+      "hint": "Make sure all required fields are filled in correctly."
+    },
+    "UPDATE_FAILED": {
+      "message": "Update failed",
+      "hint": "Changes could not be saved. The item may have been modified by someone else."
+    },
+    "DELETE_FAILED": {
+      "message": "Deletion failed",
+      "hint": "This item may be linked to other data. Check its dependencies."
+    },
+    "EMAIL_SEND_FAILED": {
+      "message": "Email not sent",
+      "hint": "Check the email address and try again."
+    },
+    "VALIDATION_FAILED": {
+      "message": "Invalid data",
+      "hint": "Check the highlighted fields and correct the indicated errors."
+    },
+    "REQUIRED_FIELD": {
+      "message": "Required field",
+      "hint": "This field must be filled to continue."
+    },
+    "INVALID_FORMAT": {
+      "message": "Invalid format",
+      "hint": "Check the expected format for this field."
+    },
+    "FILE_UPLOAD_FAILED": {
+      "message": "Upload failed",
+      "hint": "Check the file size (max 10 MB) and allowed format."
+    },
+    "FILE_TOO_LARGE": {
+      "message": "File too large",
+      "hint": "Maximum size is 10 MB. Compress your file or use a lighter format."
+    },
+    "FILE_INVALID_TYPE": {
+      "message": "Unsupported format",
+      "hint": "Accepted formats: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG."
+    },
+    "QUOTA_EXCEEDED": {
+      "message": "Quota reached",
+      "hint": "You have reached your plan's limit.",
+      "action": "View plans"
+    },
+    "RATE_LIMIT_EXCEEDED": {
+      "message": "Too many requests",
+      "hint": "Please wait a few seconds before trying again."
+    },
+    "ASSET_NOT_FOUND": {
+      "message": "Asset not found",
+      "hint": "This asset may have been deleted or you don't have access.",
+      "action": "View all assets"
+    },
+    "RISK_NOT_FOUND": {
+      "message": "Risk not found",
+      "hint": "This risk may have been deleted or archived.",
+      "action": "View risks"
+    },
+    "PROJECT_NOT_FOUND": {
+      "message": "Project not found",
+      "hint": "This project may have been deleted or you don't have access.",
+      "action": "View projects"
+    },
+    "DOCUMENT_NOT_FOUND": {
+      "message": "Document not found",
+      "hint": "This document may have been deleted or moved.",
+      "action": "View documents"
+    },
+    "AUDIT_NOT_FOUND": {
+      "message": "Audit not found",
+      "hint": "This audit may have been deleted or archived.",
+      "action": "View audits"
+    },
+    "SCAN_FAILED": {
+      "message": "Scan failed",
+      "hint": "The security scan could not be performed. Check the asset configuration.",
+      "action": "Configure"
+    },
+    "REPORT_GENERATION_FAILED": {
+      "message": "Generation failed",
+      "hint": "The report could not be generated. Make sure all required data is available."
+    },
+    "AI_ERROR": {
+      "message": "AI analysis unavailable",
+      "hint": "The analysis service is temporarily unavailable. Please try again later."
+    },
+    "HIBP_FAILED": {
+      "message": "Verification failed",
+      "hint": "The data breach verification service is unavailable."
+    },
+    "DELETE_ACCOUNT_FAILED": {
+      "message": "Deletion failed",
+      "hint": "Your account cannot be deleted at this time. Contact support.",
+      "action": "Contact support"
+    },
+    "LINK_GEN_FAILED": {
+      "message": "Link not generated",
+      "hint": "The share link could not be created. Please try again."
+    },
+    "PORTAL_ACCESS_FAILED": {
+      "message": "Portal access failed",
+      "hint": "Check that the link is valid and not expired."
+    }
+  },
+  "training": {
+    "title": "Training & Awareness",
+    "subtitle": "Manage cyber training and awareness for your organization.",
+    "dashboard": "Training Dashboard",
+    "catalog": "Course Catalog",
+    "myCourses": "My Courses",
+    "campaigns": "Campaigns",
+    "categories": {
+      "security": "Security",
+      "compliance": "Compliance",
+      "awareness": "Awareness",
+      "technical": "Technical"
+    },
+    "sources": {
+      "anssi": "ANSSI",
+      "cnil": "CNIL",
+      "internal": "Internal",
+      "external": "External"
+    },
+    "contentTypes": {
+      "video": "Video",
+      "document": "Document",
+      "quiz": "Quiz",
+      "external_link": "External link"
+    },
+    "status": {
+      "assigned": "To do",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "overdue": "Overdue"
+    },
+    "campaignStatus": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "course": {
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "source": "Source",
+      "duration": "Duration (minutes)",
+      "isRequired": "Required training",
+      "targetRoles": "Target roles",
+      "frameworkMappings": "Framework mappings",
+      "content": "Content",
+      "contentUrl": "Content URL",
+      "create": "Create course",
+      "edit": "Edit course",
+      "archive": "Archive course",
+      "passingScore": "Passing score (%)",
+      "validityPeriod": "Validity (months)"
+    },
+    "assignment": {
+      "assign": "Assign",
+      "assignTo": "Assign to",
+      "selectUsers": "Select users",
+      "selectCourse": "Select course",
+      "dueDate": "Due date",
+      "start": "Start",
+      "continue": "Continue",
+      "markComplete": "Mark as complete",
+      "downloadCertificate": "Download certificate",
+      "score": "Score",
+      "timeSpent": "Time spent",
+      "selectDetails": "Assignment details",
+      "usersSelected": "user(s) selected",
+      "preview": "Preview",
+      "previewTitle": "Assignment preview",
+      "totalAssignments": "Assignments",
+      "users": "users",
+      "assignees": "Assignees",
+      "requiredWarningTitle": "Required training",
+      "requiredWarningDesc": "This training is marked as required and will be tracked in compliance reports.",
+      "confirmAndAssign": "Confirm and assign",
+      "confirmTitle": "Confirm assignment",
+      "confirmDesc": "You are about to assign \"{{course}}\" to {{count}} user(s)."
+    },
+    "campaign": {
+      "create": "Create campaign",
+      "name": "Campaign name",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "scope": "Scope",
+      "scopeAll": "Entire organization",
+      "scopeDepartment": "By department",
+      "scopeRole": "By role",
+      "courses": "Included courses",
+      "recurrence": "Recurrence",
+      "recurrenceEnabled": "Enable recurrence",
+      "frequency": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      },
+      "launch": "Launch campaign",
+      "progress": "Progress"
+    },
+    "stats": {
+      "total": "Total trainings",
+      "completed": "Completed",
+      "inProgress": "In progress",
+      "overdue": "Overdue",
+      "completionRate": "Completion rate",
+      "byDepartment": "By department",
+      "trend": "30-day trend"
+    },
+    "kpi": {
+      "totalAssignments": "Total assignments",
+      "completedAssignments": "Completed trainings",
+      "overdueAssignments": "Overdue",
+      "averageScore": "Average score"
+    },
+    "validation": {
+      "contentRequired": "Content is required based on selected type",
+      "dueDateFuture": "Due date must be in the future",
+      "selectUsers": "Please select at least one user",
+      "selectCourses": "Please select at least one course",
+      "endDateAfterStart": "End date must be after start date",
+      "scopeFilterRequired": "Please select scope criteria"
+    },
+    "success": {
+      "courseCreated": "Course created successfully",
+      "courseUpdated": "Course updated",
+      "courseArchived": "Course archived",
+      "assignmentCreated": "Training assigned successfully",
+      "assignmentsCreated": "{{count}} trainings assigned successfully",
+      "assignmentDeleted": "Assignment deleted",
+      "assignmentCompleted": "Training completed! Congratulations!",
+      "campaignCreated": "Campaign created successfully",
+      "campaignLaunched": "Campaign launched"
+    },
+    "errors": {
+      "loadFailed": "Error loading trainings",
+      "createFailed": "Error creating",
+      "updateFailed": "Error updating",
+      "assignFailed": "Error assigning",
+      "deleteFailed": "Error deleting",
+      "courseNotFound": "Course not found"
+    },
+    "empty": {
+      "catalog": "No courses in catalog",
+      "catalogDesc": "Create your first course to get started.",
+      "assignments": "No assigned trainings",
+      "assignmentsDesc": "All your trainings are up to date!",
+      "campaigns": "No campaigns",
+      "campaignsDesc": "Create a campaign to train your teams."
+    },
+    "nis2": {
+      "article": "Article 21.2(g)",
+      "description": "Basic cyber hygiene practices and cybersecurity training"
+    },
+    "form": {
+      "basicInfo": "General information",
+      "titlePlaceholder": "E.g.: Phishing awareness",
+      "descriptionPlaceholder": "Describe the content and objectives of this training...",
+      "content": "Training content",
+      "contentType": "Content type",
+      "contentUrl": "Content URL",
+      "externalUrl": "External URL",
+      "videoDuration": "Video duration (minutes)",
+      "frameworkMappings": "Framework mappings",
+      "selectRoles": "Select target roles",
+      "rolesHint": "Select the roles this training applies to. Leave empty to target all users.",
+      "requiredHint": "Required trainings will appear on the dashboard of targeted users.",
+      "tags": "Tags",
+      "tagsLabel": "Tags (comma-separated)",
+      "tagsPlaceholder": "E.g.: phishing, social engineering, email",
+      "quizId": "Quiz ID"
+    },
+    "roles": {
+      "all": "All users",
+      "executives": "Executives",
+      "managers": "Managers",
+      "it_staff": "IT Staff",
+      "developers": "Developers",
+      "security_team": "Security Team",
+      "hr": "Human Resources",
+      "finance": "Finance",
+      "operations": "Operations",
+      "new_employees": "New employees"
+    }
   }
 }

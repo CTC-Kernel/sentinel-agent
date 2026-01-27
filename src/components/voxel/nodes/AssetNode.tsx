@@ -16,6 +16,7 @@
 import React from 'react';
 import type { VoxelNode as VoxelNodeType } from '@/types/voxel';
 import { VoxelNode, type VoxelNodeProps } from './VoxelNode';
+import { ErrorLogger } from '@/services/errorLogger';
 
 export interface AssetNodeProps extends Omit<VoxelNodeProps, 'data'> {
   /** Asset node data */
@@ -29,7 +30,7 @@ export interface AssetNodeProps extends Omit<VoxelNodeProps, 'data'> {
 export const AssetNode: React.FC<AssetNodeProps> = ({ data, ...props }) => {
   // Validate node type
   if (data.type !== 'asset') {
-    console.warn(`AssetNode received non-asset node type: ${data.type}`);
+    ErrorLogger.warn(`AssetNode received non-asset node type: ${data.type}`, 'AssetNode');
   }
 
   return <VoxelNode data={data} {...props} />;

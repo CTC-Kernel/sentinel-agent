@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -291,7 +292,7 @@ export function useVRPerformance(options: UseVRPerformanceOptions = {}): UseVRPe
       lastDropTimeRef.current = now;
 
       if (logging) {
-        console.warn(`[VRPerformance] Dropped frame detected: ${delta.toFixed(2)}ms (target: ${targetFrameTime.toFixed(2)}ms)`);
+        ErrorLogger.warn(`Dropped frame detected: ${delta.toFixed(2)}ms (target: ${targetFrameTime.toFixed(2)}ms)`, 'VRPerformance');
       }
     }
 
@@ -354,7 +355,7 @@ export function useVRPerformance(options: UseVRPerformanceOptions = {}): UseVRPe
 
       if (optimalLevel !== qualityLevel) {
         if (logging) {
-          console.log(`[VRPerformance] Auto-adjusting quality: ${qualityLevel} -> ${optimalLevel}`);
+          ErrorLogger.debug(`Auto-adjusting quality: ${qualityLevel} -> ${optimalLevel}`, 'VRPerformance');
         }
         onQualityAdjusted?.(qualityLevel, optimalLevel);
         setQualityLevel(optimalLevel);

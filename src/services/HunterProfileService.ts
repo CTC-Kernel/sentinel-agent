@@ -2,6 +2,7 @@ import { doc, getDoc, collection, query, where, orderBy, limit as limitQuery, ge
 import { db } from '../firebase';
 import { UserProfile } from '../types/users';
 import { Threat } from '../types/risks';
+import { ErrorLogger } from './errorLogger';
 
 export interface HunterStats {
     userId: string;
@@ -44,7 +45,7 @@ export class HunterProfileService {
             }
             return null;
         } catch (error) {
-            console.error('Error fetching user profile:', error);
+            ErrorLogger.error(error, 'HunterProfileService.getUserProfile');
             return null;
         }
     }
@@ -66,7 +67,7 @@ export class HunterProfileService {
             }
             return null;
         } catch (error) {
-            console.error('Error fetching user profile by email:', error);
+            ErrorLogger.error(error, 'HunterProfileService.getUserProfileByEmail');
             return null;
         }
     }
@@ -134,7 +135,7 @@ export class HunterProfileService {
                 recentActivity
             };
         } catch (error) {
-            console.error('Error calculating hunter stats:', error);
+            ErrorLogger.error(error, 'HunterProfileService.calculateHunterStats');
             return {
                 userId,
                 totalContributions: 0,
@@ -174,7 +175,7 @@ export class HunterProfileService {
                 achievements
             };
         } catch (error) {
-            console.error('Error getting hunter profile:', error);
+            ErrorLogger.error(error, 'HunterProfileService.getHunterProfile');
             return null;
         }
     }
@@ -212,7 +213,7 @@ export class HunterProfileService {
 
             return null;
         } catch (error) {
-            console.error('Error getting hunter profile by name:', error);
+            ErrorLogger.error(error, 'HunterProfileService.getHunterProfileByName');
             return null;
         }
     }
@@ -247,7 +248,7 @@ export class HunterProfileService {
 
             return threatTypes.map(type => expertiseMap[type] || type).slice(0, 5);
         } catch (error) {
-            console.error('Error getting user expertise:', error);
+            ErrorLogger.error(error, 'HunterProfileService.getUserExpertise');
             return ['Threat Analysis'];
         }
     }
@@ -348,7 +349,7 @@ export class HunterProfileService {
                 .sort((a, b) => b.stats.totalContributions - a.stats.totalContributions)
                 .slice(0, limit);
         } catch (error) {
-            console.error('Error getting top hunters:', error);
+            ErrorLogger.error(error, 'HunterProfileService.getTopHunters');
             return [];
         }
     }

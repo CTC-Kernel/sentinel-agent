@@ -86,8 +86,7 @@ export const RiskCalculator = {
     /**
      * Parses partial risk values from forms or templates, ensuring defaults.
      */
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    parseRiskValues: (data: any) => {
+    parseRiskValues: (data: Partial<{ probability: number; impact: number; residualProbability: number; residualImpact: number }> | null | undefined) => {
         const prob = Number(data?.probability) || 1;
         const imp = Number(data?.impact) || 1;
         const resProb = Number(data?.residualProbability) || prob;

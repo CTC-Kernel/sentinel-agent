@@ -46,6 +46,7 @@ import { Badge } from '../components/ui/Badge';
 import { SoftwareTable } from '../components/agents/SoftwareTable';
 import { CISBenchmarkView } from '../components/agents/CISBenchmarkView';
 import { cn } from '../utils/cn';
+import { ErrorLogger } from '../services/errorLogger';
 
 // KPI Card Component
 const KPICard: React.FC<{
@@ -320,7 +321,7 @@ export const SoftwareInventory: React.FC = () => {
             const statsData = await getSoftwareStats(user.organizationId);
             setStats(statsData);
         } catch (error) {
-            console.error('Failed to load software stats:', error);
+            ErrorLogger.error(error, 'SoftwareInventory.loadStats');
         } finally {
             setStatsLoading(false);
         }
@@ -337,7 +338,7 @@ export const SoftwareInventory: React.FC = () => {
                 setLoading(false);
             },
             (error) => {
-                console.error('Failed to load software inventory:', error);
+                ErrorLogger.error(error, 'SoftwareInventory.subscribeToSoftwareInventory');
                 setLoading(false);
             },
             {
@@ -362,7 +363,7 @@ export const SoftwareInventory: React.FC = () => {
                 setCISBaselines(baselines);
             },
             (error) => {
-                console.error('Failed to load CIS baselines:', error);
+                ErrorLogger.error(error, 'SoftwareInventory.subscribeToCISBaselines');
             }
         );
 

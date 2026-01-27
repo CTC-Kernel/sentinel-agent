@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Check } from './Icons';
 import { cn } from '../../lib/utils';
 import { appleEasing } from '../../utils/microInteractions';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface CopyButtonProps {
     /** Text to copy to clipboard */
@@ -64,7 +65,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
                 setCopied(false);
             }, copiedDuration);
         } catch (error) {
-            console.error('Failed to copy:', error);
+            ErrorLogger.error(error, 'CopyButton.copy');
         }
     }, [text, onCopy, copiedDuration]);
 

@@ -90,11 +90,11 @@ export const Integrations: React.FC = () => {
         // hasPermission check
         if (!selectedProvider || !user?.organizationId) return;
         if (!hasPermission(user, 'Integration', 'manage')) {
-            toast.error("Vous n'avez pas la permission de connecter des services.");
+            toast.error(t('integrations.errors.noPermission'));
             return;
         }
         if (!apiKey.trim()) {
-            toast.error("Veuillez saisir une clé API valide.");
+            toast.error(t('integrations.errors.invalidApiKey'));
             return;
         }
 
@@ -105,11 +105,11 @@ export const Integrations: React.FC = () => {
             setProviders(prev => prev.map(p =>
                 p.id === selectedProvider.id ? { ...p, status: 'connected' } : p
             ));
-            toast.success(`Connecté à ${selectedProvider.name} avec succès`);
+            toast.success(t('integrations.success.connected', { provider: selectedProvider.name }));
             setApiKeyModalOpen(false);
         } catch (error) {
             ErrorLogger.error(error as Error, 'Integrations.confirmConnect');
-            toast.error(`Échec de la connexion à ${selectedProvider.name}`);
+            toast.error(t('integrations.errors.connectFailed', { provider: selectedProvider.name }));
         } finally {
             setIsSubmittingKey(false);
         }
@@ -126,9 +126,9 @@ export const Integrations: React.FC = () => {
             setProviders(prev => prev.map(p =>
                 p.id === provider.id ? { ...p, status: 'disconnected' } : p
             ));
-            toast.success(`Déconnecté de ${provider.name}`);
+            toast.success(t('integrations.success.disconnected', { provider: provider.name }));
         } catch {
-            toast.error(`Erreur lors de la déconnexion`);
+            toast.error(t('integrations.errors.disconnectFailed'));
         } finally {
             setConnectingId(null);
             setDisconnectTarget(null);
@@ -150,11 +150,11 @@ export const Integrations: React.FC = () => {
             className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24 min-w-0"
         >
             <MasterpieceBackground />
-            <SEO title="Intégrations" description="Connectez vos outils pour automatiser la collecte de preuves" />
+            <SEO title={t('integrations.title')} description={t('integrations.subtitle')} />
 
             <PageHeader
-                title="Intégrations"
-                subtitle="Connectez vos outils pour automatiser la collecte de preuves."
+                title={t('integrations.title')}
+                subtitle={t('integrations.subtitle')}
             />
 
             {/* Tabs - Premium Segmented Control */}
@@ -200,7 +200,7 @@ export const Integrations: React.FC = () => {
                             <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                                 aria-label="Rechercher une intégration"
                                 type="text"
-                                placeholder="Rechercher une intégration..."
+                                placeholder={t('integrations.searchPlaceholder')}
                                 className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400"
                             />
                         </div>
@@ -323,8 +323,8 @@ export const Integrations: React.FC = () => {
                 isOpen={disconnectTarget !== null}
                 onClose={() => setDisconnectTarget(null)}
                 onConfirm={() => disconnectTarget && handleDisconnect(disconnectTarget)}
-                title="Déconnecter l'intégration"
-                message={`Voulez-vous vraiment déconnecter ${disconnectTarget?.name} ?`}
+                title={t('integrations.confirm.disconnectTitle')}
+                message={t('integrations.confirm.disconnectMessage', { provider: disconnectTarget?.name })}
                 type="warning"
                 confirmText="Déconnecter"
                 cancelText="Annuler"

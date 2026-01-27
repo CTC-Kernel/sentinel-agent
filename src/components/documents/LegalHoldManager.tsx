@@ -72,6 +72,7 @@ import type { LegalHold, LegalHoldStatus } from '@/types/vault';
 import type { Document } from '@/types/documents';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ErrorLogger } from '@/services/errorLogger';
 
 interface LegalHoldManagerProps {
   className?: string;
@@ -120,7 +121,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
       const data = await getLegalHolds(organizationId, { includeReleased: true });
       setHolds(data);
     } catch (error) {
-      console.error('Error loading legal holds:', error);
+      ErrorLogger.error(error, 'LegalHoldManager.loadHolds');
       toast.error(t('legalHold.error.loadFailed', 'Erreur lors du chargement des legal holds'));
     } finally {
       setLoading(false);
@@ -133,7 +134,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
       const data = await getLegalHoldStats(organizationId);
       setStats(data);
     } catch (error) {
-      console.error('Error loading stats:', error);
+      ErrorLogger.error(error, 'LegalHoldManager.loadStats');
     }
   }, [organizationId]);
 
@@ -216,7 +217,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
       loadHolds();
       loadStats();
     } catch (error) {
-      console.error('Error creating legal hold:', error);
+      ErrorLogger.error(error, 'LegalHoldManager.createLegalHold');
       toast.error(t('legalHold.error.createFailed', 'Erreur lors de la creation du legal hold'));
     } finally {
       setFormLoading(false);
@@ -238,7 +239,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
       loadHolds();
       loadStats();
     } catch (error) {
-      console.error('Error releasing legal hold:', error);
+      ErrorLogger.error(error, 'LegalHoldManager.releaseLegalHold');
       toast.error(t('legalHold.error.releaseFailed', 'Erreur lors de la liberation du legal hold'));
     } finally {
       setFormLoading(false);
@@ -258,7 +259,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
       loadHolds();
       loadStats();
     } catch (error) {
-      console.error('Error deleting legal hold:', error);
+      ErrorLogger.error(error, 'LegalHoldManager.deleteLegalHold');
       toast.error(t('legalHold.error.deleteFailed', 'Erreur lors de la suppression'));
     }
   };

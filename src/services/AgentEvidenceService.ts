@@ -450,7 +450,7 @@ export async function createEvidenceFromResult(
         const checkDef = AGENT_CHECK_DEFINITIONS[checkId];
 
         if (!checkDef) {
-            console.warn(`Unknown check ID: ${checkId}`);
+            ErrorLogger.warn(`Unknown check ID: ${checkId}`, 'AgentEvidenceService.createEvidenceFromResult');
             return [];
         }
 
@@ -458,7 +458,7 @@ export async function createEvidenceFromResult(
         const mappings = DEFAULT_CHECK_CONTROL_MAPPINGS.filter(m => m.checkId === checkId);
 
         if (mappings.length === 0) {
-            console.warn(`No framework mappings for check: ${checkId}`);
+            ErrorLogger.warn(`No framework mappings for check: ${checkId}`, 'AgentEvidenceService.createEvidenceFromResult');
             return [];
         }
 

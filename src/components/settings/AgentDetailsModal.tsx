@@ -28,6 +28,7 @@ import { AgentService } from '../../services/AgentService';
 import { useStore } from '../../store';
 import { SENTINEL_PALETTE } from '../../theme/chartTheme';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface AgentDetailsModalProps {
     isOpen: boolean;
@@ -152,7 +153,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                 setConfigForm(details.config);
             }
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'AgentDetailsModal.loadAgentDetails');
             toast.error("Erreur lors du chargement des détails de l'agent");
             // Fallback to initial data if available for basic display
             if (initialAgent) {
@@ -183,7 +184,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
             if (onAgentUpdated) onAgentUpdated();
             loadAgentDetails(); // Reload to confirm
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'AgentDetailsModal.saveConfig');
             toast.error("Erreur lors de la mise à jour");
         } finally {
             setUpdating(false);
@@ -201,7 +202,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
             if (onAgentDeleted) onAgentDeleted();
             onClose();
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'AgentDetailsModal.deleteAgent');
             toast.error("Erreur lors de la suppression");
         } finally {
             setUpdating(false);

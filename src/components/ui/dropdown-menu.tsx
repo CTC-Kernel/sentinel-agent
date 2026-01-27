@@ -42,8 +42,7 @@ const DropdownMenuContent = React.forwardRef<
     HTMLDivElement,
     { className?: string; align?: "start" | "end" | "center"; children?: React.ReactNode } & Record<string, unknown>
 >(({ className, align = "center", ...props }, ref) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MenuItems = Menu.Items as any;
+    const MenuItems = Menu.Items;
     return (
         <Transition
             as={React.Fragment}
@@ -70,15 +69,19 @@ const DropdownMenuContent = React.forwardRef<
 })
 DropdownMenuContent.displayName = "DropdownMenuContent"
 
+interface MenuItemRenderProps {
+    active: boolean;
+    disabled: boolean;
+}
+
 const DropdownMenuItem = React.forwardRef<
     HTMLDivElement,
     React.ComponentProps<typeof Menu.Item> & { inset?: boolean; onClick?: () => void; className?: string }
 >(({ className, inset, onClick, children, ...props }, ref) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MenuItem = Menu.Item as any;
+    const MenuItem = Menu.Item;
     return (
         <MenuItem>
-            {({ active, disabled }: { active: boolean, disabled: boolean }) => (
+            {({ active, disabled }: MenuItemRenderProps) => (
                 <div
                     ref={ref}
                     className={cn(

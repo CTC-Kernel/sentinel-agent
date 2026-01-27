@@ -585,7 +585,6 @@ export const SignatureService = {
     } catch (error) {
       ErrorLogger.error(error, 'SignatureService.sendSignatureNotifications');
       // Don't throw - notifications are non-critical
-      console.error('Failed to send signature notifications:', error);
     }
   },
 

@@ -16,6 +16,7 @@ import { DORAExportService, ExportFormat, DORAExportOptions } from '../../servic
 import { ICTProvider, ICTCriticality } from '../../types/dora';
 import { useStore } from '../../store';
 import { cn } from '../../lib/utils';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ExportDORARegisterModalProps {
     isOpen: boolean;
@@ -146,7 +147,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
             toast.success(t('dora.export.success'));
             onClose();
         } catch (error) {
-            console.error('Export error:', error);
+            ErrorLogger.error(error, 'ExportDORARegisterModal.export');
             toast.error(t('dora.export.error'));
         } finally {
             setIsExporting(false);

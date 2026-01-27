@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Shield, Lock, Save, Globe, AlertTriangle } from '../ui/Icons';
 import { SsoProvider, SsoSettings } from '../../types/sso';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export const SSOManager: React.FC = () => {
     const { t, organization, addToast, setOrganization } = useStore();
@@ -54,7 +55,7 @@ export const SSOManager: React.FC = () => {
 
             addToast(t('settings.saved'), 'success');
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'SSOManager.save');
             addToast(t('errors.generic'), 'error');
         } finally {
             setIsLoading(false);

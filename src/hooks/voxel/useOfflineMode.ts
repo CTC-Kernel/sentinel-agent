@@ -9,6 +9,7 @@ import { useEffect, useCallback, useRef, useState } from 'react';
 import { enableIndexedDbPersistence, disableNetwork, enableNetwork } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useVoxelStore } from '@/stores/voxelStore';
+import { ErrorLogger } from '@/services/errorLogger';
 import type { VoxelNode, VoxelEdge, VoxelAnomaly } from '@/types/voxel';
 
 const CACHE_KEY = 'voxel-offline-cache';
@@ -59,7 +60,7 @@ function saveToLocalStorage(key: string, data: CachedData): void {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (error) {
-    console.warn('[OfflineMode] Failed to save to localStorage:', error);
+    ErrorLogger.warn('Failed to save to localStorage', 'OfflineMode', { metadata: { error } });
   }
 }
 
@@ -109,16 +110,16 @@ export function useOfflineMode(
 
     enableIndexedDbPersistence(db)
       .then(() => {
-        console.log('[OfflineMode] Firestore persistence enabled');
+        ErrorLogger.debug('Firestore persistence enabled', 'OfflineMode');
         setFirestorePersistenceEnabled(true);
       })
       .catch((error) => {
         if (error.code === 'failed-precondition') {
-          console.warn('[OfflineMode] Multiple tabs open, persistence limited');
+          ErrorLogger.warn('Multiple tabs open, persistence limited', 'OfflineMode');
         } else if (error.code === 'unimplemented') {
-          console.warn('[OfflineMode] Browser does not support persistence');
+          ErrorLogger.warn('Browser does not support persistence', 'OfflineMode');
         } else {
-          console.error('[OfflineMode] Persistence error:', error);
+          ErrorLogger.error(error, 'OfflineMode.enablePersistence');
         }
       });
   }, [mergedConfig.enableCache]);
@@ -140,7 +141,7 @@ export function useOfflineMode(
 
     saveToLocalStorage(`${CACHE_KEY}-${organizationId}`, cacheData);
     setLastCacheTime(new Date());
-    console.log('[OfflineMode] Data cached successfully');
+    ErrorLogger.debug('Data cached successfully', 'OfflineMode');
   }, [organizationId, nodes, edges, anomalies, mergedConfig.enableCache]);
 
   /**
@@ -152,26 +153,26 @@ export function useOfflineMode(
     const cached = loadFromLocalStorage(`${CACHE_KEY}-${organizationId}`);
 
     if (!cached) {
-      console.log('[OfflineMode] No cached data found');
+      ErrorLogger.debug('No cached data found', 'OfflineMode');
       return false;
     }
 
     // Check version compatibility
     if (cached.version !== CACHE_VERSION) {
-      console.warn('[OfflineMode] Cache version mismatch, ignoring');
+      ErrorLogger.warn('Cache version mismatch, ignoring', 'OfflineMode');
       return false;
     }
 
     // Check expiry
     const age = Date.now() - cached.timestamp;
     if (age > mergedConfig.cacheExpiry) {
-      console.warn('[OfflineMode] Cache expired, ignoring');
+      ErrorLogger.warn('Cache expired, ignoring', 'OfflineMode');
       return false;
     }
 
     // Check organization match
     if (cached.organizationId !== organizationId) {
-      console.warn('[OfflineMode] Cache organization mismatch');
+      ErrorLogger.warn('Cache organization mismatch', 'OfflineMode');
       return false;
     }
 
@@ -181,7 +182,7 @@ export function useOfflineMode(
     setAnomalies(cached.anomalies);
     setLastCacheTime(new Date(cached.timestamp));
 
-    console.log(`[OfflineMode] Loaded ${cached.nodes.length} nodes from cache`);
+    ErrorLogger.debug(`Loaded ${cached.nodes.length} nodes from cache`, 'OfflineMode');
     return true;
   }, [
     organizationId,
@@ -199,14 +200,14 @@ export function useOfflineMode(
     if (!organizationId) return;
     localStorage.removeItem(`${CACHE_KEY}-${organizationId}`);
     setLastCacheTime(null);
-    console.log('[OfflineMode] Cache cleared');
+    ErrorLogger.debug('Cache cleared', 'OfflineMode');
   }, [organizationId]);
 
   /**
    * Handle going offline
    */
   const handleOffline = useCallback(() => {
-    console.log('[OfflineMode] Going offline');
+    ErrorLogger.info('Going offline', 'OfflineMode');
     setIsOnline(false);
     setSyncStatus('offline');
 
@@ -214,7 +215,7 @@ export function useOfflineMode(
     saveToCache();
 
     // Disable Firestore network to prevent hanging requests
-    disableNetwork(db).catch(console.error);
+    disableNetwork(db).catch((err) => ErrorLogger.error(err, 'OfflineMode.disableNetwork'));
   }, [saveToCache, setSyncStatus]);
 
 
@@ -233,7 +234,7 @@ export function useOfflineMode(
   const startPollingFallback = useCallback(() => {
     if (pollingIntervalRef.current) return;
 
-    console.log('[OfflineMode] Starting polling fallback');
+    ErrorLogger.info('Starting polling fallback', 'OfflineMode');
     pollingAttemptsRef.current = 0;
 
     pollingIntervalRef.current = setInterval(async () => {
@@ -241,7 +242,7 @@ export function useOfflineMode(
 
       // FIXED: Stop polling after max attempts to prevent memory leak
       if (pollingAttemptsRef.current >= MAX_POLLING_ATTEMPTS) {
-        console.warn('[OfflineMode] Max polling attempts reached, stopping fallback');
+        ErrorLogger.warn('Max polling attempts reached, stopping fallback', 'OfflineMode');
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null;
@@ -266,7 +267,7 @@ export function useOfflineMode(
         }
       } catch {
         // Still offline, continue polling (with attempt tracking)
-        console.log(`[OfflineMode] Still offline, poll attempt ${pollingAttemptsRef.current}/${MAX_POLLING_ATTEMPTS}`);
+        ErrorLogger.debug(`Still offline, poll attempt ${pollingAttemptsRef.current}/${MAX_POLLING_ATTEMPTS}`, 'OfflineMode');
       }
     }, mergedConfig.pollingInterval);
   }, [mergedConfig.pollingInterval, setSyncStatus]);
@@ -280,12 +281,12 @@ export function useOfflineMode(
     setRetryCount((prev) => prev + 1);
 
     if (retryCount >= mergedConfig.maxRetryAttempts) {
-      console.log('[OfflineMode] Max retries reached, enabling polling fallback');
+      ErrorLogger.info('Max retries reached, enabling polling fallback', 'OfflineMode');
       setIsPollingFallback(true);
       startPollingFallback();
     } else {
       const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-      console.log(`[OfflineMode] Retrying in ${delay}ms (attempt ${retryCount + 1})`);
+      ErrorLogger.debug(`Retrying in ${delay}ms (attempt ${retryCount + 1})`, 'OfflineMode');
 
       reconnectTimeoutRef.current = setTimeout(() => {
         enableNetwork(db)
@@ -306,7 +307,7 @@ export function useOfflineMode(
    * Handle coming back online
    */
   const handleOnline = useCallback(() => {
-    console.log('[OfflineMode] Coming back online');
+    ErrorLogger.info('Coming back online', 'OfflineMode');
     setIsOnline(true);
     setSyncStatus('syncing');
 
@@ -318,7 +319,7 @@ export function useOfflineMode(
         setSyncStatus('connected');
       })
       .catch((error) => {
-        console.error('[OfflineMode] Failed to reconnect:', error);
+        ErrorLogger.error(error, 'OfflineMode.reconnect');
         handleReconnectFailure();
       });
   }, [setSyncStatus, handleReconnectFailure]);

@@ -8,6 +8,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { ErrorLogger } from '@/services/errorLogger';
 import {
   RefreshCw,
   Calendar,
@@ -89,7 +90,7 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
       onOpenChange(false);
       navigate(`/homologation/${newDossier.id}`);
     } catch (error) {
-      console.error('Error initiating renewal:', error);
+      ErrorLogger.error(error, 'RenewalDialog.handleInitiateRenewal');
       toast.error(
         t('common.error', 'Erreur'),
         t('homologation.renewal.error', 'Erreur lors de la création du renouvellement.')

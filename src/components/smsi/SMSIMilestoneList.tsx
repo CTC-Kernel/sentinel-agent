@@ -77,8 +77,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
     const phaseStyle = PHASE_STYLES[milestone.phase];
     const statusStyle = MILESTONE_STATUS_STYLES[milestone.status];
     const StatusIcon = statusConfig.icon;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const PhaseIcon = phaseConfig.icon as any;
+    const PhaseIcon = phaseConfig.icon as React.ComponentType<{ className?: string }>;
 
     const dueDate = new Date(milestone.dueDate);
     const isOverdue = milestone.status !== 'completed' && dueDate < new Date();

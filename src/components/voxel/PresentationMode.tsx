@@ -10,6 +10,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { Vector3, SpotLight as ThreeSpotLight } from 'three';
 import type { VoxelNode } from '@/types/voxel';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -341,7 +342,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
         await document.documentElement.requestFullscreen();
         setIsFullscreen(true);
       } catch (err) {
-        console.warn('[PresentationMode] Fullscreen not available:', err);
+        ErrorLogger.warn('Fullscreen not available', 'PresentationMode', { metadata: { error: err } });
       }
     };
 

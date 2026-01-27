@@ -14,6 +14,7 @@ import {
   deserializePresetFromUrl,
 } from '@/stores/viewPresets';
 import type { ViewPreset, VoxelNodeType, VoxelUIState } from '@/types/voxel';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -349,7 +350,7 @@ export function useVoxelUrlState(
       await navigator.clipboard.writeText(url);
       return true;
     } catch (error) {
-      console.error('Failed to copy URL to clipboard:', error);
+      ErrorLogger.error(error, 'useVoxelUrlState.copyLinkToClipboard');
       return false;
     }
   }, [getShareableUrl]);

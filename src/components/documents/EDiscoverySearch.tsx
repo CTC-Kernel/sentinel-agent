@@ -25,6 +25,7 @@ import {
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { useStore } from '@/store';
+import { ErrorLogger } from '@/services/errorLogger';
 import { useAuth } from '@/hooks/useAuth';
 import {
   EDiscoveryService,
@@ -97,7 +98,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
       );
       setSavedSearches(searches);
     } catch (err) {
-      console.error('Failed to load saved searches:', err);
+      ErrorLogger.error(err, 'EDiscoverySearch.loadSavedSearches');
     }
   }, [user?.uid, currentOrganization?.id]);
 
@@ -246,7 +247,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
       await EDiscoveryService.deleteSearchQuery(searchId);
       await loadSavedSearches();
     } catch (err) {
-      console.error('Failed to delete saved search:', err);
+      ErrorLogger.error(err, 'EDiscoverySearch.deleteSavedSearch');
     }
   };
 

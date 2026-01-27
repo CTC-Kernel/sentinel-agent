@@ -259,10 +259,7 @@ class PerformanceMonitor {
             window.navigator.sendBeacon('/api/performance-alerts', data);
         }
         
-        // Also log to console in development
-        if (process.env.NODE_ENV === 'development') {
-            console.warn(`[Performance Alert] ${alert.type.toUpperCase()}: ${alert.message}`, alert);
-        }
+        // Alert logging is handled via sendBeacon above
     }
     
     public getMetrics(): PerformanceMetrics {

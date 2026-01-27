@@ -18,6 +18,7 @@ import {
   isFuture,
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { ErrorLogger } from '@/services/errorLogger';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -353,7 +354,7 @@ export function CalendarHeatmap({
         setActivityData(dataMap);
       }
     } catch (err) {
-      console.error('Failed to fetch activity data:', err);
+      ErrorLogger.error(err, 'CalendarHeatmap.fetchActivityData');
     } finally {
       setIsLoading(false);
     }

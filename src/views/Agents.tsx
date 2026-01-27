@@ -22,6 +22,7 @@ import { AgentLiveView } from '../components/agents/AgentLiveView';
 import AgentPolicies from './AgentPolicies';
 import SoftwareInventory from './SoftwareInventory';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { ErrorLogger } from '../services/errorLogger';
 
 // Skeleton for loading state
 const AgentsSkeleton: React.FC = () => (
@@ -73,7 +74,7 @@ export const Agents: React.FC = () => {
                 setLoading(false);
             },
             (error) => {
-                console.error('Failed to load agents:', error);
+                ErrorLogger.error(error, 'Agents.subscribeToAgents');
                 setLoading(false);
             }
         );
@@ -263,7 +264,7 @@ export const Agents: React.FC = () => {
                                             handleAgentClick(agent);
                                         }
                                         // TODO: Handle other agent actions (configure, refresh, delete)
-                                        console.log('Agent action:', agent.id, action);
+                                        ErrorLogger.debug(`Agent action: ${agent.id} ${action}`, 'Agents');
                                     }}
                                 />
                             </div>
@@ -280,7 +281,7 @@ export const Agents: React.FC = () => {
                                             if (agent) {
                                                 handleAgentClick(agent);
                                             }
-                                            console.log('Cell clicked:', agentId, checkId);
+                                            ErrorLogger.debug(`Cell clicked: ${agentId} ${checkId}`, 'Agents');
                                         }}
                                     />
                                 </motion.div>

@@ -50,7 +50,14 @@ export const AUDITABLE_ENTITIES = [
     'processing_activity',
     'business_process',
     'vulnerability',
-    'playbook'
+    'playbook',
+    'training_course',
+    'training_assignment',
+    'training_campaign',
+    'certificate',
+    'access_review',
+    'access_review_campaign',
+    'dormant_account'
 ] as const;
 
 export type AuditableEntity = typeof AUDITABLE_ENTITIES[number];
@@ -213,7 +220,14 @@ function getCollectionName(entityType: AuditableEntity): string {
         processing_activity: 'processing_activities',
         business_process: 'business_processes',
         vulnerability: 'vulnerabilities',
-        playbook: 'incidentPlaybooks'
+        playbook: 'incidentPlaybooks',
+        training_course: 'training_catalog',
+        training_assignment: 'training_assignments',
+        training_campaign: 'training_campaigns',
+        certificate: 'certificates',
+        access_review: 'access_reviews',
+        access_review_campaign: 'access_review_campaigns',
+        dormant_account: 'dormant_accounts'
     };
 
     return mapping[entityType] || entityType;
@@ -592,7 +606,14 @@ export class AuditLogService {
             processing_activity: 'Traitement',
             business_process: 'Processus',
             vulnerability: 'Vulnerabilite',
-            playbook: 'Playbook'
+            playbook: 'Playbook',
+            training_course: 'Formation',
+            training_assignment: 'Assignation de formation',
+            training_campaign: 'Campagne de formation',
+            certificate: 'Certificat',
+            access_review: 'Revue d\'accès',
+            access_review_campaign: 'Campagne de revue d\'accès',
+            dormant_account: 'Compte dormant'
         };
 
         return labels[entityType] || entityType;

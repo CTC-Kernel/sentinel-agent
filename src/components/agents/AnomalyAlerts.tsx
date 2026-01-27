@@ -33,6 +33,7 @@ import {
     bulkResolve,
 } from '../../services/AgentAnomalyService';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 import {
     AlertTriangle,
     AlertCircle,
@@ -493,7 +494,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                 setLoading(false);
             },
             (error) => {
-                console.error('Error loading anomalies:', error);
+                ErrorLogger.error(error, 'AnomalyAlerts.loadAnomalies');
                 setLoading(false);
             },
             {
@@ -512,7 +513,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
         const unsubscribe = subscribeToAnomalyStats(
             organizationId,
             setStats,
-            (error) => console.error('Error loading stats:', error)
+            (error) => ErrorLogger.error(error, 'AnomalyAlerts.loadStats')
         );
 
         return () => unsubscribe();
@@ -556,7 +557,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
         try {
             await acknowledgeAnomaly(organizationId, anomalyId, user.uid);
         } catch (error) {
-            console.error('Error acknowledging anomaly:', error);
+            ErrorLogger.error(error, 'AnomalyAlerts.acknowledge');
         }
     };
 
@@ -565,7 +566,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
         try {
             await investigateAnomaly(organizationId, anomalyId, user.uid);
         } catch (error) {
-            console.error('Error starting investigation:', error);
+            ErrorLogger.error(error, 'AnomalyAlerts.investigate');
         }
     };
 
@@ -574,7 +575,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
         try {
             await resolveAnomaly(organizationId, anomalyId, user.uid);
         } catch (error) {
-            console.error('Error resolving anomaly:', error);
+            ErrorLogger.error(error, 'AnomalyAlerts.resolve');
         }
     };
 
@@ -583,7 +584,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
         try {
             await markFalsePositive(organizationId, anomalyId, user.uid);
         } catch (error) {
-            console.error('Error marking false positive:', error);
+            ErrorLogger.error(error, 'AnomalyAlerts.markFalsePositive');
         }
     };
 
@@ -593,7 +594,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
             await bulkAcknowledge(organizationId, Array.from(selectedIds), user.uid);
             setSelectedIds(new Set());
         } catch (error) {
-            console.error('Error bulk acknowledging:', error);
+            ErrorLogger.error(error, 'AnomalyAlerts.bulkAcknowledge');
         }
     };
 
@@ -603,7 +604,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
             await bulkResolve(organizationId, Array.from(selectedIds), user.uid);
             setSelectedIds(new Set());
         } catch (error) {
-            console.error('Error bulk resolving:', error);
+            ErrorLogger.error(error, 'AnomalyAlerts.bulkResolve');
         }
     };
 

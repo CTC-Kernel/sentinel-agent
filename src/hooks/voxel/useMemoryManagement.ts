@@ -17,6 +17,7 @@ import {
   Points,
   Line,
 } from 'three';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -212,7 +213,7 @@ export function useMemoryManagement(options: UseMemoryManagementOptions = {}): U
       setStatus(newStatus);
 
       if (config.logging && newStatus !== 'healthy') {
-        console.warn(`[MemoryManagement] Status: ${newStatus}`, newStats);
+        ErrorLogger.warn(`Status: ${newStatus}`, 'MemoryManagement', { metadata: newStats });
       }
     }, config.checkIntervalMs);
 
@@ -241,7 +242,7 @@ export function useMemoryManagement(options: UseMemoryManagementOptions = {}): U
         toRemove.reverse().forEach((index) => pool.splice(index, 1));
 
         if (config.logging && toRemove.length > 0) {
-          console.log(`[MemoryManagement] Disposed ${toRemove.length} unused ${type} geometries`);
+          ErrorLogger.debug(`Disposed ${toRemove.length} unused ${type} geometries`, 'MemoryManagement');
         }
       }
     }, config.disposeAfterMs / 2);
@@ -343,7 +344,7 @@ export function useMemoryManagement(options: UseMemoryManagementOptions = {}): U
 
       // Pool full - create without pooling
       if (config.logging) {
-        console.warn(`[MemoryManagement] Pool for ${type} is full, creating unpooled geometry`);
+        ErrorLogger.warn(`Pool for ${type} is full, creating unpooled geometry`, 'MemoryManagement');
       }
       return factory();
     },
@@ -378,7 +379,7 @@ export function useMemoryManagement(options: UseMemoryManagementOptions = {}): U
     arr.length = 0;
 
     if (config.logging) {
-      console.log('[MemoryManagement] GC hint requested');
+      ErrorLogger.debug('GC hint requested', 'MemoryManagement');
     }
   }, [gl, config.logging]);
 
@@ -401,7 +402,7 @@ export function useMemoryManagement(options: UseMemoryManagementOptions = {}): U
     }
 
     if (config.logging) {
-      console.log(`[MemoryManagement] Cleaned up ${disposed} pooled resources`);
+      ErrorLogger.debug(`Cleaned up ${disposed} pooled resources`, 'MemoryManagement');
     }
   }, [config.logging]);
 

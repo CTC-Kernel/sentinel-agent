@@ -16,6 +16,7 @@
 import React from 'react';
 import type { VoxelNode as VoxelNodeType } from '@/types/voxel';
 import { VoxelNode, type VoxelNodeProps } from './VoxelNode';
+import { ErrorLogger } from '@/services/errorLogger';
 
 export interface ControlNodeProps extends Omit<VoxelNodeProps, 'data'> {
   /** Control node data */
@@ -29,7 +30,7 @@ export interface ControlNodeProps extends Omit<VoxelNodeProps, 'data'> {
 export const ControlNode: React.FC<ControlNodeProps> = ({ data, ...props }) => {
   // Validate node type
   if (data.type !== 'control') {
-    console.warn(`ControlNode received non-control node type: ${data.type}`);
+    ErrorLogger.warn(`ControlNode received non-control node type: ${data.type}`, 'ControlNode');
   }
 
   return <VoxelNode data={data} {...props} />;

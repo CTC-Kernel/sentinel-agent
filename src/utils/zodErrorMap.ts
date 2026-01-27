@@ -53,11 +53,9 @@ export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap 
   const messages = getZodMessages(locale);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((issue: unknown, ctx: any): { message: string } => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const i = issue as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const c = ctx as any;
+  return ((issue: any, ctx: any): { message: string } => {
+    const i = issue;
+    const c = ctx;
 
     // Handle specific error codes with localized messages
     switch (i.code) {
@@ -130,8 +128,7 @@ export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap 
 
     // Fall back to default message
     return { message: c.defaultError };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }) as any;
+  }) as z.ZodErrorMap;
 }
 
 /**

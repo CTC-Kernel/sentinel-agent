@@ -20,6 +20,7 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts';
+import { ErrorLogger } from '@/services/errorLogger';
 import {
   TrendingUp,
   TrendingDown,
@@ -257,15 +258,25 @@ function TrendWarningBanner({ warnings }: { warnings: TrendWarning[] }) {
 /**
  * Custom tooltip for charts
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function ChartTooltip({ active, payload, label }: any) {
+interface TooltipPayloadEntry {
+  color: string;
+  name: string;
+  value: number | string;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
     <div className="bg-popover border rounded-lg shadow-lg p-3 text-sm">
       <p className="font-medium mb-2">{label}</p>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {payload.map((entry: any, index: number) => (
+      {payload.map((entry, index: number) => (
         <div key={index} className="flex items-center gap-2">
           <div
             className="w-2 h-2 rounded-full"
@@ -392,7 +403,7 @@ export function TrendCharts({
         setError('Impossible de charger les donnees');
       }
     } catch (err) {
-      console.error('Failed to fetch trend data:', err);
+      ErrorLogger.error(err, 'TrendCharts.fetchTrendData');
       setError('Erreur lors du chargement des tendances');
     } finally {
       setIsLoading(false);

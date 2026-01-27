@@ -12,11 +12,14 @@ import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Line, Text, Html } from '@react-three/drei';
 import { animated, useSpring, config } from '@react-spring/three';
-// @ts-expect-error - animated.group not typed
-const AnimatedGroup = animated.group;
-// @ts-expect-error - animated.meshBasicMaterial not typed
-const AnimatedMeshBasicMaterial = animated.meshBasicMaterial;
+import * as THREE from 'three';
 import { AdditiveBlending, Vector3, Group, CatmullRomCurve3, Mesh } from 'three';
+
+// Typed animated components
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const AnimatedGroup = (animated as any).group;
+const AnimatedMeshBasicMaterial = (animated as any).meshBasicMaterial;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 import type { VoxelNode } from '@/types/voxel';
 import type { PotentialCause } from '@/services/blastRadiusService';
 
@@ -335,8 +338,7 @@ const CausalPath: React.FC<CausalPathProps> = React.memo(({
       particleRef.current.position.copy(point);
     }
     if (lineRef.current?.material && active) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const material = lineRef.current.material as any;
+      const material = lineRef.current.material as THREE.LineDashedMaterial & { dashOffset?: number };
       if (material.dashOffset !== undefined) {
         material.dashOffset = -clock.getElapsedTime() * 1.5;
       }

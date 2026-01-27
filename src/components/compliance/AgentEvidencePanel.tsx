@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
+import { ErrorLogger } from '@/services/errorLogger';
 import {
     AgentEvidence,
     ControlEvidenceSummary,
@@ -311,7 +312,7 @@ export const AgentEvidencePanel: React.FC<AgentEvidencePanelProps> = ({
                 setLoading(false);
             },
             (error) => {
-                console.error('Failed to load evidence:', error);
+                ErrorLogger.error(error, 'AgentEvidencePanel.subscribeToControlEvidence');
                 setLoading(false);
             }
         );
@@ -334,7 +335,7 @@ export const AgentEvidencePanel: React.FC<AgentEvidencePanelProps> = ({
                 );
                 setSummary(summaryData);
             } catch (error) {
-                console.error('Failed to load evidence summary:', error);
+                ErrorLogger.error(error, 'AgentEvidencePanel.loadSummary');
             }
         };
 

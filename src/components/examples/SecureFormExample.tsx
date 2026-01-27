@@ -13,6 +13,7 @@ import React, { useEffect } from 'react';
 import { useSecureForm, useSecureFileUpload } from '../../hooks/useSecureForm';
 import { SessionMonitor } from '../../services/sessionMonitoringService';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ExampleFormData {
   [key: string]: unknown;
@@ -61,7 +62,7 @@ export const SecureFormExample: React.FC = () => {
     },
     onSubmit: async (data) => {
       // Simuler un appel API
-      console.log('Données sanitizées:', data);
+      ErrorLogger.debug(`Données sanitizées: ${JSON.stringify(data)}`, 'SecureFormExample.onSubmit');
 
       // Dans un vrai cas, vous feriez:
       // await createAsset(data);
@@ -83,7 +84,7 @@ export const SecureFormExample: React.FC = () => {
     maxSize: 5 * 1024 * 1024, // 5MB
     allowedTypes: ['image/png', 'image/jpeg', 'application/pdf'],
     onUpload: async (file) => {
-      console.log('Fichier uploadé:', file.name);
+      ErrorLogger.debug(`Fichier uploadé: ${file.name}`, 'SecureFormExample.onUpload');
       // Ici vous uploaderiez vers Firebase Storage
       // await uploadToStorage(file);
     },

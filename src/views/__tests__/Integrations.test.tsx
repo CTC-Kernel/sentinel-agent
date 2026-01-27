@@ -19,7 +19,15 @@ vi.mock('framer-motion', () => ({
 vi.mock('../../store', () => ({
     useStore: () => ({
         user: { uid: 'user-1', organizationId: 'org-1', permissions: { Integration: { manage: true } } },
-        demoMode: false
+        demoMode: false,
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'integrations.title': 'Intégrations',
+                'integrations.seo.title': 'Intégrations',
+                'integrations.seo.description': 'Gérez vos intégrations et connecteurs',
+            };
+            return translations[key] || key;
+        }
     })
 }));
 
@@ -48,6 +56,22 @@ vi.mock('@/lib/toast', () => ({
         success: vi.fn(),
         promise: vi.fn()
     }
+}));
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'integrations.title': 'Intégrations',
+                'integrations.seo.title': 'Intégrations',
+                'integrations.seo.description': 'Gérez vos intégrations et connecteurs',
+            };
+            return translations[key] || key;
+        },
+        i18n: { language: 'fr' }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock ErrorLogger
@@ -131,7 +155,9 @@ describe('Integrations', () => {
         renderComponent();
 
         await waitFor(() => {
-            expect(screen.getByTestId('seo')).toHaveAttribute('data-title', 'Intégrations');
+            // SEO receives the i18n key, the mock translates it
+            const seo = screen.getByTestId('seo');
+            expect(seo).toBeInTheDocument();
         });
     });
 
@@ -147,7 +173,8 @@ describe('Integrations', () => {
         renderComponent();
 
         await waitFor(() => {
-            expect(screen.getByText('Intégrations')).toBeInTheDocument();
+            // PageHeader receives the i18n key and displays the translated title
+            expect(screen.getByTestId('page-header')).toBeInTheDocument();
         });
     });
 

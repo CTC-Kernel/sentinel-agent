@@ -66,7 +66,7 @@ export const SecuritySettings: React.FC = () => {
             if (firebaseError.code === 'auth/requires-recent-login') {
                 addToast(t('settings.reloginRequired'), "error");
             } else if (firebaseError.code === 'auth/operation-not-allowed' || firebaseError.message?.includes('400')) {
-                addToast("La configuration MFA semble incomplète. Vérifiez que TOTP est activé dans la console Firebase.", "error");
+                addToast(t('settings.securityPage.mfaConfigIncomplete') || "La configuration MFA semble incomplète. Vérifiez que TOTP est activé dans la console Firebase.", "error");
                 ErrorLogger.warn("Possible MFA Configuration Issue (TOTP disabled?)", 'SecuritySettings.handleEnrollMFA', { metadata: { error } });
             } else {
                 ErrorLogger.handleErrorWithToast(error, 'SecuritySettings.handleEnrollMFA', 'UNKNOWN_ERROR');
@@ -78,7 +78,7 @@ export const SecuritySettings: React.FC = () => {
         setVerifyingMFA(true);
         try {
             await verifyMFA('Sentinel Authenticator', mfaCode);
-            addToast("MFA activé avec succès", "success");
+            addToast(t('settings.mfaEnabled') || "MFA activé avec succès", "success");
             setIsEnrollingMFA(false);
             setQrCodeUrl(null);
             setMfaCode('');

@@ -89,6 +89,7 @@ import type {
   SignerStatus
 } from '@/types/signature';
 import { toast } from 'sonner';
+import { ErrorLogger } from '@/services/errorLogger';
 
 interface SignatureWorkflowProps {
   documentId: string;
@@ -268,7 +269,7 @@ export function SignatureWorkflow({
       );
       setRequests(data);
     } catch (error) {
-      console.error('Failed to load signature requests:', error);
+      ErrorLogger.error(error, 'SignatureWorkflow.loadRequests');
       toast.error('Impossible de charger les demandes de signature');
     } finally {
       setLoading(false);
@@ -383,7 +384,7 @@ export function SignatureWorkflow({
 
       onRequestCreated?.(request);
     } catch (error) {
-      console.error('Failed to create signature request:', error);
+      ErrorLogger.error(error, 'SignatureWorkflow.createRequest');
       toast.error('Échec de la création de la demande');
     } finally {
       setFormSubmitting(false);
@@ -452,7 +453,7 @@ export function SignatureWorkflow({
       loadRequests();
       onSignatureComplete?.();
     } catch (error: unknown) {
-      console.error('Failed to apply signature:', error);
+      ErrorLogger.error(error, 'SignatureWorkflow.applySignature');
       const message = error instanceof Error ? error.message : 'Échec de la signature';
       toast.error(message);
     } finally {
@@ -492,7 +493,7 @@ export function SignatureWorkflow({
       setRejectModalOpen(false);
       loadRequests();
     } catch (error: unknown) {
-      console.error('Failed to reject signature:', error);
+      ErrorLogger.error(error, 'SignatureWorkflow.rejectSignature');
       const message = error instanceof Error ? error.message : 'Échec du rejet';
       toast.error(message);
     } finally {
@@ -513,7 +514,7 @@ export function SignatureWorkflow({
       toast.success('Demande annulée');
       loadRequests();
     } catch (error) {
-      console.error('Failed to cancel request:', error);
+      ErrorLogger.error(error, 'SignatureWorkflow.cancelRequest');
       toast.error(error instanceof Error ? error.message : 'Échec de l\'annulation');
     } finally {
       setCancelRequestTarget(null);

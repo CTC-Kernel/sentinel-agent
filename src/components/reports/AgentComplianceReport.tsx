@@ -354,7 +354,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
             }
 
             // TODO: Show notification with download link when ready
-            console.log('Report generated:', reportId);
+            ErrorLogger.debug(`Report generated: ${reportId}`, 'AgentComplianceReport.handleExport');
         } catch (err) {
             ErrorLogger.error(err, 'AgentComplianceReport.handleExport');
         } finally {

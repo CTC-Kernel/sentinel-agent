@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { BackupService, BackupMetadata } from '../services/backupService';
@@ -26,6 +27,7 @@ import { BackupStats } from '../components/settings/backup/BackupStats';
 import { BackupList } from '../components/settings/backup/BackupList';
 
 export const BackupRestore: React.FC = () => {
+  const { t } = useTranslation();
   const { user, addToast } = useStore();
   // hasPermission check
 
@@ -91,7 +93,7 @@ export const BackupRestore: React.FC = () => {
       setBackups(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch (error) {
       ErrorLogger.error(error, 'BackupRestore.loadBackups');
-      addToast("Erreur lors du chargement des sauvegardes", "error");
+      addToast(t('backup.errors.loadFailed'), "error");
     }
   }, [user?.organizationId, addToast]);
 
@@ -126,13 +128,13 @@ export const BackupRestore: React.FC = () => {
     setLoading(true);
     try {
       await BackupService.createBackup(user, data);
-      addToast(`Sauvegarde créée avec succès`, "success");
+      addToast(t('backup.success.created'), "success");
       loadBackups();
       loadStats();
 
     } catch (error) {
       ErrorLogger.error(error, 'BackupRestore.handleBackup');
-      addToast("Erreur lors de la création de la sauvegarde", "error");
+      addToast(t('backup.errors.createFailed'), "error");
     } finally {
       setLoading(false);
     }
@@ -142,21 +144,21 @@ export const BackupRestore: React.FC = () => {
     if (!user) return;
     try {
       await BackupService.scheduleBackup(user, backupForm.getValues(), frequency);
-      addToast(`Backup programmé (${frequency})`, 'success');
+      addToast(t('backup.success.scheduled', { frequency }), 'success');
     } catch (error) {
       ErrorLogger.error(error, 'BackupRestore.handleScheduleBackup');
-      addToast('Erreur lors de la programmation', 'error');
+      addToast(t('backup.errors.scheduleFailed'), 'error');
     }
   };
 
   const handleRestore: SubmitHandler<RestoreConfigFormData> = async (data) => {
     if (!user) return;
     if (!data.backupId) {
-      addToast("Veuillez sélectionner une sauvegarde", "error");
+      addToast(t('backup.errors.selectBackup'), "error");
       return;
     }
     if (data.collections.length === 0) {
-      addToast("Veuillez sélectionner au moins une collection", "error");
+      addToast(t('backup.errors.selectCollection'), "error");
       return;
     }
 
@@ -165,12 +167,12 @@ export const BackupRestore: React.FC = () => {
       const result = await BackupService.restoreBackup(user, data);
       if (result.success) {
         if (data.dryRun) {
-          addToast("Simulation de restauration réussie", "success");
+          addToast(t('backup.success.simulationComplete'), "success");
         } else {
-          addToast("Restauration effectuée avec succès", "success");
+          addToast(t('backup.success.restoreComplete'), "success");
         }
       } else {
-        addToast("Erreur lors de la restauration", "error");
+        addToast(t('backup.errors.restoreFailed'), "error");
       }
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'BackupRestore.handleRestore', 'UNKNOWN_ERROR');
@@ -184,7 +186,7 @@ export const BackupRestore: React.FC = () => {
     if (!user) return;
     try {
       await BackupService.deleteBackup(user, id);
-      addToast("Sauvegarde supprimée", "success");
+      addToast(t('backup.success.deleted'), "success");
       loadBackups();
       loadStats();
       if (selectedBackup?.id === id) {
@@ -193,7 +195,7 @@ export const BackupRestore: React.FC = () => {
       }
     } catch (error) {
       ErrorLogger.error(error, 'BackupRestore.handleDeleteBackup');
-      addToast("Erreur lors de la suppression", "error");
+      addToast(t('backup.errors.deleteFailed'), "error");
     }
   };
 
@@ -209,7 +211,7 @@ export const BackupRestore: React.FC = () => {
       document.body.removeChild(link);
     } catch (error) {
       ErrorLogger.error(error, 'BackupRestore.handleDownloadBackup');
-      addToast('Erreur lors du téléchargement', 'error');
+      addToast(t('backup.errors.downloadFailed'), 'error');
     }
   };
 
@@ -238,12 +240,12 @@ export const BackupRestore: React.FC = () => {
       className="flex flex-col gap-6 sm:gap-8 lg:gap-10 min-w-0"
     >
       <MasterpieceBackground />
-      <SEO title="Sauvegardes & Restauration" description="Gérez vos points de restauration et la sécurité de vos données" />
+      <SEO title={t('backup.title')} description={t('backup.subtitle')} />
 
       {/* Header */}
       <PageHeader
-        title="Sauvegardes & Restauration"
-        subtitle="Gérez vos points de restauration et la sécurité de vos données."
+        title={t('backup.title')}
+        subtitle={t('backup.subtitle')}
         icon={
           <img
             src="/images/administration.png"

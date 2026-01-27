@@ -71,7 +71,7 @@ export const useAssetLogic = (enabled = true) => {
             },
             (error: Error) => {
                 // Silent fail for agents to not break asset flow
-                console.warn('Failed to subscribe to agents', error);
+                ErrorLogger.warn('Failed to subscribe to agents', 'useAssetLogic', { metadata: { error } });
             }
         );
         return () => unsubscribe();

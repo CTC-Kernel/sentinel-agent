@@ -47,6 +47,7 @@ import { AgentService } from '../../services/AgentService';
 import { SentinelAgent, AgentStatus } from '../../types/agent';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ErrorLogger } from '../../services/errorLogger';
 import {
     RadialBarChart,
     RadialBar,
@@ -426,7 +427,7 @@ export const AgentManagement: React.FC = () => {
                 const result = await getReleaseInfo({ product: 'agent' });
                 setReleaseInfo(result.data);
             } catch (error) {
-                console.error('Failed to fetch release info:', error);
+                ErrorLogger.error(error, 'AgentManagement.fetchReleases');
                 setReleaseInfo({
                     product: 'agent',
                     currentVersion: '1.0.0',
@@ -470,7 +471,7 @@ export const AgentManagement: React.FC = () => {
                     await auth.currentUser.getIdToken(true);
                 }
             } catch (e) {
-                console.warn('Token refresh failed, proceeding anyway:', e);
+                ErrorLogger.warn('Token refresh failed, proceeding anyway', 'AgentManagement', { metadata: { error: e } });
             }
 
             unsubscribe = AgentService.subscribeToAgents(
@@ -480,7 +481,7 @@ export const AgentManagement: React.FC = () => {
                     setLoading(false);
                 },
                 (error) => {
-                    console.error('Agent subscription error:', error);
+                    ErrorLogger.error(error, 'AgentManagement.subscribeToAgents');
                     const errorCode = (error as { code?: string }).code;
                     if (errorCode === 'permission-denied') {
                         toast.error("Accès refusé aux agents. Essayez de vous reconnecter.");

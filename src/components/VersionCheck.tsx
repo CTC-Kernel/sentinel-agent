@@ -24,7 +24,7 @@ export const VersionCheck = () => {
 
                 if (currentVersion !== data.version) {
                     // New version detected
-                    console.info('New version detected:', data.version, 'Current:', currentVersion);
+                    ErrorLogger.info(`New version detected: ${data.version}, Current: ${currentVersion}`, 'VersionCheck');
 
                     const handleUpdate = async () => {
                         // Clear Service Worker caches
@@ -33,7 +33,7 @@ export const VersionCheck = () => {
                                 const cacheNames = await caches.keys();
                                 await Promise.all(cacheNames.map(name => caches.delete(name)));
                             } catch (e) {
-                                console.error('Failed to clear caches:', e);
+                                ErrorLogger.error(e, 'VersionCheck.clearCaches');
                             }
                         }
 
@@ -43,7 +43,7 @@ export const VersionCheck = () => {
                                 const registrations = await navigator.serviceWorker.getRegistrations();
                                 await Promise.all(registrations.map(reg => reg.unregister()));
                             } catch (e) {
-                                console.error('Failed to unregister service workers:', e);
+                                ErrorLogger.error(e, 'VersionCheck.unregisterServiceWorkers');
                             }
                         }
 

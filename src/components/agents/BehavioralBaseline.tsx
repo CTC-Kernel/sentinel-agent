@@ -24,6 +24,7 @@ import {
     recalculateBaseline,
 } from '../../services/AgentAnomalyService';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 import {
     Activity,
     BarChart3,
@@ -631,7 +632,7 @@ export const BehavioralBaseline: React.FC<BehavioralBaselineProps> = ({
                 setLoading(false);
             },
             (error) => {
-                console.error('Error loading baselines:', error);
+                ErrorLogger.error(error, 'BehavioralBaseline.loadBaselines');
                 setLoading(false);
             },
             agentId
@@ -647,7 +648,7 @@ export const BehavioralBaseline: React.FC<BehavioralBaselineProps> = ({
         try {
             await recalculateBaseline(organizationId, baselineAgentId);
         } catch (error) {
-            console.error('Error recalculating baseline:', error);
+            ErrorLogger.error(error, 'BehavioralBaseline.recalculate');
         } finally {
             setRecalculating(null);
         }

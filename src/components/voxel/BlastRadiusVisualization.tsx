@@ -9,7 +9,6 @@
  * - Smooth animations using react-spring
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Line, Text } from '@react-three/drei';
@@ -30,8 +29,6 @@ const IMPACT_COLORS = {
   low: '#22c55e',       // Green - <25% impact
 };
 
-
-
 const SOURCE_COLOR = '#8b5cf6'; // Purple for source node
 
 // ============================================================================
@@ -48,8 +45,14 @@ const getImpactColor = (impact: number): string => {
   return IMPACT_COLORS.low;
 };
 
-// 
-const A = animated as any;
+// Typed animated components
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const A = {
+  group: (animated as any).group,
+  mesh: (animated as any).mesh,
+  meshBasicMaterial: (animated as any).meshBasicMaterial,
+};
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 
 
@@ -318,6 +321,7 @@ const ImpactPath: React.FC<ImpactPathProps> = React.memo(({
   delay,
   impact,
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lineRef = useRef<any>(null);
   const color = getImpactColor(impact);
 
@@ -344,9 +348,9 @@ const ImpactPath: React.FC<ImpactPathProps> = React.memo(({
   // Animate dash offset
   useFrame(({ clock }) => {
     if (lineRef.current?.material && active) {
-      const material = lineRef.current.material as THREE.LineDashedMaterial;
-      if ((material as any).dashOffset !== undefined) {
-        (material as any).dashOffset = -clock.getElapsedTime() * 2;
+      const material = lineRef.current.material as THREE.LineDashedMaterial & { dashOffset?: number };
+      if (material.dashOffset !== undefined) {
+        material.dashOffset = -clock.getElapsedTime() * 2;
       }
     }
   });

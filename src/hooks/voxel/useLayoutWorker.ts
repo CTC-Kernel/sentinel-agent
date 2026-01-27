@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VoxelNode, VoxelEdge } from '@/types/voxel';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -367,13 +368,13 @@ export function useLayoutWorker(
           callbacksRef.current.onStats?.(payload as LayoutStats);
           break;
         case 'error':
-          console.error('[LayoutWorker] Error:', payload);
+          ErrorLogger.error(payload, 'LayoutWorker.onmessage');
           break;
       }
     };
 
     worker.onerror = (error) => {
-      console.error('[LayoutWorker] Worker error:', error);
+      ErrorLogger.error(error, 'LayoutWorker.onerror');
     };
 
     workerRef.current = worker;

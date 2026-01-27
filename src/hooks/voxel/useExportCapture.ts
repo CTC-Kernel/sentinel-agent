@@ -10,6 +10,7 @@
 
 import { useCallback, useState, useRef } from 'react';
 import { useThree } from '@react-three/fiber';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -319,11 +320,11 @@ export function useExportCapture(): UseExportCaptureReturn {
         // Clean up
         URL.revokeObjectURL(url);
 
-        console.log('[useExportCapture] Export complete:', link.download);
+        ErrorLogger.debug(`Export complete: ${link.download}`, 'useExportCapture.exportImage');
       } catch (err) {
         const exportError = err instanceof Error ? err : new Error('Export failed');
         setError(exportError);
-        console.error('[useExportCapture] Export error:', exportError);
+        ErrorLogger.error(exportError, 'useExportCapture.exportImage');
         throw exportError;
       } finally {
         setIsExporting(false);

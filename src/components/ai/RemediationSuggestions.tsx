@@ -9,6 +9,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ErrorLogger } from '@/services/errorLogger';
 import {
     RecommendedAction,
     ActionImpactSummary,
@@ -442,7 +443,7 @@ export const RemediationSuggestions: React.FC<RemediationSuggestionsProps> = ({
                 setLoading(false);
             },
             (error) => {
-                console.error('Failed to load actions:', error);
+                ErrorLogger.error(error, 'RemediationSuggestions.subscribeToRecommendedActions');
                 setLoading(false);
             },
             {
@@ -460,7 +461,7 @@ export const RemediationSuggestions: React.FC<RemediationSuggestionsProps> = ({
 
         getActionImpactSummary(user.organizationId)
             .then(setSummary)
-            .catch(console.error);
+            .catch((error) => ErrorLogger.error(error, 'RemediationSuggestions.getActionImpactSummary'));
     }, [user?.organizationId]);
 
     // Sort and filter actions
@@ -501,9 +502,9 @@ export const RemediationSuggestions: React.FC<RemediationSuggestionsProps> = ({
 
         try {
             // Would trigger script execution request
-            console.log('Executing script for action:', action.id);
+            ErrorLogger.debug(`Executing script for action: ${action.id}`, 'RemediationSuggestions.handleExecute');
         } catch (error) {
-            console.error('Failed to execute script:', error);
+            ErrorLogger.error(error, 'RemediationSuggestions.handleExecute');
         }
     };
 
@@ -530,7 +531,7 @@ export const RemediationSuggestions: React.FC<RemediationSuggestionsProps> = ({
                 URL.revokeObjectURL(url);
             }
         } catch (error) {
-            console.error('Failed to download script:', error);
+            ErrorLogger.error(error, 'RemediationSuggestions.handleDownloadScript');
         }
     };
 

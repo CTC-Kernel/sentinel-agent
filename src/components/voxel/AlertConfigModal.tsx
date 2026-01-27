@@ -22,6 +22,7 @@ import {
   Clock,
   Shield,
 } from '../ui/Icons';
+import { ErrorLogger } from '@/services/errorLogger';
 import type {
   VoxelAlertConfig,
   AlertThreshold,
@@ -296,7 +297,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
       setHasChanges(false);
       onClose();
     } catch (error) {
-      console.error('Failed to save alert config:', error);
+      ErrorLogger.error(error, 'AlertConfigModal.handleSave');
     } finally {
       setIsSaving(false);
     }

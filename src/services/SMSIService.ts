@@ -12,8 +12,7 @@ import { fr } from 'date-fns/locale';
 import type { SMSIProgram, Milestone, PDCAPhase } from '../types/ebios';
 
 // Apply autoTable plugin
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(jsPDF.API as any).autoTable = autoTable;
+(jsPDF.API as unknown as { autoTable: typeof autoTable }).autoTable = autoTable;
 
 /**
  * Maturity level definition

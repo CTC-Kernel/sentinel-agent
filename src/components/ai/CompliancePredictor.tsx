@@ -9,6 +9,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ErrorLogger } from '@/services/errorLogger';
 import {
     CompliancePrediction,
     ScorePrediction,
@@ -298,7 +299,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
                 setLoading(false);
             },
             (error) => {
-                console.error('Failed to load predictions:', error);
+                ErrorLogger.error(error, 'CompliancePredictor.subscribeToPredictions');
                 setLoading(false);
             },
             frameworkId ? [frameworkId] : undefined

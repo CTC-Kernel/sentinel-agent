@@ -59,8 +59,7 @@ export const ExternalAuditPortal: React.FC = () => {
                 setAuditData(result.data as SharedAuditData);
             } catch (_err: unknown) {
                 let errorMessage = t('certifier.portal.defaultError');
-                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                const err = _err as any;
+                const err = _err as { code?: string; message?: string };
 
                 if (err.code === 'not-found') errorMessage = t('certifier.portal.notFound');
                 else if (err.code === 'permission-denied') errorMessage = t('certifier.portal.expiredOrInvalid');

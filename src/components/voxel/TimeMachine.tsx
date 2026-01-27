@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar as CalendarPicker } from '@/components/ui/Calendar';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorLogger } from '@/services/errorLogger';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/lib/utils';
 import { httpsCallable } from 'firebase/functions';
@@ -279,7 +280,7 @@ export function TimeMachine({
         setError('Aucun snapshot disponible pour cette date');
       }
     } catch (err) {
-      console.error('Failed to fetch snapshot:', err);
+      ErrorLogger.error(err, 'TimeMachine.fetchSnapshot');
       setError('Erreur lors du chargement du snapshot');
     } finally {
       setIsLoading(false);
@@ -328,7 +329,7 @@ export function TimeMachine({
         );
       }
     } catch (err) {
-      console.error('Failed to compare snapshots:', err);
+      ErrorLogger.error(err, 'TimeMachine.compareSnapshots');
       setError('Erreur lors de la comparaison');
     } finally {
       setIsLoading(false);

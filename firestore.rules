@@ -507,6 +507,9 @@ service cloud.firestore {
     }
 
     // Threat Intelligence (Global/Shared)
+    // NOTE: Uses sourceOrgId (not organizationId) because relationships connect entities
+    // across organizations in certifier/partner scenarios. sourceOrgId identifies the
+    // organization that owns/created the relationship for tenant isolation.
     match /relationships/{relId} {
       allow read: if isAuthenticated() && resource.data.sourceOrgId == request.auth.token.organizationId;
       allow create: if isAuthenticated() && request.resource.data.sourceOrgId == request.auth.token.organizationId;
@@ -515,10 +518,12 @@ service cloud.firestore {
     }
 
     match /threats/{threatId} {
-      // READ: Allow if global (no orgId) OR belongs to user's org
+      // READ: Allow if belongs to user's org, OR if global (no orgId) only for super-admins
+      // SECURITY: Global threats (without organizationId) are system-level and should only
+      // be accessible to super-admins to prevent information leakage
       allow read: if isAuthenticated() && (
-        !('organizationId' in resource.data) || 
-        belongsToOrganization(resource.data.organizationId)
+        ('organizationId' in resource.data && belongsToOrganization(resource.data.organizationId)) ||
+        (!('organizationId' in resource.data) && isSuperAdmin())
       );
       
       // CREATE: Allow if creating for own org
@@ -704,12 +709,15 @@ service cloud.firestore {
       allow delete: if false;
 
       // War Room Messages Subcollection
-      // SECURITY FIX: Added organization check for message creation
+      // SECURITY FIX: Added organization check and userId verification for message creation
       match /war_room_messages/{msgId} {
         allow read: if canRead(get(/databases/$(database)/documents/incidents/$(incidentId)).data.organizationId);
-        // SECURITY: Only allow message creation if user belongs to the incident's organization
+        // SECURITY: Only allow message creation if:
+        // 1. User belongs to the incident's organization
+        // 2. The message userId matches the authenticated user (prevents spoofing)
         allow create: if isAuthenticated() &&
-          belongsToOrganization(get(/databases/$(database)/documents/incidents/$(incidentId)).data.organizationId);
+          belongsToOrganization(get(/databases/$(database)/documents/incidents/$(incidentId)).data.organizationId) &&
+          request.resource.data.userId == request.auth.uid;
         allow update: if false; // Immutable chat
         allow delete: if false;
       }

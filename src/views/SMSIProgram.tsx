@@ -516,8 +516,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
           const isCurrentPhase = program.currentPhase === phase;
           const progress = getPhaseProgress(phase);
           const phaseMilestones = milestonesByPhase[phase];
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const PhaseIcon = config.icon as any;
+          const PhaseIcon = config.icon as React.ComponentType<{ className?: string }>;
 
           return (
             <div key={phase} className="relative">

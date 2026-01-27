@@ -34,6 +34,24 @@ vi.mock('../../utils/permissions', () => ({
     hasPermission: vi.fn().mockReturnValue(true),
 }));
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'threatRegistry.title': 'Bibliothèque de Menaces',
+                'threatRegistry.subtitle': 'Gérez votre bibliothèque de menaces',
+                'threatRegistry.searchPlaceholder': 'Rechercher une menace...',
+                'threatRegistry.empty.title': 'Aucune menace enregistrée',
+                'threatRegistry.empty.description': 'Commencez par ajouter des menaces',
+            };
+            return translations[key] || key;
+        },
+        i18n: { language: 'fr' }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 vi.mock('react-helmet-async', () => ({
     Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -119,7 +137,18 @@ describe('ThreatRegistry', () => {
         vi.mocked(useStore).mockReturnValue({
             user: mockUser,
             addToast: vi.fn(),
-            t: (key: string) => key,
+            t: (key: string) => {
+                const translations: Record<string, string> = {
+                    'threatRegistry.title': 'Bibliothèque de Menaces',
+                    'threatRegistry.seo.title': 'Bibliothèque de Menaces',
+                    'threatRegistry.seo.description': 'Gérez votre bibliothèque de menaces',
+                    'threatRegistry.search.placeholder': 'Rechercher une menace...',
+                    'threatRegistry.actions.add': 'Nouvelle Menace',
+                    'threatRegistry.empty.title': 'Aucune menace enregistrée',
+                    'threatRegistry.empty.description': 'Commencez par ajouter des menaces à votre bibliothèque',
+                };
+                return translations[key] || key;
+            },
             language: 'fr',
         } as unknown as ReturnType<typeof useStore>);
 
@@ -201,7 +230,7 @@ describe('ThreatRegistry', () => {
     it('should filter threats by search term', async () => {
         renderWithRouter(<ThreatRegistry />);
 
-        const searchInput = screen.getByPlaceholderText(/Rechercher/i);
+        const searchInput = screen.getByPlaceholderText(/Rechercher une menace/i);
         fireEvent.change(searchInput, { target: { value: 'Phishing' } });
 
         await waitFor(() => {

@@ -16,7 +16,6 @@ import { AdditiveBlending, Group, Vector3 } from 'three';
 import type { VoxelAnomaly, VoxelAnomalySeverity, VoxelNode } from '../../types/voxel';
 
 // Fix for strict type checking on animated.meshBasicMaterial
-// Fix for strict type checking on animated.meshBasicMaterial
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const AnimatedMeshBasicMaterial = (animated as any).meshBasicMaterial;
 
@@ -68,8 +67,7 @@ export const AnomalyPulseRing: React.FC<AnomalyPulseRingProps> = React.memo(({
   // Animated scale for pulse effect
   const [{ scale, opacity }] = useSpring(() => ({
     from: { scale: 1, opacity: 0.8 },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    to: async (next: any) => {
+    to: async (next: (values: { scale: number; opacity: number }) => Promise<void>) => {
       while (visible) {
         await next({ scale: 1.5, opacity: 0 });
         await next({ scale: 1, opacity: 0.8 });
@@ -81,14 +79,8 @@ export const AnomalyPulseRing: React.FC<AnomalyPulseRingProps> = React.memo(({
 
   if (!visible) return null;
 
-  // @ts-expect-error: react-spring types for mesh
-  const AnimatedMesh = animated.mesh as unknown as React.FC<{
-    rotation: [number, number, number];
-    position: [number, number, number];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    scale: any;
-    children: React.ReactNode;
-  }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AnimatedMesh = (animated as any).mesh;
 
   return (
     <group position={position} ref={ringRef}>
@@ -188,7 +180,8 @@ export const CycleDependencyLines: React.FC<CycleDependencyLinesProps> = React.m
   cyclePath,
   severity,
 }) => {
-  const lineRef = useRef<THREE.Line>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lineRef = useRef<any>(null);
   const color = SEVERITY_COLORS[severity];
 
   // Calculate points for the cycle path
@@ -209,8 +202,7 @@ export const CycleDependencyLines: React.FC<CycleDependencyLinesProps> = React.m
   // Animate line dash offset
   useFrame(({ clock }) => {
     if (lineRef.current?.material) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const material = lineRef.current.material as any;
+      const material = lineRef.current.material as THREE.LineDashedMaterial & { dashOffset?: number };
       if (material.dashOffset !== undefined) {
         material.dashOffset = -clock.getElapsedTime() * 2;
       }
@@ -221,8 +213,7 @@ export const CycleDependencyLines: React.FC<CycleDependencyLinesProps> = React.m
 
   return (
     <Line
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ref={lineRef as any}
+      ref={lineRef}
       points={points}
       color={color}
       lineWidth={3}
@@ -269,13 +260,8 @@ export const AnomalyBadge: React.FC<AnomalyBadgeProps> = React.memo(({
     config: config.wobbly,
   }), []);
 
-  // @ts-expect-error: react-spring group type
-  const AnimatedGroup = animated.group as React.FC<{
-    position: [number, number, number];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    scale: any;
-    children: React.ReactNode;
-  }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AnimatedGroup = (animated as any).group;
 
   return (
     <AnimatedGroup position={badgePosition} scale={scale}>

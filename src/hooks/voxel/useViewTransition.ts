@@ -10,6 +10,7 @@ import { useSpring, config as springConfig, SpringValue } from '@react-spring/th
 import type { VoxelNodeType, ViewPreset } from '@/types/voxel';
 import { useVoxelStore } from '@/stores/voxelStore';
 import { VIEW_PRESETS, type ExtendedViewPresetConfig } from '@/stores/viewPresets';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -156,8 +157,7 @@ export function useViewTransition(initialConfig?: ViewTransitionConfig): UseView
     ALL_NODE_TYPES.forEach((type) => {
       const springValue = visibilitySprings[type as keyof typeof visibilitySprings];
       // Check if it's a SpringValue (has .get method)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (springValue && typeof (springValue as any).get === 'function') {
+      if (springValue && typeof (springValue as SpringValue<number>).get === 'function') {
         map.set(type, springValue as SpringValue<number>);
       }
     });
@@ -247,7 +247,7 @@ export function useViewTransition(initialConfig?: ViewTransitionConfig): UseView
   ) => {
     const config = VIEW_PRESETS[preset];
     if (!config) {
-      console.warn(`Unknown preset: ${preset}`);
+      ErrorLogger.warn(`Unknown preset: ${preset}`, 'useViewTransition.transitionTo');
       return;
     }
 

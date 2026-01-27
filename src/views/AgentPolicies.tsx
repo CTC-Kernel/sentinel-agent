@@ -221,7 +221,7 @@ export const AgentPolicies: React.FC = () => {
         // Navigate to the higher priority policy for editing
         setActiveTab('policies');
         // Could add scroll-to or highlight functionality here
-        console.log('Resolving conflict:', conflict);
+        ErrorLogger.debug(`Resolving conflict: ${conflict.ruleKey}`, 'AgentPolicies.handleResolveConflict');
     }, []);
 
     // Compute stats
@@ -397,7 +397,7 @@ export const AgentPolicies: React.FC = () => {
                         <TabsContent value="groups" className="mt-6">
                             <GroupManager
                                 onSelectGroup={(groupId: string | null) => {
-                                    console.log('Selected group:', groupId);
+                                    ErrorLogger.debug(`Selected group: ${groupId}`, 'AgentPolicies');
                                 }}
                             />
                         </TabsContent>
@@ -406,7 +406,7 @@ export const AgentPolicies: React.FC = () => {
                             <PolicyEditor
                                 groups={groups}
                                 onSelectPolicy={(policyId: string | null) => {
-                                    console.log('Selected policy:', policyId);
+                                    ErrorLogger.debug(`Selected policy: ${policyId}`, 'AgentPolicies');
                                 }}
                             />
                         </TabsContent>

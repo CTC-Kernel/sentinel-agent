@@ -11,6 +11,7 @@ import { Drawer } from '../ui/Drawer';
 import { ICTProviderForm } from './ICTProviderForm';
 import { ICTProvider, ICTProviderFormData } from '../../types/dora';
 import { useICTProviders } from '../../hooks/useICTProviders';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ICTProviderDrawerProps {
     isOpen: boolean;
@@ -44,7 +45,7 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
             onSuccess?.();
             onClose();
         } catch (error) {
-            console.error('Error saving ICT Provider:', error);
+            ErrorLogger.error(error, 'ICTProviderDrawer.saveProvider');
             toast.error(t('common.error'));
         } finally {
             setIsLoading(false);

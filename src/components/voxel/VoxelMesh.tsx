@@ -432,9 +432,8 @@ export const VoxelMesh: React.FC<{
     const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
     const safeLabel = safeRender(label);
 
-    // @ts-expect-error: react-spring types might be missing group proxy
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const AnimatedGroup = animated.group as any;
+    const AnimatedGroup = (animated as any).group;
 
     return (
         <group position={positionToArray(node.position)}>

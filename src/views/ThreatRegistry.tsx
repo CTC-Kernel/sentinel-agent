@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -41,6 +42,7 @@ const threatSchema = z.object({
 type ThreatFormData = z.infer<typeof threatSchema>;
 
 export const ThreatRegistry: React.FC = () => {
+    const { t } = useTranslation();
     const { user } = useStore();
     const canEdit = hasPermission(user, 'Threat', 'manage');
     const { threats, loading, addThreat, updateThreat, deleteThreat, seedStandardThreats } = useThreats();
@@ -137,8 +139,8 @@ export const ThreatRegistry: React.FC = () => {
         if (threats.length > 0) {
             setConfirmData({
                 isOpen: true,
-                title: "Importer la bibliothèque standard ?",
-                message: "La bibliothèque contient déjà des menaces. Voulez-vous vraiment importer les modèles standards (doublons possibles) ?",
+                title: t('threatRegistry.confirm.importTitle'),
+                message: t('threatRegistry.confirm.importMessage'),
                 onConfirm: proceedWithSeed
             });
         } else {
@@ -149,8 +151,8 @@ export const ThreatRegistry: React.FC = () => {
     const handleDelete = React.useCallback(async (id: string) => {
         setConfirmData({
             isOpen: true,
-            title: "Supprimer cette menace ?",
-            message: "Cette action est irréversible.",
+            title: t('threatRegistry.confirm.deleteTitle'),
+            message: t('threatRegistry.confirm.deleteMessage'),
             onConfirm: async () => {
                 try {
                     await deleteThreat(id);
@@ -215,11 +217,11 @@ export const ThreatRegistry: React.FC = () => {
             className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
-            <SEO title="Bibliothèque de Menaces" description="Référentiel des menaces et vulnérabilités (ISO 27005)" />
+            <SEO title={t('threatRegistry.title')} description={t('threatRegistry.subtitle')} />
 
             <PageHeader
-                title="Bibliothèque de Menaces"
-                subtitle="Référentiel des menaces et vulnérabilités (ISO 27005)."
+                title={t('threatRegistry.title')}
+                subtitle={t('threatRegistry.subtitle')}
                 icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                     <div className="flex gap-3">
@@ -261,7 +263,7 @@ export const ThreatRegistry: React.FC = () => {
                     <input value={searchTerm}
                         aria-label="Rechercher une menace"
                         type="text"
-                        placeholder="Rechercher une menace, un scénario..."
+                        placeholder={t('threatRegistry.searchPlaceholder')}
                         className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all placeholder:text-slate-500"
                         onChange={handleSearchChange}
                     />
@@ -275,8 +277,8 @@ export const ThreatRegistry: React.FC = () => {
                     <div className="py-12">
                         <EmptyState
                             icon={ShieldAlert}
-                            title="Aucune menace trouvée"
-                            description="Commencez par importer la bibliothèque standard ou créez votre première menace."
+                            title={t('threatRegistry.noThreatsFound')}
+                            description={t('threatRegistry.noThreatsDesc')}
                             actionLabel={threats.length === 0 ? "Importer les modèles standards" : undefined}
                             onAction={threats.length === 0 ? handleSeed : undefined}
                             semantic="info"

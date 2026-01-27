@@ -1,9 +1,13 @@
 import * as Sentry from '@sentry/react';
+import i18n from '../i18n';
 import { useStore } from '../store';
 
 /**
  * Service centralisé de gestion des erreurs
  * Gère les logs en développement et envoie vers Sentry en production
+ *
+ * Error messages are internationalized via i18n (errorLogger.* keys).
+ * Falls back to hardcoded French messages if i18n is not ready.
  */
 
 interface ErrorContext {
@@ -119,6 +123,47 @@ class ErrorLoggerService {
     });
   }
 
+  /**
+   * Get translated error message with fallback to hardcoded messages
+   * Uses i18n if available, otherwise falls back to ENRICHED_ERROR_MESSAGES
+   */
+  private getTranslatedErrorMessage(messageKey: ErrorMessageKey): EnrichedErrorMessage {
+    const fallback = ENRICHED_ERROR_MESSAGES[messageKey];
+
+    // Check if i18n is ready
+    if (!i18n.isInitialized) {
+      return fallback;
+    }
+
+    const messageI18nKey = `errorLogger.${messageKey}.message`;
+    const hintI18nKey = `errorLogger.${messageKey}.hint`;
+    const actionI18nKey = `errorLogger.${messageKey}.action`;
+
+    // Try to get translated message
+    const translatedMessage = i18n.exists(messageI18nKey)
+      ? i18n.t(messageI18nKey)
+      : fallback.message;
+
+    const translatedHint = i18n.exists(hintI18nKey)
+      ? i18n.t(hintI18nKey)
+      : fallback.hint;
+
+    const translatedActionLabel = i18n.exists(actionI18nKey)
+      ? i18n.t(actionI18nKey)
+      : fallback.action?.label;
+
+    return {
+      message: translatedMessage,
+      hint: translatedHint,
+      action: fallback.action
+        ? {
+            ...fallback.action,
+            label: translatedActionLabel || fallback.action.label
+          }
+        : undefined
+    };
+  }
+
   handleErrorWithToast(error: Error | unknown, context: string, defaultMessageKey: ErrorMessageKey = 'UNKNOWN_ERROR'): ErrorMessageKey {
     let messageKey: ErrorMessageKey = defaultMessageKey;
     const anyError = error as { code?: unknown };
@@ -148,8 +193,8 @@ class ErrorLoggerService {
       messageKey = 'VALIDATION_FAILED';
     }
 
-    // Use enriched error message with hint and optional action
-    const enrichedMessage = ENRICHED_ERROR_MESSAGES[messageKey];
+    // Use translated enriched error message with hint and optional action
+    const enrichedMessage = this.getTranslatedErrorMessage(messageKey);
     const fullMessage = enrichedMessage.hint
       ? `${enrichedMessage.message}. ${enrichedMessage.hint}`
       : enrichedMessage.message;

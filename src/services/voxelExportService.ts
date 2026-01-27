@@ -11,6 +11,7 @@
 import { WebGLRenderer, Scene, Camera, Object3D, Vector2, Color } from 'three';
 import { GLTFExporter, GLTFExporterOptions } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import type { VoxelNode, VoxelAnomaly, VoxelEdge } from '@/types/voxel';
+import { ErrorLogger } from './errorLogger';
 
 // ============================================================================
 // Types
@@ -250,7 +251,7 @@ export async function captureScreenshot(
     if (includeOverlays) {
       // Note: This would require html2canvas or similar library
       // For now, return just the 3D scene
-      console.warn('[VoxelExport] Overlay capture requires html2canvas library');
+      ErrorLogger.warn('Overlay capture requires html2canvas library', 'VoxelExport');
     }
 
     // Restore original settings
@@ -311,7 +312,7 @@ export async function copyScreenshotToClipboard(
 
     return true;
   } catch (error) {
-    console.error('[VoxelExport] Failed to copy to clipboard:', error);
+    ErrorLogger.error(error, 'VoxelExport.copyScreenshotToClipboard');
     return false;
   }
 }
@@ -374,7 +375,7 @@ export async function exportToPDF(
     try {
       doc.addImage(companyLogo, 'PNG', margin, 8, 20, 20);
     } catch {
-      console.warn('[VoxelExport] Failed to add logo');
+      ErrorLogger.warn('Failed to add logo', 'VoxelExport');
     }
   }
 
@@ -401,7 +402,7 @@ export async function exportToPDF(
       doc.addImage(screenshotDataUrl, 'PNG', margin, yPos, imgWidth, imgHeight);
       yPos += imgHeight + 10;
     } catch {
-      console.warn('[VoxelExport] Failed to add screenshot to PDF');
+      ErrorLogger.warn('Failed to add screenshot to PDF', 'VoxelExport');
     }
   }
 

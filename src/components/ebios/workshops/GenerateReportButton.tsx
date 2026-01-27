@@ -14,6 +14,7 @@ import { Button } from '../../ui/button';
 import { EbiosReportService } from '../../../services/EbiosReportService';
 import type { EbiosAnalysis, Workshop1Data } from '../../../types/ebios';
 import { useAuth } from '../../../hooks/useAuth';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 interface GenerateReportButtonProps {
   analysis: EbiosAnalysis;
@@ -81,7 +82,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
         setError(`La génération du rapport pour l'Atelier ${workshopNumber} n'est pas encore disponible.`);
       }
     } catch (err) {
-      console.error('Error generating report:', err);
+      ErrorLogger.error(err, 'GenerateReportButton.generateReport');
       setError('Une erreur est survenue lors de la génération du rapport.');
     } finally {
       setIsGenerating(false);

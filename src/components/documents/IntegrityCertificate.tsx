@@ -53,6 +53,7 @@ import {
   type HashHistoryEvent,
 } from '@/services/integrityService';
 import { toast } from 'sonner';
+import { ErrorLogger } from '@/services/errorLogger';
 
 interface IntegrityCertificateProps {
   documentId: string;
@@ -127,7 +128,7 @@ export function IntegrityCertificate({
       const status = await IntegrityService.getIntegrityStatus(documentId);
       setIntegrity(status);
     } catch (error) {
-      console.error('Failed to load integrity status:', error);
+      ErrorLogger.error(error, 'IntegrityCertificate.loadIntegrityStatus');
       setIntegrity({
         hash: null,
         algorithm: 'SHA-256',
@@ -164,7 +165,7 @@ export function IntegrityCertificate({
         toast.error('ALERTE: Intégrité compromise - hash différent détecté');
       }
     } catch (error) {
-      console.error('Verification failed:', error);
+      ErrorLogger.error(error, 'IntegrityCertificate.verify');
       toast.error('Échec de la vérification d\'intégrité');
     } finally {
       setVerifying(false);
@@ -193,7 +194,7 @@ export function IntegrityCertificate({
       const response = await IntegrityService.getHashHistory(documentId, 20);
       setHistory(response.history);
     } catch (error) {
-      console.error('Failed to load history:', error);
+      ErrorLogger.error(error, 'IntegrityCertificate.loadHistory');
       toast.error('Impossible de charger l\'historique');
     } finally {
       setLoadingHistory(false);
@@ -214,7 +215,7 @@ export function IntegrityCertificate({
       generatePdfCertificate(certificate);
       toast.success('Certificat téléchargé');
     } catch (error) {
-      console.error('Failed to generate certificate:', error);
+      ErrorLogger.error(error, 'IntegrityCertificate.generateCertificate');
       toast.error('Échec de la génération du certificat');
     } finally {
       setGeneratingPdf(false);

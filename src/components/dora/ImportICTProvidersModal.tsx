@@ -13,6 +13,7 @@ import { Upload, X, FileSpreadsheet, AlertCircle, CheckCircle } from '../ui/Icon
 import { ICTProviderService } from '../../services/ICTProviderService';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ImportICTProvidersModalProps {
     isOpen: boolean;
@@ -107,7 +108,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                 toast.error(t('dora.import.errorsFound', { count: importResult.errors.length }));
             }
         } catch (error) {
-            console.error('Import error:', error);
+            ErrorLogger.error(error, 'ImportICTProvidersModal.import');
             toast.error(t('dora.import.error'));
         } finally {
             setIsImporting(false);

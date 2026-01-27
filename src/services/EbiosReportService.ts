@@ -9,8 +9,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 // Apply the plugin to jsPDF
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(jsPDF.API as any).autoTable = autoTable;
+(jsPDF.API as unknown as { autoTable: typeof autoTable }).autoTable = autoTable;
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PdfService, ReportOptions } from './PdfService';
@@ -531,11 +530,10 @@ Le score de maturité du socle de sécurité est de ${maturityScore}%.`;
     // Workshop 2
     const w2 = analysis.workshops[2]?.data as Workshop2Data | undefined;
     if (w2) {
+      const w2Data = w2 as Workshop2Data & { riskSources?: unknown[]; targetedObjectives?: unknown[] };
       const w2Scores = [
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (w2 as any).riskSources?.length > 0 ? 50 : 0,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (w2 as any).targetedObjectives?.length > 0 ? 50 : 0,
+        w2Data.riskSources?.length ? 50 : 0,
+        w2Data.targetedObjectives?.length ? 50 : 0,
       ];
       workshops[2] = w2Scores.reduce((a, b) => a + b, 0);
     }
@@ -543,9 +541,9 @@ Le score de maturité du socle de sécurité est de ${maturityScore}%.`;
     // Workshop 3
     const w3 = analysis.workshops[3]?.data as Workshop3Data | undefined;
     if (w3) {
+      const w3Data = w3 as Workshop3Data & { stakeholders?: unknown[] };
       const w3Scores = [
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (w3 as any).stakeholders?.length > 0 ? 50 : 0,
+        w3Data.stakeholders?.length ? 50 : 0,
         w3.strategicScenarios?.length > 0 ? 50 : 0,
       ];
       workshops[3] = w3Scores.reduce((a, b) => a + b, 0);
@@ -596,13 +594,12 @@ Le score de maturité du socle de sécurité est de ${maturityScore}%.`;
     const w5 = analysis.workshops[5]?.data as Workshop5Data | undefined;
     // Calculate stats
     const completion = this.getAnalysisCompletion(analysis);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const riskSourcesCount = (w2 as any)?.riskSources?.length || 0;
+    const w2Extended = w2 as Workshop2Data & { riskSources?: unknown[] } | undefined;
+    const riskSourcesCount = w2Extended?.riskSources?.length || 0;
     const strategicScenariosCount = w3?.strategicScenarios?.length || 0;
     const operationalScenariosCount = w4?.operationalScenarios?.length || 0;
     const treatedRisksCount = w5?.treatmentPlan?.length || 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const acceptedRisksCount = w5?.residualRisks?.filter((r: any) => r.acceptedBy)?.length || 0;
+    const acceptedRisksCount = w5?.residualRisks?.filter((r) => r.acceptedBy)?.length || 0;
 
     // Summary text
     const summaryText = `Ce rapport de synthèse présente les résultats complets de l'analyse EBIOS RM "${analysis.name}".
@@ -630,7 +627,8 @@ Progression globale: ${completion.overall}%`;
           { label: 'Progression', value: `${completion.overall}% `, subtext: 'complétude' },
         ],
         ...options,
-      } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
       (doc, startY) => {
         let currentY = startY;
         const pageHeight = doc.internal.pageSize.height;
@@ -724,13 +722,12 @@ Progression globale: ${completion.overall}%`;
     let currentY = this.checkPageBreak(doc, startY, 60, pageHeight);
     currentY = this.addSectionTitle(doc, 'Atelier 2 - Sources de Risque', currentY);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((data as any).riskSources && (data as any).riskSources.length > 0) {
+    const w2Data = data as Workshop2Data & { riskSources?: Array<{ name: string; category: string; relevance: number; targetedObjectiveIds?: string[] }> };
+    if (w2Data.riskSources && w2Data.riskSources.length > 0) {
       doc.autoTable({
         startY: currentY,
         head: [['Source', 'Catégorie', 'Pertinence', 'Objectifs visés']],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        body: (data as any).riskSources.slice(0, 8).map((s: any) => [
+        body: w2Data.riskSources.slice(0, 8).map((s) => [
           s.name,
           s.category,
           `${s.relevance}/4`,
@@ -1100,8 +1097,7 @@ Progression globale: ${completion.overall}%`;
     y += 12;
 
     // Stats table
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (doc as jsPDF & { autoTable: (options: any) => any }).autoTable({
+    (doc as jsPDF & { autoTable: (options: Record<string, unknown>) => unknown }).autoTable({
       startY: y,
       head: [['Statut', 'Nombre']],
       body: [
@@ -1140,8 +1136,7 @@ Progression globale: ${completion.overall}%`;
       doc.text(`Phase ${this.getPDCALabel(phase)}`, 15, y);
       y += 8;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (doc as jsPDF & { autoTable: (options: any) => any }).autoTable({
+      (doc as jsPDF & { autoTable: (options: Record<string, unknown>) => unknown }).autoTable({
         startY: y,
         head: [['Jalon', 'Échéance', 'Statut', 'Responsable']],
         body: phaseMilestones.map(m => [

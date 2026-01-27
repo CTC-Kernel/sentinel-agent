@@ -24,6 +24,7 @@ import {
 import { db } from '@/firebase';
 import { useStore } from '@/store';
 import { useVoxelStore } from '@/stores/voxelStore';
+import { ErrorLogger } from '@/services/errorLogger';
 import { buildGraph, type GraphBuilderInput, type VoxelGraph } from '@/services/voxel';
 import { filterNodesByPermission } from './useRbacNodeFilter';
 import type { Asset } from '@/types/assets';
@@ -104,7 +105,7 @@ async function fetchCollection<T>(
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as T));
   } catch (error) {
-    console.warn(`[useVoxelData] Failed to fetch ${collectionName}:`, error);
+    ErrorLogger.warn(`Failed to fetch ${collectionName}`, 'useVoxelData', { metadata: { error } });
     return [];
   }
 }
@@ -184,7 +185,7 @@ export function useVoxelData(options: UseVoxelDataOptions = {}): UseVoxelDataRet
       }
 
       setSyncStatus('syncing');
-      console.log('[useVoxelData] Fetching data for org:', organizationId);
+      ErrorLogger.debug(`Fetching data for org: ${organizationId}`, 'useVoxelData');
 
       const rawData = await fetchAllCollections(
         organizationId,
@@ -192,7 +193,7 @@ export function useVoxelData(options: UseVoxelDataOptions = {}): UseVoxelDataRet
         mergedOptions.maxNodesPerCollection!
       );
 
-      console.log('[useVoxelData] Raw data counts:', {
+      ErrorLogger.debug('Raw data counts: ' + JSON.stringify({
         assets: rawData.assets.length,
         risks: rawData.risks.length,
         controls: rawData.controls.length,
@@ -200,15 +201,12 @@ export function useVoxelData(options: UseVoxelDataOptions = {}): UseVoxelDataRet
         audits: rawData.audits?.length || 0,
         incidents: rawData.incidents?.length || 0,
         suppliers: rawData.suppliers?.length || 0,
-      });
+      }), 'useVoxelData');
 
       // Transform to Voxel graph
       const graph = buildGraph(rawData);
 
-      console.log('[useVoxelData] Built graph:', {
-        nodes: graph.nodes.length,
-        edges: graph.edges.length,
-      });
+      ErrorLogger.debug(`Built graph: nodes=${graph.nodes.length}, edges=${graph.edges.length}`, 'useVoxelData');
 
       return graph;
     },
@@ -237,12 +235,12 @@ export function useVoxelData(options: UseVoxelDataOptions = {}): UseVoxelDataRet
       (edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
     );
 
-    console.log('[useVoxelData] RBAC filtered:', {
+    ErrorLogger.debug('RBAC filtered: ' + JSON.stringify({
       originalNodes: graphData.nodes.length,
       filteredNodes: filteredNodes.length,
       originalEdges: graphData.edges.length,
       filteredEdges: filteredEdges.length,
-    });
+    }), 'useVoxelData');
 
     return {
       nodes: filteredNodes,
@@ -253,7 +251,7 @@ export function useVoxelData(options: UseVoxelDataOptions = {}): UseVoxelDataRet
   // Populate store when data is available (use filtered data)
   useEffect(() => {
     if (filteredGraphData && !hasPopulatedRef.current) {
-      console.log('[useVoxelData] Populating store with', filteredGraphData.nodes.length, 'nodes');
+      ErrorLogger.debug(`Populating store with ${filteredGraphData.nodes.length} nodes`, 'useVoxelData');
 
       // Pass arrays directly - the store converts them to Maps internally
       setNodes(filteredGraphData.nodes);
@@ -268,7 +266,7 @@ export function useVoxelData(options: UseVoxelDataOptions = {}): UseVoxelDataRet
   // Handle errors
   useEffect(() => {
     if (error) {
-      console.error('[useVoxelData] Error:', error);
+      ErrorLogger.error(error, 'useVoxelData');
       setSyncStatus('offline');
     }
   }, [error, setSyncStatus]);

@@ -44,8 +44,7 @@ const PopoverContent = React.forwardRef<
         sideOffset?: number
     }
 >(({ className, align = "center", sideOffset = 4, ...props }, ref) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const PopoverPanel = HeadlessPopover.Panel as any;
+    const PopoverPanel = HeadlessPopover.Panel;
     return (
         <Transition
             as={React.Fragment}

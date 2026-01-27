@@ -136,8 +136,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                 const config = PHASE_CONFIG[phase];
                 const style = PHASE_STYLES[phase];
                 const isSelected = selectedPhase === phase;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const PhaseIcon = config.icon as any;
+                const PhaseIcon = config.icon as React.ComponentType<{ className?: string }>;
 
                 return (
                   <button
