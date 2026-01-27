@@ -1,0 +1,1336 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for sentinel-grc-v2-prod/functions/callable/seedNIS2Framework.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">sentinel-grc-v2-prod/functions/callable</a> seedNIS2Framework.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/417</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/417</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a>
+<a name='L387'></a><a href='#L387'>387</a>
+<a name='L388'></a><a href='#L388'>388</a>
+<a name='L389'></a><a href='#L389'>389</a>
+<a name='L390'></a><a href='#L390'>390</a>
+<a name='L391'></a><a href='#L391'>391</a>
+<a name='L392'></a><a href='#L392'>392</a>
+<a name='L393'></a><a href='#L393'>393</a>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a>
+<a name='L414'></a><a href='#L414'>414</a>
+<a name='L415'></a><a href='#L415'>415</a>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >/**<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cstat-no" title="statement not covered" > * NIS2 Framework Seed Cloud Function</span>
+<span class="cstat-no" title="statement not covered" > *</span>
+<span class="cstat-no" title="statement not covered" > * Seeds the Firestore database with NIS2 directive requirements.</span>
+<span class="cstat-no" title="statement not covered" > * Only callable by organization admins.</span>
+<span class="cstat-no" title="statement not covered" > *</span>
+<span class="cstat-no" title="statement not covered" > * @see Story EU-1.6: Seed NIS2 Framework Data</span>
+<span class="cstat-no" title="statement not covered" > */</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >const { onCall, HttpsError } = require("firebase-functions/v2/https");</span>
+<span class="cstat-no" title="statement not covered" >const admin = require("firebase-admin");</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >// ============================================================================</span>
+<span class="cstat-no" title="statement not covered" >// NIS2 Framework Data</span>
+<span class="cstat-no" title="statement not covered" >// ============================================================================</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >const NIS2_FRAMEWORK = {</span>
+<span class="cstat-no" title="statement not covered" >  code: 'NIS2',</span>
+<span class="cstat-no" title="statement not covered" >  name: {</span>
+<span class="cstat-no" title="statement not covered" >    en: 'NIS2 Directive',</span>
+<span class="cstat-no" title="statement not covered" >    fr: 'Directive NIS2',</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  fullName: {</span>
+<span class="cstat-no" title="statement not covered" >    en: 'Directive (EU) 2022/2555 on measures for a high common level of cybersecurity across the Union',</span>
+<span class="cstat-no" title="statement not covered" >    fr: 'Directive (UE) 2022/2555 concernant des mesures destinées à assurer un niveau élevé commun de cybersécurité dans l\'Union',</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  description: {</span>
+<span class="cstat-no" title="statement not covered" >    en: 'The NIS2 Directive establishes cybersecurity risk management and reporting obligations for essential and important entities across the EU.',</span>
+<span class="cstat-no" title="statement not covered" >    fr: 'La directive NIS2 établit des obligations en matière de gestion des risques de cybersécurité et de notification pour les entités essentielles et importantes dans l\'UE.',</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  version: '2022/2555',</span>
+<span class="cstat-no" title="statement not covered" >  effectiveDate: admin.firestore.Timestamp.fromDate(new Date('2023-01-16')),</span>
+<span class="cstat-no" title="statement not covered" >  complianceDeadline: admin.firestore.Timestamp.fromDate(new Date('2024-10-17')),</span>
+<span class="cstat-no" title="statement not covered" >  jurisdiction: ['EU'],</span>
+<span class="cstat-no" title="statement not covered" >  sectors: [</span>
+<span class="cstat-no" title="statement not covered" >    'energy', 'transport', 'banking', 'financial_market', 'health',</span>
+<span class="cstat-no" title="statement not covered" >    'drinking_water', 'wastewater', 'digital_infrastructure', 'ict_service_management',</span>
+<span class="cstat-no" title="statement not covered" >    'public_administration', 'space', 'postal_services', 'waste_management',</span>
+<span class="cstat-no" title="statement not covered" >    'chemicals', 'food', 'manufacturing', 'digital_providers', 'research',</span>
+<span class="cstat-no" title="statement not covered" >  ],</span>
+<span class="cstat-no" title="statement not covered" >  officialUrl: 'https://eur-lex.europa.eu/eli/dir/2022/2555',</span>
+<span class="cstat-no" title="statement not covered" >  isActive: true,</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >const NIS2_REQUIREMENTS = [</span>
+<span class="cstat-no" title="statement not covered" >  // Article 20: Governance</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 20(1)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'governance',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Management body accountability', fr: 'Responsabilité des organes de direction' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Member States shall ensure that the management bodies of essential and important entities approve the cybersecurity risk-management measures taken by those entities and oversee their implementation.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Les États membres veillent à ce que les organes de direction des entités essentielles et importantes approuvent les mesures de gestion des risques en matière de cybersécurité prises par ces entités et supervisent leur mise en œuvre.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['governance', 'management', 'accountability', 'oversight', 'board'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.1', 'A.5.2', 'A.5.3', 'A.5.4'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 20(2)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'governance',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Management liability', fr: 'Responsabilité de la direction' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Member States shall ensure that management bodies can be held liable for infringements of this Directive by the entities they manage.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Les États membres veillent à ce que les organes de direction puissent être tenus pour responsables des infractions à la présente directive commises par les entités qu\'ils dirigent.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['liability', 'infringement', 'accountability', 'compliance'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.1', 'A.5.31'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 20(3)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'training',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Management cybersecurity training', fr: 'Formation cybersécurité de la direction' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Member States shall ensure that members of management bodies are required to follow training and encourage essential and important entities to offer similar training to their employees on a regular basis.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Les États membres veillent à ce que les membres des organes de direction soient tenus de suivre une formation et encouragent les entités essentielles et importantes à proposer régulièrement une formation similaire à leurs employés.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['training', 'awareness', 'education', 'skills', 'management'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.6.3', 'A.7.2', 'A.7.3'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  // Article 21: Risk Management Measures</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(1)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'risk_management',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Risk-based cybersecurity measures', fr: 'Mesures de cybersécurité fondées sur les risques' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Member States shall ensure that essential and important entities take appropriate and proportionate technical, operational and organisational measures to manage the risks posed to the security of network and information systems.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Les États membres veillent à ce que les entités essentielles et importantes prennent des mesures techniques, opérationnelles et organisationnelles appropriées et proportionnées pour gérer les risques pesant sur la sécurité des réseaux et des systèmes d\'information.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['risk management', 'proportionate', 'technical measures', 'organizational measures'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.1', 'A.5.8', 'A.8.1', 'A.8.2'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(a)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'risk_management',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Risk analysis and security policies', fr: 'Analyse des risques et politiques de sécurité' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Policies on risk analysis and information system security, including risk assessment methodologies and security policy documentation.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Politiques relatives à l\'analyse des risques et à la sécurité des systèmes d\'information, y compris les méthodologies d\'évaluation des risques et la documentation des politiques de sécurité.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['risk analysis', 'security policy', 'risk assessment', 'documentation'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.1', 'A.5.8', 'A.5.9', 'A.5.10'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(b)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'incident_response',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Incident handling', fr: 'Gestion des incidents' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Procedures for incident handling, including detection, analysis, containment, eradication, recovery and post-incident activities.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Procédures de gestion des incidents, y compris la détection, l\'analyse, le confinement, l\'éradication, la reprise et les activités post-incident.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['incident', 'detection', 'response', 'recovery', 'CSIRT'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.24', 'A.5.25', 'A.5.26', 'A.5.27', 'A.5.28'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(c)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'continuity',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Business continuity and crisis management', fr: 'Continuité des activités et gestion de crise' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Business continuity, such as backup management and disaster recovery, and crisis management including business impact analysis and continuity planning.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Continuité des activités, comme la gestion des sauvegardes et la reprise après sinistre, et gestion de crise, y compris l\'analyse d\'impact sur les activités et la planification de la continuité.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['business continuity', 'disaster recovery', 'backup', 'crisis management', 'BCP'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.29', 'A.5.30', 'A.8.13', 'A.8.14'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(d)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'supply_chain',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Supply chain security', fr: 'Sécurité de la chaîne d\'approvisionnement' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Supply chain security, including security-related aspects concerning the relationships between each entity and its direct suppliers or service providers.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Sécurité de la chaîne d\'approvisionnement, y compris les aspects liés à la sécurité concernant les relations entre chaque entité et ses fournisseurs directs ou prestataires de services.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['supply chain', 'suppliers', 'third party', 'vendor', 'service provider'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.19', 'A.5.20', 'A.5.21', 'A.5.22', 'A.5.23'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(e)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'security_measures',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Network and system acquisition security', fr: 'Sécurité de l\'acquisition des réseaux et systèmes' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Security in network and information systems acquisition, development and maintenance, including vulnerability handling and disclosure.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Sécurité de l\'acquisition, du développement et de la maintenance des réseaux et systèmes d\'information, y compris le traitement et la divulgation des vulnérabilités.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['acquisition', 'development', 'maintenance', 'vulnerability', 'secure development'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.8', 'A.8.25', 'A.8.26', 'A.8.27', 'A.8.28', 'A.8.29', 'A.8.30', 'A.8.31'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(f)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'risk_management',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'medium',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Effectiveness assessment policies', fr: 'Politiques d\'évaluation de l\'efficacité' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Policies and procedures to assess the effectiveness of cybersecurity risk-management measures.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Politiques et procédures pour évaluer l\'efficacité des mesures de gestion des risques en matière de cybersécurité.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['assessment', 'effectiveness', 'audit', 'review', 'metrics', 'KPI'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.35', 'A.5.36', 'A.8.34'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(g)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'training',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'medium',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Cyber hygiene and training', fr: 'Cyberhygiène et formation' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Basic cyber hygiene practices and cybersecurity training for all employees.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Pratiques de cyberhygiène de base et formation à la cybersécurité pour tous les employés.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['cyber hygiene', 'training', 'awareness', 'phishing', 'password'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.6.3', 'A.7.2', 'A.7.3'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(h)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'cryptography',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Cryptography policies', fr: 'Politiques de cryptographie' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Policies and procedures regarding the use of cryptography and, where appropriate, encryption.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Politiques et procédures relatives à l\'utilisation de la cryptographie et, le cas échéant, du chiffrement.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['cryptography', 'encryption', 'key management', 'TLS', 'PKI'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.8.24'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(i)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'access_control',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'HR security and access control', fr: 'Sécurité RH et contrôle d\'accès' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Human resources security, access control policies and asset management.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Sécurité des ressources humaines, politiques de contrôle d\'accès et gestion des actifs.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['HR security', 'access control', 'asset management', 'identity', 'IAM'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.9', 'A.5.10', 'A.5.11', 'A.5.15', 'A.5.16', 'A.5.17', 'A.5.18', 'A.6.1', 'A.6.2', 'A.6.4', 'A.6.5', 'A.6.6'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21(2)(j)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'access_control',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Multi-factor authentication', fr: 'Authentification multifacteur' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'The use of multi-factor authentication or continuous authentication solutions, secured voice, video and text communications and secured emergency communication systems.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'L\'utilisation de solutions d\'authentification multifacteur ou d\'authentification continue, de communications vocales, vidéo et textuelles sécurisées et de systèmes de communication d\'urgence sécurisés.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['MFA', 'multi-factor', 'authentication', 'secure communications', '2FA'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.14', 'A.5.16', 'A.5.17', 'A.8.5'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  // Article 23: Reporting</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 23(1)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'reporting',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Significant incident notification', fr: 'Notification des incidents significatifs' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Essential and important entities shall notify, without undue delay, the competent authority or CSIRT of any significant incident.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Les entités essentielles et importantes notifient, sans retard injustifié, à l\'autorité compétente ou au CSIRT tout incident significatif.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['notification', 'incident', 'CSIRT', 'competent authority', 'reporting'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.24', 'A.5.26', 'A.6.8'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 23(4)(a)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'reporting',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Early warning (24 hours)', fr: 'Alerte précoce (24 heures)' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'An early warning within 24 hours of becoming aware of the significant incident, indicating whether it is suspected of being caused by unlawful or malicious acts.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Une alerte précoce dans les 24 heures suivant la prise de connaissance de l\'incident significatif, indiquant s\'il est suspecté d\'être causé par des actes illicites ou malveillants.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['early warning', '24 hours', 'notification', 'timeline', 'initial report'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.24', 'A.5.26'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 23(4)(b)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'reporting',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Incident notification (72 hours)', fr: 'Notification d\'incident (72 heures)' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'An incident notification within 72 hours of becoming aware, updating the early warning with initial assessment including severity, impact and indicators of compromise.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Une notification d\'incident dans les 72 heures suivant la prise de connaissance, mettant à jour l\'alerte précoce avec une évaluation initiale incluant la gravité, l\'impact et les indicateurs de compromission.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['incident notification', '72 hours', 'assessment', 'severity', 'IOC'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.24', 'A.5.26', 'A.5.27'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 23(4)(d)',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'reporting',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Final report (1 month)', fr: 'Rapport final (1 mois)' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'A final report no later than one month after the incident notification, including detailed description, root cause, mitigation measures, and cross-border impact.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Un rapport final au plus tard un mois après la notification de l\'incident, comprenant une description détaillée, la cause profonde, les mesures d\'atténuation et l\'impact transfrontalier.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['final report', 'one month', 'root cause', 'mitigation', 'post-incident'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.5.24', 'A.5.27', 'A.5.28'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  // Additional Security Measures</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21-Net',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'security_measures',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Network security', fr: 'Sécurité réseau' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Implementation of network security controls including segmentation, monitoring, and intrusion detection.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Mise en œuvre de contrôles de sécurité réseau incluant la segmentation, la surveillance et la détection d\'intrusion.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['network', 'firewall', 'segmentation', 'IDS', 'IPS', 'monitoring'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.8.20', 'A.8.21', 'A.8.22', 'A.8.23'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    articleRef: 'Art. 21-Vuln',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'security_measures',</span>
+<span class="cstat-no" title="statement not covered" >    criticality: 'high',</span>
+<span class="cstat-no" title="statement not covered" >    title: { en: 'Vulnerability management', fr: 'Gestion des vulnérabilités' },</span>
+<span class="cstat-no" title="statement not covered" >    description: {</span>
+<span class="cstat-no" title="statement not covered" >      en: 'Implementation of vulnerability management including scanning, patching and remediation processes.',</span>
+<span class="cstat-no" title="statement not covered" >      fr: 'Mise en œuvre de la gestion des vulnérabilités incluant l\'analyse, les correctifs et les processus de remédiation.',</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    keywords: ['vulnerability', 'patching', 'scanning', 'CVE', 'remediation'],</span>
+<span class="cstat-no" title="statement not covered" >    isMandatory: true,</span>
+<span class="cstat-no" title="statement not covered" >    suggestedControlCodes: ['A.8.8', 'A.8.9', 'A.8.19'],</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >];</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >// ============================================================================</span>
+<span class="cstat-no" title="statement not covered" >// Cloud Function</span>
+<span class="cstat-no" title="statement not covered" >// ============================================================================</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >/**</span>
+<span class="cstat-no" title="statement not covered" > * Seeds the NIS2 framework data into Firestore.</span>
+<span class="cstat-no" title="statement not covered" > * Only admins can run this function.</span>
+<span class="cstat-no" title="statement not covered" > */</span>
+<span class="cstat-no" title="statement not covered" >const seedNIS2Framework = onCall(</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    region: "europe-west1",</span>
+<span class="cstat-no" title="statement not covered" >    memory: "256MiB",</span>
+<span class="cstat-no" title="statement not covered" >    timeoutSeconds: 60,</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  async (request) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    // Auth check</span>
+<span class="cstat-no" title="statement not covered" >    if (!request.auth) {</span>
+<span class="cstat-no" title="statement not covered" >      throw new HttpsError("unauthenticated", "User must be authenticated");</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const db = admin.firestore();</span>
+<span class="cstat-no" title="statement not covered" >    const now = admin.firestore.FieldValue.serverTimestamp();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Check if user is admin</span>
+<span class="cstat-no" title="statement not covered" >    const userDoc = await db.collection('users').doc(request.auth.uid).get();</span>
+<span class="cstat-no" title="statement not covered" >    const userData = userDoc.data();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (!userData || !['admin', 'superAdmin'].includes(userData.role)) {</span>
+<span class="cstat-no" title="statement not covered" >      throw new HttpsError("permission-denied", "Only admins can seed framework data");</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >      // Check if NIS2 already exists</span>
+<span class="cstat-no" title="statement not covered" >      const existingQuery = await db.collection('frameworks')</span>
+<span class="cstat-no" title="statement not covered" >        .where('code', '==', 'NIS2')</span>
+<span class="cstat-no" title="statement not covered" >        .limit(1)</span>
+<span class="cstat-no" title="statement not covered" >        .get();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >      let frameworkId;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >      if (!existingQuery.empty) {</span>
+<span class="cstat-no" title="statement not covered" >        // Update existing</span>
+<span class="cstat-no" title="statement not covered" >        frameworkId = existingQuery.docs[0].id;</span>
+<span class="cstat-no" title="statement not covered" >        await db.collection('frameworks').doc(frameworkId).update({</span>
+<span class="cstat-no" title="statement not covered" >          ...NIS2_FRAMEWORK,</span>
+<span class="cstat-no" title="statement not covered" >          requirementCount: NIS2_REQUIREMENTS.length,</span>
+<span class="cstat-no" title="statement not covered" >          updatedAt: now,</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >      } else {</span>
+<span class="cstat-no" title="statement not covered" >        // Create new</span>
+<span class="cstat-no" title="statement not covered" >        const frameworkRef = await db.collection('frameworks').add({</span>
+<span class="cstat-no" title="statement not covered" >          ...NIS2_FRAMEWORK,</span>
+<span class="cstat-no" title="statement not covered" >          requirementCount: NIS2_REQUIREMENTS.length,</span>
+<span class="cstat-no" title="statement not covered" >          createdAt: now,</span>
+<span class="cstat-no" title="statement not covered" >          updatedAt: now,</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >        frameworkId = frameworkRef.id;</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >      // Delete existing requirements for this framework</span>
+<span class="cstat-no" title="statement not covered" >      const existingReqs = await db.collection('requirements')</span>
+<span class="cstat-no" title="statement not covered" >        .where('frameworkId', '==', frameworkId)</span>
+<span class="cstat-no" title="statement not covered" >        .get();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >      const batch = db.batch();</span>
+<span class="cstat-no" title="statement not covered" >      existingReqs.docs.forEach(doc =&gt; batch.delete(doc.ref));</span>
+<span class="cstat-no" title="statement not covered" >      await batch.commit();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >      // Create requirements in batches</span>
+<span class="cstat-no" title="statement not covered" >      const batchSize = 20;</span>
+<span class="cstat-no" title="statement not covered" >      for (let i = 0; i &lt; NIS2_REQUIREMENTS.length; i += batchSize) {</span>
+<span class="cstat-no" title="statement not covered" >        const reqBatch = db.batch();</span>
+<span class="cstat-no" title="statement not covered" >        const slice = NIS2_REQUIREMENTS.slice(i, i + batchSize);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        slice.forEach((req, index) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >          const reqRef = db.collection('requirements').doc();</span>
+<span class="cstat-no" title="statement not covered" >          reqBatch.set(reqRef, {</span>
+<span class="cstat-no" title="statement not covered" >            ...req,</span>
+<span class="cstat-no" title="statement not covered" >            frameworkId,</span>
+<span class="cstat-no" title="statement not covered" >            frameworkCode: 'NIS2',</span>
+<span class="cstat-no" title="statement not covered" >            orderIndex: i + index,</span>
+<span class="cstat-no" title="statement not covered" >            createdAt: now,</span>
+<span class="cstat-no" title="statement not covered" >            updatedAt: now,</span>
+<span class="cstat-no" title="statement not covered" >          });</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        await reqBatch.commit();</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >      return {</span>
+<span class="cstat-no" title="statement not covered" >        success: true,</span>
+<span class="cstat-no" title="statement not covered" >        frameworkId,</span>
+<span class="cstat-no" title="statement not covered" >        requirementCount: NIS2_REQUIREMENTS.length,</span>
+<span class="cstat-no" title="statement not covered" >        message: `NIS2 framework seeded with ${NIS2_REQUIREMENTS.length} requirements`,</span>
+<span class="cstat-no" title="statement not covered" >      };</span>
+<span class="cstat-no" title="statement not covered" >    } catch (error) {</span>
+<span class="cstat-no" title="statement not covered" >      console.error('Error seeding NIS2 framework:', error);</span>
+<span class="cstat-no" title="statement not covered" >      throw new HttpsError("internal", `Failed to seed NIS2 framework: ${error.message}`);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >module.exports = { seedNIS2Framework };</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-01-27T00:28:40.742Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    
