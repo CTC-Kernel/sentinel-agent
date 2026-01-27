@@ -109,18 +109,19 @@ export default {
           border: "hsl(var(--info-border))",
         },
         brand: {
-          50: "hsl(var(--primary) / 0.05)",
-          100: "hsl(var(--primary) / 0.1)",
-          200: "hsl(var(--primary) / 0.2)",
-          300: "hsl(var(--primary) / 0.3)",
-          400: "hsl(var(--primary) / 0.4)",
-          500: "hsl(var(--primary))",
-          600: "hsl(var(--primary) / 0.9)",
-          700: "hsl(var(--primary) / 0.8)",
-          800: "hsl(var(--primary) / 0.7)",
-          900: "hsl(var(--primary) / 0.6)",
-          950: "hsl(var(--primary) / 0.5)",
-          DEFAULT: "hsl(var(--primary))",
+          // Proper blue palette (hue 221) with real color values for WCAG AAA contrast
+          50: '#eff6ff',   // Light background - visible
+          100: '#dbeafe',  // Lighter accent - visible
+          200: '#bfdbfe',  // Light accent
+          300: '#93c5fd',  // Medium light
+          400: '#60a5fa',  // Medium
+          500: '#3b82f6',  // Primary blue (matches --primary hue 221)
+          600: '#2563eb',  // Darker - good for text
+          700: '#1d4ed8',  // Dark - excellent contrast
+          800: '#1e40af',  // Very dark
+          900: '#1e3a8a',  // Darkest
+          950: '#172554',  // Near black
+          DEFAULT: '#3b82f6',
         },
         slate: {
           50: '#fafafa',
