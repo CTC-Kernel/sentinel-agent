@@ -92,13 +92,71 @@ export interface AuditLogEntry {
     changes?: string[];
     /** Additional context details */
     details?: string;
-    /** Metadata (IP, user agent, etc.) */
-    metadata?: {
-        ipAddress?: string;
-        userAgent?: string;
-        sessionId?: string;
-        source?: 'web' | 'api' | 'mobile' | 'import';
+    /** Metadata (IP, user agent, geolocation, device info) */
+    metadata?: AuditMetadata;
+}
+
+/**
+ * Enhanced audit metadata with geolocation and device info
+ * AAA Enhancement: Provides forensic-grade context for audit entries
+ */
+export interface AuditMetadata {
+    /** Source IP address */
+    ipAddress?: string;
+    /** Browser user agent */
+    userAgent?: string;
+    /** Session ID for correlation */
+    sessionId?: string;
+    /** Access source */
+    source?: 'web' | 'api' | 'mobile' | 'import';
+    /** Geolocation information (privacy-respecting) */
+    geolocation?: {
+        /** Country code (ISO 3166-1 alpha-2) */
+        country?: string;
+        /** Country name */
+        countryName?: string;
+        /** Region/State */
+        region?: string;
+        /** City */
+        city?: string;
+        /** Timezone */
+        timezone?: string;
+        /** Approximate coordinates (city-level, not precise) */
+        approximateCoordinates?: {
+            latitude: number;
+            longitude: number;
+            accuracy: 'city' | 'region' | 'country';
+        };
     };
+    /** Device fingerprint information */
+    device?: {
+        /** Device fingerprint hash */
+        fingerprintHash?: string;
+        /** Device type */
+        type?: 'desktop' | 'mobile' | 'tablet' | 'unknown';
+        /** Operating system */
+        os?: string;
+        /** Browser name */
+        browser?: string;
+        /** Browser version */
+        browserVersion?: string;
+        /** Screen resolution */
+        screenResolution?: string;
+        /** Timezone */
+        timezone?: string;
+        /** Language */
+        language?: string;
+        /** Is known device for this user */
+        isKnownDevice?: boolean;
+    };
+    /** Request correlation ID */
+    correlationId?: string;
+}
+
+/**
+ * Audit log entry with server timestamp
+ */
+interface AuditLogEntryWithTimestamp extends AuditLogEntry {
     /** Server-managed timestamp */
     timestamp?: ReturnType<typeof serverTimestamp>;
 }
@@ -119,6 +177,202 @@ export interface CreateAuditLogInput {
     after?: Record<string, unknown>;
     details?: string;
     metadata?: AuditLogEntry['metadata'];
+}
+
+// ============================================================================
+// Audit Context Collector
+// ============================================================================
+
+/**
+ * Collects contextual information for audit entries
+ * AAA Enhancement: Provides geolocation and device info for forensic analysis
+ */
+export class AuditContextCollector {
+    private static cachedGeolocation: AuditMetadata['geolocation'] | null = null;
+    private static geolocationCacheTime: number = 0;
+    private static readonly GEOLOCATION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    /**
+     * Collect all available context for an audit entry
+     */
+    static async collectContext(sessionId?: string): Promise<AuditMetadata> {
+        const context: AuditMetadata = {
+            source: this.detectSource(),
+            sessionId,
+            correlationId: this.generateCorrelationId()
+        };
+
+        // Collect device info (synchronous)
+        context.device = this.collectDeviceInfo();
+
+        // Collect geolocation (async, cached)
+        try {
+            context.geolocation = await this.getGeolocation();
+        } catch {
+            // Geolocation failed, continue without it
+        }
+
+        return context;
+    }
+
+    /**
+     * Detect the access source
+     */
+    private static detectSource(): 'web' | 'mobile' | 'api' {
+        if (typeof window === 'undefined') return 'api';
+
+        const ua = navigator.userAgent.toLowerCase();
+        if (/mobile|android|iphone|ipad|ipod/.test(ua)) {
+            return 'mobile';
+        }
+
+        return 'web';
+    }
+
+    /**
+     * Generate a correlation ID for request tracing
+     */
+    private static generateCorrelationId(): string {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    /**
+     * Collect device information from browser
+     */
+    static collectDeviceInfo(): AuditMetadata['device'] {
+        if (typeof window === 'undefined') {
+            return { type: 'unknown' };
+        }
+
+        const ua = navigator.userAgent;
+        const nav = navigator as Navigator & { deviceMemory?: number };
+
+        // Detect device type
+        let deviceType: 'desktop' | 'mobile' | 'tablet' | 'unknown' = 'unknown';
+        if (/tablet|ipad/i.test(ua)) {
+            deviceType = 'tablet';
+        } else if (/mobile|android|iphone|ipod/i.test(ua)) {
+            deviceType = 'mobile';
+        } else if (/windows|macintosh|linux/i.test(ua)) {
+            deviceType = 'desktop';
+        }
+
+        // Detect OS
+        let os = 'Unknown';
+        if (/windows/i.test(ua)) os = 'Windows';
+        else if (/macintosh|mac os/i.test(ua)) os = 'macOS';
+        else if (/linux/i.test(ua)) os = 'Linux';
+        else if (/android/i.test(ua)) os = 'Android';
+        else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS';
+
+        // Detect browser
+        let browser = 'Unknown';
+        let browserVersion = '';
+        if (/edg\//i.test(ua)) {
+            browser = 'Edge';
+            browserVersion = ua.match(/edg\/(\d+)/i)?.[1] || '';
+        } else if (/chrome/i.test(ua) && !/chromium/i.test(ua)) {
+            browser = 'Chrome';
+            browserVersion = ua.match(/chrome\/(\d+)/i)?.[1] || '';
+        } else if (/firefox/i.test(ua)) {
+            browser = 'Firefox';
+            browserVersion = ua.match(/firefox\/(\d+)/i)?.[1] || '';
+        } else if (/safari/i.test(ua) && !/chrome/i.test(ua)) {
+            browser = 'Safari';
+            browserVersion = ua.match(/version\/(\d+)/i)?.[1] || '';
+        }
+
+        // Generate fingerprint hash (simplified)
+        const fingerprintData = [
+            nav.platform || '',
+            screen.width + 'x' + screen.height,
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+            nav.language,
+            nav.hardwareConcurrency?.toString() || '',
+            nav.deviceMemory?.toString() || ''
+        ].join('|');
+
+        let fingerprintHash = 0;
+        for (let i = 0; i < fingerprintData.length; i++) {
+            fingerprintHash = ((fingerprintHash << 5) - fingerprintHash) + fingerprintData.charCodeAt(i);
+            fingerprintHash = fingerprintHash >>> 0;
+        }
+
+        return {
+            fingerprintHash: fingerprintHash.toString(16),
+            type: deviceType,
+            os,
+            browser,
+            browserVersion,
+            screenResolution: `${screen.width}x${screen.height}`,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: nav.language
+        };
+    }
+
+    /**
+     * Get geolocation using IP geolocation API (privacy-respecting)
+     * Only returns city-level accuracy, no precise coordinates
+     */
+    static async getGeolocation(): Promise<AuditMetadata['geolocation'] | undefined> {
+        // Check cache
+        if (
+            this.cachedGeolocation &&
+            Date.now() - this.geolocationCacheTime < this.GEOLOCATION_CACHE_TTL
+        ) {
+            return this.cachedGeolocation;
+        }
+
+        try {
+            // Use a free IP geolocation service (city-level only)
+            // Note: In production, consider using a paid service for reliability
+            const response = await fetch('https://ipapi.co/json/', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                return undefined;
+            }
+
+            const data = await response.json();
+
+            const geolocation: AuditMetadata['geolocation'] = {
+                country: data.country_code,
+                countryName: data.country_name,
+                region: data.region,
+                city: data.city,
+                timezone: data.timezone,
+                approximateCoordinates: data.latitude && data.longitude ? {
+                    latitude: Math.round(data.latitude * 100) / 100, // Round to 2 decimals (~1km precision)
+                    longitude: Math.round(data.longitude * 100) / 100,
+                    accuracy: 'city'
+                } : undefined
+            };
+
+            // Cache the result
+            this.cachedGeolocation = geolocation;
+            this.geolocationCacheTime = Date.now();
+
+            return geolocation;
+        } catch {
+            // Geolocation failed, return undefined
+            return undefined;
+        }
+    }
+
+    /**
+     * Clear the geolocation cache
+     */
+    static clearCache(): void {
+        this.cachedGeolocation = null;
+        this.geolocationCacheTime = 0;
+    }
 }
 
 /**

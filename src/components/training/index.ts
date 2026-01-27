@@ -14,6 +14,10 @@ export { TrainingAssignmentForm } from './TrainingAssignmentForm';
 export { TrainingProgressCard } from './TrainingProgressCard';
 export { MyTrainingPage } from './MyTrainingPage';
 export { TrainingDashboard } from './TrainingDashboard';
+export { TrainingCampaignList } from './TrainingCampaignList';
+export { TrainingCampaignForm } from './TrainingCampaignForm';
+export { TrainingCampaignDetail } from './TrainingCampaignDetail';
+export { TrainingCertificate } from './TrainingCertificate';
 
 // Widgets
 export * from './widgets';

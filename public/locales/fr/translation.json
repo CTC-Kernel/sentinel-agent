@@ -4570,8 +4570,21 @@
     "viewContent": "Voir le contenu",
     "progress": "Progression",
     "certificate": {
+      "title": "Attestation de formation",
       "download": "Télécharger l'attestation",
-      "comingSoon": "La génération d'attestation sera bientôt disponible."
+      "comingSoon": "La génération d'attestation sera bientôt disponible.",
+      "generate": "Générer l'attestation",
+      "generated": "Attestation générée avec succès",
+      "generating": "Génération de l'attestation en cours...",
+      "ready": "Prête",
+      "notAvailable": "Attestation non disponible",
+      "completeFirst": "Terminez la formation pour obtenir votre attestation",
+      "description": "Générez une attestation officielle de formation pour vos dossiers de conformité NIS2.",
+      "completedOn": "Formation complétée le {{date}}",
+      "verificationCode": "Code de vérification",
+      "nis2Compliance": "Document conforme à l'Article 21.2(g) de la directive NIS2",
+      "error": "Erreur lors de la génération de l'attestation",
+      "errorMessage": "Une erreur est survenue lors de la génération. Veuillez réessayer."
     },
     "dashboard": {
       "title": "Tableau de bord Formation",
@@ -4627,6 +4640,69 @@
       "finance": "Finance",
       "operations": "Opérations",
       "new_employees": "Nouveaux arrivants"
+    },
+    "campaign": {
+      "title": "Campagnes de Formation",
+      "description": "Planifiez et gérez vos campagnes de sensibilisation",
+      "create": "Créer une campagne",
+      "createTitle": "Nouvelle campagne",
+      "createDesc": "Créez une campagne pour former vos équipes",
+      "createSuccess": "Campagne créée avec succès",
+      "searchPlaceholder": "Rechercher une campagne...",
+      "name": "Nom de la campagne",
+      "namePlaceholder": "Ex: Sensibilisation Q1 2026",
+      "descriptionPlaceholder": "Décrivez les objectifs de cette campagne...",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "dates": "Période",
+      "recurrence": "Récurrence",
+      "recurrenceDesc": "Relancer automatiquement cette campagne",
+      "viewDetails": "Voir les détails",
+      "launch": "Lancer",
+      "cancel": "Annuler",
+      "sendReminders": "Envoyer des rappels",
+      "courses": "formations",
+      "coursesSelected": "formations sélectionnées",
+      "selectCourses": "Sélectionner les formations",
+      "noCourses": "Aucune formation disponible dans le catalogue",
+      "selectScope": "Définir le périmètre",
+      "overdue": "en retard",
+      "daysRemaining": "jours restants",
+      "overallProgress": "Progression globale",
+      "assignmentsCompleted": "assignations terminées",
+      "includedCourses": "Formations incluses",
+      "reviewTitle": "Récapitulatif de la campagne",
+      "status": {
+        "draft": "Brouillon",
+        "active": "Active",
+        "completed": "Terminée",
+        "cancelled": "Annulée"
+      },
+      "scope": {
+        "all": "Tous les utilisateurs",
+        "department": "Par département",
+        "role": "Par rôle"
+      },
+      "scopeDesc": {
+        "all": "Tous les utilisateurs de l'organisation",
+        "department": "Utilisateurs d'un ou plusieurs départements",
+        "role": "Utilisateurs ayant un rôle spécifique"
+      },
+      "frequency": {
+        "monthly": "Mensuelle",
+        "quarterly": "Trimestrielle",
+        "yearly": "Annuelle"
+      },
+      "steps": {
+        "info": "Informations",
+        "infoDesc": "Nom et dates de la campagne",
+        "courses": "Formations",
+        "coursesDesc": "Sélectionnez les formations à inclure",
+        "scope": "Périmètre",
+        "scopeDesc": "Définissez qui sera formé",
+        "review": "Validation",
+        "reviewDesc": "Vérifiez et créez la campagne"
+      }
     }
   }
 }

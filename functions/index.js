@@ -15,6 +15,7 @@
  * - scheduled: Backups, audit logging, system events
  * - vault: Document encryption, signatures, watermarks
  * - voxel: Anomaly detection, snapshots, analytics
+ * - training: Training certificates, NIS2 Article 21.2(g) compliance
  */
 
 const admin = require("firebase-admin");
@@ -55,6 +56,9 @@ const agents = require('./agents');
 
 // Releases Module (Agent Downloads)
 const releases = require('./releases');
+
+// Training Module (Certificates - NIS2 Article 21.2g)
+const training = require('./training');
 
 // =============================================================================
 // EXISTING MODULES (already modularized)
@@ -148,6 +152,9 @@ module.exports = {
 
   // --- Releases Module ---
   ...releases,
+
+  // --- Training Module ---
+  ...training,
 
   // --- API ---
   api,

@@ -4306,8 +4306,21 @@
     "viewContent": "View content",
     "progress": "Progress",
     "certificate": {
+      "title": "Training Certificate",
       "download": "Download certificate",
-      "comingSoon": "Certificate generation coming soon."
+      "comingSoon": "Certificate generation coming soon.",
+      "generate": "Generate certificate",
+      "generated": "Certificate generated successfully",
+      "generating": "Generating certificate...",
+      "ready": "Ready",
+      "notAvailable": "Certificate not available",
+      "completeFirst": "Complete the training to get your certificate",
+      "description": "Generate an official training certificate for your NIS2 compliance records.",
+      "completedOn": "Training completed on {{date}}",
+      "verificationCode": "Verification code",
+      "nis2Compliance": "Document compliant with NIS2 Directive Article 21.2(g)",
+      "error": "Error generating certificate",
+      "errorMessage": "An error occurred while generating. Please try again."
     },
     "dashboard": {
       "title": "Training Dashboard",
@@ -4363,6 +4376,69 @@
       "finance": "Finance",
       "operations": "Operations",
       "new_employees": "New employees"
+    },
+    "campaign": {
+      "title": "Training Campaigns",
+      "description": "Plan and manage your awareness campaigns",
+      "create": "Create Campaign",
+      "createTitle": "New Campaign",
+      "createDesc": "Create a campaign to train your teams",
+      "createSuccess": "Campaign created successfully",
+      "searchPlaceholder": "Search campaigns...",
+      "name": "Campaign name",
+      "namePlaceholder": "E.g.: Q1 2026 Awareness",
+      "descriptionPlaceholder": "Describe the objectives of this campaign...",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "dates": "Period",
+      "recurrence": "Recurrence",
+      "recurrenceDesc": "Automatically relaunch this campaign",
+      "viewDetails": "View details",
+      "launch": "Launch",
+      "cancel": "Cancel",
+      "sendReminders": "Send reminders",
+      "courses": "courses",
+      "coursesSelected": "courses selected",
+      "selectCourses": "Select courses",
+      "noCourses": "No courses available in catalog",
+      "selectScope": "Define scope",
+      "overdue": "overdue",
+      "daysRemaining": "days remaining",
+      "overallProgress": "Overall Progress",
+      "assignmentsCompleted": "assignments completed",
+      "includedCourses": "Included Courses",
+      "reviewTitle": "Campaign Summary",
+      "status": {
+        "draft": "Draft",
+        "active": "Active",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "scope": {
+        "all": "All users",
+        "department": "By department",
+        "role": "By role"
+      },
+      "scopeDesc": {
+        "all": "All users in the organization",
+        "department": "Users from one or more departments",
+        "role": "Users with a specific role"
+      },
+      "frequency": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      },
+      "steps": {
+        "info": "Information",
+        "infoDesc": "Campaign name and dates",
+        "courses": "Courses",
+        "coursesDesc": "Select courses to include",
+        "scope": "Scope",
+        "scopeDesc": "Define who will be trained",
+        "review": "Review",
+        "reviewDesc": "Review and create the campaign"
+      }
     }
   }
 }

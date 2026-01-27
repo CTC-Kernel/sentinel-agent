@@ -1,13 +1,75 @@
 import { ErrorLogger } from './errorLogger';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { User } from 'firebase/auth';
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  serverTimestamp,
+  Timestamp
+} from 'firebase/firestore';
 
 /**
  * Service de monitoring des sessions
  * Détecte les activités suspectes et les anomalies
  *
  * SÉCURITÉ: Ce service complète Firebase Auth avec des contrôles additionnels
+ * AAA Enhancement: Concurrent session management, device fingerprinting
  */
+
+interface DeviceFingerprint {
+  /** Browser fingerprint hash */
+  hash: string;
+  /** User agent string */
+  userAgent: string;
+  /** Screen resolution */
+  screenResolution: string;
+  /** Timezone */
+  timezone: string;
+  /** Language */
+  language: string;
+  /** Platform */
+  platform: string;
+  /** Hardware concurrency (CPU cores) */
+  hardwareConcurrency: number;
+  /** Device memory (if available) */
+  deviceMemory?: number;
+  /** Touch support */
+  touchSupport: boolean;
+}
+
+interface ActiveSession {
+  /** Session ID (unique per device/browser) */
+  sessionId: string;
+  /** User ID */
+  userId: string;
+  /** Organization ID */
+  organizationId?: string;
+  /** Device fingerprint */
+  deviceFingerprint: DeviceFingerprint;
+  /** IP address (if available) */
+  ipAddress?: string;
+  /** Geolocation (if available) */
+  geolocation?: {
+    country?: string;
+    city?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  /** Login timestamp */
+  loginTime: Timestamp;
+  /** Last activity timestamp */
+  lastActivity: Timestamp;
+  /** Is current session */
+  isCurrent: boolean;
+}
 
 interface SessionInfo {
   userId: string;
@@ -18,14 +80,28 @@ interface SessionInfo {
   userAgent?: string;
   location?: string;
   activityCount: number;
+  /** Device fingerprint for this session */
+  deviceFingerprint?: DeviceFingerprint;
+  /** Session ID for concurrent session tracking */
+  sessionId?: string;
 }
 
 interface SessionAnomaly {
-  type: 'concurrent_session' | 'location_change' | 'suspicious_activity' | 'idle_timeout' | 'role_change';
+  type: 'concurrent_session' | 'location_change' | 'suspicious_activity' | 'idle_timeout' | 'role_change' | 'device_change' | 'impossible_travel' | 'session_limit_exceeded';
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
   timestamp: number;
   metadata?: Record<string, unknown>;
+}
+
+/** Configuration for concurrent session limits */
+interface SessionLimitConfig {
+  /** Maximum concurrent sessions per user (default: 3) */
+  maxSessions: number;
+  /** Action when limit exceeded: 'block_new' | 'logout_oldest' */
+  limitAction: 'block_new' | 'logout_oldest';
+  /** Allow same device unlimited sessions */
+  allowSameDevice: boolean;
 }
 
 class SessionMonitoringService {
@@ -35,17 +111,471 @@ class SessionMonitoringService {
   private activityCheckInterval: NodeJS.Timeout | null = null;
   private lastActivityTime = Date.now();
 
+  /** Current session ID for this browser/device */
+  private currentSessionId: string | null = null;
+
+  /** Session limit configuration */
+  private sessionLimitConfig: SessionLimitConfig = {
+    maxSessions: 3,
+    limitAction: 'logout_oldest',
+    allowSameDevice: true
+  };
+
+  // ============================================================================
+  // Device Fingerprinting
+  // ============================================================================
+
+  /**
+   * Generate a device fingerprint for the current browser/device
+   * Uses stable browser characteristics that persist across sessions
+   */
+  generateDeviceFingerprint(): DeviceFingerprint {
+    if (typeof window === 'undefined') {
+      return this.getDefaultFingerprint();
+    }
+
+    const nav = navigator as Navigator & {
+      deviceMemory?: number;
+    };
+
+    const fingerprint: DeviceFingerprint = {
+      hash: '', // Will be computed
+      userAgent: nav.userAgent || 'unknown',
+      screenResolution: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: nav.language || 'unknown',
+      platform: nav.platform || 'unknown',
+      hardwareConcurrency: nav.hardwareConcurrency || 1,
+      deviceMemory: nav.deviceMemory,
+      touchSupport: 'ontouchstart' in window || nav.maxTouchPoints > 0
+    };
+
+    // Generate hash from fingerprint components
+    fingerprint.hash = this.hashFingerprint(fingerprint);
+
+    return fingerprint;
+  }
+
+  /**
+   * Default fingerprint for server-side rendering
+   */
+  private getDefaultFingerprint(): DeviceFingerprint {
+    return {
+      hash: 'server-side',
+      userAgent: 'server',
+      screenResolution: '0x0x0',
+      timezone: 'UTC',
+      language: 'en',
+      platform: 'server',
+      hardwareConcurrency: 1,
+      touchSupport: false
+    };
+  }
+
+  /**
+   * Create a hash from fingerprint components
+   * Uses a simple but effective hashing algorithm
+   */
+  private hashFingerprint(fp: Omit<DeviceFingerprint, 'hash'>): string {
+    const data = [
+      fp.userAgent,
+      fp.screenResolution,
+      fp.timezone,
+      fp.language,
+      fp.platform,
+      fp.hardwareConcurrency.toString(),
+      fp.deviceMemory?.toString() || 'unknown',
+      fp.touchSupport.toString()
+    ].join('|');
+
+    // Simple hash function (FNV-1a)
+    let hash = 2166136261;
+    for (let i = 0; i < data.length; i++) {
+      hash ^= data.charCodeAt(i);
+      hash = (hash * 16777619) >>> 0;
+    }
+
+    return hash.toString(16).padStart(8, '0');
+  }
+
+  /**
+   * Compare two fingerprints to determine if they're from the same device
+   * Returns a similarity score (0-1)
+   */
+  compareFingerprints(fp1: DeviceFingerprint, fp2: DeviceFingerprint): number {
+    if (fp1.hash === fp2.hash) return 1;
+
+    let matches = 0;
+    let total = 0;
+
+    // Critical fields (higher weight)
+    if (fp1.screenResolution === fp2.screenResolution) matches += 2;
+    total += 2;
+
+    if (fp1.timezone === fp2.timezone) matches += 2;
+    total += 2;
+
+    if (fp1.platform === fp2.platform) matches += 2;
+    total += 2;
+
+    // Standard fields
+    if (fp1.language === fp2.language) matches += 1;
+    total += 1;
+
+    if (fp1.hardwareConcurrency === fp2.hardwareConcurrency) matches += 1;
+    total += 1;
+
+    if (fp1.touchSupport === fp2.touchSupport) matches += 1;
+    total += 1;
+
+    if (fp1.deviceMemory === fp2.deviceMemory) matches += 1;
+    total += 1;
+
+    return matches / total;
+  }
+
+  // ============================================================================
+  // Concurrent Session Management
+  // ============================================================================
+
+  /**
+   * Configure session limits
+   */
+  configureSessionLimits(config: Partial<SessionLimitConfig>): void {
+    this.sessionLimitConfig = { ...this.sessionLimitConfig, ...config };
+    ErrorLogger.info('Session limits configured', 'SessionMonitoring', {
+      metadata: config
+    });
+  }
+
+  /**
+   * Generate a unique session ID
+   */
+  private generateSessionId(): string {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback for older browsers
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Register current session in Firestore for concurrent session tracking
+   */
+  async registerSession(
+    userId: string,
+    organizationId?: string,
+    ipAddress?: string,
+    geolocation?: ActiveSession['geolocation']
+  ): Promise<{ allowed: boolean; sessionId?: string; reason?: string }> {
+    try {
+      const fingerprint = this.generateDeviceFingerprint();
+      const sessionId = this.generateSessionId();
+
+      // Check existing sessions for this user
+      const sessionsRef = collection(db, 'active_sessions');
+      const userSessionsQuery = query(
+        sessionsRef,
+        where('userId', '==', userId),
+        orderBy('loginTime', 'desc')
+      );
+
+      const snapshot = await getDocs(userSessionsQuery);
+      const existingSessions = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as (ActiveSession & { id: string })[];
+
+      // Check if same device already has a session
+      const sameDeviceSession = existingSessions.find(
+        s => this.compareFingerprints(s.deviceFingerprint, fingerprint) > 0.8
+      );
+
+      if (sameDeviceSession && this.sessionLimitConfig.allowSameDevice) {
+        // Update existing session for same device
+        await setDoc(doc(sessionsRef, sameDeviceSession.id), {
+          ...sameDeviceSession,
+          lastActivity: serverTimestamp(),
+          isCurrent: true
+        });
+
+        this.currentSessionId = sameDeviceSession.id;
+        return { allowed: true, sessionId: sameDeviceSession.id };
+      }
+
+      // Check session limit
+      if (existingSessions.length >= this.sessionLimitConfig.maxSessions) {
+        if (this.sessionLimitConfig.limitAction === 'block_new') {
+          this.reportAnomaly({
+            type: 'session_limit_exceeded',
+            severity: 'high',
+            message: `Limite de sessions atteinte (${this.sessionLimitConfig.maxSessions}). Nouvelle session bloquée.`,
+            timestamp: Date.now(),
+            metadata: {
+              userId,
+              existingSessions: existingSessions.length,
+              maxSessions: this.sessionLimitConfig.maxSessions
+            }
+          });
+
+          return {
+            allowed: false,
+            reason: `Vous avez atteint la limite de ${this.sessionLimitConfig.maxSessions} sessions simultanées. Veuillez vous déconnecter d'un autre appareil.`
+          };
+        }
+
+        // Logout oldest session
+        const oldestSession = existingSessions[existingSessions.length - 1];
+        await deleteDoc(doc(sessionsRef, oldestSession.id));
+
+        this.reportAnomaly({
+          type: 'session_limit_exceeded',
+          severity: 'medium',
+          message: `Limite de sessions atteinte. Session la plus ancienne déconnectée.`,
+          timestamp: Date.now(),
+          metadata: {
+            userId,
+            loggedOutSessionId: oldestSession.id,
+            loggedOutDevice: oldestSession.deviceFingerprint.platform
+          }
+        });
+      }
+
+      // Detect impossible travel
+      if (geolocation && existingSessions.length > 0) {
+        const lastSession = existingSessions[0];
+        if (lastSession.geolocation?.latitude && lastSession.geolocation?.longitude &&
+            geolocation.latitude && geolocation.longitude) {
+          const impossibleTravel = this.detectImpossibleTravel(
+            lastSession.geolocation as { latitude: number; longitude: number },
+            geolocation as { latitude: number; longitude: number },
+            lastSession.lastActivity.toDate()
+          );
+
+          if (impossibleTravel) {
+            this.reportAnomaly({
+              type: 'impossible_travel',
+              severity: 'critical',
+              message: 'Connexion détectée depuis une localisation impossible à atteindre',
+              timestamp: Date.now(),
+              metadata: {
+                previousLocation: lastSession.geolocation,
+                newLocation: geolocation,
+                timeDifferenceMinutes: impossibleTravel.timeDifferenceMinutes,
+                distanceKm: impossibleTravel.distanceKm
+              }
+            });
+          }
+        }
+      }
+
+      // Create new session
+      const newSession: ActiveSession = {
+        sessionId,
+        userId,
+        organizationId,
+        deviceFingerprint: fingerprint,
+        ipAddress,
+        geolocation,
+        loginTime: serverTimestamp() as Timestamp,
+        lastActivity: serverTimestamp() as Timestamp,
+        isCurrent: true
+      };
+
+      await setDoc(doc(sessionsRef, sessionId), newSession);
+      this.currentSessionId = sessionId;
+
+      ErrorLogger.info('Session registered', 'SessionMonitoring', {
+        metadata: {
+          sessionId,
+          userId,
+          deviceHash: fingerprint.hash
+        }
+      });
+
+      return { allowed: true, sessionId };
+    } catch (error) {
+      ErrorLogger.error(error, 'SessionMonitoring.registerSession');
+      // Fail open - allow session if registration fails
+      return { allowed: true, sessionId: this.generateSessionId() };
+    }
+  }
+
+  /**
+   * Unregister current session (on logout)
+   */
+  async unregisterSession(): Promise<void> {
+    if (!this.currentSessionId) return;
+
+    try {
+      const sessionsRef = collection(db, 'active_sessions');
+      await deleteDoc(doc(sessionsRef, this.currentSessionId));
+
+      ErrorLogger.info('Session unregistered', 'SessionMonitoring', {
+        metadata: { sessionId: this.currentSessionId }
+      });
+
+      this.currentSessionId = null;
+    } catch (error) {
+      ErrorLogger.error(error, 'SessionMonitoring.unregisterSession');
+    }
+  }
+
+  /**
+   * Update session activity timestamp
+   */
+  async updateSessionActivity(): Promise<void> {
+    if (!this.currentSessionId) return;
+
+    try {
+      const sessionsRef = collection(db, 'active_sessions');
+      const sessionDoc = doc(sessionsRef, this.currentSessionId);
+
+      await setDoc(sessionDoc, {
+        lastActivity: serverTimestamp()
+      }, { merge: true });
+    } catch (error) {
+      // Silent fail - don't interrupt user experience
+      ErrorLogger.warn('Failed to update session activity', 'SessionMonitoring');
+    }
+  }
+
+  /**
+   * Get all active sessions for a user
+   */
+  async getUserSessions(userId: string): Promise<ActiveSession[]> {
+    try {
+      const sessionsRef = collection(db, 'active_sessions');
+      const userSessionsQuery = query(
+        sessionsRef,
+        where('userId', '==', userId),
+        orderBy('lastActivity', 'desc')
+      );
+
+      const snapshot = await getDocs(userSessionsQuery);
+      return snapshot.docs.map(doc => ({
+        ...doc.data(),
+        sessionId: doc.id,
+        isCurrent: doc.id === this.currentSessionId
+      })) as ActiveSession[];
+    } catch (error) {
+      ErrorLogger.error(error, 'SessionMonitoring.getUserSessions');
+      return [];
+    }
+  }
+
+  /**
+   * Terminate a specific session
+   */
+  async terminateSession(sessionId: string): Promise<boolean> {
+    try {
+      const sessionsRef = collection(db, 'active_sessions');
+      await deleteDoc(doc(sessionsRef, sessionId));
+
+      ErrorLogger.info('Session terminated', 'SessionMonitoring', {
+        metadata: { terminatedSessionId: sessionId }
+      });
+
+      return true;
+    } catch (error) {
+      ErrorLogger.error(error, 'SessionMonitoring.terminateSession');
+      return false;
+    }
+  }
+
+  /**
+   * Terminate all other sessions for a user (keep current)
+   */
+  async terminateOtherSessions(userId: string): Promise<number> {
+    try {
+      const sessions = await this.getUserSessions(userId);
+      let terminated = 0;
+
+      for (const session of sessions) {
+        if (session.sessionId !== this.currentSessionId) {
+          await this.terminateSession(session.sessionId);
+          terminated++;
+        }
+      }
+
+      ErrorLogger.info('Other sessions terminated', 'SessionMonitoring', {
+        metadata: { userId, terminatedCount: terminated }
+      });
+
+      return terminated;
+    } catch (error) {
+      ErrorLogger.error(error, 'SessionMonitoring.terminateOtherSessions');
+      return 0;
+    }
+  }
+
+  // ============================================================================
+  // Impossible Travel Detection
+  // ============================================================================
+
+  /**
+   * Calculate distance between two coordinates (Haversine formula)
+   */
+  private calculateDistance(
+    lat1: number, lon1: number,
+    lat2: number, lon2: number
+  ): number {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  /**
+   * Detect impossible travel (location change faster than physically possible)
+   */
+  private detectImpossibleTravel(
+    previousLocation: { latitude: number; longitude: number },
+    newLocation: { latitude: number; longitude: number },
+    previousTime: Date
+  ): { distanceKm: number; timeDifferenceMinutes: number } | null {
+    const distance = this.calculateDistance(
+      previousLocation.latitude, previousLocation.longitude,
+      newLocation.latitude, newLocation.longitude
+    );
+
+    const timeDifferenceMinutes = (Date.now() - previousTime.getTime()) / (1000 * 60);
+
+    // Max reasonable travel speed: 1000 km/h (fast jet)
+    // For practical purposes, use 800 km/h (commercial jet)
+    const maxSpeedKmh = 800;
+    const maxPossibleDistance = (maxSpeedKmh / 60) * timeDifferenceMinutes;
+
+    // If distance is greater than physically possible, flag as impossible travel
+    // Add 10% buffer for VPN/proxy edge cases
+    if (distance > maxPossibleDistance * 1.1 && distance > 100) {
+      return {
+        distanceKm: Math.round(distance),
+        timeDifferenceMinutes: Math.round(timeDifferenceMinutes)
+      };
+    }
+
+    return null;
+  }
+
   /**
    * Initialise le monitoring de session
    * @param user Utilisateur Firebase
+   * @param organizationId Organization ID for session registration
    */
-  initSession(user: User | null): void {
+  initSession(user: User | null, organizationId?: string): void {
     if (!user) {
       this.clearSession();
       return;
     }
 
     const existingSession = this.getSessionInfo();
+    const fingerprint = this.generateDeviceFingerprint();
 
     const sessionInfo: SessionInfo = {
       userId: user.uid,
@@ -53,7 +583,9 @@ class SessionMonitoringService {
       lastActivity: Date.now(),
       loginTime: existingSession?.userId === user.uid ? existingSession.loginTime : Date.now(),
       userAgent: navigator.userAgent,
-      activityCount: existingSession?.userId === user.uid ? existingSession.activityCount + 1 : 1
+      activityCount: existingSession?.userId === user.uid ? existingSession.activityCount + 1 : 1,
+      deviceFingerprint: fingerprint,
+      sessionId: this.currentSessionId || undefined
     };
 
     // Détecter les anomalies
@@ -70,13 +602,53 @@ class SessionMonitoringService {
       });
     }
 
+    // Detect device change for same user
+    if (existingSession && existingSession.userId === user.uid &&
+        existingSession.deviceFingerprint) {
+      const similarity = this.compareFingerprints(
+        existingSession.deviceFingerprint,
+        fingerprint
+      );
+
+      if (similarity < 0.5) {
+        this.reportAnomaly({
+          type: 'device_change',
+          severity: 'medium',
+          message: 'Changement d\'appareil détecté pour la session active',
+          timestamp: Date.now(),
+          metadata: {
+            previousDeviceHash: existingSession.deviceFingerprint.hash,
+            newDeviceHash: fingerprint.hash,
+            similarity: Math.round(similarity * 100)
+          }
+        });
+      }
+    }
+
     this.saveSessionInfo(sessionInfo);
     this.startActivityMonitoring();
+
+    // Register session in Firestore for concurrent session tracking
+    this.registerSession(user.uid, organizationId).then(result => {
+      if (!result.allowed) {
+        ErrorLogger.warn('Session registration blocked', 'SessionMonitoring', {
+          metadata: { reason: result.reason }
+        });
+        // Optionally force logout
+        // this.forceLogout(result.reason || 'Session limit exceeded');
+      } else if (result.sessionId) {
+        sessionInfo.sessionId = result.sessionId;
+        this.saveSessionInfo(sessionInfo);
+      }
+    }).catch(error => {
+      ErrorLogger.error(error, 'SessionMonitoring.initSession.registerSession');
+    });
 
     ErrorLogger.info('Session initialisée', 'SessionMonitoring', {
       metadata: {
         userId: user.uid,
-        email: user.email
+        email: user.email,
+        deviceHash: fingerprint.hash
       }
     });
   }
@@ -92,6 +664,13 @@ class SessionMonitoringService {
       session.lastActivity = Date.now();
       session.activityCount += 1;
       this.saveSessionInfo(session);
+
+      // Update Firestore session (debounced - only every 5 minutes)
+      if (session.activityCount % 50 === 0) {
+        this.updateSessionActivity().catch(() => {
+          // Silent fail
+        });
+      }
     }
   }
 
@@ -390,6 +969,11 @@ class SessionMonitoringService {
   clearSession(): void {
     if (typeof window === 'undefined') return;
 
+    // Unregister from Firestore
+    this.unregisterSession().catch(() => {
+      // Silent fail
+    });
+
     localStorage.removeItem(this.sessionKey);
 
     if (this.activityCheckInterval) {
@@ -430,19 +1014,35 @@ export const SessionMonitor = new SessionMonitoringService();
  * @example
  * useEffect(() => {
  *   if (user) {
- *     SessionMonitor.initSession(user);
+ *     SessionMonitor.initSession(user, organizationId);
  *   }
- * }, [user]);
+ * }, [user, organizationId]);
  */
-export const useSessionMonitoring = (user: User | null) => {
+export const useSessionMonitoring = (user: User | null, organizationId?: string) => {
   if (user) {
-    SessionMonitor.initSession(user);
+    SessionMonitor.initSession(user, organizationId);
   }
 
   return {
     monitor: SessionMonitor,
     recordActivity: () => SessionMonitor.recordActivity(),
     getMetrics: () => SessionMonitor.getMetrics(),
-    getAnomalies: () => SessionMonitor.getAnomalies()
+    getAnomalies: () => SessionMonitor.getAnomalies(),
+    // New AAA methods
+    getUserSessions: (userId: string) => SessionMonitor.getUserSessions(userId),
+    terminateSession: (sessionId: string) => SessionMonitor.terminateSession(sessionId),
+    terminateOtherSessions: (userId: string) => SessionMonitor.terminateOtherSessions(userId),
+    configureSessionLimits: (config: Partial<SessionLimitConfig>) =>
+      SessionMonitor.configureSessionLimits(config),
+    generateDeviceFingerprint: () => SessionMonitor.generateDeviceFingerprint()
   };
+};
+
+// Export types
+export type {
+  SessionInfo,
+  SessionAnomaly,
+  SessionLimitConfig,
+  DeviceFingerprint,
+  ActiveSession
 };
