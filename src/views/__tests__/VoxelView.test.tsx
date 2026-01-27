@@ -7,6 +7,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VoxelView } from '../VoxelView';
 
 // Mock framer-motion
@@ -198,21 +199,28 @@ vi.mock('../../components/ui/animationVariants', () => ({
     staggerContainerVariants: {}
 }));
 
-// TODO: Tests need updating - hook API changed
-describe.skip('VoxelView', () => {
+describe('VoxelView', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // Reset localStorage
         localStorage.clear();
     });
 
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: { retry: false },
+        },
+    });
+
     const renderComponent = () => {
         return render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <VoxelView />
-                </React.Suspense>
-            </BrowserRouter>
+            <QueryClientProvider client={queryClient}>
+                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                        <VoxelView />
+                    </React.Suspense>
+                </BrowserRouter>
+            </QueryClientProvider>
         );
     };
 

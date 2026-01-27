@@ -88,7 +88,7 @@ vi.mock('../../services/errorLogger', () => ({
 
 import { useStore } from '../../store';
 
-// TODO: Tests need updating - hook now uses onSnapshot instead of getDocs
+// TODO: Tests need extensive mock updates - hook uses onSnapshot real-time subscriptions
 describe.skip('usePrivacy', () => {
     beforeEach(() => {
         vi.clearAllMocks();

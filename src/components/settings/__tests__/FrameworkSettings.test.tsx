@@ -35,8 +35,7 @@ vi.mock('../../../services/errorLogger', () => ({
     },
 }));
 
-// TODO: Tests need updating
-describe.skip('FrameworkSettings', () => {
+describe('FrameworkSettings', () => {
     const mockUser = {
         uid: 'test-user',
         organizationId: 'test-org',
@@ -71,7 +70,9 @@ describe.skip('FrameworkSettings', () => {
             user: mockUser,
             addToast: mockAddToast,
             t: (key: string) => key,
-        } as ReturnType<typeof useStore>);
+            activeFramework: 'ISO27001',
+            setActiveFramework: vi.fn(),
+        } as unknown as ReturnType<typeof useStore>);
 
         vi.mocked(useSettingsData).mockReturnValue({
             organization: mockOrganization,

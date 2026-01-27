@@ -195,8 +195,7 @@ vi.mock('framer-motion', () => ({
 // Import mocks
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
-// Tests skipped due to complex component dependency chain that requires extensive mocking
-// TODO: Refactor tests to use integration testing approach or mock at higher level
+// Tests skipped due to component import resolution issues with mocks
 describe.skip('Login View', () => {
     beforeEach(() => {
         // Mock matchMedia for ThemeToggle

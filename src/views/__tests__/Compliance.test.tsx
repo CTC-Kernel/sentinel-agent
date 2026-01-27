@@ -31,6 +31,8 @@ vi.mock('../../store', () => {
         },
         language: 'fr',
         addToast: vi.fn(),
+        activeFramework: 'ISO27001',
+        setActiveFramework: vi.fn(),
         t: (key: string): string => {
             const translations: Record<string, string> = {
                 'compliance.title': 'Conformité',
@@ -133,8 +135,7 @@ vi.mock('../../components/documents/DocumentUploadWizard', () => ({
     DocumentUploadWizard: vi.fn(() => <div data-testid="document-upload-wizard">Wizard</div>),
 }));
 
-// TODO: Tests need updating - hook API changed
-describe.skip('Compliance View', () => {
+describe('Compliance View', () => {
     const queryClient = new QueryClient({
         defaultOptions: {
             queries: {

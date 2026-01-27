@@ -73,8 +73,7 @@ vi.mock('@hookform/resolvers/zod', () => ({
     zodResolver: () => vi.fn()
 }));
 
-// TODO: Tests need updating
-describe.skip('FolderTree', () => {
+describe('FolderTree', () => {
     const mockOnSelectFolder = vi.fn();
     const mockOnCreateFolder = vi.fn();
     const mockOnUpdateFolder = vi.fn();
@@ -170,8 +169,8 @@ describe.skip('FolderTree', () => {
         it('highlights when selected', () => {
             const { container } = render(<FolderTree {...defaultProps} selectedFolderId={null} />);
 
-            // Now uses bg-brand-500/10 for selected state (better dark mode contrast)
-            expect(container.querySelector('[class*="bg-brand-500"]')).toBeInTheDocument();
+            // Uses bg-slate-100 for selected state
+            expect(container.querySelector('[class*="bg-slate-100"]')).toBeInTheDocument();
         });
     });
 
@@ -261,8 +260,8 @@ describe.skip('FolderTree', () => {
         it('highlights selected folder', () => {
             const { container } = render(<FolderTree {...defaultProps} selectedFolderId="folder-1" />);
 
-            // Selected folder should have highlight class (now uses bg-brand-500/10 for better dark mode contrast)
-            expect(container.querySelectorAll('[class*="bg-brand-500"]').length).toBeGreaterThan(0);
+            // Selected folder should have highlight class (uses bg-slate-100)
+            expect(container.querySelectorAll('[class*="bg-slate-100"]').length).toBeGreaterThan(0);
         });
     });
 

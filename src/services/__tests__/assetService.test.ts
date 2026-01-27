@@ -35,8 +35,13 @@ vi.mock('../errorLogger', () => ({
     },
 }));
 
-vi.mock('../logger', () => ({
-    logAction: vi.fn().mockResolvedValue(undefined),
+vi.mock('../auditLogService', () => ({
+    AuditLogService: {
+        logCreate: vi.fn().mockResolvedValue(undefined),
+        logUpdate: vi.fn().mockResolvedValue(undefined),
+        logDelete: vi.fn().mockResolvedValue(undefined),
+        logBatch: vi.fn().mockResolvedValue(undefined),
+    },
 }));
 
 vi.mock('../FunctionsService', () => ({
@@ -58,12 +63,16 @@ vi.mock('../../schemas/assetSchema', () => ({
     },
 }));
 
+vi.mock('../../utils/permissions', () => ({
+    canEditResource: vi.fn().mockReturnValue(true),
+    canDeleteResource: vi.fn().mockReturnValue(true),
+}));
+
 import { addDoc, updateDoc, getDocs } from 'firebase/firestore';
-import { logAction } from '../logger';
+import { AuditLogService } from '../auditLogService';
 import { FunctionsService } from '../FunctionsService';
 
-// TODO: Tests need updating - service API changed
-describe.skip('AssetService', () => {
+describe('AssetService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -81,7 +90,14 @@ describe.skip('AssetService', () => {
 
             expect(result).toBe('new-asset-id');
             expect(addDoc).toHaveBeenCalled();
-            expect(logAction).toHaveBeenCalledWith(user, 'CREATE', 'Asset', expect.any(String));
+            expect(AuditLogService.logCreate).toHaveBeenCalledWith(
+                'org-1',
+                expect.objectContaining({ id: user.uid }),
+                'asset',
+                'new-asset-id',
+                expect.any(Object),
+                'Server 1'
+            );
         });
 
         it('should link asset to project when preSelectedProjectId is provided', async () => {
@@ -126,16 +142,7 @@ describe.skip('AssetService', () => {
             await AssetService.update('asset-1', updateData as never, user);
 
             expect(updateDoc).toHaveBeenCalled();
-            expect(logAction).toHaveBeenCalledWith(
-                user,
-                'UPDATE',
-                'Asset',
-                expect.stringContaining('Mise à jour Actif'),
-                undefined,
-                'asset-1',
-                undefined,
-                undefined
-            );
+            // AuditLogService.logUpdate is only called when oldData is provided
         });
 
         it('should throw error when user has no organization', async () => {
@@ -155,7 +162,14 @@ describe.skip('AssetService', () => {
             await AssetService.delete('asset-1', 'Server 1', user);
 
             expect(FunctionsService.deleteResource).toHaveBeenCalledWith('assets', 'asset-1');
-            expect(logAction).toHaveBeenCalledWith(user, 'DELETE', 'Asset', expect.any(String));
+            expect(AuditLogService.logDelete).toHaveBeenCalledWith(
+                'org-1',
+                expect.objectContaining({ id: user.uid }),
+                'asset',
+                'asset-1',
+                { name: 'Server 1' },
+                'Server 1'
+            );
         });
 
         it('should throw error when user has no organization', async () => {
@@ -176,11 +190,12 @@ describe.skip('AssetService', () => {
             await AssetService.bulkDelete(ids, user);
 
             expect(FunctionsService.deleteResource).toHaveBeenCalledTimes(3);
-            expect(logAction).toHaveBeenCalledWith(
-                user,
-                'DELETE',
-                'Asset',
-                expect.stringContaining('3 actifs')
+            expect(AuditLogService.logBatch).toHaveBeenCalledWith(
+                expect.arrayContaining([
+                    expect.objectContaining({ entityId: 'asset-1', action: 'delete' }),
+                    expect.objectContaining({ entityId: 'asset-2', action: 'delete' }),
+                    expect.objectContaining({ entityId: 'asset-3', action: 'delete' }),
+                ])
             );
         });
 
