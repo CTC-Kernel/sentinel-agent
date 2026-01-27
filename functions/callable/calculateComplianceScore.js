@@ -3,10 +3,11 @@
  * Implements ADR-003: Score de Conformité Global (Apple Health Style)
  *
  * Calculates a weighted compliance score based on:
- * - Controls (40%): % of implemented vs actionable
- * - Risks (30%): Inverse of critical risk ratio
+ * - Controls (35%): % of implemented vs actionable
+ * - Risks (25%): Inverse of critical risk ratio
  * - Audits (20%): % of compliant findings
  * - Documents (10%): % of valid (not expired, not draft) documents
+ * - Training (10%): % of completed training assignments (NIS2 Art. 21.2g)
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -14,11 +15,13 @@ const admin = require("firebase-admin");
 const { logger } = require("firebase-functions");
 
 // Default weights for score calculation
+// NIS2-TRN-011: Updated to include training component (Art. 21.2g)
 const DEFAULT_WEIGHTS = {
-  controls: 0.40,
-  risks: 0.30,
-  audits: 0.20,
-  documents: 0.10,
+  controls: 0.35,   // Was 0.40 - reduced to include training
+  risks: 0.25,      // Was 0.30 - reduced to include training
+  audits: 0.20,     // Unchanged
+  documents: 0.10,  // Unchanged
+  training: 0.10,   // NEW: NIS2 Article 21.2(g) - Formation & Sensibilisation
 };
 
 // Trend threshold percentage
@@ -214,6 +217,37 @@ async function calculateAuditsScore(db, organizationId) {
 }
 
 /**
+ * Calculate training score
+ * Formula: (completedAssignments / totalAssignments) * 100
+ * Part of NIS2 Article 21.2(g) compliance
+ */
+async function calculateTrainingScore(db, organizationId) {
+  const assignmentsRef = db.collection('organizations')
+    .doc(organizationId)
+    .collection('training_assignments');
+
+  // Get total and completed counts
+  const [totalSnap, completedSnap] = await Promise.all([
+    assignmentsRef.count().get(),
+    assignmentsRef.where('status', '==', 'completed').count().get(),
+  ]);
+
+  const total = totalSnap.data().count;
+  const completed = completedSnap.data().count;
+
+  if (total === 0) {
+    // No training assignments = 100% compliance (no requirements)
+    return { score: 100, total: 0, completed: 0 };
+  }
+
+  return {
+    score: Math.round((completed / total) * 100 * 100) / 100,
+    total,
+    completed,
+  };
+}
+
+/**
  * Calculate trend based on 30-day history
  */
 async function calculateTrend(db, organizationId, currentScore) {
@@ -399,12 +433,13 @@ const calculateComplianceScore = onCall({
   const db = admin.firestore();
 
   try {
-    // Calculate all category scores in parallel
-    const [controlsResult, risksResult, documentsResult, auditsResult] = await Promise.all([
+    // Calculate all category scores in parallel (including training for NIS2 Art. 21.2g)
+    const [controlsResult, risksResult, documentsResult, auditsResult, trainingResult] = await Promise.all([
       calculateControlsScore(db, organizationId),
       calculateRisksScore(db, organizationId),
       calculateDocumentsScore(db, organizationId),
       calculateAuditsScore(db, organizationId),
+      calculateTrainingScore(db, organizationId),
     ]);
 
     // Build breakdown with weights
@@ -413,14 +448,16 @@ const calculateComplianceScore = onCall({
       risks: { score: risksResult.score, weight: DEFAULT_WEIGHTS.risks },
       documents: { score: documentsResult.score, weight: DEFAULT_WEIGHTS.documents },
       audits: { score: auditsResult.score, weight: DEFAULT_WEIGHTS.audits },
+      training: { score: trainingResult.score, weight: DEFAULT_WEIGHTS.training },
     };
 
-    // Calculate global score using weighted average
+    // Calculate global score using weighted average (including training)
     const globalScore = Math.round(
       (breakdown.controls.score * breakdown.controls.weight +
         breakdown.risks.score * breakdown.risks.weight +
         breakdown.documents.score * breakdown.documents.weight +
-        breakdown.audits.score * breakdown.audits.weight) * 100
+        breakdown.audits.score * breakdown.audits.weight +
+        breakdown.training.score * breakdown.training.weight) * 100
     ) / 100;
 
     // Calculate trend and framework scores in parallel
@@ -446,6 +483,9 @@ const calculateComplianceScore = onCall({
         totalDocuments: documentsResult.total,
         compliantFindings: auditsResult.compliant,
         totalFindings: auditsResult.total,
+        // NIS2 Art. 21.2(g) - Training & Awareness
+        completedTrainings: trainingResult.completed,
+        totalTrainings: trainingResult.total,
       },
     };
 
@@ -476,6 +516,7 @@ module.exports = {
   calculateRisksScore,
   calculateDocumentsScore,
   calculateAuditsScore,
+  calculateTrainingScore, // NIS2 Art. 21.2(g)
   calculateTrend,
   // Export constants (harmonized with frontend src/constants/complianceConfig.ts)
   DEFAULT_WEIGHTS,
