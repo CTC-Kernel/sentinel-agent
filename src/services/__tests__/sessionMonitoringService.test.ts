@@ -322,7 +322,8 @@ describe('useSessionMonitoring', () => {
 
         useSessionMonitoring(user);
 
-        expect(initSpy).toHaveBeenCalledWith(user);
+        // initSession now accepts optional organizationId parameter
+        expect(initSpy).toHaveBeenCalledWith(user, undefined);
         initSpy.mockRestore();
     });
 });
