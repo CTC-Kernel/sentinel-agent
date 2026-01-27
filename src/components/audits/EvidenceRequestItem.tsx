@@ -158,7 +158,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                         onClick={() => handleAction('reject', () => onStatusChange(req, 'Rejected'))}
                                         disabled={!!processingAction}
                                         aria-label="Rejeter la demande"
-                                        className="w-full px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                                        className="w-full px-3 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-600 dark:hover:bg-red-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                                     >
                                         {processingAction === 'reject' ? <span className="animate-spin mr-2">⌛</span> : <X className="w-4 h-4 mr-2" />}
                                         Rejeter
