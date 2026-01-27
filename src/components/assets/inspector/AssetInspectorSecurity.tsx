@@ -78,10 +78,10 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                         <Server className="h-4 w-4 mr-2" /> Résultat Shodan
                     </h3>
                     <div className="space-y-2 text-sm font-mono">
-                        <p><span className="text-slate-500">IP:</span> {shodanResult.ip_str}</p>
-                        <p><span className="text-slate-500">OS:</span> {shodanResult.os || 'N/A'}</p>
-                        <p><span className="text-slate-500">Ports:</span> {shodanResult.ports?.join(', ') || 'None'}</p>
-                        <p><span className="text-slate-500">Org:</span> {shodanResult.org || 'N/A'}</p>
+                        <p><span className="text-slate-500 dark:text-slate-400">IP:</span> {shodanResult.ip_str}</p>
+                        <p><span className="text-slate-500 dark:text-slate-400">OS:</span> {shodanResult.os || 'N/A'}</p>
+                        <p><span className="text-slate-500 dark:text-slate-400">Ports:</span> {shodanResult.ports?.join(', ') || 'None'}</p>
+                        <p><span className="text-slate-500 dark:text-slate-400">Org:</span> {shodanResult.org || 'N/A'}</p>
                     </div>
                 </div>
             )}
@@ -118,7 +118,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
 
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center">
                         <ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})
                     </h3>
                     <button
@@ -131,7 +131,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </button>
                 </div>
                 {linkedRisks.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
@@ -150,7 +150,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
 
             <div className="mt-8">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center">
                         <Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})
                     </h3>
                     <button
@@ -163,7 +163,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </button>
                 </div>
                 {linkedIncidents.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (

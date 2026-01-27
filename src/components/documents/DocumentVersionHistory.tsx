@@ -12,7 +12,7 @@ interface DocumentVersionHistoryProps {
 export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ versions, currentVersionId }) => {
 
     if (versions.length === 0) {
-        return <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">Aucune version antérieure disponible.</div>;
+        return <div className="text-center py-8 text-slate-500 dark:text-slate-300 text-sm">Aucune version antérieure disponible.</div>;
     }
 
     return (
@@ -29,14 +29,14 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ 
                         : 'bg-white border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700'
                         }`}>
                         <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 font-mono font-bold text-sm">
+                            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 font-mono font-bold text-sm">
                                 v{version.version}
                             </div>
                             <div>
                                 <div className="text-sm font-bold text-slate-900 dark:text-white">
                                     {version.changeLog || 'Mise à jour standard'}
                                 </div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
+                                <div className="text-xs text-slate-500 dark:text-slate-300 mt-0.5 flex items-center gap-2">
                                     <span>{version.uploadedAt ? format(new Date(version.uploadedAt), 'PPP à p', { locale: fr }) : 'Date inconnue'}</span>
                                     {version.id === currentVersionId && (
                                         <span className="bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded text-[11px] font-bold">ACTUEL</span>
@@ -51,7 +51,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ 
                                     href={version.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-brand-600 transition-colors"
+                                    className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-300 hover:text-brand-600 transition-colors"
                                     title="Télécharger"
                                 >
                                     <Download className="h-4 w-4" />

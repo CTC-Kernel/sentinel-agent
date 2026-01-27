@@ -352,7 +352,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                     )}
                   </div>
                   {search.description && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{search.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-300 truncate">{search.description}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
                     Utilisee {search.runCount} fois
@@ -402,7 +402,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
                 placeholder="Rechercher dans les details..."
                 aria-label="Mots-clés de recherche"
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400"
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
               />
             </div>
             <select
@@ -615,11 +615,11 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} ${colors.border} border`}>
                             {VaultAuditService.getActionLabel(entry.action)}
                           </span>
-                          <span className="text-sm text-slate-600 dark:text-slate-400 truncate">
+                          <span className="text-sm text-slate-600 dark:text-slate-300 truncate">
                             {entry.userEmail}
                           </span>
                           {entry.documentName && (
-                            <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                            <span className="text-xs text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                               {entry.documentName}
                             </span>
                           )}
@@ -629,7 +629,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                         {entry.highlights && entry.highlights.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {entry.highlights.map((highlight, idx) => (
-                              <p key={idx} className="text-xs text-slate-600 dark:text-slate-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded">
+                              <p key={idx} className="text-xs text-slate-600 dark:text-slate-300 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded">
                                 {highlight}
                               </p>
                             ))}

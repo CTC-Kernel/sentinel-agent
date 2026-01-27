@@ -17,7 +17,7 @@ export const EmptyState3D: React.FC = () => {
                         </svg>
                     </div>
                     <h3 className="text-lg font-bold text-muted-foreground">Aucune donnée 3D</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xs mt-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 max-w-xs mt-1">
                         L'environnement Voxel est prêt, mais aucune donnée n'est disponible pour le moment.
                     </p>
                 </div>

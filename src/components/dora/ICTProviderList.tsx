@@ -127,7 +127,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
                         {row.original.name}
                     </span>
                     {row.original.services && row.original.services.length > 0 && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        <span className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
                             {row.original.services.length} service{row.original.services.length > 1 ? 's' : ''}
                         </span>
                     )}
@@ -178,7 +178,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
                                 style={{ width: `${concentration}%` }}
                             />
                         </div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{concentration}%</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-300 font-mono">{concentration}%</span>
                     </div>
                 );
             },

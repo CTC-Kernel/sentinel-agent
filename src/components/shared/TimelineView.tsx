@@ -126,8 +126,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
         switch (action) {
             case 'create': return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800 dark:border-green-800';
             case 'update': return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:border-blue-800';
-            case 'delete': return 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800 dark:border-red-800';
-            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+            case 'delete': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800 dark:border-red-800';
+            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
         }
     };
 
@@ -195,7 +195,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                         {getActionIcon(log.action)}
                                         {log.action}
                                     </span>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                                    <span className="text-xs text-slate-500 dark:text-slate-300 font-mono">
                                         {format(log.timestamp, "HH:mm", { locale: fr })}
                                     </span>
                                 </div>
@@ -258,7 +258,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                                            <span className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block mb-1">Auteur</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider block mb-1">Auteur</span>
                                             <div className="flex items-center gap-2">
                                                 <div className="h-6 w-6 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xs font-bold">
                                                     {selectedLog.userName.charAt(0)}
@@ -267,7 +267,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                             </div>
                                         </div>
                                         <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                                            <span className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block mb-1">Date</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider block mb-1">Date</span>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-4 w-4 text-slate-400" />
                                                 <span className="text-sm font-medium dark:text-white">
@@ -316,7 +316,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                         </div>
                                     ) : (
                                         <div className="p-8 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                                            <p className="text-slate-500 dark:text-slate-400 text-sm">
+                                            <p className="text-slate-500 dark:text-slate-300 text-sm">
                                                 Aucun détail technique disponible pour cette action (probablement une création initiale ou une suppression simple).
                                             </p>
                                         </div>

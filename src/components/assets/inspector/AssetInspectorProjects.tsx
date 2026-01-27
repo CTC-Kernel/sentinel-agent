@@ -13,7 +13,7 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
 }) => {
     return (
         <div className="space-y-6 sm:space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
                 <FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})
             </h3>
             {linkedProjects.length === 0 ? (
@@ -24,7 +24,7 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
                         <div key={proj.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
-                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20' : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20'}`}>
+                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20' : 'bg-slate-500/10 text-slate-600 dark:text-slate-300 ring-1 ring-slate-500/20'}`}>
                                     {proj.status}
                                 </span>
                             </div>

@@ -164,7 +164,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                     <Tab.Panel className="space-y-8 focus:outline-none">
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
                                                     <Users className="w-3 h-3 mr-1.5" /> Users
                                                 </p>
                                                 {loading ? (
@@ -174,7 +174,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
                                                     <Shield className="w-3 h-3 mr-1.5" /> Projects
                                                 </p>
                                                 {loading ? (
@@ -184,7 +184,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
                                                     <Database className="w-3 h-3 mr-1.5" /> Storage
                                                 </p>
                                                 <p className="text-2xl font-bold text-white">--</p>
@@ -199,7 +199,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <p className="text-sm text-slate-300 font-medium">Suspend Organization</p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
                                                         Stop all access immediately.
                                                     </p>
                                                 </div>

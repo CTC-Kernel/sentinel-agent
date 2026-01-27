@@ -21,7 +21,8 @@ import {
   onSnapshot,
   writeBatch,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import type {
   AccessReviewCampaign,
@@ -464,5 +465,39 @@ export class AccessReviewService {
       completionRate: totalReviews > 0 ? (totalCompleted / totalReviews) * 100 : 0,
       revocationRate: totalCompleted > 0 ? (totalRevoked / totalCompleted) * 100 : 0,
     };
+  }
+
+  // ============== CLOUD FUNCTIONS ==============
+
+  /**
+   * Trigger dormant account detection via Cloud Function
+   * Returns statistics about detected dormant accounts
+   */
+  static async detectDormantAccounts(): Promise<{
+    total: number;
+    criticalCount: number;
+    accounts: DormantAccount[];
+  }> {
+    try {
+      const detectFn = httpsCallable<
+        Record<string, never>,
+        {
+          success: boolean;
+          total: number;
+          criticalCount: number;
+          accounts: DormantAccount[];
+        }
+      >(functions, 'detectDormantAccountsCallable');
+
+      const result = await detectFn({});
+      return {
+        total: result.data.total,
+        criticalCount: result.data.criticalCount,
+        accounts: result.data.accounts,
+      };
+    } catch (error) {
+      ErrorLogger.error(error, 'AccessReviewService.detectDormantAccounts');
+      throw error;
+    }
   }
 }

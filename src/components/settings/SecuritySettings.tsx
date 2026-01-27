@@ -176,7 +176,7 @@ export const SecuritySettings: React.FC = () => {
                         <div className="space-y-6 animate-fade-in">
                             {qrCodeUrl && (
                                 <div className="flex flex-col items-center p-6 bg-white rounded-xl border border-slate-200 shadow-inner">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-4 text-center uppercase tracking-wider">Scannez ce QR Code</p>
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300 mb-4 text-center uppercase tracking-wider">Scannez ce QR Code</p>
                                     <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-lg">
                                         <img src={qrCodeUrl} alt="QR Code" className="w-40 h-40 mix-blend-multiply" />
                                     </div>

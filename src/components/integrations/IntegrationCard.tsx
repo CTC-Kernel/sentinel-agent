@@ -23,7 +23,7 @@ export const IntegrationCard: React.FC<IntegrationCardProps> = ({ provider, onCo
             <div className="flex items-start justify-between mb-4 relative z-10">
                 <div className={`p-3.5 rounded-2xl transition-colors duration-300 ${isConnected
                     ? 'bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600 dark:from-emerald-500/20 dark:to-emerald-500/10 dark:text-emerald-400'
-                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover:bg-brand-50 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-brand-400'
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 group-hover:bg-brand-50 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-brand-400'
                     }`}>
                     {/* Placeholder for actual icons based on provider.icon */}
                     <Plug className="h-6 w-6" />
@@ -46,7 +46,7 @@ export const IntegrationCard: React.FC<IntegrationCardProps> = ({ provider, onCo
                     onClick={() => isConnected ? onDisconnect(provider) : onConnect(provider)}
                     disabled={isConnecting}
                     className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${isConnected
-                        ? 'bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 hover:text-red-500 dark:hover:text-red-400'
+                        ? 'bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-red-500 dark:hover:text-red-400'
                         : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-brand-600 hover:text-white dark:hover:bg-brand-500 dark:hover:text-white shadow-lg hover:shadow-brand-500/25'
                         }`}
                 >

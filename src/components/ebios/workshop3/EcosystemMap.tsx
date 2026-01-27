@@ -110,11 +110,13 @@ const PARTY_TYPE_CONFIG: Record<
 };
 
 // Likelihood colors for attack paths
+import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../../theme/chartTheme';
+
 const LIKELIHOOD_COLORS: Record<number, { stroke: string; className: string }> = {
-  1: { stroke: '#22c55e', className: 'text-green-500' },
-  2: { stroke: '#eab308', className: 'text-yellow-500' },
-  3: { stroke: '#f97316', className: 'text-orange-500' },
-  4: { stroke: '#ef4444', className: 'text-red-500' },
+  1: { stroke: SENTINEL_PALETTE.success, className: 'text-green-500' },
+  2: { stroke: SEVERITY_COLORS.medium, className: 'text-yellow-500' },
+  3: { stroke: SEVERITY_COLORS.high, className: 'text-orange-500' },
+  4: { stroke: SEVERITY_COLORS.critical, className: 'text-red-500' },
 };
 
 export const EcosystemMap: React.FC<EcosystemMapProps> = ({
@@ -417,8 +419,8 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                   riskScore >= 70
                     ? 'bg-red-500'
                     : riskScore >= 40
-                    ? 'bg-yellow-500'
-                    : 'bg-green-500'
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
                 )}
               >
                 {party.trustLevel}
@@ -476,24 +478,24 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         <button
           onClick={handleZoomIn}
-          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.zoomIn')}
         >
-          <ZoomIn className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+          <ZoomIn className="w-4 h-4 text-slate-600 dark:text-slate-300" />
         </button>
         <button
           onClick={handleZoomOut}
-          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.zoomOut')}
         >
-          <ZoomOut className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+          <ZoomOut className="w-4 h-4 text-slate-600 dark:text-slate-300" />
         </button>
         <button
           onClick={handleFitToView}
-          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.fitToView')}
         >
-          <Maximize2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+          <Maximize2 className="w-4 h-4 text-slate-600 dark:text-slate-300" />
         </button>
         <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-auto" />
         <button
@@ -506,7 +508,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
           )}
           title={t('ebios.ecosystem.toggleLegend')}
         >
-          <Info className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+          <Info className="w-4 h-4 text-slate-600 dark:text-slate-300" />
         </button>
       </div>
 
@@ -540,7 +542,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                       className={cn(
                         'flex items-center gap-2 w-full px-2 py-1 rounded text-left transition-colors',
                         isVisible
-                          ? 'hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700'
+                          ? 'hover:bg-slate-100 dark:hover:bg-slate-700'
                           : 'opacity-60'
                       )}
                     >
@@ -601,7 +603,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                 setSelectedParty(null);
                 setSelectedPath(null);
               }}
-              className="absolute top-2 right-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+              className="absolute top-2 right-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -662,7 +664,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
             {selectedPath && (
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30">
+                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-amber-900/30">
                     <ArrowRight className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
@@ -739,8 +741,8 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
       {parties.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <Globe className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-500">{t('ebios.ecosystem.noParties')}</p>
+            <Globe className="w-12 h-12 text-slate-300 dark:text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500 dark:text-slate-400">{t('ebios.ecosystem.noParties')}</p>
             <p className="text-sm text-muted-foreground mt-1">
               {t('ebios.ecosystem.addPartiesHelp')}
             </p>

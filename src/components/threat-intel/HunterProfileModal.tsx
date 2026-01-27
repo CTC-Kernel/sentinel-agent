@@ -407,7 +407,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                                 <div className="flex-1">
                                                                     <div className="font-medium text-slate-900 dark:text-white">{activity.title}</div>
                                                                     <div className="text-sm text-slate-500 dark:text-muted-foreground">{activity.date}</div>
-                                                                    <div className="text-xs text-muted-foreground dark:text-slate-500 mt-1">{activity.impact}</div>
+                                                                    <div className="text-xs text-muted-foreground dark:text-slate-400 mt-1">{activity.impact}</div>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -470,7 +470,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                                     <div>
                                                                         <div className="font-medium text-slate-900 dark:text-white text-sm">{achievement.title}</div>
                                                                         <div className="text-xs text-slate-500 dark:text-muted-foreground">{achievement.description}</div>
-                                                                        <div className="text-xs text-muted-foreground dark:text-slate-500 mt-1">{achievement.date}</div>
+                                                                        <div className="text-xs text-muted-foreground dark:text-slate-400 mt-1">{achievement.date}</div>
                                                                     </div>
                                                                 </div>
                                                             ))}

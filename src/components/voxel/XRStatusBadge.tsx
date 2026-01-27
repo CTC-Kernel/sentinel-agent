@@ -399,7 +399,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
               </div>
             </div>
           )}
-          <div className="text-xs text-slate-500 dark:text-slate-400 pt-1">{deviceInfo}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-300 pt-1">{deviceInfo}</div>
         </div>
       </Tooltip>
     </div>

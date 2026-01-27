@@ -185,7 +185,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                 <span className="text-3xl font-black text-slate-900 dark:text-white">
                                     {effectiveCompliance}%
                                 </span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                     Conformité
                                 </span>
                             </div>
@@ -213,7 +213,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             <div className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.totalRisks}
                             </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
                                 Risques
                             </div>
                             {stats.criticalRisks > 0 && (
@@ -261,7 +261,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             )}>
                                 {activeIncidentsCount}
                             </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
                                 Incidents Actifs
                             </div>
                             {activeIncidentsCount > 0 && (
@@ -300,7 +300,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             <div className="text-2xl font-black text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
                                 {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                             </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
                                 Exposition
                             </div>
                             <div className="mt-2 text-[11px] text-info-600 dark:text-info-400 font-medium">
@@ -323,7 +323,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                     <div className="mt-6 pt-4 border-t border-white/60 dark:border-white/5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <span className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+                                <span className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider">
                                     Distribution des risques
                                 </span>
                                 <div className="flex items-center gap-3">
@@ -333,7 +333,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                                 className="w-2 h-2 rounded-full"
                                                 style={{ backgroundColor: item.fill }}
                                             />
-                                            <span className="text-slate-500">{item.name}: {item.value}</span>
+                                            <span className="text-slate-500 dark:text-slate-400">{item.name}: {item.value}</span>
                                         </div>
                                     ))}
                                 </div>

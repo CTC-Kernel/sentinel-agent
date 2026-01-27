@@ -75,7 +75,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
                     case 'controls': {
                         const control = item as Control;
                         return (
-                            <div key={control.id} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
+                            <div key={control.id} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
                                 <LinkedControlItem control={control} />
                             </div>
                         );
@@ -284,7 +284,7 @@ const LinkedAuditItem = React.memo(({ audit, onClick }: { audit: Audit, onClick:
             <div className="flex justify-between items-start">
                 <div>
                     <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{audit.name}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Ref: {audit.reference}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">Ref: {audit.reference}</p>
                 </div>
                 <Badge status={audit.status === 'Validé' || audit.status === 'Terminé' ? 'success' : 'warning'}>{audit.status}</Badge>
             </div>

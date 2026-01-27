@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../../utils/cn';
-import { GlassCard } from '../../../ui/GlassCard';
+import { PremiumCard } from '../../../ui/PremiumCard';
 import { Button } from '../../../ui/button';
 import { missionSchema } from '../../../../schemas/ebiosSchema';
 import type { Mission } from '../../../../types/ebios';
@@ -65,7 +65,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -142,7 +142,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                     "block text-lg font-bold",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-500 dark:text-slate-400"
+                      : "text-slate-500 dark:text-slate-300"
                   )}>
                     {level.level}
                   </span>
@@ -150,7 +150,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                     "block text-xs mt-1",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-400 dark:text-slate-500"
+                      : "text-slate-400 dark:text-slate-400"
                   )}>
                     {level[locale]}
                   </span>
@@ -220,7 +220,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
             </div>
           </div>
         </form>
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

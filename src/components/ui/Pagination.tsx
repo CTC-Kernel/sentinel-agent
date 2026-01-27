@@ -74,7 +74,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     <div className="flex items-center gap-2">
                         <label
                             htmlFor="items-per-page"
-                            className="text-sm text-slate-600 dark:text-slate-400 font-medium"
+                            className="text-sm text-slate-600 dark:text-slate-300 font-medium"
                         >
                             Afficher:
                         </label>
@@ -91,7 +91,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 ))}
                             </select>
                             <ChevronDown
-                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400 pointer-events-none"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-300 pointer-events-none"
                                 aria-hidden="true"
                             />
                         </div>
@@ -110,7 +110,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     aria-label="Page précédente"
                     aria-disabled={currentPage === 1}
                 >
-                    <ChevronRight className="h-5 w-5 rotate-180 text-slate-600 dark:text-slate-400" aria-hidden="true" />
+                    <ChevronRight className="h-5 w-5 rotate-180 text-slate-600 dark:text-slate-300" aria-hidden="true" />
                 </Button>
 
                 <div className="flex items-center gap-1" role="list">
@@ -119,7 +119,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                             return (
                                 <span
                                     key={`ellipsis-${index}`}
-                                    className="px-3 py-2 text-slate-500 dark:text-slate-400 dark:text-slate-500 font-medium select-none"
+                                    className="px-3 py-2 text-slate-500 dark:text-slate-400 font-medium select-none"
                                     aria-hidden="true"
                                 >
                                     ...
@@ -137,7 +137,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 variant={isActive ? 'default' : 'ghost'}
                                 className={`min-w-[44px] min-h-[44px] px-4 py-2 rounded-xl text-sm font-bold transition-all ${isActive
                                     ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                                 aria-label={`Page ${pageNum}`}
                                 aria-current={isActive ? 'page' : undefined}
@@ -157,7 +157,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     aria-label="Page suivante"
                     aria-disabled={currentPage === totalPages}
                 >
-                    <ChevronRight className="h-5 w-5 text-slate-600 dark:text-slate-400" aria-hidden="true" />
+                    <ChevronRight className="h-5 w-5 text-slate-600 dark:text-slate-300" aria-hidden="true" />
                 </Button>
             </nav>
         </div>

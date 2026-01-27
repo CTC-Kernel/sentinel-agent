@@ -208,7 +208,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
       {/* Risk Matrix Mini */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-slate-700/30 rounded-xl p-3">
-          <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">Probabilité</div>
+          <div className="text-xs text-slate-500 dark:text-slate-300 mb-2">Probabilité</div>
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
@@ -223,7 +223,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
           <div className="text-right text-xs text-muted-foreground mt-1">{probability}/5</div>
         </div>
         <div className="bg-slate-700/30 rounded-xl p-3">
-          <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">Impact</div>
+          <div className="text-xs text-slate-500 dark:text-slate-300 mb-2">Impact</div>
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
@@ -272,7 +272,7 @@ const LinkedEntityItem: React.FC<LinkedEntityItemProps> = ({ node, onClick }) =>
         className="w-2 h-2 rounded-full shrink-0"
         style={{ backgroundColor: statusConfig.color }}
       />
-      <ChevronRight className="w-4 h-4 text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-70 transition-opacity" />
+      <ChevronRight className="w-4 h-4 text-slate-600 dark:text-slate-300 opacity-0 group-hover:opacity-70 transition-opacity" />
     </motion.button>
   );
 };
@@ -339,21 +339,21 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
             {confidentiality && (
               <div className="text-center p-3 rounded-xl bg-slate-700/30">
                 <Lock className="w-4 h-4 mx-auto mb-1 text-blue-400" />
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Conf.</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Conf.</div>
                 <div className="text-xs font-medium text-slate-200 mt-0.5">{confidentiality}</div>
               </div>
             )}
             {integrity && (
               <div className="text-center p-3 rounded-xl bg-slate-700/30">
                 <CheckCircle2 className="w-4 h-4 mx-auto mb-1 text-green-400" />
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Intég.</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Intég.</div>
                 <div className="text-xs font-medium text-slate-200 mt-0.5">{integrity}</div>
               </div>
             )}
             {availability && (
               <div className="text-center p-3 rounded-xl bg-slate-700/30">
                 <Wifi className="w-4 h-4 mx-auto mb-1 text-amber-400" />
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Disp.</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Disp.</div>
                 <div className="text-xs font-medium text-slate-200 mt-0.5">{availability}</div>
               </div>
             )}
@@ -769,7 +769,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
                     />
                     {statusConfig.label}
                   </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <span className="text-xs text-slate-500 dark:text-slate-300 flex items-center gap-1">
                     <Link2 className="w-3 h-3" />
                     {connectionCount} connexion{connectionCount !== 1 ? 's' : ''}
                   </span>

@@ -257,12 +257,12 @@ const Team: React.FC = () => {
                             <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-success-text' : activityRate >= 50 ? 'text-brand-600 dark:text-brand-400' : 'text-warning-text'}`}>
                                 {Math.round(activityRate)}%
                             </span>
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Actifs</span>
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Actifs</span>
                         </div>
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">Vue d'ensemble</h2>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-300 max-w-xs leading-relaxed">
                             {users.length} comptes gérés sur votre organisation.
                         </p>
                     </div>
@@ -499,7 +499,7 @@ const Team: React.FC = () => {
                 {selectedUser && (
                     <form onSubmit={(e) => { e.preventDefault(); editForm.handleSubmit(handleUpdateUser)(e); }} className="p-4 sm:p-8 space-y-6">
                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
-                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('team.edit.account')}</p>
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1">{t('team.edit.account')}</p>
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
                         </div>
 

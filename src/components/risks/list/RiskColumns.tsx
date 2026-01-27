@@ -50,18 +50,18 @@ const getStrategyStyles = (strategy: string) => {
         case 'Accepter':
             return {
                 icon: CheckCircle,
-                color: 'text-slate-600 dark:text-slate-400',
+                color: 'text-slate-600 dark:text-slate-300',
                 bg: 'bg-slate-100 dark:bg-slate-800',
                 border: 'border-slate-200 dark:border-white/10',
-                badge: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                badge: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
             };
         case 'Atténuer':
             return {
                 icon: ShieldCheck,
                 color: 'text-blue-700 dark:text-blue-400',
                 bg: 'bg-blue-50 dark:bg-blue-900/20',
-                border: 'border-blue-100 dark:border-blue-2000',
-                badge: 'bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-800'
+                border: 'border-blue-100 dark:border-blue-800',
+                badge: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-800'
             };
         case 'Transférer':
             return {
@@ -76,16 +76,16 @@ const getStrategyStyles = (strategy: string) => {
                 icon: XCircle,
                 color: 'text-red-600 dark:text-red-400',
                 bg: 'bg-red-50 dark:bg-red-900/20',
-                border: 'border-red-100 dark:border-red-2000',
-                badge: 'bg-red-50 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400 border-red-100 dark:border-red-800'
+                border: 'border-red-100 dark:border-red-800',
+                badge: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-100 dark:border-red-800'
             };
         default:
             return {
                 icon: Shield,
-                color: 'text-slate-600 dark:text-slate-400',
+                color: 'text-slate-600 dark:text-slate-300',
                 bg: 'bg-slate-100 dark:bg-slate-800',
                 border: 'border-slate-200 dark:border-white/10',
-                badge: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                badge: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
             };
     }
 };
@@ -150,7 +150,7 @@ export const useRiskColumns = ({
                             <div className="font-bold text-slate-900 dark:text-white text-[15px] truncate max-w-[200px] sm:max-w-xs transition-all">
                                 <TextHighlight text={row.original.threat} query={searchQuery} />
                             </div>
-                            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{getOwnerName(row.original.owner)}</div>
+                            <div className="text-xs text-slate-600 dark:text-slate-300 font-medium">{getOwnerName(row.original.owner)}</div>
                         </div>
                     </div>
                 );

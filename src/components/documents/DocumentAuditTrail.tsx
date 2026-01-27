@@ -443,7 +443,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                             {entry.userEmail}
                           </span>
                         </div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap" title={formatFullTimestamp(entry.timestamp)}>
+                        <span className="text-xs text-slate-500 dark:text-slate-300 whitespace-nowrap" title={formatFullTimestamp(entry.timestamp)}>
                           {formatRelativeTime(entry.timestamp)}
                         </span>
                       </div>
@@ -453,7 +453,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                           {VaultAuditService.getActionLabel(entry.action)}
                         </span>
                         {entry.documentId && (
-                          <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          <span className="text-xs text-slate-500 dark:text-slate-300 truncate">
                             Document: {entry.documentId.substring(0, 8)}...
                           </span>
                         )}
@@ -489,7 +489,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                               </pre>
                               {entry.integrity?.hash && (
                                 <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                                  <span className="text-slate-500">Hash d'integrite: </span>
+                                  <span className="text-slate-500 dark:text-slate-400">Hash d'integrite: </span>
                                   <code className="text-slate-600 dark:text-muted-foreground">
                                     {entry.integrity.hash.substring(0, 16)}...
                                   </code>
@@ -497,7 +497,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                               )}
                               {entry.metadata?.ipAddress && (
                                 <div className="mt-1">
-                                  <span className="text-slate-500">IP: </span>
+                                  <span className="text-slate-500 dark:text-slate-400">IP: </span>
                                   <code className="text-slate-600 dark:text-muted-foreground">
                                     {entry.metadata.ipAddress}
                                   </code>

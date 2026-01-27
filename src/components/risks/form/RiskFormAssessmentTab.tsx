@@ -60,7 +60,7 @@ export const RiskFormAssessmentTab: React.FC<RiskFormAssessmentTabProps> = React
 
             {/* Validation Warning */}
             {showResidualWarning && (
-                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-800 dark:border-red-2000 text-sm font-bold flex items-center animate-pulse">
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-800 dark:border-red-800 text-sm font-bold flex items-center animate-pulse">
                     <AlertTriangle className="h-5 w-5 mr-2" />
                     {t('risks.validation_residual') || `Attention: Le risque résiduel (${residualProbability * residualImpact}) ne peut pas être supérieur au risque brut (${probability * impact}).`}
                 </div>

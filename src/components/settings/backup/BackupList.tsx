@@ -26,7 +26,7 @@ export const BackupList: React.FC<BackupListProps> = ({
             case 'completed': return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
             case 'creating': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:text-blue-400';
             case 'failed': return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400';
-            default: return 'text-slate-600 bg-slate-50 dark:bg-white/5 dark:text-slate-400';
+            default: return 'text-slate-600 bg-slate-50 dark:bg-white/5 dark:text-slate-300';
         }
     };
 
@@ -104,14 +104,14 @@ export const BackupList: React.FC<BackupListProps> = ({
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">
                                         {format(new Date(backup.createdAt), "d MMM yyyy", { locale: fr })}
                                     </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                    <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">
                                         {format(new Date(backup.createdAt), "HH:mm", { locale: fr })} • {backup.collections.length} collections
                                     </p>
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-1">
                                 {backup.collections.slice(0, 3).map(c => (
-                                    <span key={c} className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-400 capitalize">{c}</span>
+                                    <span key={c} className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-300 capitalize">{c}</span>
                                 ))}
                                 {backup.collections.length > 3 && (
                                     <span className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>

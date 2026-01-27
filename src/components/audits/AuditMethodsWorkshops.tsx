@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 import {
@@ -365,7 +365,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
             Méthodes & Ateliers d'Audit
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
             Méthodologies structurées pour conduire vos audits de sécurité
           </p>
         </div>
@@ -389,7 +389,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
-              <GlassCard
+              <PremiumCard glass
                 className={cn(
                   "p-5 cursor-pointer transition-all border-2",
                   isSelected ? "ring-2 ring-indigo-500 border-indigo-300 dark:border-indigo-700" : "border-transparent",
@@ -447,7 +447,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                     </div>
                   </div>
                 )}
-              </GlassCard>
+              </PremiumCard>
             </motion.div>
           );
         })}
@@ -463,7 +463,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
             className="space-y-6"
           >
             {/* Template Overview */}
-            <GlassCard className="p-6">
+            <PremiumCard glass className="p-6">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
                   <div className={cn("p-4 rounded-2xl text-white", typeColors[selectedTemplate.type])}>
@@ -524,7 +524,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                   </ul>
                 </div>
               </div>
-            </GlassCard>
+            </PremiumCard>
 
             {/* Phases Accordion */}
             <div className="space-y-3">
@@ -543,7 +543,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                 const phaseProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
                 return (
-                  <GlassCard key={phase.id} className="overflow-hidden">
+                  <PremiumCard glass key={phase.id} className="overflow-hidden">
                     <button
                       onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
                       className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -615,7 +615,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                     {task.isCompleted ? (
                                       <CheckCircle className="w-5 h-5 text-green-500" />
                                     ) : (
-                                      <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600" />
+                                      <Circle className="w-5 h-5 text-slate-300 dark:text-slate-300" />
                                     )}
                                   </div>
                                   <div className="flex-1">
@@ -632,7 +632,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                         <Badge status="warning" size="sm">Requis</Badge>
                                       )}
                                     </div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{task.description}</p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-300 mt-0.5">{task.description}</p>
                                     {task.helpText && (
                                       <p className="text-xs text-indigo-500 mt-1 flex items-center gap-1">
                                         <BookOpen className="w-3 h-3" />
@@ -646,7 +646,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
 
                             {phase.deliverables && phase.deliverables.length > 0 && (
                               <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                                <h6 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                                <h6 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
                                   Livrables de cette phase
                                 </h6>
                                 <div className="flex flex-wrap gap-2">
@@ -663,7 +663,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </GlassCard>
+                  </PremiumCard>
                 );
               })}
             </div>
@@ -673,19 +673,19 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
 
       {/* Empty State */}
       {!selectedTemplate && (
-        <GlassCard className="p-12 text-center">
+        <PremiumCard glass className="p-12 text-center">
           <div className="max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-indigo-500" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
               Sélectionnez une méthode d'audit
             </h3>
-            <p className="text-slate-500">
+            <p className="text-slate-500 dark:text-slate-400">
               Choisissez un type d'audit ci-dessus pour voir la méthodologie détaillée et démarrer un atelier interactif.
             </p>
           </div>
-        </GlassCard>
+        </PremiumCard>
       )}
     </div>
   );

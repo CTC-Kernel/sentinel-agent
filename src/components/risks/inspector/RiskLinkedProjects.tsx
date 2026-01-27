@@ -16,7 +16,7 @@ export const RiskLinkedProjects: React.FC<RiskLinkedProjectsProps> = ({
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
                 {canEdit && (
                     <button
                         aria-label="Créer un nouveau projet lié"
@@ -28,7 +28,7 @@ export const RiskLinkedProjects: React.FC<RiskLinkedProjectsProps> = ({
                 )}
             </div>
             <div className="grid gap-4">
-                {linkedProjects.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-400 italic">Aucun projet.</p> : linkedProjects.map(p => (
+                {linkedProjects.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucun projet.</p> : linkedProjects.map(p => (
                     <div key={p.id} className="glass-panel-lite p-4">{p.name}</div>
                 ))}
             </div>

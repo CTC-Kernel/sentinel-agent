@@ -31,7 +31,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
             actions={(
                 <>
                     <Menu as="div" className="relative inline-block text-left mr-3">
-                        <Menu.Button as={Button} variant="outline" className="text-slate-700 dark:text-slate-200 font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all flex items-center">
+                        <Menu.Button as={Button} variant="outline" className="text-slate-700 dark:text-slate-200 font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center">
                             Actions <ChevronDown className="ml-2 h-4 w-4" />
                         </Menu.Button>
                         <Transition
@@ -45,7 +45,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
                         >
                             <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                 <div className="p-1">
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         Outils
                                     </div>
                                     <Menu.Item>

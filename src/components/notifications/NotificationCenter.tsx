@@ -33,7 +33,7 @@ export const NotificationCenter: React.FC = () => {
         <div className="relative" ref={containerRef}>
             <button
                 onClick={toggle}
-                className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="relative p-2 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label={unreadCount > 0 ? `Notifications - ${unreadCount} non lues` : "Notifications"}
             >
                 <Bell className="h-5 w-5" aria-hidden="true" />
@@ -75,7 +75,7 @@ export const NotificationCenter: React.FC = () => {
                                 <Tooltip content="Tout marquer comme lu">
                                     <button
                                         onClick={() => markAllAsRead()}
-                                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <CheckCheck className="h-4 w-4" />
                                     </button>
@@ -97,7 +97,7 @@ export const NotificationCenter: React.FC = () => {
                                         <Bell className="h-6 w-6 text-brand-600 dark:text-brand-400" />
                                     </div>
                                     <p className="text-slate-900 dark:text-white font-medium mb-1">Aucune notification</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px]">
+                                    <p className="text-xs text-slate-500 dark:text-slate-300 max-w-[200px]">
                                         {filter === 'unread' ? "Vous êtes à jour ! Tout a été lu." : "C'est calme par ici..."}
                                     </p>
                                 </div>

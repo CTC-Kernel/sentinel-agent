@@ -64,7 +64,7 @@ export const Notifications: React.FC = () => {
                         onClick={() => setFilterStatus('all')}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'all'
                             ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25'
-                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10'
+                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
                             }`}
                     >
                         {t('common.all', { defaultValue: 'Toutes' })}
@@ -73,7 +73,7 @@ export const Notifications: React.FC = () => {
                         onClick={() => setFilterStatus('unread')}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'unread'
                             ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25'
-                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10'
+                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
                             }`}
                     >
                         {t('notifications.unread', { defaultValue: 'Non lues' })}
@@ -116,7 +116,7 @@ export const Notifications: React.FC = () => {
                                             <h3 className={`text-base font-bold ${!notif.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                                 {notif.title}
                                             </h3>
-                                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">
+                                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide whitespace-nowrap">
                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                             </span>
                                         </div>

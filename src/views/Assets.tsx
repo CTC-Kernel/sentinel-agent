@@ -1,4 +1,5 @@
 import React, { useDeferredValue, useMemo, useState } from 'react';
+import { cn } from '../lib/utils';
 import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
@@ -433,25 +434,27 @@ const Assets: React.FC = () => {
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={handleStartTour}
-                                                className="p-2.5 rounded-xl bg-white text-muted-foreground border border-muted hover:bg-muted/10 dark:bg-white/5 dark:text-muted-foreground dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                                className="p-2.5 rounded-xl bg-background text-muted-foreground border border-border hover:bg-muted/50 transition-all shadow-sm"
                                                 title={t('assets.startTour')}
                                             >
                                                 <HelpCircle className="h-5 w-5" />
                                             </Button>
-                                            <div className="h-6 w-px bg-muted dark:bg-white/10 mx-1" />
+                                            <div className="h-6 w-px bg-border mx-1" />
                                             <Button
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={handleToggleSearch}
-                                                className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
-                                                    ? 'bg-primary/10 text-primary border-primary/20'
-                                                    : 'bg-white text-muted-foreground border-muted hover:bg-muted/10 dark:bg-white/5 dark:text-muted-foreground dark:border-white/10 dark:hover:bg-white/10'
-                                                    }`}
+                                                className={cn(
+                                                    "p-2.5 rounded-xl transition-all border shadow-sm",
+                                                    showAdvancedSearch
+                                                        ? "bg-primary/10 text-primary border-primary/20"
+                                                        : "bg-background text-muted-foreground border-border hover:bg-muted/50"
+                                                )}
                                                 title={t('assets.advancedFilters')}
                                             >
                                                 <Filter className="h-5 w-5" />
                                             </Button>
-                                            <div className="h-6 w-px bg-muted dark:bg-white/10 mx-1" />
+                                            <div className="h-6 w-px bg-border mx-1" />
 
                                             {canEdit && (
                                                 <CustomTooltip content={t('assets.createAsset')}>
@@ -460,7 +463,7 @@ const Assets: React.FC = () => {
                                                         onClick={handleAnalyze}
                                                         disabled={isAnalyzing}
                                                         isLoading={isAnalyzing}
-                                                        className="hidden lg:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/80 transition-all shadow-lg shadow-primary/20 font-bold text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed"
+                                                        className="hidden lg:flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
                                                         <span className="hidden xl:inline">{isAnalyzing ? t('assets.analyzing') : t('assets.aiAnalysis')}</span>
@@ -475,7 +478,10 @@ const Assets: React.FC = () => {
                                                         data-tour="assets-add"
                                                         onClick={handleCreateNew}
                                                         disabled={reachedAssetLimit}
-                                                        className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-primary/20 ${reachedAssetLimit ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-primary text-white hover:bg-primary/80'}`}
+                                                        className={cn(
+                                                            "flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-primary/20",
+                                                            reachedAssetLimit ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                                        )}
                                                     >
                                                         <Plus className="h-4 w-4 mr-2" />
                                                         <span className="hidden sm:inline">{t('assets.newAsset')}</span>
@@ -484,16 +490,16 @@ const Assets: React.FC = () => {
                                                 </CustomTooltip>
                                             )}
 
-                                            <div className="h-6 w-px bg-muted dark:bg-white/10 mx-1" />
+                                            <div className="h-6 w-px bg-border mx-1" />
 
                                             <Menu as="div" className="relative inline-block text-left">
-                                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-muted dark:border-white/10 text-foreground rounded-xl hover:bg-muted/10 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                <Menu.Button className="p-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
                                                     <MoreVertical className="h-5 w-5" />
                                                 </Menu.Button>
                                                 <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-70 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-70 scale-100" leaveTo="transform opacity-0 scale-95">
-                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-background shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
+                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                                         <div className="p-1">
-                                                            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground text-muted-foreground uppercase tracking-wider">{t('assets.tools')}</div>
+                                                            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('assets.tools')}</div>
                                                             {canEdit && (
                                                                 <Menu.Item>
                                                                     {({ active }) => (
@@ -501,9 +507,12 @@ const Assets: React.FC = () => {
                                                                             variant="ghost"
                                                                             aria-label={t('assets.importCsv')}
                                                                             onClick={() => setImportModalOpen(true)}
-                                                                            className={`${active ? 'bg-primary text-white' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                            className={cn(
+                                                                                "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
+                                                                                active ? "bg-primary text-primary-foreground" : "text-foreground"
+                                                                            )}
                                                                         >
-                                                                            <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-primary'}`} />
+                                                                            <Upload className={cn("mr-2 h-4 w-4", active ? "text-primary-foreground" : "text-primary")} />
                                                                             {t('assets.importCsv')}
                                                                         </Button>
                                                                     )}
@@ -516,9 +525,9 @@ const Assets: React.FC = () => {
                                                                         aria-label={t('assets.exportCsv')}
                                                                         data-tour="assets-export"
                                                                         onClick={handleExportCSV}
-                                                                        className={`${active ? 'bg-primary text-white' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                        className={`${active ? 'bg-primary text-primary-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                     >
-                                                                        <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success'}`} />
+                                                                        <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-primary-foreground' : 'text-success'}`} />
                                                                         {t('assets.exportCsv')}
                                                                     </Button>
                                                                 )}
@@ -529,9 +538,9 @@ const Assets: React.FC = () => {
                                                                         variant="ghost"
                                                                         aria-label={t('assets.kioskLink')}
                                                                         onClick={handleGenerateKioskLink}
-                                                                        className={`${active ? 'bg-primary text-white' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                        className={`${active ? 'bg-primary text-primary-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                     >
-                                                                        <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-primary'}`} />
+                                                                        <Link className={`mr-2 h-4 w-4 ${active ? 'text-primary-foreground' : 'text-primary'}`} />
                                                                         {t('assets.kioskLink')}
                                                                     </Button>
                                                                 )}

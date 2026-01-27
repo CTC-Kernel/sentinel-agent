@@ -136,7 +136,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                     <h3 className="font-bold text-slate-800 dark:text-slate-200 dark:text-white truncate" title={template.title}>{template.title}</h3>
                     <div className="mt-4">
-                        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-300 mb-1">
                             <span>Progression</span>
                             <span>{calculateProgress()}%</span>
                         </div>
@@ -155,11 +155,11 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                             onClick={() => setCurrentSectionIndex(idx)}
                             className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${currentSectionIndex === idx
                                 ? 'bg-brand-50 dark:bg-brand-800 text-brand-700 dark:text-brand-300'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                                 }`}
                         >
                             <div className="flex items-center">
-                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentSectionIndex === idx ? 'bg-brand-200 text-brand-800' : 'bg-slate-200 text-slate-600 dark:text-slate-400 dark:bg-slate-700 dark:text-slate-300'
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentSectionIndex === idx ? 'bg-brand-200 text-brand-800' : 'bg-slate-200 text-slate-600 dark:text-slate-300 dark:bg-slate-700 dark:text-slate-300'
                                     }`}>
                                     {idx + 1}
                                 </span>
@@ -219,7 +219,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                                 {question.required && <span className="text-red-500 ml-1">*</span>}
                                             </label>
                                             {question.helperText && (
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{question.helperText}</p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">{question.helperText}</p>
                                             )}
 
                                             {/* Input Types */}

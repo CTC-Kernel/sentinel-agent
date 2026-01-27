@@ -44,7 +44,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
                                     <div className="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold text-xs">
                                         {ctrl.code}
                                     </div>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 group-hover:text-brand-600 truncate max-w-[200px]">
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-brand-600 truncate max-w-[200px]">
                                         {ctrl.name}
                                     </span>
                                 </div>

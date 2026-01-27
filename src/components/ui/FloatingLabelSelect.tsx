@@ -107,7 +107,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                             ? 'text-red-500'
                             : isFocused
                                 ? 'text-brand-600 dark:text-brand-500'
-                                : 'text-slate-500 dark:text-slate-400'
+                                : 'text-slate-500 dark:text-slate-300'
                         }
                         ${Icon && !(isFocused || hasValue) ? 'ml-7' : ''}
                     `}

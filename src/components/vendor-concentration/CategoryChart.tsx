@@ -87,22 +87,22 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
           {data.name}
         </span>
         {data.hasSPOF && (
-          <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600">
+          <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600">
             SPOF
           </span>
         )}
       </div>
       <div className="space-y-1 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">{t('vendorConcentration.chart.vendors')}</span>
+          <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.chart.vendors')}</span>
           <span className="font-medium text-slate-900 dark:text-white">{data.vendorCount}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">{t('vendorConcentration.chart.share')}</span>
+          <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.chart.share')}</span>
           <span className="font-medium text-slate-900 dark:text-white">{formatPercentage(data.percentage)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">HHI</span>
+          <span className="text-slate-500 dark:text-slate-400">HHI</span>
           <span className={`font-medium ${data.hhi > 2500 ? 'text-red-600' : data.hhi > 1500 ? 'text-yellow-600' : 'text-green-600'
             }`}>
             {Math.round(data.hhi)}
@@ -229,7 +229,7 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
         <h3 className="text-lg font-medium text-slate-900 dark:text-white">
           {category.categoryLabel}
         </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
           {category.vendorCount} {t('vendorConcentration.chart.vendor', { count: category.vendorCount })} • HHI: {Math.round(category.herfindahlIndex)}
         </p>
       </div>
@@ -251,7 +251,7 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
           >
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">
-                <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-300" />
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">
@@ -377,7 +377,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
 
       {/* Legend */}
       <div className="lg:w-64 space-y-1">
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-3">
           {t('vendorConcentration.chart.categories')}
         </p>
         {categories.map((category, index) => (

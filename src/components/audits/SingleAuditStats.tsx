@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle2 } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { FINDING_COLORS } from '../../theme/chartTheme';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 
 interface SingleAuditStatsProps {
     audit: Audit;
@@ -31,26 +31,26 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Score Card */}
-                <GlassCard
+                <PremiumCard glass
                     className="p-6 relative overflow-hidden group"
                     gradientOverlay={true}
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-2xl -mr-16 -mt-16 transition-opacity group-hover:opacity-70 pointer-events-none" />
-                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Santé de l'audit</h4>
+                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">Santé de l'audit</h4>
                     <div className="flex items-end gap-2 relative z-10">
                         <span className="text-4xl font-black text-slate-900 dark:text-white">
                             {100 - (openFindings * 10)}%
                         </span>
-                        <span className="text-sm text-slate-500 dark:text-slate-400 mb-1 font-medium">Score estimé</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-300 mb-1 font-medium">Score estimé</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 relative z-10">
                         Basé sur la sévérité des écarts ouverts.
                     </p>
-                </GlassCard>
+                </PremiumCard>
 
                 {/* Findings Summary */}
-                <GlassCard className="p-6 relative overflow-hidden">
-                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">État des Constats</h4>
+                <PremiumCard glass className="p-6 relative overflow-hidden">
+                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4">État des Constats</h4>
                     <div className="flex items-center justify-between relative z-10">
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
@@ -68,12 +68,12 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                             </div>
                         </div>
                     </div>
-                </GlassCard>
+                </PremiumCard>
 
                 {/* Completion Rate */}
-                <GlassCard className="p-6 relative overflow-hidden flex items-center justify-between">
+                <PremiumCard glass className="p-6 relative overflow-hidden flex items-center justify-between">
                     <div className="relative z-10">
-                        <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Progression</h4>
+                        <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1">Progression</h4>
                         <p className="text-sm text-muted-foreground">Des actions de remédiation</p>
                     </div>
                     <div className="relative z-10">
@@ -81,16 +81,16 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                             <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100 dark:text-slate-800" />
                             <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={226} strokeDashoffset={226 - (226 * completionRate) / 100} className="text-blue-500 transition-all duration-1000" />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 dark:text-slate-200">
+                        <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-200">
                             {completionRate}%
                         </div>
                     </div>
-                </GlassCard>
+                </PremiumCard>
             </div>
 
             {/* Distribution Chart */}
-            <GlassCard className="p-6">
-                <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
+            <PremiumCard glass className="p-6">
+                <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
                 <div className="h-[200px] w-full relative z-10">
                     {findings.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
@@ -132,7 +132,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                         </div>
                     ))}
                 </div>
-            </GlassCard>
+            </PremiumCard>
         </div>
     );
 };

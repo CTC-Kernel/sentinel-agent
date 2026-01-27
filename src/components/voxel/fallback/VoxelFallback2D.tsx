@@ -197,7 +197,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
 
       {/* Mobile-specific message */}
       {reason === 'mobile' && (
-        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 text-center px-4">
+        <p className="mt-6 text-sm text-slate-500 dark:text-slate-300 text-center px-4">
           {t('voxel.fallback.mobileHint')}
         </p>
       )}

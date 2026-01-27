@@ -140,7 +140,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
         {/* Chevron */}
         <ChevronRight className={cn(
           'w-4 h-4 flex-shrink-0 transition-transform',
-          'text-slate-400 dark:text-slate-500',
+          'text-slate-400 dark:text-slate-400',
           'group-hover:translate-x-1 group-hover:text-slate-600 dark:group-hover:text-slate-300'
         )} />
       </div>

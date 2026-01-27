@@ -329,7 +329,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
           <div className="flex items-center gap-6 text-sm">
             {previousScore && (
               <div>
-                <span className="text-slate-500 dark:text-slate-400 mr-2">
+                <span className="text-slate-500 dark:text-slate-300 mr-2">
                   {t('vendorScoring.trend', 'Trend')}:
                 </span>
                 <TrendIndicator

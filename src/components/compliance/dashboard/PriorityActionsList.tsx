@@ -255,7 +255,7 @@ const ActionCard: React.FC<{
           <TrendingUp className="w-4 h-4" />
           <span className="text-sm font-bold">+{action.potentialImprovement}%</span>
         </div>
-        <span className="text-xs text-muted-foreground dark:text-slate-500">
+        <span className="text-xs text-muted-foreground dark:text-slate-400">
           {t('actions.potentialGain', 'gain potentiel')}
         </span>
       </div>
@@ -305,7 +305,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
       )}>
         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
         <div className="relative z-10 flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
@@ -363,7 +363,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
 
       {/* Footer hint */}
       <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/5 relative z-10">
-        <p className="text-xs text-muted-foreground dark:text-slate-500 text-center">
+        <p className="text-xs text-muted-foreground dark:text-slate-400 text-center">
           {t('actions.hint', 'Cliquez sur une action pour commencer')}
         </p>
       </div>

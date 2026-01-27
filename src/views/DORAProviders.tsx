@@ -178,7 +178,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                             </div>
                             <div>
                                 <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.total}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('dora.stats.totalProviders')}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.totalProviders')}</p>
                             </div>
                         </div>
                     </div>
@@ -190,7 +190,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                             </div>
                             <div>
                                 <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.critical}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('dora.stats.criticalProviders')}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.criticalProviders')}</p>
                             </div>
                         </div>
                     </div>
@@ -202,7 +202,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                             </div>
                             <div>
                                 <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.expiringSoon}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('dora.stats.expiringContracts')}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.expiringContracts')}</p>
                             </div>
                         </div>
                     </div>
@@ -216,7 +216,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                                 <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                                     {concentrationAnalysis.nonEuProviders?.length || 0}
                                 </p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('dora.stats.nonEuProviders')}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.nonEuProviders')}</p>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldAlert, Clock, AlertTriangle } from '../ui/Icons';
 import { Skeleton, CardSkeleton } from '../ui/Skeleton';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { useStore } from '../../store';
 
 interface IncidentStatsProps {
@@ -17,7 +17,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
     const { t } = useStore();
 
     return (
-        <GlassCard className="p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group shadow-apple transition-all duration-500">
+        <PremiumCard glass className="p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group shadow-apple transition-all duration-500">
 
             {loading ? (
                 /* Skeleton Loader for Summary Card */
@@ -48,13 +48,13 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                             <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.open}
                             </p>
-                            <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('incidents.activeIncidents')}</span>
+                            <span className="text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{t('incidents.activeIncidents')}</span>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
                         {/* Active Incidents Card */}
-                        <GlassCard hoverEffect={true} className="p-5 rounded-3xl hover:bg-error-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
+                        <PremiumCard glass hover={true} className="p-5 rounded-3xl hover:bg-error-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-[11px] font-black uppercase tracking-widest text-error-text opacity-70">Actifs</span>
                                 <div className="p-2 rounded-xl bg-error-bg ring-1 ring-inset ring-error-border/30 text-error-text shadow-sm">
@@ -63,12 +63,12 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                             </div>
                             <div className="space-y-1">
                                 <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{stats.open}</p>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.toTreat')}</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('incidents.toTreat')}</p>
                             </div>
-                        </GlassCard>
+                        </PremiumCard>
 
                         {/* MTTR Card */}
-                        <GlassCard hoverEffect={true} className="p-5 rounded-3xl hover:bg-success-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
+                        <PremiumCard glass hover={true} className="p-5 rounded-3xl hover:bg-success-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-[11px] font-black uppercase tracking-widest text-success-text opacity-70">MTTR</span>
                                 <div className="p-2 rounded-xl bg-success-bg ring-1 ring-inset ring-success-border/30 text-success-text shadow-sm">
@@ -79,12 +79,12 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                                 <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                     {stats.avgMttrHours !== null ? `${stats.avgMttrHours}h` : '-'}
                                 </p>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.avgDelay')}</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('incidents.avgDelay')}</p>
                             </div>
-                        </GlassCard>
+                        </PremiumCard>
 
                         {/* Critical Ratio Card */}
-                        <GlassCard hoverEffect={true} className="p-5 rounded-3xl hover:bg-warning-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
+                        <PremiumCard glass hover={true} className="p-5 rounded-3xl hover:bg-warning-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-[11px] font-black uppercase tracking-widest text-warning-text opacity-70">Critiques</span>
                                 <div className="p-2 rounded-xl bg-warning-bg ring-1 ring-inset ring-warning-border/30 text-warning-text shadow-sm">
@@ -95,12 +95,12 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                                 <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                     {stats.criticalRatio !== null ? `${stats.criticalRatio}%` : '-'}
                                 </p>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
                             </div>
-                        </GlassCard>
+                        </PremiumCard>
                     </div>
                 </>
             )}
-        </GlassCard>
+        </PremiumCard>
     );
 };

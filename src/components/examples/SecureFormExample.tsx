@@ -269,7 +269,7 @@ export const SecureFormExample: React.FC = () => {
           <button
             type="button"
             onClick={form.resetForm}
-            className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+            className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
           >
             Réinitialiser
           </button>

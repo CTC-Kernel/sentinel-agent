@@ -259,7 +259,7 @@ export const ThreatRegistry: React.FC = () => {
 
             <div className="glass-premium rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
                 <div className="flex items-center space-x-4 mb-6 relative">
-                    <Search className="h-5 w-5 text-slate-500 dark:text-slate-400 absolute left-4" />
+                    <Search className="h-5 w-5 text-slate-500 dark:text-slate-300 absolute left-4" />
                     <input value={searchTerm}
                         aria-label="Rechercher une menace"
                         type="text"
@@ -383,7 +383,7 @@ export const ThreatRegistry: React.FC = () => {
                             variant="ghost"
                             aria-label="Annuler"
                             onClick={handleModalClose}
-                            className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 font-medium"
+                            className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 font-medium"
                         >
                             Annuler
                         </Button>
@@ -434,7 +434,7 @@ const ThreatRegistryCard = React.memo(({
                     <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30' : 'bg-purple-50 text-purple-700 dark:bg-purple-500/10'}`}>
                         <Shield className="h-6 w-6" />
                     </div>
-                    <span className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
+                    <span className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
                         {threat.framework}
                     </span>
                 </div>

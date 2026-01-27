@@ -51,7 +51,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                                 className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 title="Télécharger"
                             >
-                                <Download className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                                <Download className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                             </button>
                         )}
                         <a
@@ -61,13 +61,13 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             title="Ouvrir dans un nouvel onglet"
                         >
-                            <ExternalLink className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            <ExternalLink className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                         </a>
                         <button
                             onClick={onClose}
                             className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
-                            <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                         </button>
                     </div>
                 </div>

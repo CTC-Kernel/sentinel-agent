@@ -49,7 +49,7 @@ const COVERAGE_CONFIG: Record<CoverageStatus, {
   not_assessed: {
     icon: AlertCircle,
     bgColor: 'bg-slate-100 dark:bg-slate-800',
-    textColor: 'text-slate-400 dark:text-slate-500',
+    textColor: 'text-slate-400 dark:text-slate-400',
     borderColor: 'border-slate-200 dark:border-slate-700',
     label: 'Non évalué',
   },
@@ -158,7 +158,7 @@ export const MappingCell: React.FC<MappingCellProps> = ({
                   </div>
                 ))}
                 {requirements.length > 5 && (
-                  <div className="text-xs text-muted-foreground dark:text-slate-500 pt-1">
+                  <div className="text-xs text-muted-foreground dark:text-slate-400 pt-1">
                     +{requirements.length - 5} {t('mapping.more')}
                   </div>
                 )}

@@ -57,7 +57,7 @@ export const Modal: React.FC<ModalProps> = ({
                                             onClick={onClose}
                                             variant="ghost"
                                             size="icon"
-                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                                             aria-label="Fermer"
                                         >
                                             <X className="w-5 h-5" aria-hidden="true" />

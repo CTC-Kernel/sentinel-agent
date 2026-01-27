@@ -58,7 +58,7 @@ export const RiskAdvancedFilters: React.FC<RiskAdvancedFiltersProps> = ({
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-full"
+                    className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full"
                     aria-label="Fermer les filtres"
                 >
                     <X className="h-5 w-5 text-slate-500" />
@@ -109,7 +109,7 @@ export const RiskAdvancedFilters: React.FC<RiskAdvancedFiltersProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={handleClearAll}
-                        className="text-xs text-slate-500 dark:text-slate-400 hover:text-red-500 font-bold transition-colors"
+                        className="text-xs text-slate-500 dark:text-slate-300 hover:text-red-500 font-bold transition-colors"
                     >
                         Réinitialiser tous les filtres
                     </Button>

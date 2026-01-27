@@ -115,7 +115,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                     Éléments Liés
                 </h3>
                 <div className="text-center py-8">
-                    <LinkIcon className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                    <LinkIcon className="h-12 w-12 text-slate-300 dark:text-slate-300 mx-auto mb-3" />
                     <p className="text-sm text-slate-500">Aucun élément lié à cet audit</p>
                     <p className="text-xs text-muted-foreground mt-1">
                         Liez des contrôles, risques, actifs ou projets dans l'onglet Détails
@@ -153,7 +153,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                             </p>
                                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                                 {ctrl.framework && (
-                                                    <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                                    <span className="text-xs text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                                                         {ctrl.framework}
                                                     </span>
                                                 )}

@@ -167,7 +167,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                         <button
                                             aria-label="Supprimer la question"
                                             onClick={() => removeQuestion(q.id)}
-                                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
+                                            className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors"
                                             title="Supprimer"
                                         >
                                             <Trash2 className="w-5 h-5" />
@@ -177,7 +177,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                     {/* Options for Choice types */}
                                     {(q.type === 'choice' || q.type === 'multiple_choice') && (
                                         <div className="md:col-span-12 pl-4 border-l-2 border-brand-200">
-                                            <label className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-2 block">Options de réponse</label>
+                                            <label className="text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-2 block">Options de réponse</label>
                                             <div className="space-y-2">
                                                 {q.options?.map((opt, optIndex) => (
                                                     <div key={optIndex} className="flex gap-2">
@@ -199,7 +199,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                                 const newOptions = q.options?.filter((_, i) => i !== optIndex);
                                                                 updateQuestion(q.id, { options: newOptions });
                                                             }}
-                                                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500"
+                                                            className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-500"
                                                         >
                                                             <X className="w-4 h-4" />
                                                         </button>
@@ -238,7 +238,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                 <button
                     aria-label="Annuler les modifications"
                     onClick={onClose}
-                    className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                 >
                     Annuler
                 </button>

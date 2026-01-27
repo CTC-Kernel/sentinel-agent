@@ -144,7 +144,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab.id
                             ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                            : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:bg-white/5'
+                            : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-white/5'
                             }`}
                     >
                         {tab.icon}
@@ -324,7 +324,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                             className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5"
                                         >
                                             <div className="flex items-start justify-between mb-4">
-                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                                     Service {index + 1}
                                                 </span>
                                                 {!readOnly && serviceFields.length > 1 && (
@@ -483,7 +483,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                             )}
                                         />
                                         {category === 'critical' && (
-                                            <p className="text-xs text-amber-600 dark:text-amber-400 dark:text-amber-400 mt-2">
+                                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
                                                 {t('dora.validation.exit_strategy_required_critical')}
                                             </p>
                                         )}
@@ -577,7 +577,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                     />
 
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">
                                             {t('dora.compliance.certifications')}
                                         </label>
                                         <Controller
@@ -809,7 +809,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
                                     {/* Last Assessment Info (Read Only) */}
                                     {initialData?.riskAssessment?.lastAssessment && (
-                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-300 pt-2 border-t border-slate-200 dark:border-slate-700">
                                             <span>{t('dora.risk.lastAssessment')}:</span>
                                             <span className="font-medium">
                                                 {typeof initialData.riskAssessment.lastAssessment === 'string'

@@ -113,9 +113,9 @@ export const Search: React.FC = () => {
 
             {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2 items-center">
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Filtres actifs:</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Filtres actifs:</span>
                     {advancedFilters.status && (
-                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 dark:bg-slate-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
+                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
                             Statut: {advancedFilters.status}
                         </span>
                     )}
@@ -125,12 +125,12 @@ export const Search: React.FC = () => {
                         </span>
                     )}
                     {advancedFilters.criticality && (
-                        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 dark:text-orange-300 rounded-lg text-xs font-bold">
+                        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-xs font-bold">
                             Criticité: {advancedFilters.criticality}
                         </span>
                     )}
                     {(advancedFilters.dateFrom || advancedFilters.dateTo) && (
-                        <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 text-green-700 dark:text-green-400 dark:text-green-300 rounded-lg text-xs font-bold">
+                        <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-xs font-bold">
                             Période: {advancedFilters.dateFrom || '...'} → {advancedFilters.dateTo || '...'}
                         </span>
                     )}
@@ -158,7 +158,7 @@ export const Search: React.FC = () => {
                         onClick={() => setActiveFilter(filter.id)}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeFilter === filter.id
                             ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
-                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                             }`}
                     >
                         {filter.label}
@@ -178,7 +178,7 @@ export const Search: React.FC = () => {
                         <div
                             key={`${result.type}-${result.id}`}
                             onClick={() => handleNavigate(result)}
-                            className="glass-panel p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 cursor-pointer transition-all group border border-transparent hover:border-brand-200 dark:hover:border-brand-900"
+                            className="glass-panel p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-all group border border-transparent hover:border-brand-200 dark:hover:border-brand-900"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">

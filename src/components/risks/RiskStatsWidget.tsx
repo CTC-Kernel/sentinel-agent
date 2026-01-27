@@ -1,6 +1,6 @@
 import React from 'react';
 import { Risk } from '../../types';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { ShieldAlert, AlertTriangle, Activity, TrendingUp } from '../ui/Icons';
 import { cn } from '../../utils/cn';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
@@ -59,7 +59,7 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {stats.map((stat, index) => (
-                <GlassCard key={index} className="p-4 flex items-center justify-between" hoverEffect>
+                <PremiumCard glass key={index} className="p-4 flex items-center justify-between" hover>
                     <div>
                         <p className="text-sm font-medium text-slate-500 dark:text-muted-foreground">
                             {stat.label}
@@ -76,7 +76,7 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
                     <div className={cn("p-4 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm", stat.bg)}>
                         <stat.icon className={cn("w-6 h-6", stat.color)} />
                     </div>
-                </GlassCard>
+                </PremiumCard>
             ))}
         </div>
     );

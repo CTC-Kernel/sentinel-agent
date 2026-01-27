@@ -76,7 +76,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="glass-panel p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm overflow-x-auto">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-8">Timeline du cycle de vie</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-8">Timeline du cycle de vie</h3>
                 <div className="min-w-[320px] sm:min-w-[500px] md:min-w-[600px] px-4">
                     <LifecycleTimeline
                         status={selectedAsset?.lifecycleStatus || 'Neuf'}
@@ -89,15 +89,15 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
 
             <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-400 dark:text-blue-300 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
                     <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-900/20 text-blue-600 dark:text-blue-400 text-xs font-bold">{selectedAsset?.lifecycleStatus || 'Neuf'}</div>
                 </div>
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Date d'achat</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}</div></div>
-                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Fin de garantie</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}</div></div>
-                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Prix d'achat (€)</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}</div></div>
-                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
+                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Date d'achat</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}</div></div>
+                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Fin de garantie</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}</div></div>
+                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Prix d'achat (€)</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}</div></div>
+                        <div><label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
                     </div>
 
                     {selectedAsset?.purchasePrice && (
@@ -112,7 +112,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                     <p className="text-xl font-black text-blue-700 dark:text-blue-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}</p>
                                 </div>
                             </div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Courbe d'amortissement (5 ans)</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Courbe d'amortissement (5 ans)</h4>
                             <div className="h-40 w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     {getDepreciationData().length === 0 ? (
@@ -200,13 +200,13 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                     </div>
                 )}
                 <div className="space-y-3">
-                    {maintenanceRecords.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (
+                    {maintenanceRecords.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-300 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (
                         <div key={rec.id} className="flex items-start p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md transition-all">
                             <div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div>
                             <div className="flex-1">
                                 <div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[11px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p>
-                                <div className="flex justify-between mt-2"><span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[11px] font-bold text-slate-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div>
+                                <div className="flex justify-between mt-2"><span className="text-[11px] text-slate-500 dark:text-slate-300 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[11px] font-bold text-slate-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div>
                             </div>
                         </div>
                     ))}

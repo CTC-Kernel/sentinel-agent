@@ -234,7 +234,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     type="button"
                                     onClick={cancelEditing}
                                     disabled={isSaving}
-                                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                    className="p-1.5 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                                     aria-label="Annuler"
                                 >
                                     <X className="h-4 w-4" />

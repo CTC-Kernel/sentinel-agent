@@ -101,7 +101,7 @@ export const RoleManagement: React.FC = () => {
             <div className="glass-panel rounded-2xl overflow-hidden border border-white/40 dark:border-white/10">
                 {users.length === 0 ? (
                     <div className="text-center py-12">
-                        <Info className="h-12 w-12 mx-auto text-slate-400 dark:text-slate-600 mb-4" />
+                        <Info className="h-12 w-12 mx-auto text-slate-400 dark:text-slate-300 mb-4" />
                         <p className="text-slate-600 dark:text-muted-foreground">{t('roleManagement.noUsersFound')}</p>
                     </div>
                 ) : (

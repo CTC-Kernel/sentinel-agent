@@ -1,6 +1,6 @@
 import React from 'react';
 import { Database, HardDrive, CalendarDays } from '../../ui/Icons';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 
 interface BackupStatsProps {
     stats: {
@@ -21,9 +21,9 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <GlassCard
+            <PremiumCard glass
                 className="p-6 relative overflow-hidden group"
-                hoverEffect={true}
+                hover={true}
                 gradientOverlay={true}
             >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-info-bg rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-info-500/20 transition-colors"></div>
@@ -36,11 +36,11 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.totalBackups}</p>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
-            <GlassCard
+            <PremiumCard glass
                 className="p-6 relative overflow-hidden group"
-                hoverEffect={true}
+                hover={true}
                 gradientOverlay={true}
             >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-success-bg rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-success-500/20 transition-colors"></div>
@@ -53,11 +53,11 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{formatSize(stats.totalSize)}</p>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
-            <GlassCard
+            <PremiumCard glass
                 className="p-6 relative overflow-hidden group"
-                hoverEffect={true}
+                hover={true}
                 gradientOverlay={true}
             >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/15 dark:bg-violet-400/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/25 dark:group-hover:bg-violet-400/20 transition-colors"></div>
@@ -72,7 +72,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                         </p>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
         </div>
     );
 };

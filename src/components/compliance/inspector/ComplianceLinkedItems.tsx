@@ -51,18 +51,18 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Assets */}
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Actifs Liés</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Actifs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedAssetIds) ? control.relatedAssetIds : []).map(assetId => {
                             const asset = safeAssets.find(a => a.id === assetId);
                             return asset ? (
                                 <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
-                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{asset.name}</span>
-                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
+                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                 </div>
                             ) : null;
                         })}
-                        {(!control.relatedAssetIds || control.relatedAssetIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-400 italic">Aucun actif lié.</p>}
+                        {(!control.relatedAssetIds || control.relatedAssetIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-300 italic">Aucun actif lié.</p>}
                     </div>
                     {canEdit && (
                         <CustomSelect
@@ -78,18 +78,18 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 
                 {/* Suppliers */}
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Fournisseurs Liés</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Fournisseurs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedSupplierIds) ? control.relatedSupplierIds : []).map(supplierId => {
                             const supplier = safeSuppliers.find(s => s.id === supplierId);
                             return supplier ? (
                                 <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
-                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{supplier.name}</span>
-                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
+                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
+                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                 </div>
                             ) : null;
                         })}
-                        {(!control.relatedSupplierIds || control.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-400 italic">Aucun fournisseur lié.</p>}
+                        {(!control.relatedSupplierIds || control.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-300 italic">Aucun fournisseur lié.</p>}
                     </div>
                     {canEdit && (
                         <CustomSelect
@@ -106,7 +106,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 
             {/* Projects (Full Width) */}
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Projets Liés</h3>
+                <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Projets Liés</h3>
                 <div className="space-y-2 mb-4">
                     {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).map(pid => {
                         const project = safeProjects.find(p => p.id === pid);
@@ -121,11 +121,11 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                                         <span className="text-xs text-slate-500">{project.status}</span>
                                     </div>
                                 </div>
-                                {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le projet" onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
+                                {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le projet" onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                             </div>
                         ) : null;
                     })}
-                    {(!control.relatedProjectIds || control.relatedProjectIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-400 italic">Aucun projet lié.</p>}
+                    {(!control.relatedProjectIds || control.relatedProjectIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-300 italic">Aucun projet lié.</p>}
                 </div>
                 {canEdit && (
                     <CustomSelect
@@ -150,7 +150,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         {safeRisks.filter(r => r.mitigationControlIds?.includes(control.id)).map(risk => (
                             <div key={risk.id} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-red-100 dark:border-red-900/30">
                                 <div className="font-bold truncate">{risk.threat}</div>
-                                <div className="text-slate-500">Risque brut: {risk.score}</div>
+                                <div className="text-slate-500 dark:text-slate-400">Risque brut: {risk.score}</div>
                             </div>
                         ))}
                         {riskCount === 0 && <p className="text-xs text-slate-500">Aucun risque atténué par ce contrôle.</p>}
@@ -165,7 +165,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         {safeFindings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').map(finding => (
                             <div key={finding.id} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-yellow-100 dark:border-yellow-900/30">
                                 <div className="font-bold truncate">{finding.description}</div>
-                                <div className="text-slate-500">Type: {finding.type}</div>
+                                <div className="text-slate-500 dark:text-slate-400">Type: {finding.type}</div>
                             </div>
                         ))}
                         {findingsCount === 0 && <p className="text-xs text-slate-500">Aucune non-conformité ouverte.</p>}

@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, X } from '../ui/Icons';
 import { cn } from '../../utils/cn';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { ProgressRing } from '../ui/ProgressRing';
 import { MasterpieceBackground } from '../ui/MasterpieceBackground';
 import { EbiosWorkshopStepper } from './EbiosWorkshopStepper';
@@ -109,7 +109,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
             <div className="flex items-center gap-5">
               <button
                 onClick={handleExit}
-                className="p-2.5 -ml-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-colors"
+                className="p-2.5 -ml-2 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                 title={t('common.exit')}
               >
                 <X className="w-5 h-5" />
@@ -146,12 +146,12 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     <span className="hidden sm:inline">{t('common.saving')}...</span>
                   </div>
                 ) : hasUnsavedChanges ? (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30 text-xs font-medium text-amber-600 dark:text-amber-400 dark:text-amber-400">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-xs font-medium text-amber-600 dark:text-amber-400">
                     <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                     <span className="hidden sm:inline">{t('common.unsavedChanges')}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-slate-400 dark:text-slate-500">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-slate-400 dark:text-slate-400">
                     {t('common.saved')}
                   </div>
                 )}
@@ -179,18 +179,18 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
         {/* Full Stepper (Mobile/Tablet) */}
         <div className="lg:hidden mb-8">
-          <GlassCard className="p-4">
+          <PremiumCard glass className="p-4">
             <EbiosWorkshopStepper
               workshops={analysis.workshops}
               currentWorkshop={currentWorkshop}
               onWorkshopSelect={handleWorkshopSelect}
             />
-          </GlassCard>
+          </PremiumCard>
         </div>
 
         {/* Workshop Header & Description */}
         <div className="mb-8 animate-fade-in-up">
-          <GlassCard className="relative overflow-hidden group">
+          <PremiumCard glass className="relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 dark:bg-blue-400/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
             <div className="relative flex flex-col md:flex-row md:items-start justify-between gap-6">
@@ -203,7 +203,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     {workshopInfo.name[locale]}
                   </h2>
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 max-w-3xl text-lg leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-300 max-w-3xl text-lg leading-relaxed">
                   {workshopInfo.description[locale]}
                 </p>
 
@@ -231,7 +231,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                 </div>
               )}
             </div>
-          </GlassCard>
+          </PremiumCard>
         </div>
 
         {/* AI Assistant */}
@@ -257,8 +257,8 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
               className={cn(
                 "group flex items-center gap-3 px-6 py-3 rounded-2xl font-medium transition-all duration-300",
                 canGoBack
-                  ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm hover:translate-x-1"
-                  : "opacity-60 cursor-not-allowed text-slate-400 dark:text-slate-600"
+                  ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm hover:translate-x-1"
+                  : "opacity-70 cursor-not-allowed text-slate-400 dark:text-slate-300"
               )}
             >
               <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
@@ -276,8 +276,8 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                   className={cn(
                     "px-6 py-3 rounded-2xl font-medium transition-all duration-300 border",
                     hasUnsavedChanges && !isSaving
-                      ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 shadow-sm"
-                      : "bg-transparent border-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                      ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                      : "bg-transparent border-transparent text-slate-400 dark:text-slate-300 cursor-not-allowed"
                   )}
                 >
                   {t('common.save')}
@@ -304,7 +304,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     "group flex items-center gap-3 px-8 py-3 rounded-2xl font-bold transition-all duration-300",
                     canGoForward
                       ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-300 cursor-not-allowed"
                   )}
                 >
                   <div className="text-right">
@@ -322,7 +322,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
       {/* Exit Confirmation Modal */}
       {showExitConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <GlassCard className="max-w-md w-full p-6 shadow-2xl border-white/20">
+          <PremiumCard glass className="max-w-md w-full p-6 shadow-2xl border-white/20">
             <div className="flex items-center gap-3 mb-4 text-amber-500">
               <div className="p-2 bg-amber-50 rounded-lg">
                 <div className="w-6 h-6 rounded-full border-2 border-amber-500 flex items-center justify-center">?</div>
@@ -356,7 +356,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                 {t('common.saveAndExit')}
               </button>
             </div>
-          </GlassCard>
+          </PremiumCard>
         </div>
       )}
     </div>

@@ -348,7 +348,6 @@ export const translations = {
             softwareInventory: 'Inventaire Logiciel',
             agentPolicies: 'Politiques Agents',
             accessReview: 'Revue des Accès',
-            certificates: 'Certificats',
             training: 'Formation',
             threatIntelligence: 'Threat Intelligence',
         },
@@ -974,59 +973,6 @@ export const translations = {
             noParties: 'Aucune partie prenante',
             addPartiesHelp: 'Ajoutez des parties prenantes à l\'écosystème pour les visualiser'
         },
-        certificates: {
-            title: 'Certificats SSL/TLS',
-            subtitle: 'Inventaire et suivi des certificats cryptographiques',
-            dashboard: 'Tableau de bord',
-            list: 'Liste',
-            newCertificate: 'Nouveau',
-            editCertificate: 'Modifier le certificat',
-            kpi: {
-                total: 'Total',
-                valid: 'Valides',
-                expiringSoon: 'Expirent bientôt',
-                expired: 'Expirés'
-            },
-            status: {
-                valid: 'Valide',
-                expiring_soon: 'Expire bientôt',
-                expired: 'Expiré',
-                revoked: 'Révoqué'
-            },
-            expiring30Days: 'Certificats expirant dans les 30 prochains jours',
-            weakCrypto: 'certificat(s) avec cryptographie faible',
-            weakCryptoDesc: 'RSA < 2048 bits ou algorithme SHA1 détecté',
-            form: {
-                name: 'Nom',
-                type: 'Type',
-                commonName: 'Common Name (CN)',
-                domains: 'Domaines (séparés par des virgules)',
-                serialNumber: 'Numéro de série',
-                issuer: 'Émetteur',
-                issuerType: 'Type d\'émetteur',
-                validFrom: 'Date de début',
-                validTo: 'Date d\'expiration',
-                keyAlgorithm: 'Algorithme',
-                keySize: 'Taille de clé (bits)',
-                notes: 'Notes'
-            },
-            success: {
-                created: 'Certificat créé avec succès',
-                updated: 'Certificat mis à jour',
-                deleted: 'Certificat supprimé'
-            },
-            errors: {
-                save: 'Erreur lors de la sauvegarde',
-                delete: 'Erreur lors de la suppression'
-            },
-            empty: {
-                title: 'Aucun certificat',
-                description: 'Ajoutez votre premier certificat SSL/TLS'
-            },
-            expiresIn: 'Expire dans {{days}} jours',
-            expiresToday: 'Expire aujourd\'hui',
-            expiredSince: 'Expiré depuis {{days}} jours'
-        },
         accessReview: {
             title: 'Revue des Accès',
             subtitle: 'Campagnes de révision périodique et détection des comptes dormants',
@@ -1445,7 +1391,6 @@ export const translations = {
             softwareInventory: 'Software Inventory',
             agentPolicies: 'Agent Policies',
             accessReview: 'Access Review',
-            certificates: 'Certificates',
             training: 'Training',
             threatIntelligence: 'Threat Intelligence',
         },
@@ -1825,59 +1770,6 @@ export const translations = {
                 COBIT: 'COBIT (Gouvernance)',
                 ITIL: 'ITIL (Service Management)'
             },
-        },
-        certificates: {
-            title: 'SSL/TLS Certificates',
-            subtitle: 'Certificate inventory and cryptographic asset tracking',
-            dashboard: 'Dashboard',
-            list: 'List',
-            newCertificate: 'New',
-            editCertificate: 'Edit Certificate',
-            kpi: {
-                total: 'Total',
-                valid: 'Valid',
-                expiringSoon: 'Expiring Soon',
-                expired: 'Expired'
-            },
-            status: {
-                valid: 'Valid',
-                expiring_soon: 'Expiring Soon',
-                expired: 'Expired',
-                revoked: 'Revoked'
-            },
-            expiring30Days: 'Certificates expiring in the next 30 days',
-            weakCrypto: 'certificate(s) with weak cryptography',
-            weakCryptoDesc: 'RSA < 2048 bits or SHA1 algorithm detected',
-            form: {
-                name: 'Name',
-                type: 'Type',
-                commonName: 'Common Name (CN)',
-                domains: 'Domains (comma-separated)',
-                serialNumber: 'Serial Number',
-                issuer: 'Issuer',
-                issuerType: 'Issuer Type',
-                validFrom: 'Valid From',
-                validTo: 'Expiration Date',
-                keyAlgorithm: 'Algorithm',
-                keySize: 'Key Size (bits)',
-                notes: 'Notes'
-            },
-            success: {
-                created: 'Certificate created successfully',
-                updated: 'Certificate updated',
-                deleted: 'Certificate deleted'
-            },
-            errors: {
-                save: 'Error saving certificate',
-                delete: 'Error deleting certificate'
-            },
-            empty: {
-                title: 'No certificates',
-                description: 'Add your first SSL/TLS certificate'
-            },
-            expiresIn: 'Expires in {{days}} days',
-            expiresToday: 'Expires today',
-            expiredSince: 'Expired {{days}} days ago'
         },
         accessReview: {
             title: 'Access Review',

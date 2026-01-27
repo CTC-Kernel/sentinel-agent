@@ -22,7 +22,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
     return (
         <div className={className}>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 flex items-center gap-2">
                 <Calendar className="h-3.5 w-3.5" /> {label}
             </label>
             <div className={`

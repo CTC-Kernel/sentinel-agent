@@ -180,7 +180,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
                   >
-                    <p className="text-xs text-blue-700 dark:text-blue-400 dark:text-blue-300 font-medium">
+                    <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
                       {t(
                         'frameworks.activateInfo',
                         'Vous pourrez mapper vos contrôles existants aux exigences de ce framework et suivre votre score de conformité.'
@@ -194,7 +194,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                     onClick={handleClose}
                     disabled={isLoading}
                     ref={cancelButtonRef}

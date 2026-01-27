@@ -52,7 +52,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
         if (!trend) return '';
         if (trend.value > 0) return 'text-success-text bg-success-bg ring-success-border/50';
         if (trend.value < 0) return 'text-error-text bg-error-bg ring-error-border/50';
-        return 'text-slate-600 dark:text-slate-400 bg-slate-500/10 dark:bg-white/5 ring-slate-500/20 dark:ring-white/10';
+        return 'text-slate-600 dark:text-slate-300 bg-slate-500/10 dark:bg-white/5 ring-slate-500/20 dark:ring-white/10';
     };
 
     return (

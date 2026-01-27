@@ -159,7 +159,7 @@ export function DashboardEditModeToggle({
             className={cn(
               'inline-flex items-center rounded-full font-medium transition-all duration-200',
               'text-slate-500 hover:text-slate-900 hover:bg-slate-100',
-              'dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10',
+              'dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10',
               'focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2',
               sizeClasses[size]
             )}
@@ -176,7 +176,7 @@ export function DashboardEditModeToggle({
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
               'bg-slate-100 text-slate-500',
-              'dark:bg-white/5 dark:text-slate-400'
+              'dark:bg-white/5 dark:text-slate-300'
             )}
             aria-live="polite"
           >
@@ -201,7 +201,7 @@ export function DashboardEditModeToggle({
               : [
                 'border-slate-200 bg-white text-slate-700 dark:text-slate-300 shadow-sm',
                 'dark:border-white/10 dark:bg-white/5 dark:text-slate-200',
-                'hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20',
+                'hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20',
                 'focus:ring-slate-500',
               ],
             'focus:outline-none focus:ring-2 focus:ring-offset-2',
@@ -219,7 +219,7 @@ export function DashboardEditModeToggle({
             </>
           ) : (
             <>
-              <Pencil className={cn(iconSize, "text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-colors")} aria-hidden="true" />
+              <Pencil className={cn(iconSize, "text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300 transition-colors")} aria-hidden="true" />
               <span>{t('dashboard.customize')}</span>
             </>
           )}

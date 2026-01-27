@@ -85,7 +85,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <span className="text-white font-bold text-xs">&gt;_</span>
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Splunk</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">SIEM</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 mt-1">SIEM</span>
                         </button>
 
                         <button
@@ -97,7 +97,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <Disc className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Microsoft</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">Sentinel / Defender</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 mt-1">Sentinel / Defender</span>
                         </button>
 
                         <button
@@ -109,7 +109,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <Activity className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">CrowdStrike</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">EDR</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 mt-1">EDR</span>
                         </button>
 
                         <button
@@ -121,7 +121,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <Shield className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">SentinelOne</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">EDR</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 mt-1">EDR</span>
                         </button>
                     </div>
                 )}

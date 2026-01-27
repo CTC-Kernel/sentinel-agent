@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { X, Map, Save, Trash2, AlertTriangle, Lightbulb } from '../../ui/Icons';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { Button } from '../../ui/button';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import type {
@@ -167,11 +167,11 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <PremiumCard glass className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30">
+            <div className="p-2 rounded-xl bg-red-100 dark:bg-amber-900/30">
               <Map className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
@@ -248,7 +248,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
               {t('ebios.workshop3.fearedEvents', 'Événements redoutés')} *
             </label>
             {fearedEvents.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+              <p className="text-sm text-slate-500 dark:text-slate-300 italic">
                 {t('ebios.workshop3.noFearedEvents', 'Aucun événement redouté défini dans l\'Atelier 1')}
               </p>
             ) : (
@@ -263,7 +263,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                       className={cn(
                         "px-3 py-1.5 rounded-lg border text-sm transition-all",
                         isSelected
-                          ? "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 dark:text-red-300"
+                          ? "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
                           : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                       )}
                     >
@@ -298,7 +298,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                       className={cn(
                         "px-3 py-1.5 rounded-lg border text-sm transition-all",
                         isSelected
-                          ? "border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 dark:text-orange-300"
+                          ? "border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
                           : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                       )}
                     >
@@ -334,7 +334,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                 <button
                   type="button"
                   onClick={inheritGravity}
-                  className="text-xs px-2 py-1 rounded bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:bg-amber-9000 transition-colors flex items-center gap-1"
+                  className="text-xs px-2 py-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/40 transition-colors flex items-center gap-1"
                 >
                   <Lightbulb className="w-3 h-3" />
                   {t('ebios.workshop3.inheritGravity', 'Reprendre G{level}').replace('{level}', String(suggestedGravity))}
@@ -360,7 +360,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                     "text-lg font-bold",
                     watchedGravity === g.level
                       ? `text-${g.color}-600 dark:text-${g.color}-400`
-                      : "text-slate-500"
+                      : "text-slate-500 dark:text-slate-400"
                   )}>
                     G{g.level}
                   </span>
@@ -432,7 +432,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
           confirmText={t('common.delete', 'Supprimer')}
           cancelText={t('common.cancel', 'Annuler')}
         />
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

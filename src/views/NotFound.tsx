@@ -21,7 +21,7 @@ export const NotFound: React.FC = () => {
                 animate="visible"
                 className="relative z-10 glass-premium p-12 md:p-16 rounded-3xl max-w-lg w-full mx-6 text-center shadow-apple dark:shadow-2xl overflow-hidden"
             >
-                <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-white/10 flex items-center justify-center mx-auto mb-8 text-slate-500 dark:text-slate-400 shadow-inner">
+                <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-white/10 flex items-center justify-center mx-auto mb-8 text-slate-500 dark:text-slate-300 shadow-inner">
                     <AlertTriangle className="h-10 w-10" />
                 </div>
 
@@ -49,14 +49,14 @@ export const NotFound: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => window.history.back()}
-                            className="w-full text-base py-4 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-all"
+                            className="w-full text-base py-4 rounded-xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                         >
                             Retour
                         </Button>
                         <Button
                             variant="ghost"
                             onClick={() => setShowFeedback(true)}
-                            className="w-full text-base py-4 rounded-xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all"
+                            className="w-full text-base py-4 rounded-xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
                         >
                             Signaler
                         </Button>

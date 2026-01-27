@@ -28,7 +28,7 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
     if (!verified) {
         return showLabel ? (
             <span className={cn(
-                "inline-flex items-center gap-1 text-xs text-muted-foreground dark:text-slate-500",
+                "inline-flex items-center gap-1 text-xs text-muted-foreground dark:text-slate-400",
                 className
             )}>
                 <Bot className="w-3 h-3" />
@@ -66,7 +66,7 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
             default:
                 return {
                     icon: Clock,
-                    color: 'text-slate-500 dark:text-slate-400',
+                    color: 'text-slate-500 dark:text-slate-300',
                     bgColor: 'bg-slate-50 dark:bg-slate-800/50',
                     borderColor: 'border-slate-200 dark:border-slate-700',
                     label: 'N/A'

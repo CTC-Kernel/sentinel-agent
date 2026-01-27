@@ -20,14 +20,14 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                     <button
                         onClick={() => onEdit(group)}
-                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         aria-label={`Modifier le groupe ${group.name}`}
                     >
                         <Edit className="h-4 w-4" />
                     </button>
                     <button
                         onClick={() => setShowConfirmDelete(true)}
-                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         aria-label={`Supprimer le groupe ${group.name}`}
                     >
                         <Trash2 className="h-4 w-4" />
@@ -50,7 +50,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                         const member = users.find(u => u.uid === memberId);
                         if (!member) return null;
                         return (
-                            <div key={memberId} className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 dark:text-slate-400 overflow-hidden" title={member.displayName}>
+                            <div key={memberId} className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 dark:text-slate-300 overflow-hidden" title={member.displayName}>
                                 <img
                                     src={getDefaultAvatarUrl(member?.role)}
                                     alt={member.displayName}

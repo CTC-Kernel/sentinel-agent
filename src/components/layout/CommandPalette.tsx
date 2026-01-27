@@ -230,7 +230,7 @@ export const CommandPalette: React.FC = () => {
 
                 <div className="overflow-y-auto p-2 sm:p-3 max-h-[50vh] sm:max-h-[60vh] custom-scrollbar relative z-10">
                     {filteredItems.length === 0 && !loading ? (
-                        <div className="p-16 text-center text-slate-500 dark:text-slate-400 text-sm flex flex-col items-center">
+                        <div className="p-16 text-center text-slate-500 dark:text-slate-300 text-sm flex flex-col items-center">
                             <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
                                 <Command className="h-8 w-8 opacity-40" />
                             </div>
@@ -250,18 +250,18 @@ export const CommandPalette: React.FC = () => {
                                 >
                                     <div className={`p-2.5 rounded-xl mr-4 transition-colors ${index === selectedIndex
                                         ? 'bg-white/20 text-white'
-                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/5'
+                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/5'
                                         }`}>
                                         <item.icon className="h-5 w-5" />
                                     </div>
                                     <div className="flex-1 text-left">
                                         <span className="font-bold block text-sm">{item.title}</span>
-                                        {item.subtitle && <span className={`text-xs block mt-0.5 ${index === selectedIndex ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{item.subtitle}</span>}
+                                        {item.subtitle && <span className={`text-xs block mt-0.5 ${index === selectedIndex ? 'text-white/80' : 'text-slate-500 dark:text-slate-300'}`}>{item.subtitle}</span>}
                                     </div>
                                     <div className="flex items-center">
                                         <span className={`text-[11px] uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${index === selectedIndex
                                             ? 'bg-white/20 text-white border border-white/20'
-                                            : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5'
+                                            : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/5'
                                             }`}>{item.category}</span>
                                         <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${index === selectedIndex ? 'text-white translate-x-1' : 'text-slate-300 opacity-0 group-hover:opacity-70'}`} />
                                     </div>
@@ -271,7 +271,7 @@ export const CommandPalette: React.FC = () => {
                     )}
                 </div>
 
-                <div className="px-6 py-3 bg-slate-50/80 dark:bg-black/40 border-t border-slate-200/50 dark:border-white/5 flex justify-between items-center text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider backdrop-blur-md relative z-10">
+                <div className="px-6 py-3 bg-slate-50/80 dark:bg-black/40 border-t border-slate-200/50 dark:border-white/5 flex justify-between items-center text-[11px] font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider backdrop-blur-md relative z-10">
                     <span className="flex items-center gap-2">
                         <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                         <span className="font-bold">Sentinel GRC Pro</span>

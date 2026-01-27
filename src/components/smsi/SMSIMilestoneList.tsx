@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Button } from '../ui/button';
 import { Plus } from '../ui/Icons';
 import { Milestone, PDCAPhase } from '../../types/ebios';
@@ -27,7 +27,7 @@ export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
         : milestones;
 
     return (
-        <GlassCard className="p-6">
+        <PremiumCard glass className="p-6">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-foreground">
                     Jalons du programme
@@ -62,7 +62,7 @@ export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
                     ))}
                 </div>
             )}
-        </GlassCard>
+        </PremiumCard>
     );
 };
 

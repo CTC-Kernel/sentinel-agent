@@ -126,7 +126,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
       {/* Error details (dev mode only) */}
       {import.meta.env.DEV && error && (
         <details className="mb-6 max-w-lg">
-          <summary className="text-sm text-slate-500 dark:text-slate-400 cursor-pointer hover:text-muted-foreground">
+          <summary className="text-sm text-slate-500 dark:text-slate-300 cursor-pointer hover:text-muted-foreground">
             Détails de l'erreur
           </summary>
           <pre className="mt-2 p-3 bg-slate-800 rounded text-xs text-red-400 overflow-auto max-h-32">

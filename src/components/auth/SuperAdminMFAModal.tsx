@@ -40,14 +40,14 @@ export const SuperAdminMFAModal: React.FC<SuperAdminMFAModalProps> = ({
       <div className="space-y-6">
         {/* Security Warning */}
         <div className="flex items-start gap-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 dark:border-amber-800/30">
-          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400 dark:text-amber-400 flex-shrink-0">
+          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400 flex-shrink-0">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
             <h4 className="font-semibold text-amber-800 dark:text-amber-300 text-sm">
               Action sensible détectée
             </h4>
-            <p className="text-sm text-amber-700 dark:text-amber-400 dark:text-amber-400 mt-1">
+            <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
               Vous êtes sur le point d'effectuer une action critique :
             </p>
             <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mt-2 italic">

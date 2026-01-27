@@ -43,9 +43,9 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                         {currentDate.toLocaleString(i18n.language, { month: 'long', year: 'numeric' })}
                     </h2>
                     <div className="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-lg p-1">
-                        <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
-                        <button onClick={today} className="px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('audits.calendarLabels.today')}</button>
-                        <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
+                        <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-300" /></button>
+                        <button onClick={today} className="px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('audits.calendarLabels.today')}</button>
+                        <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-300" /></button>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-slate-500">
@@ -65,7 +65,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
             <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
                 {/* Weekdays */}
                 {[0, 1, 2, 3, 4, 5, 6].map(d => (
-                    <div key={d} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <div key={d} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                         {new Date(2024, 0, d).toLocaleString(i18n.language, { weekday: 'short' })}
                     </div>
                 ))}
@@ -92,7 +92,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                     const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
 
                     return (
-                        <div key={day} className={`bg-white dark:bg-slate-900/30 p-2 min-h-[120px] relative group hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors ${isToday ? 'bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900' : ''}`}>
+                        <div key={day} className={`bg-white dark:bg-slate-900/30 p-2 min-h-[120px] relative group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors ${isToday ? 'bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900' : ''}`}>
                             <span className={`absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-400'}`}>
                                 {day}
                             </span>

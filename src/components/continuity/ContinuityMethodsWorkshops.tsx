@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 import {
@@ -714,7 +714,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
                         >
-                            <GlassCard
+                            <PremiumCard glass
                                 className={cn(
                                     "p-5 cursor-pointer transition-all border-2",
                                     isSelected ? "ring-2 ring-indigo-500 border-indigo-300 dark:border-indigo-700" : "border-transparent",
@@ -773,7 +773,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                         </div>
                                     </div>
                                 )}
-                            </GlassCard>
+                            </PremiumCard>
                         </motion.div>
                     );
                 })}
@@ -789,7 +789,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                         className="space-y-6"
                     >
                         {/* Template Overview */}
-                        <GlassCard className="p-6">
+                        <PremiumCard glass className="p-6">
                             <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className={cn("p-4 rounded-2xl text-white", MODULE_CONFIG[selectedTemplate.module].color)}>
@@ -850,7 +850,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                     </ul>
                                 </div>
                             </div>
-                        </GlassCard>
+                        </PremiumCard>
 
                         {/* Phases Accordion */}
                         <div className="space-y-3">
@@ -870,7 +870,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                 const phaseProgress = Math.round((completedTasks / totalTasks) * 100);
 
                                 return (
-                                    <GlassCard key={phase.id} className="overflow-hidden">
+                                    <PremiumCard glass key={phase.id} className="overflow-hidden">
                                         <button
                                             className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                             onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
@@ -880,7 +880,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                     "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
                                                     phaseStatus === 'completed' ? "bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400" :
                                                         phaseStatus === 'in_progress' ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400" :
-                                                            "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-400"
+                                                            "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                                                 )}>
                                                     {phaseStatus === 'completed' ? <CheckCircle className="w-4 h-4" /> : index + 1}
                                                 </div>
@@ -925,7 +925,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                                         {task.isCompleted ? (
                                                                             <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                                                                         ) : (
-                                                                            <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600 mt-0.5 flex-shrink-0" />
+                                                                            <Circle className="w-5 h-5 text-slate-300 dark:text-slate-300 mt-0.5 flex-shrink-0" />
                                                                         )}
                                                                         <div className="flex-1">
                                                                             <div className={cn(
@@ -961,7 +961,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
-                                    </GlassCard>
+                                    </PremiumCard>
                                 );
                             })}
                         </div>
@@ -971,17 +971,17 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
 
             {/* Empty State when no template selected */}
             {!selectedTemplate && (
-                <GlassCard className="p-12 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
+                <PremiumCard glass className="p-12 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
                         <BookOpen className="w-8 h-8 text-indigo-500" />
                     </div>
                     <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                         Sélectionnez une méthodologie
                     </h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto">
+                    <p className="text-slate-500 dark:text-slate-300 text-sm max-w-md mx-auto">
                         Choisissez une méthode ci-dessus pour voir les détails et démarrer un atelier guidé.
                     </p>
-                </GlassCard>
+                </PremiumCard>
             )}
         </div>
     );

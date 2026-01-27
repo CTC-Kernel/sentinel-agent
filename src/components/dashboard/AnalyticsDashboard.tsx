@@ -431,7 +431,7 @@ export const AnalyticsDashboard: React.FC = () => {
                             </div>
                             <div className="p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/30">
                                 <p className="text-2xl font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-400/70 mt-1">Non commencés</p>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-300/70 mt-1">Non commencés</p>
                             </div>
                         </div>
                     </div>

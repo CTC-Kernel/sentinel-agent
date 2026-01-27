@@ -90,7 +90,7 @@ export const UserManagement: React.FC = () => {
 
             {hasSearched && (
                 <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Results ({users.length})</h4>
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider ml-1">Results ({users.length})</h4>
 
                     <div className="grid gap-4">
                         {users.map(user => (
@@ -136,7 +136,7 @@ export const UserManagement: React.FC = () => {
                         ))}
 
                         {users.length === 0 && !loading && (
-                            <div className="text-center py-12 text-slate-500 dark:text-slate-400 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                            <div className="text-center py-12 text-slate-500 dark:text-slate-300 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
                                 No users found matching "{searchTerm}"
                             </div>
                         )}

@@ -256,7 +256,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                                     <div className="p-1.5 rounded-lg bg-amber-200/50 dark:bg-amber-500">
                                         <Zap className="w-4 h-4 text-amber-500" />
                                     </div>
-                                    <span className="text-xs text-amber-700 dark:text-amber-400 dark:text-amber-300">
+                                    <span className="text-xs text-amber-700 dark:text-amber-300">
                                         Essai termine dans <strong>{daysUntilRenewal} jours</strong>
                                     </span>
                                 </div>
@@ -269,7 +269,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                                         <span className="text-xs font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100">
                                             Passez à Pro
                                         </span>
-                                        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                                        <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
                                             Fonctionnalités avancées
                                         </p>
                                     </div>

@@ -355,7 +355,7 @@ export const GeminiAssistant: React.FC = () => {
                         <Send className="h-5 w-5" />
                     </button>
                 </div>
-                <p className="text-[11px] text-center text-slate-500 dark:text-slate-400 mt-3 flex items-center justify-center gap-1.5 opacity-60">
+                <p className="text-[11px] text-center text-slate-500 dark:text-slate-300 mt-3 flex items-center justify-center gap-1.5 opacity-60">
                     <Sparkles className="h-3 w-3" /> Propulsé par Cyber Threat Consulting
                 </p>
             </form>

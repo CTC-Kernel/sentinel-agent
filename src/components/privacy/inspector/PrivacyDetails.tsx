@@ -71,7 +71,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
-                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 block">Finalité</label>
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase mb-2 block">Finalité</label>
                         <p className="text-slate-700 dark:text-muted-foreground">
                             {activity.purpose || "Non spécifié"}
                         </p>
@@ -81,7 +81,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase">Responsabilité</h4>
+                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 mb-3 uppercase">Responsabilité</h4>
                     <div className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 space-y-3">
                         <div className="flex items-center gap-3">
                             <User className="h-4 w-4 text-brand-500" />
@@ -96,7 +96,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
                 </div>
 
                 <div>
-                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase">Métadonnées</h4>
+                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 mb-3 uppercase">Métadonnées</h4>
                     <div className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 space-y-3">
                         <div className="flex items-center gap-3">
                             <Calendar className="h-4 w-4 text-slate-400" />

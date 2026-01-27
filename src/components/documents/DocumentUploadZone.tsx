@@ -30,7 +30,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
                             {fileType?.includes('pdf') ? 'PDF' : fileType?.includes('image') ? 'IMG' : 'DOC'}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 truncate">{fileName || 'Document'}</p>
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{fileName || 'Document'}</p>
                             <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">Voir le fichier</a>
                         </div>
                     </div>
@@ -63,7 +63,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 ]}
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">PDF, Word, Excel, Images (Max {maxSizeMB}Mo)</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">PDF, Word, Excel, Images (Max {maxSizeMB}Mo)</p>
         </div>
     );
 };

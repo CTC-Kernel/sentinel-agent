@@ -280,7 +280,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                                             type="checkbox"
                                                             className="rounded text-brand-600 focus-visible:ring-brand-500"
                                                         />
-                                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                                                             <Shield className="w-3 h-3" /> Sécurisé
                                                         </span>
                                                     </label>
@@ -353,7 +353,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                         error={errors.version?.message}
                                     />
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Statut</label>
+                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 ml-1">Statut</label>
                                         <div className="flex p-1 bg-slate-100 dark:bg-black/20 rounded-xl">
                                             {['Brouillon', 'Publié'].map((s) => (
                                                 <button
@@ -369,7 +369,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Description / Résumé</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 ml-1">Description / Résumé</label>
                                     <Controller
                                         control={control}
                                         name="content"

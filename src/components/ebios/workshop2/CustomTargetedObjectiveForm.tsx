@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { X, Flag, Save, Trash2 } from '../../ui/Icons';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { Button } from '../../ui/button';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import type { TargetedObjective } from '../../../types/ebios';
@@ -113,12 +113,12 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30">
-              <Flag className="w-5 h-5 text-amber-600 dark:text-amber-400 dark:text-amber-400" />
+            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
+              <Flag className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -289,7 +289,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
           confirmText={t('common.delete', 'Supprimer')}
           cancelText={t('common.cancel', 'Annuler')}
         />
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

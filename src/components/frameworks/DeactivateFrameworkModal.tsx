@@ -78,7 +78,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                 <div className="p-6 text-center">
                   {/* Warning Icon */}
                   <motion.div
-                    className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400"
+                    className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
@@ -133,7 +133,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                     <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">
                       {t('frameworks.deactivateWarningTitle', 'Attention')}
                     </h4>
-                    <ul className="text-xs text-amber-700 dark:text-amber-400 dark:text-amber-400 space-y-1.5">
+                    <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-1.5">
                       <li className="flex items-start gap-2">
                         <span className="mt-1 w-1 h-1 rounded-full bg-amber-500 flex-shrink-0" />
                         {t(
@@ -164,7 +164,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                     onClick={onClose}
                     disabled={isLoading}
                     ref={cancelButtonRef}

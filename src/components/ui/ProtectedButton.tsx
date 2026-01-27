@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { ErrorLogger } from '../../services/errorLogger';
 import { buttonVariants } from './button-variants';
 import { type VariantProps } from "class-variance-authority";
-import { cn } from '../../lib/utils';
-import { Spinner } from './Spinner';
+
+import { Button } from './button';
 
 /**
  * Composant Button avec protection double-submit intégrée
@@ -53,22 +53,17 @@ export const ProtectedButton: React.FC<ProtectedButtonProps> = ({
     }, [onClick, lastClickTime, clickCount]);
 
     return (
-        <button
+        <Button
             {...props}
             onClick={handleClick}
-            disabled={disabled || isSubmitting}
-            className={cn(buttonVariants({ variant, size, className }))}
-            aria-busy={isSubmitting}
-            aria-disabled={disabled || isSubmitting}
+            disabled={disabled}
+            isLoading={isSubmitting}
+            loadingText={loadingText}
+            variant={variant}
+            size={size}
+            className={className}
         >
-            {isSubmitting ? (
-                <>
-                    <Spinner className="mr-2 h-4 w-4" size="sm" />
-                    {loadingText}
-                </>
-            ) : (
-                children
-            )}
-        </button>
+            {children}
+        </Button>
     );
 };

@@ -144,7 +144,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                             type="button"
                             onClick={onCancel}
                             disabled={isSubmitting}
-                            className="text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                         >
                             Annuler
                         </Button>

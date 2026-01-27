@@ -308,7 +308,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                         <Tooltip content={t('assets.printLabel')}>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
-                                                className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 dark:text-slate-300 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                                 disabled={isGeneratingLabels}
                                             >
                                                 <Tag className="h-4 w-4" />

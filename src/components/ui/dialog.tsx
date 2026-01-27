@@ -61,7 +61,7 @@ export const DialogTitle: React.FC<DialogTitleProps> = ({ children, className = 
 
 export const DialogDescription: React.FC<DialogTitleProps> = ({ children, className = '' }) => {
   return (
-    <div className={`mt-2 text-sm text-slate-500 dark:text-slate-400 ${className}`}>
+    <div className={`mt-2 text-sm text-slate-500 dark:text-slate-300 ${className}`}>
       {children}
     </div>
   );

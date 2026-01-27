@@ -16,7 +16,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { useAuditLogs } from '../../hooks/audit/useAuditLogs';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 
 export const SystemSettings: React.FC = () => {
     const { user, addToast, t } = useStore();
@@ -165,7 +165,7 @@ export const SystemSettings: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 animate-slide-in-left">{t('settings.system')}</h2>
 
             {hasPermission(user, 'Settings', 'read') && (
-                <GlassCard className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+                <PremiumCard glass className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
@@ -183,11 +183,11 @@ export const SystemSettings: React.FC = () => {
                             className="bg-transparent border-none"
                         />
                     </div>
-                </GlassCard>
+                </PremiumCard>
             )}
 
             {/* Data Export */}
-            <GlassCard className="p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group">
+            <PremiumCard glass className="p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
@@ -222,10 +222,10 @@ export const SystemSettings: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
             {/* GDPR Personal Data Export - Always Available */}
-            <GlassCard className="p-8 rounded-3xl border border-success-500/30 dark:border-success-500/20 shadow-sm relative overflow-hidden group">
+            <PremiumCard glass className="p-8 rounded-3xl border border-success-500/30 dark:border-success-500/20 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-success-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
@@ -263,11 +263,11 @@ export const SystemSettings: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
             {/* Demo Zone - Visible only to demo user or in dev */}
             {(user?.email === 'demo@sentinel-grc.com' || import.meta.env.DEV) && (
-                <GlassCard className="p-8 rounded-3xl border border-violet-500/30 dark:border-violet-500/20 shadow-sm relative overflow-hidden group">
+                <PremiumCard glass className="p-8 rounded-3xl border border-violet-500/30 dark:border-violet-500/20 shadow-sm relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                     <div className="relative z-10">
                         <div className="flex items-start gap-4">
@@ -314,11 +314,11 @@ export const SystemSettings: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </GlassCard>
+                </PremiumCard>
             )}
 
             {/* Danger Zone */}
-            <GlassCard className="p-8 rounded-3xl border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
+            <PremiumCard glass className="p-8 rounded-3xl border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
@@ -344,7 +344,7 @@ export const SystemSettings: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
             <ConfirmModal
                 isOpen={isDeleteModalOpen}

@@ -364,7 +364,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="text-center">
                                 <span className="text-3xl font-black text-slate-900 dark:text-white">{stats.resolutionRate}%</span>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Résolution</p>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold tracking-wider">Résolution</p>
                             </div>
                         </div>
                         {/* Animated pulse ring */}
@@ -377,7 +377,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Performance</span>
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white">Taux de Résolution</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 max-w-[200px]">
                             {stats.resolved}/{stats.total} incidents traités
                         </p>
                         {stats.trend !== 0 && (
@@ -395,26 +395,26 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                     <div className="group/card relative rounded-2xl bg-gradient-to-br from-white/60 to-white/30 dark:from-white/10 dark:to-white/5 border border-white/60 dark:border-white/10 p-4 backdrop-blur-xl shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:border-brand-300">
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-transparent rounded-2xl opacity-0 group-hover/card:opacity-70 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 opacity-70">Total</span>
-                            <div className="p-2 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-500 dark:text-slate-400 shadow-inner">
+                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 opacity-70">Total</span>
+                            <div className="p-2 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-500 dark:text-slate-300 shadow-inner">
                                 <Target className="h-4 w-4" />
                             </div>
                         </div>
                         <p className="text-3xl font-black text-slate-900 dark:text-white relative">{stats.total}</p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">incidents</p>
+                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">incidents</p>
                     </div>
 
                     {/* Open */}
                     <div className="group/card relative rounded-2xl bg-gradient-to-br from-white/60 to-amber-50/50 dark:from-white/10 dark:to-amber-900/20 border border-white/60 dark:border-white/10 p-4 backdrop-blur-xl shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:border-amber-500/30">
                         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-2xl opacity-0 group-hover/card:opacity-70 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 dark:text-amber-400 opacity-80">Actifs</span>
-                            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/50 dark:to-amber-950/50 text-amber-600 dark:text-amber-400 dark:text-amber-400 shadow-inner ring-1 ring-amber-200/50 dark:ring-amber-800/50">
+                            <span className="text-[11px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 opacity-80">Actifs</span>
+                            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/50 dark:to-amber-950/50 text-amber-600 dark:text-amber-400 shadow-inner ring-1 ring-amber-200/50 dark:ring-amber-800/50">
                                 <Siren className="h-4 w-4" />
                             </div>
                         </div>
                         <p className={`text-3xl font-black relative ${stats.open > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>{stats.open}</p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">en cours</p>
+                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">en cours</p>
                         {stats.open > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
                     </div>
 
@@ -428,7 +428,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                             </div>
                         </div>
                         <p className={`text-3xl font-black relative ${stats.critical > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>{stats.critical}</p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">à traiter</p>
+                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">à traiter</p>
                         {stats.critical > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-500 animate-ping" />}
                     </div>
 
@@ -444,7 +444,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         <p className="text-3xl font-black text-slate-900 dark:text-white relative">
                             {stats.mttrHours !== null ? `${stats.mttrHours}h` : '-'}
                         </p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">délai moyen</p>
+                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">délai moyen</p>
                     </div>
                 </div>
 
@@ -457,13 +457,13 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         </div>
                     )}
                     {stats.agentAlerts > 0 && (
-                        <div className="group flex items-center gap-3 text-xs font-bold text-amber-600 dark:text-amber-400 dark:text-amber-400 bg-gradient-to-r from-amber-50/90 to-amber-100/50 dark:from-amber-900/30 dark:to-amber-800/20 px-4 py-3 rounded-xl border border-amber-1000 dark:border-amber-800/30 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-md">
+                        <div className="group flex items-center gap-3 text-xs font-bold text-amber-600 dark:text-amber-400 bg-gradient-to-r from-amber-50/90 to-amber-100/50 dark:from-amber-900/30 dark:to-amber-800/20 px-4 py-3 rounded-xl border border-amber-200 dark:border-amber-800/30 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-md">
                             <Bot className="h-4 w-4 shrink-0 group-hover:animate-pulse" />
                             <span>{stats.agentErrors} erreurs, {stats.agentOffline} hors ligne</span>
                         </div>
                     )}
                     {stats.critical > 0 && (
-                        <div className="group flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-gradient-to-r from-red-50/90 to-red-100/50 dark:from-red-900/30 dark:to-red-800/20 px-4 py-3 rounded-xl border border-red-1000 dark:border-red-800/30 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-md">
+                        <div className="group flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-gradient-to-r from-red-50/90 to-red-100/50 dark:from-red-900/30 dark:to-red-800/20 px-4 py-3 rounded-xl border border-red-200 dark:border-red-800/30 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-md">
                             <ShieldAlert className="h-4 w-4 shrink-0 group-hover:animate-pulse" />
                             <span>{stats.critical} critiques ouverts</span>
                         </div>
@@ -536,7 +536,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <div className="text-center">
                                             <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p>
-                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold">Total</p>
+                                            <p className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold">Total</p>
                                         </div>
                                     </div>
                                 )}
@@ -552,7 +552,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 onMouseLeave={() => setActiveIndex(null)}
                             >
                                 <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
-                                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">{item.name} ({item.value})</span>
+                                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{item.name} ({item.value})</span>
                             </div>
                         ))}
                     </div>

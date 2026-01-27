@@ -47,10 +47,7 @@ const Reports = React.lazy(() => import('../../views/Reports').then(module => ({
 const Agents = React.lazy(() => import('../../views/Agents'));
 
 // Agent Groups & Policies (Sprint 9)
-const AgentPolicies = React.lazy(() => import('../../views/AgentPolicies'));
-
 // Software Inventory & CIS Benchmarks (Sprint 6)
-const SoftwareInventory = React.lazy(() => import('../../views/SoftwareInventory'));
 
 // EBIOS RM Module (detail page only - list view is now in Risks)
 const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDetail').then(module => ({ default: module.EbiosAnalysisDetail })));
@@ -60,9 +57,6 @@ const SMSIProgram = React.lazy(() => import('../../views/SMSIProgram').then(modu
 
 // Training Module (NIS2 Art. 21.2g)
 const Training = React.lazy(() => import('../../views/Training'));
-
-// Certificates Module (NIS2 Art. 21.2h)
-const Certificates = React.lazy(() => import('../../views/Certificates'));
 
 // Access Review Module (NIS2 Art. 21.2i)
 const AccessReview = React.lazy(() => import('../../views/AccessReview'));
@@ -100,8 +94,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/risks" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Risks /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/vulnerabilities" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Vulnerabilities /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/agents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Agents /></AnimatedPage></RoleGuardComponent>} />
-                <Route path="/agent-policies" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><AgentPolicies /></AnimatedPage></RoleGuardComponent>} />
-                <Route path="/software-inventory" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><SoftwareInventory /></AnimatedPage></RoleGuardComponent>} />
+
                 <Route path="/threat-library" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatRegistry /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatIntelligence /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/reports" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Reports /></AnimatedPage></RoleGuardComponent>} />
@@ -118,7 +111,6 @@ export const AnimatedRoutes: React.FC = () => {
                 } />
                 <Route path="/audits" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Audits /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/training" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Training /></AnimatedPage></RoleGuardComponent>} />
-                <Route path="/certificates" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Certificates /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/access-review" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><AccessReview /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/team" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi']}>

@@ -102,7 +102,7 @@ const VendorRow: React.FC<VendorRowProps> = ({ vendor, services, cells, onClick 
       >
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800">
-            <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-300" />
           </div>
           <div>
             <p className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[150px]">
@@ -151,7 +151,7 @@ const ListItem: React.FC<ListItemProps> = ({ vendor, cells, expanded, onToggle }
       >
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-            <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-300" />
           </div>
           <div className="text-left">
             <p className="font-medium text-slate-900 dark:text-white">
@@ -189,7 +189,7 @@ const ListItem: React.FC<ListItemProps> = ({ vendor, cells, expanded, onToggle }
 
       {expanded && (
         <div className="border-t border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/30">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-3">
             {t('vendorConcentration.matrix.services')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -307,7 +307,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
             className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all ${
               filters.showCriticalOnly
                 ? 'bg-red-100 dark:bg-red-900/30 text-red-600'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
             }`}
           >
             <AlertCircle className="h-4 w-4" />
@@ -368,21 +368,21 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
 
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs">
-        <span className="text-slate-500">{t('vendorConcentration.matrix.legend')}:</span>
+        <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.matrix.legend')}:</span>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30" />
+          <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">L = {t('vendorConcentration.matrix.levelLow')}</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-yellow-100 dark:bg-yellow-900/30 dark:bg-yellow-900/30" />
+          <div className="w-4 h-4 rounded bg-yellow-100 dark:bg-yellow-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">M = {t('vendorConcentration.matrix.levelMedium')}</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30" />
+          <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">H = {t('vendorConcentration.matrix.levelHigh')}</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30" />
+          <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">C = {t('vendorConcentration.matrix.levelCritical')}</span>
         </div>
         <div className="flex items-center gap-1">
@@ -394,8 +394,8 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
       {/* Content */}
       {filteredData.vendors.length === 0 ? (
         <div className="text-center py-12">
-          <Layers className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-500">{t('vendorConcentration.matrix.noData')}</p>
+          <Layers className="h-12 w-12 text-slate-300 dark:text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.matrix.noData')}</p>
         </div>
       ) : viewMode === 'matrix' ? (
         /* Matrix View */
@@ -403,13 +403,13 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800">
-                <th className="p-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide sticky left-0 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
+                <th className="p-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide sticky left-0 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
                   {t('vendorConcentration.matrix.vendor')}
                 </th>
                 {filteredData.services.map(service => (
                   <th
                     key={service.id}
-                    className="p-2 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide min-w-[80px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+                    className="p-2 text-center text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide min-w-[80px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
                     onClick={() => onServiceClick?.(service.id)}
                   >
                     <div className="flex items-center justify-center gap-1">

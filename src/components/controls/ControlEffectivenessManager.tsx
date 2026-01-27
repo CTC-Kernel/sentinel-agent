@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
@@ -104,18 +104,18 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
                   "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
                   maturityLevel >= 4 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
                     maturityLevel >= 3 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
-                      maturityLevel >= 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 dark:text-amber-400' :
-                        'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                      maturityLevel >= 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
+                        'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                 )}>
                   {maturityLevel}
                 </div>
               </div>
 
               <h4 className="font-medium text-slate-900 dark:text-white text-sm mb-1">{domain.title}</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 line-clamp-1">{domain.description}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-300 mb-3 line-clamp-1">{domain.description}</p>
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500">{assessedCount}/{controls.length} évalués</span>
+                <span className="text-slate-500 dark:text-slate-400">{assessedCount}/{controls.length} évalués</span>
                 <span className={cn(
                   "font-medium",
                   avgEffectiveness >= 60 ? 'text-emerald-600 dark:text-emerald-400' :
@@ -189,7 +189,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
   };
 
   return (
-    <GlassCard className="p-6">
+    <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -225,7 +225,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
               <div className="flex-1 min-w-0">
                 <span className={cn(
                   "text-sm",
-                  hasAssessment ? "text-slate-900 dark:text-white" : "text-slate-500"
+                  hasAssessment ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"
                 )}>
                   {control.name}
                 </span>
@@ -262,7 +262,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
           );
         })}
       </div>
-    </GlassCard>
+    </PremiumCard>
   );
 };
 

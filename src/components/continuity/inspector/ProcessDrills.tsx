@@ -14,7 +14,7 @@ export const ProcessDrills: React.FC<ProcessDrillsProps> = ({ drills }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('continuity.recentDrills')}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('continuity.recentDrills')}</h3>
             </div>
 
             {drills.length > 0 ? (
@@ -22,7 +22,7 @@ export const ProcessDrills: React.FC<ProcessDrillsProps> = ({ drills }) => {
                     {drills.map(d => (
                         <div key={d.id} className="flex items-center justify-between p-4 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm hover:border-brand-200 transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className={`p-2.5 rounded-xl ${d.result === 'Succès' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                <div className={`p-2.5 rounded-xl ${d.result === 'Succès' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
                                     <Zap className="h-5 w-5" />
                                 </div>
                                 <div>

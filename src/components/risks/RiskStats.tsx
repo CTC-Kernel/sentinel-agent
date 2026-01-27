@@ -4,7 +4,7 @@ import { TrendingDown } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { slideUpVariants } from '../ui/animationVariants';
 import { Risk } from '../../types';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 
 interface RiskStatsProps {
     stats: {
@@ -20,13 +20,13 @@ interface RiskStatsProps {
 export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
     return (
         <motion.div variants={slideUpVariants}>
-            <GlassCard
+            <PremiumCard glass
                 className="p-6 md:p-8 relative overflow-hidden group"
                 gradientOverlay={true}
             >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-10">
                     <div className="space-y-2">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 flex items-center gap-2">
                             <span className="inline-flex h-2 w-2 rounded-full bg-brand-500 animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
                             Vue globale des risques
                         </p>
@@ -75,7 +75,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
                         </div>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
         </motion.div>
     );
 };

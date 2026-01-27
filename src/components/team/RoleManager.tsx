@@ -201,15 +201,15 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-800/50 text-left">
                                     <tr>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider rounded-tl-lg">Ressource</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider rounded-tl-lg">Ressource</th>
                                         {ACTIONS.map(action => (
-                                            <th key={action} className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">{action}</th>
+                                            <th key={action} className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-center">{action}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                     {RESOURCES.map(resource => (
-                                        <tr key={resource} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors">
+                                        <tr key={resource} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                             <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{resource}</td>
                                             {ACTIONS.map(action => (
                                                 <PermissionCheck

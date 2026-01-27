@@ -79,7 +79,7 @@ export const SentinelAssistant: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">Poser une question</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">"Comment garantissez-vous la sécurité ?"</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-300">"Comment garantissez-vous la sécurité ?"</p>
                                 </div>
                             </button>
                         </div>
@@ -94,11 +94,11 @@ export const SentinelAssistant: React.FC = () => {
                 <div className="mt-10 pt-6 border-t border-slate-200 dark:border-white/10 flex justify-between items-center opacity-70 hover:opacity-70 transition-opacity">
                     <div className="flex items-center gap-2" title="Hébergement certifié SecNumCloud">
                         <Globe className="w-4 h-4 text-brand-600 dark:text-brand-400" />
-                        <span className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">SecNumCloud Ready</span>
+                        <span className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-300 font-bold">SecNumCloud Ready</span>
                     </div>
                     <div className="flex items-center gap-2" title="Chiffrement de bout en bout">
                         <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">End-To-End Encrypted</span>
+                        <span className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-300 font-bold">End-To-End Encrypted</span>
                     </div>
                 </div>
 

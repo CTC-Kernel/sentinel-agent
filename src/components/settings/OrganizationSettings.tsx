@@ -20,7 +20,7 @@ import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key suppo
 import { UserRow } from './UserRow';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
 import { Switch } from '../ui/Switch';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 
 const SECONDS_TO_MS = 1000;
 
@@ -302,7 +302,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Admin Details */}
             {hasPermission(user, 'Settings', 'manage') && (
-                <GlassCard className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <PremiumCard glass className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
@@ -461,12 +461,12 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                         </form>
                     </div>
-                </GlassCard>
+                </PremiumCard>
             )}
 
             {/* User Management */}
             {user && hasPermission(user, 'User', 'manage') && (
-                <GlassCard className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <PremiumCard glass className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -475,7 +475,7 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t('settings.membersCount').replace('{count}', usersList.length.toString())}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">{t('settings.membersCount').replace('{count}', usersList.length.toString())}</p>
                             </div>
                         </div>
                         <div className="relative">
@@ -507,7 +507,7 @@ export const OrganizationSettings: React.FC = () => {
                             />
                         ))}
                     </div>
-                </GlassCard>
+                </PremiumCard>
             )}
         </div>
     );

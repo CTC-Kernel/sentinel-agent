@@ -110,7 +110,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             {/* Internal Team */}
             <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-widest flex items-center">
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest flex items-center">
                         <Shield className="h-3.5 w-3.5 mr-2" /> Équipe Interne
                     </h3>
                     {canEdit && !isAddingInternal && (
@@ -131,7 +131,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                             />
                         </div>
                         <button onClick={handleAddInternal} aria-label="Confirmer l'ajout" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">OK</button>
-                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
+                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 
@@ -151,7 +151,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                         </div>
                                     </div>
                                     {canEdit && (
-                                        <button onClick={() => handleRemoveInternal(userId)} aria-label={`Retirer ${userObj?.displayName || 'l\'utilisateur'}`} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
+                                        <button onClick={() => handleRemoveInternal(userId)} aria-label={`Retirer ${userObj?.displayName || 'l\'utilisateur'}`} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     )}
@@ -159,7 +159,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                             );
                         })
                     ) : (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 italic">Aucun collaborateur interne.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucun collaborateur interne.</p>
                     )}
                 </div>
             </div>
@@ -167,7 +167,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             {/* External Auditors */}
             <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-widest flex items-center">
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest flex items-center">
                         <ExternalLink className="h-3.5 w-3.5 mr-2" /> Auditeurs Externes
                     </h3>
                     {canEdit && !isAddingExternal && (
@@ -188,7 +188,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                             />
                         </div>
                         <button onClick={handleAddExternal} aria-label="Envoyer l'invitation" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Inviter</button>
-                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
+                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 
@@ -206,14 +206,14 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                     </div>
                                 </div>
                                 {canEdit && (
-                                    <button onClick={() => handleRemoveExternal(email)} aria-label={`Retirer l'auditeur ${email}`} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
+                                    <button onClick={() => handleRemoveExternal(email)} aria-label={`Retirer l'auditeur ${email}`} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 )}
                             </div>
                         ))
                     ) : (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 italic">Aucun auditeur externe invité.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucun auditeur externe invité.</p>
                     )}
                 </div>
             </div>

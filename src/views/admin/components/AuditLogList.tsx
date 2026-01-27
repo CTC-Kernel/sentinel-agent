@@ -100,7 +100,7 @@ export const AuditLogList: React.FC = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
+                            <tr className="border-b border-slate-800 text-xs uppercase text-slate-500 dark:text-slate-300 font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
                                 <th className="px-6 py-4 whitespace-nowrap">Timestamp</th>
                                 <th className="px-6 py-4 whitespace-nowrap">Actor</th>
                                 <th className="px-6 py-4 whitespace-nowrap">Action</th>
@@ -139,7 +139,7 @@ export const AuditLogList: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="group relative inline-block text-left">
-                                                <Info className="w-4 h-4 text-slate-500 dark:text-slate-400 hover:text-white cursor-pointer" />
+                                                <Info className="w-4 h-4 text-slate-500 dark:text-slate-300 hover:text-white cursor-pointer" />
                                                 <div className="absolute right-0 mt-2 w-64 origin-top-right bg-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 z-10 hidden group-hover:block">
                                                     <pre className="text-[11px] text-slate-300 whitespace-pre-wrap overflow-auto max-h-48">
                                                         {JSON.stringify(log.metadata, null, 2)}

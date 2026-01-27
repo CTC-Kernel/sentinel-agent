@@ -93,7 +93,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="font-bold text-slate-900 dark:text-white">{req.dataSubject}</span>
-                                            <span className="text-xs text-slate-500 dark:text-slate-400 px-2 py-0.5 bg-slate-100 dark:bg-slate-900 rounded-md font-mono">{req.id}</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-300 px-2 py-0.5 bg-slate-100 dark:bg-slate-900 rounded-md font-mono">{req.id}</span>
                                         </div>
                                         <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-muted-foreground">
                                             <span className="flex items-center gap-1">
@@ -107,7 +107,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                 </div>
                                 <div className="flex items-center gap-4 self-end md:self-center">
                                     <div className="text-right hidden md:block">
-                                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Reçu le</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-300 mb-1">Reçu le</div>
                                         <div className="text-sm font-medium">{format(new Date(req.submissionDate), 'dd MMM yyyy', { locale: fr })}</div>
                                     </div>
                                     <Badge status={getStatusColor(req.status) as 'info' | 'brand' | 'success' | 'error' | 'neutral'}>{req.status}</Badge>

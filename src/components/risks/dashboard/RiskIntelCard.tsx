@@ -5,7 +5,7 @@ import {
     ArrowRight, AlertTriangle, CheckCircle
 } from '../../ui/Icons';
 import { Risk } from '../../../types';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../../../constants/RiskConstants';
 import { cn } from '../../../utils/cn';
 import { format } from 'date-fns';
@@ -46,19 +46,19 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
     // --- 2. Empty State ---
     if (!metrics) {
         return (
-            <GlassCard className="p-8 flex items-center justify-center min-h-[200px]">
+            <PremiumCard glass className="p-8 flex items-center justify-center min-h-[200px]">
                 <div className="text-center opacity-60">
                     <Activity className="w-12 h-12 mx-auto mb-4 text-slate-400" />
                     <p className="text-lg font-medium">En attente de données...</p>
                     <p className="text-sm">Ajoutez des risques pour activer l'intelligence.</p>
                 </div>
-            </GlassCard>
+            </PremiumCard>
         );
     }
 
     // --- 3. Render "The Command Center" ---
     return (
-        <GlassCard className="mb-8 overflow-hidden relative border-t border-white/20 dark:border-white/10" hoverEffect={false}>
+        <PremiumCard glass className="mb-8 overflow-hidden relative border-t border-white/20 dark:border-white/10" hover={false}>
             {/* Ambient Background Gradient for "Hero" feel */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-500/5 to-transparent pointer-events-none" />
 
@@ -139,7 +139,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                         <div className="relative h-12 md:h-16 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
                             <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-200 to-red-100 dark:from-red-900/40 dark:to-red-800/20 w-full" />
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-right">
-                                <span className="block text-xs font-bold text-red-700 dark:text-red-400 dark:text-red-300 uppercase tracking-wider">Risque Brut Moyen</span>
+                                <span className="block text-xs font-bold text-red-700 dark:text-red-300 uppercase tracking-wider">Risque Brut Moyen</span>
                                 <span className="block text-lg md:text-2xl font-black text-red-800 dark:text-red-200">{metrics.avgInherent.toFixed(1)}</span>
                             </div>
                         </div>
@@ -159,7 +159,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                     </div>
 
                     {/* Value indicator below the bars */}
-                    <div className="flex items-center justify-center gap-2 mt-4 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center justify-center gap-2 mt-4 text-sm text-slate-500 dark:text-slate-300">
                         <ArrowRight className="w-4 h-4" />
                         <span className="font-medium">Valeur Créée: Sécurisation du patrimoine</span>
                     </div>
@@ -170,6 +170,6 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                     </p>
                 </div>
             </div>
-        </GlassCard>
+        </PremiumCard>
     );
 };

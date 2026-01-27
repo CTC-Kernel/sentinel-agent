@@ -162,7 +162,7 @@ function DayCell({
           INTENSITY_COLORS[isFutureDate ? 0 : intensity],
           isSelected && 'ring-2 ring-primary ring-offset-1',
           isTodayDate && 'ring-1 ring-foreground/30',
-          isFutureDate && 'opacity-60 cursor-not-allowed'
+          isFutureDate && 'opacity-70 cursor-not-allowed'
         )}
         onClick={isFutureDate ? undefined : onClick}
         disabled={isFutureDate}

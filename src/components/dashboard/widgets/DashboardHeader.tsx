@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, ShieldCheck, Users, LayoutDashboard, Check, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Lightbulb, Sparkles, Target, Calendar, Download, Bot } from '../../ui/Icons';
 import { Rocket } from '../../ui/Icons';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { ShinyText } from '../../ui/ShinyText';
 import { Spotlight } from '../../ui/aceternity/Spotlight';
 import { BorderBeam } from '../../ui/aceternity/BorderBeam';
@@ -201,13 +201,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             bg: 'bg-slate-100 dark:bg-slate-800',
             bgHover: 'group-hover/card:bg-slate-200 dark:group-hover/card:bg-slate-700',
             iconBg: 'bg-slate-100 dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-200 dark:ring-slate-700',
-            iconText: 'text-slate-600 dark:text-slate-400'
+            iconText: 'text-slate-600 dark:text-slate-300'
         }
     };
 
     if (isEmpty && !loading) {
         return (
-            <GlassCard className="relative overflow-hidden rounded-3xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
+            <PremiumCard glass className="relative overflow-hidden rounded-3xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-500/20 via-background/0 to-background/0 dark:from-brand-500/10 dark:via-background/0 dark:to-background/0 opacity-60 transition-opacity duration-1000 group-hover:opacity-70" />
                 <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
@@ -247,7 +247,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         })}
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
         );
     }
 
@@ -262,7 +262,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--brand-400)_0%,var(--info-400)_25%,var(--brand-500)_50%,var(--success-400)_75%,var(--brand-400)_100%)] animate-shimmer-rotate opacity-60 group-hover:opacity-70 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
             <div className="absolute inset-[1px] rounded-3xl bg-background/95 dark:bg-slate-950/95" />
 
-            <GlassCard className="glass-premium relative rounded-3xl overflow-hidden shadow-none border-none bg-gradient-to-br from-white/80 via-white/60 to-slate-50/80 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950/90">
+            <PremiumCard glass className="glass-premium relative rounded-3xl overflow-hidden shadow-none border-none bg-gradient-to-br from-white/80 via-white/60 to-slate-50/80 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950/90">
                 {/* Multi-layer Spotlight Effects */}
                 <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--brand-500)" />
                 <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-60" fill="var(--info-400)" />
@@ -345,7 +345,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex items-center gap-3 justify-center xl:justify-start"
                                 >
-                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-300 dark:text-slate-200 uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600">
+                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600">
                                         {t('common.pilotage')}
                                     </span>
                                     <div className="hidden sm:block h-[2px] w-10 bg-gradient-to-r from-slate-400 to-transparent rounded-full" />
@@ -357,7 +357,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                                 >
-                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">
                                         {getGreeting()}, <span className="text-slate-700 dark:text-slate-200 font-semibold">{user?.displayName || 'Utilisateur'}</span>
                                     </p>
                                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-display text-slate-900 dark:text-white tracking-tight leading-none">
@@ -377,7 +377,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
                                             {currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                                         </span>
-                                        <span className="text-lg font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 tabular-nums">
+                                        <span className="text-lg font-bold text-slate-500 dark:text-slate-300 tabular-nums">
                                             {currentTime.toLocaleTimeString(undefined, { second: '2-digit' }).slice(-2)}
                                         </span>
                                     </div>
@@ -387,13 +387,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                                     {/* Date & Météo */}
                                     <div className="hidden sm:flex flex-col gap-1">
-                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 capitalize">
+                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 capitalize">
                                             {currentTime.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
                                         </span>
                                         {weather && (
                                             <div className="flex items-center gap-2">
                                                 {getWeatherIcon()}
-                                                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                                <span className="text-sm font-medium text-slate-500 dark:text-slate-300">
                                                     {weather.temp}°C · Paris
                                                 </span>
                                             </div>
@@ -412,7 +412,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                                 onClick={onToggleEdit}
                                                 className={`p-2.5 rounded-xl transition-all duration-300 ${isEditing
                                                     ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30'
-                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50'
+                                                    : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                                     }`}
                                                 aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
                                             >
@@ -425,7 +425,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <button
                                             onClick={generateExecutiveReport}
                                             disabled={isGeneratingReport}
-                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                                             aria-label={t('dashboard.executiveReport')}
                                         >
                                             {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
@@ -435,7 +435,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.exportIcal')} position="bottom">
                                         <button
                                             onClick={generateICal}
-                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50 transition-all duration-300"
+                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300"
                                             aria-label={t('dashboard.exportIcal')}
                                         >
                                             <CalendarDays className="h-4 w-4" />
@@ -446,7 +446,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <Tooltip content={t('dashboard.showGettingStarted')} position="bottom">
                                             <button
                                                 onClick={onShowGettingStarted}
-                                                className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300"
+                                                className="p-2.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300"
                                                 aria-label={t('dashboard.showGettingStarted')}
                                             >
                                                 <Rocket className="h-4 w-4" />
@@ -473,7 +473,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
                                         <button
                                             onClick={() => navigate('/team')}
-                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 dark:text-slate-200 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300"
+                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300"
                                             aria-label={t('dashboard.inviteMember')}
                                         >
                                             <Users className="h-4 w-4" />
@@ -499,12 +499,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            <span className="text-[11px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                                 Conseil du jour
                                             </span>
-                                            <Sparkles className="h-3 w-3 text-slate-400 dark:text-slate-500" />
+                                            <Sparkles className="h-3 w-3 text-slate-400 dark:text-slate-400" />
                                         </div>
-                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 leading-relaxed">
+                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
                                             {todayTip.tip}
                                         </p>
                                     </div>
@@ -529,17 +529,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                                 Prochaine échéance
                                             </span>
                                         </div>
                                         {nextDeadline ? (
                                             <div className="flex items-center justify-between gap-2">
-                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 truncate">
+                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
                                                     {nextDeadline.title}
                                                 </p>
                                                 <div className="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded-full bg-slate-200/80 dark:bg-slate-700/80">
-                                                    <Calendar className="h-3 w-3 text-slate-500 dark:text-slate-400" />
+                                                    <Calendar className="h-3 w-3 text-slate-500 dark:text-slate-300" />
                                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                                                         {nextDeadline.date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                                     </span>
@@ -570,7 +570,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-brand-500/15 to-info-500/10 rounded-full blur-2xl opacity-0 group-hover/incidents:opacity-70 transition-opacity duration-500" />
 
                                 <div className="relative flex items-center justify-between mb-2">
-                                    <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
+                                    <span className="text-[11px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-[0.2em]">
                                         {t('dashboard.incidents')} Actifs
                                     </span>
                                     <div className="relative">
@@ -652,7 +652,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         </div>
                     </div>
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
         </motion.div >
     );

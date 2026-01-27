@@ -186,9 +186,9 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     aria-label="Importer un fichier CSV"
                                 />
                                 <div className="relative z-0">
-                                    <Upload className="h-12 w-12 text-slate-500 dark:text-slate-400 mx-auto mb-3" />
+                                    <Upload className="h-12 w-12 text-slate-500 dark:text-slate-300 mx-auto mb-3" />
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Cliquez pour sélectionner un fichier CSV</p>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">ou glissez-déposez ici</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">ou glissez-déposez ici</p>
                                     {file && (
                                         <p className="text-xs text-brand-600 dark:text-brand-400 mt-2 font-medium">
                                             Fichier sélectionné : {file.name}
@@ -218,7 +218,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     )}
                                 </div>
                                 <div className="flex gap-2">
-                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
+                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
                                         Annuler
                                     </button>
                                     <button
@@ -240,7 +240,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     </div>
                                     <div className="max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
                                         {errors.slice(0, 10).map((err, i) => (
-                                            <p key={`err-${i}`} className="text-sm text-red-700 dark:text-red-400 dark:text-red-300">
+                                            <p key={`err-${i}`} className="text-sm text-red-700 dark:text-red-300">
                                                 Ligne {err.row}: {err.message}
                                             </p>
                                         ))}
@@ -278,7 +278,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 </table>
                             </div>
                             {parsedData.length > 5 && (
-                                <p className="text-xs text-slate-600 dark:text-slate-400 text-center">...et {parsedData.length - 5} ligne{parsedData.length - 5 > 1 ? 's' : ''} supplémentaire{parsedData.length - 5 > 1 ? 's' : ''}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 text-center">...et {parsedData.length - 5} ligne{parsedData.length - 5 > 1 ? 's' : ''} supplémentaire{parsedData.length - 5 > 1 ? 's' : ''}</p>
                             )}
                         </div>
                     )}
@@ -289,17 +289,17 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                 {importing ? 'Importation en cours...' : 'Préparation...'}
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Veuillez patienter</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Veuillez patienter</p>
                         </div>
                     )}
 
                     {step === 'complete' && (
                         <div className="text-center py-12">
-                            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center">
+                            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                                 <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importation réussie !</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
                             <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
                                 Terminer
                             </button>

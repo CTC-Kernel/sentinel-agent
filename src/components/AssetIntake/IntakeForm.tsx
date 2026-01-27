@@ -139,7 +139,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                             <div className="font-medium text-slate-900 dark:text-white truncate" title={hardwareInfo.gpu}>
                                 {hardwareInfo.gpu}
                             </div>
-                            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                            <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                                 {hardwareInfo.cpuCores} Cœurs logiques
                             </div>
                         </div>
@@ -152,7 +152,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                             <div className="font-medium text-slate-900 dark:text-white">
                                 {hardwareInfo.os} ({hardwareInfo.ram})
                             </div>
-                            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                            <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                                 Navigateur: {hardwareInfo.browser}
                             </div>
                         </div>

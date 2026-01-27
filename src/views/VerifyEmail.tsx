@@ -60,7 +60,7 @@ export const VerifyEmail: React.FC = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Vérifiez votre email</h1>
-                    <p className="text-slate-600 dark:text-slate-400 mb-8">
+                    <p className="text-slate-600 dark:text-slate-300 mb-8">
                         Un lien de vérification a été envoyé à <strong>{user?.email}</strong>.<br />
                         Veuillez cliquer sur le lien pour activer votre compte.
                     </p>
@@ -89,7 +89,7 @@ export const VerifyEmail: React.FC = () => {
                             onClick={handleResendEmail}
                             disabled={loading || emailSent}
                             isLoading={loading}
-                            className="w-full py-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-lg"
+                            className="w-full py-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-lg"
                         >
                             Renvoyer l'email
                         </Button>
@@ -99,7 +99,7 @@ export const VerifyEmail: React.FC = () => {
                         variant="link"
                         aria-label="Se déconnecter"
                         onClick={handleLogout}
-                        className="mt-8 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="mt-8 text-sm font-bold text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
                         Se déconnecter

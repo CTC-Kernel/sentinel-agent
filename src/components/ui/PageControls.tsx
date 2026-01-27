@@ -44,12 +44,12 @@ export const PageControls: React.FC<PageControlsProps> = ({
             <div className="flex-1 w-full md:max-w-xl relative group z-20">
                 <div className="absolute inset-0 bg-brand-50 dark:bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
                 <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-300 focus-within:border-brand-300 transition-all duration-300">
-                    <Search className="h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                    <Search className="h-5 w-5 text-slate-500 dark:text-slate-300 group-focus-within:text-brand-500 transition-colors" />
 
                     <input aria-label={searchPlaceholder} value={searchQuery} onChange={e => onSearchChange(e.target.value)}
                         type="text"
                         placeholder={searchPlaceholder}
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400"
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-500 dark:placeholder-slate-400"
                     />
 
                     {searchQuery && (
@@ -58,7 +58,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
                                 aria-label="Effacer la recherche"
                                 type="button"
                                 onClick={() => onSearchChange('')}
-                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10"
+                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
                             >
                                 <X className="h-4 w-4" />
                             </button>

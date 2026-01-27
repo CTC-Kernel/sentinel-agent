@@ -517,7 +517,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
                       <p className="font-medium text-amber-800 dark:text-amber-200">
                         {t('homologation.levelOverrideWarning', 'Modification du niveau recommandé')}
                       </p>
-                      <p className="text-sm text-amber-700 dark:text-amber-400 dark:text-amber-300 mt-1">
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
                         {t(
                           'homologation.justificationRequired',
                           'Une justification sera requise pour expliquer ce choix.'

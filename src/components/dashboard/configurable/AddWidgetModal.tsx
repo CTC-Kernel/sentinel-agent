@@ -41,7 +41,7 @@ const CATEGORY_COLORS: Record<WidgetCategory, string> = {
   risks: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
   actions: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
   audits: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
-  other: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+  other: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
 };
 
 /**
@@ -78,7 +78,7 @@ function WidgetCard({
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
         isDisabled
           ? [
-              'opacity-60 cursor-not-allowed',
+              'opacity-70 cursor-not-allowed',
               'bg-slate-50/50 dark:bg-slate-800/50',
               'border-slate-200 dark:border-slate-700',
             ]
@@ -98,7 +98,7 @@ function WidgetCard({
           className={cn(
             'p-2.5 rounded-xl transition-colors',
             isDisabled
-              ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+              ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
               : [
                   'bg-white dark:bg-slate-800 text-brand-500 dark:text-brand-400',
                   'group-hover:bg-brand-500 group-hover:text-white',
@@ -113,7 +113,7 @@ function WidgetCard({
             className={cn(
               'font-bold text-sm mb-1 truncate',
               isDisabled
-                ? 'text-slate-400 dark:text-slate-500'
+                ? 'text-slate-400 dark:text-slate-400'
                 : 'text-slate-900 dark:text-white'
             )}
           >
@@ -135,7 +135,7 @@ function WidgetCard({
               {t(`dashboard.widgetCategories.${category}`)}
             </span>
             {isDisabled && (
-              <span className="text-xs text-muted-foreground dark:text-slate-500">
+              <span className="text-xs text-muted-foreground dark:text-slate-400">
                 (déjà ajouté)
               </span>
             )}
@@ -285,7 +285,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
               </div>
               <button
                 onClick={handleClose}
-                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label={t('common.close')}
               >
                 <X className="w-6 h-6" />
@@ -325,7 +325,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                         ? 'bg-brand-500 text-white'
                         : [
                             'bg-slate-100 dark:bg-slate-800',
-                            'text-slate-600 dark:text-slate-400',
+                            'text-slate-600 dark:text-slate-300',
                             'hover:bg-slate-200 dark:hover:bg-slate-700',
                           ]
                     )}

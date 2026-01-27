@@ -67,7 +67,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
                 <div className="space-y-2 relative z-10">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                         Menaces en temps réel
                     </p>
@@ -75,7 +75,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                         <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
                             {stats.total}
                         </p>
-                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Actives (24h)</span>
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Actives (24h)</span>
                     </div>
                 </div>
 
@@ -93,7 +93,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                         </div>
                         <div className="space-y-1">
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{stats.critical}</p>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priorité haute</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Priorité haute</p>
                         </div>
                     </div>
 
@@ -112,7 +112,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.ransomware}
                             </p>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Campagnes</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Campagnes</p>
                         </div>
                     </div>
 
@@ -131,7 +131,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.malware}
                             </p>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Détectés</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Détectés</p>
                         </div>
                     </div>
                 </div>
@@ -141,7 +141,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top Threat Types */}
                 <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/10">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Top Types de Menaces</h3>
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-6">Top Types de Menaces</h3>
                     <div className="h-[250px] w-full">
                         {typeData.length === 0 ? (
                             <EmptyChartState
@@ -172,7 +172,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
 
                 {/* Activity Trend */}
                 <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/10">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Volume d'Activité (24h)</h3>
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-6">Volume d'Activité (24h)</h3>
                     <div className="h-[250px] w-full">
                         {activityData.every(d => d.value === 0) ? (
                             <EmptyChartState

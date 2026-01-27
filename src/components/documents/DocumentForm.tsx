@@ -319,8 +319,8 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     />
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-4">Stockage du Document</label>
+                <div className="pt-4 border-t border-border">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Stockage du Document</label>
                     <div className="mb-6">
                         <CustomSelect
                             label="Fournisseur de stockage"
@@ -352,17 +352,17 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 disabledMessage="Espace de stockage plein (1GB max)"
                             />
                             {uploadedFileUrl && (
-                                <div className="mt-2 flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                    <span className="text-xs text-green-700 dark:text-green-400 font-medium truncate flex-1">{uploadedFileUrl.split('/').pop()}</span>
+                                <div className="mt-2 flex items-center justify-between p-2 bg-success/10 rounded-lg">
+                                    <span className="text-xs text-success font-medium truncate flex-1">{uploadedFileUrl.split('/').pop()}</span>
                                     <div className="flex items-center gap-2">
                                         <label className="flex items-center gap-1 cursor-pointer">
                                             <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                 type="checkbox"
-                                                className="rounded text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
+                                                className="rounded text-primary focus-visible:ring-primary"
                                             />
-                                            <span className="text-[11px] font-bold text-slate-600 dark:text-muted-foreground">Sécurisé</span>
+                                            <span className="text-[11px] font-bold text-muted-foreground">Sécurisé</span>
                                         </label>
-                                        <button type="button" onClick={() => { setUploadedFileUrl(''); setUploadedFileHash(''); }} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
+                                        <button type="button" onClick={() => { setUploadedFileUrl(''); setUploadedFileHash(''); }} className="text-destructive hover:text-destructive/80"><Trash2 className="h-4 w-4" /></button>
                                     </div>
                                 </div>
                             )}
@@ -385,7 +385,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                     Parcourir
                                 </Button>
                             </div>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-muted-foreground">
                                 {storageProvider === 'google_drive' ? 'Le document restera hébergé sur Google Drive.' : 'Le document restera hébergé sur Microsoft 365.'}
                             </p>
                         </div>
@@ -393,14 +393,14 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100 dark:border-white/5">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-border">
                 <Button type="button" variant="ghost" onClick={onCancel}>
                     Annuler
                 </Button>
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold"
+                    className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-primary/20 font-bold"
                 >
                     {initialData ? 'Enregistrer' : 'Créer'}
                 </Button>

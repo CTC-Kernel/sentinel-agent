@@ -10,7 +10,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../../utils/cn';
-import { GlassCard } from '../../../ui/GlassCard';
+import { PremiumCard } from '../../../ui/PremiumCard';
 import { Button } from '../../../ui/button';
 import { essentialAssetSchema } from '../../../../schemas/ebiosSchema';
 import type { EssentialAsset, Mission } from '../../../../types/ebios';
@@ -79,7 +79,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -139,7 +139,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                     "block text-sm font-medium",
                     selectedType === type
                       ? "text-purple-600 dark:text-purple-400"
-                      : "text-slate-600 dark:text-slate-400"
+                      : "text-slate-600 dark:text-slate-300"
                   )}>
                     {t(`ebios.assetTypes.${type}`)}
                   </span>
@@ -183,7 +183,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                     "block text-lg font-bold",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-500"
+                      : "text-slate-500 dark:text-slate-400"
                   )}>
                     {level.level}
                   </span>
@@ -206,7 +206,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
               {t('ebios.workshop1.linkedMissions')} *
             </label>
             {missions.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+              <p className="text-sm text-slate-500 dark:text-slate-300 italic">
                 {t('ebios.workshop1.noMissionsYet')}
               </p>
             ) : (
@@ -227,7 +227,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                       onChange={() => toggleMission(mission.id)}
                       className="w-4 h-4 rounded border-slate-300 text-info focus-visible:ring-brand-500"
                     />
-                    <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
+                    <span className="text-sm text-slate-700 dark:text-muted-foreground">
                       {mission.name}
                     </span>
                   </label>
@@ -297,7 +297,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
             </div>
           </div>
         </form>
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

@@ -163,7 +163,7 @@ const AppLayout: React.FC = () => {
             </React.Suspense>
 
             {!isOnline && (
-                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-tooltip glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 shadow-lg animate-slide-up border border-slate-200 dark:border-slate-700">
+                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-tooltip glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 dark:text-slate-300 shadow-lg animate-slide-up border border-slate-200 dark:border-slate-700">
                     <WifiOff className="h-3 w-3 mr-2 text-red-500" />
                     Mode hors ligne
                 </div>

@@ -153,7 +153,7 @@ export const EbiosAnalyses: React.FC = () => {
       case 'in_progress':
         return 'bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-400';
       case 'archived':
-        return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300';
       default:
         return 'bg-warning-bg text-warning-text';
     }
@@ -282,7 +282,7 @@ export const EbiosAnalyses: React.FC = () => {
                               handleDuplicateAnalysis(analysis);
                               setActionMenuOpen(null);
                             }}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                           >
                             <Copy className="w-4 h-4" />
                             {t('common.duplicate')}
@@ -294,7 +294,7 @@ export const EbiosAnalyses: React.FC = () => {
                                 handleArchiveAnalysis(analysis);
                                 setActionMenuOpen(null);
                               }}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                               <Archive className="w-4 h-4" />
                               {t('common.archive')}
@@ -328,7 +328,7 @@ export const EbiosAnalyses: React.FC = () => {
                           {analysis.name}
                         </h3>
                         {analysis.description && (
-                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                          <p className="text-sm text-slate-500 dark:text-slate-300 mt-1 line-clamp-2">
                             {analysis.description}
                           </p>
                         )}

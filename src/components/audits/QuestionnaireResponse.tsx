@@ -235,7 +235,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 return (
                     <div className="space-y-2">
                         {question.options?.map((opt) => (
-                            <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 cursor-pointer">
+                            <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
                                 <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
@@ -254,7 +254,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                             const currentValues = (value as string[]) || [];
                             const isChecked = currentValues.includes(opt);
                             return (
-                                <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 cursor-pointer">
+                                <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
                                     <input checked={isChecked} onChange={(e) => {
                                         const newValues = e.target.checked
                                             ? [...currentValues, opt]
@@ -282,7 +282,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 disabled={readOnly || status === 'Submitted'}
                                 className={`w - 10 h - 10 rounded - full font - bold transition - all ${value === rating
                                     ? 'bg-brand-600 text-white scale-110 shadow-lg'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                                     } `}
                             >
                                 {rating}

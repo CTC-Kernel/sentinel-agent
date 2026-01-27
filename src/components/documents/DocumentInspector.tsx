@@ -118,7 +118,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                     <ShieldCheck className="h-3 w-3" /> Coffre-fort
                                 </span>
                             )}
-                            <span className="text-sm text-slate-500 dark:text-slate-400 px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <span className="text-sm text-slate-500 dark:text-slate-300 px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-200 dark:border-slate-700">
                                 v{selectedDocument.version}
                             </span>
                         </div>

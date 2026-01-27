@@ -158,7 +158,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                     <Badge status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'} variant="soft">
                         {project.status}
                     </Badge>
-                    <span className="ml-4 text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                    <span className="ml-4 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
                         <CalendarDays className="h-4 w-4" />
                         Échéance: {new Date(project.dueDate).toLocaleDateString()}
                     </span>

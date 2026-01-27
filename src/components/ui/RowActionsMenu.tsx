@@ -47,7 +47,7 @@ function getItemStyles(variant: RowActionItem['variant'], active: boolean, disab
   const baseStyles = 'group flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors';
 
   if (disabled) {
-    return cn(baseStyles, 'text-slate-400 dark:text-slate-500 cursor-not-allowed');
+    return cn(baseStyles, 'text-slate-400 dark:text-slate-400 cursor-not-allowed');
   }
 
   if (variant === 'danger') {
@@ -110,7 +110,7 @@ export function RowActionsMenu({
               aria-label={ariaLabel || 'Actions'}
               aria-haspopup="menu"
             >
-              <MoreVertical className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+              <MoreVertical className="h-4 w-4 text-slate-500 dark:text-slate-300" />
             </Menu.Button>
 
             <Transition

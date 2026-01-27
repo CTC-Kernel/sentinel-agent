@@ -106,7 +106,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                 </div>
                 <div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-sm">Assistant IA Sentinel</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Analyse et suggestions intelligentes</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-300">Analyse et suggestions intelligentes</p>
                 </div>
             </div>
 

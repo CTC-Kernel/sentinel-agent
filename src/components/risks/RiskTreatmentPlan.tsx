@@ -238,7 +238,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Status */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Statut</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Statut</label>
                         <div className="relative group">
                             <select
                                 value={treatment.status}
@@ -256,7 +256,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Owner */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Responsable</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Responsable</label>
                         <div className="relative group">
                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <select
@@ -274,7 +274,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Due Date */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Échéance (SLA)</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Échéance (SLA)</label>
                         <div className="relative group">
                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <input value={treatment.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)}
@@ -284,7 +284,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                             />
                         </div>
                         {treatment.dueDate && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 ml-1 flex items-center gap-1">
+                            <p className="text-xs text-slate-500 dark:text-slate-300 ml-1 flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {format(parseISO(treatment.dueDate), 'dd MMMM yyyy', { locale: fr })}
                             </p>
@@ -293,7 +293,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Estimated Cost */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Coût Estimé (€)</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Coût Estimé (€)</label>
                         <div className="relative group">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold group-focus-within:text-brand-500 transition-colors">€</span>
                             <input value={treatment.estimatedCost || ''} onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
@@ -309,7 +309,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                 {/* Description */}
                 <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Description du plan</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Description du plan</label>
                     <textarea
                         value={treatment.description}
                         onChange={(e) => handleChange('description', e.target.value)}
@@ -374,7 +374,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     {/* Linked Controls List */}
                     <div className="space-y-2">
                         {linkedControls.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-400 italic py-4 text-center">
+                            <p className="text-sm text-slate-500 dark:text-slate-300 italic py-4 text-center">
                                 Aucun contrôle lié. Ajoutez des contrôles pour réduire le risque résiduel.
                             </p>
                         ) : (
@@ -416,7 +416,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Add Control Section - Enhanced with search and filter */}
                     <div className="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 flex items-center gap-2">
                             <Plus className="h-3.5 w-3.5" />
                             Lier un nouveau contrôle
                         </label>
@@ -454,7 +454,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                         {/* Available Controls List */}
                         <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white/30 dark:bg-black/10 p-2">
                             {filteredControls.length === 0 ? (
-                                <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
+                                <p className="text-xs text-slate-500 dark:text-slate-300 text-center py-3">
                                     {controlSearch || frameworkFilter
                                         ? 'Aucun contrôle correspondant'
                                         : 'Tous les contrôles sont déjà liés'}
@@ -491,7 +491,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 })
                             )}
                             {filteredControls.length > 20 && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-1">
+                                <p className="text-xs text-slate-500 dark:text-slate-300 text-center py-1">
                                     +{filteredControls.length - 20} autres contrôles...
                                 </p>
                             )}

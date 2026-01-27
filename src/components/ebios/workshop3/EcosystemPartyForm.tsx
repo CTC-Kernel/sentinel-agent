@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { X, Globe, Save, Trash2, Users, Building, Cloud, Truck } from '../../ui/Icons';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { Button } from '../../ui/button';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import type { EcosystemParty, EcosystemPartyType } from '../../../types/ebios';
@@ -168,14 +168,14 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     return (
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
+          <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
             {label}
           </label>
           <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
             {value}/5
           </span>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{description}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-300 mb-2">{description}</p>
         <input
           type="range"
           min={1}
@@ -195,11 +195,11 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30">
+            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-amber-900/30">
               <Icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
@@ -385,7 +385,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
           confirmText={t('common.delete', 'Supprimer')}
           cancelText={t('common.cancel', 'Annuler')}
         />
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

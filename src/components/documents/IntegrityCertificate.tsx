@@ -101,7 +101,7 @@ const statusConfig: Record<
     label: 'Statut inconnu',
     description: 'Aucune information d\'intégrité disponible',
     badgeStatus: 'neutral',
-    color: 'text-slate-500 dark:text-slate-400',
+    color: 'text-slate-500 dark:text-slate-300',
   },
 };
 
@@ -619,8 +619,8 @@ export function IntegrityCertificate({
                           event.status === 'verified'
                             ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400'
                             : event.status === 'compromised'
-                              ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-400'
+                              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
                         )}
                       >
                         {event.status === 'verified' ? (

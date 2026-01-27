@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRiskContext } from '../../../hooks/risks/useRiskContext';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
 import { Skeleton } from '../../ui/Skeleton';
@@ -197,7 +197,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
   };
 
   return (
-    <GlassCard className="p-6">
+    <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -320,7 +320,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
         </div>
       </div>
-    </GlassCard>
+    </PremiumCard>
   );
 };
 
@@ -360,7 +360,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
   };
 
   return (
-    <GlassCard className="p-6">
+    <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
@@ -471,7 +471,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 className="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
               >
                 <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                  <FileText className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -481,7 +481,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                     )}
                   </div>
                   {reg.obligations && (
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{reg.obligations}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 mt-0.5">{reg.obligations}</p>
                   )}
                 </div>
                 {reg.deadline && (
@@ -501,7 +501,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
           )}
         </div>
       </div>
-    </GlassCard>
+    </PremiumCard>
   );
 };
 
@@ -579,7 +579,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
   };
 
   return (
-    <GlassCard className="p-6">
+    <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-success-bg dark:bg-success-bg/30 flex items-center justify-center">
@@ -614,7 +614,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
         {/* Acceptable Risk Levels */}
         <div>
           <h4 className="font-medium text-slate-900 dark:text-white mb-4">Seuils de risque acceptables</h4>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Score de risque maximum pour chaque niveau (Probabilité x Impact, 1-25)</p>
+          <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">Score de risque maximum pour chaque niveau (Probabilité x Impact, 1-25)</p>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {(Object.entries(LEVEL_CONFIG) as [keyof typeof LEVEL_CONFIG, typeof LEVEL_CONFIG.low][]).map(([level, config]) => {
@@ -633,7 +633,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                     onChange={(e) => updateLevel(level, parseInt(e.target.value) || 1)}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
                   />
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{config.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">{config.description}</p>
                 </div>
               );
             })}
@@ -644,7 +644,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
         {/* Escalation Thresholds */}
         <div>
           <h4 className="font-medium text-slate-900 dark:text-white mb-4">Seuils d'escalade</h4>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Score de risque déclenchant une escalade automatique</p>
+          <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">Score de risque déclenchant une escalade automatique</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -660,7 +660,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('automatic', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Notification automatique au responsable</p>
+              <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification automatique au responsable</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -677,7 +677,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('management', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Escalade à la direction générale</p>
+              <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Escalade à la direction générale</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -695,12 +695,12 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('board', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Notification au conseil d'administration</p>
+              <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification au conseil d'administration</p>
             </div>
           </div>
         </div>
       </div>
-    </GlassCard>
+    </PremiumCard>
   );
 };
 
@@ -785,7 +785,7 @@ const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onS
   };
 
   return (
-    <GlassCard className="p-6">
+    <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-warning-bg dark:bg-warning-bg/30 flex items-center justify-center">
@@ -816,7 +816,7 @@ const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onS
           onUpdate={updateScaleItem}
         />
       </div>
-    </GlassCard>
+    </PremiumCard>
   );
 };
 

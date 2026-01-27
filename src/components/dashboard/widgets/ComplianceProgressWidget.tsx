@@ -170,7 +170,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.complianceRate}%
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                 Score
                             </span>
                         </div>
@@ -206,7 +206,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
                     <div className="flex items-center gap-1.5 mb-1">
                         <CheckCircle2 className="w-3 h-3 text-success-500" />
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Impl.</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Impl.</span>
                     </div>
                     <div className="text-lg font-black text-slate-900 dark:text-white">
                         {stats.implementedControls}
@@ -215,7 +215,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
                     <div className="flex items-center gap-1.5 mb-1">
                         <Clock className="w-3 h-3 text-warning-500" />
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Partiels</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Partiels</span>
                     </div>
                     <div className="text-lg font-black text-slate-900 dark:text-white">
                         {stats.inProgressControls}
@@ -224,7 +224,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
                     <div className="flex items-center gap-1.5 mb-1">
                         <AlertTriangle className="w-3 h-3 text-slate-400" />
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Non impl.</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Non impl.</span>
                     </div>
                     <div className="text-lg font-black text-slate-900 dark:text-white">
                         {stats.notImplementedControls}

@@ -344,7 +344,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
             )}
           </>
         ) : (
-          <Badge variant="outline" className="text-slate-500">
+          <Badge variant="outline" className="text-slate-500 dark:text-slate-400">
             <Unlink className="h-3 w-3 mr-1" />
             {t('homologation.ebios.noLink', 'Pas de lien EBIOS')}
           </Badge>
@@ -421,7 +421,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                       ? selectedAnalysisId === analysis.id
                         ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500'
                         : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                      : 'opacity-60 cursor-not-allowed bg-slate-50'
+                      : 'opacity-70 cursor-not-allowed bg-slate-50'
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -447,7 +447,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                     </Badge>
                   </div>
                   {analysis.description && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{analysis.description}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-300 line-clamp-1">{analysis.description}</p>
                   )}
                   {!eligible && reason && (
                     <p className="mt-1 text-xs text-red-500">{getEligibilityReason(reason)}</p>

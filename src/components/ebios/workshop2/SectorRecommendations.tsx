@@ -8,7 +8,7 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building2, Lightbulb, Check, X, ChevronDown, ChevronUp, Sparkles } from '../../ui/Icons';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import {
   SECTOR_PROFILES,
   getRecommendedSourcesForSector,
@@ -88,7 +88,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
   };
 
   return (
-    <GlassCard className="mb-6 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 border-indigo-200 dark:border-indigo-800">
+    <PremiumCard glass className="mb-6 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 border-indigo-200 dark:border-indigo-800">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between"
@@ -158,7 +158,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissSource && (
                           <button
                             onClick={() => onDismissSource(source.code)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 text-slate-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                     key={obj.code}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   >
-                    <span className="font-medium text-amber-600 dark:text-amber-400 dark:text-amber-400">{obj.code}</span>
+                    <span className="font-medium text-amber-600 dark:text-amber-400">{obj.code}</span>
                     <span className="text-slate-500 dark:text-muted-foreground">-</span>
                     <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{obj.name}</span>
                     {!readOnly && (
@@ -211,7 +211,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissObjective && (
                           <button
                             onClick={() => onDismissObjective(obj.code)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 text-slate-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />
@@ -226,14 +226,14 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
           )}
 
           {/* Info note */}
-          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-2">
+          <p className="text-xs text-slate-500 dark:text-slate-300 flex items-center gap-1.5 pt-2">
             <Building2 className="w-3.5 h-3.5" />
             {t('ebios.workshop2.sectorBasedOnProfile', 'Basé sur le profil ANSSI pour le secteur')}{' '}
             <strong>{sectorProfile.name[locale]}</strong>
           </p>
         </div>
       )}
-    </GlassCard>
+    </PremiumCard>
   );
 };
 

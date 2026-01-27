@@ -22,7 +22,8 @@ import {
   onSnapshot,
   writeBatch,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import type {
   Certificate,
@@ -430,6 +431,47 @@ export class CertificateService {
       return updated;
     } catch (error) {
       ErrorLogger.error(error, 'CertificateService.refreshStatuses');
+      throw error;
+    }
+  }
+
+  /**
+   * Trigger certificate expiration check via Cloud Function
+   * Returns statistics about expiring certificates
+   */
+  static async checkExpirations(): Promise<{
+    expired: number;
+    critical: number;
+    warning: number;
+    notice: number;
+    total: number;
+    notificationsSent: boolean;
+  }> {
+    try {
+      const checkFn = httpsCallable<
+        Record<string, never>,
+        {
+          success: boolean;
+          expired: number;
+          critical: number;
+          warning: number;
+          notice: number;
+          total: number;
+          notificationsSent: boolean;
+        }
+      >(functions, 'checkCertificateExpirations');
+
+      const result = await checkFn({});
+      return {
+        expired: result.data.expired,
+        critical: result.data.critical,
+        warning: result.data.warning,
+        notice: result.data.notice,
+        total: result.data.total,
+        notificationsSent: result.data.notificationsSent,
+      };
+    } catch (error) {
+      ErrorLogger.error(error, 'CertificateService.checkExpirations');
       throw error;
     }
   }

@@ -222,7 +222,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                     {requests.length > 0 && (
                         <button
                             onClick={handleExport}
-                            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                             aria-label="Exporter les preuves (ZIP)"
                             title="Exporter les preuves (ZIP)"
                         >

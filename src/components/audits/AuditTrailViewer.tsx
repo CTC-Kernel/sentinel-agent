@@ -74,7 +74,7 @@ export const AuditTrailViewer: React.FC = () => {
             case 'create': return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/20 dark:text-green-400';
             case 'update': return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-slate-900/20 dark:text-blue-400';
             case 'delete': return 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/20 dark:text-red-400';
-            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-400';
+            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
         }
     };
 
@@ -260,11 +260,11 @@ export const AuditTrailViewer: React.FC = () => {
                                         <span className={`px-2 py-1 rounded-lg text-xs font-bold ${getActionColor(log.action)}`}>
                                             {getActionIcon(log.action)} {log.action.toUpperCase()}
                                         </span>
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                                             {log.entityType}
                                         </span>
                                     </div>
-                                    <ChevronRight className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform ${selectedLog?.id === log.id ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`h-4 w-4 text-slate-500 dark:text-slate-300 transition-transform ${selectedLog?.id === log.id ? 'rotate-90' : ''}`} />
                                 </div>
 
                                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground mb-1">
@@ -272,7 +272,7 @@ export const AuditTrailViewer: React.FC = () => {
                                     <span>{log.userName}</span>
                                 </div>
 
-                                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 dark:text-slate-500">
+                                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
                                     <Calendar className="h-3 w-3" />
                                     <span>{log.timestamp.toLocaleString('fr-FR')}</span>
                                 </div>
@@ -298,24 +298,24 @@ export const AuditTrailViewer: React.FC = () => {
 
                             <div className="space-y-4 mb-6">
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Action</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
                                         {getActionIcon(selectedLog.action)} {selectedLog.action.toUpperCase()}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Type</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Type</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{selectedLog.entityType}</p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Utilisateur</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Utilisateur</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{selectedLog.userName}</p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Date</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Date</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
                                         {selectedLog.timestamp.toLocaleString('fr-FR')}
                                     </p>
@@ -360,7 +360,7 @@ export const AuditTrailViewer: React.FC = () => {
                                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Champs modifiés</h4>
                                     <ul className="space-y-1">
                                         {selectedLog.changes.map((change, idx) => (
-                                            <li key={`${idx}-${change}`} className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                                            <li key={`${idx}-${change}`} className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2">
                                                 <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
                                                 {change}
                                             </li>

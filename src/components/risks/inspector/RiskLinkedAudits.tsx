@@ -16,7 +16,7 @@ export const RiskLinkedAudits: React.FC<RiskLinkedAuditsProps> = ({
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
                 {canEdit && (
                     <button
                         aria-label="Créer un nouvel audit lié"
@@ -28,7 +28,7 @@ export const RiskLinkedAudits: React.FC<RiskLinkedAuditsProps> = ({
                 )}
             </div>
             <div className="grid gap-4">
-                {linkedAudits.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-400 italic">Aucun audit.</p> : linkedAudits.map(a => (
+                {linkedAudits.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucun audit.</p> : linkedAudits.map(a => (
                     <div key={a.id} className="glass-panel-lite p-4">{a.name}</div>
                 ))}
             </div>

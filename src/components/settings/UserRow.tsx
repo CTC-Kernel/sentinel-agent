@@ -20,7 +20,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
     return (
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/60 dark:hover:bg-white/10 transition-colors backdrop-blur-[2px]">
             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold border border-white/40 dark:border-white/10 shadow-sm overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-slate-500 dark:text-slate-300 font-bold border border-white/40 dark:border-white/10 shadow-sm overflow-hidden">
                     <img
                         src={getUserAvatarUrl(user.photoURL, user.role)}
                         alt={user.displayName || 'Avatar'}
@@ -39,12 +39,12 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
                             </span>
                         )}
                         {user.uid === currentUser?.uid && (
-                            <span className="px-2 py-0.5 text-[11px] font-medium bg-slate-100/50 text-slate-600 dark:text-slate-400 dark:bg-slate-700/50 dark:text-slate-300 rounded-full border border-slate-200/50 dark:border-slate-600/50">
+                            <span className="px-2 py-0.5 text-[11px] font-medium bg-slate-100/50 text-slate-600 dark:text-slate-300 dark:bg-slate-700/50 dark:text-slate-300 rounded-full border border-slate-200/50 dark:border-slate-600/50">
                                 {t('settings.you')}
                             </span>
                         )}
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-300 truncate">{user.email}</p>
                 </div>
             </div>
 

@@ -73,7 +73,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                     <FloatingLabelInput label="Nom du traitement" {...register('name')} placeholder="ex: Gestion Paie" error={errors.name?.message} />
                 </div>
                 <div>
-                    <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Responsable</label>
+                    <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Responsable</label>
                     <CustomSelect
                         value={managerId || ''}
                         onChange={(val) => {
@@ -85,7 +85,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                         options={usersList.map(u => ({ value: u.uid, label: u.displayName }))}
                         placeholder="Sélectionner..."
                     />
-                    {errors.managerId && <p className="text-red-500 text-xs mt-1">{errors.managerId.message}</p>}
+                    {errors.managerId && <p className="text-destructive text-xs mt-1">{errors.managerId.message}</p>}
                 </div>
             </div>
             <div>
@@ -93,16 +93,16 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Base Légale</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Base Légale</label>
                     <CustomSelect
                         value={legalBasis}
                         onChange={(val) => setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['legalBasis'])}
                         options={['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => ({ value: c, label: c }))}
                     />
-                    {errors.legalBasis && <p className="text-red-500 text-xs mt-1">{errors.legalBasis.message}</p>}
+                    {errors.legalBasis && <p className="text-destructive text-xs mt-1">{errors.legalBasis.message}</p>}
                 </div>
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Statut</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Statut</label>
                     <CustomSelect
                         value={status}
                         onChange={(val) => setValue('status', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['status'])}
@@ -112,7 +112,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                             { value: 'Archivé', label: 'Archivé' }
                         ]}
                     />
-                    {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>}
+                    {errors.status && <p className="text-destructive text-xs mt-1">{errors.status.message}</p>}
                 </div>
             </div>
             <div>
@@ -139,7 +139,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4 border-t border-border">
                 <div>
                     <CustomSelect
                         label="Actifs liés"
@@ -162,9 +162,9 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-white/5">
-                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                <button aria-label="Save creation" type="submit" className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
+            <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border">
+                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-muted-foreground hover:bg-muted rounded-xl transition-colors">Annuler</button>
+                <button aria-label="Save creation" type="submit" className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-primary/30">Enregistrer</button>
             </div>
         </form>
     );

@@ -108,7 +108,7 @@ export const CertifierDashboard: React.FC = () => {
                         <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
+                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">{stat.label}</p>
                                     <p className="text-3xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
                                 </div>
                                 <div className={`p-3 rounded-lg ${stat.bg} ${stat.color}`}>
@@ -141,7 +141,7 @@ export const CertifierDashboard: React.FC = () => {
                                         <div
                                             key={audit.shareId}
                                             onClick={() => navigate(`/portal/audit/${audit.shareId}`)}
-                                            className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group"
+                                            className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group"
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-start gap-4">
@@ -150,7 +150,7 @@ export const CertifierDashboard: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{audit.auditName}</h3>
-                                                        <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                                        <p className="text-sm text-slate-500 dark:text-slate-300 flex items-center gap-2">
                                                             <Building2 className="w-3 h-3" />
                                                             {audit.tenantName}
                                                         </p>
@@ -159,7 +159,7 @@ export const CertifierDashboard: React.FC = () => {
                                                 <div className="flex items-center gap-4">
                                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${audit.status === 'Validé' ? 'bg-green-50 text-green-700 dark:text-green-400 border-green-200' :
                                                         audit.status === 'En cours' ? 'bg-blue-50 text-blue-700 dark:text-blue-400 border-blue-200' :
-                                                            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                                            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                                                         }`}>
                                                         {audit.status}
                                                     </span>
@@ -185,9 +185,9 @@ export const CertifierDashboard: React.FC = () => {
                             {data.clients.length > 0 ? (
                                 <div className="space-y-3">
                                     {data.clients.map(client => (
-                                        <div key={client.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50 transition-colors">
+                                        <div key={client.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold text-xs">
+                                                <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-300 font-bold text-xs">
                                                     {client.tenantName.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>

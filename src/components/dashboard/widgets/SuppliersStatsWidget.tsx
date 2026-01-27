@@ -4,7 +4,7 @@ import { Supplier, Criticality } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { Truck, ShieldAlert, CheckCircle2, Users } from '../../ui/Icons';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { EmptyState } from '../../ui/EmptyState';
 
 interface SuppliersStatsWidgetProps {
@@ -40,9 +40,9 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
     // Empty state when no suppliers
     if (stats.total === 0) {
         return (
-            <GlassCard
+            <PremiumCard glass
                 className="h-full flex flex-col p-5 overflow-hidden"
-                hoverEffect={true}
+                hover={true}
                 gradientOverlay={true}
             >
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -65,14 +65,14 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
                         compact
                     />
                 </div>
-            </GlassCard>
+            </PremiumCard>
         );
     }
 
     return (
-        <GlassCard
+        <PremiumCard glass
             className="h-full flex flex-col p-5 overflow-hidden group hover:shadow-apple"
-            hoverEffect={true}
+            hover={true}
             gradientOverlay={true}
         >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -114,6 +114,6 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
                     </div>
                 </div>
             </div>
-        </GlassCard>
+        </PremiumCard>
     );
 };

@@ -42,21 +42,21 @@ const CRITICALITY_CONFIG: Record<CriticalityLevel, {
     label: 'Haute',
     color: 'text-red-600 dark:text-red-400',
     bgColor: 'bg-red-50 dark:bg-red-900/20',
-    borderColor: 'border-red-200 dark:border-red-2000',
+    borderColor: 'border-red-200 dark:border-red-800',
   },
   medium: {
     icon: AlertCircle,
     label: 'Moyenne',
     color: 'text-amber-600 dark:text-amber-400',
     bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-    borderColor: 'border-amber-200 dark:border-amber-2000',
+    borderColor: 'border-amber-200 dark:border-amber-800',
   },
   low: {
     icon: Info,
     label: 'Basse',
     color: 'text-blue-600 dark:text-blue-400',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-    borderColor: 'border-blue-200 dark:border-blue-2000',
+    borderColor: 'border-blue-200 dark:border-blue-800',
   },
 };
 
@@ -114,7 +114,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
       case 'non_compliant':
         return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
       default:
-        return 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800';
+        return 'text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-800';
     }
   };
 
@@ -206,7 +206,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             <div className="flex-1 overflow-y-auto">
               {/* Description Section */}
               <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                   {t('requirements.description')}
                 </h3>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -219,7 +219,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
               {/* Keywords Section */}
               {requirement.keywords && requirement.keywords.length > 0 && (
                 <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
-                  <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                  <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                     {t('requirements.keywords')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -238,7 +238,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
 
               {/* Linked Controls Section */}
               <div className="px-6 py-5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                   {t('requirements.linkedControls')} ({linkedControls.length})
                 </h3>
 
@@ -250,7 +250,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                     <p className="text-sm text-slate-500 dark:text-muted-foreground">
                       {t('requirements.noLinkedControls')}
                     </p>
-                    <p className="text-xs text-muted-foreground dark:text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground dark:text-slate-400 mt-1">
                       {t('requirements.noLinkedControlsHint')}
                     </p>
                   </div>

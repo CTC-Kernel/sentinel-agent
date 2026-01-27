@@ -84,7 +84,7 @@ export const TlptFindings: React.FC<TlptFindingsProps> = ({ campaign }) => {
                                         <AlertTriangle className={`w-4 h-4 ${vuln.severity === 'Critical' ? 'text-red-500' : 'text-amber-500'}`} />
                                         {vuln.title || vuln.cveId}
                                     </h4>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{vuln.description}</p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-300 mt-1 line-clamp-2">{vuln.description}</p>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
                                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${vuln.status === 'Resolved' || vuln.status === 'Patch Applied'

@@ -45,7 +45,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6">
                 <div>
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Matrice des Risques</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 max-w-lg">
+                    <p className="text-sm text-slate-500 dark:text-slate-300 max-w-lg">
                         Visualisation de l'exposition aux risques selon la norme {frameworkFilter || 'ISO 27005'}.
                         Cliquez sur une case pour filtrer les risques associés.
                     </p>
@@ -56,7 +56,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                             onClick={() => setViewMode('inherent')}
                             className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'inherent'
                                 ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'
                                 }`}
                         >
                             Risque Inhérent
@@ -65,7 +65,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                             onClick={() => setViewMode('residual')}
                             className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'residual'
                                 ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'
                                 }`}
                         >
                             Risque Résiduel
@@ -77,28 +77,28 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-success-text shadow-glow shadow-success-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">Faible</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Faible</span>
                             <span className="text-[11px] text-muted-foreground">Score 1-4</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-info-text shadow-glow shadow-info-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">Moyen</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Moyen</span>
                             <span className="text-[11px] text-muted-foreground">Score 5-9</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-warning-text shadow-glow shadow-warning-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">Élevé</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Élevé</span>
                             <span className="text-[11px] text-muted-foreground">Score 10-14</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-error-text shadow-glow shadow-error-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">Critique</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Critique</span>
                             <span className="text-[11px] text-muted-foreground">Score 15-25</span>
                         </div>
                     </div>
@@ -127,10 +127,10 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                             <React.Fragment key={probObj.val}>
                                 {/* Row Label */}
                                 <div className="flex flex-col justify-center items-end pr-4 py-2">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
                                         {probObj.label}
                                     </span>
-                                    <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <span className="text-[11px] font-medium text-slate-400 dark:text-slate-300 uppercase tracking-wider">
                                         {probObj.sub}
                                     </span>
                                 </div>
@@ -145,7 +145,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
                                     // Determine Cell Styling
                                     let cellStyle = "bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5"; // Default empty
-                                    let textStyle = "text-slate-300 dark:text-slate-600";
+                                    let textStyle = "text-slate-300 dark:text-slate-300";
                                     let ringColor = "";
 
                                     if (score >= 15) {
@@ -228,7 +228,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         <div className="col-span-2" /> {/* Spacer for Y-Axis and Row Labels */}
                         {IMPACT_LABELS.map(label => (
                             <div key={label.val} className="flex flex-col items-center pt-4">
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">{label.label}</span>
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{label.label}</span>
                                 <span className="text-xs font-bold text-muted-foreground mt-1">Niveau {label.val}</span>
                             </div>
                         ))}
@@ -246,7 +246,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             </div>
 
             {/* Info Footer */}
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900 border border-blue-100 dark:border-blue-900/20 text-sm text-blue-700 dark:text-blue-400 dark:text-blue-300">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900 border border-blue-100 dark:border-blue-900/20 text-sm text-blue-700 dark:text-blue-300">
                 <Info className="h-5 w-5 shrink-0 mt-0.5" />
                 <p>
                     La matrice des risques permet de visualiser la répartition de vos risques selon leur criticité.

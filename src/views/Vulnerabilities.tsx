@@ -285,7 +285,7 @@ export const Vulnerabilities: React.FC = () => {
                                     <>
                                         <div className="flex items-center">
                                             <Menu as="div" className="relative inline-block text-left mr-2">
-                                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                                     <MoreVertical className="h-5 w-5" />
                                                 </Menu.Button>
                                                 <Transition

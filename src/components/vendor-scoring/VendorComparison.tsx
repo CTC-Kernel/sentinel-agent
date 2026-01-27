@@ -126,7 +126,7 @@ const RiskMatrixView: React.FC<{
       <div className="min-w-[500px]">
         {/* Header */}
         <div className="grid grid-cols-4 gap-2 mb-2">
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 text-center">
+          <div className="text-sm font-medium text-slate-500 dark:text-slate-300 text-center">
             {t('vendorScoring.riskLevel', 'Risk Level')}
           </div>
           {criticalityLevels.map((level) => (
@@ -233,7 +233,7 @@ const VendorListItem: React.FC<{
             <Minus className="w-4 h-4" />
           </span>
         )}
-        <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600" />
+        <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-300" />
       </div>
     </button>
   );
@@ -424,7 +424,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
       {/* Content */}
       {sortedVendors.length === 0 ? (
         <div className="text-center py-12">
-          <BarChart3 className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <BarChart3 className="w-12 h-12 text-slate-300 dark:text-slate-300 mx-auto mb-4" />
           <p className="text-slate-500 dark:text-muted-foreground">
             {t('vendorScoring.noVendors', 'No vendors match the current filters')}
           </p>

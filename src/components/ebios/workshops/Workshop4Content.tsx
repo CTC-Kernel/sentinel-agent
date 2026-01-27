@@ -26,7 +26,7 @@ import {
   Info,
 } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import type {
   Workshop4Data,
   Workshop3Data,
@@ -309,57 +309,57 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
       {/* Summary Stats */}
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-brand-200 dark:border-brand-700">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-brand-200 dark:border-brand-700">
           <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform">
             <Cpu className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{totalScenarios}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.totalScenarios')}</p>
-        </GlassCard>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.totalScenarios')}</p>
+        </PremiumCard>
 
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-red-1000 dark:border-red-2000">
-          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-red-200 dark:border-red-800">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-red-100 dark:bg-amber-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">{criticalScenarios}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.criticalScenarios')}</p>
-        </GlassCard>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.criticalScenarios')}</p>
+        </PremiumCard>
 
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-orange-200/50 dark:border-orange-800/50">
-          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-orange-200/50 dark:border-orange-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-orange-100 dark:bg-amber-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
             <List className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
             {data.operationalScenarios.reduce((sum, s) => sum + s.attackSequence.length, 0)}
           </p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.totalSteps')}</p>
-        </GlassCard>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.totalSteps')}</p>
+        </PremiumCard>
 
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-violet-200/50 dark:border-violet-800/50">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-violet-200/50 dark:border-violet-800/50">
           <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
             <Shield className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
             {strategicScenarios.length}
           </p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.sourceScenarios')}</p>
-        </GlassCard>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.sourceScenarios')}</p>
+        </PremiumCard>
       </div>
 
       {/* Strategic Scenarios List */}
       <div className="space-y-6">
         {strategicScenarios.length === 0 ? (
-          <GlassCard className="animate-fade-in-up delay-100">
+          <PremiumCard glass className="animate-fade-in-up delay-100">
             <div className="text-center py-12">
               <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                <AlertTriangle className="w-8 h-8 text-slate-300 dark:text-slate-300" />
               </div>
               <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                 {t('ebios.workshop4.noStrategicScenarios')}
               </h4>
-              <p className="text-slate-500">{t('ebios.workshop4.completeWorkshop3First')}</p>
+              <p className="text-slate-500 dark:text-slate-400">{t('ebios.workshop4.completeWorkshop3First')}</p>
             </div>
-          </GlassCard>
+          </PremiumCard>
         ) : (
           <div className="space-y-6">
             <div className="flex items-center gap-3 p-4 rounded-xl bg-info-bg border border-info-border animate-fade-in-up delay-100">
@@ -377,7 +377,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
 
               return (
                 <div key={strategicScenario.id} className={`animate-fade-in-up delay-${(index + 2) * 100}`}>
-                  <GlassCard className="overflow-visible hover:shadow-lg transition-shadow duration-300">
+                  <PremiumCard glass className="overflow-visible hover:shadow-lg transition-shadow duration-300">
                     {/* Strategic Scenario Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
                       <div className="flex items-start gap-4">
@@ -400,7 +400,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                               Gravité G{strategicScenario.gravity}
                             </span>
                             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
-                            <span className="text-slate-500">
+                            <span className="text-slate-500 dark:text-slate-400">
                               {relatedOps.length} {t('ebios.workshop4.operationalScenarios')}
                             </span>
                           </div>
@@ -492,7 +492,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                 <div className="flex items-center gap-6">
                                   {/* Likelihood Selector (Compact) */}
                                   <div className="flex flex-col items-end mr-4">
-                                    <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
+                                    <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
                                     <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
                                       {!readOnly ? (
                                         LIKELIHOOD_SCALE.map((level) => (
@@ -528,7 +528,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                     "p-2 rounded-full transition-all duration-300",
                                     isExpanded
                                       ? "bg-brand-100 dark:bg-brand-900 text-brand-600 rotate-180"
-                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
                                   )}>
                                     <ChevronDown className="w-5 h-5" />
                                   </div>
@@ -712,7 +712,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                         })
                       )}
                     </div>
-                  </GlassCard>
+                  </PremiumCard>
                 </div>
               );
             })}

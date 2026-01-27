@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Trash2, CalendarDays, Siren, ShieldAlert, Lock, Mail, HardDrive, WifiOff, Database } from '../ui/Icons';
 import { Incident, Criticality, UserProfile } from '../../types';
@@ -30,7 +30,7 @@ const getSeverityColor = (s: Criticality) => {
     switch (s) {
         case Criticality.CRITICAL: return 'bg-error-bg text-error-text border-error-border/60 shadow-sm';
         case Criticality.HIGH: return 'bg-warning-bg text-warning-text border-warning-border/60 shadow-sm';
-        case Criticality.MEDIUM: return 'bg-amber-50 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400 border-amber-1000 dark:border-amber-2000 shadow-sm';
+        case Criticality.MEDIUM: return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800 shadow-sm';
         default: return 'bg-info-bg text-info-text border-info-border/60 shadow-sm';
     }
 };
@@ -38,8 +38,8 @@ const getSeverityColor = (s: Criticality) => {
 const getStatusColor = (s: string) => {
     switch (s) {
         case 'Nouveau': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:bg-purple-900/20 dark:border-purple-800/50';
-        case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:bg-blue-900/20 dark:border-blue-2000';
-        case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 border-amber-100 dark:bg-amber-900/20 dark:border-amber-2000';
+        case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800';
+        case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 border-amber-100 dark:bg-amber-900/20 dark:border-amber-800';
         case 'Résolu': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800/50';
         case 'Fermé': return 'text-slate-500 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 line-through opacity-70';
         default: return 'text-slate-600 bg-slate-50 border-slate-200 dark:border-slate-700';
@@ -49,17 +49,17 @@ const getStatusColor = (s: string) => {
 const getIncidentCategoryStyles = (category: string) => {
     switch (category) {
         case 'Ransomware':
-            return { icon: Lock, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-2000' };
+            return { icon: Lock, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-800' };
         case 'Phishing':
             return { icon: Mail, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-100 dark:border-purple-800/50' };
         case 'Vol Matériel':
             return { icon: HardDrive, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-100 dark:border-orange-800/50' };
         case 'Indisponibilité':
-            return { icon: WifiOff, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-2000' };
+            return { icon: WifiOff, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800' };
         case 'Fuite de Données':
-            return { icon: Database, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-2000' };
+            return { icon: Database, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800' };
         default:
-            return { icon: ShieldAlert, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10' };
+            return { icon: ShieldAlert, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10' };
     }
 };
 
@@ -146,7 +146,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                         </div>
                         <div>
                             <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.title}</div>
-                            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-1">{row.original.description}</div>
+                            <div className="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-1">{row.original.description}</div>
                         </div>
                     </div>
                 );
@@ -228,7 +228,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                     e.stopPropagation();
                                     onDelete(row.original.id);
                                 }}
-                                className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:opacity-70"
+                                className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:opacity-70"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -291,7 +291,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                         </div>
                     ) : (
                         filteredIncidents.map((inc) => (
-                            <GlassCard
+                            <PremiumCard glass
                                 key={inc.id}
                                 onClick={() => onSelect(inc)}
                                 onKeyDown={(e) => {
@@ -302,7 +302,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 }}
                                 role="button"
                                 tabIndex={0}
-                                hoverEffect={true}
+                                hover={true}
                                 className="p-7 flex flex-col relative overflow-hidden group border border-white/60 dark:border-white/10 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                             >
                                 {inc.severity === Criticality.CRITICAL && (
@@ -341,7 +341,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                                     e.stopPropagation();
                                                     onDelete(inc.id);
                                                 }}
-                                                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                                className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -389,7 +389,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         </div>
                                     </div>
                                 </div>
-                            </GlassCard>
+                            </PremiumCard>
                         ))
                     )}
                 </div>

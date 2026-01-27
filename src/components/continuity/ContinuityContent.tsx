@@ -105,7 +105,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                                     <button
                                         aria-label="Générer le rapport"
                                         onClick={onGenerateReport}
-                                        className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <Download className="h-5 w-5" />
                                     </button>
@@ -124,7 +124,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                                         <button
                                             aria-label={t('common.importCsv')}
                                             onClick={onImportCsv}
-                                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         >
                                             <Upload className="h-5 w-5" />
                                         </button>

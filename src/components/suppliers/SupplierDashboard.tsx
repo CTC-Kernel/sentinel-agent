@@ -401,8 +401,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className={`px-2.5 py-1 rounded-lg text-xs font-black ${(supplier.securityScore || 0) >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                            (supplier.securityScore || 0) >= 50 ? 'bg-amber-100 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400' :
-                                                'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
+                                            (supplier.securityScore || 0) >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                             }`}>
                                             {supplier.securityScore}
                                         </div>

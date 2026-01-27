@@ -58,7 +58,7 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-lg",
                       isLast
                         ? "text-slate-900 dark:text-white font-semibold"
-                        : "text-slate-600 dark:text-slate-400"
+                        : "text-slate-600 dark:text-slate-300"
                     )}
                   >
                     {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
@@ -72,7 +72,7 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2, delay: index * 0.1 + 0.2 }}
-                  className="flex items-center text-muted-foreground dark:text-slate-600"
+                  className="flex items-center text-muted-foreground dark:text-slate-300"
                 >
                   {separator}
                 </motion.div>
@@ -120,7 +120,7 @@ export const CompactBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({ items, 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.1 }}
-                  className="text-slate-400 dark:text-slate-600"
+                  className="text-slate-400 dark:text-slate-300"
                 >
                   /
                 </motion.span>

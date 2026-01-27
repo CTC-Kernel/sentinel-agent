@@ -46,7 +46,7 @@ const TutorialStep: React.FC<TutorialStepProps> = ({
         }`}>
           {title}
         </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{description}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{description}</p>
         {action && isCurrent && (
           <Button size="sm" className="text-xs">
             {action}

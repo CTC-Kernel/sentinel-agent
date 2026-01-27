@@ -34,10 +34,10 @@ const PHASE_ICONS = {
 };
 
 const PHASE_COLORS = {
-    plan: { bg: 'bg-blue-50', text: 'text-blue-500', border: 'border-blue-500/30' },
-    do: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/30' },
-    check: { bg: 'bg-amber-50', text: 'text-amber-500', border: 'border-amber-500/30' },
-    act: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/30' }
+    plan: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-500', border: 'border-blue-500/30' },
+    do: { bg: 'bg-emerald-500/10 dark:bg-emerald-900/30', text: 'text-emerald-500', border: 'border-emerald-500/30' },
+    check: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-500', border: 'border-amber-500/30' },
+    act: { bg: 'bg-purple-500/10 dark:bg-purple-900/30', text: 'text-purple-500', border: 'border-purple-500/30' }
 };
 
 const PHASE_LABELS = {
@@ -137,7 +137,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {program.overallProgress}%
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                 Conformité
                             </span>
                         </div>
@@ -149,7 +149,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 Programme SMSI
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[180px]">
+                        <p className="text-xs text-slate-500 dark:text-slate-300 max-w-[180px]">
                             {program.overallProgress >= 80 ? 'Excellente progression' :
                              program.overallProgress >= 50 ? 'En bonne voie' : 'Effort nécessaire'}
                         </p>
@@ -180,7 +180,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className={cn("text-2xl font-black", phaseColors.text)}>
                             {phaseLabel}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
                             Phase Active
                         </div>
                         {/* Phase Progress Dots */}
@@ -211,7 +211,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
                                 "p-2 rounded-xl",
-                                overdueCount > 0 ? "bg-red-50" : "bg-success-bg"
+                                overdueCount > 0 ? "bg-red-50 dark:bg-red-900/30" : "bg-success-bg"
                             )}>
                                 {overdueCount > 0 ? (
                                     <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -232,7 +232,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         )}>
                             {overdueCount}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
                             Jalons en retard
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -253,7 +253,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
                                 "p-2 rounded-xl",
-                                certOverdue ? "bg-red-50" : "bg-indigo-500/10"
+                                certOverdue ? "bg-red-50 dark:bg-red-900/30" : "bg-indigo-500/10 dark:bg-indigo-900/30"
                             )}>
                                 <Calendar className={cn(
                                     "w-4 h-4",
@@ -261,7 +261,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 )} />
                             </div>
                             {targetDate && (
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-300 font-medium">
                                     {targetDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </span>
                             )}
@@ -283,7 +283,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 </Badge>
                             )}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
                             {targetDate ? 'Objectif Certification' : 'Certification non définie'}
                         </div>
                         {daysUntilCertification !== null && !certOverdue && (

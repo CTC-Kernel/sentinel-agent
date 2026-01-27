@@ -9,7 +9,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Search, Link2, Package, Check, AlertCircle } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { useAssets } from '../../../hooks/assets/useAssets';
 import type { Asset } from '../../../types/assets';
 import type { SupportingAsset } from '../../../types/ebios';
@@ -113,7 +113,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="max-w-2xl w-full max-h-[85vh] flex flex-col">
+      <PremiumCard glass className="max-w-2xl w-full max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
@@ -159,7 +159,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                 'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
                 typeFilter === 'all'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               )}
             >
               {t('common.all', 'Tous')}
@@ -172,7 +172,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
                   typeFilter === type
                     ? 'bg-blue-500 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 )}
               >
                 {type}
@@ -182,7 +182,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
 
           {/* Selection controls */}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">
+            <span className="text-slate-500 dark:text-slate-400">
               {selectedAssetIds.size} {t('common.selected', 'sélectionné(s)')}
             </span>
             <div className="flex gap-2">
@@ -211,7 +211,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
             </div>
           ) : filteredAssets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Package className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
+              <Package className="w-12 h-12 text-slate-300 dark:text-slate-300 mb-3" />
               <p className="text-slate-500 dark:text-muted-foreground">
                 {searchQuery
                   ? t('ebios.workshop1.noAssetsMatchSearch', 'Aucun actif ne correspond à votre recherche')
@@ -221,7 +221,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
           ) : (
             Object.entries(groupedAssets).map(([type, typeAssets]) => (
               <div key={type}>
-                <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
                   {type} ({typeAssets.length})
                 </h4>
                 <div className="space-y-2">
@@ -262,7 +262,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                             {mapAssetTypeToEbiosType(asset.type)}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                        <p className="text-sm text-slate-500 dark:text-slate-300 truncate">
                           {asset.owner && `${asset.owner} • `}
                           {asset.location || t('common.noLocation', 'Emplacement non spécifié')}
                         </p>
@@ -277,7 +277,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
 
         {/* Footer */}
         <div className="pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
-          <div className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <div className="text-sm text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4" />
             {t('ebios.workshop1.importNote', 'Les actifs importés seront liés à l\'inventaire')}
           </div>
@@ -302,7 +302,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
             </button>
           </div>
         </div>
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

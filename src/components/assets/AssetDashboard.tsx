@@ -328,11 +328,11 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         >
                             <div className="flex items-center gap-2">
                                 <div className="p-1.5 bg-amber-500/20 rounded-lg">
-                                    <Wrench className="h-4 w-4 text-amber-600 dark:text-amber-400 dark:text-amber-400" />
+                                    <Wrench className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                                 </div>
-                                <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 dark:text-amber-300 uppercase tracking-wide">Maintenance</span>
+                                <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">Maintenance</span>
                             </div>
-                            <span className="text-lg font-black text-amber-700 dark:text-amber-400 dark:text-amber-400">{metrics.maintenance}</span>
+                            <span className="text-lg font-black text-amber-700 dark:text-amber-400">{metrics.maintenance}</span>
                         </motion.div>
                         <motion.div
                             whileHover={{ scale: 1.02 }}
@@ -342,7 +342,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 <div className="p-1.5 bg-blue-500/20 rounded-lg">
                                     <Box className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 dark:text-blue-300 uppercase tracking-wide">Nouveaux</span>
+                                <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">Nouveaux</span>
                             </div>
                             <span className="text-lg font-black text-blue-700 dark:text-blue-400">{metrics.newAssets}</span>
                         </motion.div>

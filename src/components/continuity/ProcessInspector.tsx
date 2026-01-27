@@ -69,7 +69,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
             title={process.name}
             subtitle={
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-500">{t('common.managedBy')}</span>
+                    <span className="text-slate-500 dark:text-slate-400">{t('common.managedBy')}</span>
                     <div className="flex items-center gap-2">
                         <img
                             src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}

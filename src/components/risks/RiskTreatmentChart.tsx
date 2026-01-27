@@ -74,7 +74,7 @@ export const RiskTreatmentChart: React.FC<RiskTreatmentChartProps> = ({ risks })
                     <span className="block text-2xl font-bold text-slate-800 dark:text-slate-200 dark:text-white">
                         {Math.round((data.find(d => d.name === 'Terminé')?.value || 0) / risks.length * 100)}%
                     </span>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Avancement</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Avancement</span>
                 </div>
             </div>
         </div>

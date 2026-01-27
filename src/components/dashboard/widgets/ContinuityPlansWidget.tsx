@@ -5,7 +5,7 @@ import { where, orderBy, limit } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { HeartPulse, CheckCircle2, AlertTriangle, CalendarClock, LifeBuoy } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 
 interface ContinuityPlansWidgetProps {
     navigate?: (path: string) => void;
@@ -67,9 +67,9 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
     // Empty state when no business processes
     if (processes.length === 0) {
         return (
-            <GlassCard
+            <PremiumCard glass
                 className="h-full flex flex-col p-5 overflow-hidden"
-                hoverEffect={true}
+                hover={true}
                 gradientOverlay={true}
             >
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -92,7 +92,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
                         compact
                     />
                 </div>
-            </GlassCard>
+            </PremiumCard>
         );
     }
 
@@ -157,7 +157,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
                         </div>
                     )}
                     {!stats.lastDrillResult && (
-                        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800 dark:text-muted-foreground">
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 dark:bg-slate-800 dark:text-muted-foreground">
                             <CalendarClock className="w-3 h-3" />
                             À Planifier
                         </div>

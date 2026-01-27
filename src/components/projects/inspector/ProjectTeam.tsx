@@ -30,7 +30,7 @@ export const ProjectTeam: React.FC<ProjectTeamProps> = ({ project, usersList }) 
                             </div>
                             <div className="min-w-0">
                                 <h4 className="font-bold text-slate-900 dark:text-white truncate">{member.displayName || 'Utilisateur'}</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{member.email}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-300 truncate">{member.email}</p>
                                 <div className="mt-1.5 inline-flex">
                                     <Badge variant="soft" status="neutral" className="text-[11px] px-2 py-0.5 h-auto">{member.role}</Badge>
                                 </div>

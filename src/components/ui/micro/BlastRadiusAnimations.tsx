@@ -214,7 +214,7 @@ const AnimatedAffectedNode: React.FC<{
         <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
           {node.label}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{node.type}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-300 capitalize">{node.type}</p>
       </div>
 
       {/* Impact badge with pulse for critical */}
@@ -357,7 +357,7 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
               <p className="font-medium text-amber-800 dark:text-amber-200">
                 Zone d'impact identifiee
               </p>
-              <p className="text-sm text-amber-600 dark:text-amber-400 dark:text-amber-300 mt-1">
+              <p className="text-sm text-amber-600 dark:text-amber-300 mt-1">
                 Si ce risque se materialise, <strong>{affectedNodes.length} elements</strong> seront
                 impactes sur <strong>{maxDepth} niveaux</strong> de profondeur.
               </p>
@@ -407,7 +407,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
         {/* Baseline */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">Situation actuelle</span>
+            <span className="text-slate-500 dark:text-slate-400">Situation actuelle</span>
             <span className="font-medium">{Math.round(baselineImpact * 100)}%</span>
           </div>
           <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -423,7 +423,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
         {/* Scenario */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">Avec mitigation</span>
+            <span className="text-slate-500 dark:text-slate-400">Avec mitigation</span>
             <span className={cn('font-medium', isImprovement ? 'text-success-500' : 'text-error-500')}>
               {Math.round(scenarioImpact * 100)}%
             </span>
@@ -547,7 +547,7 @@ export const AnimatedStatsCard: React.FC<{
   animate?: boolean;
 }> = ({ label, value, icon, color = 'default', delay = 0, animate = true }) => {
   const colorClasses = {
-    default: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-300',
+    default: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
     success: 'bg-success-100 text-success-600 dark:bg-success-900/30 dark:text-success-400',
     warning: 'bg-warning-100 text-warning-600 dark:bg-warning-900/30 dark:text-warning-400',
     danger: 'bg-error-100 text-error-600 dark:bg-error-900/30 dark:text-error-400',

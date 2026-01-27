@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { cn } from '../../lib/utils';
 
 import { GlobalMetrics } from './components/GlobalMetrics';
 import { TenantList } from './components/TenantList';
@@ -21,15 +22,17 @@ const AdminDashboard: React.FC = () => {
             </header>
 
             {/* Navigation Tabs */}
-            <div className="flex space-x-4 border-b border-white/10 pb-4 overflow-x-auto">
+            <div className="flex space-x-4 border-b border-border pb-4 overflow-x-auto">
                 {(['overview', 'tenants', 'users', 'system', 'audit'] as const).map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab
-                            ? 'bg-brand-50 text-brand-400 border border-brand-200'
-                            : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                            }`}
+                        className={cn(
+                            "px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
+                            activeTab === tab
+                                ? "bg-primary/10 text-primary border border-primary/20"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
                     >
                         {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>

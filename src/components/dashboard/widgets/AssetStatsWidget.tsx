@@ -4,7 +4,7 @@ import { Asset, Criticality } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { Server, ShieldAlert, ShieldCheck, Box } from '../../ui/Icons';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { EmptyState } from '../../ui/EmptyState';
 
 interface AssetStatsWidgetProps {
@@ -39,9 +39,9 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
     // Empty state when no assets
     if (stats.total === 0) {
         return (
-            <GlassCard
+            <PremiumCard glass
                 className="h-full flex flex-col p-5 overflow-hidden"
-                hoverEffect={true}
+                hover={true}
                 gradientOverlay={true}
             >
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -64,14 +64,14 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
                         compact
                     />
                 </div>
-            </GlassCard>
+            </PremiumCard>
         );
     }
 
     return (
-        <GlassCard
+        <PremiumCard glass
             className="h-full flex flex-col p-5 overflow-hidden group hover:shadow-apple"
-            hoverEffect={true}
+            hover={true}
             gradientOverlay={true}
         >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -113,6 +113,6 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
                     </div>
                 </div>
             </div>
-        </GlassCard>
+        </PremiumCard>
     );
 };

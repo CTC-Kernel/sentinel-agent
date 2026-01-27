@@ -120,7 +120,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                         e.stopPropagation();
                                                         onEdit(incident);
                                                     }}
-                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 hover:text-brand-600 rounded-lg shadow-sm border border-slate-200 dark:border-white/10"
+                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-brand-600 rounded-lg shadow-sm border border-slate-200 dark:border-white/10"
                                                 >
                                                     <Edit className="h-3.5 w-3.5" />
                                                 </button>
@@ -134,7 +134,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                         e.stopPropagation();
                                                         onDelete(incident.id);
                                                     }}
-                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-400 hover:text-red-600 rounded-lg shadow-sm border border-slate-200 dark:border-white/10"
+                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-red-600 rounded-lg shadow-sm border border-slate-200 dark:border-white/10"
                                                 >
                                                     <Trash2 className="h-3.5 w-3.5" />
                                                 </button>

@@ -59,7 +59,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
     return (
         <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm h-full">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Chronologie</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">Chronologie</h3>
                 {selectedIncident.dateResolved && (
                     <div className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
                         <Clock className="h-3 w-3 mr-1" />
@@ -87,12 +87,12 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
                                         {step.label}
                                     </span>
                                     {step.date && (
-                                        <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">
+                                        <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">
                                             {new Date(step.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{step.description}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{step.description}</p>
                             </div>
                         </div>
                     );

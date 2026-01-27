@@ -74,7 +74,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                         <FloatingLabelInput label="Nom" {...editActivityForm.register('name')} />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Responsable</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Responsable</label>
                                         <CustomSelect
                                             value={watchedManagerId || ''}
                                             onChange={(val) => {
@@ -93,7 +93,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Base Légale</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Base Légale</label>
                                         <CustomSelect
                                             value={watchedLegalBasis}
                                             onChange={(val) => editActivityForm.setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['legalBasis'])}
@@ -101,7 +101,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Statut</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Statut</label>
                                         <CustomSelect
                                             value={watchedStatus}
                                             onChange={(val) => editActivityForm.setValue('status', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['status'])}
@@ -159,15 +159,15 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                     <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                 </span>
                                 <div>
-                                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                     <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">{log.details}</p>
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Par: {log.userEmail}</p>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">Par: {log.userEmail}</p>
                                 </div>
                             </div>
                         ))}
                         {activityHistory.length === 0 && (
-                            <div className="text-center py-4 text-slate-500 dark:text-slate-400 text-sm">Aucun historique disponible.</div>
+                            <div className="text-center py-4 text-slate-500 dark:text-slate-300 text-sm">Aucun historique disponible.</div>
                         )}
                     </div>
                 )}

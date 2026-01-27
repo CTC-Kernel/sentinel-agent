@@ -290,7 +290,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                         key={company.siren}
                                         type="button"
                                         onClick={() => selectCompany(company)}
-                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
+                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
                                         aria-label={`Sélectionner l'entreprise ${company.name}`}
                                     >
                                         <div>
@@ -399,7 +399,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Responsable Interne</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Responsable Interne</label>
                             <Controller
                                 name="ownerId"
                                 control={control}
@@ -499,7 +499,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Processus Supportés</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Processus Supportés</label>
                             <Controller
                                 name="supportedProcessIds"
                                 control={control}
@@ -517,7 +517,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Actifs Liés</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Actifs Liés</label>
                                 {/* This button seems to be misplaced or part of a different context, adding it as requested */}
 
                                 <Controller
@@ -535,7 +535,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Risques Liés</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Risques Liés</label>
                                 <Controller
                                     name="relatedRiskIds"
                                     control={control}
@@ -578,7 +578,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         />
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Contrat (Document)</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Contrat (Document)</label>
                             <Controller
                                 name="contractDocumentId"
                                 control={control}
@@ -610,7 +610,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onClick={onCancel}
                             variant="ghost"
                             disabled={isLoading}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                         >
                             Annuler
                         </Button>

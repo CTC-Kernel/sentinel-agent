@@ -147,7 +147,7 @@ const Pricing = () => {
 
   const renderFeatureValue = (value: string | boolean) => {
     if (value === true) return <Check className="w-5 h-5 text-success-500 mx-auto" />;
-    if (value === false) return <X className="w-5 h-5 text-slate-300 dark:text-slate-600 mx-auto" />;
+    if (value === false) return <X className="w-5 h-5 text-slate-300 dark:text-slate-300 mx-auto" />;
     return <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{value}</span>;
   };
 
@@ -185,7 +185,7 @@ const Pricing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-medium"
+            className="text-lg md:text-xl text-slate-600 dark:text-slate-300 font-medium"
           >
             {t('common.pricingSubtitle')}
           </motion.p>
@@ -290,7 +290,7 @@ const Pricing = () => {
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 mb-8 min-h-[40px]">
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300 mb-8 min-h-[40px]">
                     {key === 'DISCOVERY' ? 'Idéal pour découvrir la plateforme et gérer vos premiers risques.' :
                       key === 'professional' ? 'Pour les équipes structurées visant la conformité ISO 27001.' :
                         'Pour les grandes organisations aux besoins complexes.'}
@@ -345,7 +345,7 @@ const Pricing = () => {
         >
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">{t('pricing.detailed_comparison')}</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">{t('pricing.features_intro')}</p>
+            <p className="text-slate-500 dark:text-slate-300 font-medium">{t('pricing.features_intro')}</p>
           </div>
 
           <div className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl relative">
@@ -354,7 +354,7 @@ const Pricing = () => {
 
             {/* Table Header - Sticky */}
             <div className="grid grid-cols-4 p-6 border-b border-slate-200/50 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-              <div className="col-span-1 p-2 font-black text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
+              <div className="col-span-1 p-2 font-black text-slate-500 dark:text-slate-300 uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
               <div className="col-span-1 p-2 text-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800">
                   <Star className="w-4 h-4 text-slate-500" />
@@ -385,7 +385,7 @@ const Pricing = () => {
                   >
                     <span className="text-lg font-black text-slate-900 dark:text-white">{category.title}</span>
                     <ChevronDown className={cn(
-                      "w-5 h-5 text-slate-400 dark:text-slate-500 transition-transform duration-300",
+                      "w-5 h-5 text-slate-400 dark:text-slate-400 transition-transform duration-300",
                       expandedCategories.includes(category.id) && 'rotate-180 text-brand-500 dark:text-brand-400'
                     )} />
                   </button>
@@ -410,11 +410,11 @@ const Pricing = () => {
                                     <feature.icon className="w-4 h-4 text-slate-500 dark:text-slate-300" />
                                   </div>
                                 )}
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
                                   {feature.name}
                                   {feature.tooltip && (
                                     <Tooltip content={feature.tooltip}>
-                                      <Info className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 ml-2 inline cursor-help" />
+                                      <Info className="w-3.5 h-3.5 text-slate-400 dark:text-slate-400 ml-2 inline cursor-help" />
                                     </Tooltip>
                                   )}
                                 </span>
@@ -447,7 +447,7 @@ const Pricing = () => {
             <div className="px-8 lg:px-10 pt-8 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100/50 dark:border-white/5 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('pricing.faq')}</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc')}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">{t('pricing.faqDesc')}</p>
               </div>
               <div className="p-3 bg-gradient-to-br from-brand-500/10 to-violet-500/10 rounded-2xl border border-brand-200">
                 <HelpCircle className="w-6 h-6 text-brand-500" />
@@ -464,7 +464,7 @@ const Pricing = () => {
                     <span className="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100 text-base pr-4">{faq.q}</span>
                     <ChevronDown
                       className={cn(
-                        "w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-transform duration-300",
+                        "w-5 h-5 text-slate-400 dark:text-slate-400 flex-shrink-0 transition-transform duration-300",
                         expandedCategories.includes(`faq-${i}`) && 'rotate-180 text-brand-500 dark:text-brand-400'
                       )}
                     />
@@ -507,7 +507,7 @@ const Pricing = () => {
               <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
                 {t('pricing.custom_solution_title')}
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 font-medium mb-8 max-w-lg mx-auto">
+              <p className="text-slate-600 dark:text-slate-300 font-medium mb-8 max-w-lg mx-auto">
                 {t('pricing.custom_solution_desc')}
               </p>
               <Button
@@ -526,13 +526,13 @@ const Pricing = () => {
         {/* Footer Section */}
         <div className="text-center pb-8 border-t border-slate-200/50 dark:border-white/5 pt-8">
           <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-bold text-slate-500">
-            <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5">
+            <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
               CGV
             </button>
-            <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5">
+            <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
               Confidentialité
             </button>
-            <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5">
+            <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
               Mentions Légales
             </button>
           </div>

@@ -57,7 +57,7 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
                     </Button>
                 </div>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 {description}
             </p>
         </div>

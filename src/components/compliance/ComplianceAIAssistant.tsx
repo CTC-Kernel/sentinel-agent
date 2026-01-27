@@ -50,21 +50,21 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
                 <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm text-brand-600 dark:text-brand-400">
                     <Bot className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-white dark:text-slate-100">Assistant Conformité IA</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white">Assistant Conformité IA</h3>
                 <span className="px-2 py-0.5 rounded-md bg-brand-500 text-[11px] font-bold text-white uppercase tracking-wider">IA Sentinel</span>
             </div>
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-2 relative z-10">
-                    <button onClick={() => handleAction('explain')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Comprendre ce contrôle avec l'IA">
+                    <button onClick={() => handleAction('explain')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Comprendre ce contrôle avec l'IA">
                         <Lightbulb className="w-4 h-4 mr-3 text-warning" />
                         Comprendre ce contrôle
                     </button>
-                    <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Suggérer des preuves avec l'IA">
+                    <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Suggérer des preuves avec l'IA">
                         <FileText className="w-4 h-4 mr-3 text-info" />
                         Suggérer des preuves
                     </button>
-                    <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Générer une politique avec l'IA">
+                    <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Générer une politique avec l'IA">
                         <Sparkles className="w-4 h-4 mr-3 text-violet-500" />
                         Générer une politique
                     </button>

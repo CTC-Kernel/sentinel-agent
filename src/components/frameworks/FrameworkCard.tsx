@@ -162,7 +162,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
               <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">
                 {framework.code}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">
+              <p className="text-sm text-slate-500 dark:text-slate-300 line-clamp-1">
                 {name}
               </p>
             </div>
@@ -173,7 +173,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
             >
               <Check className="w-3.5 h-3.5" />
               <span className="text-xs font-semibold">{t('frameworks.active', 'Actif')}</span>

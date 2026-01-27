@@ -102,7 +102,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                         <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white">
                                             Créer depuis un modèle
                                         </Dialog.Title>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
                                             Sélectionnez un modèle de document réglementaire
                                         </p>
                                     </div>
@@ -124,7 +124,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                 "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                                                 selectedCategory === null
                                                     ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
-                                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                             )}
                                         >
                                             Tous ({DOCUMENT_TEMPLATES.length})
@@ -137,7 +137,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                     "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                                                     selectedCategory === category
                                                         ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
-                                                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                        : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                                 )}
                                             >
                                                 {category} ({templatesByCategory[category].length})
@@ -195,7 +195,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                                         <h4 className="font-medium text-slate-900 dark:text-white text-sm truncate">
                                                                             {template.title}
                                                                         </h4>
-                                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                                                                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 line-clamp-2">
                                                                             {template.description}
                                                                         </p>
                                                                         <div className="flex items-center gap-2 mt-2">
@@ -230,21 +230,21 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                 <h4 className="font-medium text-slate-900 dark:text-white mb-2">
                                                     {previewTemplate.title}
                                                 </h4>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                                <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">
                                                     {previewTemplate.description}
                                                 </p>
                                                 <div className="space-y-2 text-xs">
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-500">Type:</span>
+                                                        <span className="text-slate-500 dark:text-slate-400">Type:</span>
                                                         <span className="font-medium">{previewTemplate.type}</span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-500">Catégorie:</span>
+                                                        <span className="text-slate-500 dark:text-slate-400">Catégorie:</span>
                                                         <span className="font-medium">{previewTemplate.category}</span>
                                                     </div>
                                                     {previewTemplate.controlReference && (
                                                         <div className="flex justify-between">
-                                                            <span className="text-slate-500">Référence:</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">Référence:</span>
                                                             <span className="font-mono">{previewTemplate.controlReference}</span>
                                                         </div>
                                                     )}

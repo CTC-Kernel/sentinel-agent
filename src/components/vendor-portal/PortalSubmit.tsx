@@ -67,7 +67,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <Send className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -76,7 +76,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -120,12 +120,12 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
           {incompleteSections.length > 0 && (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-xl p-4 mb-6">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 dark:text-amber-400 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-amber-800 dark:text-amber-300">
                     {t('vendorPortal.incompleteSections', 'Some required questions are incomplete')}
                   </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-400 dark:text-amber-400 mt-1">
+                  <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
                     {t('vendorPortal.incompleteWarning', 'You can still submit, but missing required answers may affect the assessment.')}
                   </p>
                 </div>

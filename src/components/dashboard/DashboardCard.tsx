@@ -1,6 +1,6 @@
 import React from 'react';
 import { TechCorner } from '../ui/TechCorner';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Maximize2, Minimize2 } from '../ui/Icons';
 import { Skeleton } from '../../components/ui/Skeleton';
 
@@ -145,13 +145,13 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
 
     // Default View (Card)
     return (
-        <GlassCard
+        <PremiumCard glass
             className={`
                 p-0 flex flex-col group h-full relative
                 ${tierStyle}
                 ${className}
             `}
-            hoverEffect={true}
+            hover={true}
         >
             {/* Tech Corners */}
             <TechCorner position="top-left" className="opacity-0 group-hover:opacity-70" />
@@ -165,7 +165,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
             <div className="relative z-10 flex flex-col h-full">
                 {CardContent}
             </div>
-        </GlassCard>
+        </PremiumCard>
     );
 };
 

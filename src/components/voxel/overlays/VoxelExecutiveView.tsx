@@ -261,7 +261,7 @@ const CriticalItemRow: React.FC<CriticalItemRowProps> = ({ item, onClick }) => {
           )}
         </div>
       </div>
-      <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+      <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-300 flex-shrink-0" />
     </button>
   );
 };
@@ -441,7 +441,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
                 />
               ))}
               {criticalItems.length === 0 && (
-                <div className="p-4 text-center text-slate-500 dark:text-slate-400 text-sm">
+                <div className="p-4 text-center text-slate-500 dark:text-slate-300 text-sm">
                   No critical items
                 </div>
               )}

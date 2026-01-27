@@ -104,7 +104,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                         </div>
                         Votre Avis Compte
                     </h2>
-                    <Button variant="ghost" size="icon" aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-xl">
+                    <Button variant="ghost" size="icon" aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-xl">
                         <X className="w-5 h-5" />
                     </Button>
                 </div>
@@ -120,8 +120,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                 aria-pressed={formValues.type === t}
                                 onClick={() => setValue('type', t)}
                                 className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold transition-all ${formValues.type === t
-                                    ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-500 text-blue-700 dark:text-blue-400 dark:text-blue-300 ring-2 ring-blue-500/30 shadow-sm'
-                                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                    ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-500 text-blue-700 dark:text-blue-300 ring-2 ring-blue-500/30 shadow-sm'
+                                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                     }`}
                             >
                                 {getTypeIcon(t)}
@@ -134,12 +134,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     {/* Priority (only for bugs/features) */}
                     {(formValues.type === 'bug' || formValues.type === 'feature') && (
                         <div className="animate-fade-in">
-                            <label className="block text-sm font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-2">
+                            <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                                 Priorité / Importance
                             </label>
                             <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 w-fit">
                                 {(['low', 'medium', 'high'] as const).map((p) => (
-                                    <label key={p} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                    <label key={p} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                                         <input {...register('priority')}
                                             checked={formValues.priority === p}
                                             type="radio"
@@ -158,7 +158,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-2">
+                        <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                             Sujet
                         </label>
                         <input {...register('title')}
@@ -171,7 +171,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-2">
+                        <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                             Description détaillée
                         </label>
                         <textarea {...register('description')}

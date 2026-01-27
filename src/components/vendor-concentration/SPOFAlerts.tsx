@@ -139,7 +139,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
           {/* Vendor Info */}
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">
-              <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+              <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-300" />
             </div>
             <div>
               <p className="text-sm font-medium text-slate-900 dark:text-white">
@@ -159,14 +159,14 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
           {/* Affected Services */}
           {alert.affectedServices.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
                 {t('vendorConcentration.spof.affectedServices')}
               </p>
               <div className="flex flex-wrap gap-1">
                 {alert.affectedServices.slice(0, 5).map((service, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 rounded-md text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                    className="px-2 py-1 rounded-md text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                   >
                     {service}
                   </span>
@@ -190,7 +190,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
 
           {/* Recommendation */}
           <div>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
               {t('vendorConcentration.spof.recommendation')}
             </p>
             <p className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
@@ -226,7 +226,7 @@ export const SPOFAlerts: React.FC<SPOFAlertsProps> = ({
   if (summary.totalSPOFs === 0) {
     return (
       <div className="text-center py-8">
-        <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 w-fit mx-auto mb-4">
+        <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 w-fit mx-auto mb-4">
           <Shield className="h-8 w-8 text-green-500" />
         </div>
         <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">

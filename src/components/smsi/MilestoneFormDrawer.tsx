@@ -169,7 +169,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                       >
                         {config.label}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-300 line-clamp-1">
                         {config.description.substring(0, 30)}...
                       </p>
                     </div>

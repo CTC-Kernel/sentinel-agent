@@ -73,7 +73,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             onChange={table.getToggleAllPageRowsSelectedHandler()}
                             name="select-all-rows"
                             type="checkbox"
-                            className="w-5 h-5 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-400"
+                            className="w-5 h-5 rounded-md border-border text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer bg-background/50 transition-all hover:border-primary/50"
                         />
                     </label>
                 </div>
@@ -94,7 +94,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 name={`select-row-${row.id}`}
                                 type="checkbox"
                                 disabled={!row.getCanSelect()}
-                                className="w-5 h-5 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:border-slate-600"
+                                className="w-5 h-5 rounded-md border-border text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer bg-background/50 transition-all hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                         </label>
                     </div>
@@ -163,14 +163,14 @@ export function DataTable<TData extends { id: string }, TValue>({
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {searchable && (
                     <div className="relative flex-1 w-full max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                             aria-label="Rechercher"
                             value={globalFilter ?? ''}
                             onChange={(e) => setGlobalFilter(e.target.value)}
                             type="text"
                             placeholder="Rechercher..."
-                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-2xl text-sm focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-2xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none backdrop-blur-sm transition-all"
                         />
                     </div>
                 )}
@@ -230,8 +230,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
-                                                "px-4 py-4 sm:px-6 sm:py-4 text-left text-[11px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap transition-colors",
-                                                header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 hover:text-brand-600 dark:hover:text-brand-400",
+                                                "px-4 py-4 sm:px-6 sm:py-4 text-left text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground whitespace-nowrap transition-colors",
+                                                header.column.getCanSort() && "cursor-pointer hover:bg-muted/40 hover:text-primary",
                                                 header.id === 'select' && "w-[50px] px-2 sm:px-4",
                                                 (header.column.columnDef.meta as { className?: string })?.className
                                             )}
@@ -240,8 +240,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             <div className="flex items-center gap-2">
                                                 {flexRender(header.column.columnDef.header, header.getContext())}
                                                 {{
-                                                    asc: <ChevronUp className="h-3 w-3 text-brand-600" />,
-                                                    desc: <ChevronDown className="h-3 w-3 text-brand-600" />,
+                                                    asc: <ChevronUp className="h-3 w-3 text-primary" />,
+                                                    desc: <ChevronDown className="h-3 w-3 text-primary" />,
                                                 }[header.column.getIsSorted() as string] ?? null}
                                             </div>
                                         </th>
@@ -250,7 +250,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             </tr>
                         ))}
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    <tbody className="divide-y divide-border/50">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={`skeleton-row-${i}`}>
@@ -284,7 +284,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className={cn("px-3 py-4 sm:px-6 sm:py-4 text-sm text-slate-700 dark:text-slate-300 font-medium", (cell.column.columnDef.meta as { className?: string })?.className)}>
+                                        <td key={cell.id} className={cn("px-3 py-4 sm:px-6 sm:py-4 text-sm text-foreground font-medium", (cell.column.columnDef.meta as { className?: string })?.className)}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}
@@ -311,7 +311,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             {/* Pagination */}
             {table.getPageCount() > 1 && (
                 <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-600 dark:text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         Affichage {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} à {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.length)} sur {data.length} résultats
                     </p>
 
@@ -355,7 +355,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                         size="icon"
                                         className={cn(
                                             "w-10 h-10 rounded-lg font-bold transition-colors",
-                                            currentPage !== pageNum && "hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+                                            currentPage !== pageNum && "hover:bg-muted"
                                         )}
                                     >
                                         {pageNum}
@@ -371,7 +371,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 disabled={!table.getCanNextPage()}
                                 variant="outline"
                                 size="icon"
-                                className="w-10 h-10 rounded-2xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm"
+                                className="w-10 h-10 rounded-2xl bg-background/50 backdrop-blur-sm"
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </Button>

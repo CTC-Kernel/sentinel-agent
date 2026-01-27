@@ -144,7 +144,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                                     >
                                         <div className={cn(
                                             "p-2 rounded-lg",
-                                            selectedTemplate === template.id ? "bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-brand-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-400"
+                                            selectedTemplate === template.id ? "bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-brand-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-slate-300"
                                         )}>
                                             <template.icon className="w-5 h-5" />
                                         </div>

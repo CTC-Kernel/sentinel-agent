@@ -114,7 +114,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                                     onClick={handleClose}
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="rounded-full text-muted-foreground hover:text-slate-900 dark:text-slate-500 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10"
+                                                    className="rounded-full text-muted-foreground hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
                                                     aria-label="Fermer"
                                                 >
                                                     <X className="h-5 w-5" />

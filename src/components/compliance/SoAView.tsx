@@ -281,7 +281,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                 </span>
                                             </div>
                                             <div>
-                                                <div className="flex items-center gap-2 text-sm text-slate-900 dark:text-white dark:text-slate-100">
+                                                <div className="flex items-center gap-2 text-sm text-slate-900 dark:text-white">
                                                     <Clock className="h-3 w-3 text-slate-400" />
                                                     {new Date(version.generatedAt).toLocaleDateString('fr-FR', {
                                                         day: 'numeric',
@@ -302,7 +302,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                 <div className="text-green-600 dark:text-green-400">
                                                     {version.stats.implementedControls} implémentés
                                                 </div>
-                                                <div className="text-slate-500">
+                                                <div className="text-slate-500 dark:text-slate-400">
                                                     {version.stats.totalControls} contrôles
                                                 </div>
                                             </div>
@@ -320,16 +320,16 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             {!selectedVersion && controls.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                        <div className="text-xs text-slate-500 dark:text-slate-400 uppercase">Total</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-300 uppercase">Total</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{currentStats.totalControls}</div>
                     </div>
                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div className="text-xs text-blue-600 dark:text-blue-400 uppercase">Applicables</div>
-                        <div className="text-2xl font-bold text-blue-700 dark:text-blue-400 dark:text-blue-300">{currentStats.applicableControls}</div>
+                        <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{currentStats.applicableControls}</div>
                     </div>
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                         <div className="text-xs text-green-600 dark:text-green-400 uppercase">Implémentés</div>
-                        <div className="text-2xl font-bold text-green-700 dark:text-green-400 dark:text-green-300">{currentStats.implementedControls}</div>
+                        <div className="text-2xl font-bold text-green-700 dark:text-green-300">{currentStats.implementedControls}</div>
                     </div>
                     <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                         <div className="text-xs text-yellow-600 dark:text-yellow-400 uppercase">Partiels</div>
@@ -351,7 +351,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                     </div>
                 ) : (
                     <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-900/50">
+                        <thead className="text-xs text-slate-500 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-900/50">
                             <tr>
                                 <th className="px-4 py-3">Code</th>
                                 <th className="px-4 py-3">Contrôle</th>
@@ -369,12 +369,12 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                 const missingJustification = isNonApplicable && (!item.justification || item.justification.trim() === '');
 
                                 return (
-                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5">
+                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
                                         <td className="px-4 py-3 font-medium">{item.code}</td>
                                         <td className="px-4 py-3 max-w-sm">
-                                            <div className="font-medium text-slate-900 dark:text-white dark:text-slate-100">{item.name}</div>
+                                            <div className="font-medium text-slate-900 dark:text-white">{item.name}</div>
                                             {!item.isHistorical && 'description' in item && (
-                                                <div className="text-xs text-slate-500 dark:text-slate-400 truncate" title={item.description}>{item.description}</div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-300 truncate" title={item.description}>{item.description}</div>
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
@@ -414,7 +414,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                             {item.isHistorical ? (
                                                 <span className={cn(
                                                     "text-xs",
-                                                    missingJustification ? "text-red-500" : "text-slate-600 dark:text-slate-400"
+                                                    missingJustification ? "text-red-500" : "text-slate-600 dark:text-slate-300"
                                                 )}>
                                                     {item.justification || (missingJustification ? "Justification requise" : "-")}
                                                 </span>

@@ -71,7 +71,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
                     )}
                     <div>
                         <div className="flex items-center gap-3">
-                            <span className="font-semibold text-lg tracking-tight text-slate-900 dark:text-white dark:text-slate-100">{title}</span>
+                            <span className="font-semibold text-lg tracking-tight text-slate-900 dark:text-white">{title}</span>
                             {statusBadge}
                         </div>
                     </div>

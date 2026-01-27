@@ -85,7 +85,7 @@ export function AutoSaveIndicator({
     case 'pending':
       return (
         <div
-          className={`${baseStyles} text-slate-500 dark:text-slate-400 ${className}`}
+          className={`${baseStyles} text-slate-500 dark:text-slate-300 ${className}`}
           role="status"
           aria-live="polite"
         >
@@ -119,7 +119,7 @@ export function AutoSaveIndicator({
             <span>
               {l.saved}
               {lastSavedAt && (
-                <span className="text-slate-400 dark:text-slate-500 ml-1">
+                <span className="text-slate-400 dark:text-slate-400 ml-1">
                   ({formatRelativeTime(lastSavedAt, locale)})
                 </span>
               )}

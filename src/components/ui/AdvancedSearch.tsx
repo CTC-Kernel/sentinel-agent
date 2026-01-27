@@ -204,7 +204,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             aria-label="Annuler la recherche"
                             onClick={onClose}
                             variant="secondary"
-                            className="text-slate-600 dark:text-slate-400"
+                            className="text-slate-600 dark:text-slate-300"
                         >
                             Annuler
                         </Button>

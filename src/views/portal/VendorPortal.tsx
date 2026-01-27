@@ -133,7 +133,7 @@ export const VendorPortal: React.FC = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <Loader2 className="w-10 h-10 text-brand-600 animate-spin mb-4" />
-        <p className="text-slate-500">{t('vendorPortal.loading', 'Loading portal...')}</p>
+        <p className="text-slate-500 dark:text-slate-400">{t('vendorPortal.loading', 'Loading portal...')}</p>
       </div>
     );
   }
@@ -142,7 +142,7 @@ export const VendorPortal: React.FC = () => {
   if (state === 'error') {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center max-w-md mx-auto text-center">
-        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 flex items-center justify-center mb-6">
+        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-6">
           <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
@@ -178,7 +178,7 @@ export const VendorPortal: React.FC = () => {
   if (state === 'submitted' && access) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center max-w-lg mx-auto text-center">
-        <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center mb-6">
+        <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
           <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
@@ -200,7 +200,7 @@ export const VendorPortal: React.FC = () => {
             </div>
           </div>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-6">
+        <p className="text-sm text-slate-500 dark:text-slate-300 mt-6">
           {t('vendorPortal.confirmationEmail', 'A confirmation email has been sent to your address.')}
         </p>
       </div>

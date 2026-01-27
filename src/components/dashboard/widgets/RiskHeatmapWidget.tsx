@@ -151,24 +151,24 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                 <div className="flex items-center gap-4 flex-1">
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-sm" />
-                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.critical} critiques</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{stats.critical} critiques</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 shadow-sm" />
-                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.high} élevés</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{stats.high} élevés</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 shadow-sm" />
-                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.medium} moyens</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{stats.medium} moyens</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 shadow-sm" />
-                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.low} faibles</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{stats.low} faibles</span>
                     </div>
                 </div>
                 <div className="text-right">
                     <div className="text-lg font-black text-slate-900 dark:text-white">{stats.total}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">Total</div>
                 </div>
             </div>
 
@@ -177,7 +177,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                 <div className="grid grid-cols-[auto_1fr] gap-3 w-full max-w-[380px]">
                     {/* Y Axis Label */}
                     <div className="flex items-center justify-center">
-                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider -rotate-90 whitespace-nowrap">
+                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider -rotate-90 whitespace-nowrap">
                             {t('risks.probability')}
                         </span>
                     </div>
@@ -239,7 +239,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
 
                         {/* X Axis Label */}
                         <div className="flex items-center justify-center pt-1">
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                 {t('risks.impact')}
                             </span>
                         </div>
@@ -254,12 +254,12 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-auto pt-3 border-t border-slate-100 dark:border-white/5 relative z-10"
                 >
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-1000 dark:border-red-800/30">
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
                         <div className="p-1.5 rounded-lg bg-red-50">
                             <AlertTriangle className="w-4 h-4 text-red-500" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs font-bold text-red-700 dark:text-red-400 dark:text-red-300">
+                            <p className="text-xs font-bold text-red-700 dark:text-red-300">
                                 {stats.critical} risque{stats.critical > 1 ? 's' : ''} critique{stats.critical > 1 ? 's' : ''} nécessite{stats.critical > 1 ? 'nt' : ''} une attention immédiate
                             </p>
                         </div>

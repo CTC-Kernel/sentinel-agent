@@ -70,7 +70,7 @@ export const SystemHealth: React.FC = () => {
                         </div>
                         <div className="relative z-10 flex flex-col h-full justify-between">
                             <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">{metric.label}</p>
+                                <p className="text-slate-500 dark:text-slate-300 text-sm font-medium uppercase tracking-wider">{metric.label}</p>
                                 <h3 className="text-3xl font-bold mt-2 text-slate-900 dark:text-white">{metric.value}</h3>
                             </div>
                             <div className="flex items-center gap-2 mt-4">
@@ -103,7 +103,7 @@ export const SystemHealth: React.FC = () => {
                                 <h4 className="font-bold text-slate-900 dark:text-white text-sm">{service.name}</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className={`w-2 h-2 rounded-full ${getStatusColor(service.status)}`}></span>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{service.status}</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-300 capitalize">{service.status}</span>
                                 </div>
                             </div>
                             <div className="text-right">

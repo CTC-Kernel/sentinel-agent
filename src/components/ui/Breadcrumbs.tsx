@@ -77,7 +77,7 @@ export const Breadcrumbs: React.FC = () => {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="flex items-center text-slate-400 dark:text-slate-600"
+                                className="flex items-center text-slate-400 dark:text-slate-300"
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </motion.div>

@@ -190,7 +190,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
 
         {/* Status */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">Status</span>
+          <span className="text-slate-500 dark:text-slate-400">Status</span>
           <span
             className={`
               px-2 py-0.5 rounded-full text-xs font-medium
@@ -206,7 +206,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
 
         {/* Connections */}
         <div className="flex items-center justify-between text-sm mt-2">
-          <span className="text-slate-500">Connections</span>
+          <span className="text-slate-500 dark:text-slate-400">Connections</span>
           <span className="text-muted-foreground">{node.connections?.length || 0}</span>
         </div>
       </div>

@@ -84,7 +84,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                                 {t('errorBoundary.errorDetails')}
                             </h2>
-                            <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                            <div className="text-sm text-slate-600 dark:text-slate-300 space-y-2">
                                 <p><strong>{t('errorBoundary.type')}:</strong> {this.state.error?.name || t('errorBoundary.unknownError')}</p>
                                 <p><strong>{t('errorBoundary.message')}:</strong> {this.state.error?.message}</p>
                                 {this.state.errorInfo && (

@@ -202,7 +202,7 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
         <motion.span
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm font-medium text-slate-500 dark:text-slate-400"
+          className="text-sm font-medium text-slate-500 dark:text-slate-300"
         >
           {label}
         </motion.span>
@@ -257,7 +257,7 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
               deltaSizeClasses[size],
               delta > 0
                 ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
+                : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
             )}
           >
             {delta > 0 ? '+' : ''}

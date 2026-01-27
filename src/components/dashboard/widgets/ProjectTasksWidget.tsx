@@ -72,7 +72,7 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
 
             <div className="grid grid-cols-3 gap-2 mb-4">
                 <div className="bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg text-center">
-                    <div className="text-xl font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">{projectStats.activeCount}</div>
+                    <div className="text-xl font-bold text-slate-700 dark:text-slate-200">{projectStats.activeCount}</div>
                     <div className="text-xs text-muted-foreground">En cours</div>
                 </div>
                 <div className="bg-success-bg dark:bg-success/10 p-2 rounded-lg text-center">

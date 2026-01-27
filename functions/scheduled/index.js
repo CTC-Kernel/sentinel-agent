@@ -18,6 +18,10 @@ const { nis2DeadlineChecker, onSignificantIncident, onNewSignificantIncident } =
 const { checkAgentOfflineAlerts } = require('./agentOfflineAlerts');
 // Sprint 5 - CVE Enrichment from NVD/EPSS
 const { dailyCveEnrichment, dailyVulnerabilityCorrelation } = require('./cveEnrichment');
+// NIS2 Article 21.2(h) - Certificate Expiration Alerts
+const { dailyCertificateExpirationCheck, weeklyCertificateExpirationDigest, checkCertificateExpirations } = require('./certificateExpirationAlerts');
+// NIS2 Article 21.2(i) - Access Review Alerts
+const { weeklyDormantAccountDetection, dailyAccessReviewReminders, weeklyDormantAccountsDigest, detectDormantAccountsCallable } = require('./accessReviewAlerts');
 
 // Audit Triggers
 const { generateAuditTrigger } = require('../services/auditTriggers');
@@ -236,3 +240,16 @@ exports.checkAgentOfflineAlerts = checkAgentOfflineAlerts;
 // Daily enrichment from NVD API and EPSS scores
 exports.dailyCveEnrichment = dailyCveEnrichment;
 exports.dailyVulnerabilityCorrelation = dailyVulnerabilityCorrelation;
+
+// --- NIS2 ARTICLE 21.2(h) - CERTIFICATE MANAGEMENT ---
+// Certificate expiration alerts and status updates
+exports.dailyCertificateExpirationCheck = dailyCertificateExpirationCheck;
+exports.weeklyCertificateExpirationDigest = weeklyCertificateExpirationDigest;
+exports.checkCertificateExpirations = checkCertificateExpirations;
+
+// --- NIS2 ARTICLE 21.2(i) - ACCESS CONTROL ---
+// Dormant account detection and access review reminders
+exports.weeklyDormantAccountDetection = weeklyDormantAccountDetection;
+exports.dailyAccessReviewReminders = dailyAccessReviewReminders;
+exports.weeklyDormantAccountsDigest = weeklyDormantAccountsDigest;
+exports.detectDormantAccountsCallable = detectDormantAccountsCallable;

@@ -1499,8 +1499,6 @@
     "vulnerabilities": "Vulnérabilités",
     "reports": "Rapports",
     "agents": "Agents",
-    "agentPolicies": "Politiques Agents",
-    "softwareInventory": "Inventaire Logiciels",
     "threatIntel": "Threat Intel",
     "smsi": "Programme SMSI",
     "systemHealth": "État du Système",

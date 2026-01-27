@@ -152,7 +152,7 @@ export const IntegrationSettings: React.FC = () => {
                                 icon={Key}
                                 placeholder={user?.hasGeminiKey ? '••••••••••••••••' : ''}
                             />
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 ml-1">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-300 ml-1">
                                 {t('settings.geminiPlaceholder')}
                             </p>
                             <Button

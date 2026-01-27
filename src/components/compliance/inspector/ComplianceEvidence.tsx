@@ -59,11 +59,11 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                                     <p className="text-xs text-slate-500">{formatDate(doc.createdAt)}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                         <ExternalLink className="h-4 w-4" />
                                     </a>
                                     {canEdit && (
-                                        <Button variant="ghost" size="icon" aria-label="Délier le document" onClick={() => handleUnlinkDocument(control, docId)} className="h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                        <Button variant="ghost" size="icon" aria-label="Délier le document" onClick={() => handleUnlinkDocument(control, docId)} className="h-8 w-8 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                             <X className="h-4 w-4" />
                                         </Button>
                                     )}

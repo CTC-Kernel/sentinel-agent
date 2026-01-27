@@ -10,7 +10,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../../utils/cn';
-import { GlassCard } from '../../../ui/GlassCard';
+import { PremiumCard } from '../../../ui/PremiumCard';
 import { Button } from '../../../ui/button';
 import { fearedEventSchema } from '../../../../schemas/ebiosSchema';
 import type { FearedEvent, Mission, EssentialAsset } from '../../../../types/ebios';
@@ -92,7 +92,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <PremiumCard glass className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -154,7 +154,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                       "block text-sm font-semibold",
                       impactType === type
                         ? `text-${typeInfo.color}-600 dark:text-${typeInfo.color}-400`
-                        : "text-slate-600 dark:text-slate-400"
+                        : "text-slate-600 dark:text-slate-300"
                     )}>
                       {typeInfo[locale]}
                     </span>
@@ -199,7 +199,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                     "block text-xl font-bold",
                     gravity === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-500"
+                      : "text-slate-500 dark:text-slate-400"
                   )}>
                     G{level.level}
                   </span>
@@ -227,7 +227,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 {t('ebios.workshop1.linkedMissions')} *
               </label>
               {missions.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                <p className="text-sm text-slate-500 dark:text-slate-300 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
                   {t('ebios.workshop1.noMissionsYet')}
                 </p>
               ) : (
@@ -263,7 +263,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 {t('ebios.workshop1.linkedEssentialAssets')} *
               </label>
               {essentialAssets.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                <p className="text-sm text-slate-500 dark:text-slate-300 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
                   {t('ebios.workshop1.noEssentialAssetsYet')}
                 </p>
               ) : (
@@ -352,7 +352,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
             </div>
           </div>
         </form>
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

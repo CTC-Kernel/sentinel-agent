@@ -105,7 +105,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
             {/* Read-only view */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Catégories de Données</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Catégories de Données</h4>
                     <div className="flex flex-wrap gap-2">
                         {activity.dataCategories && activity.dataCategories.length > 0 ? (
                             activity.dataCategories.map((cat, idx) => (
@@ -120,7 +120,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                 </div>
 
                 <div>
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Conservation</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Conservation</h4>
                     <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-3 rounded-lg border border-slate-100 dark:border-white/5">
                         {activity.retentionPeriod || "Non spécifié"}
                     </p>

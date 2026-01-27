@@ -67,7 +67,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                 <div className="space-y-1">
-                                    <p className="text-sm font-medium text-slate-900 dark:text-white dark:text-slate-100">
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">
                                         {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: fr }) : '-'}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-muted-foreground">
@@ -83,7 +83,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                         <div className="mt-2 text-xs bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-slate-100 dark:border-white/5">
                                             {log.changes.map((change, idx) => (
                                                 <div key={`${idx}-${change.field}`} className="flex gap-2 font-mono">
-                                                    <span className="text-slate-500">{change.field}:</span>
+                                                    <span className="text-slate-500 dark:text-slate-400">{change.field}:</span>
                                                     <span className="text-red-400 line-through">{String(change.oldValue)}</span>
                                                     <span className="text-muted-foreground">→</span>
                                                     <span className="text-green-500">{String(change.newValue)}</span>
@@ -93,7 +93,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                     )}
                                 </div>
 
-                                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 gap-1 mt-1 sm:mt-0">
+                                <div className="flex items-center text-xs text-slate-500 dark:text-slate-300 gap-1 mt-1 sm:mt-0">
                                     <User className="h-3 w-3" />
                                     {log.userDisplayName || log.userEmail || 'Système'}
                                 </div>

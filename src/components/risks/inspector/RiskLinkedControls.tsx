@@ -90,7 +90,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                     Contrôles Liés
                 </h3>
                 <div className="text-center py-8">
-                    <Shield className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                    <Shield className="h-12 w-12 text-slate-300 dark:text-slate-300 mx-auto mb-3" />
                     <p className="text-sm text-slate-500">Aucun contrôle de sécurité lié</p>
                     <p className="text-xs text-muted-foreground mt-1">
                         Ajoutez des contrôles dans l'onglet Traitement pour réduire le risque résiduel
@@ -115,7 +115,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                 {/* Mitigation Coverage */}
                 <div className="sm:col-span-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                             Couverture de Mitigation
                         </span>
                         <span className={`text-lg font-black ${mitigationCoverage >= 80 ? 'text-success-text' :
@@ -132,7 +132,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                             style={{ width: `${mitigationCoverage}%` }}
                         />
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">
                         Basé sur le statut d'implémentation des contrôles liés
                     </p>
                 </div>
@@ -155,7 +155,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
 
             {/* Controls List */}
             <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                     Détail des Contrôles
                 </h4>
                 <div className="space-y-2">
@@ -177,7 +177,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                                         </p>
                                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                             {ctrl.framework && (
-                                                <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                                <span className="text-xs text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                                                     {ctrl.framework}
                                                 </span>
                                             )}

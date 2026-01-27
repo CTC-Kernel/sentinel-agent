@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { cn } from '../lib/utils';
 
 import { Menu, Transition } from '@headlessui/react';
 import { useStore } from '../store';
@@ -457,10 +458,10 @@ export const Incidents: React.FC = () => {
                                             placeholder={t('incidents.severityFilter')}
                                         />
                                     </div>
-                                    <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+                                    <div className="h-8 w-px bg-border mx-2 hidden md:block" />
 
                                     <Menu as="div" className="relative inline-block text-left">
-                                        <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                        <Menu.Button className="p-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
                                             <MoreVertical className="h-5 w-5" />
                                         </Menu.Button>
                                         <Transition
@@ -472,9 +473,9 @@ export const Incidents: React.FC = () => {
                                             leaveFrom="transform opacity-70 scale-100"
                                             leaveTo="transform opacity-0 scale-95"
                                         >
-                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                                         {t('incidents.tools')}
                                                     </div>
                                                     {canEdit && (
@@ -484,10 +485,12 @@ export const Incidents: React.FC = () => {
                                                                     <button
                                                                         aria-label={t('incidents.importSiem')}
                                                                         onClick={handleOpenImport}
-                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                        className={cn(
+                                                                            "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
+                                                                            active ? "bg-primary text-primary-foreground" : "text-foreground"
+                                                                        )}
                                                                     >
-                                                                        <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                        <BrainCircuit className={cn("mr-2 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
                                                                         {t('incidents.importSiem')}
                                                                     </button>
                                                                 )}
@@ -497,10 +500,12 @@ export const Incidents: React.FC = () => {
                                                                     <button
                                                                         aria-label={t('incidents.simulateAttack')}
                                                                         onClick={handleSimulateAttack}
-                                                                        className={`${active ? 'bg-red-500 text-white' : 'text-red-600 dark:text-red-400'
-                                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                        className={cn(
+                                                                            "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
+                                                                            active ? "bg-destructive text-destructive-foreground" : "text-destructive"
+                                                                        )}
                                                                     >
-                                                                        <Siren className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-red-500'}`} />
+                                                                        <Siren className={cn("mr-2 h-4 w-4", active ? "text-destructive-foreground" : "text-destructive")} />
                                                                         {t('incidents.simulateAttack')}
                                                                     </button>
                                                                 )}
@@ -511,10 +516,12 @@ export const Incidents: React.FC = () => {
                                                         {({ active }) => (
                                                             <button
                                                                 onClick={() => setCsvImportOpen(true)}
-                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                className={cn(
+                                                                    "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
+                                                                    active ? "bg-primary text-primary-foreground" : "text-foreground"
+                                                                )}
                                                             >
-                                                                <MoreVertical className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                <MoreVertical className={cn("mr-2 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
                                                                 {t('common.importCsv')}
                                                             </button>
                                                         )}
@@ -524,10 +531,12 @@ export const Incidents: React.FC = () => {
                                                             <button
                                                                 aria-label={t('common.exportCsv')}
                                                                 onClick={handleExportCSV}
-                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                className={cn(
+                                                                    "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
+                                                                    active ? "bg-primary text-primary-foreground" : "text-foreground"
+                                                                )}
                                                             >
-                                                                <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                <Download className={cn("mr-2 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
                                                                 {t('common.exportCsv')}
                                                             </button>
                                                         )}
@@ -542,7 +551,7 @@ export const Incidents: React.FC = () => {
                                             <button
                                                 aria-label={t('incidents.declare')}
                                                 onClick={handleOpenCreate}
-                                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+                                                className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-colors shadow-lg shadow-primary/20"
                                             >
                                                 <Plus className="h-5 w-5 mr-2" />
                                                 <span className="hidden sm:inline">{t('incidents.declare')}</span>

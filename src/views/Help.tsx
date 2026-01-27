@@ -805,7 +805,7 @@ export const Help: React.FC = () => {
                                     }}
                                     className={`w-full flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${selectedCategory === category.id
                                         ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm'
-                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-lg transition-colors ${selectedCategory === category.id
@@ -827,7 +827,7 @@ export const Help: React.FC = () => {
                                 variant="outline"
                                 aria-label="Donner mon avis"
                                 onClick={() => setIsFeedbackOpen(true)}
-                                className="w-full py-3 bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-white rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-brand-50 dark:bg-brand-900 text-brand-600 dark:text-white rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900 transition-all flex items-center justify-center gap-2"
                             >
                                 <MessageSquare className="w-4 h-4 mr-2" />
                                 Donner mon avis
@@ -897,7 +897,7 @@ export const Help: React.FC = () => {
                                             >
                                                 <div className={`p-2 rounded-xl shrink-0 transition-colors ${selectedArticle === article.id
                                                     ? 'bg-brand-500 text-white'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-white'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-brand-100 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-white'
                                                     }`}>
                                                     {article.icon ? <article.icon className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                                 </div>
@@ -908,7 +908,7 @@ export const Help: React.FC = () => {
                                                             }`}>
                                                             {article.title}
                                                         </h2>
-                                                        <ChevronDown className={`w-5 h-5 text-slate-500 dark:text-slate-400 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
+                                                        <ChevronDown className={`w-5 h-5 text-slate-500 dark:text-slate-300 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
                                                     </div>
                                                     <p className="text-slate-600 dark:text-muted-foreground mt-1 text-sm leading-relaxed">
                                                         {article.description}

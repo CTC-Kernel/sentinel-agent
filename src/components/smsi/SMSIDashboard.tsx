@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 import { PDCAPhase, Milestone, SMSIProgram } from '../../types/ebios';
@@ -30,7 +30,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
         <div className="space-y-6">
             {/* Alerts for Overdue Milestones */}
             {overdueMilestones.length > 0 && (
-                <GlassCard className="p-4 border-red-200 dark:border-red-800 dark:border-red-900 bg-red-500 dark:bg-red-50 dark:bg-red-900">
+                <PremiumCard glass className="p-4 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30">
                     <div className="flex items-start gap-3">
                         <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                         <div>
@@ -42,11 +42,11 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                             </p>
                         </div>
                     </div>
-                </GlassCard>
+                </PremiumCard>
             )}
 
             {/* Progress Overview */}
-            <GlassCard className="p-6">
+            <PremiumCard glass className="p-6">
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold text-foreground">Cycle PDCA</h3>
                     <p className="text-sm text-muted-foreground">Pilotage du cycle de vie SMSI</p>
@@ -99,7 +99,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         {config.label}
                                     </span>
 
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    <span className="text-xs text-slate-500 dark:text-slate-300 mt-1">
                                         {phaseData.progress}%
                                     </span>
 
@@ -115,7 +115,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                         );
                     })}
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
             {/* Phase Details */}
             <AnimatePresence mode="wait">
@@ -154,7 +154,7 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
     const completedMilestones = milestones.filter(m => m.status === 'completed').length;
 
     return (
-        <GlassCard className={`p-6 ${styles.cardBorder}`}>
+        <PremiumCard glass className={`p-6 ${styles.cardBorder}`}>
             <div className="flex items-center gap-4">
                 <div className={cn(
                     "w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0",
@@ -201,6 +201,6 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
                     </div>
                 </div>
             </div>
-        </GlassCard>
+        </PremiumCard>
     );
 };

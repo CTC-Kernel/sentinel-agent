@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
 import { cn } from '../../../utils/cn';
@@ -37,7 +37,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <GlassCard className="p-6 lg:col-span-2">
+            <PremiumCard glass className="p-6 lg:col-span-2">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Maturité Globale ISO 27002</h3>
@@ -90,22 +90,22 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                         </div>
                     ))}
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
             {/* Alerts Sidebar */}
             <div className="space-y-4">
                 {/* Low Effectiveness */}
                 {lowEffectivenessControls.length > 0 && (
-                    <GlassCard className="p-4 border-amber-200 dark:border-amber-800 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-50 dark:bg-amber-900">
+                    <PremiumCard glass className="p-4 border-amber-200 dark:border-amber-800 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-50 dark:bg-amber-900">
                         <div className="flex items-center gap-2 mb-3">
                             <TrendingDown className="w-5 h-5 text-amber-500" />
-                            <span className="font-medium text-amber-700 dark:text-amber-400 dark:text-amber-400">
+                            <span className="font-medium text-amber-700 dark:text-amber-400">
                                 {lowEffectivenessControls.length} contrôles faibles
                             </span>
                         </div>
                         <div className="space-y-2">
                             {lowEffectivenessControls.slice(0, 3).map((a: { controlId: string; id: string; effectivenessScore: number; }) => (
-                                <div key={a.id} className="text-sm text-amber-600 dark:text-amber-400 dark:text-amber-400 flex items-center justify-between">
+                                <div key={a.id} className="text-sm text-amber-600 dark:text-amber-400 flex items-center justify-between">
                                     <span>{a.controlId}</span>
                                     <Badge variant="outline" size="sm">{a.effectivenessScore}%</Badge>
                                 </div>
@@ -114,12 +114,12 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                                 <span className="text-xs text-amber-500">+{lowEffectivenessControls.length - 3} autres</span>
                             )}
                         </div>
-                    </GlassCard>
+                    </PremiumCard>
                 )}
 
                 {/* Due for Review */}
                 {dueForReview.length > 0 && (
-                    <GlassCard className="p-4 border-blue-200 dark:border-blue-800 dark:border-blue-900 bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900">
+                    <PremiumCard glass className="p-4 border-blue-200 dark:border-blue-800 dark:border-blue-900 bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900">
                         <div className="flex items-center gap-2 mb-3">
                             <Clock className="w-5 h-5 text-blue-500" />
                             <span className="font-medium text-blue-700 dark:text-blue-400">
@@ -133,16 +133,16 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                                 </div>
                             ))}
                         </div>
-                    </GlassCard>
+                    </PremiumCard>
                 )}
 
                 {/* Empty State */}
                 {assessments.length === 0 && (
-                    <GlassCard className="p-4 text-center">
+                    <PremiumCard glass className="p-4 text-center">
                         <Shield className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                         <p className="text-sm text-slate-500">Aucune évaluation</p>
                         <p className="text-xs text-muted-foreground">Commencez à évaluer vos contrôles</p>
-                    </GlassCard>
+                    </PremiumCard>
                 )}
             </div>
         </div>

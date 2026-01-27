@@ -345,7 +345,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                   'p-4 rounded-xl border-2 text-left transition-all',
                   isSelected && 'border-blue-500 bg-blue-50',
                   !isSelected && !isDisabled && 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600',
-                  isDisabled && 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-700'
+                  isDisabled && 'opacity-70 cursor-not-allowed border-slate-200 dark:border-slate-700'
                 )}
               >
                 <div className="flex items-center gap-3 mb-2">
@@ -403,7 +403,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             placeholder=".*\.csv$"
             className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           />
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
             {t('otConnector.csv.filePatternHelp', 'Regular expression to match CSV files')}
           </p>
         </div>
@@ -551,7 +551,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             placeholder="0 2 * * *"
             className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           />
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
             {t('otConnector.schedule.cronHelp', 'Format: minute hour day month weekday (e.g., "0 2 * * *" for 2 AM daily)')}
           </p>
         </div>
@@ -581,11 +581,11 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
         <h4 className="font-medium mb-3">{t('otConnector.review.summary', 'Configuration Summary')}</h4>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-slate-500">{t('otConnector.fields.name', 'Name')}:</dt>
+            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.fields.name', 'Name')}:</dt>
             <dd className="font-medium">{formData.name}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">{t('otConnector.fields.type', 'Type')}:</dt>
+            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.fields.type', 'Type')}:</dt>
             <dd className="font-medium">
               {isEnglish
                 ? CONNECTOR_TYPE_LABELS[formData.type].en
@@ -593,11 +593,11 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">{t('otConnector.schedule.type', 'Schedule')}:</dt>
+            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.schedule.type', 'Schedule')}:</dt>
             <dd className="font-medium capitalize">{formData.schedule.type}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">{t('otConnector.enabled', 'Enabled')}:</dt>
+            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.enabled', 'Enabled')}:</dt>
             <dd>
               <Badge variant={formData.enabled ? 'default' : 'outline'} status={formData.enabled ? 'success' : 'neutral'}>
                 {formData.enabled ? t('common.yes', 'Yes') : t('common.no', 'No')}

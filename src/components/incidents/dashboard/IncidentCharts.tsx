@@ -2,7 +2,7 @@ import React from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { EmptyChartState } from '../../ui/EmptyChartState';
 import { ChartTooltip } from '../../ui/ChartTooltip';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { DONUT_COLORS, SEVERITY_COLORS, CHART_AXIS_COLORS } from '../../../theme/chartTheme';
 
 interface IncidentChartsProps {
@@ -14,7 +14,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Incidents by Category */}
-            <GlassCard className="p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+            <PremiumCard glass className="p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                 <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Par Catégorie</h4>
                 <div className="h-[250px] w-full">
                     {categoryData.length === 0 ? (
@@ -43,10 +43,10 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                         </ResponsiveContainer>
                     )}
                 </div>
-            </GlassCard>
+            </PremiumCard>
 
             {/* Incidents Timeline (Last 6 Months) */}
-            <GlassCard className="p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+            <PremiumCard glass className="p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                 <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Historique (6 mois)</h4>
                 <div className="h-[250px] w-full">
                     {timelineData.length === 0 ? (
@@ -72,7 +72,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                         </ResponsiveContainer>
                     )}
                 </div>
-            </GlassCard>
+            </PremiumCard>
         </div>
     );
 };

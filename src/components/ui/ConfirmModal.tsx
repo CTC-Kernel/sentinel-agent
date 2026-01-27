@@ -135,7 +135,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3, duration: 0.3, ease: appleEasing }}
                       >
-                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
                           Éléments liés qui seront affectés :
                         </p>
                         <ul className="space-y-1">
@@ -151,7 +151,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                           ))}
                         </ul>
                         {affectedItems.length > maxAffectedItemsShown && (
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 italic">
+                          <p className="text-xs text-slate-400 dark:text-slate-400 mt-2 italic">
                             ... et {affectedItems.length - maxAffectedItemsShown} autre(s)
                           </p>
                         )}
@@ -163,7 +163,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                     onClick={onClose}
                     disabled={loading}
                     ref={cancelButtonRef}

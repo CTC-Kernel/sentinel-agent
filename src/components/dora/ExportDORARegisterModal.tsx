@@ -196,7 +196,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                                         )}>
                                             {option.label}
                                         </span>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-center">
+                                        <span className="text-xs text-slate-500 dark:text-slate-300 mt-1 text-center">
                                             {option.description}
                                         </span>
                                     </button>
@@ -255,7 +255,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                     {selectedFormat === 'json' && (
                         <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                             <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                            <div className="text-sm text-blue-700 dark:text-blue-400 dark:text-blue-300">
+                            <div className="text-sm text-blue-700 dark:text-blue-300">
                                 {t('dora.export.esaCompliant')}
                             </div>
                         </div>

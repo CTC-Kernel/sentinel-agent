@@ -31,13 +31,13 @@ export const KioskPage: React.FC = () => {
                 </div>
 
                 <div className="glass-panel p-12 rounded-3xl max-w-md w-full text-center shadow-2xl animate-scale-in">
-                    <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600 dark:text-emerald-400 shadow-inner">
+                    <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600 dark:text-emerald-400 shadow-inner">
                         <CheckCircle2 className="h-10 w-10" />
                     </div>
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3 font-display">
                         Enregistré !
                     </h2>
-                    <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
+                    <p className="text-slate-600 dark:text-slate-300 mb-8 text-lg">
                         L'équipement a été ajouté avec succès à l'inventaire. Vous pouvez fermer cette fenêtre.
                     </p>
                     <button
@@ -90,7 +90,7 @@ export const KioskPage: React.FC = () => {
                             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3 font-display">
                                 Nouvel Équipement
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-400 text-lg">
+                            <p className="text-slate-600 dark:text-slate-300 text-lg">
                                 Vérifiez les informations détectées et complétez la fiche.
                             </p>
                         </div>
@@ -107,7 +107,7 @@ export const KioskPage: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 py-6 text-center text-xs text-slate-500 dark:text-slate-400 dark:text-slate-600">
+            <footer className="relative z-10 py-6 text-center text-xs text-slate-500 dark:text-slate-300">
                 &copy; {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.
             </footer>
         </div>

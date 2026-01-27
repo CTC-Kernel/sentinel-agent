@@ -127,7 +127,7 @@ const RiskReduction: React.FC<RiskReductionProps> = ({ percentage }) => {
     <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
       <TrendingDown className="h-4 w-4" />
       <span className="text-sm font-medium">-{percentage}%</span>
-      <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">{t('vendorConcentration.recommendations.riskReduction')}</span>
+      <span className="text-xs text-slate-500 dark:text-slate-300 ml-1">{t('vendorConcentration.recommendations.riskReduction')}</span>
     </div>
   );
 };
@@ -171,7 +171,7 @@ const ActionItem: React.FC<ActionItemProps> = ({ action, completed, onToggle }) 
         }`}>
           {action.title}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{action.description}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">{action.description}</p>
         <div className="flex items-center gap-3 mt-2">
           <EffortBadge effort={action.effort} />
           <span className="text-xs text-muted-foreground">•</span>
@@ -237,7 +237,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
               </span>
               <PriorityBadge priority={recommendation.priority} />
               {recommendation.relatedSPOF && (
-                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600">
+                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600">
                   SPOF
                 </span>
               )}
@@ -283,7 +283,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
           {/* Rationale */}
           <div>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
               {t('vendorConcentration.recommendations.rationale')}
             </p>
             <p className="text-sm text-slate-600 dark:text-muted-foreground">
@@ -295,7 +295,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           {recommendation.actions.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide">
                   {t('vendorConcentration.recommendations.actions')} ({completedActions.size}/{recommendation.actions.length})
                 </p>
                 {progress > 0 && (
@@ -342,7 +342,7 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
   if (recommendations.totalRecommendations === 0) {
     return (
       <div className="text-center py-8">
-        <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 w-fit mx-auto mb-4">
+        <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 w-fit mx-auto mb-4">
           <CheckCircle2 className="h-8 w-8 text-green-500" />
         </div>
         <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">
@@ -359,7 +359,7 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
     <div className="space-y-4">
       {/* Summary */}
       <div className="flex items-center gap-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
-        <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30">
+        <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30">
           <Lightbulb className="h-6 w-6 text-amber-600" />
         </div>
         <div className="flex-1">
@@ -382,14 +382,14 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
 
       {/* Filter by priority */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-slate-500">{t('vendorConcentration.recommendations.byPriority')}:</span>
-        <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
+        <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.recommendations.byPriority')}:</span>
+        <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
           {recommendations.highPriority} {t('vendorConcentration.recommendations.priority.high')}
         </span>
-        <span className="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-xs font-medium">
+        <span className="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-xs font-medium">
           {recommendations.recommendations.filter(r => r.priority === 'medium').length} {t('vendorConcentration.recommendations.priority.medium')}
         </span>
-        <span className="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium">
+        <span className="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium">
           {recommendations.recommendations.filter(r => r.priority === 'low').length} {t('vendorConcentration.recommendations.priority.low')}
         </span>
       </div>

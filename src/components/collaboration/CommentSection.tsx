@@ -122,7 +122,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         <button
                             type="button"
                             onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-                            className="mt-1 text-xs text-slate-500 dark:text-slate-400 hover:text-brand-600 font-medium flex items-center gap-1 transition-colors px-2"
+                            className="mt-1 text-xs text-slate-500 dark:text-slate-300 hover:text-brand-600 font-medium flex items-center gap-1 transition-colors px-2"
                         >
                             <Reply className="h-3 w-3" />
                             Répondre

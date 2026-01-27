@@ -8,6 +8,7 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Check } from './Icons';
 import { cn } from '../../lib/utils';
+import { buttonVariants } from './button-variants';
 import { appleEasing } from '../../utils/microInteractions';
 import { ErrorLogger } from '../../services/errorLogger';
 
@@ -69,22 +70,20 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
         }
     }, [text, onCopy, copiedDuration]);
 
-    const sizeClasses = {
-        sm: iconOnly ? 'p-1.5' : 'px-2 py-1 text-xs',
-        md: iconOnly ? 'p-2' : 'px-3 py-1.5 text-sm',
-        lg: iconOnly ? 'p-2.5' : 'px-4 py-2 text-sm'
+    // Map CopyButton variants to Button variants
+    const mapVariant = (v: 'ghost' | 'outline' | 'filled') => {
+        switch (v) {
+            case 'filled': return 'secondary';
+            case 'outline': return 'outline';
+            case 'ghost': return 'ghost';
+            default: return 'ghost';
+        }
     };
 
     const iconSizes = {
         sm: 'h-3.5 w-3.5',
         md: 'h-4 w-4',
         lg: 'h-5 w-5'
-    };
-
-    const variantClasses = {
-        ghost: 'text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10',
-        outline: 'border border-slate-200 dark:border-slate-700 text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800',
-        filled: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
     };
 
     const tooltipPositionClasses = {
@@ -102,11 +101,14 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
                 className={cn(
-                    'relative inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400',
-                    sizeClasses[size],
-                    variantClasses[variant],
-                    copied && 'text-success-600 dark:text-success-400',
-                    className
+                    // Use buttonVariants for consistent shape and style
+                    buttonVariants({
+                        variant: mapVariant(variant),
+                        size: size === 'md' ? 'default' : size,
+                        className: cn(iconOnly ? "px-0" : "", className)
+                    }),
+                    // Additional specific overrides if needed
+                    copied && 'text-success-600 dark:text-success-400 border-success-200 bg-success-50 dark:bg-success-900/10'
                 )}
                 whileTap={{ scale: 0.95 }}
                 aria-label={copied ? copiedLabel : label}

@@ -277,7 +277,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
 
               {/* Section List */}
               <div className="p-4 space-y-2">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
                   {t('vendorAssessment.sectionsPreview', 'Sections')}
                 </p>
                 {selectedTemplatePreview.sections.map((section, idx) => (
@@ -286,7 +286,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                     className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-white/5"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 flex items-center justify-center text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">
+                      <span className="w-6 h-6 flex items-center justify-center text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full">
                         {idx + 1}
                       </span>
                       <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
@@ -297,7 +297,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                       <span>
                         {section.questionCount} {t('vendorAssessment.q', 'Q')}
                       </span>
-                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <span className="text-slate-300 dark:text-slate-300">|</span>
                       <span>
                         {section.weight}% {t('vendorAssessment.weight', 'weight')}
                       </span>

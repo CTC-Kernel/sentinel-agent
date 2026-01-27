@@ -37,7 +37,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
                     </div>
                 ) : (
                     <div className="flex flex-col items-center animate-fade-in">
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center px-4">
+                        <p className="text-sm text-slate-500 dark:text-slate-300 mb-4 text-center px-4">
                             {message || 'Le chargement prend plus de temps que prévu...'}
                         </p>
                         <Button

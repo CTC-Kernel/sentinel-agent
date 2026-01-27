@@ -16,7 +16,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
 }) => {
     return (
         <div className="space-y-6 sm:space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
                 <Shield className="h-4 w-4 mr-2" /> Contrôles de Sécurité ({linkedControls.length})
             </h3>
             {linkedControls.length === 0 ? (
@@ -29,7 +29,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                                 <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     {ctrl.code}
                                 </span>
-                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-lg ${ctrl.status === 'Implémenté' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700 dark:text-amber-400 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
+                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-lg ${ctrl.status === 'Implémenté' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
                                     {ctrl.status}
                                 </span>
                             </div>
@@ -43,7 +43,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
 
             {/* Supported Processes */}
             <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
                     <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
                 </h3>
                 {(() => {
@@ -57,7 +57,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                                 </div>
                             ))}
                         </div>
-                    ) : <p className="text-sm text-slate-500 dark:text-slate-400 italic">Cet actif ne supporte aucun processus critique.</p>;
+                    ) : <p className="text-sm text-slate-500 dark:text-slate-300 italic">Cet actif ne supporte aucun processus critique.</p>;
                 })()}
             </div>
         </div>

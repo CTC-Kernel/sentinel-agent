@@ -78,11 +78,11 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                     </div>
                 ) : !hasAgents ? (
                     <div className="flex flex-col items-center justify-center p-6 bg-slate-100/50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/50 dark:border-slate-700/30 backdrop-blur-sm">
-                        <Monitor className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-3" />
+                        <Monitor className="h-10 w-10 text-slate-400 dark:text-slate-400 mb-3" />
                         <span className="text-sm font-bold text-slate-600 dark:text-slate-300 text-center">
                             {t('agents.widget.noAgentsInstalled')}
                         </span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 text-center mt-1">
+                        <span className="text-xs text-slate-500 dark:text-slate-300 text-center mt-1">
                             {t('agents.widget.installDescription')}
                         </span>
                         <button
@@ -193,7 +193,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                                         <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 block truncate">
                                             {agent.name || agent.hostname || agent.id}
                                         </span>
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">
                                             {agent.os === 'windows' ? 'Windows' : agent.os === 'darwin' ? 'macOS' : 'Linux'}
                                             {agent.osVersion && ` ${agent.osVersion}`}
                                         </span>

@@ -41,7 +41,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = React.memo(({ users
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{u.displayName}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{u.email}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-300 truncate">{u.email}</p>
                         </div>
                     </div>
                 );

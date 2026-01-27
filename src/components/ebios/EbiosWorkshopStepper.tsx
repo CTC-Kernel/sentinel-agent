@@ -131,11 +131,11 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 className={cn(
                   "relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300",
                   "shadow-lg backdrop-blur-xl border border-white/20 dark:border-white/10",
-                  locked && "opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400",
+                  locked && "opacity-70 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400",
                   !locked && "cursor-pointer hover:-translate-y-1 hover:shadow-xl",
                   isActive && "scale-110 ring-4 ring-brand-300 shadow-brand bg-gradient-to-br from-brand-500 to-brand-600 text-white border-transparent",
                   isDone && !isActive && "bg-gradient-to-br from-success to-success text-success-foreground border-transparent shadow-success",
-                  !isDone && !isActive && !locked && "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+                  !isDone && !isActive && !locked && "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                 )}
               >
                 {isDone ? (
@@ -163,7 +163,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                     "text-[11px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
                     isDone ? "bg-success-bg text-success-text" :
                       isActive ? "bg-brand-500 text-white" :
-                        "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                        "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300"
                   )}>
                     {WORKSHOP_STATUS_LABELS[workshop.status][locale]}
                   </span>
@@ -191,7 +191,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               className={cn(
                 "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300",
                 "border backdrop-blur-md",
-                locked && "opacity-60 cursor-not-allowed bg-slate-50/50 dark:bg-slate-900/50 border-transparent",
+                locked && "opacity-70 cursor-not-allowed bg-slate-50/50 dark:bg-slate-900/50 border-transparent",
                 !locked && "cursor-pointer active:scale-[0.98]",
                 isActive
                   ? "border-brand-300 bg-brand-100 dark:bg-brand-800 shadow-lg shadow-brand"

@@ -118,12 +118,12 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                                 </div>
                                 {guidelines.optional && guidelines.optional.length > 0 && (
                                     <div className="space-y-2">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 opacity-70">
+                                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 opacity-70">
                                             {t('common.import.optionalColumns')}
                                         </span>
                                         <div className="flex flex-wrap gap-2">
                                             {guidelines.optional.map(col => (
-                                                <span key={col} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                <span key={col} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                                     {col}
                                                 </span>
                                             ))}
@@ -148,7 +148,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                         <span className="font-bold text-slate-900 dark:text-white mb-1">
                             {t('common.import.downloadTemplate')}
                         </span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 text-center">
+                        <span className="text-xs text-slate-500 dark:text-slate-300 text-center">
                             {t('common.import.downloadTemplateDesc')}
                         </span>
                     </button>
@@ -178,7 +178,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                             <span className="font-bold text-slate-900 dark:text-white mb-1">
                                 {t('common.import.uploadFile')}
                             </span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 text-center">
+                            <span className="text-xs text-slate-500 dark:text-slate-300 text-center">
                                 {t('common.import.dragDrop')}
                             </span>
                         </div>

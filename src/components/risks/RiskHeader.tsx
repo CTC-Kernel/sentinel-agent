@@ -62,7 +62,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
             actions={
                 <>
                     <Menu as="div" className="relative inline-block text-left">
-                        <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 shadow-sm h-9 w-9">
+                        <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm h-9 w-9">
                             <MoreVertical className="h-5 w-5" />
                         </Menu.Button>
                         <Transition
@@ -76,7 +76,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                         >
                             <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                 <div className="p-1">
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         Rapports & Exports
                                     </div>
                                     <Menu.Item>
@@ -144,7 +144,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     </Menu.Item>
                                 </div>
                                 <div className="p-1">
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         Données
                                     </div>
                                     {canEdit && (

@@ -177,7 +177,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           {widget.resizable && (
             <button
               onClick={() => setShowControls(!showControls)}
-              className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 rounded"
+              className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded"
             >
               <Settings className="w-4 h-4 text-muted-foreground" />
             </button>

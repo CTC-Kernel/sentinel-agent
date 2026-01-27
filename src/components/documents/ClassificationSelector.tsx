@@ -124,7 +124,7 @@ export function ClassificationSelector({
                 disabled={!canAccess}
                 className={cn(
                   'gap-3 cursor-pointer',
-                  !canAccess && 'opacity-60 cursor-not-allowed'
+                  !canAccess && 'opacity-70 cursor-not-allowed'
                 )}
               >
                 <span

@@ -54,7 +54,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
             </div>
             <div className="flex-1 space-y-1">
                 <div className="flex items-start justify-between gap-2">
-                    <p className={cn("text-sm font-medium", notification.read ? "text-slate-600 dark:text-slate-400" : "text-slate-900 dark:text-slate-100")}>
+                    <p className={cn("text-sm font-medium", notification.read ? "text-slate-600 dark:text-slate-300" : "text-slate-900 dark:text-slate-100")}>
                         {notification.title}
                     </p>
                     <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">

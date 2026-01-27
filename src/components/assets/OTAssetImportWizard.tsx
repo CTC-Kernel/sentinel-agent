@@ -315,7 +315,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         <p className="text-lg font-medium text-slate-700">
           {t('otImport.upload.dragDrop', 'Glissez votre fichier CSV ici')}
         </p>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
           {t('otImport.upload.orClick', 'ou cliquez pour sélectionner')}
         </p>
       </div>
@@ -499,7 +499,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
             </table>
           </div>
           {validatedRows.length > 20 && (
-            <div className="px-4 py-2 bg-slate-50 text-sm text-slate-500 dark:text-slate-400 text-center">
+            <div className="px-4 py-2 bg-slate-50 text-sm text-slate-500 dark:text-slate-300 text-center">
               {t('otImport.preview.showingFirst', 'Affichage des 20 premières lignes sur {{total}}', {
                 total: validatedRows.length
               })}

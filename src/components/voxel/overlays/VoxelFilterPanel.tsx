@@ -311,7 +311,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Search */}
             <div>
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
                 Search
               </label>
               <div className="relative">
@@ -326,7 +326,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
                 {filters.searchQuery && (
                   <button
                     onClick={handleClearSearch}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:text-slate-300"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-slate-700/50 text-slate-500 dark:text-slate-300 hover:text-slate-300"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -336,7 +336,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Entity Type Filter */}
             <div>
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
                 Entity Types
               </label>
               <div className="space-y-0.5">
@@ -356,7 +356,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Status Filter */}
             <div>
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
                 Status
               </label>
               <div className="space-y-0.5">
@@ -386,7 +386,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
             {/* Active Filter Badges */}
             {getActiveFilterBadges.length > 0 && (
               <div>
-                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
                   Active Filters
                 </label>
                 <div className="flex flex-wrap gap-1.5">

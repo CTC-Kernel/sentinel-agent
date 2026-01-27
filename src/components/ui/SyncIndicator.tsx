@@ -11,7 +11,7 @@ export const SyncIndicator: React.FC = () => {
     if (!isOnline) {
         return (
             <Tooltip content={t('common.offlineMode') || "Mode Hors-ligne"} position="bottom">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700 animate-pulse">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700 animate-pulse">
                     <CloudOff className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('common.offline') || "Hors-ligne"}</span>
                 </div>

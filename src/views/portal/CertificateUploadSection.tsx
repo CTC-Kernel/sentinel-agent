@@ -112,7 +112,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                     {file ? (
                         <>
                             <FileCheckIcon className="w-8 h-8 text-green-500 mb-2" />
-                            <span className="text-sm font-medium text-green-700 dark:text-green-400 dark:text-green-300">{file.name}</span>
+                            <span className="text-sm font-medium text-green-700 dark:text-green-300">{file.name}</span>
                             <span className="text-xs text-green-600 dark:text-green-400 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
                         </>
                     ) : (
@@ -126,7 +126,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                 </label>
 
                 <div className="mt-6 flex justify-end gap-3">
-                    <button className="px-4 py-2 text-slate-600 dark:text-slate-400 font-medium hover:underline text-sm">Refuser / Demander corrections</button>
+                    <button className="px-4 py-2 text-slate-600 dark:text-slate-300 font-medium hover:underline text-sm">Refuser / Demander corrections</button>
                     <button
                         onClick={handleCertifyClick}
                         disabled={isUploading}

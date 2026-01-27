@@ -60,7 +60,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
                 </div>
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 uppercase tracking-wider">Taux de Complétion</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] font-mono leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-300 max-w-[200px] font-mono leading-relaxed">
                         PCT. AUDITS TERMINÉS
                     </p>
                 </div>
@@ -74,19 +74,19 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
                     role="button"
                     tabIndex={0}
                     aria-label="Afficher tous les audits"
-                    className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors p-2"
+                    className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors p-2"
                 >
-                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2 tracking-widest group-hover/item:text-brand-500 transition-colors">Total Audits</div>
+                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 mb-2 tracking-widest group-hover/item:text-brand-500 transition-colors">Total Audits</div>
                     <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{totalAudits}</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2 tracking-widest">Actions Requises</div>
+                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 mb-2 tracking-widest">Actions Requises</div>
                     <div className={`text-3xl font-black font-mono ${openFindings > 0 ? 'text-red-500 drop-shadow-red-md' : 'text-slate-900 dark:text-white'}`}>
                         {openFindings}
                     </div>
                 </div>
                 <div className="text-center">
-                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2 tracking-widest">À Venir (30j)</div>
+                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 mb-2 tracking-widest">À Venir (30j)</div>
                     <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{upcomingAudits}</div>
                 </div>
             </div>

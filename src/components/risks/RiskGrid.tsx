@@ -9,7 +9,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { Button } from '../ui/button';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { TextHighlight } from '../ui/TextHighlight';
 
 interface RiskGridProps {
@@ -71,7 +71,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
 
         if (diffDays < 0) return { status: 'overdue', days: Math.abs(diffDays), label: `Retard ${Math.abs(diffDays)} j`, color: 'text-error-text bg-error-bg border-error-border/50' };
         if (diffDays <= 7) return { status: 'warning', days: diffDays, label: `J - ${diffDays} `, color: 'text-warning-text bg-warning-bg border-warning-border/50' };
-        return { status: 'ok', days: diffDays, label: `${diffDays} j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-400 dark:bg-slate-800 dark:border-white/10 shadow-sm shadow-black/5' };
+        return { status: 'ok', days: diffDays, label: `${diffDays} j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-300 dark:bg-slate-800 dark:border-white/10 shadow-sm shadow-black/5' };
     };
 
     if (loading) return <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in"><div className="col-span-full"><CardSkeleton count={3} /></div></div>;
@@ -102,7 +102,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                 const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
 
                 return (
-                    <GlassCard
+                    <PremiumCard glass
                         key={risk.id}
                         onClick={() => onSelect(risk)}
                         role="button"
@@ -114,7 +114,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                             }
                         }}
                         className="group p-6 rounded-3xl flex flex-col h-full relative"
-                        hoverEffect={true}
+                        hover={true}
                     >
 
                         {/* Hover Overlay with Actions */}
@@ -165,7 +165,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">
                                     <TextHighlight text={risk.threat} query={searchQuery || ''} />
                                 </h4>
-                                <div className="text-sm text-slate-900 dark:text-white dark:text-slate-200 bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl inline-block w-full border border-slate-200 dark:border-white/10">
+                                <div className="text-sm text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl inline-block w-full border border-slate-200 dark:border-white/10">
                                     <span className="font-bold text-xs uppercase text-slate-700 dark:text-slate-300 block mb-1">{t('common.vulnerability')}</span>
                                     <TextHighlight text={risk.vulnerability || ''} query={searchQuery || ''} isHtml className="line-clamp-3" />
                                 </div>
@@ -210,7 +210,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 )}
                             </div>
                         </div>
-                    </GlassCard>
+                    </PremiumCard>
                 );
             })}
         </div>

@@ -58,9 +58,9 @@ const CoverageLegend: React.FC = () => {
   const { t } = useTranslation();
 
   const items = [
-    { status: 'full', icon: Check, label: t('mapping.coverage.full'), color: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30' },
-    { status: 'partial', icon: Minus, label: t('mapping.coverage.partial'), color: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30' },
-    { status: 'none', icon: X, label: t('mapping.coverage.none'), color: 'text-red-500 bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30' },
+    { status: 'full', icon: Check, label: t('mapping.coverage.full'), color: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30' },
+    { status: 'partial', icon: Minus, label: t('mapping.coverage.partial'), color: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30' },
+    { status: 'none', icon: X, label: t('mapping.coverage.none'), color: 'text-red-500 bg-red-100 dark:bg-red-900/30' },
     { status: 'not_assessed', icon: AlertCircle, label: t('mapping.coverage.not_assessed'), color: 'text-slate-400 bg-slate-100 dark:bg-slate-800' },
   ];
 
@@ -126,7 +126,7 @@ const StatsSummary: React.FC<StatsSummaryProps> = ({ controls, frameworks }) => 
         <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.fullCoverage')}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="font-bold text-amber-600 dark:text-amber-400 dark:text-amber-400">{stats.partialCoverage}</span>
+        <span className="font-bold text-amber-600 dark:text-amber-400">{stats.partialCoverage}</span>
         <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.partialCoverage')}</span>
       </div>
       <div className="flex items-center gap-2">
@@ -341,7 +341,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                   >
                     <div className="flex flex-col items-center gap-1">
                       <span>{framework.code}</span>
-                      <span className="text-xs font-normal text-slate-400 dark:text-slate-500">
+                      <span className="text-xs font-normal text-slate-400 dark:text-slate-400">
                         {framework.requirementCount || 0} {t('mapping.reqs')}
                       </span>
                     </div>

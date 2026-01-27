@@ -127,7 +127,7 @@ const ReplyItem: React.FC<{
               {createdDate.toLocaleDateString('fr-FR')} a {createdDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
             </span>
             {reply.isEdited && (
-              <span className="text-xs text-slate-500 dark:text-slate-400 italic">(modifié)</span>
+              <span className="text-xs text-slate-500 dark:text-slate-300 italic">(modifié)</span>
             )}
           </div>
 
@@ -246,7 +246,7 @@ const ReplyForm: React.FC<{
           disabled={!content.trim() || isSubmitting}
           className={`p-3 rounded-xl transition-all ${content.trim() && !isSubmitting
               ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25'
-              : 'bg-slate-700/50 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+              : 'bg-slate-700/50 text-slate-500 dark:text-slate-300 cursor-not-allowed'
             }`}
         >
           {isSubmitting ? (

@@ -49,7 +49,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                 <div className="glass-panel rounded-3xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-slate-400 font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
+                            <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-slate-300 font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
                                 <tr>
                                     <th className="px-8 py-5">Date</th>
                                     <th className="px-6 py-5">Processus testé</th>
@@ -83,7 +83,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                                                     {drill.result}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 truncate max-w-xs font-medium">{drill.notes}</td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-300 truncate max-w-xs font-medium">{drill.notes}</td>
                                         </tr>
                                     )
                                 })}

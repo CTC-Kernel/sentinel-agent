@@ -13,11 +13,11 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6 flex items-center">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6 flex items-center">
                     <History className="h-4 w-4 mr-2" /> Historique DICP
                 </h3>
                 {!selectedAsset.history || selectedAsset.history.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">Aucune modification enregistrée.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucune modification enregistrée.</p>
                 ) : (
                     <div className="space-y-4">
                         {selectedAsset.history.slice().reverse().map((h, i) => (
@@ -28,7 +28,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
                                 </div>
                                 <div className="grid grid-cols-3 gap-2 text-xs">
                                     <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Confidentialité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Confidentialité</span>
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="line-through opacity-60">{h.previousConfidentiality}</span>
                                             <span>→</span>
@@ -36,7 +36,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Intégrité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Intégrité</span>
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="line-through opacity-60">{h.previousIntegrity}</span>
                                             <span>→</span>
@@ -44,7 +44,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Disponibilité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Disponibilité</span>
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="line-through opacity-60">{h.previousAvailability}</span>
                                             <span>→</span>

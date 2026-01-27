@@ -59,21 +59,21 @@ const getFrameworkStyles = (framework: Framework) => {
             return {
                 accent: 'text-red-600 dark:text-red-400',
                 bg: 'bg-red-50 dark:bg-red-900/20',
-                border: 'border-red-100 dark:border-red-2000',
+                border: 'border-red-100 dark:border-red-800',
                 progress: 'bg-red-600 shadow-red-600/20'
             };
         case 'HDS':
             return {
                 accent: 'text-blue-600 dark:text-blue-400',
                 bg: 'bg-blue-50 dark:bg-blue-900/20',
-                border: 'border-blue-100 dark:border-blue-2000',
+                border: 'border-blue-100 dark:border-blue-800',
                 progress: 'bg-blue-600 shadow-blue-600/20'
             };
         case 'PCI_DSS':
             return {
                 accent: 'text-red-600 dark:text-red-400',
                 bg: 'bg-red-50 dark:bg-red-900/20',
-                border: 'border-red-100 dark:border-red-2000',
+                border: 'border-red-100 dark:border-red-800',
                 progress: 'bg-red-600 shadow-red-600/20'
             };
         case 'NIST_CSF':
@@ -179,7 +179,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                         <div
                             data-testid={`domain-header-${domain.id}`}
                             onClick={() => toggleDomain(domain.id)}
-                            className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5'}`}
+                            className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-5 flex-1 min-w-0">
                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shrink-0 shadow-sm shadow-black/5 transition-all group-hover:scale-110 ${fwStyles.bg} ${fwStyles.accent} ${fwStyles.border}`}>
@@ -229,20 +229,20 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex items-start gap-3 min-w-0">
-                                                        <div className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl text-xs font-black transition-all shadow-sm ${isActive ? 'bg-brand-600 text-white' : `bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:${fwStyles.bg} group-hover:${fwStyles.accent} border border-transparent group-hover:${fwStyles.border}`}`}>
+                                                        <div className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl text-xs font-black transition-all shadow-sm ${isActive ? 'bg-brand-600 text-white' : `bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 group-hover:${fwStyles.bg} group-hover:${fwStyles.accent} border border-transparent group-hover:${fwStyles.border}`}`}>
                                                             {control.code.split('.').slice(1).join('.') || control.code}
                                                         </div>
                                                         <div className="min-w-0 pt-0.5">
                                                             <h4 className={`text-sm font-bold truncate pr-2 leading-tight ${isActive ? 'text-brand-900 dark:text-brand-100' : 'text-slate-900 dark:text-white'}`}>
                                                                 {control.name}
                                                             </h4>
-                                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
+                                                            <p className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
                                                         </div>
                                                     </div>
                                                     <div className={`shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-success-text bg-success-bg border-success-border/50' :
                                                         control.status === 'Partiel' ? 'text-warning-text bg-warning-bg border-warning-border/50' :
-                                                            control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700' :
-                                                                'text-slate-600 bg-white border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                                            control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700' :
+                                                                'text-slate-600 bg-white border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                                                         }`}>
                                                         {control.status}
                                                     </div>
@@ -285,7 +285,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
 
                                                     <div className="flex-1" />
 
-                                                    <div className={`text-slate-300 dark:text-slate-600 transition-transform duration-300 group-hover:translate-x-1 ${isActive ? 'text-brand-300 dark:text-brand-700' : ''}`}>
+                                                    <div className={`text-slate-300 dark:text-slate-300 transition-transform duration-300 group-hover:translate-x-1 ${isActive ? 'text-brand-300 dark:text-brand-700' : ''}`}>
                                                         <ChevronRight className="h-4 w-4" />
                                                     </div>
                                                 </div>

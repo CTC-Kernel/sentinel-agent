@@ -165,12 +165,12 @@ export const FrameworkSettings: React.FC = () => {
                 {isAtLimit && planId !== 'enterprise' && (
                     <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 dark:border-amber-800">
                         <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                             <div>
                                 <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
                                     Limite atteinte
                                 </p>
-                                <p className="text-sm text-amber-600 dark:text-amber-400 dark:text-amber-400 mt-1">
+                                <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
                                     Votre plan {planId} est limité à {maxFrameworks} framework(s).
                                     Passez au plan supérieur pour en activer davantage.
                                 </p>
@@ -210,7 +210,7 @@ export const FrameworkSettings: React.FC = () => {
                                                 ? 'border-brand-500 bg-brand-50 dark:bg-brand-800'
                                                 : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/50'
                                             }
-                                            ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
+                                            ${isDisabled ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
                                         `}
                                         aria-pressed={isSelected}
                                         aria-label={`${isSelected ? 'Désactiver' : 'Activer'} ${fw.label}`}

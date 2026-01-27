@@ -15,12 +15,12 @@ import { ClipboardList, ShieldCheck, Rocket, Building2, Siren, Target } from '..
 
 const getProjectCategoryStyles = (category: string) => {
     const cat = category?.toLowerCase() || '';
-    if (cat.includes('audit')) return { icon: ClipboardList, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-2000', progress: 'bg-amber-500' };
-    if (cat.includes('conformité') || cat.includes('compliance')) return { icon: ShieldCheck, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-2000', progress: 'bg-blue-500' };
+    if (cat.includes('audit')) return { icon: ClipboardList, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800', progress: 'bg-amber-500' };
+    if (cat.includes('conformité') || cat.includes('compliance')) return { icon: ShieldCheck, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800', progress: 'bg-blue-500' };
     if (cat.includes('déploiement') || cat.includes('technique')) return { icon: Rocket, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/50', progress: 'bg-emerald-500' };
     if (cat.includes('gouvernance')) return { icon: Building2, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/50', progress: 'bg-indigo-500' };
-    if (cat.includes('crise')) return { icon: Siren, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-2000', progress: 'bg-red-500' };
-    return { icon: Target, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10', progress: 'bg-brand-500' };
+    if (cat.includes('crise')) return { icon: Siren, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-800', progress: 'bg-red-500' };
+    return { icon: Target, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10', progress: 'bg-brand-500' };
 };
 
 import { useStore } from '../../store';
@@ -68,7 +68,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
             cell: ({ row }) => (
                 <div>
                     <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-1">{row.original.description}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-1">{row.original.description}</div>
                 </div>
             )
         },
@@ -84,7 +84,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                         <div className={`p-1.5 rounded-lg ${styles.bg} ${styles.color} border ${styles.border} shadow-sm-premium`}>
                             <CategoryIcon className="h-4 w-4" />
                         </div>
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
                             {row.original.category || 'Standard'}
                         </span>
                     </div>

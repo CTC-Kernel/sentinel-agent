@@ -26,10 +26,10 @@ export const AuditsHeader: React.FC<AuditsHeaderProps> = ({
 
             actions={
                 <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={onExportCalendar} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white" aria-label={t('audits.exportCalendar')}>
+                    <Button variant="ghost" size="icon" onClick={onExportCalendar} className="text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-white" aria-label={t('audits.exportCalendar')}>
                         <Calendar className="w-5 h-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={onExportCSV} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white" aria-label={t('audits.exportCSV')}>
+                    <Button variant="ghost" size="icon" onClick={onExportCSV} className="text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-white" aria-label={t('audits.exportCSV')}>
                         <Download className="w-5 h-5" />
                     </Button>
                     {canEdit && (

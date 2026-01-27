@@ -119,7 +119,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
             <div className="space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-white/10 mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
                             <FileText className="w-5 h-5" />
                         </div>
                         <div>
@@ -251,7 +251,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">Procédures de Reprise (Playbook)</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <p className="text-xs text-slate-500">Étapes séquentielles pour restaurer le service.</p>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${totalDuration > 0 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800'}`}>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${totalDuration > 0 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 dark:bg-slate-800'}`}>
                                         Total: {totalDuration} min
                                     </span>
                                 </div>
@@ -282,7 +282,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <div className="flex-none flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10 mt-1">
+                                        <div className="flex-none flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/10 mt-1">
                                             {index + 1}
                                         </div>
 
@@ -333,7 +333,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                         <AlertTriangle className="w-6 h-6" />
                                     </div>
                                     <p className="text-sm font-medium text-slate-900 dark:text-white">Aucune procédure définie</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-xs mx-auto">
+                                    <p className="text-xs text-slate-500 dark:text-slate-300 mb-4 max-w-xs mx-auto">
                                         Un plan de reprise sans étapes est inutile en cas de crise. Ajoutez vos procédures.
                                     </p>
                                     <Button

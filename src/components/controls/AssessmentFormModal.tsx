@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
 import { ISO_DOMAINS } from '../../data/complianceData';
@@ -99,7 +99,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                 onClick={(e) => e.stopPropagation()}
                 className="w-full max-w-lg"
             >
-                <GlassCard className="p-6">
+                <PremiumCard glass className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -229,7 +229,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             </Button>
                         </div>
                     </form>
-                </GlassCard>
+                </PremiumCard>
             </motion.div>
         </motion.div>
     );

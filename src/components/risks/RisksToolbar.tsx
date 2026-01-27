@@ -148,7 +148,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                 <div className="p-1">
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button onClick={handleCommonExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                            <button onClick={handleCommonExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                 <FileText className="mr-2 h-4 w-4" /> {t('risks.reports')} (PDF)
                                             </button>
                                         )}
@@ -156,7 +156,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                     {onExportExcel && (
                                         <Menu.Item>
                                             {({ active }) => (
-                                                <button onClick={onExportExcel} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                <button onClick={onExportExcel} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                     <FileSpreadsheet className="mr-2 h-4 w-4" /> {t('risks.exportExcel') || 'Export Excel'}
                                                 </button>
                                             )}
@@ -164,14 +164,14 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                     )}
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button onClick={() => exportCSV(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                            <button onClick={() => exportCSV(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                 <FileSpreadsheet className="mr-2 h-4 w-4" /> {t('risks.exportCsv')}
                                             </button>
                                         )}
                                     </Menu.Item>
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                            <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                 <FileCode className="mr-2 h-4 w-4" /> {t('risks.obsidian')}
                                             </button>
                                         )}
@@ -181,7 +181,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                     <div className="p-1">
                                         <Menu.Item>
                                             {({ active }) => (
-                                                <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                     <Upload className="mr-2 h-4 w-4" /> {t('risks.importCsv')}
                                                 </button>
                                             )}
@@ -189,7 +189,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                         {/* Templates Button moved here or kept in menu? It was in menu in original code */}
                                         <Menu.Item>
                                             {({ active }) => (
-                                                <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                     {/* Using FileText as generic icon if Copy not available, but Copy is usually imported */}
                                                     <FileText className="mr-2 h-4 w-4" /> {t('risks.templates')}
                                                 </button>

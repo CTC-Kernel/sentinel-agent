@@ -23,7 +23,7 @@ import {
   Download,
 } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import type { Workshop1Data, Mission, EssentialAsset, SupportingAsset, FearedEvent } from '../../../types/ebios';
 import { MissionForm } from './forms/MissionForm';
 import { EssentialAssetForm } from './forms/EssentialAssetForm';
@@ -193,7 +193,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
     <div className="space-y-6">
       {/* Missions Section */}
       <div className="animate-fade-in-up delay-100">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-200">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-200">
           <button
             onClick={() => toggleSection('missions')}
             className="w-full flex items-center justify-between group"
@@ -206,17 +206,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                   {t('ebios.workshop1.missions')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
                   {data.scope.missions.length} {t('ebios.workshop1.missionCount')}
                 </p>
               </div>
             </div>
             {expandedSections.has('missions') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-brand-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -240,7 +240,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         {mission.name}
                       </h4>
                       {mission.description && (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
                           {mission.description}
                         </p>
                       )}
@@ -260,7 +260,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddMission}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                     <Plus className="w-4 h-4" />
@@ -270,12 +270,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               )}
             </div>
           )}
-        </GlassCard>
+        </PremiumCard>
       </div>
 
       {/* Essential Assets Section */}
       <div className="animate-fade-in-up delay-200">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5 hover:border-violet-500/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5 hover:border-violet-500/20">
           <button
             onClick={() => toggleSection('essentialAssets')}
             className="w-full flex items-center justify-between group"
@@ -288,17 +288,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                   {t('ebios.workshop1.essentialAssets')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
                   {data.scope.essentialAssets.length} {t('ebios.workshop1.assetCount')}
                 </p>
               </div>
             </div>
             {expandedSections.has('essentialAssets') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-violet-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-violet-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -322,12 +322,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                           {asset.name}
                         </h4>
-                        <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                           {t(`ebios.assetTypes.${asset.type}`)}
                         </span>
                       </div>
                       {asset.description && (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-slate-500 dark:text-slate-300 line-clamp-2 leading-relaxed">
                           {asset.description}
                         </p>
                       )}
@@ -351,7 +351,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddEssentialAsset}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-violet-500/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-violet-600 font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-violet-500/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-violet-600 font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors">
                     <Plus className="w-4 h-4" />
@@ -361,35 +361,35 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               )}
             </div>
           )}
-        </GlassCard>
+        </PremiumCard>
       </div>
 
       {/* Supporting Assets Section */}
       <div className="animate-fade-in-up delay-300">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/5 hover:border-slate-500/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/5 hover:border-slate-500/20">
           <button
             onClick={() => toggleSection('supportingAssets')}
             className="w-full flex items-center justify-between group"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-slate-500/10 text-slate-600 dark:text-slate-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-slate-500/10 text-slate-600 dark:text-slate-300 group-hover:scale-110 transition-transform duration-300">
                 <Server className="w-6 h-6" />
               </div>
               <div className="text-left">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
                   {t('ebios.workshop1.supportingAssets')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
                   {data.scope.supportingAssets.length} {t('ebios.workshop1.assetCount')}
                 </p>
               </div>
             </div>
             {expandedSections.has('supportingAssets') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -412,7 +412,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                         {asset.name}
                       </h4>
-                      <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                         {t(`ebios.supportingAssetTypes.${asset.type}`)}
                       </span>
                       {asset.linkedAssetId && (
@@ -426,7 +426,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       )}
                     </div>
                     {asset.description && (
-                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                      <p className="text-sm text-slate-500 dark:text-slate-300 line-clamp-2 leading-relaxed">
                         {asset.description}
                       </p>
                     )}
@@ -442,7 +442,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleAddSupportingAsset}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-400/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 font-medium group"
+                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-400/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-slate-700 font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 transition-colors">
                       <Plus className="w-4 h-4" />
@@ -451,7 +451,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   </button>
                   <button
                     onClick={() => setShowImportModal(true)}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 font-medium group"
+                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                       <Download className="w-4 h-4" />
@@ -462,12 +462,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               )}
             </div>
           )}
-        </GlassCard>
+        </PremiumCard>
       </div>
 
       {/* Feared Events Section */}
       <div className="animate-fade-in-up delay-400">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 hover:border-error/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 hover:border-error/20">
           <button
             onClick={() => toggleSection('fearedEvents')}
             className="w-full flex items-center justify-between group"
@@ -480,17 +480,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-error-text transition-colors">
                   {t('ebios.workshop1.fearedEvents')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
                   {data.fearedEvents.length} {t('ebios.workshop1.eventCount')}
                 </p>
               </div>
             </div>
             {expandedSections.has('fearedEvents') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-error group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-error group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -524,7 +524,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         </span>
                       </div>
                       {event.description && (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-slate-500 dark:text-slate-300 line-clamp-2 leading-relaxed">
                           {event.description}
                         </p>
                       )}
@@ -555,7 +555,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddFearedEvent}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-error-text font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-error-text font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                     <Plus className="w-4 h-4" />
@@ -565,12 +565,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               )}
             </div>
           )}
-        </GlassCard>
+        </PremiumCard>
       </div>
 
       {/* Security Baseline Section */}
       <div className="animate-fade-in-up delay-500">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-success/5 hover:border-success/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-success/5 hover:border-success/20">
           <button
             onClick={() => toggleSection('securityBaseline')}
             className="w-full flex items-center justify-between group"
@@ -583,17 +583,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-success-text transition-colors">
                   {t('ebios.workshop1.securityBaseline')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
                   {data.securityBaseline.implementedMeasures}/{data.securityBaseline.totalMeasures} {t('ebios.workshop1.measuresImplemented')}
                 </p>
               </div>
             </div>
             {expandedSections.has('securityBaseline') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-success group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-success group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -608,7 +608,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               />
             </div>
           )}
-        </GlassCard>
+        </PremiumCard>
       </div>
 
       {/* Edit Modals */}

@@ -92,16 +92,16 @@ interface ReleaseInfo {
 // Agent Status Colors
 const AGENT_STATUS_COLORS = {
     active: SENTINEL_PALETTE.success,
-    offline: '#64748b', // slate-500
+    offline: SENTINEL_PALETTE.tertiary, // Harmonized slate-blue for offline
     error: SENTINEL_PALETTE.danger
 };
 
 // OS Colors
 const OS_COLORS = {
-    windows: '#0078D4', // Microsoft blue
-    darwin: '#555555',  // Apple gray
-    linux: '#FCC624',   // Linux yellow
-    unknown: SENTINEL_PALETTE.tertiary
+    windows: SENTINEL_PALETTE.primary,  // Blue
+    darwin: SENTINEL_PALETTE.secondary, // Purple/Gray distinction
+    linux: SENTINEL_PALETTE.warning,    // Amber/Yellow
+    unknown: SENTINEL_PALETTE.info
 };
 
 interface DownloadButtonProps {
@@ -144,7 +144,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
                     exit={{ opacity: 0, height: 0 }}
                     className="pb-3"
                 >
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-sm text-slate-500 dark:text-slate-300 leading-relaxed">
                         {answer}
                     </p>
                 </motion.div>
@@ -176,7 +176,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
                 {icon}
                 <div>
                     <div className="text-sm font-bold text-slate-900 dark:text-white">{label}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">{sublabel}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold tracking-wider">{sublabel}</div>
                 </div>
             </div>
             {loading ? (
@@ -192,7 +192,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
     );
 
     const baseClasses = cn(
-        "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group text-left w-full",
+        "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full",
         !available && !loading && "opacity-60",
         loading && "opacity-60 cursor-wait"
     );
@@ -537,7 +537,7 @@ export const AgentManagement: React.FC = () => {
                 };
             case 'offline':
                 return {
-                    badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
+                    badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-300 border-slate-500/20',
                     icon: <Clock className="w-4 h-4 text-slate-500" />,
                     bg: 'bg-slate-500'
                 };
@@ -584,8 +584,8 @@ export const AgentManagement: React.FC = () => {
                         <stop offset="100%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.1} />
                     </linearGradient>
                     <linearGradient id="offlineGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#64748b" stopOpacity={0.6} />
-                        <stop offset="100%" stopColor="#64748b" stopOpacity={0.1} />
+                        <stop offset="0%" stopColor={AGENT_STATUS_COLORS.offline} stopOpacity={0.6} />
+                        <stop offset="100%" stopColor={AGENT_STATUS_COLORS.offline} stopOpacity={0.1} />
                     </linearGradient>
                 </defs>
             </svg>
@@ -599,7 +599,7 @@ export const AgentManagement: React.FC = () => {
                         </div>
                         Gestion des Agents
                     </h2>
-                    <p className="mt-1 text-slate-500 dark:text-slate-400 text-sm">
+                    <p className="mt-1 text-slate-500 dark:text-slate-300 text-sm">
                         Surveillez et déployez des agents de conformité sur vos terminaux.
                     </p>
                 </div>
@@ -629,7 +629,7 @@ export const AgentManagement: React.FC = () => {
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Score Santé</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Score Santé</span>
                         <Activity className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[140px] relative">
@@ -656,7 +656,7 @@ export const AgentManagement: React.FC = () => {
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
                                 {agentStats.healthRate}%
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider mt-1">
                                 {agentStats.healthRate >= 80 ? 'Excellent' : agentStats.healthRate >= 50 ? 'Attention' : 'Critique'}
                             </span>
                         </div>
@@ -682,7 +682,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.active}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">Agents Actifs</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">Agents Actifs</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -704,7 +704,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="p-3 bg-slate-500/10 rounded-2xl">
                             <WifiOff className="w-5 h-5 text-slate-500" />
                         </div>
-                        <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 text-[11px]">
+                        <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-300 border-slate-500/20 text-[11px]">
                             Inactifs
                         </Badge>
                     </div>
@@ -712,7 +712,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.offline}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">Hors-ligne</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">Hors-ligne</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -744,7 +744,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.error}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">En Erreur</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">En Erreur</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -794,7 +794,7 @@ export const AgentManagement: React.FC = () => {
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
                             Aucun agent déployé
                         </div>
                     )}
@@ -802,7 +802,7 @@ export const AgentManagement: React.FC = () => {
                         {statusDistribution.map((entry, index) => (
                             <div key={index} className="flex items-center gap-2 text-xs">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                <span className="text-slate-600 dark:text-slate-400">{entry.name}</span>
+                                <span className="text-slate-600 dark:text-slate-300">{entry.name}</span>
                             </div>
                         ))}
                     </div>
@@ -843,7 +843,7 @@ export const AgentManagement: React.FC = () => {
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
                             Aucun agent déployé
                         </div>
                     )}
@@ -851,7 +851,7 @@ export const AgentManagement: React.FC = () => {
                         {osDistribution.map((entry, index) => (
                             <div key={index} className="flex items-center gap-2 text-xs">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                <span className="text-slate-600 dark:text-slate-400">{entry.name}</span>
+                                <span className="text-slate-600 dark:text-slate-300">{entry.name}</span>
                             </div>
                         ))}
                     </div>
@@ -925,11 +925,11 @@ export const AgentManagement: React.FC = () => {
                     <div className="flex justify-center gap-6 mt-2">
                         <div className="flex items-center gap-2 text-xs">
                             <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: SENTINEL_PALETTE.success }} />
-                            <span className="text-slate-600 dark:text-slate-400">Actifs</span>
+                            <span className="text-slate-600 dark:text-slate-300">Actifs</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                             <div className="w-2.5 h-2.5 rounded-full bg-slate-500" />
-                            <span className="text-slate-600 dark:text-slate-400">Hors-ligne</span>
+                            <span className="text-slate-600 dark:text-slate-300">Hors-ligne</span>
                         </div>
                     </div>
                 </motion.div>
@@ -958,10 +958,10 @@ export const AgentManagement: React.FC = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-slate-200 dark:border-white/10">
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Agent</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Système</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">État</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Dernier Signe</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Agent</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Système</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">État</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Dernier Signe</th>
                                         <th className="px-6 py-4 text-right"></th>
                                     </tr>
                                 </thead>
@@ -1012,7 +1012,7 @@ export const AgentManagement: React.FC = () => {
                                                                 <div className="font-bold text-slate-900 dark:text-white text-sm">
                                                                     {agent.name}
                                                                 </div>
-                                                                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                                                                <div className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5">
                                                                     v{agent.version} • {agent.ipAddress}
                                                                 </div>
                                                             </div>
@@ -1030,7 +1030,7 @@ export const AgentManagement: React.FC = () => {
                                                             {agent.status.toUpperCase()}
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                                    <td className="px-6 py-5 text-xs text-slate-500 dark:text-slate-300 font-medium">
                                                         {new Date(agent.lastHeartbeat).toLocaleString()}
                                                     </td>
                                                     <td className="px-6 py-5 text-right">
@@ -1117,7 +1117,7 @@ export const AgentManagement: React.FC = () => {
                                         "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all",
                                         activeTab === tab.id
                                             ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
-                                            : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                                            : "text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300"
                                     )}
                                 >
                                     <tab.icon className="w-3.5 h-3.5" />
@@ -1145,7 +1145,7 @@ export const AgentManagement: React.FC = () => {
                                                         v{releaseInfo.currentVersion}
                                                     </Badge>
                                                     {releaseInfo.releaseDate && (
-                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 flex items-center gap-1">
                                                             <Calendar className="w-3 h-3" />
                                                             {new Date(releaseInfo.releaseDate).toLocaleDateString('fr-FR')}
                                                         </span>
@@ -1213,15 +1213,15 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Mobile Apps */}
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Applications Mobiles</h4>
+                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Applications Mobiles</h4>
                                         <div className="grid grid-cols-2 gap-3">
                                             <a
                                                 href={releaseInfo?.mobile?.ios?.appStoreUrl || '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group text-center"
+                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
                                             >
-                                                <Cpu className="w-6 h-6 text-slate-600 dark:text-slate-400 mb-2" />
+                                                <Cpu className="w-6 h-6 text-slate-600 dark:text-slate-300 mb-2" />
                                                 <div className="text-sm font-bold text-slate-900 dark:text-white">iOS</div>
                                                 <div className="text-[11px] text-slate-500">App Store</div>
                                                 {releaseInfo?.mobile?.ios?.comingSoon && (
@@ -1234,7 +1234,7 @@ export const AgentManagement: React.FC = () => {
                                                 href={releaseInfo?.mobile?.android?.playStoreUrl || '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group text-center"
+                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
                                             >
                                                 <Server className="w-6 h-6 text-success-500 mb-2" />
                                                 <div className="text-sm font-bold text-slate-900 dark:text-white">Android</div>
@@ -1250,7 +1250,7 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Quick Install */}
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Installation rapide</h4>
+                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Installation rapide</h4>
                                         <ol className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                                             <li className="flex gap-2">
                                                 <span className="font-bold text-brand-500">1.</span>
@@ -1284,7 +1284,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Documentation</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Guides et références techniques pour l'agent Sentinel.</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">Guides et références techniques pour l'agent Sentinel.</p>
                                     </div>
 
                                     {/* Quick Links */}
@@ -1293,7 +1293,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/quickstart"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Zap className="w-4 h-4 text-amber-500" />
@@ -1308,7 +1308,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/configuration"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Settings className="w-4 h-4 text-slate-500" />
@@ -1323,7 +1323,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/security"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Shield className="w-4 h-4 text-success-500" />
@@ -1338,7 +1338,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/troubleshooting"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -1353,7 +1353,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/api"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Network className="w-4 h-4 text-brand-500" />
@@ -1368,7 +1368,7 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* System Requirements */}
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
                                             <HardDrive className="w-3.5 h-3.5" />
                                             Configuration requise
                                         </h4>
@@ -1383,19 +1383,19 @@ export const AgentManagement: React.FC = () => {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                                                         <div>
-                                                            <span className="text-slate-500">OS:</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">OS:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.os}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-slate-500">RAM:</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">RAM:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.ram}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-slate-500">Disque:</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">Disque:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.disk}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-slate-500">Autre:</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">Autre:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.other}</span>
                                                         </div>
                                                     </div>
@@ -1433,7 +1433,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questions fréquentes</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Trouvez rapidement des réponses à vos questions.</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">Trouvez rapidement des réponses à vos questions.</p>
                                     </div>
 
                                     <div className="space-y-0">
@@ -1456,7 +1456,7 @@ export const AgentManagement: React.FC = () => {
                                                     <p className="text-sm font-medium text-slate-900 dark:text-white">
                                                         Vous ne trouvez pas votre réponse ?
                                                     </p>
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                                                         Consultez notre documentation complète ou contactez le support.
                                                     </p>
                                                     <div className="flex gap-2 mt-3">
@@ -1497,14 +1497,14 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Support technique</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Besoin d'aide ? Nous sommes là pour vous.</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">Besoin d'aide ? Nous sommes là pour vous.</p>
                                     </div>
 
                                     {/* Support Options */}
                                     <div className="grid grid-cols-1 gap-3">
                                         <a
                                             href="mailto:support@sentinel-grc.com"
-                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2.5 bg-brand-50 rounded-xl">
@@ -1522,7 +1522,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://github.com/sentinel/agent/issues/new"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2.5 bg-red-50 rounded-xl">
@@ -1540,7 +1540,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://community.sentinel-grc.com"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2.5 bg-purple-500/10 rounded-xl">
@@ -1557,11 +1557,11 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Agent Status Check */}
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                                             Diagnostic rapide
                                         </h4>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 space-y-3">
-                                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                                            <p className="text-sm text-slate-600 dark:text-slate-300">
                                                 Exécutez cette commande pour vérifier l'état de l'agent :
                                             </p>
                                             <div className="relative">
@@ -1594,25 +1594,25 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Response Times */}
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                                             Temps de réponse
                                         </h4>
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-600 dark:text-slate-400">Critique (P1)</span>
+                                                <span className="text-slate-600 dark:text-slate-300">Critique (P1)</span>
                                                 <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20">{"<"} 1h</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-600 dark:text-slate-400">Important (P2)</span>
+                                                <span className="text-slate-600 dark:text-slate-300">Important (P2)</span>
                                                 <Badge className="bg-amber-50 text-amber-600 dark:text-amber-400 border-amber-500/20">{"<"} 4h</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-600 dark:text-slate-400">Normal (P3)</span>
+                                                <span className="text-slate-600 dark:text-slate-300">Normal (P3)</span>
                                                 <Badge className="bg-blue-50 text-blue-600 dark:text-blue-400 border-blue-500/20">{"<"} 24h</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-600 dark:text-slate-400">Demande (P4)</span>
-                                                <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20">{"<"} 72h</Badge>
+                                                <span className="text-slate-600 dark:text-slate-300">Demande (P4)</span>
+                                                <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-300 border-slate-500/20">{"<"} 72h</Badge>
                                             </div>
                                         </div>
                                     </div>
@@ -1625,7 +1625,7 @@ export const AgentManagement: React.FC = () => {
                                                 <p className="text-sm font-medium text-slate-900 dark:text-white">
                                                     Sécurité des communications
                                                 </p>
-                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                                                     Ne partagez jamais vos tokens d'enrôlement par des canaux non sécurisés. Utilisez uniquement les canaux officiels pour contacter le support.
                                                 </p>
                                             </div>

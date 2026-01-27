@@ -43,7 +43,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 relative z-10">
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Demandeur</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Demandeur</h4>
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl font-bold text-slate-600 dark:text-muted-foreground">
                                     {request.dataSubject.charAt(0)}
@@ -57,7 +57,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                             </div>
                         </div>
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Détails de la demande</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Détails de la demande</h4>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10">
                                     <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Type</span>
@@ -76,7 +76,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="p-6 bg-blue-50/80 dark:bg-blue-900/30 dark:bg-blue-900 rounded-4xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-400 dark:text-blue-300 mb-1">Reçu le</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 mb-1">Reçu le</h4>
                             <div className="text-xl font-bold text-slate-900 dark:text-white">{format(new Date(request.submissionDate), 'dd MMMM yyyy', { locale: fr })}</div>
                         </div>
                         <Calendar className="h-8 w-8 text-blue-500/50" />
@@ -93,7 +93,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
 
                 {/* Workflow Actions */}
                 <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Workflow de Traitement</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Workflow de Traitement</h4>
 
                     <div className="relative pl-8 border-l-2 border-slate-200 dark:border-slate-700 space-y-6 sm:space-y-8">
                         {['New', 'Verifying', 'Processing', 'Review', 'Completed'].map((step) => {
@@ -137,7 +137,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                     <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
                     <div>
                         <h5 className="text-sm font-bold text-orange-800 dark:text-orange-200">Vérification d'Identité Requise</h5>
-                        <p className="text-xs text-orange-700 dark:text-orange-400 dark:text-orange-300 mt-1">
+                        <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
                             Avant de fournir toute donnée personnelle, assurez-vous de l'identité du demandeur (CNI, Passeport). Ne jamais envoyer de données sensibles par email non sécurisé.
                         </p>
                     </div>

@@ -220,7 +220,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     />
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.description')}</label>
+                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('audits.form.description')}</label>
                         <textarea
                             {...register('description')}
                             rows={3}
@@ -326,7 +326,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     />
 
                     <div className="space-y-4">
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.scopeLabel')}</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('audits.form.scopeLabel')}</label>
                         <Controller
                             name="relatedAssetIds"
                             control={control}
@@ -398,7 +398,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         onClick={onCancel}
                         variant="ghost"
                         disabled={isLoading}
-                        className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors"
+                        className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                     >
                         {t('audits.form.cancel')}
                     </Button>

@@ -34,7 +34,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
                             id={`question-type-${sIndex}-${qIndex}`}
                             aria-label="Type de question"
                             {...register(`sections.${sIndex}.questions.${qIndex}.type`)}
-                            className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg text-slate-600 dark:text-slate-400 focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow"
+                            className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg text-slate-600 dark:text-slate-300 focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow"
                         >
                             <option value="yes_no">Oui / Non</option>
                             <option value="text">Texte Libre</option>
@@ -43,7 +43,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
                         </select>
                     </div>
                     <div className="flex items-center gap-2">
-                        <label htmlFor={`question-weight-${sIndex}-${qIndex}`} className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Poids:</label>
+                        <label htmlFor={`question-weight-${sIndex}-${qIndex}`} className="text-xs text-slate-500 dark:text-slate-300 whitespace-nowrap">Poids:</label>
                         <input
                             id={`question-weight-${sIndex}-${qIndex}`}
                             aria-label="Poids de la question"

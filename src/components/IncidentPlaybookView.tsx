@@ -227,7 +227,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               <h3 className="text-lg font-semibold mb-4">Sélectionner un Playbook</h3>
               {playbooks.length === 0 ? (
                 <div className="text-center py-8">
-                  <AlertTriangle className="h-12 w-12 text-slate-500 dark:text-slate-400 mx-auto mb-4" />
+                  <AlertTriangle className="h-12 w-12 text-slate-500 dark:text-slate-300 mx-auto mb-4" />
                   <p className="text-slate-600">Aucun playbook disponible pour cette catégorie</p>
                 </div>
               ) : (
@@ -252,16 +252,16 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-semibold">{playbook.title}</h4>
-                          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{playbook.description}</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{playbook.description}</p>
                           <div className="flex items-center gap-4 mt-2">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(playbook.severity)}`}>
                               {playbook.severity}
                             </span>
-                            <span className="text-sm text-slate-600 dark:text-slate-400 flex items-center">
+                            <span className="text-sm text-slate-600 dark:text-slate-300 flex items-center">
                               <Timer className="h-3 w-3 mr-1" />
                               {playbook.estimatedDuration}
                             </span>
-                            <span className="text-sm text-slate-600 dark:text-slate-400 flex items-center">
+                            <span className="text-sm text-slate-600 dark:text-slate-300 flex items-center">
                               <Users className="h-3 w-3 mr-1" />
                               {playbook.requiredResources.length} ressources
                             </span>
@@ -355,9 +355,9 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                           <Activity className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 animate-pulse" />
                         )}
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mb-2 pl-6">{step.description}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mb-2 pl-6">{step.description}</p>
 
-                      <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 pl-6 uppercase tracking-wide font-medium">
+                      <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-300 pl-6 uppercase tracking-wide font-medium">
                         <span className="flex items-center">
                           <Timer className="h-3 w-3 mr-1" />
                           {step.estimatedTime}
@@ -419,7 +419,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
               {/* Timeline */}
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
-                <h4 className="font-bold text-sm uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-4">Timeline de réponse</h4>
+                <h4 className="font-bold text-sm uppercase tracking-wide text-slate-500 dark:text-slate-300 mb-4">Timeline de réponse</h4>
                 <div className="relative pl-4 border-l-2 border-slate-100 space-y-4">
                   {response.timeline.map((event) => (
                     <div key={event.id} className="relative pl-4">
@@ -430,7 +430,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                           {new Date(event.timestamp).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{event.description}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">{event.description}</p>
                     </div>
                   ))}
                 </div>

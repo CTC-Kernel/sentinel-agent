@@ -11,7 +11,7 @@ import { InspectorLayout } from '../ui/InspectorLayout';
 import { Milestone } from '../../types/ebios';
 import { Badge } from '../ui/Badge';
 import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG, PHASE_STYLES, MILESTONE_STATUS_STYLES } from './constants';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { Calendar, Users, Pencil, Trash2, Link, FileText, AlertTriangle } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
@@ -105,24 +105,24 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
             }
         >
             <div className="p-6 space-y-6">
-                <GlassCard className="p-6">
+                <PremiumCard glass className="p-6">
                     <h3 className="text-lg font-semibold mb-4">Informations</h3>
                     <div className="space-y-4">
                         <div>
-                            <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">Description</label>
+                            <label className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Description</label>
                             <p className="text-slate-900 dark:text-white">{milestone.description || 'Aucune description'}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">Échéance</label>
+                                <label className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Échéance</label>
                                 <div className="flex items-center gap-2 text-slate-900 dark:text-white">
                                     <Calendar className="w-4 h-4 text-muted-foreground" />
                                     {new Date(milestone.dueDate).toLocaleDateString()}
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">Responsable</label>
+                                <label className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Responsable</label>
                                 <div className="flex items-center gap-2 text-slate-900 dark:text-white">
                                     <Users className="w-4 h-4 text-muted-foreground" />
                                     {responsibleName}
@@ -131,7 +131,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">Phase PDCA</label>
+                            <label className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Phase PDCA</label>
                             <div className="flex items-center gap-2">
                                 {(() => {
                                     const PhaseIcon = phaseConfig.icon as React.ComponentType<{ className?: string }>;
@@ -141,11 +141,11 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                             </div>
                         </div>
                     </div>
-                </GlassCard>
+                </PremiumCard>
 
                 {/* Overdue Warning */}
                 {isOverdue && (
-                    <GlassCard className="p-4 border-red-200 dark:border-red-800 dark:border-red-900 bg-red-500 dark:bg-red-50 dark:bg-red-900">
+                    <PremiumCard glass className="p-4 border-red-200 dark:border-red-800 dark:border-red-900 bg-red-500 dark:bg-red-50 dark:bg-red-900">
                         <div className="flex items-center gap-3">
                             <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
                             <div>
@@ -155,12 +155,12 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                 </p>
                             </div>
                         </div>
-                    </GlassCard>
+                    </PremiumCard>
                 )}
 
                 {/* Linked Items */}
                 {linkedItems.length > 0 && (
-                    <GlassCard className="p-6">
+                    <PremiumCard glass className="p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             <Link className="w-5 h-5" />
                             Éléments liés
@@ -174,11 +174,11 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                 </div>
                             ))}
                         </div>
-                    </GlassCard>
+                    </PremiumCard>
                 )}
 
                 {(onStatusChange || onEdit || onDelete) && (
-                    <GlassCard className="p-6">
+                    <PremiumCard glass className="p-6">
                         <h3 className="text-lg font-semibold mb-4">Actions</h3>
                         <div className="space-y-4">
                             <div className="flex gap-2">
@@ -207,7 +207,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
 
                             {onStatusChange && (
                                 <div>
-                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-2">Changer le statut</label>
+                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-2">Changer le statut</label>
                                     <div className="flex flex-wrap gap-2">
                                         {Object.entries(MILESTONE_STATUS_CONFIG).map(([status, config]) => {
                                             if (status === 'overdue') return null; // Don't allow manual setting to 'overdue'
@@ -234,7 +234,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                 </div>
                             )}
                         </div>
-                    </GlassCard>
+                    </PremiumCard>
                 )}
             </div>
 

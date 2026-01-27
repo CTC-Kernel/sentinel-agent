@@ -158,7 +158,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Santé du Portefeuille</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[250px]">Moyenne d'avancement globale.</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 max-w-[250px]">Moyenne d'avancement globale.</p>
                         </div>
                     </div>
                     {/* Key Metrics */}
@@ -180,7 +180,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
 
                 {/* Status Distribution */}
                 <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5 relative overflow-hidden">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Statut des Projets</h3>
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4">Statut des Projets</h3>
                     <div className="h-[140px] w-full">
                         {statusData.length === 0 ? (
                             <EmptyChartState
@@ -219,7 +219,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Progress Distribution */}
                 <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Distribution de l'Avancement</h3>
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4">Distribution de l'Avancement</h3>
                     <div className="h-[250px] w-full">
                         {progressData.every(d => d.value === 0) ? (
                             <EmptyChartState
@@ -250,7 +250,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
 
                 {/* Deadlines Chart (Replaces Placeholder) */}
                 <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Échéances à Venir (6 mois)</h3>
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4">Échéances à Venir (6 mois)</h3>
                     <div className="h-[250px] w-full">
                         {deadlineData.every(d => d.value === 0) ? (
                             <EmptyChartState

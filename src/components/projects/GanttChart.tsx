@@ -175,8 +175,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         {task.name}
                     </div>
                     <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${task.progress === 100
-                        ? 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-500/20 dark:text-green-400'
-                        : 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/300/20 dark:text-blue-400'
+                        ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
+                        : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                         }`}>
                         {task.progress}%
                     </div>
@@ -199,12 +199,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                 <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                     <div className="flex flex-col">
-                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Début</span>
+                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-0.5">Début</span>
                         <span>{startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                     <div className="text-slate-300 dark:text-slate-700">→</div>
                     <div className="flex flex-col items-end">
-                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Fin</span>
+                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-0.5">Fin</span>
                         <span>{endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                 </div>
@@ -218,10 +218,10 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                 style={{ height: headerHeight }}
                 className="flex items-center px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10"
             >
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex-1">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex-1">
                     Tâche
                 </div>
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 w-8 text-center">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 w-8 text-center">
                     %
                 </div>
             </div>
@@ -252,10 +252,10 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                    <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                         {t.name}
                                     </div>
-                                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-300 truncate">
                                         {new Date(t.start).toLocaleDateString()} - {new Date(t.end).toLocaleDateString()}
                                     </div>
                                 </div>
@@ -279,7 +279,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         <CalendarDays className="w-4 h-4" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">Planning Projet</p>
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Planning Projet</p>
                         <p className="text-[11px] text-slate-600 dark:text-muted-foreground">{tasks.length} tâches • {Math.round(tasks.reduce((acc, t) => acc + (t.progress || 0), 0) / (tasks.length || 1))}% global</p>
                     </div>
                 </div>
@@ -289,7 +289,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         onClick={() => setShowList(!showList)}
                         className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${showList
                             ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700'
-                            : 'bg-transparent text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                            : 'bg-transparent text-slate-600 dark:text-slate-300 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50'
                             }`}
                     >
                         {showList ? 'Masquer Liste' : 'Afficher Liste'}

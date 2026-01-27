@@ -73,7 +73,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                                 }`}>
                                                 {rec.priority}
                                             </span>
-                                            <span className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
+                                            <span className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
                                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                                 Confiance: {(rec.confidence_score * 100).toFixed(0)}%
                                             </span>
@@ -88,10 +88,10 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                     </p>
 
                                     <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-5">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Actions Suggérées</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Actions Suggérées</h4>
                                         <ul className="space-y-3">
                                             {rec.suggested_actions.map((action) => (
-                                                <li key={action.action} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 dark:text-slate-200">
+                                                <li key={action.action} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
                                                     <div className="mt-0.5 p-1 bg-brand-100 dark:bg-brand-900 rounded-full text-brand-600 dark:text-brand-400">
                                                         <CheckCircle2 className="w-3 h-3" />
                                                     </div>
@@ -118,7 +118,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                 <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         Fermer
                     </button>

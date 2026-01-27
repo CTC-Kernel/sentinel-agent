@@ -11,38 +11,38 @@ const ServiceStatus: React.FC<{
     error?: string;
 }> = ({ name, status, icon: Icon, latency, error }) => {
     const statusConfig = {
-        operational: { color: 'text-emerald-400', icon: CheckCircle, label: 'Operational' },
-        degraded: { color: 'text-yellow-400', icon: AlertTriangle, label: 'Degraded' },
-        outage: { color: 'text-red-400', icon: XCircle, label: 'Outage' },
+        operational: { color: 'text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/10 border-success-200 dark:border-success-800', icon: CheckCircle, label: 'Operational' },
+        degraded: { color: 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-900/10 border-warning-200 dark:border-warning-800', icon: AlertTriangle, label: 'Degraded' },
+        outage: { color: 'text-destructive-600 dark:text-destructive-400 bg-destructive-50 dark:bg-destructive-900/10 border-destructive-200 dark:border-destructive-800', icon: XCircle, label: 'Outage' },
     }[status];
 
     const StatusIcon = statusConfig.icon;
 
     return (
-        <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800/70 transition-colors">
+        <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-border hover:bg-card/80 transition-colors">
             <div className="flex items-center">
-                <div className={`p-2.5 rounded-lg bg-slate-800 mr-4 border border-slate-700`}>
+                <div className={`p-2.5 rounded-lg bg-muted mr-4 border border-border`}>
                     <Icon className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                    <h4 className="font-medium text-white text-sm">{name}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center mt-0.5">
+                    <h4 className="font-medium text-foreground text-sm">{name}</h4>
+                    <p className="text-xs text-muted-foreground flex items-center mt-0.5">
                         <Activity className="w-3 h-3 mr-1 opacity-60" />
-                        {error ? <span className="text-red-400">{error}</span> : 'Uptime: 99.99%'}
+                        {error ? <span className="text-destructive">{error}</span> : 'Uptime: 99.99%'}
                     </p>
                 </div>
             </div>
             <div className="flex items-center text-right space-x-4">
                 <div>
-                    <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full bg-slate-900 border border-slate-800 ${statusConfig.color}`}>
+                    <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full border ${statusConfig.color}`}>
                         <StatusIcon className="w-3 h-3 mr-1.5" />
                         {statusConfig.label}
                     </span>
                 </div>
                 {latency !== undefined && latency > 0 && (
-                    <div className={`text-xs font-mono px-2 py-1 rounded border ${latency < 200 ? 'text-emerald-400 border-emerald-500/10 bg-emerald-50' :
-                        latency < 800 ? 'text-yellow-400 border-yellow-500/10 bg-yellow-50' :
-                            'text-red-400 border-red-500/10 bg-red-50'
+                    <div className={`text-xs font-mono px-2 py-1 rounded border ${latency < 200 ? 'text-success-600 border-success-200 bg-success-50 dark:bg-success-900/10 dark:text-success-400 dark:border-success-800' :
+                        latency < 800 ? 'text-warning-600 border-warning-200 bg-warning-50 dark:bg-warning-900/10 dark:text-warning-400 dark:border-warning-800' :
+                            'text-destructive-600 border-destructive-200 bg-destructive-50 dark:bg-destructive-900/10 dark:text-destructive-400 dark:border-destructive-800'
                         }`}>
                         {latency}ms
                     </div>
@@ -95,15 +95,15 @@ export const SystemHealth: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 h-full">
+            <div className="bg-card/50 border border-border rounded-2xl p-6 h-full">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
-                        <h3 className="text-lg font-semibold text-white mr-3">System Status</h3>
-                        {loading && <RefreshCw className="w-4 h-4 text-slate-500 dark:text-slate-400 animate-spin" />}
+                        <h3 className="text-lg font-semibold text-foreground mr-3">System Status</h3>
+                        {loading && <RefreshCw className="w-4 h-4 text-muted-foreground animate-spin" />}
                     </div>
                     <span className="flex h-2.5 w-2.5 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success-500"></span>
                     </span>
                 </div>
 
@@ -112,20 +112,20 @@ export const SystemHealth: React.FC = () => {
                         <ServiceStatus key={service.name} {...service} />
                     ))}
                     {services.length === 0 && loading && (
-                        <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
+                        <div className="text-center py-8 text-muted-foreground text-sm">
                             Checking system connectivity...
                         </div>
                     )}
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-800">
-                    <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="mt-6 pt-4 border-t border-border">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
                         <div className="flex items-center space-x-2">
-                            <button onClick={checkHealth} className="hover:text-white transition-colors">
+                            <button onClick={checkHealth} className="hover:text-foreground transition-colors">
                                 Check Now
                             </button>
-                            <span className="font-mono text-slate-600">|</span>
+                            <span className="font-mono text-muted-foreground/50">|</span>
                             <span className="font-mono">v2.4.1</span>
                         </div>
                     </div>

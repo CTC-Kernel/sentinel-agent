@@ -114,7 +114,7 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({
             </div>
           )}
           {criticalityCounts.medium > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-xs font-medium text-amber-600 dark:text-amber-400 dark:text-amber-400">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-xs font-medium text-amber-600 dark:text-amber-400">
               <AlertCircle className="w-3 h-3" />
               {criticalityCounts.medium}
             </div>
@@ -400,7 +400,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+              className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
               title={t('requirements.clearFilters')}
             >
               <X className="w-4 h-4" />

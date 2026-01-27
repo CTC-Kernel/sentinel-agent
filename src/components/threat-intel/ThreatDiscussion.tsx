@@ -47,7 +47,7 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
                                                     <Dialog.Title className="text-base font-bold text-slate-900 dark:text-white">
                                                         Discussion
                                                     </Dialog.Title>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[280px] mt-1">{threatTitle}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-300 truncate max-w-[280px] mt-1">{threatTitle}</p>
                                                 </div>
                                                 <div className="ml-3 flex h-7 items-center">
                                                     <button

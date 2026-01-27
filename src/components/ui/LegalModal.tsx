@@ -37,7 +37,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="p-2.5 text-slate-500 dark:text-slate-300 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -72,10 +72,10 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Éditeur du Service</h3>
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                                         <p className="font-medium">Cyber Threat Consulting</p>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">EURL au capital de 10 000 €</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">EURL au capital de 10 000 €</p>
                                         <p className="text-sm text-slate-600">SIRET 919 340 794 00024 - TVA FR54 919 340 794</p>
                                         <p className="text-sm text-slate-600">Siège social : Avenue Rosa Parks, 69009 Lyon</p>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a></p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a></p>
                                         <p className="text-sm text-slate-600">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">cyber-threat-consulting.com</a></p>
                                     </div>
                                 </section>
@@ -85,12 +85,12 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
                                         <div>
                                             <p className="font-medium">Google Cloud Platform</p>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Google Ireland Limited</p>
+                                            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Google Ireland Limited</p>
                                             <p className="text-sm text-slate-600">Gordon House, Barrow Street, Dublin 4, Irlande</p>
                                         </div>
                                         <div>
                                             <p className="font-medium">OVHcloud</p>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">OVH SAS</p>
+                                            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">OVH SAS</p>
                                             <p className="text-sm text-slate-600">2 rue Kellermann, 59100 Roubaix, France</p>
                                         </div>
                                     </div>

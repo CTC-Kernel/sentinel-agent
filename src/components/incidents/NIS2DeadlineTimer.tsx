@@ -48,7 +48,7 @@ export const NIS2DeadlineTimer: React.FC<Props> = ({ incident, compact = false }
     return (
         <div className="space-y-2">
             {deadlines.map((d, i) => (
-                <div key={i} className={`flex items-center justify-between p-3 rounded-lg border ${d.isCompleted ? 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400' :
+                <div key={i} className={`flex items-center justify-between p-3 rounded-lg border ${d.isCompleted ? 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300' :
                         d.status === DeadlineStatus.OVERDUE ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400' :
                             d.status === DeadlineStatus.WARNING ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400' :
                                 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'

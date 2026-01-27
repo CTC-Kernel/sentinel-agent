@@ -47,9 +47,9 @@ vi.mock('../../../ui/Tooltip', () => ({
     Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
-// Mock GlassCard
-vi.mock('../../../ui/GlassCard', () => ({
-    GlassCard: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+// Mock PremiumCard
+vi.mock('../../../ui/PremiumCard', () => ({
+    PremiumCard: ({ children, className }: { children: React.ReactNode; className?: string }) => (
         <div data-testid="glass-card" className={className}>{children}</div>
     )
 }));

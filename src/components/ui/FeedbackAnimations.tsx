@@ -28,7 +28,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   const variantClasses = {
     primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-brand-500 shadow-lg shadow-brand-500/20',
-    secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
+    secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
     success: 'bg-success-600 hover:bg-success-700 text-white focus:ring-success-500 shadow-lg shadow-success-500/20'
   };

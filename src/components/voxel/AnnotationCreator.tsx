@@ -431,7 +431,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
             <div className="flex gap-2">
               <button
                 disabled
-                className="p-2 rounded-xl bg-slate-700/50 text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                className="p-2 rounded-xl bg-slate-700/50 text-slate-500 dark:text-slate-300 cursor-not-allowed"
                 title="Ajouter une piece jointe (bientot)"
               >
                 <Paperclip className="w-4 h-4" />

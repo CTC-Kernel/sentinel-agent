@@ -80,7 +80,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
-          <Shield className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+          <Shield className="w-5 h-5 text-slate-500 dark:text-slate-300" />
         </div>
 
         {/* Content */}
@@ -107,7 +107,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
                   <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">
                     {mapping.frameworkCode}
                   </span>
-                  <span className="text-xs text-muted-foreground dark:text-slate-500">
+                  <span className="text-xs text-muted-foreground dark:text-slate-400">
                     {mapping.coveragePercentage}%
                   </span>
                 </div>
@@ -117,7 +117,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
 
           {/* No mappings */}
           {control.mappings.length === 0 && (
-            <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground dark:text-slate-500">
+            <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground dark:text-slate-400">
               <Link2 className="w-3 h-3" />
               <span>{t('mapping.noMappings')}</span>
             </div>
@@ -138,7 +138,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
           )}
           <ChevronRight className={cn(
             'w-4 h-4 transition-transform',
-            'text-slate-400 dark:text-slate-500',
+            'text-slate-400 dark:text-slate-400',
             'group-hover:translate-x-1 group-hover:text-slate-600 dark:group-hover:text-slate-300'
           )} />
         </div>

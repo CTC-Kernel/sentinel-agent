@@ -9,7 +9,7 @@ export const ContentBlockerError: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
                 <div className="p-8 text-center">
-                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                         <ShieldAlert className="w-10 h-10 text-red-600 dark:text-red-400" />
                     </div>
 
@@ -27,7 +27,7 @@ export const ContentBlockerError: React.FC = () => {
                             <span className="w-1.5 h-1.5 rounded-full bg-brand-500 mr-2"></span>
                             Solutions possibles :
                         </h2>
-                        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-2 pl-3.5">
+                        <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-3.5">
                             <li>• Désactivez votre bloqueur de publicité.</li>
                             <li>• Vérifiez votre connexion internet.</li>
                             <li>• Rechargez la page.</li>
@@ -45,14 +45,14 @@ export const ContentBlockerError: React.FC = () => {
 
                         <button
                             onClick={dismissBlockerError}
-                            className="w-full py-3 px-4 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            className="w-full py-3 px-4 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                         >
                             <AlertTriangle className="w-4 h-4" />
                             Ignorer et continuer (Risqué)
                         </button>
                     </div>
 
-                    <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">
+                    <p className="mt-4 text-xs text-slate-500 dark:text-slate-300">
                         Code erreur: AUTH_BLOCKED_BY_CLIENT
                     </p>
                 </div>

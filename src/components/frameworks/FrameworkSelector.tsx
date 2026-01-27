@@ -136,7 +136,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
           </span>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
-          <Shield className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <Shield className="w-4 h-4 text-slate-500 dark:text-slate-300" />
           <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
             {frameworks.length} {t('frameworks.available', 'disponibles')}
           </span>

@@ -74,7 +74,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
-                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-2xl transition-all"
+                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
                         title="Actualiser"
                     >
                         <RefreshCcw className="h-4 w-4" />
@@ -94,7 +94,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                             onClick={onToggleAdvancedSearch}
                             className={`p-2 rounded-2xl transition-all duration-300 ${showAdvancedSearch
                                 ? 'bg-brand-500 text-white shadow-inner'
-                                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:bg-white/5'
+                                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-white/5'
                                 }`}
                             title="Filtres avancés"
                         >
@@ -113,7 +113,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                         onClick={() => onViewChange(option.id)}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
                                             ? 'bg-white text-slate-900 dark:text-white shadow-sm dark:bg-slate-800 dark:text-white font-bold'
-                                            : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                            : 'text-slate-500 hover:text-slate-900 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                             }`}
                                         title={option.label}
                                     >
@@ -132,7 +132,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                 onClick={() => onViewModeChange?.('list')}
                                 className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'
                                     ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                     }`}
                                 title="Vue Liste"
                             >
@@ -142,7 +142,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                 onClick={() => onViewModeChange?.('grid')}
                                 className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'grid'
                                     ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                     }`}
                                 title="Vue Grille"
                             >
@@ -152,7 +152,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                 onClick={() => onViewModeChange?.('matrix')}
                                 className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
                                     ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                     }`}
                                 title="Vue Matrice"
                             >
@@ -162,7 +162,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                 onClick={() => onViewModeChange?.('kanban')}
                                 className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'kanban'
                                     ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                     }`}
                                 title="Vue Kanban"
                             >

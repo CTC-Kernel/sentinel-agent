@@ -261,7 +261,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                             </div>
                                                             <div>
                                                                 <div className="font-bold text-slate-900 dark:text-white">{partner.targetOrgName}</div>
-                                                                <div className="text-xs text-slate-500 dark:text-slate-400 capitalize flex items-center gap-1">
+                                                                <div className="text-xs text-slate-500 dark:text-slate-300 capitalize flex items-center gap-1">
                                                                     {partner.status === 'trusted' && <Shield className="h-3 w-3 text-green-500" />}
                                                                     Status: {partner.status === 'pending' ? 'En attente' : partner.status === 'trusted' ? 'Approuvé' : 'Bloqué'}
                                                                 </div>

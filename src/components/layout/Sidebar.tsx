@@ -6,8 +6,8 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot, GraduationCap, Package,
-  KeyRound, UserCheck,
+  Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot, GraduationCap,
+  UserCheck,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -97,8 +97,6 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren, resource: 'Incident' },
         { key: 'vulnerabilities', name: t('sidebar.vulnerabilities'), to: '/vulnerabilities', icon: Bug, resource: 'Asset' },
         { key: 'agents', name: t('sidebar.agents'), to: '/agents', icon: Bot, resource: 'Agent' },
-        { key: 'agent-policies', name: t('sidebar.agentPolicies'), to: '/agent-policies', icon: Shield, resource: 'Agent', action: 'manage' },
-        { key: 'software-inventory', name: t('sidebar.softwareInventory'), to: '/software-inventory', icon: Package, resource: 'Asset' },
         { key: 'threat-intelligence', name: t('sidebar.threatIntel'), to: '/threat-intelligence', icon: Globe }, // Open feature
         { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Box, resource: 'CTCEngine' },
       ]
@@ -120,7 +118,6 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.repository'),
       items: [
         { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server, resource: 'Asset' },
-        { key: 'certificates', name: t('sidebar.certificates'), to: '/certificates', icon: KeyRound, resource: 'Asset' }, // NIS2 Art. 21.2(h)
         { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building, resource: 'Supplier' },
         { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase, resource: 'Document' },
       ]
@@ -184,21 +181,21 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         data-tour="sidebar"
       >
         {/* Brand Logo */}
-        <div className="h-16 flex items-center justify-between px-6 mb-4 border-b border-slate-200/60 dark:border-white/5">
+        <div className="h-16 flex items-center justify-between px-6 mb-4 border-b border-border/60">
           <div className="flex items-center gap-3 group cursor-pointer select-none">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-xl shadow-slate-900/30 ring-1 ring-black/5 dark:ring-white/10">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-foreground text-background shadow-xl shadow-foreground/10 ring-1 ring-border/10">
               <Lock className="h-5 w-5" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col justify-center">
-              <h1 className="text-[17px] font-extrabold font-display tracking-tight text-slate-900 dark:text-white leading-none">Sentinel</h1>
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-[0.4em] mt-1 uppercase">GRC</span>
+              <h1 className="text-[17px] font-extrabold font-display tracking-tight text-foreground leading-none">Sentinel</h1>
+              <span className="text-[11px] font-bold text-muted-foreground tracking-[0.4em] mt-1 uppercase">GRC</span>
             </div>
           </div>
           {/* Mobile Close Button */}
           <button
             aria-label={t('common.closeMenu')}
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-2 -mr-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5"
+            className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
           >
             <X className="h-5 w-5" />
           </button>
@@ -258,13 +255,13 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             className={({ isActive }) => `
                 group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                 ${isActive
-                ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-semibold border border-slate-200 dark:border-white/10'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                ? 'bg-muted text-foreground font-semibold border border-border'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}
               `}
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>
                   <HelpCircle className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1 truncate">{t('common.helpCenter')}</span>
@@ -274,22 +271,22 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         </nav>
 
         {/* User Settings & Logout */}
-        <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/5 space-y-1">
+        <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-background/40 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/5 space-y-1">
           <NavLink
             to="/settings"
             data-tour="settings"
             className={({ isActive }) => `
                 group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
-                ${isActive ? 'bg-white/60 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
+                ${isActive ? 'bg-background/60 text-foreground shadow-sm' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}
               `}
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100/80 text-slate-500 dark:text-slate-400 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
                   <Settings className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1">{t('sidebar.settings')}</span>
-                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-500 dark:text-slate-400 dark:text-slate-500 group-hover:opacity-70'}`} />
+                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-foreground' : 'opacity-0 text-muted-foreground group-hover:opacity-70'}`} />
               </>
             )}
           </NavLink>
@@ -297,20 +294,20 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             variant="ghost"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 hover:text-red-600 dark:hover:text-red-400 rounded-xl"
+            className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 dark:hover:text-destructive-300 rounded-xl"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 dark:text-red-400/80 mr-3 bg-red-50 dark:bg-red-900/20">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive mr-3 bg-destructive/10">
               {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" strokeWidth={2} />}
             </span>
             <span className="flex-1 text-left">{t('common.logout')}</span>
           </Button>
 
-          <div className="pt-2 border-t border-slate-200/50 dark:border-white/5 mt-2">
+          <div className="pt-2 border-t border-border/50 mt-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowLegalModal(true)}
-              className="w-full flex items-center justify-center gap-2 h-8 text-[11px] font-medium text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="w-full flex items-center justify-center gap-2 h-8 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <Scale className="h-3 w-3" />
               <span>{t('settings.mentionsLegales')}</span>

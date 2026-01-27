@@ -121,7 +121,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                     <option key={u.uid} value={u.uid}>{u.displayName || u.email}</option>
                                 ))}
                             </select>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
                         </div>
                         <input value={comment} onChange={(e) => setComment(e.target.value)}
                             aria-label="Message pour les réviseurs"
@@ -156,7 +156,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
             {/* TIMELINE */}
             <div className="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800 space-y-6">
                 {history.length === 0 && (
-                    <div className="text-sm text-slate-500 dark:text-slate-400 italic pl-2">Aucun historique de workflow.</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-300 italic pl-2">Aucun historique de workflow.</div>
                 )}
                 {history.map((item) => (
                     <div key={item.id} className="relative">
@@ -177,7 +177,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                     {item.userName}
                                 </div>
                                 {item.comment && (
-                                    <div className="mt-1 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg italic">
+                                    <div className="mt-1 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg italic">
                                         "{item.comment}"
                                     </div>
                                 )}

@@ -184,7 +184,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                             return coverage ? (
                                 <>
                                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                        <p className="text-sm text-green-700 dark:text-green-400 dark:text-green-300">Mappés</p>
+                                        <p className="text-sm text-green-700 dark:text-green-300">Mappés</p>
                                         <p className="text-xl font-bold text-green-800 dark:text-green-200">{coverage.mappedCount}</p>
                                     </div>
                                     <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
@@ -296,7 +296,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                     <span>Référentiel principal</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                         <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
                     </div>
                     <span>Mapping additionnel</span>

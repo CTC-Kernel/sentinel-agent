@@ -33,7 +33,7 @@ export interface AnimatedWidgetGridProps {
   /** Animation duration for each item */
   itemDuration?: number;
   /** Whether items should animate on hover */
-  hoverEffect?: boolean;
+  hover?: boolean;
   /** Custom class name */
   className?: string;
   /** Animation direction */
@@ -106,7 +106,7 @@ interface AnimatedWidgetItemProps extends HTMLMotionProps<'div'> {
   children: React.ReactNode;
   index: number;
   itemDuration: number;
-  hoverEffect: boolean;
+  hover: boolean;
   direction: AnimatedWidgetGridProps['direction'];
 }
 
@@ -114,7 +114,7 @@ const AnimatedWidgetItem: React.FC<AnimatedWidgetItemProps> = ({
   children,
   index,
   itemDuration,
-  hoverEffect,
+  hover,
   direction,
   ...props
 }) => {
@@ -125,7 +125,7 @@ const AnimatedWidgetItem: React.FC<AnimatedWidgetItemProps> = ({
       variants={itemVariants}
       custom={index}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      whileHover={hoverEffect ? (cardHover as any) : undefined}
+      whileHover={hover ? (cardHover as any) : undefined}
       className="will-change-transform"
       {...props}
     >
@@ -141,7 +141,7 @@ export const AnimatedWidgetGrid: React.FC<AnimatedWidgetGridProps> = ({
   staggerDelay = 0.1,
   initialDelay = 0.1,
   itemDuration = 0.5,
-  hoverEffect = true,
+  hover = true,
   className,
   direction = 'up',
 }) => {
@@ -166,7 +166,7 @@ export const AnimatedWidgetGrid: React.FC<AnimatedWidgetGridProps> = ({
         key={child.key || index}
         index={index}
         itemDuration={itemDuration}
-        hoverEffect={hoverEffect}
+        hover={hover}
         direction={direction}
       >
         {child}

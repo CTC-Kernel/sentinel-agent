@@ -5,7 +5,7 @@ import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { FileText, CheckCircle2, Edit, Loader2, FolderOpen } from '../../ui/Icons';
 import { useNavigate } from 'react-router-dom';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { EmptyState } from '../../ui/EmptyState';
 
 interface DocumentsStatsWidgetProps {
@@ -49,9 +49,9 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
     // Empty state when no documents
     if (stats.totalDocs === 0) {
         return (
-            <GlassCard
+            <PremiumCard glass
                 className="h-full flex flex-col p-5 overflow-hidden"
-                hoverEffect={true}
+                hover={true}
                 gradientOverlay={true}
             >
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -74,14 +74,14 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                         compact
                     />
                 </div>
-            </GlassCard>
+            </PremiumCard>
         );
     }
 
     return (
-        <GlassCard
+        <PremiumCard glass
             className="h-full flex flex-col p-5 overflow-hidden group hover:shadow-apple"
-            hoverEffect={true}
+            hover={true}
             gradientOverlay={true}
         >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -184,6 +184,6 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                     </div>
                 </div>
             </div>
-        </GlassCard>
+        </PremiumCard>
     );
 };

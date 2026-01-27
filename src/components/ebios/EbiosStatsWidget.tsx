@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Shield, Clock, CheckCircle2, TrendingUp } from '../ui/Icons';
-import { GlassCard } from '../ui/GlassCard';
+import { PremiumCard } from '../ui/PremiumCard';
 import { EbiosAnalysis } from '../../types/ebios';
 
 interface EbiosStatsWidgetProps {
@@ -53,7 +53,7 @@ export const EbiosStatsWidget: React.FC<EbiosStatsWidgetProps> = ({ analyses }) 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {stats.map((stat, index) => (
-                <GlassCard key={index} className="p-4 flex items-center justify-between" hoverEffect>
+                <PremiumCard glass key={index} className="p-4 flex items-center justify-between" hover>
                     <div>
                         <p className="text-sm font-medium text-slate-500 dark:text-muted-foreground">
                             {stat.label}
@@ -65,7 +65,7 @@ export const EbiosStatsWidget: React.FC<EbiosStatsWidgetProps> = ({ analyses }) 
                     <div className={`p-3 rounded-xl ${stat.bg}`}>
                         <stat.icon className={`w-6 h-6 ${stat.color}`} />
                     </div>
-                </GlassCard>
+                </PremiumCard>
             ))}
         </div>
     );

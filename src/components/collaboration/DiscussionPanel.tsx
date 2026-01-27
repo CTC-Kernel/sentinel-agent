@@ -286,7 +286,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                     </span>
                                 )}
                                 {comment.mentions && comment.mentions.length > 0 && (
-                                    <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 dark:text-amber-400">
+                                    <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
                                         <Users className="h-3 w-3" />
                                         {comment.mentions.length}
                                     </div>
@@ -417,7 +417,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                                 "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                                                 showFilters || filterBy !== 'all'
                                                     ? "bg-brand-500 text-white"
-                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                                             )}
                                         >
                                             <Filter className="h-3 w-3" />
@@ -459,7 +459,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                                 "px-3 py-1 rounded-md text-xs font-medium transition-colors",
                                                 filterBy === filter
                                                     ? "bg-brand-600 text-white"
-                                                    : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-600"
+                                                    : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600"
                                             )}
                                         >
                                             {filter === 'all' && 'Tous'}

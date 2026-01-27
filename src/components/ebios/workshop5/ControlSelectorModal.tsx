@@ -18,7 +18,7 @@ import {
   Filter,
 } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
-import { GlassCard } from '../../ui/GlassCard';
+import { PremiumCard } from '../../ui/PremiumCard';
 import { ISO_DOMAINS, ISO_SEED_CONTROLS } from '../../../data/complianceData';
 
 interface ControlSelectorModalProps {
@@ -141,7 +141,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <GlassCard className="w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <PremiumCard glass className="w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
@@ -187,7 +187,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                     "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                     showOnlySuggested
                       ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
                   )}
                 >
                   <Sparkles className="w-4 h-4" />
@@ -316,8 +316,8 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
 
           {filteredControls.length === 0 && (
             <div className="text-center py-12">
-              <Shield className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500">{t('ebios.workshop5.noControlsFound')}</p>
+              <Shield className="w-12 h-12 text-slate-300 dark:text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500 dark:text-slate-400">{t('ebios.workshop5.noControlsFound')}</p>
             </div>
           )}
         </div>
@@ -342,7 +342,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
             </button>
           </div>
         </div>
-      </GlassCard>
+      </PremiumCard>
     </div>
   );
 };

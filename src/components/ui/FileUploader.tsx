@@ -167,7 +167,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                     {label || "Cliquez pour sélectionner un fichier"}
                                 </p>
                                 {!compact && (
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 dark:text-slate-500 mt-1">
+                                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                                         Max {maxSizeMB}MB • PDF, Images, Excel
                                     </p>
                                 )}
@@ -200,7 +200,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 variant="ghost"
                                 size="icon"
                                 aria-label="Annuler le téléversement"
-                                className="ml-2 py-0 h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
+                                className="ml-2 py-0 h-8 w-8 text-slate-500 dark:text-slate-300 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                                 <X className="h-4 w-4" />
                             </Button>

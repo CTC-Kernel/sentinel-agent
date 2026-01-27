@@ -153,7 +153,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
                             <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-purple-600 rounded-xl opacity-20 group-hover:opacity-40 blur transition duration-200"></div>
                             <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl p-1 pr-1.5 shadow-sm">
                                 <div className="pl-4 py-3 flex-1 overflow-hidden">
-                                    <p className="text-sm font-mono text-slate-600 dark:text-slate-400 truncate select-all">
+                                    <p className="text-sm font-mono text-slate-600 dark:text-slate-300 truncate select-all">
                                         {generatedLink}
                                     </p>
                                 </div>
