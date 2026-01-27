@@ -4274,6 +4274,7 @@
       "assignmentsCreated": "{{count}} trainings assigned successfully",
       "assignmentDeleted": "Assignment deleted",
       "assignmentCompleted": "Training completed! Congratulations!",
+      "trainingStarted": "Training started",
       "campaignCreated": "Campaign created successfully",
       "campaignLaunched": "Campaign launched"
     },
@@ -4291,7 +4292,16 @@
       "assignments": "No assigned trainings",
       "assignmentsDesc": "All your trainings are up to date!",
       "campaigns": "No campaigns",
-      "campaignsDesc": "Create a campaign to train your teams."
+      "campaignsDesc": "Create a campaign to train your teams.",
+      "noResults": "No results",
+      "noResultsDesc": "Try adjusting your filters."
+    },
+    "myCoursesDesc": "Track your progress and complete your assigned trainings.",
+    "viewContent": "View content",
+    "progress": "Progress",
+    "certificate": {
+      "download": "Download certificate",
+      "comingSoon": "Certificate generation coming soon."
     },
     "nis2": {
       "article": "Article 21.2(g)",

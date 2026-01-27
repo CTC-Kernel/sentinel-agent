@@ -11,3 +11,5 @@ export { TrainingCatalog } from './TrainingCatalog';
 export { TrainingCourseCard } from './TrainingCourseCard';
 export { TrainingCourseForm } from './TrainingCourseForm';
 export { TrainingAssignmentForm } from './TrainingAssignmentForm';
+export { TrainingProgressCard } from './TrainingProgressCard';
+export { MyTrainingPage } from './MyTrainingPage';

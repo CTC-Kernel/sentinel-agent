@@ -4538,6 +4538,7 @@
       "assignmentsCreated": "{{count}} formations assignées avec succès",
       "assignmentDeleted": "Assignation supprimée",
       "assignmentCompleted": "Formation terminée ! Félicitations !",
+      "trainingStarted": "Formation démarrée",
       "campaignCreated": "Campagne créée avec succès",
       "campaignLaunched": "Campagne lancée"
     },
@@ -4555,7 +4556,16 @@
       "assignments": "Aucune formation assignée",
       "assignmentsDesc": "Toutes vos formations sont à jour !",
       "campaigns": "Aucune campagne",
-      "campaignsDesc": "Créez une campagne pour former vos équipes."
+      "campaignsDesc": "Créez une campagne pour former vos équipes.",
+      "noResults": "Aucun résultat",
+      "noResultsDesc": "Essayez de modifier vos filtres."
+    },
+    "myCoursesDesc": "Suivez votre progression et complétez vos formations assignées.",
+    "viewContent": "Voir le contenu",
+    "progress": "Progression",
+    "certificate": {
+      "download": "Télécharger l'attestation",
+      "comingSoon": "La génération d'attestation sera bientôt disponible."
     },
     "nis2": {
       "article": "Article 21.2(g)",
