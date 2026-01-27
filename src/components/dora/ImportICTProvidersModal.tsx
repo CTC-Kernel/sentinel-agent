@@ -128,9 +128,9 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
@@ -142,9 +142,9 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
+                            enterTo="opacity-70 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
+                            leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="relative w-full max-w-lg transform rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl transition-all">
@@ -186,7 +186,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                         <div className="flex flex-col items-center">
                                             <FileSpreadsheet className="w-12 h-12 text-green-500 mb-3" />
                                             <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
-                                            <p className="text-sm text-slate-500 mt-1">
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 {(file.size / 1024).toFixed(1)} KB
                                             </p>
                                         </div>
@@ -196,7 +196,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                             <p className="font-medium text-slate-900 dark:text-white">
                                                 {t('dora.import.dropzone')}
                                             </p>
-                                            <p className="text-sm text-slate-500 mt-1">
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 {t('dora.import.clickToSelect')}
                                             </p>
                                         </div>

@@ -127,7 +127,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
         >
             {/* Background effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-warning-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-warning-bg rounded-full blur-2xl pointer-events-none" />
 
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -142,7 +142,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                     className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group/btn"
                 >
                     Voir tout
-                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all" />
+                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-70 group-hover/btn:translate-x-0 transition-all" />
                 </button>
             </div>
 
@@ -151,24 +151,24 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                 <div className="flex items-center gap-4 flex-1">
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-sm" />
-                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{stats.critical} critiques</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.critical} critiques</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 shadow-sm" />
-                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{stats.high} élevés</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.high} élevés</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 shadow-sm" />
-                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{stats.medium} moyens</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.medium} moyens</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 shadow-sm" />
-                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{stats.low} faibles</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{stats.low} faibles</span>
                     </div>
                 </div>
                 <div className="text-right">
                     <div className="text-lg font-black text-slate-900 dark:text-white">{stats.total}</div>
-                    <div className="text-[9px] text-slate-500 uppercase tracking-wider">Total</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</div>
                 </div>
             </div>
 
@@ -177,7 +177,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                 <div className="grid grid-cols-[auto_1fr] gap-3 w-full max-w-[380px]">
                     {/* Y Axis Label */}
                     <div className="flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider -rotate-90 whitespace-nowrap">
+                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider -rotate-90 whitespace-nowrap">
                             {t('risks.probability')}
                         </span>
                     </div>
@@ -189,7 +189,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                             <div className="flex flex-col justify-between pr-1">
                                 {[5, 4, 3, 2, 1].map(num => (
                                     <div key={num} className="h-10 flex items-center justify-center">
-                                        <span className="text-[10px] font-bold text-slate-400">{num}</span>
+                                        <span className="text-[11px] font-bold text-slate-400">{num}</span>
                                     </div>
                                 ))}
                             </div>
@@ -232,14 +232,14 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                         <div className="flex gap-1.5 pl-6">
                             {[1, 2, 3, 4, 5].map(num => (
                                 <div key={num} className="flex-1 flex items-center justify-center">
-                                    <span className="text-[10px] font-bold text-slate-400">{num}</span>
+                                    <span className="text-[11px] font-bold text-slate-400">{num}</span>
                                 </div>
                             ))}
                         </div>
 
                         {/* X Axis Label */}
                         <div className="flex items-center justify-center pt-1">
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 {t('risks.impact')}
                             </span>
                         </div>
@@ -254,18 +254,18 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-auto pt-3 border-t border-slate-100 dark:border-white/5 relative z-10"
                 >
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200/50 dark:border-red-800/30">
-                        <div className="p-1.5 rounded-lg bg-red-500/10">
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-1000 dark:border-red-800/30">
+                        <div className="p-1.5 rounded-lg bg-red-50">
                             <AlertTriangle className="w-4 h-4 text-red-500" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs font-bold text-red-700 dark:text-red-300">
+                            <p className="text-xs font-bold text-red-700 dark:text-red-400 dark:text-red-300">
                                 {stats.critical} risque{stats.critical > 1 ? 's' : ''} critique{stats.critical > 1 ? 's' : ''} nécessite{stats.critical > 1 ? 'nt' : ''} une attention immédiate
                             </p>
                         </div>
                         <button
                             onClick={() => navigate && navigate('/risks?filter=critical')}
-                            className="text-[10px] font-bold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                            className="text-[11px] font-bold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                         >
                             Voir
                         </button>

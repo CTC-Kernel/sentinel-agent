@@ -138,13 +138,13 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                                         className={cn(
                                             "relative flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all",
                                             selectedTemplate === template.id
-                                                ? "border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 ring-1 ring-brand-500"
+                                                ? "border-brand-500 bg-brand-50 dark:bg-brand-800 ring-1 ring-brand-500"
                                                 : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-white dark:bg-slate-900"
                                         )}
                                     >
                                         <div className={cn(
                                             "p-2 rounded-lg",
-                                            selectedTemplate === template.id ? "bg-brand-100 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                                            selectedTemplate === template.id ? "bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-brand-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-400"
                                         )}>
                                             <template.icon className="w-5 h-5" />
                                         </div>

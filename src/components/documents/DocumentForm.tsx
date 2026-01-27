@@ -320,7 +320,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Stockage du Document</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-4">Stockage du Document</label>
                     <div className="mb-6">
                         <CustomSelect
                             label="Fournisseur de stockage"
@@ -358,9 +358,9 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                         <label className="flex items-center gap-1 cursor-pointer">
                                             <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                 type="checkbox"
-                                                className="rounded text-blue-600 focus-visible:ring-brand-500"
+                                                className="rounded text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
                                             />
-                                            <span className="text-[10px] font-bold text-slate-600 dark:text-muted-foreground">Sécurisé</span>
+                                            <span className="text-[11px] font-bold text-slate-600 dark:text-muted-foreground">Sécurisé</span>
                                         </label>
                                         <button type="button" onClick={() => { setUploadedFileUrl(''); setUploadedFileHash(''); }} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
                                     </div>

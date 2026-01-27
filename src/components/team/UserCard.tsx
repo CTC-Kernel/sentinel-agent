@@ -21,15 +21,15 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
     }, [onDelete, user]);
 
     return (
-        <div className={`glass-panel rounded-5xl p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+        <div className={`glass-panel rounded-3xl p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
             {canAdmin && (
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                     {!user.isPending && (
                         <CustomTooltip content={t('team.actions.edit')}>
                             <button
                                 type="button"
                                 onClick={handleEdit}
-                                className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 shadow-apple-sm hover:scale-110 transition-all border border-border/50"
+                                className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 shadow-apple-sm hover:scale-110 transition-all border border-border/50"
                                 aria-label={t('team.actions.edit')}
                             >
                                 <Edit className="h-4 w-4" />
@@ -40,7 +40,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                         <button
                             type="button"
                             onClick={handleDelete}
-                            className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 hover:text-error-text shadow-apple-sm hover:scale-110 transition-all border border-border/50"
+                            className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-error-text shadow-apple-sm hover:scale-110 transition-all border border-border/50"
                             aria-label={t('team.actions.delete')}
                         >
                             <Trash2 className="h-4 w-4" />
@@ -54,7 +54,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                     src={getDefaultAvatarUrl(user.role)}
                     alt={user.displayName}
                     loading="lazy"
-                    className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`}
+                    className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-60 grayscale' : ''}`}
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = getDefaultAvatarUrl(user.role);
@@ -84,7 +84,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                         {user.department || 'Général'}
                     </div>
                     {user.lastLogin && (
-                        <div className="flex items-center text-slate-500 font-medium" title={t('team.columns.lastLogin')}>
+                        <div className="flex items-center text-slate-500 dark:text-slate-400 font-medium" title={t('team.columns.lastLogin')}>
                             <Clock className="h-3.5 w-3.5 mr-1.5" />
                             {new Date(user.lastLogin).toLocaleDateString()}
                         </div>

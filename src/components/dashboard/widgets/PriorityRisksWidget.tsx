@@ -48,7 +48,7 @@ export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = React.mem
                                     <p className="text-xs text-muted-foreground font-medium mt-1">{risk.vulnerability}</p>
                                 </div>
                             </div>
-                            <span className="text-[10px] font-bold bg-background/60 px-3 py-1.5 rounded-lg border border-border text-muted-foreground">{risk.strategy}</span>
+                            <span className="text-[11px] font-bold bg-background/60 px-3 py-1.5 rounded-lg border border-border text-muted-foreground">{risk.strategy}</span>
                         </div>
                     ))}
                     {topRisks.length === 0 && !loading && (

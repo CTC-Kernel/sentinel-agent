@@ -147,17 +147,17 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
                 </div>
 
                 <div className="flex flex-col items-end gap-1 text-right">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Dernier Test</span>
+                    <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">Dernier Test</span>
                     <span className="text-sm font-bold text-foreground">{stats.lastDrillStr}</span>
 
                     {stats.lastDrillResult && (
-                        <div className={`mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${stats.lastDrillResult === 'Succès' ? 'bg-success-bg text-success-text border-success-border dark:bg-success/10 dark:border-success/20' : 'bg-error-bg text-error-text border-error-border dark:bg-error/10 dark:border-error/20'}`}>
+                        <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${stats.lastDrillResult === 'Succès' ? 'bg-success-bg text-success-text border-success-border dark:bg-success/10 dark:border-success/20' : 'bg-error-bg text-error-text border-error-border dark:bg-error/10 dark:border-error/20'}`}>
                             {stats.lastDrillResult === 'Succès' ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
                             {stats.lastDrillResult}
                         </div>
                     )}
                     {!stats.lastDrillResult && (
-                        <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-muted-foreground">
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800 dark:text-muted-foreground">
                             <CalendarClock className="w-3 h-3" />
                             À Planifier
                         </div>

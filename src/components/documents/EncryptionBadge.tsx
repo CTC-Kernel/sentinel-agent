@@ -38,7 +38,7 @@ const stateConfig: Record<EncryptionState, {
   encrypted: {
     icon: Lock,
     color: 'text-green-600 dark:text-green-400',
-    bgColor: 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800',
+    bgColor: 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 dark:border-green-800',
     labelKey: 'encrypted',
   },
   pending: {
@@ -56,7 +56,7 @@ const stateConfig: Record<EncryptionState, {
   error: {
     icon: AlertTriangle,
     color: 'text-red-600 dark:text-red-400',
-    bgColor: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800',
+    bgColor: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 dark:border-red-800',
     labelKey: 'error',
   },
 };

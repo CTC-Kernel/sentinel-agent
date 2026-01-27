@@ -206,7 +206,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
               {t('ebios.workshop1.linkedMissions')} *
             </label>
             {missions.length === 0 ? (
-              <p className="text-sm text-slate-500 italic">
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                 {t('ebios.workshop1.noMissionsYet')}
               </p>
             ) : (
@@ -227,7 +227,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                       onChange={() => toggleMission(mission.id)}
                       className="w-4 h-4 rounded border-slate-300 text-info focus-visible:ring-brand-500"
                     />
-                    <span className="text-sm text-slate-700 dark:text-muted-foreground">
+                    <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                       {mission.name}
                     </span>
                   </label>
@@ -268,7 +268,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-1.5" />
                   {t('common.delete')}

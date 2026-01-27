@@ -491,7 +491,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
     if (!response) return null;
 
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-500/20 shadow-sm animate-fade-in">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-700 shadow-sm animate-fade-in">
         <div className="flex justify-between items-start mb-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center">
             <Bot className="h-3.5 w-3.5 mr-1.5" />
@@ -644,7 +644,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-500/30">
+    <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-300">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 bg-white dark:bg-slate-900/50 rounded-xl shadow-sm">
@@ -670,7 +670,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
             className={`flex items-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
               activeAction === action
                 ? 'bg-brand-600 text-white shadow-md'
-                : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'
+                : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'
             }`}
           >
             {loading && activeAction === action ? (

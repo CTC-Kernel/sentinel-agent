@@ -43,10 +43,10 @@ export const CertifierLogin: React.FC = () => {
 
     return (
         <div className="flex min-h-[calc(100vh-200px)] flex-col justify-center py-12 px-6 lg:px-8 relative overflow-hidden">
-            <MasterpieceBackground className="opacity-50" />
+            <MasterpieceBackground className="opacity-60" />
             <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
                 <div className="flex justify-center">
-                    <div className="w-16 h-16 bg-brand-500/10 rounded-2xl flex items-center justify-center">
+                    <div className="w-16 h-16 bg-brand-50 rounded-2xl flex items-center justify-center">
                         <ShieldCheck className="w-10 h-10 text-brand-600" />
                     </div>
                 </div>
@@ -97,7 +97,7 @@ export const CertifierLogin: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="flex w-full justify-center rounded-lg bg-brand-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                                className="flex w-full justify-center rounded-lg bg-brand-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed transition-all"
                             >
                                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('certifier.loginButton')}
                             </button>

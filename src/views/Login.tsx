@@ -163,7 +163,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                 whileHover={{ scale: 1.1, rotate: 5 }}
                                 className="w-16 h-16 rounded-3xl bg-foreground text-background flex items-center justify-center shadow-2xl mb-4 ring-1 ring-white/10 relative overflow-hidden"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50"></div>
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60"></div>
                                 <Lock className="h-8 w-8 relative z-10" strokeWidth={2.5} />
                             </motion.div>
                             <h2 className="text-3xl font-display font-bold text-foreground tracking-tight">
@@ -183,7 +183,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             <div className="w-full mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex flex-col gap-2 text-xs font-bold text-destructive shadow-sm animate-slide-up">
                                 <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2" /> {errorMsg}</p>
                                 {errorMsg.includes('restreint') && (
-                                    <p className="text-[10px] font-normal text-destructive/80 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
+                                    <p className="text-[11px] font-normal text-destructive/80 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
                                 )}
                             </div>
                         )}
@@ -328,7 +328,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                         isLoading={loading}
                                         disabled={loading || (!isLogin && !privacyAccepted)}
                                         variant="premium"
-                                        className="w-full py-6 font-bold rounded-2xl card-hover disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group/btn"
+                                        className="w-full py-6 font-bold rounded-2xl card-hover disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 relative overflow-hidden group/btn"
                                     >
                                         <span className="relative z-10 flex items-center justify-center">
                                             {isLogin ? t('auth.login') : t('auth.signup')}
@@ -356,7 +356,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
 
             <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                     {t('auth.footer.developedBy')}{' '}
                     <a
                         href="https://cyber-threat-consulting.com"
@@ -392,7 +392,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             {
                 showResetModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-background rounded-5xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
+                        <div className="bg-background rounded-3xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
                             <Button variant="ghost" size="sm" onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-muted-foreground hover:text-foreground p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />
                             </Button>
@@ -438,7 +438,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             {
                 showMfaModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-background rounded-5xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
+                        <div className="bg-background rounded-3xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
                             <Button variant="ghost" size="sm" onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-muted-foreground hover:text-foreground p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />
                             </Button>

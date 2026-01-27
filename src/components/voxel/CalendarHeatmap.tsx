@@ -162,7 +162,7 @@ function DayCell({
           INTENSITY_COLORS[isFutureDate ? 0 : intensity],
           isSelected && 'ring-2 ring-primary ring-offset-1',
           isTodayDate && 'ring-1 ring-foreground/30',
-          isFutureDate && 'opacity-50 cursor-not-allowed'
+          isFutureDate && 'opacity-60 cursor-not-allowed'
         )}
         onClick={isFutureDate ? undefined : onClick}
         disabled={isFutureDate}
@@ -473,7 +473,7 @@ export function CalendarHeatmap({
                 {DAYS_OF_WEEK.map((day, i) => (
                   <div
                     key={day}
-                    className="h-3 text-[10px] text-muted-foreground leading-3"
+                    className="h-3 text-[11px] text-muted-foreground leading-3"
                     style={{ visibility: i % 2 === 1 ? 'visible' : 'hidden' }}
                   >
                     {day}

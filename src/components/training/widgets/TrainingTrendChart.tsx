@@ -16,7 +16,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { TrendingUp } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
@@ -25,6 +24,7 @@ import { ChartTooltip } from '../../ui/ChartTooltip';
 import { useStore } from '../../../store';
 import i18n from '../../../i18n';
 import type { TrainingTrendPoint } from '../../../types/training';
+import { SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
 
 // ============================================================================
 // Types
@@ -50,8 +50,8 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
   const chartColors = {
     grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
     text: 'hsl(var(--muted-foreground))',
-    completed: 'hsl(var(--success))',
-    assigned: 'hsl(var(--primary))',
+    completed: SENTINEL_PALETTE.success,
+    assigned: SENTINEL_PALETTE.primary,
   };
 
   // Aggregate data for smoother display (weekly)
@@ -94,17 +94,17 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
 
   if (isLoading) {
     return (
-      <div className="glass-panel p-5 rounded-2xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Skeleton className="w-10 h-10 rounded-xl" />
+            <Skeleton className="w-12 h-12 rounded-2xl" />
             <div>
               <Skeleton className="h-5 w-48 rounded-md mb-2" />
               <Skeleton className="h-3 w-32 rounded-md" />
             </div>
           </div>
         </div>
-        <Skeleton className="h-[300px] w-full rounded-xl" />
+        <Skeleton className="h-[300px] w-full rounded-2xl" />
       </div>
     );
   }
@@ -113,16 +113,16 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
 
   if (!hasData) {
     return (
-      <div className="glass-panel p-5 rounded-2xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-xl bg-success-bg">
+          <div className="p-2.5 rounded-xl bg-success-bg/20">
             <TrendingUp className="w-5 h-5 text-success-text" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">
+            <h3 className="font-bold text-lg text-foreground">
               {t('training.dashboard.trend30Days')}
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {t('training.dashboard.trend30DaysDesc')}
             </p>
           </div>
@@ -140,44 +140,47 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
   }
 
   return (
-    <div className="glass-panel p-5 rounded-2xl border border-white/10 h-[400px]">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-success-bg">
+    <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px] relative overflow-hidden group/chart hover:shadow-apple-lg transition-all duration-300">
+      {/* Dynamic Background Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-xl bg-success-bg/20">
             <TrendingUp className="w-5 h-5 text-success-text" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">
+            <h3 className="font-bold text-lg text-foreground">
               {t('training.dashboard.trend30Days')}
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {t('training.dashboard.trend30DaysDesc')}
             </p>
           </div>
         </div>
 
         {/* Period totals */}
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-6 text-sm font-medium">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-success" />
-            <span className="text-muted-foreground">
-              {periodTotals.completed} {t('training.dashboard.completedLabel')}
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.completed }} />
+            <span className="text-foreground">
+              {periodTotals.completed} <span className="text-muted-foreground font-normal">{t('training.dashboard.completedLabel')}</span>
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-muted-foreground">
-              {periodTotals.assigned} {t('training.dashboard.assignedLabel')}
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.assigned }} />
+            <span className="text-foreground">
+              {periodTotals.assigned} <span className="text-muted-foreground font-normal">{t('training.dashboard.assignedLabel')}</span>
             </span>
           </div>
         </div>
       </div>
 
-      <div className="h-[300px]">
+      <div className="h-[300px] relative z-10 -ml-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={aggregatedData}
-            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
           >
             <defs>
               <linearGradient id={completedGradientId} x1="0" y1="0" x2="0" y2="1">
@@ -192,8 +195,8 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke={chartColors.grid}
-              opacity={0.5}
+              stroke={CHART_STYLES.grid.stroke}
+              opacity={CHART_STYLES.grid.opacity}
             />
             <XAxis
               dataKey="date"
@@ -213,29 +216,18 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
               axisLine={false}
               tickLine={false}
               allowDecimals={false}
+              width={40}
             />
             <Tooltip
               content={<ChartTooltip />}
-              cursor={{
-                stroke: chartColors.completed,
-                strokeWidth: 1,
-                strokeDasharray: '4 4',
-                fill: 'hsl(var(--muted-foreground) / 0.1)',
-              }}
-            />
-            <Legend
-              verticalAlign="top"
-              align="right"
-              iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ top: -10, right: 0 }}
+              cursor={CHART_STYLES.grid}
             />
             <Area
               type="monotone"
               dataKey="assigned"
               name={t('training.dashboard.assigned')}
               stroke={chartColors.assigned}
-              strokeWidth={2}
+              strokeWidth={3}
               fillOpacity={1}
               fill={`url(#${assignedGradientId})`}
               animationDuration={1500}
@@ -245,7 +237,7 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
               dataKey="completed"
               name={t('training.dashboard.completed')}
               stroke={chartColors.completed}
-              strokeWidth={2}
+              strokeWidth={3}
               fillOpacity={1}
               fill={`url(#${completedGradientId})`}
               animationDuration={1500}

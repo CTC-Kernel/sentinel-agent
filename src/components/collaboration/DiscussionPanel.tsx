@@ -257,7 +257,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                 className={cn(
                     "flex gap-3 transition-all duration-300",
                     isReply && `ml-${Math.min(level * 8, 24)}`,
-                    isHighlighted && "ring-2 ring-brand-500/50 bg-brand-50/50 dark:bg-brand-500/10 rounded-xl p-1",
+                    isHighlighted && "ring-2 ring-brand-400 bg-brand-50 dark:bg-brand-900 rounded-xl p-1",
                     compact && isReply && "ml-4"
                 )}
             >
@@ -273,7 +273,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                 <div className="flex-1 min-w-0">
                     <div className={cn(
                         "rounded-xl px-4 py-3 border transition-all hover:shadow-sm",
-                        isHighlighted ? "bg-brand-100 dark:bg-brand-500/10 border-brand-200 dark:border-brand-500/30" : "bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700/50"
+                        isHighlighted ? "bg-brand-100 dark:bg-brand-900 border-brand-200 dark:border-brand-300" : "bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700/50"
                     )}>
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
@@ -281,12 +281,12 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                     {comment.userName}
                                 </span>
                                 {isMe && (
-                                    <span className="text-[10px] bg-brand-500 text-white px-2 py-0.5 rounded-full font-medium">
+                                    <span className="text-[11px] bg-brand-500 text-white px-2 py-0.5 rounded-full font-medium">
                                         Vous
                                     </span>
                                 )}
                                 {comment.mentions && comment.mentions.length > 0 && (
-                                    <div className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400">
+                                    <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 dark:text-amber-400">
                                         <Users className="h-3 w-3" />
                                         {comment.mentions.length}
                                     </div>
@@ -311,7 +311,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                         <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                             {comment.content.split(' ').map((word, i) => {
                                 if (word.startsWith('@')) {
-                                    return <span key={`${i}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-500/10 px-1 rounded">{word} </span>;
+                                    return <span key={`${i}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-900 px-1 rounded">{word} </span>;
                                 }
                                 return word + ' ';
                             })}
@@ -367,7 +367,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                     )}
                                     title={notificationsEnabled ? "Désactiver les notifications" : "Activer les notifications"}
                                 >
-                                    {notificationsEnabled ? <Bell className="h-4 w-4" /> : <Bell className="h-4 w-4 opacity-50" />}
+                                    {notificationsEnabled ? <Bell className="h-4 w-4" /> : <Bell className="h-4 w-4 opacity-60" />}
                                 </button>
                             )}
 
@@ -395,7 +395,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         onChange={handleSearch}
                                         type="text"
                                         placeholder="Rechercher dans les commentaires..."
-                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm"
+                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
                                     />
                                     {searchQuery && (
                                         <button
@@ -417,13 +417,13 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                                 "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                                                 showFilters || filterBy !== 'all'
                                                     ? "bg-brand-500 text-white"
-                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
                                             )}
                                         >
                                             <Filter className="h-3 w-3" />
                                             Filtres
                                             {filterBy !== 'all' && (
-                                                <span className="bg-brand-600 dark:bg-brand-400 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                                                <span className="bg-brand-600 dark:bg-brand-400 text-white text-[11px] px-1.5 py-0.5 rounded-full">
                                                     1
                                                 </span>
                                             )}
@@ -432,7 +432,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500"
+                                            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500"
                                         >
                                             <option value="newest">Plus récents</option>
                                             <option value="oldest">Plus anciens</option>
@@ -459,7 +459,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                                 "px-3 py-1 rounded-md text-xs font-medium transition-colors",
                                                 filterBy === filter
                                                     ? "bg-brand-600 text-white"
-                                                    : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600"
+                                                    : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-600"
                                             )}
                                         >
                                             {filter === 'all' && 'Tous'}
@@ -479,7 +479,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
             <div
                 className={cn(
                     "flex-1 overflow-y-auto space-y-1 p-2 custom-scrollbar",
-                    loading && "opacity-50"
+                    loading && "opacity-60"
                 )}
                 style={{ maxHeight }}
             >
@@ -518,7 +518,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
             {/* Reply Form */}
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                 {replyTo && (
-                    <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-500/10 p-3 rounded-lg mb-3 border border-amber-200 dark:border-amber-500/30">
+                    <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-50 p-3 rounded-lg mb-3 border border-amber-200 dark:border-amber-800 dark:border-amber-500/30">
                         <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
                             <Reply className="h-4 w-4" />
                             <span>Réponse à un commentaire</span>
@@ -541,7 +541,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                             type="text"
                             placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire... @mentionner quelqu'un"}
                             className={cn(
-                                "flex-1 pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-xl focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm resize-none",
+                                "flex-1 pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-xl focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none",
                                 errors.content
                                     ? "border-red-500 focus:border-red-500"
                                     : "border-slate-200 dark:border-slate-700"

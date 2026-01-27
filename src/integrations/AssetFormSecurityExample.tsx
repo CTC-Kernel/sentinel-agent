@@ -123,7 +123,7 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
                 <button
                     type="submit"
                     disabled={form.isSubmitting || !form.isValid || readOnly}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                 >
                     {form.isSubmitting ? 'Enregistrement...' : isEditing ? 'Mettre à jour' : 'Créer'}
                 </button>
@@ -289,7 +289,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
                 <button
                     type="submit"
                     disabled={isSubmitting || isLoading || readOnly}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                 >
                     {isSubmitting ? 'Enregistrement...' : isEditing ? 'Mettre à jour' : 'Créer'}
                 </button>

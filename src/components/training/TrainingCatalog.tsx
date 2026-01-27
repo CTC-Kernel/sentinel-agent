@@ -247,7 +247,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
 
           {/* Create */}
           {canEdit && (
-            <Button onClick={onCreateCourse} className="shadow-elevation-sm shadow-primary">
+            <Button onClick={onCreateCourse} className="shadow-sm shadow-primary">
               <Plus className="w-4 h-4 mr-2" />
               {t('training.course.create')}
             </Button>
@@ -265,7 +265,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
             transition={{ duration: 0.2, ease: appleEasing }}
             className="overflow-hidden"
           >
-            <div className="glass-panel p-4 rounded-2xl border border-white/10 space-y-4">
+            <div className="glass-premium p-6 rounded-3xl border border-white/10 space-y-4">
               {/* Category chips */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">

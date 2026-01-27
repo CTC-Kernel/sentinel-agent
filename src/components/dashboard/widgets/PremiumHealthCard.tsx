@@ -41,10 +41,10 @@ interface PremiumHealthCardProps {
 // Tech corner decoration
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     <div className={cn("pointer-events-none", className)}>
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-500/30 rounded-tl-lg" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-500/30 rounded-tr-lg" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-500/30 rounded-bl-lg" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-500/30 rounded-br-lg" />
+        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-300 rounded-tl-lg" />
+        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-300 rounded-tr-lg" />
+        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-300 rounded-bl-lg" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-300 rounded-br-lg" />
     </div>
 );
 
@@ -120,8 +120,8 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
             </svg>
 
             {/* Background gradient effects */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-success-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-success-bg rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
             <div className="relative z-10">
                 {/* Header */}
@@ -141,13 +141,13 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                         {complianceTrend === 'up' && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-success-500/10 text-success-600 dark:text-success-400 text-xs font-bold">
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-success-bg text-success-600 dark:text-success-400 text-xs font-bold">
                                 <TrendingUp className="w-3.5 h-3.5" />
                                 En progression
                             </div>
                         )}
                         {complianceTrend === 'down' && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold">
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50 text-red-600 dark:text-red-400 text-xs font-bold">
                                 <TrendingDown className="w-3.5 h-3.5" />
                                 Attention
                             </div>
@@ -185,12 +185,12 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                 <span className="text-3xl font-black text-slate-900 dark:text-white">
                                     {effectiveCompliance}%
                                 </span>
-                                <span className="text-[10px] text-slate-500 uppercase tracking-wider">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Conformité
                                 </span>
                             </div>
                         </div>
-                        <div className="absolute inset-0 rounded-full bg-brand-500/0 group-hover:bg-brand-500/5 transition-colors" />
+                        <div className="absolute inset-0 rounded-full bg-transparent group-hover:bg-brand-50 transition-colors" />
                     </div>
 
                     {/* Divider */}
@@ -205,15 +205,15 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             onClick={() => navigate('/risks')}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <div className="p-2 bg-warning-500/10 rounded-xl">
+                                <div className="p-2 bg-warning-bg rounded-xl">
                                     <AlertTriangle className="w-4 h-4 text-warning-500" />
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-70 transition-opacity" />
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.totalRisks}
                             </div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                                 Risques
                             </div>
                             {stats.criticalRisks > 0 && (
@@ -222,7 +222,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                         <span className="animate-ping absolute h-2 w-2 rounded-full bg-red-400 opacity-75"></span>
                                         <span className="relative rounded-full h-2 w-2 bg-red-500"></span>
                                     </span>
-                                    <span className="text-[10px] text-red-600 dark:text-red-400 font-bold">
+                                    <span className="text-[11px] text-red-600 dark:text-red-400 font-bold">
                                         {stats.criticalRisks} critiques
                                     </span>
                                 </div>
@@ -246,14 +246,14 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             <div className="flex items-center justify-between mb-3">
                                 <div className={cn(
                                     "p-2 rounded-xl",
-                                    activeIncidentsCount > 0 ? "bg-red-500/10" : "bg-success-500/10"
+                                    activeIncidentsCount > 0 ? "bg-red-50" : "bg-success-bg"
                                 )}>
                                     <Zap className={cn(
                                         "w-4 h-4",
                                         activeIncidentsCount > 0 ? "text-red-500" : "text-success-500"
                                     )} />
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-70 transition-opacity" />
                             </div>
                             <div className={cn(
                                 "text-2xl font-black",
@@ -261,7 +261,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             )}>
                                 {activeIncidentsCount}
                             </div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                                 Incidents Actifs
                             </div>
                             {activeIncidentsCount > 0 && (
@@ -270,7 +270,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                         <span className="animate-ping absolute h-2 w-2 rounded-full bg-red-400 opacity-75"></span>
                                         <span className="relative rounded-full h-2 w-2 bg-red-500"></span>
                                     </span>
-                                    <span className="text-[10px] text-red-600 dark:text-red-400 font-bold">
+                                    <span className="text-[11px] text-red-600 dark:text-red-400 font-bold">
                                         Action requise
                                     </span>
                                 </div>
@@ -278,7 +278,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             {activeIncidentsCount === 0 && (
                                 <div className="mt-2 flex items-center gap-1.5">
                                     <span className="rounded-full h-2 w-2 bg-success-500"></span>
-                                    <span className="text-[10px] text-success-600 dark:text-success-400 font-bold">
+                                    <span className="text-[11px] text-success-600 dark:text-success-400 font-bold">
                                         Aucun incident
                                     </span>
                                 </div>
@@ -292,18 +292,18 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             onClick={() => navigate('/risks')}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <div className="p-2 bg-info-500/10 rounded-xl">
+                                <div className="p-2 bg-info-bg rounded-xl">
                                     <ShieldCheck className="w-4 h-4 text-info-500" />
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-70 transition-opacity" />
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
                                 {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                             </div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                                 Exposition
                             </div>
-                            <div className="mt-2 text-[10px] text-info-600 dark:text-info-400 font-medium">
+                            <div className="mt-2 text-[11px] text-info-600 dark:text-info-400 font-medium">
                                 Estimation basée sur les risques
                             </div>
                             <div className="mt-1 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -323,12 +323,12 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                     <div className="mt-6 pt-4 border-t border-white/60 dark:border-white/5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                                     Distribution des risques
                                 </span>
                                 <div className="flex items-center gap-3">
                                     {riskDistribution.map((item) => (
-                                        <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
+                                        <div key={item.name} className="flex items-center gap-1.5 text-[11px]">
                                             <div
                                                 className="w-2 h-2 rounded-full"
                                                 style={{ backgroundColor: item.fill }}

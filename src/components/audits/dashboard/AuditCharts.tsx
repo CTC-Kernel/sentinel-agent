@@ -97,10 +97,10 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
             {(totalAudits > 0 || complianceRate > 0) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {/* Completion Rate Gauge */}
-                    <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                    <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="p-2 bg-brand-500/10 rounded-xl">
+                            <div className="p-2 bg-brand-50 rounded-xl">
                                 <TrendingUp className="h-4 w-4 text-brand-500" />
                             </div>
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux de Complétion</span>
@@ -123,7 +123,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                     </motion.div>
 
                     {/* Compliance Rate Gauge */}
-                    <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                    <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
                         <div className="flex items-center gap-2 mb-4">
                             <div className="p-2 bg-emerald-500/10 rounded-xl">
@@ -150,16 +150,16 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Status Distribution Interactive Pie */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                     {/* Tech Corners */}
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                         </div>
                         Statut des Audits
@@ -211,14 +211,14 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                 </motion.div>
 
                 {/* Findings by Type Bar Chart */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                     {/* Tech Corners */}
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
                         <div className="p-2 bg-orange-500/10 rounded-xl">
                             <BarChartIcon className="w-4 h-4 text-orange-500" />

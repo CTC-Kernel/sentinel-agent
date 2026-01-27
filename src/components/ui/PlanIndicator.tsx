@@ -50,7 +50,7 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
         textColor: 'text-brand-700 dark:text-brand-200',
         glowColor: 'shadow-brand-300/40 dark:shadow-brand-900/40',
         iconBg: 'bg-gradient-to-br from-brand-500 to-violet-600',
-        ringColor: 'ring-brand-300/50 dark:ring-brand-600/50',
+        ringColor: 'ring-brand-300 dark:ring-brand-500',
     },
     enterprise: {
         name: 'Enterprise',
@@ -149,7 +149,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                 {/* Animated shimmer for premium plans */}
                 {(plan === 'professional' || plan === 'enterprise') && (
                     <motion.div
-                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${config.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${config.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
                     />
                 )}
 
@@ -189,7 +189,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                         ) : (
                             <span className={`inline-flex rounded-full h-1.5 w-1.5 ${statusConfig.bgColor}`}></span>
                         )}
-                        <span className={`text-[9px] font-semibold uppercase tracking-wider ${statusConfig.color}`}>
+                        <span className={`text-[11px] font-semibold uppercase tracking-wider ${statusConfig.color}`}>
                             {statusConfig.label}
                         </span>
                     </div>
@@ -253,10 +253,10 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                             {/* Trial info */}
                             {isTrialing && daysUntilRenewal !== null && (
                                 <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 mb-2.5">
-                                    <div className="p-1.5 rounded-lg bg-amber-200/50 dark:bg-amber-800/50">
+                                    <div className="p-1.5 rounded-lg bg-amber-200/50 dark:bg-amber-500">
                                         <Zap className="w-4 h-4 text-amber-500" />
                                     </div>
-                                    <span className="text-xs text-amber-700 dark:text-amber-300">
+                                    <span className="text-xs text-amber-700 dark:text-amber-400 dark:text-amber-300">
                                         Essai termine dans <strong>{daysUntilRenewal} jours</strong>
                                     </span>
                                 </div>
@@ -266,10 +266,10 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                             {showUpgradeHint && (
                                 <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 border border-slate-200 dark:border-slate-600/30">
                                     <div>
-                                        <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100">
                                             Passez à Pro
                                         </span>
-                                        <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">
+                                        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
                                             Fonctionnalités avancées
                                         </p>
                                     </div>
@@ -281,7 +281,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                             )}
 
                             {/* Footer */}
-                            <p className="text-[10px] text-center text-slate-400 mt-3">
+                            <p className="text-[11px] text-center text-slate-400 mt-3">
                                 Cliquer pour gérer l'abonnement
                             </p>
                         </div>

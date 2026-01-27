@@ -247,7 +247,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <UiTooltip content="Lancer une visite interactive du tableau de bord" position="bottom">
                         <button
                             onClick={() => OnboardingService.startAnalyticsTour()}
-                            className="px-4 py-2 bg-white/50 dark:bg-slate-800/50 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-900/30 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all flex items-center gap-2 backdrop-blur-sm"
+                            className="px-4 py-2 bg-white/50 dark:bg-slate-800/50 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-800 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-800 transition-all flex items-center gap-2 backdrop-blur-sm"
                         >
                             <HelpCircle className="h-4 w-4" />
                             Visite guidée
@@ -421,17 +421,17 @@ export const AnalyticsDashboard: React.FC = () => {
                             />
                         </div>
                         <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-                            <div className="p-3 rounded-2xl bg-green-50/50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20">
+                            <div className="p-3 rounded-2xl bg-green-500 dark:bg-green-50 dark:bg-green-900 border border-green-100 dark:border-green-900/20">
                                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">{controls.filter(c => c.status === 'Implémenté').length}</p>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-green-600/70 dark:text-green-400/70 mt-1">Implémentés</p>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-green-600/70 dark:text-green-400/70 mt-1">Implémentés</p>
                             </div>
                             <div className="p-3 rounded-2xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20">
                                 <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{controls.filter(c => c.status === 'Partiel').length}</p>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70 mt-1">Partiels</p>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70 mt-1">Partiels</p>
                             </div>
                             <div className="p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/30">
-                                <p className="text-2xl font-bold text-slate-700 dark:text-muted-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-400/70 mt-1">Non commencés</p>
+                                <p className="text-2xl font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-400/70 mt-1">Non commencés</p>
                             </div>
                         </div>
                     </div>

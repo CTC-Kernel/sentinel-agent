@@ -92,7 +92,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                     const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
 
                     return (
-                        <div key={day} className={`bg-white dark:bg-slate-900/30 p-2 min-h-[120px] relative group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors ${isToday ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                        <div key={day} className={`bg-white dark:bg-slate-900/30 p-2 min-h-[120px] relative group hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors ${isToday ? 'bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900' : ''}`}>
                             <span className={`absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-400'}`}>
                                 {day}
                             </span>
@@ -102,8 +102,8 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                                         key={audit.id}
                                         onClick={() => onAuditClick(audit)}
                                         className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' :
-                                            audit.status === 'En cours' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' :
-                                                'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                                            audit.status === 'En cours' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' :
+                                                'bg-blue-100 text-blue-800 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
                                             }`}
                                     >
                                         {audit.name}

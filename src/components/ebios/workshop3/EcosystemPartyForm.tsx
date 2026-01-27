@@ -168,14 +168,14 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     return (
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
             {label}
           </label>
           <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
             {value}/5
           </span>
         </div>
-        <p className="text-xs text-slate-500 mb-2">{description}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{description}</p>
         <input
           type="range"
           min={1}
@@ -199,7 +199,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
+            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30">
               <Icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
@@ -356,7 +356,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   {t('common.delete', 'Supprimer')}

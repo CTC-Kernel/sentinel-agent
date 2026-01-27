@@ -25,10 +25,10 @@ interface AuditPremiumStatsProps {
 // Tech corner decoration
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     <div className={cn("pointer-events-none", className)}>
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-500/30 rounded-tl-lg" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-500/30 rounded-tr-lg" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-500/30 rounded-bl-lg" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-500/30 rounded-br-lg" />
+        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-300 rounded-tl-lg" />
+        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-300 rounded-tr-lg" />
+        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-300 rounded-bl-lg" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-300 rounded-br-lg" />
     </div>
 );
 
@@ -109,7 +109,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.complianceRate}%
                             </span>
-                            <span className="text-[9px] text-slate-500 uppercase tracking-wider">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 Réalisation
                             </span>
                         </div>
@@ -121,7 +121,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                                 Programme Audit
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 max-w-[180px]">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[180px]">
                             {stats.complianceRate >= 80 ? 'Excellente progression' :
                              stats.complianceRate >= 50 ? 'Progression en cours' : 'Attention requise'}
                         </p>
@@ -136,14 +136,14 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     {/* Total Audits */}
                     <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-brand-500/10 rounded-xl">
+                            <div className="p-2 bg-brand-50 rounded-xl">
                                 <Target className="w-4 h-4 text-brand-500" />
                             </div>
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.total}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Audits Planifiés
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -159,14 +159,14 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     {/* Completed */}
                     <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-success-500/10 rounded-xl">
+                            <div className="p-2 bg-success-bg rounded-xl">
                                 <ClipboardCheck className="w-4 h-4 text-success-500" />
                             </div>
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.completed}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Terminés
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -182,14 +182,14 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     {/* Upcoming 30 days */}
                     <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-info-500/10 rounded-xl">
+                            <div className="p-2 bg-info-bg rounded-xl">
                                 <Calendar className="w-4 h-4 text-info-500" />
                             </div>
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.upcoming}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Prochains (30j)
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -207,7 +207,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
                                 "p-2 rounded-xl",
-                                findingsCount > 0 ? "bg-red-500/10" : "bg-success-500/10"
+                                findingsCount > 0 ? "bg-red-50" : "bg-success-bg"
                             )}>
                                 <AlertOctagon className={cn(
                                     "w-4 h-4",
@@ -227,7 +227,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         )}>
                             {findingsCount}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Non-conformités
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -252,15 +252,15 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     <span>{stats.inProgress} en cours • {stats.planned} planifiés</span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-success-500" />
                         <span className="text-slate-500">Terminés</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-brand-500" />
                         <span className="text-slate-500">En cours</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-slate-300" />
                         <span className="text-slate-500">Planifiés</span>
                     </div>

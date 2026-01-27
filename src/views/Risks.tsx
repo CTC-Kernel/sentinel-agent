@@ -346,7 +346,7 @@ export const Risks: React.FC = () => {
     ], [t]);
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24 rounded-5xl">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24 rounded-3xl">
             <PageHeader
                 title={t('risks.title')}
                 subtitle={t('risks.subtitle')}

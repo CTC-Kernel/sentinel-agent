@@ -118,7 +118,7 @@ export const IntegrationSettings: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 col-span-1 md:col-span-2">{t('settings.integrations')}</h2>
 
             {/* AI Settings */}
-            <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
@@ -152,7 +152,7 @@ export const IntegrationSettings: React.FC = () => {
                                 icon={Key}
                                 placeholder={user?.hasGeminiKey ? '••••••••••••••••' : ''}
                             />
-                            <p className="text-[11px] text-slate-500 ml-1">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 ml-1">
                                 {t('settings.geminiPlaceholder')}
                             </p>
                             <Button
@@ -168,11 +168,11 @@ export const IntegrationSettings: React.FC = () => {
             </div>
 
             {/* Google Calendar */}
-            <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
+                        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
                             <Calendar className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -187,7 +187,7 @@ export const IntegrationSettings: React.FC = () => {
                         </p>
 
                         {hasGoogleCalendarSession ? (
-                            <div className="flex items-center justify-between p-4 bg-green-500/10 dark:bg-green-500/20 rounded-xl border border-green-500/20 backdrop-blur-sm">
+                            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-500/20 rounded-xl border border-green-500/20 backdrop-blur-sm">
                                 <span className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center">
                                     <CheckCircle2 className="h-5 w-5 mr-2" />
                                     {t('settings.accountConnected')}
@@ -200,7 +200,7 @@ export const IntegrationSettings: React.FC = () => {
                                     }}
                                     variant="outline"
                                     size="sm"
-                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/30"
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 dark:border-red-900/30"
                                 >
                                     <LogOut className="h-4 w-4 mr-2" />
                                     {t('settings.disconnectGoogle')}
@@ -210,7 +210,7 @@ export const IntegrationSettings: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => loginToGoogle()}
-                                className="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-white/40 dark:border-white/10 rounded-2xl text-sm font-bold text-slate-700 dark:text-white hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
+                                className="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-white/40 dark:border-white/10 rounded-2xl text-sm font-bold text-slate-700 dark:text-white hover:border-blue-500 hover:bg-blue-500 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
                             >
                                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                                 {t('settings.connectGoogle')}
@@ -237,15 +237,15 @@ export const IntegrationSettings: React.FC = () => {
             </div>
 
             {/* SSO Settings - Enterprise */}
-            <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.integrationsPage.ssoTitle')}</h3>
-                        <span className="ml-auto px-2 py-1 text-[10px] font-bold bg-brand-100 text-brand-700 rounded-full border border-brand-200">ENTERPRISE</span>
+                        <span className="ml-auto px-2 py-1 text-[11px] font-bold bg-brand-100 text-brand-700 rounded-full border border-brand-200">ENTERPRISE</span>
                     </div>
                 </div>
                 <div className="relative z-10 p-6 grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -124,7 +124,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                                 key={partner.id}
                                 onClick={() => handleAssign(partner)}
                                 disabled={!!assigning}
-                                className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:border-brand-500/50 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"
+                                className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:border-brand-400 dark:hover:border-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 shrink-0">
@@ -134,7 +134,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                                         <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">
                                             {partner.tenantName || partner.contactEmail}
                                         </h4>
-                                        <p className="text-xs text-slate-500 truncate">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                                             {partner.contactEmail}
                                         </p>
                                     </div>
@@ -142,7 +142,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                                 {assigning === partner.id ? (
                                     <Loader2 className="w-5 h-5 animate-spin text-brand-600 ml-3 shrink-0" />
                                 ) : (
-                                    <span className="ml-3 shrink-0 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1.5 rounded-lg group-hover:bg-brand-50 group-hover:text-brand-600 dark:group-hover:bg-brand-900/30 dark:group-hover:text-brand-400 transition-colors">
+                                    <span className="ml-3 shrink-0 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1.5 rounded-lg group-hover:bg-brand-50 group-hover:text-brand-600 dark:group-hover:bg-brand-900 dark:group-hover:text-brand-400 transition-colors">
                                         Assigner
                                     </span>
                                 )}

@@ -16,7 +16,7 @@ const prismTheme = vscDarkPlus as unknown as { [key: string]: React.CSSPropertie
 const markdownComponents: Components = {
     // Headers
     h1: ({ children }) => <h1 className="text-lg font-bold text-slate-900 dark:text-white mt-4 mb-2 first:mt-0">{children}</h1>,
-    h2: ({ children }) => <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mt-4 mb-2">{children}</h2>,
+    h2: ({ children }) => <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-100 mt-4 mb-2">{children}</h2>,
     h3: ({ children }) => <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-3 mb-1.5">{children}</h3>,
     h4: ({ children }) => <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 mt-3 mb-1.5">{children}</h4>,
 
@@ -32,8 +32,8 @@ const markdownComponents: Components = {
 
     // Lists
     ul: ({ children }) => <ul className="list-disc list-outside ml-4 space-y-1 mb-3 text-slate-700 dark:text-slate-300 pointer-events-none">{children}</ul>,
-    ol: ({ children }) => <ol className="list-decimal list-outside ml-4 space-y-1 mb-3 text-slate-700 dark:text-muted-foreground">{children}</ol>,
-    li: ({ children }) => <li className="pl-1 leading-relaxed text-slate-700 dark:text-muted-foreground">{children}</li>,
+    ol: ({ children }) => <ol className="list-decimal list-outside ml-4 space-y-1 mb-3 text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{children}</ol>,
+    li: ({ children }) => <li className="pl-1 leading-relaxed text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{children}</li>,
 
     // Tables
     table: ({ children }) => (
@@ -50,7 +50,7 @@ const markdownComponents: Components = {
         </th>
     ),
     tbody: ({ children }) => <tbody className="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-800">{children}</tbody>,
-    tr: ({ children }) => <tr className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">{children}</tr>,
+    tr: ({ children }) => <tr className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50 transition-colors">{children}</tr>,
     td: ({ children }) => <td className="px-3 py-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">{children}</td>,
 
     // Links
@@ -79,13 +79,13 @@ const markdownComponents: Components = {
         return !inline && match ? (
             <div className="rounded-lg overflow-hidden my-3 shadow-md border border-slate-200 dark:border-slate-700/50 group/code">
                 <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50">
-                    <span className="text-[10px] font-mono font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">{match[1]}</span>
+                    <span className="text-[11px] font-mono font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">{match[1]}</span>
                     <button
                         type="button"
                         onClick={() => {
                             navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
                         }}
-                        className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 transition-colors opacity-0 group-hover/code:opacity-100"
+                        className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 transition-colors opacity-0 group-hover/code:opacity-70"
                         aria-label="Copier le code"
                     >
                         <Copy className="h-3 w-3" />
@@ -164,7 +164,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
                 "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border",
                 message.role === 'user'
                     ? "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                    : "bg-brand-100 dark:bg-brand-900/30 border-brand-200 dark:border-brand-500/30"
+                    : "bg-brand-100 dark:bg-brand-900 border-brand-200 dark:border-brand-300"
             )}>
                 {message.role === 'user'
                     ? <User className="h-4 w-4 text-slate-600 dark:text-slate-300" />
@@ -173,15 +173,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
             </div>
 
             <div className="flex flex-col gap-1 max-w-[85%]">
-                <span className={cn("text-[10px] font-bold opacity-60 px-1", message.role === 'user' ? "text-right" : "text-left")}>
+                <span className={cn("text-[11px] font-bold opacity-60 px-1", message.role === 'user' ? "text-right" : "text-left")}>
                     {message.role === 'user' ? 'Vous' : 'Sentinel AI'}
                 </span>
 
                 <div className={cn(
                     "p-4 rounded-2xl text-sm leading-relaxed shadow-sm relative group-hover:shadow-md transition-shadow",
                     message.role === 'user'
-                        ? "bg-slate-900 dark:bg-brand-600 text-white rounded-tr-none shadow-brand-500/10"
-                        : cn("bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-tl-none", message.isError && "border-error/30 bg-error/5 text-error dark:bg-error/10 dark:text-error dark:border-error/30")
+                        ? "bg-slate-900 dark:bg-brand-600 text-white rounded-tr-none shadow-brand-500/25"
+                        : cn("bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 dark:text-slate-200 rounded-tl-none", message.isError && "border-error/30 bg-error/5 text-error dark:bg-error/10 dark:text-error dark:border-error/30")
                 )}>
                     {message.role === 'assistant' ? (
                         <div className="text-sm">
@@ -210,7 +210,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
                                     <button
                                         type="button"
                                         onClick={() => onCopy(message.content, message.id)}
-                                        className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground hover:text-brand-600 transition-colors"
+                                        className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-brand-600 transition-colors"
                                         aria-label="Copier la réponse"
                                     >
                                         {copiedId === message.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
@@ -236,7 +236,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
                         <div className="whitespace-pre-wrap">{message.content}</div>
                     )}
                 </div>
-                <span className={cn("text-[10px] opacity-40 px-1", message.role === 'user' ? "text-right" : "text-left")}>
+                <span className={cn("text-[11px] opacity-40 px-1", message.role === 'user' ? "text-right" : "text-left")}>
                     {message.timestamp instanceof Date
                         ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : ''}

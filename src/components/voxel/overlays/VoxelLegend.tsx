@@ -228,7 +228,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
           >
             {/* Node Types */}
             <section>
-              <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
                 Entity Types
               </h3>
               <div className="space-y-1">
@@ -259,7 +259,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
                     {/* Label */}
                     <div className="flex-1">
                       <span className="text-sm text-slate-200">{label}</span>
-                      <span className="text-xs text-slate-500 ml-2">({shape})</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">({shape})</span>
                     </div>
                   </div>
                 ))}
@@ -269,7 +269,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
             {/* Status */}
             {showStatus && (
               <section>
-                <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
                   Status Indicators
                 </h3>
                 <div className="space-y-1">
@@ -288,7 +288,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
                       {/* Label and description */}
                       <div className="flex-1">
                         <span className="text-sm text-slate-200">{label}</span>
-                        <span className="text-xs text-slate-500 block">{description}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block">{description}</span>
                       </div>
                     </div>
                   ))}
@@ -299,7 +299,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
             {/* Edge Types */}
             {showEdges && (
               <section>
-                <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
                   Connection Types
                 </h3>
                 <div className="space-y-1">
@@ -318,7 +318,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
                       {/* Label and description */}
                       <div className="flex-1">
                         <span className="text-sm text-slate-200">{label}</span>
-                        <span className="text-xs text-slate-500 block">{description}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block">{description}</span>
                       </div>
                     </div>
                   ))}

@@ -22,14 +22,14 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
     return (
         <div className={className}>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-2">
                 <Calendar className="h-3.5 w-3.5" /> {label}
             </label>
             <div className={`
                 flex items-center gap-2 p-1 rounded-2xl border transition-all duration-200
                 ${error
-                    ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : 'border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20'
+                    ? 'border-red-500 bg-red-500 dark:bg-red-50 dark:bg-red-900'
+                    : 'border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300'
                 }
             `}>
                 <input aria-label="Date de début" value={startDate}

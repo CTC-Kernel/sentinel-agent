@@ -59,7 +59,7 @@ export const TenantList: React.FC = () => {
                         placeholder="Search tenants..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-500/50 text-sm focus:bg-slate-900 transition-colors text-white"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-400 text-sm focus:bg-slate-900 transition-colors text-white"
                     />
                 </div>
                 <div className="flex gap-2">
@@ -112,7 +112,7 @@ export const TenantList: React.FC = () => {
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${tenant.isActive !== false
                                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                            : 'bg-red-500/10 text-red-400 border-red-500/20'
+                                            : 'bg-red-50 text-red-400 border-red-500/20'
                                         }`}>
                                         {tenant.isActive !== false ? 'Active' : 'Suspended'}
                                     </span>
@@ -121,7 +121,7 @@ export const TenantList: React.FC = () => {
                                     {tenant.createdAt ? new Date(tenant.createdAt).toLocaleDateString() : 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                                         <button
                                             className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
                                             title="Manage Tenant"

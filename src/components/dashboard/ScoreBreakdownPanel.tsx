@@ -40,7 +40,7 @@ function CategoryRow({ label, score, weight, details }: CategoryRowProps) {
     <div className={cn('p-3 rounded-lg', bgClass)}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-slate-900 dark:text-slate-100">{label}</span>
+          <span className="font-medium text-slate-900 dark:text-white dark:text-slate-100">{label}</span>
           <span className="text-xs text-slate-500">({weightPercent}%)</span>
         </div>
         <span className={cn('font-bold text-lg', colorClass)}>
@@ -114,13 +114,13 @@ export function ScoreBreakdownPanel({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white dark:text-slate-100">
           Détail du Score
         </h3>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors"
             aria-label="Fermer"
           >
             <svg
@@ -170,7 +170,7 @@ export function ScoreBreakdownPanel({
       </div>
 
       {/* Weight explanation */}
-      <p className="mt-4 text-xs text-slate-500 text-center">
+      <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 text-center">
         Score global = Somme pondérée des catégories
       </p>
     </div>

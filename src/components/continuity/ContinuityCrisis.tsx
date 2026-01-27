@@ -57,7 +57,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
     return (
         <div className="space-y-6 sm:space-y-8">
             {/* Status Header */}
-            <div className={`p-8 rounded-4xl border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-panel border-white/10'}`}>
+            <div className={`p-8 rounded-4xl border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-2000 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-panel border-white/10'}`}>
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
                         <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg ${crisisActive ? 'bg-red-600 text-white animate-pulse' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20'}`}>
@@ -82,7 +82,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                                     <select
                                         value={selectedScenario}
                                         onChange={(e) => setSelectedScenario(e.target.value as 'cyber' | 'fire' | 'supply' | 'staff')}
-                                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 focus-visible:ring-2 focus-visible:ring-red-500"
+                                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-2 focus-visible:ring-2 focus-visible:ring-red-500"
                                     >
                                         <option value="cyber">Cyberattaque (Ransomware/DDoS)</option>
                                         <option value="fire">Incendie / Sinistre Physique</option>
@@ -103,7 +103,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                                 </Button>
                             </div>
                         ) : (
-                            <Button onClick={() => setConfirmDeactivate(true)} variant="outline" className="h-16 px-8 text-lg border-red-500 text-red-500 hover:bg-red-500/10 font-bold rounded-2xl">
+                            <Button onClick={() => setConfirmDeactivate(true)} variant="outline" className="h-16 px-8 text-lg border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 font-bold rounded-2xl">
                                 <CheckCircle2 className="w-6 h-6 mr-2" /> Clôturer la Crise
                             </Button>
                         )}
@@ -128,14 +128,14 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {crisisTeam.map(member => (
                             <div key={member.uid} className="flex items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 mr-3">
+                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 mr-3">
                                     <User className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <p className="font-bold text-sm text-slate-900 dark:text-white">{member.displayName || member.email}</p>
-                                    <p className="text-xs text-slate-500 uppercase font-bold">{member.role}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">{member.role}</p>
                                 </div>
-                                <Button size="sm" variant="ghost" className="ml-auto text-blue-600 hover:bg-blue-50">
+                                <Button size="sm" variant="ghost" className="ml-auto text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30">
                                     <Phone className="w-4 h-4" />
                                 </Button>
                             </div>
@@ -149,7 +149,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                         <Lock className="w-8 h-8 text-muted-foreground" />
                     </div>
                     <h3 className="font-bold text-lg mb-2">War Room Virtuelle</h3>
-                    <p className="text-sm text-slate-500 mb-6">Accès sécurisé aux documents confidentiels et au chat crypté de crise.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Accès sécurisé aux documents confidentiels et au chat crypté de crise.</p>
                     <Button disabled={!crisisActive} className="w-full" onClick={() => setIsWarRoomOpen(true)}>
                         Accéder
                     </Button>
@@ -162,7 +162,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     <h3 className="font-bold mb-4">Journal des Événements (Main Courante)</h3>
                     <div className="space-y-4">
                         <div className="flex gap-4 items-start">
-                            <span className="text-xs font-mono text-slate-500 mt-1">{new Date().toLocaleTimeString()}</span>
+                            <span className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">{new Date().toLocaleTimeString()}</span>
                             <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-lg text-sm flex-1">
                                 <strong>SYSTÈME :</strong> Activation de la cellule de crise par {useStore.getState().user?.role}.
                             </div>

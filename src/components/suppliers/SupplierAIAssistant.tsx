@@ -99,7 +99,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
     };
 
     return (
-        <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-500/30">
+        <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-300">
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-white dark:bg-slate-900/50 rounded-xl shadow-sm">
                     <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -114,7 +114,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                 <button
                     onClick={() => handleAction('risk')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'risk' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'risk' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'}`}
                     aria-label="Lancer l'analyse de risque par IA"
                 >
                     {loading && mode === 'risk' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
@@ -123,7 +123,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                 <button
                     onClick={() => handleAction('clauses')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'clauses' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'clauses' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'}`}
                     aria-label="Suggérer des clauses contractuelles par IA"
                 >
                     {loading && mode === 'clauses' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Scale className="h-3.5 w-3.5 mr-2" />}
@@ -132,7 +132,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                 <button
                     onClick={() => handleAction('dora')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'dora' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'dora' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'}`}
                     aria-label="Vérifier la conformité DORA par IA"
                 >
                     {loading && mode === 'dora' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
@@ -145,7 +145,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
             )}
 
             {response && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-500/20 shadow-sm animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-700 shadow-sm animate-fade-in">
                     <div className="flex justify-between items-start mb-2">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center">
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
@@ -187,7 +187,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                                     <div key={`risk-${i}`} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-white/5">
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-bold text-slate-800 dark:text-slate-200">{c.title}</span>
-                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${c.importance === 'High' ? 'bg-error/10 text-error' : 'bg-info/10 text-info'}`}>{c.importance}</span>
+                                            <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold uppercase ${c.importance === 'High' ? 'bg-error/10 text-error' : 'bg-info/10 text-info'}`}>{c.importance}</span>
                                         </div>
                                         <p className="text-xs text-slate-600 dark:text-muted-foreground">{c.description}</p>
                                     </div>

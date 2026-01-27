@@ -76,7 +76,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                 <div className="flex items-center gap-2">
                     {canDeleteResource(user, 'Audit') && (
                         <CustomTooltip content={t('audits.inspector.deleteConfirm')}>
-                            <button type="button" onClick={() => onDelete(audit.id, audit.name)} aria-label={t('audits.inspector.deleteConfirm')} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            <button type="button" onClick={() => onDelete(audit.id, audit.name)} aria-label={t('audits.inspector.deleteConfirm')} className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <Trash2 className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
@@ -97,12 +97,12 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                     )}
 
                     <CustomTooltip content={t('audits.inspector.generateReport')}>
-                        <button type="button" onClick={() => generateAuditReport([])} disabled={isGeneratingReport} aria-label={t('audits.inspector.generateReport')} className="p-2.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                        <button type="button" onClick={() => generateAuditReport([])} disabled={isGeneratingReport} aria-label={t('audits.inspector.generateReport')} className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                             {isGeneratingReport ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
                         </button>
                     </CustomTooltip>
                     <CustomTooltip content={t('audits.inspector.exportPack')}>
-                        <button type="button" onClick={handleExportPack} aria-label={t('audits.inspector.exportPack')} className="p-2.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                        <button type="button" onClick={handleExportPack} aria-label={t('audits.inspector.exportPack')} className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                             <Download className="h-5 w-5" />
                         </button>
                     </CustomTooltip>

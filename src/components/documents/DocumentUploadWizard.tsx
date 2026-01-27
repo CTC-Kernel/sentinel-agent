@@ -193,7 +193,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="relative w-full max-w-4xl glass-panel rounded-5xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/20"
+                className="relative w-full max-w-4xl glass-panel rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/20"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 {/* Header */}
@@ -237,7 +237,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                 <div className="grid grid-cols-2 gap-4 mb-6">
                                     <button
                                         type="button"
-                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider === 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
+                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider === 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-800' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
                                         onClick={() => setValue('storageProvider', 'firebase')}
                                     >
                                         <UploadCloud className={`w-6 h-6 mb-2 ${storageProvider === 'firebase' ? 'text-brand-600' : 'text-slate-400'}`} />
@@ -245,7 +245,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     </button>
                                     <button
                                         type="button"
-                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider !== 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
+                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider !== 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-800' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
                                         onClick={() => setValue('storageProvider', 'google_drive')} // Defaulting to one external
                                     >
                                         <Link className={`w-6 h-6 mb-2 ${storageProvider !== 'firebase' ? 'text-brand-600' : 'text-slate-400'}`} />
@@ -284,7 +284,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                                             <Shield className="w-3 h-3" /> Sécurisé
                                                         </span>
                                                     </label>
-                                                    <button type="button" onClick={() => { setUploadedFileUrl(''); setFileName(''); }} className="p-2 hover:bg-red-50 text-muted-foreground hover:text-red-500 rounded-lg transition-colors">
+                                                    <button type="button" onClick={() => { setUploadedFileUrl(''); setFileName(''); }} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-500 rounded-lg transition-colors">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
@@ -490,20 +490,20 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                             <p className="text-sm font-bold text-slate-900 dark:text-white">{getValues('title')}</p>
                                             <p className="text-xs text-slate-500">{docType} - v{getValues('version')}</p>
                                         </div>
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${status === 'Publié' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'}`}>
+                                        <span className={`px-2 py-1 rounded text-[11px] font-bold uppercase ${status === 'Publié' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'}`}>
                                             {status}
                                         </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 text-xs">
                                         <div>
                                             <span className="text-slate-500 block">Dossier</span>
-                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">
+                                            <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 {folders.find(f => f.id === folderId)?.name || 'Racine'}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-slate-500 block">Propriétaire</span>
-                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">
+                                            <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 {users.find(u => u.uid === ownerId)?.displayName || getValues('owner')}
                                             </span>
                                         </div>
@@ -515,7 +515,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                         </div>
                                         <div>
                                             <span className="text-slate-500 block">Sécurité</span>
-                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">
+                                            <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 {uploadedFileSecure ? 'Chiffré / Sécurisé' : 'Standard'}
                                             </span>
                                         </div>

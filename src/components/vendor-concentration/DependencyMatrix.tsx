@@ -370,19 +370,19 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
       <div className="flex items-center gap-4 text-xs">
         <span className="text-slate-500">{t('vendorConcentration.matrix.legend')}:</span>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30" />
+          <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">L = {t('vendorConcentration.matrix.levelLow')}</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-yellow-100 dark:bg-yellow-900/30" />
+          <div className="w-4 h-4 rounded bg-yellow-100 dark:bg-yellow-900/30 dark:bg-yellow-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">M = {t('vendorConcentration.matrix.levelMedium')}</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-900/30" />
+          <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">H = {t('vendorConcentration.matrix.levelHigh')}</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30" />
+          <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">C = {t('vendorConcentration.matrix.levelCritical')}</span>
         </div>
         <div className="flex items-center gap-1">
@@ -409,7 +409,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
                 {filteredData.services.map(service => (
                   <th
                     key={service.id}
-                    className="p-2 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide min-w-[80px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                    className="p-2 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide min-w-[80px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
                     onClick={() => onServiceClick?.(service.id)}
                   >
                     <div className="flex items-center justify-center gap-1">

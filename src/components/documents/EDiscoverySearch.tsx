@@ -352,7 +352,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                     )}
                   </div>
                   {search.description && (
-                    <p className="text-xs text-slate-500 truncate">{search.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{search.description}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
                     Utilisee {search.runCount} fois
@@ -595,7 +595,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
           {/* Results List */}
           {results.entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-              <Search className="h-12 w-12 mb-4 opacity-50" />
+              <Search className="h-12 w-12 mb-4 opacity-60" />
               <p className="text-sm">Aucun resultat trouve</p>
             </div>
           ) : (
@@ -708,7 +708,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-muted-foreground">
+              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={searchIsPublic}

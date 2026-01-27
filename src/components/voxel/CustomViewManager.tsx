@@ -86,7 +86,7 @@ function LayerPreview({ layers }: { layers: string[] }) {
         <span
           key={layer}
           className={cn(
-            'px-1.5 py-0.5 text-[10px] font-medium rounded text-white',
+            'px-1.5 py-0.5 text-[11px] font-medium rounded text-white',
             layerColors[layer] || 'bg-slate-500'
           )}
         >
@@ -141,10 +141,10 @@ function CustomViewCard({
       </div>
 
       <div className="mt-3 pt-3 border-t flex items-center justify-between">
-        <span className="text-[10px] text-muted-foreground">
+        <span className="text-[11px] text-muted-foreground">
           {formatDistanceToNow(view.updatedAt, { addSuffix: true, locale: fr })}
         </span>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onApply} title="Appliquer">
             <Play className="h-3.5 w-3.5" />
           </Button>

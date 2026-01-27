@@ -86,7 +86,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 onClick={onEdit}
                                 variant="ghost"
                                 size="icon"
-                                className="text-slate-500 hover:text-brand-600 hover:bg-brand-50"
+                                className="text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                                 title="Modifier"
                             >
                                 <Edit className="h-5 w-5" />
@@ -96,7 +96,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 disabled={isDeleting}
                                 variant="ghost"
                                 size="icon"
-                                className="text-slate-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                                 title={isDeleting ? "Suppression..." : "Supprimer"}
                                 aria-label="Supprimer le document"
                             >
@@ -118,7 +118,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                     <ShieldCheck className="h-3 w-3" /> Coffre-fort
                                 </span>
                             )}
-                            <span className="text-sm text-slate-500 px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <span className="text-sm text-slate-500 dark:text-slate-400 px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-200 dark:border-slate-700">
                                 v{selectedDocument.version}
                             </span>
                         </div>

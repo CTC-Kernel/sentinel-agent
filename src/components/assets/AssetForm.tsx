@@ -270,7 +270,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     readOnly={readOnly}
                 />
             )}
-            <fieldset disabled={readOnly} className="space-y-8 group-disabled:opacity-80">
+            <fieldset disabled={readOnly} className="space-y-8 disabled:text-slate-500 dark:disabled:text-slate-400">
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Informations Principales</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -292,7 +292,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => handleSuggestField('name')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-brand-500 transition-colors"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-colors"
                                     title="Suggérer un nom"
                                 >
                                     <Sparkles className={`h-4 w-4 ${suggestingField === 'name' ? 'animate-spin' : ''}`} />
@@ -317,7 +317,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             <button
                                 type="button"
                                 onClick={() => handleSuggestField('type')}
-                                className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-slate-500 hover:text-brand-500 transition-colors z-10"
+                                className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-colors z-10"
                                 title="Suggérer le type"
                             >
                                 <Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} />
@@ -654,8 +654,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 key={scope}
                                 htmlFor={`scope-${scope}`}
                                 className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
-                                    ? 'bg-brand-50 dark:bg-brand-900/30 border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-300 font-bold'
-                                    : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'
+                                    ? 'bg-brand-50 dark:bg-brand-900 border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-300 font-bold'
+                                    : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'
                                     }`}
                             >
                                 <input

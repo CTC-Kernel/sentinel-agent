@@ -220,10 +220,11 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
           <button
             onClick={onPrevious}
             disabled={currentSlide === 0}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-30"
+            className="min-w-[44px] min-h-[44px] p-2 hover:bg-white/10 rounded-full transition-colors disabled:bg-slate-700/50 disabled:text-slate-500"
             title="Previous (Left Arrow)"
+            aria-label="Diapositive précédente"
           >
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -235,10 +236,11 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
           <button
             onClick={onNext}
             disabled={currentSlide === totalSlides - 1}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-30"
+            className="min-w-[44px] min-h-[44px] p-2 hover:bg-white/10 rounded-full transition-colors disabled:bg-slate-700/50 disabled:text-slate-500"
             title="Next (Right Arrow)"
+            aria-label="Diapositive suivante"
           >
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -248,7 +250,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onToggleRotate}
-            className={`p-2 rounded-lg transition-colors ${isRotating ? 'bg-brand-500/50 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+            className={`p-2 rounded-lg transition-colors ${isRotating ? 'bg-brand-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
               }`}
             title="Toggle Auto-Rotate (R)"
           >

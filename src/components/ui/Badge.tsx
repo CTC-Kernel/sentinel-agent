@@ -22,13 +22,22 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
     onClick,
     ...props
 }) => {
-    // Base styles
-    const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-200 animate-badge-in";
+    // Keyboard handler for interactive badges
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            onClick();
+        }
+    };
 
-    // Size styles
+    // Base styles - added focus styles for accessibility
+    const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-200 animate-badge-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
+
+    // Size styles - WCAG AAA: increased font sizes from 10px/12px to 11px/13px minimum
+    // Also ensured minimum touch target height of 24px
     const sizeStyles = {
-        sm: "px-2.5 py-0.5 text-[10px] rounded-lg gap-1 uppercase tracking-wider",
-        md: "px-3 py-1 text-xs rounded-xl gap-1.5 uppercase tracking-wide"
+        sm: "px-2.5 py-1 text-[11px] min-h-[24px] rounded-lg gap-1.5 uppercase tracking-wider",
+        md: "px-3 py-1.5 text-[13px] min-h-[28px] rounded-xl gap-2 uppercase tracking-wide"
     };
 
     // Status & Variant styles
@@ -60,8 +69,8 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
 
             case 'brand':
                 if (variant === 'outline') return "border border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-400";
-                if (variant === 'glass') return "bg-brand-500/40 backdrop-blur-md text-brand-700 dark:text-white border border-brand-500/30 shadow-sm";
-                if (variant === 'soft') return "bg-brand-50 dark:bg-brand-500/30 text-brand-700 dark:text-white border border-brand-100 dark:border-brand-500/50";
+                if (variant === 'glass') return "bg-brand-200 backdrop-blur-md text-brand-700 dark:text-white border border-brand-300 shadow-sm";
+                if (variant === 'soft') return "bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-white border border-brand-100 dark:border-brand-400";
                 return "bg-gradient-primary text-white shadow-sm shadow-brand-500/25";
 
             case 'neutral':
@@ -75,13 +84,20 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
 
     return (
         <span
-            className={`${baseStyles} ${sizeStyles[size]} ${getStatusStyles()} ${className} ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+            className={`${baseStyles} ${sizeStyles[size]} ${getStatusStyles()} ${className} ${onClick ? 'cursor-pointer hover:opacity-90 active:scale-95' : ''}`}
             onClick={onClick}
-            role={onClick ? "button" : undefined}
+            onKeyDown={onClick ? handleKeyDown : undefined}
+            role={onClick ? "button" : "status"}
             tabIndex={onClick ? 0 : undefined}
+            aria-label={onClick ? undefined : undefined}
             {...props}
         >
-            {Icon && <Icon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />}
+            {Icon && (
+                <Icon
+                    className={size === 'sm' ? "w-3.5 h-3.5" : "w-4 h-4"}
+                    aria-hidden="true"
+                />
+            )}
             {children}
         </span>
     );

@@ -144,7 +144,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab.id
                             ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                            : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
+                            : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:bg-white/5'
                             }`}
                     >
                         {tab.icon}
@@ -321,7 +321,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                     {serviceFields.map((field, index) => (
                                         <div
                                             key={field.id}
-                                            className="p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5"
+                                            className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5"
                                         >
                                             <div className="flex items-start justify-between mb-4">
                                                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -483,14 +483,14 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                             )}
                                         />
                                         {category === 'critical' && (
-                                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                                            <p className="text-xs text-amber-600 dark:text-amber-400 dark:text-amber-400 mt-2">
                                                 {t('dora.validation.exit_strategy_required_critical')}
                                             </p>
                                         )}
                                     </div>
 
                                     <div className="col-span-2">
-                                        <label className="flex items-center gap-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5 cursor-pointer">
+                                        <label className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5 cursor-pointer">
                                             <Controller
                                                 name="contractInfo.auditRights"
                                                 control={control}
@@ -504,7 +504,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                     />
                                                 )}
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 {t('dora.contract.auditRights')}
                                             </span>
                                         </label>
@@ -525,7 +525,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div className="col-span-2 flex flex-wrap gap-4">
-                                        <label className="flex items-center gap-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5 cursor-pointer flex-1 min-w-[200px]">
+                                        <label className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5 cursor-pointer flex-1 min-w-[200px]">
                                             <Controller
                                                 name="compliance.doraCompliant"
                                                 control={control}
@@ -539,12 +539,12 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                     />
                                                 )}
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 {t('dora.compliance.doraCompliant')}
                                             </span>
                                         </label>
 
-                                        <label className="flex items-center gap-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5 cursor-pointer flex-1 min-w-[200px]">
+                                        <label className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5 cursor-pointer flex-1 min-w-[200px]">
                                             <Controller
                                                 name="compliance.locationEU"
                                                 control={control}
@@ -558,7 +558,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                     />
                                                 )}
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 {t('dora.compliance.locationEU')}
                                             </span>
                                         </label>
@@ -577,7 +577,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                     />
 
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">
                                             {t('dora.compliance.certifications')}
                                         </label>
                                         <Controller
@@ -649,17 +649,17 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                             {/* Zones overlay */}
                                                             <div className="absolute inset-0 flex">
                                                                 <div className="w-[40%] border-r border-white/30 flex items-center justify-center">
-                                                                    <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider">
+                                                                    <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
                                                                         {t('dora.risk.lowZone', 'Faible')}
                                                                     </span>
                                                                 </div>
                                                                 <div className="w-[30%] border-r border-white/30 flex items-center justify-center">
-                                                                    <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider">
+                                                                    <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
                                                                         {t('dora.risk.mediumZone', 'Moyen')}
                                                                     </span>
                                                                 </div>
                                                                 <div className="w-[30%] flex items-center justify-center">
-                                                                    <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider">
+                                                                    <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
                                                                         {t('dora.risk.highZone', 'Élevé')}
                                                                     </span>
                                                                 </div>
@@ -799,7 +799,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                             className={`w-full px-4 py-3 rounded-xl border ${isHighRisk && !field.value
                                                                 ? 'border-red-300 dark:border-red-700'
                                                                 : 'border-slate-200 dark:border-slate-700'
-                                                                } bg-white/50 dark:bg-black/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all`}
+                                                                } bg-white dark:bg-slate-800 focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all`}
                                                         />
                                                     </div>
                                                 );
@@ -809,7 +809,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
                                     {/* Last Assessment Info (Read Only) */}
                                     {initialData?.riskAssessment?.lastAssessment && (
-                                        <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
                                             <span>{t('dora.risk.lastAssessment')}:</span>
                                             <span className="font-medium">
                                                 {typeof initialData.riskAssessment.lastAssessment === 'string'

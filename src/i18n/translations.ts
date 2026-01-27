@@ -345,6 +345,12 @@ export const translations = {
             superAdmin: 'Super Admin',
             accessDenied: 'Permission refusée',
             deleteFailed: 'Échec de la suppression',
+            softwareInventory: 'Inventaire Logiciel',
+            agentPolicies: 'Politiques Agents',
+            accessReview: 'Revue des Accès',
+            certificates: 'Certificats',
+            training: 'Formation',
+            threatIntelligence: 'Threat Intelligence',
         },
         dashboard: {
             addWidget: 'Ajouter Widget',
@@ -967,6 +973,179 @@ export const translations = {
             complexity: 'Complexité',
             noParties: 'Aucune partie prenante',
             addPartiesHelp: 'Ajoutez des parties prenantes à l\'écosystème pour les visualiser'
+        },
+        certificates: {
+            title: 'Certificats SSL/TLS',
+            subtitle: 'Inventaire et suivi des certificats cryptographiques',
+            dashboard: 'Tableau de bord',
+            list: 'Liste',
+            newCertificate: 'Nouveau',
+            editCertificate: 'Modifier le certificat',
+            kpi: {
+                total: 'Total',
+                valid: 'Valides',
+                expiringSoon: 'Expirent bientôt',
+                expired: 'Expirés'
+            },
+            status: {
+                valid: 'Valide',
+                expiring_soon: 'Expire bientôt',
+                expired: 'Expiré',
+                revoked: 'Révoqué'
+            },
+            expiring30Days: 'Certificats expirant dans les 30 prochains jours',
+            weakCrypto: 'certificat(s) avec cryptographie faible',
+            weakCryptoDesc: 'RSA < 2048 bits ou algorithme SHA1 détecté',
+            form: {
+                name: 'Nom',
+                type: 'Type',
+                commonName: 'Common Name (CN)',
+                domains: 'Domaines (séparés par des virgules)',
+                serialNumber: 'Numéro de série',
+                issuer: 'Émetteur',
+                issuerType: 'Type d\'émetteur',
+                validFrom: 'Date de début',
+                validTo: 'Date d\'expiration',
+                keyAlgorithm: 'Algorithme',
+                keySize: 'Taille de clé (bits)',
+                notes: 'Notes'
+            },
+            success: {
+                created: 'Certificat créé avec succès',
+                updated: 'Certificat mis à jour',
+                deleted: 'Certificat supprimé'
+            },
+            errors: {
+                save: 'Erreur lors de la sauvegarde',
+                delete: 'Erreur lors de la suppression'
+            },
+            empty: {
+                title: 'Aucun certificat',
+                description: 'Ajoutez votre premier certificat SSL/TLS'
+            },
+            expiresIn: 'Expire dans {{days}} jours',
+            expiresToday: 'Expire aujourd\'hui',
+            expiredSince: 'Expiré depuis {{days}} jours'
+        },
+        accessReview: {
+            title: 'Revue des Accès',
+            subtitle: 'Campagnes de révision périodique et détection des comptes dormants',
+            tabs: {
+                dashboard: 'Tableau de bord',
+                campaigns: 'Campagnes',
+                dormant: 'Comptes dormants'
+            },
+            kpi: {
+                activeCampaigns: 'Campagnes actives',
+                pendingReviews: 'Revues en attente',
+                dormantAccounts: 'Comptes dormants',
+                daysSinceLastReview: 'Depuis dernière revue'
+            },
+            campaign: {
+                new: 'Nouvelle campagne',
+                name: 'Nom de la campagne',
+                description: 'Description (optionnel)',
+                startDate: 'Date de début',
+                endDate: 'Date de fin',
+                scope: 'Périmètre',
+                scopeAll: 'Tous les utilisateurs',
+                scopeDepartment: 'Par département',
+                scopeRole: 'Par rôle',
+                recurring: 'Récurrence automatique',
+                recurrenceInterval: 'Intervalle (jours)',
+                launch: 'Lancer',
+                progress: 'Progression'
+            },
+            status: {
+                draft: 'Brouillon',
+                active: 'En cours',
+                completed: 'Terminée',
+                cancelled: 'Annulée'
+            },
+            dormant: {
+                detected: 'Détecté',
+                contacted: 'Contacté',
+                disabled: 'Désactivé',
+                deleted: 'Supprimé',
+                excluded: 'Exclu',
+                neverLoggedIn: 'Jamais connecté',
+                lastLogin: 'Dernière connexion',
+                inactivityDays: 'd\'inactivité',
+                contact: 'Contacter',
+                disable: 'Désactiver'
+            },
+            alerts: {
+                overdueTitle: 'Revue des accès en retard',
+                overdueDesc: 'La dernière campagne de revue date de plus de 90 jours. NIS2 recommande une revue trimestrielle.',
+                overdueReviews: '{{count}} revue(s) en retard',
+                overdueReviewsDesc: 'Des revues d\'accès ont dépassé leur date limite.'
+            },
+            results: {
+                approved: 'approuvés',
+                revoked: 'révoqués',
+                escalated: 'escaladés'
+            },
+            success: {
+                campaignCreated: 'Campagne créée avec succès',
+                campaignLaunched: 'Campagne lancée avec succès',
+                statusUpdated: 'Statut mis à jour'
+            },
+            errors: {
+                createFailed: 'Erreur lors de la création de la campagne',
+                launchFailed: 'Erreur lors du lancement de la campagne',
+                updateFailed: 'Erreur lors de la mise à jour'
+            },
+            empty: {
+                campaigns: 'Aucune campagne',
+                campaignsDesc: 'Créez votre première campagne de revue des accès',
+                dormant: 'Aucun compte dormant',
+                dormantDesc: 'Tous les comptes sont actifs'
+            },
+            recent: 'Campagnes récentes',
+            noCampaigns: 'Aucune campagne créée'
+        },
+        training: {
+            title: 'Formation Sécurité',
+            subtitle: 'Gestion des formations et sensibilisation à la cybersécurité',
+            dashboard: 'Tableau de bord',
+            catalog: 'Catalogue',
+            assignments: 'Affectations',
+            reports: 'Rapports',
+            newModule: 'Nouveau module',
+            kpi: {
+                totalModules: 'Modules',
+                completionRate: 'Taux de complétion',
+                activeUsers: 'Utilisateurs actifs',
+                overdueTrainings: 'En retard'
+            },
+            status: {
+                draft: 'Brouillon',
+                published: 'Publié',
+                archived: 'Archivé'
+            },
+            assignment: {
+                notStarted: 'Non commencé',
+                inProgress: 'En cours',
+                completed: 'Terminé',
+                overdue: 'En retard'
+            },
+            success: {
+                created: 'Module créé avec succès',
+                updated: 'Module mis à jour',
+                deleted: 'Module supprimé',
+                assigned: 'Formation assignée'
+            },
+            errors: {
+                save: 'Erreur lors de la sauvegarde',
+                delete: 'Erreur lors de la suppression',
+                assign: 'Erreur lors de l\'assignation'
+            },
+            empty: {
+                modules: 'Aucun module de formation',
+                modulesDesc: 'Créez votre premier module de formation',
+                assignments: 'Aucune affectation',
+                assignmentsDesc: 'Assignez des formations aux utilisateurs'
+            }
         }
     },
     en: {
@@ -1263,6 +1442,12 @@ export const translations = {
             superAdmin: 'Super Admin',
             accessDenied: 'Access Denied',
             deleteFailed: 'Delete Failed',
+            softwareInventory: 'Software Inventory',
+            agentPolicies: 'Agent Policies',
+            accessReview: 'Access Review',
+            certificates: 'Certificates',
+            training: 'Training',
+            threatIntelligence: 'Threat Intelligence',
         },
         settings: {
             title: 'Settings',
@@ -1638,336 +1823,511 @@ export const translations = {
                 OWASP: 'OWASP Top 10',
                 EBIOS: 'EBIOS RM',
                 COBIT: 'COBIT (Gouvernance)',
-                ITIL: 'ITIL (Gestion de Services)'
+                ITIL: 'ITIL (Service Management)'
             },
         },
-        audits: {
-            title: 'Audits',
-            subtitle: 'Gestion des audits et vérifications de conformité',
-            tabs: {
-                details: 'Détails',
-                findings: 'Constats',
-                checklist: 'Checklist',
-                linked: 'Éléments Liés',
-                dashboard: 'Tableau de bord',
-                history: 'Historique'
+        certificates: {
+            title: 'SSL/TLS Certificates',
+            subtitle: 'Certificate inventory and cryptographic asset tracking',
+            dashboard: 'Dashboard',
+            list: 'List',
+            newCertificate: 'New',
+            editCertificate: 'Edit Certificate',
+            kpi: {
+                total: 'Total',
+                valid: 'Valid',
+                expiringSoon: 'Expiring Soon',
+                expired: 'Expired'
             },
-            form: {
-                templates: {
-                    internal: 'Vérification de conformité annuelle sur le périmètre complet',
-                    supplier: 'Évaluation de sécurité d\'un hébergeur de données de santé',
-                    access: 'Revue trimestrielle des comptes à privilèges'
-                }
-            },
-            findingsSection: {
-                form: {
-                    type: {
-                        observation: 'Observation'
-                    },
-                    severity: {
-                        critical: 'Critique',
-                        high: 'Élevé',
-                        medium: 'Moyen',
-                        low: 'Faible',
-                        info: 'Information'
-                    }
-                }
-            },
-            actions: {
-                assignPartner: 'Assigner un partenaire'
-            }
-        },
-        riskContext: {
-            title: 'Contexte de Risque',
-            subtitle: 'Configuration du contexte organisationnel pour l\'analyse des risques (ISO 27005)',
-            keywords: 'Contexte, Risque, ISO 27005, Organisation'
-        },
-        smsi: {
-            title: 'Programme SMSI',
-            subtitle: 'Gestion du Système de Management de la Sécurité de l\'Information (ISO 27003)',
-            emptyTitle: 'Aucun programme SMSI',
-            emptyDescription: 'Créez votre premier programme SMSI pour commencer à gérer votre système de management selon le cycle PDCA.',
-            createProgram: 'Créer un programme',
-            pdcaCycle: 'Cycle PDCA (ISO 27003)',
-            report: 'Rapport',
-            objective: 'Objectif',
             status: {
-                active: 'Actif',
-                paused: 'En pause',
-                completed: 'Terminé'
+                valid: 'Valid',
+                expiring_soon: 'Expiring Soon',
+                expired: 'Expired',
+                revoked: 'Revoked'
             },
+            expiring30Days: 'Certificates expiring in the next 30 days',
+            weakCrypto: 'certificate(s) with weak cryptography',
+            weakCryptoDesc: 'RSA < 2048 bits or SHA1 algorithm detected',
+            form: {
+                name: 'Name',
+                type: 'Type',
+                commonName: 'Common Name (CN)',
+                domains: 'Domains (comma-separated)',
+                serialNumber: 'Serial Number',
+                issuer: 'Issuer',
+                issuerType: 'Issuer Type',
+                validFrom: 'Valid From',
+                validTo: 'Expiration Date',
+                keyAlgorithm: 'Algorithm',
+                keySize: 'Key Size (bits)',
+                notes: 'Notes'
+            },
+            success: {
+                created: 'Certificate created successfully',
+                updated: 'Certificate updated',
+                deleted: 'Certificate deleted'
+            },
+            errors: {
+                save: 'Error saving certificate',
+                delete: 'Error deleting certificate'
+            },
+            empty: {
+                title: 'No certificates',
+                description: 'Add your first SSL/TLS certificate'
+            },
+            expiresIn: 'Expires in {{days}} days',
+            expiresToday: 'Expires today',
+            expiredSince: 'Expired {{days}} days ago'
+        },
+        accessReview: {
+            title: 'Access Review',
+            subtitle: 'Periodic access review campaigns and dormant account detection',
             tabs: {
-                overview: 'Vue d\'ensemble',
-                planning: 'Planning & Jalons'
-            }
-        },
-        calendar: {
-            title: 'Calendrier',
-            subtitle: 'Vue d\'ensemble des échéances, audits et maintenances.',
-            keywords: 'Calendrier, Planning, Échéances, Audits, Projets',
-            messages: {
-                allDay: 'Journée',
-                previous: 'Précédent',
-                next: 'Suivant',
-                today: 'Aujourd\'hui',
-                month: 'Mois',
-                week: 'Semaine',
-                day: 'Jour',
-                agenda: 'Agenda',
-                noEventsInRange: 'Aucun événement dans cette période.'
+                dashboard: 'Dashboard',
+                campaigns: 'Campaigns',
+                dormant: 'Dormant Accounts'
             },
-            export: 'Exporter le calendrier',
-            addEvent: 'Ajouter',
-            newEvent: 'Nouvel Événement',
-            details: 'Détails',
-            description: 'Description',
-            location: 'Lieu',
-            filters: {
-                google: 'Google'
-            }
-        },
-        systemHealth: {
-            title: 'État du Système',
-            subtitle: 'Tableau de bord de supervision technique et disponibilité des services.',
-            serviceStatus: 'État des Services',
-            operationalSystems: 'Systèmes Opérationnels',
-            recentAlerts: 'Alertes Récentes (Dernières 24h)',
-            servicesStatus: 'État des Services',
-            operational: 'Systèmes Opérationnels',
-            metrics: {
-                activeUsers: 'Utilisateurs Actifs',
-                totalAccounts: 'Comptes total',
-                systemLoad: 'Charge Système',
-                cpuUsage: 'Usage vCPU',
-                memory: 'Mémoire',
-                ramAllocated: 'RAM Allouée',
-                latency: 'Latence',
-                globalPing: 'Ping Global'
+            kpi: {
+                activeCampaigns: 'Active Campaigns',
+                pendingReviews: 'Pending Reviews',
+                dormantAccounts: 'Dormant Accounts',
+                daysSinceLastReview: 'Days Since Last Review'
+            },
+            campaign: {
+                new: 'New Campaign',
+                name: 'Campaign Name',
+                description: 'Description (optional)',
+                startDate: 'Start Date',
+                endDate: 'End Date',
+                scope: 'Scope',
+                scopeAll: 'All Users',
+                scopeDepartment: 'By Department',
+                scopeRole: 'By Role',
+                recurring: 'Auto-recurring',
+                recurrenceInterval: 'Interval (days)',
+                launch: 'Launch',
+                progress: 'Progress'
+            },
+            status: {
+                draft: 'Draft',
+                active: 'Active',
+                completed: 'Completed',
+                cancelled: 'Cancelled'
+            },
+            dormant: {
+                detected: 'Detected',
+                contacted: 'Contacted',
+                disabled: 'Disabled',
+                deleted: 'Deleted',
+                excluded: 'Excluded',
+                neverLoggedIn: 'Never logged in',
+                lastLogin: 'Last login',
+                inactivityDays: 'days inactive',
+                contact: 'Contact',
+                disable: 'Disable'
             },
             alerts: {
-                networkLatency: 'Latence Réseau Élevée (Europe-West)',
-                networkLatencyDesc: 'Pic de latence à 145ms détecté à 14:00. Résolu automatiquement.',
-                backupComplete: 'Sauvegarde Automatique Complète',
-                backupCompleteDesc: 'Backup chiffré #GH-9082 validé et archivé.',
-                twoHoursAgo: 'Il y a 2h',
-                fourHoursAgo: 'Il y a 4h'
-            }
+                overdueTitle: 'Access review overdue',
+                overdueDesc: 'Last review campaign was over 90 days ago. NIS2 recommends quarterly reviews.',
+                overdueReviews: '{{count}} review(s) overdue',
+                overdueReviewsDesc: 'Access reviews have exceeded their deadline.'
+            },
+            results: {
+                approved: 'approved',
+                revoked: 'revoked',
+                escalated: 'escalated'
+            },
+            success: {
+                campaignCreated: 'Campaign created successfully',
+                campaignLaunched: 'Campaign launched successfully',
+                statusUpdated: 'Status updated'
+            },
+            errors: {
+                createFailed: 'Error creating campaign',
+                launchFailed: 'Error launching campaign',
+                updateFailed: 'Error updating status'
+            },
+            empty: {
+                campaigns: 'No campaigns',
+                campaignsDesc: 'Create your first access review campaign',
+                dormant: 'No dormant accounts',
+                dormantDesc: 'All accounts are active'
+            },
+            recent: 'Recent Campaigns',
+            noCampaigns: 'No campaigns created'
         },
-        continuity: {
-            title: 'Plan de Continuité',
-            subtitle: 'Gestion de la continuité d\'activité et de la résilience',
-            keywords: 'BIA, PCA, PRA, Crise, Audit',
-            deleteProcessTitle: 'Supprimer le processus',
-            deleteProcessMessage: 'Êtes-vous sûr de vouloir supprimer ce processus métier ?',
-            deleteDrillTitle: 'Supprimer l\'exercice',
-            deleteDrillMessage: 'Êtes-vous sûr de vouloir supprimer cet exercice de continuité ?',
-            editProcess: 'Modifier Processus',
-            newProcess: 'Nouveau Processus',
-            tabs: {
-                overview: 'Vue d\'ensemble',
-                bia: 'BIA',
-                strategies: 'Stratégies',
-                pra: 'PRA',
-                drills: 'Exercices',
-                tlpt: 'Tests de Résilience (TLPT)',
-                crisis: 'Gestion de Crise'
-            },
-            pra: {
-                emptyTitle: 'Aucun PRA défini',
-                emptyDescription: 'Créez votre premier Plan de Reprise d\'Activité pour sécuriser vos opérations.',
-                createPra: 'Créer un PRA',
-                noDescription: 'Aucune description fournie.',
-                draft: 'Brouillon'
-            },
-            processes: {
-                emptyTitle: 'Aucun processus défini',
-                emptyDescription: 'Définissez vos processus métier pour l\'analyse d\'impact.'
-            },
-            strategies: {
-                emptyTitle: 'Aucune stratégie définie',
-                emptyDescription: 'Définissez vos stratégies de reprise pour chaque processus critique.'
-            },
-            drills: {
-                emptyTitle: 'Aucun exercice enregistré',
-                emptyDescription: 'Planifiez vos exercices de continuité pour tester vos plans.'
-            },
-            tlpt: {
-                emptyTitle: 'Aucune campagne TLPT',
-                emptyDescription: 'Lancez une campagne de test de résilience opérationnelle.',
-                noFindings: 'Aucune constatation'
-            },
-            crisis: {
-                noIncident: 'Aucun incident critique en cours. Les systèmes sont nominaux.'
-            }
-        },
-        privacy: {
-            title: 'Registre RGPD',
-            subtitle: 'Registre des Activités de Traitement (ROPA) - Art. 30.',
-            keywords: 'RGPD, ROPA, Privacy, Confidentialité',
-            breadcrumb: 'RGPD',
-            formInvalid: 'Formulaire invalide. Champs en erreur',
-            deleteTitle: 'Supprimer le traitement ?',
-            deleteMessage: 'Êtes-vous sûr de vouloir supprimer {{name}} ?',
-            newActivity: 'Nouveau Traitement',
-            newActivitySubtitle: 'Ajoutez une nouvelle activité de traitement au registre.',
-            registryLabel: 'Registre des Traitements',
-            activitiesIdentified: 'Traitements identifiés',
-            searchPlaceholder: 'Rechercher un traitement (ex: Paie, CRM)...',
-            exportRegistry: 'Exporter le Registre',
-            emptyTitle: 'Aucun traitement trouvé',
-            emptySearch: 'Aucun traitement ne correspond à votre recherche.',
-            emptyDescription: 'Commencez par ajouter vos activités de traitement au registre.',
-            stats: {
-                sensitiveData: 'Données Sensibles',
-                priority: 'Prioritaire',
-                dpiaRequired: 'DPIA Requis',
-                toComplete: 'à réaliser',
-                inProgress: 'En Projet',
-                activities: 'Traitements',
-                activeCompliance: 'Conformité Actifs'
-            }
-        },
-        vulnerabilities: {
-            title: 'Vulnérabilités',
-            subtitle: 'Gestion et suivi des vulnérabilités de sécurité',
-            declare: 'Déclarer',
-            importScan: 'Importer un scan',
-            newSubtitle: 'Nouvelle vulnérabilité',
-            details: 'Détails de la vulnérabilité',
-            searchPlaceholder: 'Rechercher une vulnérabilité...'
-        },
-        reports: {
-            title: 'Rapports',
-            subtitle: 'Génération de rapports de conformité et d\'audit',
-            seoDescription: 'Génération de rapports de conformité et d\'audit.',
-            keywords: 'Rapports, ISO 27001, RGPD, Conformité, Audit',
-            templates: 'Modèles',
-            history: 'Historique',
-            scheduled: 'Planifiés',
-            scheduledSuccess: 'Rapport planifié avec succès',
-            pausedSuccess: 'Rapport mis en pause',
-            resumedSuccess: 'Rapport réactivé',
-            deletedSuccess: 'Rapport planifié supprimé',
-            updateError: 'Erreur lors de la mise à jour',
-            deleteError: 'Erreur lors de la suppression',
-            download: 'Télécharger',
-            noReports: 'Aucun rapport généré',
-            noReportsDesc: 'Générez votre premier rapport depuis les modèles.',
-            noScheduled: 'Aucun rapport planifié',
-            noScheduledDesc: 'Planifiez des rapports automatiques.',
-            addScheduled: 'Planifier un rapport',
-            deleteConfirmTitle: 'Supprimer ce rapport planifié ?',
-            deleteConfirmMessage: 'Cette action est irréversible.',
-            published: 'Publié',
-            scheduleThis: 'Planifier ce rapport',
-            badges: {
-                recommended: 'Recommandé',
-                complete: 'Complet'
-            },
-            categories: {
-                compliance: 'Packs de Conformité',
-                executive: 'Rapports Exécutifs'
-            },
-            toast: {
-                scheduleSuccess: 'Rapport planifié avec succès',
-                paused: 'Rapport mis en pause',
-                reactivated: 'Rapport réactivé',
-                updateError: 'Erreur lors de la mise à jour',
-                deleteSuccess: 'Rapport planifié supprimé',
-                deleteError: 'Erreur lors de la suppression'
-            },
-            generated: {
-                empty: 'Aucun rapport généré pour le moment.',
-                createNew: 'Créer un nouveau rapport'
-            },
-            scheduledSection: {
-                title: 'Rapports planifiés',
-                subtitle: 'Recevez vos rapports automatiquement par email',
-                scheduleReport: 'Planifier un rapport',
-                recipients: 'destinataire(s)',
-                nextRun: 'Prochaine exécution',
-                emptyTitle: 'Aucun rapport planifié',
-                emptyDescription: 'Automatisez la génération de vos rapports pour recevoir des mises à jour régulières directement dans votre boîte mail.'
+        training: {
+            title: 'Security Training',
+            subtitle: 'Training management and cybersecurity awareness',
+            dashboard: 'Dashboard',
+            catalog: 'Catalog',
+            assignments: 'Assignments',
+            reports: 'Reports',
+            newModule: 'New Module',
+            kpi: {
+                totalModules: 'Modules',
+                completionRate: 'Completion Rate',
+                activeUsers: 'Active Users',
+                overdueTrainings: 'Overdue'
             },
             status: {
-                active: 'Actif',
-                paused: 'En pause'
+                draft: 'Draft',
+                published: 'Published',
+                archived: 'Archived'
             },
-            templateLabels: {
-                iso27001: 'Pack ISO 27001',
-                gdpr: 'Pack RGPD',
-                custom: 'Rapport Exécutif'
+            assignment: {
+                notStarted: 'Not Started',
+                inProgress: 'In Progress',
+                completed: 'Completed',
+                overdue: 'Overdue'
             },
-            deleteScheduled: {
-                title: 'Supprimer le rapport planifié',
-                message: 'Êtes-vous sûr de vouloir supprimer ce rapport planifié ? Cette action est irréversible.'
+            success: {
+                created: 'Module created successfully',
+                updated: 'Module updated',
+                deleted: 'Module deleted',
+                assigned: 'Training assigned'
             },
-            templateCards: {
-                iso27001: {
-                    title: 'Pack ISO 27001',
-                    desc: 'Générez un pack de conformité complet ISO 27001',
-                    action: 'Générer'
-                },
-                gdpr: {
-                    title: 'Pack RGPD',
-                    desc: 'Générez un pack de conformité RGPD',
-                    action: 'Générer'
-                },
-                custom: {
-                    title: 'Personnalisé',
-                    desc: 'Créez un rapport personnalisé',
-                    action: 'Générer'
-                }
+            errors: {
+                save: 'Error saving module',
+                delete: 'Error deleting module',
+                assign: 'Error assigning training'
             },
-            projects: {
-                title: 'Tableau de Bord Projets',
-                subtitle: 'Gérez vos projets et portefeuilles de conformité',
-                overview: 'Vue d\'ensemble',
-                list: 'Liste',
-                board: 'Tableau',
-                'board.title': 'Tableau Kanban',
-                planning: 'Planning',
-                gantt: 'Gantt',
-                newProject: 'Nouveau Projet',
-                searchPlaceholder: 'Rechercher un projet...',
-                dashboard: 'Projets',
-                noProjects: 'Aucun projet trouvé',
-                createFirst: 'Créez votre premier projet pour commencer',
-                importProjects: 'Importer des projets',
-                exportProjects: 'Exporter les projets',
-                projectDetails: 'Détails du projet',
-                editProject: 'Modifier le projet',
-                deleteProject: 'Supprimer le projet',
-                duplicateProject: 'Dupliquer le projet',
-                projectStatus: 'Statut du projet',
-                projectProgress: 'Progression du projet',
-                projectTeam: 'Équipe du projet',
-                projectTasks: 'Tâches du projet',
-                projectTimeline: 'Chronologie du projet',
-                projectBudget: 'Budget du projet',
-                projectRisks: 'Risques du projet',
-                projectControls: 'Contrôles du projet',
-                projectDocuments: 'Documents du projet',
-                projectReports: 'Rapports du projet',
-                projectSettings: 'Paramètres du projet'
-            },
-            pdf: {
-                title: 'Rapport Exécutif',
-                subtitle: 'Analyse complète de la conformité',
-                filename: 'rapport-executif.pdf',
-                globalScore: 'Score Global',
-                governanceIndex: 'Index de Gouvernance',
-                labelRisks: 'Risques',
-                riskHealth: 'Santé Risque',
-                isoCoverage: 'Couverture ISO',
-                labelCompliance: 'Conformité',
-                labelAudit: 'Audit',
-                labelProjects: 'Projets',
-                riskManagement: 'Gestion des Risques',
-                complianceStatus: 'Statut de Conformité',
-                globalCoverage: 'Couverture Globale',
-                auditReadiness: 'Prêt Audit'
+            empty: {
+                modules: 'No training modules',
+                modulesDesc: 'Create your first training module',
+                assignments: 'No assignments',
+                assignmentsDesc: 'Assign trainings to users'
             }
+        }
+    },
+    audits: {
+        title: 'Audits',
+        subtitle: 'Gestion des audits et vérifications de conformité',
+        tabs: {
+            details: 'Détails',
+            findings: 'Constats',
+            checklist: 'Checklist',
+            linked: 'Éléments Liés',
+            dashboard: 'Tableau de bord',
+            history: 'Historique',
+            auditTrail: 'Journal d\'audit'
+        },
+        auditTrail: 'Journal d\'audit',
+        form: {
+            templates: {
+                internal: 'Vérification de conformité annuelle sur le périmètre complet',
+                supplier: 'Évaluation de sécurité d\'un hébergeur de données de santé',
+                access: 'Revue trimestrielle des comptes à privilèges'
+            }
+        },
+        findingsSection: {
+            form: {
+                type: {
+                    observation: 'Observation'
+                },
+                severity: {
+                    critical: 'Critique',
+                    high: 'Élevé',
+                    medium: 'Moyen',
+                    low: 'Faible',
+                    info: 'Information'
+                }
+            }
+        },
+        actions: {
+            assignPartner: 'Assigner un partenaire'
+        }
+    },
+    riskContext: {
+        title: 'Contexte de Risque',
+        subtitle: 'Configuration du contexte organisationnel pour l\'analyse des risques (ISO 27005)',
+        keywords: 'Contexte, Risque, ISO 27005, Organisation'
+    },
+    smsi: {
+        title: 'Programme SMSI',
+        subtitle: 'Gestion du Système de Management de la Sécurité de l\'Information (ISO 27003)',
+        emptyTitle: 'Aucun programme SMSI',
+        emptyDescription: 'Créez votre premier programme SMSI pour commencer à gérer votre système de management selon le cycle PDCA.',
+        createProgram: 'Créer un programme',
+        pdcaCycle: 'Cycle PDCA (ISO 27003)',
+        report: 'Rapport',
+        objective: 'Objectif',
+        status: {
+            active: 'Actif',
+            paused: 'En pause',
+            completed: 'Terminé'
+        },
+        tabs: {
+            overview: 'Vue d\'ensemble',
+            planning: 'Planning & Jalons'
+        }
+    },
+    calendar: {
+        title: 'Calendrier',
+        subtitle: 'Vue d\'ensemble des échéances, audits et maintenances.',
+        keywords: 'Calendrier, Planning, Échéances, Audits, Projets',
+        messages: {
+            allDay: 'Journée',
+            previous: 'Précédent',
+            next: 'Suivant',
+            today: 'Aujourd\'hui',
+            month: 'Mois',
+            week: 'Semaine',
+            day: 'Jour',
+            agenda: 'Agenda',
+            noEventsInRange: 'Aucun événement dans cette période.'
+        },
+        export: 'Exporter le calendrier',
+        addEvent: 'Ajouter',
+        newEvent: 'Nouvel Événement',
+        details: 'Détails',
+        description: 'Description',
+        location: 'Lieu',
+        filters: {
+            google: 'Google'
+        }
+    },
+    systemHealth: {
+        title: 'État du Système',
+        subtitle: 'Tableau de bord de supervision technique et disponibilité des services.',
+        serviceStatus: 'État des Services',
+        operationalSystems: 'Systèmes Opérationnels',
+        recentAlerts: 'Alertes Récentes (Dernières 24h)',
+        servicesStatus: 'État des Services',
+        operational: 'Systèmes Opérationnels',
+        metrics: {
+            activeUsers: 'Utilisateurs Actifs',
+            totalAccounts: 'Comptes total',
+            systemLoad: 'Charge Système',
+            cpuUsage: 'Usage vCPU',
+            memory: 'Mémoire',
+            ramAllocated: 'RAM Allouée',
+            latency: 'Latence',
+            globalPing: 'Ping Global'
+        },
+        alerts: {
+            networkLatency: 'Latence Réseau Élevée (Europe-West)',
+            networkLatencyDesc: 'Pic de latence à 145ms détecté à 14:00. Résolu automatiquement.',
+            backupComplete: 'Sauvegarde Automatique Complète',
+            backupCompleteDesc: 'Backup chiffré #GH-9082 validé et archivé.',
+            twoHoursAgo: 'Il y a 2h',
+            fourHoursAgo: 'Il y a 4h'
+        }
+    },
+    continuity: {
+        title: 'Plan de Continuité',
+        subtitle: 'Gestion de la continuité d\'activité et de la résilience',
+        keywords: 'BIA, PCA, PRA, Crise, Audit',
+        deleteProcessTitle: 'Supprimer le processus',
+        deleteProcessMessage: 'Êtes-vous sûr de vouloir supprimer ce processus métier ?',
+        deleteDrillTitle: 'Supprimer l\'exercice',
+        deleteDrillMessage: 'Êtes-vous sûr de vouloir supprimer cet exercice de continuité ?',
+        editProcess: 'Modifier Processus',
+        newProcess: 'Nouveau Processus',
+        tabs: {
+            overview: 'Vue d\'ensemble',
+            bia: 'BIA',
+            strategies: 'Stratégies',
+            pra: 'PRA',
+            drills: 'Exercices',
+            tlpt: 'Tests de Résilience (TLPT)',
+            crisis: 'Gestion de Crise'
+        },
+        pra: {
+            emptyTitle: 'Aucun PRA défini',
+            emptyDescription: 'Créez votre premier Plan de Reprise d\'Activité pour sécuriser vos opérations.',
+            createPra: 'Créer un PRA',
+            noDescription: 'Aucune description fournie.',
+            draft: 'Brouillon'
+        },
+        processes: {
+            emptyTitle: 'Aucun processus défini',
+            emptyDescription: 'Définissez vos processus métier pour l\'analyse d\'impact.'
+        },
+        strategies: {
+            emptyTitle: 'Aucune stratégie définie',
+            emptyDescription: 'Définissez vos stratégies de reprise pour chaque processus critique.'
+        },
+        drills: {
+            emptyTitle: 'Aucun exercice enregistré',
+            emptyDescription: 'Planifiez vos exercices de continuité pour tester vos plans.'
+        },
+        tlpt: {
+            emptyTitle: 'Aucune campagne TLPT',
+            emptyDescription: 'Lancez une campagne de test de résilience opérationnelle.',
+            noFindings: 'Aucune constatation'
+        },
+        crisis: {
+            noIncident: 'Aucun incident critique en cours. Les systèmes sont nominaux.'
+        }
+    },
+    privacy: {
+        title: 'Registre RGPD',
+        subtitle: 'Registre des Activités de Traitement (ROPA) - Art. 30.',
+        keywords: 'RGPD, ROPA, Privacy, Confidentialité',
+        breadcrumb: 'RGPD',
+        formInvalid: 'Formulaire invalide. Champs en erreur',
+        deleteTitle: 'Supprimer le traitement ?',
+        deleteMessage: 'Êtes-vous sûr de vouloir supprimer {{name}} ?',
+        newActivity: 'Nouveau Traitement',
+        newActivitySubtitle: 'Ajoutez une nouvelle activité de traitement au registre.',
+        registryLabel: 'Registre des Traitements',
+        activitiesIdentified: 'Traitements identifiés',
+        searchPlaceholder: 'Rechercher un traitement (ex: Paie, CRM)...',
+        exportRegistry: 'Exporter le Registre',
+        emptyTitle: 'Aucun traitement trouvé',
+        emptySearch: 'Aucun traitement ne correspond à votre recherche.',
+        emptyDescription: 'Commencez par ajouter vos activités de traitement au registre.',
+        stats: {
+            sensitiveData: 'Données Sensibles',
+            priority: 'Prioritaire',
+            dpiaRequired: 'DPIA Requis',
+            toComplete: 'à réaliser',
+            inProgress: 'En Projet',
+            activities: 'Traitements',
+            activeCompliance: 'Conformité Actifs'
+        }
+    },
+    vulnerabilities: {
+        title: 'Vulnérabilités',
+        subtitle: 'Gestion et suivi des vulnérabilités de sécurité',
+        declare: 'Déclarer',
+        importScan: 'Importer un scan',
+        newSubtitle: 'Nouvelle vulnérabilité',
+        details: 'Détails de la vulnérabilité',
+        searchPlaceholder: 'Rechercher une vulnérabilité...'
+    },
+    reports: {
+        title: 'Rapports',
+        subtitle: 'Génération de rapports de conformité et d\'audit',
+        seoDescription: 'Génération de rapports de conformité et d\'audit.',
+        keywords: 'Rapports, ISO 27001, RGPD, Conformité, Audit',
+        templates: 'Modèles',
+        history: 'Historique',
+        scheduled: 'Planifiés',
+        scheduledSuccess: 'Rapport planifié avec succès',
+        pausedSuccess: 'Rapport mis en pause',
+        resumedSuccess: 'Rapport réactivé',
+        deletedSuccess: 'Rapport planifié supprimé',
+        updateError: 'Erreur lors de la mise à jour',
+        deleteError: 'Erreur lors de la suppression',
+        download: 'Télécharger',
+        noReports: 'Aucun rapport généré',
+        noReportsDesc: 'Générez votre premier rapport depuis les modèles.',
+        noScheduled: 'Aucun rapport planifié',
+        noScheduledDesc: 'Planifiez des rapports automatiques.',
+        addScheduled: 'Planifier un rapport',
+        deleteConfirmTitle: 'Supprimer ce rapport planifié ?',
+        deleteConfirmMessage: 'Cette action est irréversible.',
+        published: 'Publié',
+        scheduleThis: 'Planifier ce rapport',
+        badges: {
+            recommended: 'Recommandé',
+            complete: 'Complet'
+        },
+        categories: {
+            compliance: 'Packs de Conformité',
+            executive: 'Rapports Exécutifs'
+        },
+        toast: {
+            scheduleSuccess: 'Rapport planifié avec succès',
+            paused: 'Rapport mis en pause',
+            reactivated: 'Rapport réactivé',
+            updateError: 'Erreur lors de la mise à jour',
+            deleteSuccess: 'Rapport planifié supprimé',
+            deleteError: 'Erreur lors de la suppression'
+        },
+        generated: {
+            empty: 'Aucun rapport généré pour le moment.',
+            createNew: 'Créer un nouveau rapport'
+        },
+        scheduledSection: {
+            title: 'Rapports planifiés',
+            subtitle: 'Recevez vos rapports automatiquement par email',
+            scheduleReport: 'Planifier un rapport',
+            recipients: 'destinataire(s)',
+            nextRun: 'Prochaine exécution',
+            emptyTitle: 'Aucun rapport planifié',
+            emptyDescription: 'Automatisez la génération de vos rapports pour recevoir des mises à jour régulières directement dans votre boîte mail.'
+        },
+        status: {
+            active: 'Actif',
+            paused: 'En pause'
+        },
+        templateLabels: {
+            iso27001: 'Pack ISO 27001',
+            gdpr: 'Pack RGPD',
+            custom: 'Rapport Exécutif'
+        },
+        deleteScheduled: {
+            title: 'Supprimer le rapport planifié',
+            message: 'Êtes-vous sûr de vouloir supprimer ce rapport planifié ? Cette action est irréversible.'
+        },
+        templateCards: {
+            iso27001: {
+                title: 'Pack ISO 27001',
+                desc: 'Générez un pack de conformité complet ISO 27001',
+                action: 'Générer'
+            },
+            gdpr: {
+                title: 'Pack RGPD',
+                desc: 'Générez un pack de conformité RGPD',
+                action: 'Générer'
+            },
+            custom: {
+                title: 'Personnalisé',
+                desc: 'Créez un rapport personnalisé',
+                action: 'Générer'
+            }
+        },
+        projects: {
+            title: 'Tableau de Bord Projets',
+            subtitle: 'Gérez vos projets et portefeuilles de conformité',
+            overview: 'Vue d\'ensemble',
+            list: 'Liste',
+            board: 'Tableau',
+            'board.title': 'Tableau Kanban',
+            planning: 'Planning',
+            gantt: 'Gantt',
+            newProject: 'Nouveau Projet',
+            searchPlaceholder: 'Rechercher un projet...',
+            dashboard: 'Projets',
+            noProjects: 'Aucun projet trouvé',
+            createFirst: 'Créez votre premier projet pour commencer',
+            importProjects: 'Importer des projets',
+            exportProjects: 'Exporter les projets',
+            projectDetails: 'Détails du projet',
+            editProject: 'Modifier le projet',
+            deleteProject: 'Supprimer le projet',
+            duplicateProject: 'Dupliquer le projet',
+            projectStatus: 'Statut du projet',
+            projectProgress: 'Progression du projet',
+            projectTeam: 'Équipe du projet',
+            projectTasks: 'Tâches du projet',
+            projectTimeline: 'Chronologie du projet',
+            projectBudget: 'Budget du projet',
+            projectRisks: 'Risques du projet',
+            projectControls: 'Contrôles du projet',
+            projectDocuments: 'Documents du projet',
+            projectReports: 'Rapports du projet',
+            projectSettings: 'Paramètres du projet'
+        },
+        pdf: {
+            title: 'Rapport Exécutif',
+            subtitle: 'Analyse complète de la conformité',
+            filename: 'rapport-executif.pdf',
+            globalScore: 'Score Global',
+            governanceIndex: 'Index de Gouvernance',
+            labelRisks: 'Risques',
+            riskHealth: 'Santé Risque',
+            isoCoverage: 'Couverture ISO',
+            labelCompliance: 'Conformité',
+            labelAudit: 'Audit',
+            labelProjects: 'Projets',
+            riskManagement: 'Gestion des Risques',
+            complianceStatus: 'Statut de Conformité',
+            globalCoverage: 'Couverture Globale',
+            auditReadiness: 'Prêt Audit'
         }
     }
 };

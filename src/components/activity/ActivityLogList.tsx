@@ -41,7 +41,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                         <User className="h-4 w-4" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                             {row.original.userEmail}
                         </span>
                         {/* We could fetch Display Name if we had it, but email is reliable */}
@@ -54,14 +54,14 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
             header: 'Action',
             cell: ({ row }) => {
                 const action = row.original.action;
-                let colorClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
+                let colorClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-300";
 
                 if (['create', 'add', 'upload'].some(k => action.toLowerCase().includes(k))) {
-                    colorClass = "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+                    colorClass = "bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400";
                 } else if (['delete', 'remove', 'destroy'].some(k => action.toLowerCase().includes(k))) {
-                    colorClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+                    colorClass = "bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400";
                 } else if (['update', 'edit', 'modify'].some(k => action.toLowerCase().includes(k))) {
-                    colorClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+                    colorClass = "bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400";
                 }
 
                 return (
@@ -173,7 +173,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                 pageSize={25}
                 emptyState={
                     <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                        <Activity className="h-12 w-12 mb-4 opacity-50" />
+                        <Activity className="h-12 w-12 mb-4 opacity-60" />
                         <p className="text-lg font-medium">Aucune activité enregistrée</p>
                     </div>
                 }
@@ -184,7 +184,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                     <button
                         onClick={onLoadMore}
                         disabled={loading}
-                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {loading ? 'Chargement...' : 'Charger plus d\'activités'}
                     </button>

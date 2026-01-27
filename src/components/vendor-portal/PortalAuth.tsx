@@ -154,7 +154,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
       <div className="p-6">
         {step === 'welcome' ? (
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-900/30 mx-auto mb-4 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-900 mx-auto mb-4 flex items-center justify-center">
               <Mail className="w-8 h-8 text-brand-600 dark:text-brand-400" />
             </div>
 
@@ -167,7 +167,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
             </p>
 
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-6">
-              <p className="text-sm text-slate-500 mb-1">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
                 {t('vendorPortal.verificationSentTo', 'Verification code will be sent to:')}
               </p>
               <p className="font-medium text-slate-900 dark:text-white">{maskedEmail}</p>
@@ -199,7 +199,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
           </div>
         ) : (
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-900/30 mx-auto mb-4 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-900 mx-auto mb-4 flex items-center justify-center">
               <KeyRound className="w-8 h-8 text-brand-600 dark:text-brand-400" />
             </div>
 
@@ -223,7 +223,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
                   value={digit}
                   onChange={(e) => handleCodeChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-brand-500 focus:ring-2 focus-visible:ring-brand-500/20 outline-none transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-brand-500 focus:ring-2 focus-visible:ring-brand-300 outline-none transition-all"
                 />
               ))}
             </div>
@@ -262,7 +262,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
 
       {/* Footer */}
       <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-white/10">
-        <p className="text-xs text-slate-500 text-center">
+        <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
           {t('vendorPortal.securityNote', 'This portal access is restricted and monitored for security purposes.')}
         </p>
       </div>

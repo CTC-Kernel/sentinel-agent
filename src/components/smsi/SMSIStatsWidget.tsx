@@ -25,9 +25,9 @@ const PHASE_ICONS = {
 };
 
 const PHASE_COLORS = {
-    plan: 'text-blue-500 bg-blue-500/10',
+    plan: 'text-blue-500 bg-blue-50',
     do: 'text-emerald-500 bg-emerald-500/10',
-    check: 'text-amber-500 bg-amber-500/10',
+    check: 'text-amber-500 bg-amber-50',
     act: 'text-purple-500 bg-purple-500/10'
 };
 
@@ -57,7 +57,7 @@ export const SMSIStatsWidget: React.FC<SMSIStatsWidgetProps> = ({ program, overd
             label: "Conformité Globale",
             value: `${program.overallProgress}%`,
             icon: TrendingUp,
-            className: "text-blue-500 bg-blue-500/10"
+            className: "text-blue-500 bg-blue-50"
         },
         {
             label: "Phase Active",
@@ -69,7 +69,7 @@ export const SMSIStatsWidget: React.FC<SMSIStatsWidgetProps> = ({ program, overd
             label: "Jalons en retard",
             value: overdueCount,
             icon: AlertTriangle,
-            className: overdueCount > 0 ? "text-red-500 bg-red-500/10" : "text-green-500 bg-green-500/10",
+            className: overdueCount > 0 ? "text-red-500 bg-red-50" : "text-green-500 bg-green-50",
             valueColor: overdueCount > 0 ? "text-red-600 dark:text-red-400" : undefined
         },
         {

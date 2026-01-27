@@ -235,7 +235,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 return (
                     <div className="space-y-2">
                         {question.options?.map((opt) => (
-                            <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
+                            <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 cursor-pointer">
                                 <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
@@ -254,7 +254,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                             const currentValues = (value as string[]) || [];
                             const isChecked = currentValues.includes(opt);
                             return (
-                                <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
+                                <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 cursor-pointer">
                                     <input checked={isChecked} onChange={(e) => {
                                         const newValues = e.target.checked
                                             ? [...currentValues, opt]
@@ -282,7 +282,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 disabled={readOnly || status === 'Submitted'}
                                 className={`w - 10 h - 10 rounded - full font - bold transition - all ${value === rating
                                     ? 'bg-brand-600 text-white scale-110 shadow-lg'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                                     } `}
                             >
                                 {rating}
@@ -307,7 +307,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                         )}
                     </div>
                     {status === 'Submitted' && (
-                        <div className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold flex items-center">
+                        <div className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 rounded-full text-xs font-bold flex items-center">
                             <CheckCircle2 className="w-4 h-4 mr-1" />
                             Soumis
                         </div>
@@ -376,7 +376,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 aria-label="Soumettre le questionnaire"
                                 onClick={() => handleSave(true)}
                                 disabled={saving}
-                                className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors disabled:opacity-50"
+                                className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                             >
                                 <Save className="w-4 h-4 mr-2" />
                                 {saving ? 'Envoi...' : 'Soumettre'}

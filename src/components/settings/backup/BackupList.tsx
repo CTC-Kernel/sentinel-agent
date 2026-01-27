@@ -58,12 +58,12 @@ export const BackupList: React.FC<BackupListProps> = ({
                             animate={{ opacity: 1, scale: 1 }}
                             key={backup.id}
                             onClick={() => onSelect(backup)}
-                            className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-brand-50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-500/30 ring-1 ring-brand-500/20' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
+                            className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-brand-50 border-brand-200 dark:bg-brand-800 dark:border-brand-300 ring-1 ring-brand-300' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
                         >
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">#{backup.id.slice(0, 6)}...</span>
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(backup.status).replace('bg-', 'border-').replace('/20', '/30')}`}>
+                                    <span className="text-[11px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">#{backup.id.slice(0, 6)}...</span>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(backup.status).replace('bg-', 'border-').replace('/20', '/30')}`}>
                                         {getStatusIcon(backup.status)}
                                         <span className="ml-1.5">{backup.status}</span>
                                     </span>
@@ -75,7 +75,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                                             size="icon"
                                             aria-label="Télécharger le backup"
                                             onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDownload(backup.id); }}
-                                            className="p-1.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            className="p-1.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             title="Télécharger"
                                         >
                                             <Download className="h-4 w-4" />
@@ -89,7 +89,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                                             e.stopPropagation();
                                             onDelete(backup.id); // Just propagate ID, parent handles confirmation
                                         }}
-                                        className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         title="Supprimer"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -111,10 +111,10 @@ export const BackupList: React.FC<BackupListProps> = ({
                             </div>
                             <div className="flex flex-wrap gap-1">
                                 {backup.collections.slice(0, 3).map(c => (
-                                    <span key={c} className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 capitalize">{c}</span>
+                                    <span key={c} className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-400 capitalize">{c}</span>
                                 ))}
                                 {backup.collections.length > 3 && (
-                                    <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>
+                                    <span className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>
                                 )}
                             </div>
                         </motion.div>

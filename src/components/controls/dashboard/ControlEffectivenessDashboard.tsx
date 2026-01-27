@@ -96,16 +96,16 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
             <div className="space-y-4">
                 {/* Low Effectiveness */}
                 {lowEffectivenessControls.length > 0 && (
-                    <GlassCard className="p-4 border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-900/10">
+                    <GlassCard className="p-4 border-amber-200 dark:border-amber-800 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-50 dark:bg-amber-900">
                         <div className="flex items-center gap-2 mb-3">
                             <TrendingDown className="w-5 h-5 text-amber-500" />
-                            <span className="font-medium text-amber-700 dark:text-amber-400">
+                            <span className="font-medium text-amber-700 dark:text-amber-400 dark:text-amber-400">
                                 {lowEffectivenessControls.length} contrôles faibles
                             </span>
                         </div>
                         <div className="space-y-2">
                             {lowEffectivenessControls.slice(0, 3).map((a: { controlId: string; id: string; effectivenessScore: number; }) => (
-                                <div key={a.id} className="text-sm text-amber-600 dark:text-amber-400 flex items-center justify-between">
+                                <div key={a.id} className="text-sm text-amber-600 dark:text-amber-400 dark:text-amber-400 flex items-center justify-between">
                                     <span>{a.controlId}</span>
                                     <Badge variant="outline" size="sm">{a.effectivenessScore}%</Badge>
                                 </div>
@@ -119,7 +119,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
 
                 {/* Due for Review */}
                 {dueForReview.length > 0 && (
-                    <GlassCard className="p-4 border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-900/10">
+                    <GlassCard className="p-4 border-blue-200 dark:border-blue-800 dark:border-blue-900 bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900">
                         <div className="flex items-center gap-2 mb-3">
                             <Clock className="w-5 h-5 text-blue-500" />
                             <span className="font-medium text-blue-700 dark:text-blue-400">

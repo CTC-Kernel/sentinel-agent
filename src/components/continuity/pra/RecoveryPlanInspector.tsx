@@ -119,7 +119,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
             <div className="space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-white/10 mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
                             <FileText className="w-5 h-5" />
                         </div>
                         <div>
@@ -251,7 +251,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">Procédures de Reprise (Playbook)</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <p className="text-xs text-slate-500">Étapes séquentielles pour restaurer le service.</p>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${totalDuration > 0 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800'}`}>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${totalDuration > 0 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800'}`}>
                                         Total: {totalDuration} min
                                     </span>
                                 </div>
@@ -261,7 +261,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => append({ title: '', estimatedDuration: 0, isCritical: false, id: crypto.randomUUID() })}
-                                className="text-brand-600 border-brand-200 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                                className="text-brand-600 border-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800"
                             >
                                 <Plus className="w-4 h-4 mr-1" />
                                 Ajouter une étape
@@ -270,8 +270,8 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
 
                         <div className="space-y-3">
                             {fields.map((field, index) => (
-                                <div key={field.id} className="group relative bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-500/30">
-                                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div key={field.id} className="group relative bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-300">
+                                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-70 transition-opacity">
                                         <button
                                             type="button"
                                             onClick={() => remove(index)}
@@ -333,7 +333,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                         <AlertTriangle className="w-6 h-6" />
                                     </div>
                                     <p className="text-sm font-medium text-slate-900 dark:text-white">Aucune procédure définie</p>
-                                    <p className="text-xs text-slate-500 mb-4 max-w-xs mx-auto">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-xs mx-auto">
                                         Un plan de reprise sans étapes est inutile en cas de crise. Ajoutez vos procédures.
                                     </p>
                                     <Button
@@ -341,7 +341,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => append({ title: '', estimatedDuration: 0, isCritical: false, id: crypto.randomUUID() })}
-                                        className="text-brand-600 hover:bg-brand-50"
+                                        className="text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                                     >
                                         Commencer le playbook
                                     </Button>

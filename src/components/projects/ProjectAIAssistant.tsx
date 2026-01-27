@@ -57,7 +57,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
 
     return (
         <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/10 dark:to-violet-900/10 rounded-3xl p-6 border border-brand-100 dark:border-white/5 shadow-sm relative overflow-hidden h-full flex flex-col">
-            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+            <div className="absolute top-0 right-0 p-4 opacity-30 pointer-events-none">
                 <Sparkles className="w-24 h-24 text-brand-600" />
             </div>
 
@@ -66,14 +66,14 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                     <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-slate-900 dark:text-slate-100">Assistant Projet IA</h3>
+                    <h3 className="font-bold text-slate-900 dark:text-white dark:text-slate-100">Assistant Projet IA</h3>
                     <p className="text-xs text-muted-foreground">Analyse, reporting et suggestions</p>
                 </div>
             </div>
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-3 relative z-10">
-                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         <div className="p-2 bg-info/10 text-info rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <FileText className="w-5 h-5" />
                         </div>
@@ -83,7 +83,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-warning">
+                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-warning">
                         <div className="p-2 bg-warning/10 text-warning rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <AlertTriangle className="w-5 h-5" />
                         </div>
@@ -93,7 +93,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-success">
+                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-success">
                         <div className="p-2 bg-success/10 text-success rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <Target className="w-5 h-5" />
                         </div>

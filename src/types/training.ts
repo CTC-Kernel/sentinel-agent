@@ -132,6 +132,7 @@ export interface TrainingAssignment {
   score?: number;          // 0-100 if quiz
   timeSpent?: number;      // Minutes
   certificateUrl?: string; // Storage path to PDF
+  verificationHash?: string; // Certificate verification hash
 
   // Metadata
   remindersSent: number;

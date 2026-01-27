@@ -387,10 +387,10 @@ export const HomologationDossierDetail: React.FC = () => {
                     validityInfo.status === 'expired'
                       ? 'bg-red-100 text-red-700'
                       : validityInfo.status === 'critical'
-                        ? 'bg-red-50 text-red-600'
+                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
                         : validityInfo.status === 'warning'
-                          ? 'bg-amber-50 text-amber-600'
-                          : 'bg-green-50 text-green-600'
+                          ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 dark:text-amber-400'
+                          : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
                   )}
                 >
                   {validityInfo.status === 'expired'

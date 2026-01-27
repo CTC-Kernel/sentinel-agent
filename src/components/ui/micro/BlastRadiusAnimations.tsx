@@ -285,7 +285,7 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-3 p-4 bg-brand-50 dark:bg-brand-900/20 rounded-xl border border-brand-200 dark:border-brand-800"
+        className="flex items-center gap-3 p-4 bg-brand-50 dark:bg-brand-800 rounded-xl border border-brand-200 dark:border-brand-800"
       >
         <motion.div
           animate={{
@@ -349,7 +349,7 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: (maxDepth * 0.2 + affectedNodes.length * 0.05) / speed + 0.5 }}
-          className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800"
+          className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 dark:border-amber-800"
         >
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
@@ -357,7 +357,7 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
               <p className="font-medium text-amber-800 dark:text-amber-200">
                 Zone d'impact identifiee
               </p>
-              <p className="text-sm text-amber-600 dark:text-amber-300 mt-1">
+              <p className="text-sm text-amber-600 dark:text-amber-400 dark:text-amber-300 mt-1">
                 Si ce risque se materialise, <strong>{affectedNodes.length} elements</strong> seront
                 impactes sur <strong>{maxDepth} niveaux</strong> de profondeur.
               </p>
@@ -547,7 +547,7 @@ export const AnimatedStatsCard: React.FC<{
   animate?: boolean;
 }> = ({ label, value, icon, color = 'default', delay = 0, animate = true }) => {
   const colorClasses = {
-    default: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    default: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-300',
     success: 'bg-success-100 text-success-600 dark:bg-success-900/30 dark:text-success-400',
     warning: 'bg-warning-100 text-warning-600 dark:bg-warning-900/30 dark:text-warning-400',
     danger: 'bg-error-100 text-error-600 dark:bg-error-900/30 dark:text-error-400',

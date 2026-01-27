@@ -112,7 +112,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/30">
+            <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30">
               <Cpu className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
@@ -137,7 +137,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
           {/* Strategic Scenario Selection */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               {t('ebios.workshop4.parentStrategicScenario')} *
             </label>
             <select
@@ -166,7 +166,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Selected Strategic Scenario Info */}
           {selectedStrategic && (
-            <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800">
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
@@ -182,7 +182,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
                     <span className={cn(
                       "px-2 py-0.5 rounded text-xs font-medium",
                       selectedStrategic.gravity >= 3
-                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                        ? "bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400"
                         : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                     )}>
                       Gravité: G{selectedStrategic.gravity}
@@ -195,7 +195,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Name */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               {t('ebios.workshop4.scenarioName')} *
             </label>
             <input
@@ -219,7 +219,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               {t('ebios.workshop4.scenarioDescription')} *
             </label>
             <textarea
@@ -249,7 +249,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
             <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop4.nextSteps')}
             </h4>
-            <ul className="text-sm text-slate-500 space-y-1 list-disc list-inside">
+            <ul className="text-sm text-slate-500 dark:text-slate-400 space-y-1 list-disc list-inside">
               <li>{t('ebios.workshop4.nextStep1')}</li>
               <li>{t('ebios.workshop4.nextStep2')}</li>
               <li>{t('ebios.workshop4.nextStep3')}</li>
@@ -268,7 +268,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:opacity-50"
+              className="px-6 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
             >
               {isSubmitting ? t('common.saving') : isEdit ? t('common.save') : t('common.create')}
             </button>

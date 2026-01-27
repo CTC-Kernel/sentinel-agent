@@ -380,7 +380,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
 
       {/* Mitigating factors */}
       {score.mitigatingFactors && score.mitigatingFactors.length > 0 && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 dark:border-green-800 rounded-xl p-4">
           <h4 className="font-medium text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
             <Shield className="w-4 h-4" />
             {t('vendorScoring.mitigatingFactors', 'Mitigating Factors')}

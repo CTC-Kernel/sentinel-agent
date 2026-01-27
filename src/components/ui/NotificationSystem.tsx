@@ -162,7 +162,7 @@ const NotificationContainer: React.FC = () => {
             exit={{ opacity: 0, x: 100, scale: 0.9 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "relative flex items-start gap-3 p-4 rounded-2xl border shadow-elevation-lg backdrop-blur-md overflow-hidden",
+              "relative flex items-start gap-3 p-4 rounded-2xl border shadow-lg backdrop-blur-md overflow-hidden",
               getColors(notification.type)
             )}
           >
@@ -213,7 +213,7 @@ const NotificationContainer: React.FC = () => {
                     notification.action?.onClick();
                     removeNotification(notification.id);
                   }}
-                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 border border-current/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-slate-900/60 backdrop-blur-sm border border-current/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {notification.action.label}
                   <span aria-hidden="true">→</span>

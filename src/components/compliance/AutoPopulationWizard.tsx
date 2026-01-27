@@ -134,7 +134,7 @@ const ConfidenceGauge: React.FC<{ score: number; size?: 'sm' | 'md' | 'lg' }> = 
             </svg>
             <span className={cn(
                 'absolute inset-0 flex items-center justify-center font-bold',
-                size === 'sm' ? 'text-[9px]' : size === 'md' ? 'text-xs' : 'text-sm',
+                size === 'sm' ? 'text-[11px]' : size === 'md' ? 'text-xs' : 'text-sm',
                 getColor().replace('stroke-', 'text-')
             )}>
                 {score}%
@@ -171,7 +171,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
                 className={cn(
                     'p-4 cursor-pointer transition-all border-2',
                     isSelected ? 'border-primary bg-primary/5' : 'border-transparent hover:border-muted',
-                    loading && 'opacity-50 pointer-events-none'
+                    loading && 'opacity-60 pointer-events-none'
                 )}
                 onClick={onSelect}
             >

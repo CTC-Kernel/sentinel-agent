@@ -180,7 +180,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                   {t('ebios.workshop4.searchResults')} ({searchResults.length})
                 </h3>
                 {searchResults.length === 0 ? (
-                  <p className="text-sm text-slate-500 py-4 text-center">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
                     {t('ebios.workshop4.noResults')}
                   </p>
                 ) : (
@@ -194,7 +194,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                           "hover:bg-slate-100 dark:hover:bg-slate-800"
                         )}
                       >
-                        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-muted-foreground">
+                        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                           {technique.id}
                         </code>
                         <span className="text-slate-700 dark:text-slate-300 truncate">
@@ -263,14 +263,14 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                         onClick={() => handleSelectTechnique(technique)}
                         className="w-full flex items-start gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left"
                       >
-                        <code className="flex-shrink-0 text-sm bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded font-mono text-red-700 dark:text-red-400">
+                        <code className="flex-shrink-0 text-sm bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 px-2 py-1 rounded font-mono text-red-700 dark:text-red-400">
                           {technique.id}
                         </code>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-slate-900 dark:text-white">
                             {technique.name[locale]}
                           </p>
-                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                             {technique.description[locale]}
                           </p>
                         </div>
@@ -280,7 +280,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                       {/* Subtechniques */}
                       {technique.subtechniques && technique.subtechniques.length > 0 && (
                         <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 p-2">
-                          <p className="text-xs text-slate-500 mb-2 px-2">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 px-2">
                             {t('ebios.workshop4.subtechniques')}
                           </p>
                           <div className="space-y-1">
@@ -290,7 +290,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                                 onClick={() => handleSelectTechnique(technique, sub)}
                                 className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-white dark:hover:bg-slate-800"
                               >
-                                <code className="text-xs bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded font-mono text-orange-700 dark:text-orange-400">
+                                <code className="text-xs bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30 px-1.5 py-0.5 rounded font-mono text-orange-700 dark:text-orange-400">
                                   {sub.id}
                                 </code>
                                 <span className="text-slate-700 dark:text-slate-300 truncate">
@@ -326,7 +326,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                       onClick={() => handleSelectTechnique(technique)}
                       className="w-full flex items-start gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left"
                     >
-                      <code className="flex-shrink-0 text-sm bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded font-mono text-red-700 dark:text-red-400">
+                      <code className="flex-shrink-0 text-sm bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 px-2 py-1 rounded font-mono text-red-700 dark:text-red-400">
                         {technique.id}
                       </code>
                       <div className="flex-1 min-w-0">
@@ -336,7 +336,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                           {MITRE_TACTICS.find(t => t.id === technique.tacticId)?.name[locale]}
                         </p>
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                           {technique.description[locale]}
                         </p>
                       </div>
@@ -352,7 +352,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                               onClick={() => handleSelectTechnique(technique, sub)}
                               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-white dark:hover:bg-slate-800"
                             >
-                              <code className="text-xs bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded font-mono text-orange-700 dark:text-orange-400">
+                              <code className="text-xs bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30 px-1.5 py-0.5 rounded font-mono text-orange-700 dark:text-orange-400">
                                 {sub.id}
                               </code>
                               <span className="text-slate-700 dark:text-slate-300 truncate">

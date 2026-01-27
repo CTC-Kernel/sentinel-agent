@@ -38,7 +38,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
 
     return (
         <div
-            className="w-full h-full bg-slate-950 rounded-5xl overflow-hidden relative isolate group"
+            className="w-full h-full bg-slate-950 rounded-3xl overflow-hidden relative isolate group"
             onMouseLeave={() => setTooltip(null)}
         >
             {/* Cyber Grid Background Effect */}
@@ -114,7 +114,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
                                                                             <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                                                                         </span>
-                                                                        <span className="text-[10px] font-mono text-red-500 font-bold tracking-wider">LIVE</span>
+                                                                        <span className="text-[11px] font-mono text-red-500 font-bold tracking-wider">LIVE</span>
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -122,13 +122,13 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                             {/* Stats Grid */}
                                                             <div className="grid grid-cols-2 gap-2 mb-3">
                                                                 <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                                                                    <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5">Score</div>
+                                                                    <div className="text-[11px] text-slate-400 uppercase tracking-widest mb-0.5">Score</div>
                                                                     <div className={`text-lg font-bold font-mono ${hasThreats ? 'text-orange-400' : 'text-emerald-400'}`}>
                                                                         {intensity.toFixed(0)}
                                                                     </div>
                                                                 </div>
                                                                 <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                                                                    <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5">Events</div>
+                                                                    <div className="text-[11px] text-slate-400 uppercase tracking-widest mb-0.5">Events</div>
                                                                     <div className="text-lg font-bold font-mono text-white">
                                                                         {threatCount}
                                                                     </div>
@@ -138,22 +138,22 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                             {/* Active Threats List */}
                                                             {topThreats.length > 0 && (
                                                                 <div className="space-y-2">
-                                                                    <div className="text-[10px] uppercase text-slate-500 font-bold tracking-wider border-l-2 border-slate-700 pl-2">
+                                                                    <div className="text-[11px] uppercase text-slate-500 dark:text-slate-400 font-bold tracking-wider border-l-2 border-slate-700 pl-2">
                                                                         Latest Intelligence
                                                                     </div>
                                                                     <div className="space-y-1.5">
                                                                         {topThreats.map((t: Threat, idx) => (
                                                                             <div key={idx} className="flex items-start gap-2 text-xs text-slate-200 group">
-                                                                                <div className={`mt-0.5 p-1 rounded flex-shrink-0 ${t.severity === 'Critical' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                                                                <div className={`mt-0.5 p-1 rounded flex-shrink-0 ${t.severity === 'Critical' ? 'bg-red-50 text-red-500' : 'bg-orange-500/10 text-orange-500'}`}>
                                                                                     {t.type === 'Malware' ? <Activity size={10} /> :
                                                                                         t.type === 'Vulnerability' ? <Shield size={10} /> :
                                                                                             <AlertTriangle size={10} />}
                                                                                 </div>
                                                                                 <div className="min-w-0">
-                                                                                    <div className="leading-tight opacity-90 group-hover:opacity-100 transition-opacity truncate font-medium">
+                                                                                    <div className="leading-tight opacity-90 group-hover:opacity-70 transition-opacity truncate font-medium">
                                                                                         {t.name}
                                                                                     </div>
-                                                                                    <div className="text-[10px] text-slate-500 flex gap-2 mt-0.5">
+                                                                                    <div className="text-[11px] text-slate-500 dark:text-slate-400 flex gap-2 mt-0.5">
                                                                                         <span>{t.type}</span>
                                                                                         <span>•</span>
                                                                                         <span className={t.severity === 'Critical' ? 'text-red-400' : 'text-orange-400'}>{t.severity}</span>
@@ -163,7 +163,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                                         ))}
                                                                     </div>
                                                                     {threatCount > 3 && (
-                                                                        <div className="text-[10px] text-center text-slate-500 italic pt-1">
+                                                                        <div className="text-[11px] text-center text-slate-500 dark:text-slate-400 italic pt-1">
                                                                             + {threatCount - 3} other active events
                                                                         </div>
                                                                     )}
@@ -171,7 +171,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                             )}
 
                                                             {!hasThreats && (
-                                                                <div className="flex items-center justify-center gap-2 text-xs text-emerald-400/80 italic py-2 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                                                                <div className="flex items-center justify-center gap-2 text-xs text-emerald-400/80 italic py-2 bg-emerald-50 rounded-lg border border-emerald-500/10">
                                                                     <span>No active threats detected.</span>
                                                                 </div>
                                                             )}
@@ -226,7 +226,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                     onMouseLeave={() => setTooltip(null)}
                                 >
                                     {/* Radar Ping Effect */}
-                                    <circle r={8} fill="none" stroke="hsl(var(--destructive))" strokeWidth={0.5} className="animate-[ping_3s_linear_infinite] opacity-50" />
+                                    <circle r={8} fill="none" stroke="hsl(var(--destructive))" strokeWidth={0.5} className="animate-[ping_3s_linear_infinite] opacity-60" />
                                     <circle r={3} fill="hsl(var(--destructive))" className="drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
                                 </g>
                             </Marker>
@@ -261,7 +261,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
 
             {/* Legend overlay */}
             <div className="absolute bottom-4 left-8 pointer-events-none">
-                <div className="flex items-center gap-4 text-[10px] font-mono text-slate-500 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
+                <div className="flex items-center gap-4 text-[11px] font-mono text-slate-500 dark:text-slate-400 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-800"></div> SAFE</div>
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500"></div> LOW</div>
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-500"></div> MED</div>

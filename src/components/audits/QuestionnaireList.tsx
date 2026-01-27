@@ -93,7 +93,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {questionnaires.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-slate-500 italic bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+                    <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
                         Aucun questionnaire créé pour cet audit.
                     </div>
                 )}
@@ -122,7 +122,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => { setSelectedQuestionnaire(q); setMode('respond'); }}
-                                    className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     title="Répondre / Voir"
                                 >
                                     <Send className="w-4 h-4" />
@@ -131,14 +131,14 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                                     <>
                                         <button
                                             onClick={() => { setSelectedQuestionnaire(q); setMode('edit'); }}
-                                            className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                                             title="Modifier"
                                         >
                                             <Edit className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteClick(q.id)}
-                                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                             title="Supprimer"
                                         >
                                             <Trash2 className="w-4 h-4" />

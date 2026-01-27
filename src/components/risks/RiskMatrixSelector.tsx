@@ -156,12 +156,12 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
             {/* Matrix Grid */}
             <div className="relative">
                 {/* Y-axis label (Probability) */}
-                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">
                     Probabilité
                 </div>
 
                 {/* X-axis label (Impact) */}
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                     Impact
                 </div>
 
@@ -190,7 +190,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                                                 ? 'ring-4 ring-offset-2 ring-slate-900/10 dark:ring-white/20 scale-110 z-10 shadow-xl'
                                                 : isResidual
                                                     ? 'ring-2 ring-offset-1 ring-blue-500/50 dark:ring-blue-400/50 opacity-80'
-                                                    : 'opacity-40 hover:opacity-100 hover:scale-105 hover:shadow-md'}
+                                                    : 'opacity-40 hover:opacity-70 hover:scale-105 hover:shadow-md'}
                                             ${readOnly ? 'cursor-default' : 'cursor-pointer'}
                                         `}
                                         title={`Probabilité: ${p}, Impact: ${i}, Score: ${score}`}
@@ -226,8 +226,8 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                                         </AnimatePresence>
 
                                         {/* Score tooltip on hover */}
-                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                            <span className="text-[10px] font-bold text-white drop-shadow-md">
+                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-70 transition-opacity">
+                                            <span className="text-[11px] font-bold text-white drop-shadow-md">
                                                 {score}
                                             </span>
                                         </div>
@@ -241,7 +241,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
 
             {/* Legend */}
             {showLegend && (
-                <div className="flex justify-center items-center gap-3 text-[10px] text-slate-600 dark:text-slate-400 mt-4">
+                <div className="flex justify-center items-center gap-3 text-[11px] text-slate-600 dark:text-slate-400 mt-4">
                     <div className="flex items-center gap-1">
                         <div className="w-3 h-3 rounded bg-success-text" />
                         <span>Faible (1-4)</span>
@@ -263,7 +263,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
 
             {/* Position markers legend (when residual exists) */}
             {residualScore !== null && (
-                <div className="flex justify-center items-center gap-4 text-[10px] text-slate-500 dark:text-muted-foreground">
+                <div className="flex justify-center items-center gap-4 text-[11px] text-slate-500 dark:text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 bg-white rounded-full shadow ring-2 ring-slate-300" />
                         <span>Position brute</span>

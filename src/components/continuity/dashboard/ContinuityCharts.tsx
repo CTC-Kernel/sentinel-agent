@@ -161,7 +161,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     variants={slideUpVariants}
                     initial="hidden"
                     animate="visible"
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                     <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
@@ -195,14 +195,14 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {/* Distribution by Criticality (Interactive Pie) */}
-                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     {/* Tech Corners */}
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-orange-500/10 rounded-xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -261,15 +261,15 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                 </motion.div>
 
                 {/* Drills Results (Bar Chart) */}
-                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <Target className="w-4 h-4 text-brand-500" />
                         </div>
                         Résultats des Exercices
@@ -300,13 +300,13 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                 </motion.div>
 
                 {/* Drills Timeline (Stacked Bar) */}
-                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-emerald-500/10 rounded-xl">
                             <Activity className="w-4 h-4 text-emerald-500" />

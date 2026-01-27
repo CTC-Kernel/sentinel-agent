@@ -58,7 +58,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ label, value, percent, icon, co
             <div style={{ color }}>{icon}</div>
         </div>
         <div className="flex-1 min-w-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
                 {label}
             </span>
             <div className="flex items-baseline gap-2">

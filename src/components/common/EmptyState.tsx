@@ -23,9 +23,9 @@ export const EmptyState = ({
     className
 }: EmptyStateProps) => {
     const colorStyles = {
-        slate: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+        slate: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-400',
         blue: 'bg-primary-50 dark:bg-primary-950/30 text-primary-600 dark:text-primary-400',
-        indigo: 'bg-brand-50 dark:bg-brand-950/30 text-brand-600 dark:text-brand-400',
+        indigo: 'bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400',
         rose: 'bg-error-bg text-error-text',
         amber: 'bg-warning-bg text-warning-text',
         emerald: 'bg-success-bg text-success-text',

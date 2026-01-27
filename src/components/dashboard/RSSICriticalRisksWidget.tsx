@@ -188,8 +188,8 @@ function ErrorState({
         onClick={onRetry}
         className={cn(
           'mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-md',
-          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-          'hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors',
+          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 dark:text-red-300',
+          'hover:bg-red-200 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-9000 transition-colors',
           'text-sm font-medium'
         )}
       >
@@ -284,7 +284,7 @@ export function RSSICriticalRisksWidget({
           className={cn(
             'mt-4 w-full text-center py-2 rounded-md',
             'text-sm font-medium text-blue-600 dark:text-blue-400',
-            'hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors',
+            'hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-900/20 transition-colors',
             'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2'
           )}
         >

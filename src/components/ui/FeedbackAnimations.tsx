@@ -28,7 +28,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   const variantClasses = {
     primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-brand-500 shadow-lg shadow-brand-500/20',
-    secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
+    secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
     success: 'bg-success-600 hover:bg-success-700 text-white focus:ring-success-500 shadow-lg shadow-success-500/20'
   };
@@ -197,7 +197,7 @@ export const NotificationBadge: React.FC<NotificationBadgeProps> = ({
         inline-flex items-center justify-center
         min-w-[20px] h-5 px-1.5
         bg-red-500 text-white
-        text-[10px] font-bold
+        text-[11px] font-bold
         rounded-full
         animate-bounce
         ${className}
@@ -245,7 +245,7 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
   };
 
   const glowClasses = {
-    brand: 'shadow-brand-500/50',
+    brand: 'shadow-brand-500/250',
     success: 'shadow-success-500/50',
     warning: 'shadow-warning-500/50',
     danger: 'shadow-error-500/50'
@@ -266,7 +266,7 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ ease: appleEasing }}
         >
-          <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
             Progression
           </span>
           <motion.span

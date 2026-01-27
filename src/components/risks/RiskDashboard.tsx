@@ -140,11 +140,11 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <Shield className="h-4 w-4 text-brand-500" />
                         </div>
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux Traitement</span>
@@ -182,7 +182,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
@@ -242,7 +242,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
                                 {item.value}
                             </span>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
                         </div>
                     ))}
                 </motion.div>
@@ -255,12 +255,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                     aria-label="Graphique Heatmap des risques"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <Activity className="w-4 h-4 text-brand-500" />
                         </div>
                         Cartographie des Risques
@@ -273,9 +273,9 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
                         <div className="p-2 bg-orange-500/10 rounded-xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -334,10 +334,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.25 }}
-                className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 aria-label="Graphique d'avancement des traitements"
             >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                 <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
                     <div className="p-2 bg-success-bg rounded-xl">
                         <Layers className="w-4 h-4 text-success-text" />
@@ -352,12 +352,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="glass-premium p-8 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                className="glass-premium p-8 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
             >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
                 <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div className="p-2 bg-brand-500/10 rounded-xl">
+                    <div className="p-2 bg-brand-50 rounded-xl">
                         <TrendingUp className="h-5 w-5 text-brand-500" />
                     </div>
                     <div>
@@ -423,12 +423,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}
-                className="glass-premium p-8 rounded-5xl relative overflow-hidden min-h-[350px] hover:shadow-apple-lg transition-all duration-300"
+                className="glass-premium p-8 rounded-3xl relative overflow-hidden min-h-[350px] hover:shadow-apple-lg transition-all duration-300"
             >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
                 <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div className="p-2 bg-brand-500/10 rounded-xl">
+                    <div className="p-2 bg-brand-50 rounded-xl">
                         <TrendingUp className="h-5 w-5 text-brand-500" />
                     </div>
                     <div>
@@ -448,7 +448,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="glass-premium p-8 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-8 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-error-bg rounded-xl">
@@ -483,7 +483,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                                 Score {risk.score}
                                             </span>
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[11px] text-muted-foreground">
                                             {risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : 'Pas d\'échéance'}
                                         </span>
                                     </div>
@@ -493,7 +493,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                     <p className="text-xs text-muted-foreground mb-3 line-clamp-1">{risk.category || 'Général'}</p>
 
                                     <div className="mt-auto pt-3 border-t border-border/50 flex justify-between items-center">
-                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md
+                                        <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-md
                                             ${risk.strategy === 'Atténuer' ? 'bg-info-bg text-info-text' :
                                                 risk.strategy === 'Transférer' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400' :
                                                     risk.strategy === 'Éviter' ? 'bg-success-bg text-success-text' :
@@ -502,7 +502,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                             {risk.strategy || 'Non défini'}
                                         </span>
                                         {risk.residualScore !== undefined && (
-                                            <span className="text-[10px] text-muted-foreground">
+                                            <span className="text-[11px] text-muted-foreground">
                                                 Résiduel: <span className="font-bold text-foreground">{risk.residualScore}</span>
                                             </span>
                                         )}

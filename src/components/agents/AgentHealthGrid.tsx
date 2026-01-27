@@ -169,7 +169,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                 {/* Status badge */}
                 <Badge
                     status={isActive ? 'success' : 'neutral'}
-                    className="hidden lg:inline-flex text-[10px]"
+                    className="hidden lg:inline-flex text-[11px]"
                 >
                     {isActive ? 'Actif' : 'Offline'}
                 </Badge>
@@ -219,10 +219,10 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 {agent.name || agent.hostname || agent.id.slice(0, 8)}
                             </h3>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4">
+                                <Badge variant="outline" className="text-[11px] px-1.5 py-0 h-4">
                                     v{agent.version}
                                 </Badge>
-                                <span className="text-[10px] text-muted-foreground">
+                                <span className="text-[11px] text-muted-foreground">
                                     {agent.osVersion || agent.os}
                                 </span>
                             </div>
@@ -233,7 +233,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="h-7 w-7 p-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-muted"
+                                className="h-7 w-7 p-0 rounded-md opacity-0 group-hover:opacity-70 transition-opacity flex items-center justify-center hover:bg-muted"
                                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                             >
                                 <MoreVertical className="h-4 w-4" />
@@ -280,7 +280,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         )}>
                             {agent.cpuPercent !== undefined ? `${agent.cpuPercent.toFixed(0)}%` : '-'}
                         </span>
-                        <span className="block text-[9px] text-muted-foreground uppercase tracking-wider">CPU</span>
+                        <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">CPU</span>
                     </div>
 
                     {/* Memory */}
@@ -291,7 +291,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         <span className="text-sm font-bold text-foreground">
                             {formatBytes(agent.memoryBytes)}
                         </span>
-                        <span className="block text-[9px] text-muted-foreground uppercase tracking-wider">RAM</span>
+                        <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">RAM</span>
                     </div>
 
                     {/* Compliance */}
@@ -304,7 +304,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 ? `${agent.complianceScore}%`
                                 : '-'}
                         </span>
-                        <span className="block text-[9px] text-muted-foreground uppercase tracking-wider">Score</span>
+                        <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">Score</span>
                     </div>
                 </div>
 

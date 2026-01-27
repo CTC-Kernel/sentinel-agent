@@ -54,10 +54,10 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
             <div className={`
                 relative flex items-center w-full rounded-xl border transition-all duration-200 backdrop-blur-sm
                 ${error
-                    ? 'border-red-500/60 bg-red-500/5 dark:bg-red-500/10'
+                    ? 'border-red-500/60 bg-red-50 dark:bg-red-50'
                     : isFocused
-                        ? 'border-brand-500 bg-white/80 dark:bg-white/5 shadow-glow ring-2 ring-brand-500/20'
-                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500/30 dark:hover:border-white/20'
+                        ? 'border-brand-500 bg-white/80 dark:bg-white/5 shadow-glow ring-2 ring-brand-300'
+                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-300 dark:hover:border-white/20'
                 }
             `}>
                 {Icon && (
@@ -100,7 +100,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
                         ${(isFocused || hasValue)
-                            ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md'
+                            ? '-top-2.5 text-[11px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md'
                             : 'top-3.5 text-sm font-medium'
                         }
                         ${error

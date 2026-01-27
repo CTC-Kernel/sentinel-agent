@@ -31,14 +31,14 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                                 const asset = assets.find(a => a.id === incident.affectedAssetId);
                                 return asset ? (
                                     <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
-                                        <span className="font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                        <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{asset.name}</span>
                                         <Badge status="neutral" size="sm">{asset.type}</Badge>
                                     </div>
-                                ) : <p className="text-sm text-slate-600 italic">Actif introuvable</p>;
+                                ) : <p className="text-sm text-slate-600 dark:text-slate-400 italic">Actif introuvable</p>;
                             })()}
                         </div>
                     ) : (
-                        <p className="text-sm text-slate-600 italic">Aucun actif lié</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 italic">Aucun actif lié</p>
                     )}
                 </div>
             </div>
@@ -56,13 +56,13 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                                 const proc = processes.find(p => p.id === incident.affectedProcessId);
                                 return proc ? (
                                     <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
-                                        <span className="font-medium text-slate-700 dark:text-slate-200">{proc.name}</span>
+                                        <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{proc.name}</span>
                                     </div>
-                                ) : <p className="text-sm text-slate-600 italic">Processus introuvable</p>;
+                                ) : <p className="text-sm text-slate-600 dark:text-slate-400 italic">Processus introuvable</p>;
                             })()}
                         </div>
                     ) : (
-                        <p className="text-sm text-slate-600 italic">Aucun service lié</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 italic">Aucun service lié</p>
                     )}
                 </div>
             </div>
@@ -81,7 +81,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                                 return risk ? (
                                     <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-slate-700 dark:text-slate-200">{risk.threat}</span>
+                                            <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{risk.threat}</span>
                                             <span className="text-xs text-slate-500">{risk.scenario}</span>
                                         </div>
                                         <div className="text-right">
@@ -91,11 +91,11 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                                             </span>
                                         </div>
                                     </div>
-                                ) : <p className="text-sm text-slate-600 italic">Risque introuvable</p>;
+                                ) : <p className="text-sm text-slate-600 dark:text-slate-400 italic">Risque introuvable</p>;
                             })()}
                         </div>
                     ) : (
-                        <p className="text-sm text-slate-600 italic">Aucun risque lié</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 italic">Aucun risque lié</p>
                     )}
                 </div>
             </div>

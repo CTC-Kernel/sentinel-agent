@@ -191,7 +191,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-1.5" />
                   {t('common.delete')}

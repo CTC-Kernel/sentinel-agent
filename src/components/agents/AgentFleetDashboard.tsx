@@ -64,7 +64,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend
         )}>
             <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                         {label}
                     </span>
                     <span className="text-3xl font-black font-display tracking-tight text-foreground">
@@ -217,7 +217,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
                             <span className="inline-flex h-2 w-2 rounded-full bg-success animate-pulse shadow-glow shadow-success/30" />
-                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
+                            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">
                                 Fleet d'agents
                             </p>
                         </div>

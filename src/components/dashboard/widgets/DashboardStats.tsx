@@ -86,8 +86,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 gradientOverlay={true}
             >
                 {/* Background Effects */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-brand-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
                 {/* Premium AI Background Image */}
                 <div className="absolute right-0 top-0 h-full w-1/2 pointer-events-none z-0 overflow-hidden">
@@ -95,7 +95,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                     <img
                         src="/images/IA.png"
                         alt=""
-                        className="w-full h-full object-cover object-right opacity-20 dark:opacity-10 mix-blend-multiply dark:mix-blend-color-dodge transition-all duration-700"
+                        className="w-full h-full object-cover object-right opacity-20 dark:opacity-30 mix-blend-multiply dark:mix-blend-color-dodge transition-all duration-700"
                     />
                 </div>
 
@@ -118,7 +118,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         <button
                             onClick={handleManualRefresh}
                             disabled={aiLoading || !aiSummary}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 hover:text-brand-500 disabled:opacity-50 disabled:cursor-not-allowed group/refresh"
+                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400 hover:text-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 group/refresh"
                             title="Actualiser l'analyse"
                         >
                             <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin text-brand-500' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />
@@ -136,7 +136,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        strong: ({ ...props }) => <span className="font-bold text-slate-800 dark:text-white" {...props} />,
+                                        strong: ({ ...props }) => <span className="font-bold text-slate-800 dark:text-slate-200 dark:text-white" {...props} />,
                                         ul: ({ ...props }) => <ul className="space-y-1 my-2 list-none pl-0" {...props} />,
                                         li: ({ ...props }) => (
                                             <li className="flex items-start gap-2 text-sm pl-1" {...props}>
@@ -150,7 +150,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     {aiSummary}
                                 </ReactMarkdown>
                                 <div className="mt-3 flex items-center justify-end">
-                                    <span className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
+                                    <span className="text-[11px] font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
                                         Généré par Sentinel AI
                                     </span>
                                 </div>

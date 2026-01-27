@@ -49,7 +49,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         {label && (
                             <ListboxLabel className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
-                                -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md text-slate-500 dark:text-slate-400 peer-focus:text-brand-600
+                                -top-2.5 text-[11px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md text-slate-500 dark:text-slate-400 peer-focus:text-brand-600
                                 ${error ? '!text-destructive' : ''}
                             `}>
                                 {label} {required && <span className="text-destructive">*</span>}
@@ -64,7 +64,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 ${error
                                     ? 'border border-destructive/60 bg-destructive/5 dark:bg-destructive/10 text-destructive'
                                     : open
-                                        ? 'border border-brand-500 bg-white/80 dark:bg-white/5 shadow-lg shadow-brand-500/10 ring-2 ring-brand-500/20'
+                                        ? 'border border-brand-500 bg-white/80 dark:bg-white/5 shadow-lg shadow-brand-500/25 ring-2 ring-brand-300'
                                         : 'glass-input'
                                 }
                             `}>
@@ -73,7 +73,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 </span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
                                     <ChevronDown
-                                        className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180 text-brand-500' : ''}`}
+                                        className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${open ? 'rotate-180 text-brand-500' : ''}`}
                                         aria-hidden="true"
                                     />
                                 </span>
@@ -89,7 +89,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                     <ListboxOption
                                         key={optionIdx}
                                         className={({ focus }) =>
-                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-brand-500/10 dark:bg-brand-500/10 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-brand-50 dark:bg-brand-900 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
                                             }`
                                         }
                                         value={option.value}

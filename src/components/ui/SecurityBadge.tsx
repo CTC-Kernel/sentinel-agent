@@ -67,10 +67,10 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
 
     const colorClasses = {
         emerald: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-emerald-500/20 group-hover:bg-emerald-500/20",
-        blue: "bg-blue-500/10 text-blue-700 dark:text-blue-300 ring-blue-500/20 group-hover:bg-blue-500/20",
+        blue: "bg-blue-50 text-blue-700 dark:text-blue-400 dark:text-blue-300 ring-blue-500/20 group-hover:bg-blue-500/20",
         indigo: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 ring-indigo-500/20 group-hover:bg-indigo-500/20",
         purple: "bg-purple-500/10 text-purple-700 dark:text-purple-300 ring-purple-500/20 group-hover:bg-purple-500/20",
-        red: "bg-red-500/10 text-red-700 dark:text-red-300 ring-red-500/20 group-hover:bg-red-500/20"
+        red: "bg-red-50 text-red-700 dark:text-red-400 dark:text-red-300 ring-red-500/20 group-hover:bg-red-500/20"
     };
 
     return (
@@ -81,7 +81,7 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
                 ${colorClasses[config.color as keyof typeof colorClasses]}
             `}>
                 <Icon className="w-3 h-3" strokeWidth={2.5} />
-                <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">{config.label}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider opacity-90">{config.label}</span>
             </div>
 
         </div>

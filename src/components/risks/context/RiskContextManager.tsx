@@ -106,7 +106,7 @@ export const RiskContextManager: React.FC = () => {
     <div className="space-y-6">
       {/* Error Banner */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 flex items-center gap-3">
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-900 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500" />
           <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
@@ -481,7 +481,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                     )}
                   </div>
                   {reg.obligations && (
-                    <p className="text-sm text-slate-500 mt-0.5">{reg.obligations}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{reg.obligations}</p>
                   )}
                 </div>
                 {reg.deadline && (
@@ -492,7 +492,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 )}
                 <button
                   onClick={() => onRemoveRegulation(reg.id)}
-                  className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-muted-foreground hover:text-red-500 transition-colors"
+                  className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 text-muted-foreground hover:text-red-500 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -614,7 +614,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
         {/* Acceptable Risk Levels */}
         <div>
           <h4 className="font-medium text-slate-900 dark:text-white mb-4">Seuils de risque acceptables</h4>
-          <p className="text-sm text-slate-500 mb-4">Score de risque maximum pour chaque niveau (Probabilité x Impact, 1-25)</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Score de risque maximum pour chaque niveau (Probabilité x Impact, 1-25)</p>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {(Object.entries(LEVEL_CONFIG) as [keyof typeof LEVEL_CONFIG, typeof LEVEL_CONFIG.low][]).map(([level, config]) => {
@@ -633,7 +633,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                     onChange={(e) => updateLevel(level, parseInt(e.target.value) || 1)}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
                   />
-                  <p className="text-xs text-slate-500 mt-2">{config.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{config.description}</p>
                 </div>
               );
             })}
@@ -644,7 +644,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
         {/* Escalation Thresholds */}
         <div>
           <h4 className="font-medium text-slate-900 dark:text-white mb-4">Seuils d'escalade</h4>
-          <p className="text-sm text-slate-500 mb-4">Score de risque déclenchant une escalade automatique</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Score de risque déclenchant une escalade automatique</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -660,7 +660,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('automatic', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 mt-2">Notification automatique au responsable</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Notification automatique au responsable</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -677,7 +677,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('management', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 mt-2">Escalade à la direction générale</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Escalade à la direction générale</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -695,7 +695,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('board', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 mt-2">Notification au conseil d'administration</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Notification au conseil d'administration</p>
             </div>
           </div>
         </div>

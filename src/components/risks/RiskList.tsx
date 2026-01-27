@@ -63,7 +63,7 @@ export const RiskList = React.memo<RiskListProps>(({
     });
 
     return (
-        <motion.div variants={slideUpVariants} className="glass-premium w-full max-w-full rounded-5xl overflow-hidden relative">
+        <motion.div variants={slideUpVariants} className="glass-premium w-full max-w-full rounded-3xl overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="relative z-10">
                 <DataTable

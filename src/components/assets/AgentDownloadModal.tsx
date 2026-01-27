@@ -56,9 +56,9 @@ echo "Asset Enrolled Successfully!"
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
@@ -70,15 +70,15 @@ echo "Asset Enrolled Successfully!"
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-100 translate-y-0 sm:scale-100"
+                            enterTo="opacity-70 translate-y-0 sm:scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                            leaveFrom="opacity-70 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
                             <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-200 dark:border-white/10">
                                 {/* Decorative background elements */}
                                 <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-brand-500/10 to-transparent pointer-events-none" />
-                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/20 blur-3xl rounded-full pointer-events-none" />
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-400/25 dark:bg-brand-400/15 blur-3xl rounded-full pointer-events-none" />
 
                                 <div className="relative p-6 px-8 pt-10 text-center">
                                     <button
@@ -89,7 +89,7 @@ echo "Asset Enrolled Successfully!"
                                     </button>
 
                                     <motion.div
-                                        className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 mb-6 shadow-inner ring-1 ring-brand-500/20 shadow-brand-500/20"
+                                        className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400 mb-6 shadow-inner ring-1 ring-brand-300 shadow-brand-500/20"
                                         initial={{ scale: 0, rotate: -180 }}
                                         animate={{ scale: 1, rotate: 0 }}
                                         transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
@@ -113,19 +113,19 @@ echo "Asset Enrolled Successfully!"
                                             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Fonctionnalités incluses</h4>
                                             <ul className="space-y-2.5">
                                                 <li className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-                                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
+                                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
                                                         <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                                     </span>
                                                     Collecte de logs en temps réel
                                                 </li>
                                                 <li className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-                                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
+                                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
                                                         <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                                     </span>
                                                     Remontée des vulnérabilités (CVE)
                                                 </li>
                                                 <li className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-                                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
+                                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
                                                         <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                                     </span>
                                                     Configuration automatique

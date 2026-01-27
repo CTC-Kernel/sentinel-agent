@@ -162,12 +162,12 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
                 className={cn(
                   'flex items-center gap-2 p-2 rounded-lg text-sm',
                   validityState === 'expired'
-                    ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
+                    ? 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-950 dark:text-red-300'
                     : validityState === 'critical'
-                      ? 'bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-300'
+                      ? 'bg-red-50 text-red-600 dark:text-red-400 dark:bg-red-950/50 dark:text-red-300'
                       : validityState === 'expiring_soon'
-                        ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-300'
-                        : 'bg-green-50 text-green-600 dark:bg-green-950/50 dark:text-green-300'
+                        ? 'bg-amber-50 text-amber-600 dark:text-amber-400 dark:bg-amber-950/50 dark:text-amber-300'
+                        : 'bg-green-50 text-green-600 dark:text-green-400 dark:bg-green-950/50 dark:text-green-300'
                 )}
               >
                 {validityState === 'expired' ? (
@@ -235,7 +235,7 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
 
           {/* Warning */}
           <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950 text-sm">
-            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <p className="text-amber-800 dark:text-amber-200">
               {t(
                 'homologation.renewal.warning',

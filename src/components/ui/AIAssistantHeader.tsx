@@ -27,12 +27,12 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
 }: AIAssistantHeaderProps<TTemplate>) => {
     return (
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+            <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-20 transition-opacity pointer-events-none">
                 <Sparkles className="w-24 h-24 text-brand-500" />
             </div>
             <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center">
-                    <div className="p-1.5 bg-brand-100 dark:bg-brand-900/50 rounded-lg mr-2">
+                    <div className="p-1.5 bg-brand-100 dark:bg-brand-900 rounded-lg mr-2">
                         <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                     </div>
                     {title}
@@ -41,7 +41,7 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
                     <select
                         onChange={(e) => onSelectTemplate(e.target.value)}
                         disabled={readOnly}
-                        className="flex-1 sm:flex-none text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-colors outline-none cursor-pointer h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 sm:flex-none text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-colors outline-none cursor-pointer h-9 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                     >
                         <option value="">Choisir un modèle...</option>
                         {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}

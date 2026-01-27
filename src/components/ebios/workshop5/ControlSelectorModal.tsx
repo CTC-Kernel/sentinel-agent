@@ -174,7 +174,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('ebios.workshop5.searchControls')}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
             />
           </div>
 
@@ -273,7 +273,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                           className={cn(
                             "w-full flex items-center justify-between p-3 rounded-lg transition-colors text-left",
                             isSelected
-                              ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+                              ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800"
                               : "hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent"
                           )}
                         >

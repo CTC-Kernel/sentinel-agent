@@ -72,40 +72,56 @@ export const Pagination: React.FC<PaginationProps> = ({
 
                 {showItemsPerPage && onItemsPerPageChange && (
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-600 dark:text-slate-500 font-medium">Afficher:</span>
+                        <label
+                            htmlFor="items-per-page"
+                            className="text-sm text-slate-600 dark:text-slate-400 font-medium"
+                        >
+                            Afficher:
+                        </label>
                         <div className="relative">
                             <select
+                                id="items-per-page"
                                 value={itemsPerPage}
                                 onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 pr-8 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 outline-none cursor-pointer"
+                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 pr-10 min-h-[44px] text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 outline-none cursor-pointer"
+                                aria-label="Nombre d'éléments par page"
                             >
                                 {itemsPerPageOptions.map(option => (
                                     <option key={option} value={option}>{option}</option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-500 pointer-events-none" />
+                            <ChevronDown
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400 pointer-events-none"
+                                aria-hidden="true"
+                            />
                         </div>
                     </div>
                 )}
             </div>
 
-            <div className="flex items-center gap-1">
+            {/* Navigation - WCAG AAA: minimum 44x44px touch targets */}
+            <nav className="flex items-center gap-1.5" aria-label="Pagination">
                 <Button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     size="icon"
                     variant="ghost"
-                    className="rounded-xl disabled:opacity-30"
+                    className="min-w-[44px] min-h-[44px] rounded-xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                     aria-label="Page précédente"
+                    aria-disabled={currentPage === 1}
                 >
-                    <ChevronRight className="h-4 w-4 rotate-180 text-slate-600 dark:text-slate-400" />
+                    <ChevronRight className="h-5 w-5 rotate-180 text-slate-600 dark:text-slate-400" aria-hidden="true" />
                 </Button>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" role="list">
                     {getPageNumbers().map((page, index) => {
                         if (page === '...') {
                             return (
-                                <span key={`ellipsis-${index}`} className="px-3 py-1.5 text-slate-500 dark:text-slate-600 font-medium">
+                                <span
+                                    key={`ellipsis-${index}`}
+                                    className="px-3 py-2 text-slate-500 dark:text-slate-400 dark:text-slate-500 font-medium select-none"
+                                    aria-hidden="true"
+                                >
                                     ...
                                 </span>
                             );
@@ -119,10 +135,12 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 key={pageNum}
                                 onClick={() => onPageChange(pageNum)}
                                 variant={isActive ? 'default' : 'ghost'}
-                                className={`min-w-[36px] px-3 py-1.5 rounded-xl text-sm font-bold transition-all ${isActive
+                                className={`min-w-[44px] min-h-[44px] px-4 py-2 rounded-xl text-sm font-bold transition-all ${isActive
                                     ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'
-                                    : 'text-slate-600 dark:text-slate-400'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
+                                aria-label={`Page ${pageNum}`}
+                                aria-current={isActive ? 'page' : undefined}
                             >
                                 {pageNum}
                             </Button>
@@ -135,12 +153,13 @@ export const Pagination: React.FC<PaginationProps> = ({
                     disabled={currentPage === totalPages}
                     size="icon"
                     variant="ghost"
-                    className="rounded-xl disabled:opacity-30"
+                    className="min-w-[44px] min-h-[44px] rounded-xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                     aria-label="Page suivante"
+                    aria-disabled={currentPage === totalPages}
                 >
-                    <ChevronRight className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                    <ChevronRight className="h-5 w-5 text-slate-600 dark:text-slate-400" aria-hidden="true" />
                 </Button>
-            </div>
+            </nav>
         </div>
     );
 };

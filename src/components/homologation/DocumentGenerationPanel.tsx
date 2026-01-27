@@ -356,12 +356,12 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
       {!dossier.linkedEbiosAnalysisId && (
         <div className="p-4 bg-amber-50 dark:bg-amber-950 border-t">
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
                 {t('homologation.documents.noEbiosLink', 'Aucune analyse EBIOS liée')}
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300">
+              <p className="text-sm text-amber-700 dark:text-amber-400 dark:text-amber-300">
                 {t(
                   'homologation.documents.ebiosHint',
                   'Liez une analyse EBIOS pour pré-remplir automatiquement les documents.'

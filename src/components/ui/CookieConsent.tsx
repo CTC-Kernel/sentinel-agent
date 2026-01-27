@@ -55,7 +55,7 @@ export const CookieConsent: React.FC = () => {
             <div className="fixed bottom-0 left-0 right-0 z-max p-4 animate-slide-up">
                 <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 shrink-0">
+                        <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-xl text-brand-600 shrink-0">
                             <Cookie className="h-6 w-6" />
                         </div>
                         <div>
@@ -81,7 +81,7 @@ export const CookieConsent: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setIsVisible(false)}
-                            className="p-3 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            className="p-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                             aria-label="Fermer"
                         >
                             <X className="h-5 w-5" />

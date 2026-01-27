@@ -61,7 +61,7 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
 
     const renderWidget = (item: WidgetLayout) => {
         const entry = WIDGET_REGISTRY[item.widgetId];
-        if (!entry) return <div className="p-4 bg-red-100 text-red-800 rounded-xl">Widget not found: {item.widgetId}</div>;
+        if (!entry) return <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-800 rounded-xl">Widget not found: {item.widgetId}</div>;
 
         const Component = entry.component;
 
@@ -96,7 +96,7 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
 
             <DragOverlay dropAnimation={dropAnimation}>
                 {activeId ? (
-                    <div className="w-full h-full rounded-4xl overflow-hidden shadow-2xl scale-105 ring-4 ring-brand-500/20 cursor-grabbing bg-background">
+                    <div className="w-full h-full rounded-4xl overflow-hidden shadow-2xl scale-105 ring-4 ring-brand-300 cursor-grabbing bg-background">
                         {(() => {
                             const widget = layout.find(w => w.id === activeId);
                             // We need to enforce width on the overlay to prevent squashing

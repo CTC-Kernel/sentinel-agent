@@ -5,7 +5,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
-import { Globe, AlertOctagon, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box, LayoutDashboard, List, Network } from '../components/ui/Icons';
+import { Globe, AlertOctagon, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box, LayoutDashboard, List, Network, BookOpen } from '../components/ui/Icons';
 import { RefreshCw, Settings, ChevronRight } from '../components/ui/Icons';
 import { Menu, Transition } from '@headlessui/react';
 import { Threat } from '../types';
@@ -32,12 +32,19 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
 
+// Lazy load ThreatRegistry for library tab
+const ThreatRegistryContent = React.lazy(() =>
+    import('./ThreatRegistry').then(module => ({
+        default: module.ThreatRegistry
+    }))
+);
+
 export const ThreatIntelligence: React.FC = () => {
     const { user, addToast, demoMode } = useStore();
     // hasPermission check: View accessible to all, but actions are restricted in backend or sub-components.
 
     // UI State
-    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'map');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community' | 'library'>('threat_intelligence_active_tab', 'map');
 
     const [tooltipContent, setTooltipContent] = useState('');
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
@@ -200,7 +207,7 @@ export const ThreatIntelligence: React.FC = () => {
     }, [addToast, user]);
 
     // UI Handlers
-    const handleViewChange = React.useCallback((view: string) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community'), [setActiveTab]);
+    const handleViewChange = React.useCallback((view: string) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community' | 'library'), [setActiveTab]);
     const handleSettingsOpen = React.useCallback(() => setIsSettingsOpen(true), [setIsSettingsOpen]);
     const handleSubmitModalOpen = React.useCallback(() => setIsSubmitModalOpen(true), [setIsSubmitModalOpen]);
     const handleSearchChange = React.useCallback((q: string) => setSearchTerm(q), [setSearchTerm]);
@@ -244,6 +251,7 @@ export const ThreatIntelligence: React.FC = () => {
         { id: 'overview', label: 'Vue Globale', icon: LayoutDashboard },
         { id: 'map', label: 'Carte Live', icon: Globe },
         { id: 'feed', label: 'Flux Menaces', icon: List },
+        { id: 'library', label: 'Bibliothèque', icon: BookOpen },
         { id: 'community', label: 'Communauté', icon: Users },
     ], []);
 
@@ -310,17 +318,17 @@ export const ThreatIntelligence: React.FC = () => {
                 actions={
                     activeTab === 'feed' && (
                         <Menu as="div" className="relative inline-block text-left">
-                            <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
+                            <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
                                 <Network className="h-4 w-4 text-slate-500" />
                                 <span className="hidden md:inline">Filtre:</span> <span className="font-bold ml-1">{activeTypeFilter}</span>
                             </Menu.Button>
-                            <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" />
-                            <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                            <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-70 scale-100" />
+                            <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                 <div className="p-1">
                                     {filterOptions.map(f => (
                                         <Menu.Item key={f}>
                                             {({ active }) => (
-                                                <button aria-label={`Filter by ${f}`} onClick={() => handleTypeFilterChange(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} title={`Filter by ${f}`}>
+                                                <button aria-label={`Filter by ${f}`} onClick={() => handleTypeFilterChange(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} title={`Filter by ${f}`}>
                                                     {f}
                                                 </button>
                                             )}
@@ -351,7 +359,7 @@ export const ThreatIntelligence: React.FC = () => {
             {/* MAP TAB */}
             {
                 activeTab === 'map' && (
-                    <motion.div key="map" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-5xl border border-white/10 shadow-2xl overflow-hidden">
+                    <motion.div key="map" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
                         <div className="absolute top-6 right-6 z-10 flex gap-3">
                             <button
                                 aria-label="Toggle 2D/3D view"
@@ -418,7 +426,7 @@ export const ThreatIntelligence: React.FC = () => {
             {
                 activeTab === 'community' && (
                     <motion.div key="community" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-gradient-to-br from-brand-900 to-violet-900 rounded-5xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
+                        <div className="bg-gradient-to-br from-brand-900 to-violet-900 rounded-3xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
                             <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
 
                             <div className="relative z-10">
@@ -447,7 +455,7 @@ export const ThreatIntelligence: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800/50 rounded-5xl border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
+                        <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
@@ -459,7 +467,7 @@ export const ThreatIntelligence: React.FC = () => {
                                 {topContributors.map((c, i) => (
                                     <div
                                         key={c.name}
-                                        className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer"
+                                        className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer"
                                         onClick={() => handleHunterClick({ ...c, rank: i + 1 })}
                                     >
                                         <div className="flex items-center gap-4">
@@ -472,14 +480,25 @@ export const ThreatIntelligence: React.FC = () => {
                                                     {c.name}
                                                     {i === 0 && <Badge status="warning" className="scale-75 origin-left">MVP</Badge>}
                                                 </div>
-                                                <div className="text-sm text-slate-500 font-medium">{c.count} Menaces signalées</div>
+                                                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">{c.count} Menaces signalées</div>
                                             </div>
                                         </div>
-                                        <ChevronRight className="h-5 w-5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <ChevronRight className="h-5 w-5 text-slate-300 opacity-0 group-hover:opacity-70 transition-opacity" />
                                     </div>
                                 ))}
                             </div>
                         </div>
+                    </motion.div>
+                )
+            }
+
+            {/* LIBRARY TAB */}
+            {
+                activeTab === 'library' && (
+                    <motion.div key="library" variants={slideUpVariants} initial="initial" animate="visible" exit="exit">
+                        <React.Suspense fallback={<LoadingScreen />}>
+                            <ThreatRegistryContent />
+                        </React.Suspense>
                     </motion.div>
                 )
             }
@@ -505,7 +524,7 @@ const ThreatCard = React.memo(({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             onClick={() => onSelect(threat)}
-            className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-500/30 transition-all group relative cursor-pointer"
+            className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-300 transition-all group relative cursor-pointer"
         >
             <div className="absolute top-6 right-6 flex items-center gap-3">
                 {(threat.id.startsWith('simulated') || threat.id.startsWith('baseline')) && (
@@ -516,21 +535,21 @@ const ThreatCard = React.memo(({
             </div>
 
             <div className="flex gap-5">
-                <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-error-bg text-error-text' : 'bg-brand-50 text-brand-500 dark:bg-brand-900/20'}`}>
+                <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-error-bg text-error-text' : 'bg-brand-50 text-brand-500 dark:bg-brand-800'}`}>
                     <AlertOctagon className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-500 transition-colors">{threat.title}</h3>
-                    <div className="flex items-center text-sm text-slate-500 gap-4 mb-4">
+                    <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 gap-4 mb-4">
                         <span className="flex items-center"><Globe className="h-3 w-3 mr-1" /> {threat.country}</span>
                         <span className="flex items-center"><Users className="h-3 w-3 mr-1" /> {threat.author}</span>
                     </div>
 
                     <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                        <button aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" title="Confirm sighting">
+                        <button aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-colors" title="Confirm sighting">
                             <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
                         </button>
-                        <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" title="View discussions">
+                        <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-colors" title="View discussions">
                             <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
                         </button>
                         <div className="ml-auto flex gap-2">

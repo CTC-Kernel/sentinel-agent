@@ -144,7 +144,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
       aria-label={t('voxel.fallback.ariaLabel')}
     >
       {/* Icon */}
-      <div className="w-24 h-24 mb-6 flex items-center justify-center rounded-full bg-blue-500/10 border-2 border-blue-500/30">
+      <div className="w-24 h-24 mb-6 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500/30">
         <Icon className="w-12 h-12 text-blue-400" />
       </div>
 
@@ -197,7 +197,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
 
       {/* Mobile-specific message */}
       {reason === 'mobile' && (
-        <p className="mt-6 text-sm text-slate-500 text-center px-4">
+        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 text-center px-4">
           {t('voxel.fallback.mobileHint')}
         </p>
       )}

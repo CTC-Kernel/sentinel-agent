@@ -20,7 +20,7 @@ export const TextHighlight: React.FC<TextHighlightProps> = ({
     text,
     query,
     className = '',
-    highlightClassName = 'bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold rounded-sm px-0.5',
+    highlightClassName = 'bg-brand-100 text-brand-600 dark:text-brand-400 font-bold rounded-sm px-0.5',
     isHtml = false
 }) => {
     // Memoize sanitized content to prevent unnecessary DOMPurify calls

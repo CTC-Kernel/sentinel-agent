@@ -78,16 +78,16 @@ function WidgetCard({
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
         isDisabled
           ? [
-              'opacity-50 cursor-not-allowed',
-              'bg-slate-50/50 dark:bg-white/5',
-              'border-slate-200 dark:border-white/5',
+              'opacity-60 cursor-not-allowed',
+              'bg-slate-50/50 dark:bg-slate-800/50',
+              'border-slate-200 dark:border-slate-700',
             ]
           : [
               'cursor-pointer group',
-              'border-slate-200 dark:border-white/5',
-              'hover:border-brand-500 dark:hover:border-brand-500',
-              'bg-slate-50/50 dark:bg-white/5',
-              'hover:bg-brand-50/10 dark:hover:bg-brand-500/5',
+              'border-slate-200 dark:border-slate-700',
+              'hover:border-brand-500 dark:hover:border-brand-400',
+              'bg-slate-50/50 dark:bg-slate-800/50',
+              'hover:bg-brand-50 dark:hover:bg-brand-900/30',
             ]
       )}
       aria-disabled={isDisabled}
@@ -98,11 +98,11 @@ function WidgetCard({
           className={cn(
             'p-2.5 rounded-xl transition-colors',
             isDisabled
-              ? 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+              ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
               : [
-                  'bg-white dark:bg-white/5 text-brand-500',
+                  'bg-white dark:bg-slate-800 text-brand-500 dark:text-brand-400',
                   'group-hover:bg-brand-500 group-hover:text-white',
-                  'shadow-sm',
+                  'shadow-sm dark:shadow-none',
                 ]
           )}
         >
@@ -285,7 +285,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
               </div>
               <button
                 onClick={handleClose}
-                className="p-2.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label={t('common.close')}
               >
                 <X className="w-6 h-6" />

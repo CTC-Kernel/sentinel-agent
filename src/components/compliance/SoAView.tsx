@@ -213,7 +213,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                         <History className="h-4 w-4 mr-2" />
                         Historique
                         {versions.length > 0 && (
-                            <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-full">
+                            <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 rounded-full">
                                 {versions.length}
                             </span>
                         )}
@@ -269,19 +269,19 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                     className={cn(
                                         "w-full p-3 rounded-lg border text-left transition-all",
                                         selectedVersion?.id === version.id
-                                            ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20"
+                                            ? "border-brand-500 bg-brand-50 dark:bg-brand-800"
                                             : "border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                                     )}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                                            <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                                                 <span className="text-sm font-bold text-brand-700 dark:text-brand-300">
                                                     v{version.version}
                                                 </span>
                                             </div>
                                             <div>
-                                                <div className="flex items-center gap-2 text-sm text-slate-900 dark:text-slate-100">
+                                                <div className="flex items-center gap-2 text-sm text-slate-900 dark:text-white dark:text-slate-100">
                                                     <Clock className="h-3 w-3 text-slate-400" />
                                                     {new Date(version.generatedAt).toLocaleDateString('fr-FR', {
                                                         day: 'numeric',
@@ -320,16 +320,16 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             {!selectedVersion && controls.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                        <div className="text-xs text-slate-500 uppercase">Total</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 uppercase">Total</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{currentStats.totalControls}</div>
                     </div>
                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div className="text-xs text-blue-600 dark:text-blue-400 uppercase">Applicables</div>
-                        <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{currentStats.applicableControls}</div>
+                        <div className="text-2xl font-bold text-blue-700 dark:text-blue-400 dark:text-blue-300">{currentStats.applicableControls}</div>
                     </div>
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                         <div className="text-xs text-green-600 dark:text-green-400 uppercase">Implémentés</div>
-                        <div className="text-2xl font-bold text-green-700 dark:text-green-300">{currentStats.implementedControls}</div>
+                        <div className="text-2xl font-bold text-green-700 dark:text-green-400 dark:text-green-300">{currentStats.implementedControls}</div>
                     </div>
                     <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                         <div className="text-xs text-yellow-600 dark:text-yellow-400 uppercase">Partiels</div>
@@ -351,7 +351,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                     </div>
                 ) : (
                     <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-900/50">
+                        <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-900/50">
                             <tr>
                                 <th className="px-4 py-3">Code</th>
                                 <th className="px-4 py-3">Contrôle</th>
@@ -369,12 +369,12 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                 const missingJustification = isNonApplicable && (!item.justification || item.justification.trim() === '');
 
                                 return (
-                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
+                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5">
                                         <td className="px-4 py-3 font-medium">{item.code}</td>
                                         <td className="px-4 py-3 max-w-sm">
-                                            <div className="font-medium text-slate-900 dark:text-slate-100">{item.name}</div>
+                                            <div className="font-medium text-slate-900 dark:text-white dark:text-slate-100">{item.name}</div>
                                             {!item.isHistorical && 'description' in item && (
-                                                <div className="text-xs text-slate-500 truncate" title={item.description}>{item.description}</div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-400 truncate" title={item.description}>{item.description}</div>
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
@@ -428,7 +428,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                     }}
                                                     type="text"
                                                     className={`bg-transparent text-xs w-full focus:ring-1 focus-visible:ring-brand-500 rounded px-2 py-1 transition-colors ${missingJustification
-                                                        ? 'border border-red-500 bg-red-50 dark:bg-red-900/10 placeholder-red-400'
+                                                        ? 'border border-red-500 bg-red-50 dark:bg-red-50 dark:bg-red-900 placeholder-red-400'
                                                         : 'border-none placeholder-slate-400'
                                                     }`}
                                                     placeholder={missingJustification ? "Justification requise !" : "Ajouter une justification..."}

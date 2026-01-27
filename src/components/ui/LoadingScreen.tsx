@@ -23,7 +23,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
     return createPortal(
         <div className="fixed inset-0 z-max h-[100dvh] w-screen grid place-items-center bg-background transition-colors overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-200/40 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-100 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
             </div>
             <div className="relative z-10 flex flex-col items-center">
                 <div className="w-20 h-20 rounded-3xl glass-premium flex items-center justify-center shadow-2xl animate-pulse mb-8 border border-white/40 dark:border-white/10">
@@ -37,7 +37,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
                     </div>
                 ) : (
                     <div className="flex flex-col items-center animate-fade-in">
-                        <p className="text-sm text-slate-500 mb-4 text-center px-4">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center px-4">
                             {message || 'Le chargement prend plus de temps que prévu...'}
                         </p>
                         <Button

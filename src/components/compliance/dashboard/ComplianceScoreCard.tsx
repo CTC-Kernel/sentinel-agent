@@ -61,9 +61,9 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
     const doraScore = calculateScore('DORA');
 
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-5xl shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500">
+        <div className="glass-premium p-6 md:p-8 rounded-3xl shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
             {/* Left: Global Score */}
             <div className="flex items-center gap-6 md:p-8 min-w-[240px] z-10">
@@ -142,10 +142,10 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                 {/* Agent Verified Controls */}
                 {agentVerifiedControls > 0 && (
                     <Tooltip content="Contrôles vérifiés automatiquement par les agents Sentinel" position="top">
-                        <div className="flex-1 flex items-center justify-between px-4 py-3 bg-brand-50 dark:bg-brand-900/20 rounded-2xl border border-brand-200 dark:border-brand-800/50">
+                        <div className="flex-1 flex items-center justify-between px-4 py-3 bg-brand-50 dark:bg-brand-800 rounded-2xl border border-brand-200 dark:border-brand-700">
                             <div className="flex items-center gap-2">
                                 <Bot className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                                <span className="text-xs font-bold text-brand-600/70 dark:text-brand-400/70">Agent</span>
+                                <span className="text-xs font-bold text-brand-600 dark:text-brand-400">Agent</span>
                             </div>
                             <span className="text-lg font-black text-brand-600 dark:text-brand-400">{agentVerifiedControls}</span>
                         </div>

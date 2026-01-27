@@ -345,7 +345,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                   'p-4 rounded-xl border-2 text-left transition-all',
                   isSelected && 'border-blue-500 bg-blue-50',
                   !isSelected && !isDisabled && 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600',
-                  isDisabled && 'opacity-50 cursor-not-allowed border-slate-200'
+                  isDisabled && 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-700'
                 )}
               >
                 <div className="flex items-center gap-3 mb-2">
@@ -431,7 +431,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             id="archiveProcessed"
             checked={config.archiveProcessed ?? true}
             onChange={e => updateConfig('archiveProcessed', e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus-visible:ring-brand-500"
+            className="h-4 w-4 rounded border-slate-300 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
           />
           <label htmlFor="archiveProcessed" className="text-sm">
             {t('otConnector.csv.archiveProcessed', 'Archive processed files')}
@@ -564,7 +564,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           id="enabled"
           checked={formData.enabled}
           onChange={e => updateField('enabled', e.target.checked)}
-          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus-visible:ring-brand-500"
+          className="h-4 w-4 rounded border-slate-300 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
         />
         <label htmlFor="enabled" className="text-sm">
           {t('otConnector.enabled', 'Enable connector immediately after creation')}
@@ -629,7 +629,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
         {testResult && (
           <div className={cn(
             'flex items-center gap-2 p-3 rounded-lg',
-            testResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            testResult.success ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
           )}>
             {testResult.success ? (
               <CheckCircle className="h-5 w-5" />
@@ -643,8 +643,8 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
 
       {/* Validation errors */}
       {!validationResult.valid && (
-        <Card className="p-4 border-red-200 bg-red-50">
-          <h4 className="font-medium text-red-700 mb-2">
+        <Card className="p-4 border-red-200 dark:border-red-800 bg-red-50">
+          <h4 className="font-medium text-red-700 dark:text-red-400 mb-2">
             {t('otConnector.review.validationErrors', 'Validation Errors')}
           </h4>
           <ul className="list-disc list-inside text-sm text-red-600">

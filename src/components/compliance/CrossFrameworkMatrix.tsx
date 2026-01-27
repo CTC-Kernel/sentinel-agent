@@ -324,7 +324,7 @@ const CheckRow: React.FC<CheckRowProps> = ({
                                                 <AlertTriangle className="h-3 w-3" />
                                             )
                                         ) : (
-                                            <Shield className="h-3 w-3 opacity-50" />
+                                            <Shield className="h-3 w-3 opacity-60" />
                                         )}
                                     </div>
                                 ))}
@@ -567,7 +567,7 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
                                 className="w-8 text-center"
                             >
                                 <Tooltip content={FRAMEWORK_ABBREV[code]}>
-                                    <span className="text-[10px] font-medium text-muted-foreground">
+                                    <span className="text-[11px] font-medium text-muted-foreground">
                                         {code.slice(0, 3)}
                                     </span>
                                 </Tooltip>

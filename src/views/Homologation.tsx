@@ -127,7 +127,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
     bgColor: string
   ) => (
     <Card className="p-5 border-none shadow-apple-sm relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-      <div className={`absolute inset-0 opacity-10 ${bgColor}`} />
+      <div className={`absolute inset-0 opacity-30 ${bgColor}`} />
       <div className="flex items-center gap-4 relative z-10">
         <div className={`p-4 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm ${bgColor}`}>
           <Icon className={`h-6 w-6 ${color}`} />

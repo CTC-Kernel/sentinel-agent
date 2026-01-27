@@ -109,7 +109,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                     <div className="flex flex-wrap gap-2">
                         {activity.dataCategories && activity.dataCategories.length > 0 ? (
                             activity.dataCategories.map((cat, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 rounded-full text-xs font-medium border border-brand-100 dark:border-brand-800">
+                                <span key={idx} className="px-3 py-1 bg-brand-50 dark:bg-brand-800 text-brand-700 dark:text-brand-300 rounded-full text-xs font-medium border border-brand-100 dark:border-brand-800">
                                     {cat}
                                 </span>
                             ))
@@ -153,7 +153,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                     )}
                 </div>
                 {activity.hasDPIA && (
-                    <div className="mt-4 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                    <div className="mt-4 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-900/30">
                         <AlertTriangle className="h-4 w-4" />
                         <span>Action requise : Vérifier l'analyse d'impact.</span>
                     </div>

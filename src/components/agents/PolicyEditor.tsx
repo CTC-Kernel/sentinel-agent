@@ -604,7 +604,7 @@ const PolicyCard: React.FC<{
                     variant="soft"
                     className={cn(
                         getDeploymentStatusColor(policy.deploymentStatus),
-                        'bg-opacity-10'
+                        'bg-opacity-30'
                     )}
                 >
                     {getDeploymentStatusLabel(policy.deploymentStatus)}

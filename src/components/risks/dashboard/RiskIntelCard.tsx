@@ -81,7 +81,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm"
+                            className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm"
                         >
                             <p className="text-sm text-slate-700 dark:text-slate-300 font-medium mb-1">Total Risques</p>
                             <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -123,7 +123,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                 {/* RIGHT: The "Value Creation" Engine (Visualization) */}
                 <div className="lg:col-span-8 flex flex-col justify-center pl-0 lg:pl-4">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100 flex items-center gap-2">
                             <Target className="w-5 h-5 text-violet-500" />
                             Performance de Traitement
                         </h3>
@@ -139,7 +139,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                         <div className="relative h-12 md:h-16 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
                             <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-200 to-red-100 dark:from-red-900/40 dark:to-red-800/20 w-full" />
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-right">
-                                <span className="block text-xs font-bold text-red-700 dark:text-red-300 uppercase tracking-wider">Risque Brut Moyen</span>
+                                <span className="block text-xs font-bold text-red-700 dark:text-red-400 dark:text-red-300 uppercase tracking-wider">Risque Brut Moyen</span>
                                 <span className="block text-lg md:text-2xl font-black text-red-800 dark:text-red-200">{metrics.avgInherent.toFixed(1)}</span>
                             </div>
                         </div>

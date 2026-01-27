@@ -30,7 +30,7 @@ export const VoxelSkeleton: React.FC<VoxelSkeletonProps> = ({ message }) => {
       <div className="relative w-24 h-24 mb-8">
         <div className="absolute inset-0 border-2 border-blue-500/30 rounded-lg animate-pulse" />
         <div
-          className="absolute inset-2 border-2 border-blue-500/50 rounded-lg animate-pulse"
+          className="absolute inset-2 border-2 border-blue-2000 rounded-lg animate-pulse"
           style={{ animationDelay: '150ms' }}
         />
         <div

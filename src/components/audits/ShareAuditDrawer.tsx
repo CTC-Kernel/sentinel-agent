@@ -90,7 +90,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
             <div className="p-6 space-y-6">
                 {!generatedLink ? (
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-xl border border-brand-100 dark:border-brand-800 flex items-start gap-4">
+                        <div className="bg-brand-50 dark:bg-brand-800 p-4 rounded-xl border border-brand-100 dark:border-brand-800 flex items-start gap-4">
                             <div className="bg-brand-100 dark:bg-brand-800 p-2 rounded-lg text-brand-600 dark:text-brand-300">
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
@@ -140,7 +140,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
                 ) : (
                     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
                         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6 text-center">
-                            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-800 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 dark:text-emerald-300 shadow-sm">
+                            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-800 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 dark:text-emerald-300 shadow-sm">
                                 <ShieldCheck className="w-8 h-8" />
                             </div>
                             <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100 mb-2">Accès sécurisé généré !</h3>

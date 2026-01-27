@@ -129,7 +129,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
             strokeWidth={6}
             className="mx-auto"
           />
-          <p className="text-sm text-slate-500 mt-2">{t('ebios.workshop1.maturityScore')}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{t('ebios.workshop1.maturityScore')}</p>
         </div>
 
         <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-700/50">
@@ -156,7 +156,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
           </p>
         </div>
 
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200/50 dark:border-red-700/50">
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-1000 dark:border-red-700/50">
           <div className="flex items-center justify-center gap-2">
             <MinusCircle className="w-5 h-5 text-red-500" />
             <span className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -217,13 +217,13 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                <span className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 text-green-600 dark:text-green-400">
                   {measures.filter((m) => m.status === 'implemented').length}
                 </span>
-                <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
+                <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
                   {measures.filter((m) => m.status === 'partial').length}
                 </span>
-                <span className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                <span className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600 dark:text-red-400">
                   {measures.filter((m) => m.status === 'not_implemented').length}
                 </span>
               </div>
@@ -246,7 +246,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
                             {measure.name}
                           </h4>
                           {measure.description && (
-                            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                               {measure.description}
                             </p>
                           )}

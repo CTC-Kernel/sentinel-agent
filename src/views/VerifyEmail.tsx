@@ -53,7 +53,7 @@ export const VerifyEmail: React.FC = () => {
             <MasterpieceBackground />
 
             <div className="w-full max-w-md p-6 relative z-10 animate-scale-in">
-                <div className="glass-premium rounded-5xl p-10 flex flex-col items-center shadow-2xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-black/60 backdrop-blur-xl text-center">
+                <div className="glass-premium rounded-3xl p-10 flex flex-col items-center shadow-2xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-black/60 backdrop-blur-xl text-center">
 
                     <div className="w-20 h-20 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center mb-6 text-yellow-600 dark:text-yellow-500 shadow-lg">
                         <Mail className="h-10 w-10" />
@@ -66,7 +66,7 @@ export const VerifyEmail: React.FC = () => {
                     </p>
 
                     {emailSent && (
-                        <div className="w-full mb-6 p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-green-600">
+                        <div className="w-full mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-100 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-green-600">
                             <CheckCircle2 className="h-4 w-4" /> Email envoyé ! Vérifiez vos spams.
                         </div>
                     )}
@@ -89,7 +89,7 @@ export const VerifyEmail: React.FC = () => {
                             onClick={handleResendEmail}
                             disabled={loading || emailSent}
                             isLoading={loading}
-                            className="w-full py-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-lg"
+                            className="w-full py-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-lg"
                         >
                             Renvoyer l'email
                         </Button>
@@ -99,7 +99,7 @@ export const VerifyEmail: React.FC = () => {
                         variant="link"
                         aria-label="Se déconnecter"
                         onClick={handleLogout}
-                        className="mt-8 text-sm font-bold text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="mt-8 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
                         Se déconnecter

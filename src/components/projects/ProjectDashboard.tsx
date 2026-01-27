@@ -157,7 +157,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-premium p-6 md:p-8 rounded-5xl relative overflow-hidden"
+                className="glass-premium p-6 md:p-8 rounded-3xl relative overflow-hidden"
             >
                 {/* Tech Corners */}
                 <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -165,8 +165,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-32 -mt-32" />
                 </div>
 
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 relative z-10">
@@ -198,18 +198,18 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="flex-1 grid grid-cols-2 gap-6 border-l border-r border-border/50 px-6 mx-2">
                         <div className="text-center">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <div className="p-2 bg-brand-500/10 rounded-xl">
+                                <div className="p-2 bg-brand-50 rounded-xl">
                                     <TrendingUp className="h-4 w-4 text-brand-500" />
                                 </div>
                             </div>
                             <div className="text-2xl font-black bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
                                 {Math.round(projectHealth.progressRate)}%
                             </div>
-                            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Progression</div>
+                            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Progression</div>
                             <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full transition-all duration-1000" style={{ width: `${projectHealth.progressRate}%` }} />
                             </div>
-                            <div className="text-[10px] text-muted-foreground mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
+                            <div className="text-[11px] text-muted-foreground mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
                         </div>
                         <div className="text-center">
                             <div className="flex items-center justify-center gap-2 mb-2">
@@ -220,7 +220,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                             <div className="text-2xl font-black bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
                                 {milestoneStats.achieved}/{milestoneStats.total}
                             </div>
-                            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Jalons</div>
+                            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Jalons</div>
                             <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-violet-500 to-violet-400 rounded-full transition-all duration-1000" style={{ width: `${milestoneStats.rate}%` }} />
                             </div>
@@ -257,11 +257,11 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <Layers className="w-4 h-4 text-brand-500" />
                         </div>
                         Distribution des Tâches
@@ -317,9 +317,9 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-orange-500/10 rounded-xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -353,9 +353,9 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
             >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
                 <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
                     <div className="p-2 bg-emerald-500/10 rounded-xl">
                         <TrendingDown className="w-4 h-4 text-emerald-500" />
@@ -383,9 +383,9 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
                         <div className="p-2 bg-violet-500/10 rounded-xl">
                             <Calendar className="h-4 w-4 text-violet-500" />
@@ -429,8 +429,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                 <div className={`px-3 py-1.5 rounded-xl text-xs font-bold ${milestone.status === 'achieved'
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                     : milestone.status === 'missed'
-                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400'
+                                        ? 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
+                                        : 'bg-slate-100 text-slate-600 dark:text-slate-400 dark:bg-slate-800/50 dark:text-slate-400'
                                     }`}>
                                     {milestone.status === 'achieved' ? 'Atteint' : milestone.status === 'missed' ? 'Manqué' : 'En attente'}
                                 </div>

@@ -77,7 +77,7 @@ export const SSOManager: React.FC = () => {
     // In production we would enforce the check: if (!isEnterprise) return <SSOPlaceholder />;
 
     return (
-        <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
+        <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
             <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
@@ -90,7 +90,7 @@ export const SSOManager: React.FC = () => {
                         <p className="text-xs text-slate-500 dark:text-muted-foreground">Gestion de l'authentification centralisée</p>
                     </div>
                 </div>
-                <div className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-2">
+                <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 dark:bg-green-500/20 dark:text-green-300 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     Actif
                 </div>
@@ -131,7 +131,7 @@ export const SSOManager: React.FC = () => {
                                     cursor-pointer p-4 rounded-xl border flex items-center justify-between transition-all
                                     ${settings.allowedProviders?.includes(provider)
                                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 opacity-60 hover:opacity-100'
+                                        : 'border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 opacity-60 hover:opacity-70'
                                     }
                                 `}
                             >

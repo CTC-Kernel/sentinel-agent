@@ -79,7 +79,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-300 var(--ease-apple) pointer-events-none
-                        -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md
+                        -top-2.5 text-[11px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md
                         peer-focus:text-primary
                         ${error
                             ? 'text-destructive'

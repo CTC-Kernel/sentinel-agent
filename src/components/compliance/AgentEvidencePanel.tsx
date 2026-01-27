@@ -83,7 +83,7 @@ const ConfidenceGauge: React.FC<{ score: number; size?: 'sm' | 'md' | 'lg' }> = 
             </svg>
             <span className={cn(
                 'absolute inset-0 flex items-center justify-center font-bold',
-                size === 'sm' ? 'text-[9px]' : size === 'md' ? 'text-xs' : 'text-sm',
+                size === 'sm' ? 'text-[11px]' : size === 'md' ? 'text-xs' : 'text-sm',
                 getColor().replace('stroke-', 'text-')
             )}>
                 {score}%
@@ -159,7 +159,7 @@ const EvidenceRow: React.FC<EvidenceRowProps> = ({ evidence, onClick }) => {
                     </span>
                     <Badge
                         status={evidence.status === 'pass' ? 'success' : evidence.status === 'fail' ? 'error' : 'warning'}
-                        className="text-[9px] px-1.5 py-0"
+                        className="text-[11px] px-1.5 py-0"
                     >
                         {evidence.status === 'pass' ? 'Conforme' : evidence.status === 'fail' ? 'Non conforme' : 'Erreur'}
                     </Badge>
@@ -186,7 +186,7 @@ const EvidenceRow: React.FC<EvidenceRowProps> = ({ evidence, onClick }) => {
                     {formatRelativeTime(evidence.verifiedAt)}
                 </div>
                 {onClick && (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity" />
                 )}
             </div>
         </motion.div>
@@ -237,21 +237,21 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
                         <Check className="h-4 w-4" />
                         <span className="text-lg font-bold">{summary.passingEvidence}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Conformes</span>
+                    <span className="text-[11px] text-muted-foreground uppercase tracking-wider">Conformes</span>
                 </div>
                 <div className="text-center">
                     <div className="flex items-center justify-center gap-1 text-destructive">
                         <X className="h-4 w-4" />
                         <span className="text-lg font-bold">{summary.failingEvidence}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Non conformes</span>
+                    <span className="text-[11px] text-muted-foreground uppercase tracking-wider">Non conformes</span>
                 </div>
                 <div className="text-center">
                     <div className="flex items-center justify-center gap-1 text-muted-foreground">
                         <Server className="h-4 w-4" />
                         <span className="text-lg font-bold">{summary.agentIds.length}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Agents</span>
+                    <span className="text-[11px] text-muted-foreground uppercase tracking-wider">Agents</span>
                 </div>
             </div>
         </div>

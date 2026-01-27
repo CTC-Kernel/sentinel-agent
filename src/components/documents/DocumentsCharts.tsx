@@ -126,10 +126,10 @@ const renderActiveShape = (props: unknown) => {
 // Tech corner decoration
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     <div className={cn("pointer-events-none", className)}>
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-500/30 rounded-tl-lg" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-500/30 rounded-tr-lg" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-500/30 rounded-bl-lg" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-500/30 rounded-br-lg" />
+        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-300 rounded-tl-lg" />
+        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-300 rounded-tr-lg" />
+        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-300 rounded-bl-lg" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-300 rounded-br-lg" />
     </div>
 );
 
@@ -286,7 +286,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Taux Validation</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Taux Validation</span>
                         <FileCheck className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[140px] relative">
@@ -313,7 +313,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
                                 {stats.validationRate}%
                             </span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
                                 {stats.validationRate >= 80 ? 'Excellent' : stats.validationRate >= 50 ? 'Moyen' : 'Faible'}
                             </span>
                         </div>
@@ -328,10 +328,10 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="p-3 bg-success-500/10 rounded-2xl">
+                        <div className="p-3 bg-success-bg rounded-2xl">
                             <CheckCircle2 className="w-5 h-5 text-success-500" />
                         </div>
-                        <Badge className="bg-success-500/10 text-success-600 border-success-500/20 text-[10px]">
+                        <Badge className="bg-success-bg text-success-600 border-success-500/20 text-[11px]">
                             {stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0}%
                         </Badge>
                     </div>
@@ -339,7 +339,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {stats.published}
                         </div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Publiés</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">Publiés</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -358,10 +358,10 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="p-3 bg-warning-500/10 rounded-2xl">
+                        <div className="p-3 bg-warning-bg rounded-2xl">
                             <Clock className="w-5 h-5 text-warning-500" />
                         </div>
-                        <Badge className="bg-warning-500/10 text-warning-600 border-warning-500/20 text-[10px]">
+                        <Badge className="bg-warning-bg text-warning-600 border-warning-500/20 text-[11px]">
                             En attente
                         </Badge>
                     </div>
@@ -369,7 +369,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {stats.inReview}
                         </div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">En Revue</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">En Revue</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -388,11 +388,11 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="p-3 bg-red-500/10 rounded-2xl">
+                        <div className="p-3 bg-red-50 rounded-2xl">
                             <AlertTriangle className="w-5 h-5 text-red-500" />
                         </div>
                         {stats.expired > 0 && (
-                            <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-[10px] animate-pulse">
+                            <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20 text-[11px] animate-pulse">
                                 Action requise
                             </Badge>
                         )}
@@ -401,7 +401,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {stats.expired}
                         </div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Expirés</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">Expirés</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -451,7 +451,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
                             Aucun document
                         </div>
                     )}
@@ -500,7 +500,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
                             Aucun document
                         </div>
                     )}
@@ -597,7 +597,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                             <History className="w-4 h-4 text-warning-500" />
                             Expiration Prochaine (30j)
                         </h3>
-                        <Badge className="bg-warning-500/10 text-warning-600 border-warning-500/20 text-[10px]">
+                        <Badge className="bg-warning-bg text-warning-600 border-warning-500/20 text-[11px]">
                             {expiringDocuments.length} docs
                         </Badge>
                     </div>
@@ -613,7 +613,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className={cn(
                                                 "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold",
-                                                daysUntil <= 7 ? "bg-red-500/10 text-red-600" : "bg-warning-500/10 text-warning-600"
+                                                daysUntil <= 7 ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400" : "bg-warning-bg text-warning-600"
                                             )}>
                                                 {index + 1}
                                             </div>
@@ -621,14 +621,14 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                                 <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
                                                     {doc.title}
                                                 </div>
-                                                <div className="text-[10px] text-slate-500 uppercase tracking-wider">
+                                                <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                                     {doc.type}
                                                 </div>
                                             </div>
                                         </div>
                                         <Badge className={cn(
-                                            "text-[10px]",
-                                            daysUntil <= 7 ? "bg-red-500/10 text-red-600 border-red-500/20" : "bg-warning-500/10 text-warning-600 border-warning-500/20"
+                                            "text-[11px]",
+                                            daysUntil <= 7 ? "bg-red-50 text-red-600 dark:text-red-400 border-red-500/20" : "bg-warning-bg text-warning-600 border-warning-500/20"
                                         )}>
                                             {daysUntil}j
                                         </Badge>
@@ -662,28 +662,28 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
                             <div className="flex items-center gap-2 mb-2">
                                 <FileText className="w-4 h-4 text-slate-500" />
-                                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Total</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Total</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.total}</div>
                         </div>
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
                             <div className="flex items-center gap-2 mb-2">
                                 <Edit className="w-4 h-4 text-slate-500" />
-                                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Brouillons</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Brouillons</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.drafts}</div>
                         </div>
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
                             <div className="flex items-center gap-2 mb-2">
                                 <Shield className="w-4 h-4 text-brand-500" />
-                                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Sécurisés</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Sécurisés</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.secure}</div>
                         </div>
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
                             <div className="flex items-center gap-2 mb-2">
                                 <Calendar className="w-4 h-4 text-slate-500" />
-                                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Ce Mois</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Ce Mois</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">
                                 {documents.filter(d => {

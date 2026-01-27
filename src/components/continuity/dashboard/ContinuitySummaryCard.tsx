@@ -36,15 +36,15 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
     }, [processes, drills]);
 
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-5xl border border-white/60 dark:border-white/5 flex flex-col xl:flex-row gap-8 relative group overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+        <div className="glass-premium p-6 md:p-8 rounded-3xl border border-white/60 dark:border-white/5 flex flex-col xl:flex-row gap-8 relative group overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
             {/* Tech Corners Generic */}
             <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-            <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
+            <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70 opacity-70"></div>
             </div>
 
             {/* 1. Global Coverage Gauge (Radial) */}
@@ -91,29 +91,29 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
             <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 border-l border-r border-border/50 px-6 mx-2 relative z-10">
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                        <History className="h-4 w-4 text-slate-500 group-hover/metric:text-amber-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Expirés</div>
+                        <History className="h-4 w-4 text-slate-500 dark:text-slate-400 group-hover/metric:text-amber-500 transition-colors" />
+                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Expirés</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.overdueTests}</div>
                 </div>
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                        <Activity className="h-4 w-4 text-slate-500 group-hover/metric:text-brand-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Processus</div>
+                        <Activity className="h-4 w-4 text-slate-500 dark:text-slate-400 group-hover/metric:text-brand-500 transition-colors" />
+                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Processus</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.total}</div>
                 </div>
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                        <ShieldCheck className="h-4 w-4 text-slate-500 group-hover/metric:text-rose-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Critiques</div>
+                        <ShieldCheck className="h-4 w-4 text-slate-500 dark:text-slate-400 group-hover/metric:text-rose-500 transition-colors" />
+                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Critiques</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.critical}</div>
                 </div>
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                        <Zap className="h-4 w-4 text-slate-500 group-hover/metric:text-blue-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Exercices</div>
+                        <Zap className="h-4 w-4 text-slate-500 dark:text-slate-400 group-hover/metric:text-blue-500 transition-colors" />
+                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Exercices</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.totalDrills}</div>
                 </div>
@@ -124,12 +124,12 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
                 <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors cursor-default mb-2">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide font-mono">Succès Drills</span>
+                        <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide font-mono">Succès Drills</span>
                     </div>
                 </div>
                 <div className="text-center">
                     <div className="text-3xl font-black text-foreground">{stats.successRate}%</div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Taux de réussite</div>
+                    <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Taux de réussite</div>
                 </div>
             </div>
         </div>

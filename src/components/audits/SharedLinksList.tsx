@@ -89,14 +89,14 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                             <div>
                                 <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-2">
                                     {link.auditorEmail}
-                                    {!isActive && <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded">Inactif</span>}
+                                    {!isActive && <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 dark:text-slate-400 rounded">Inactif</span>}
                                 </p>
                                 <div className="flex items-center gap-3 text-xs text-slate-500">
                                     <span className="flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
                                         Expire {formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true, locale: fr })}
                                     </span>
-                                    {isActive && <span className="text-brand-600 font-mono text-[10px] select-all">...{link.id.substring(0, 8)}</span>}
+                                    {isActive && <span className="text-brand-600 font-mono text-[11px] select-all">...{link.id.substring(0, 8)}</span>}
                                 </div>
                             </div>
                         </div>

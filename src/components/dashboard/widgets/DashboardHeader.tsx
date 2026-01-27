@@ -207,8 +207,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
     if (isEmpty && !loading) {
         return (
-            <GlassCard className="relative overflow-hidden rounded-5xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-500/20 via-background/0 to-background/0 dark:from-brand-500/10 dark:via-background/0 dark:to-background/0 opacity-50 transition-opacity duration-1000 group-hover:opacity-70" />
+            <GlassCard className="relative overflow-hidden rounded-3xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-500/20 via-background/0 to-background/0 dark:from-brand-500/10 dark:via-background/0 dark:to-background/0 opacity-60 transition-opacity duration-1000 group-hover:opacity-70" />
                 <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
                         <span className="relative flex h-2.5 w-2.5 mr-3">
@@ -234,7 +234,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             return (
                                 <button key={card.link || `card-${i}`} onClick={() => {
                                     if (card.link && card.link.startsWith('/')) navigate(card.link); // validateUrl check
-                                }} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={card.title}>
+                                }} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-400 dark:hover:border-brand-300 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={card.title}>
                                     <div className={`absolute -right-10 -bottom-10 w-40 h-40 ${styles.bg} rounded-full blur-3xl ${styles.bgHover} transition-all duration-500`} />
 
                                     <div className={`w-14 h-14 rounded-2xl ${styles.iconBg} flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
@@ -256,16 +256,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             initial={{ opacity: 0, scale: 0.96, filter: 'blur(20px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="group relative rounded-5xl p-[2px] overflow-hidden shadow-2xl shadow-brand-500/10"
+            className="group relative rounded-3xl p-[2px] overflow-hidden shadow-2xl shadow-brand-500/25"
         >
             {/* Premium Animated Border Gradient */}
-            <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--brand-400)_0%,var(--info-400)_25%,var(--brand-500)_50%,var(--success-400)_75%,var(--brand-400)_100%)] animate-shimmer-rotate opacity-60 group-hover:opacity-100 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
-            <div className="absolute inset-[1px] rounded-5xl bg-background/95 dark:bg-slate-950/95" />
+            <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--brand-400)_0%,var(--info-400)_25%,var(--brand-500)_50%,var(--success-400)_75%,var(--brand-400)_100%)] animate-shimmer-rotate opacity-60 group-hover:opacity-70 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
+            <div className="absolute inset-[1px] rounded-3xl bg-background/95 dark:bg-slate-950/95" />
 
-            <GlassCard className="glass-premium relative rounded-5xl overflow-hidden shadow-none border-none bg-gradient-to-br from-white/80 via-white/60 to-slate-50/80 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950/90">
+            <GlassCard className="glass-premium relative rounded-3xl overflow-hidden shadow-none border-none bg-gradient-to-br from-white/80 via-white/60 to-slate-50/80 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950/90">
                 {/* Multi-layer Spotlight Effects */}
                 <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--brand-500)" />
-                <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-50" fill="var(--info-400)" />
+                <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-60" fill="var(--info-400)" />
 
                 {/* Premium Border Beam */}
                 <BorderBeam size={600} duration={15} colorFrom="var(--brand-400)" colorTo="var(--info-500)" />
@@ -277,8 +277,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <div className="absolute inset-0 bg-grid-slate-900/[0.02] dark:bg-grid-white/[0.02] pointer-events-none" />
 
                 {/* Floating Orbs */}
-                <div className="absolute top-10 left-[20%] w-32 h-32 bg-brand-500/20 rounded-full blur-3xl animate-float pointer-events-none" />
-                <div className="absolute bottom-10 right-[15%] w-40 h-40 bg-info-500/15 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
+                <div className="absolute top-10 left-[20%] w-32 h-32 bg-brand-300/30 dark:bg-brand-9000/15 rounded-full blur-3xl animate-float pointer-events-none" />
+                <div className="absolute bottom-10 right-[15%] w-40 h-40 bg-info-400/20 dark:bg-info-500/15 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
 
                 {/* Inner Content Container */}
                 <div className="relative z-10 p-6 md:p-8 lg:p-10">
@@ -290,19 +290,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             <div className="flex justify-center xl:justify-start">
                                 <div className="relative shrink-0 group/orb cursor-default">
                                     {/* Outer Glow Ring */}
-                                    <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/30 via-info-500/30 to-brand-500/30 rounded-[2.5rem] blur-2xl opacity-0 group-hover/orb:opacity-100 transition-all duration-700 animate-pulse-slow" />
+                                    <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/30 via-info-500/30 to-brand-500/30 rounded-[2.5rem] blur-2xl opacity-0 group-hover/orb:opacity-70 transition-all duration-700 animate-pulse-slow" />
 
                                     {/* Main Logo Container */}
                                     <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-[1.5rem] bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--brand-500-rgb),0.25)] ring-1 ring-white/80 dark:ring-white/10">
 
                                         {/* Inner Gradient Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-info-500/10 opacity-0 group-hover/orb:opacity-100 transition-opacity duration-700" />
+                                        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-info-500/10 opacity-0 group-hover/orb:opacity-70 transition-opacity duration-700" />
 
                                         {/* Shimmer Effect */}
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover/orb:translate-x-full transition-transform duration-1000 ease-out" />
 
                                         {/* Sparkles */}
-                                        <div className="absolute inset-0 opacity-0 group-hover/orb:opacity-100 transition-opacity duration-1000">
+                                        <div className="absolute inset-0 opacity-0 group-hover/orb:opacity-70 transition-opacity duration-1000">
                                             <SparklesCore
                                                 id="logo-sparkles"
                                                 background="transparent"
@@ -323,7 +323,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         </div>
 
                                         {/* Premium Holographic Rings */}
-                                        <div className="absolute inset-2 border-2 border-brand-500/20 rounded-[1.25rem] animate-spin-slow" />
+                                        <div className="absolute inset-2 border-2 border-brand-200 rounded-[1.25rem] animate-spin-slow" />
                                         <div className="absolute inset-4 border border-info-500/15 rounded-[1rem] animate-spin-slow-reverse" />
                                         <div className="absolute inset-0 border border-white/40 dark:border-white/10 rounded-[1.5rem]" />
                                     </div>
@@ -331,7 +331,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     {/* Status Indicator - Premium */}
                                     <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-slate-900 backdrop-blur-xl flex items-center justify-center shadow-lg shadow-success/20 border-2 border-white dark:border-slate-800">
                                         <div className="relative w-3 h-3 rounded-full bg-success">
-                                            <div className="absolute inset-0 rounded-full bg-success animate-ping opacity-50" />
+                                            <div className="absolute inset-0 rounded-full bg-success animate-ping opacity-60" />
                                         </div>
                                     </div>
                                 </div>
@@ -345,7 +345,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex items-center gap-3 justify-center xl:justify-start"
                                 >
-                                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600">
+                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-300 dark:text-slate-200 uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600">
                                         {t('common.pilotage')}
                                     </span>
                                     <div className="hidden sm:block h-[2px] w-10 bg-gradient-to-r from-slate-400 to-transparent rounded-full" />
@@ -377,7 +377,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
                                             {currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                                         </span>
-                                        <span className="text-lg font-bold text-slate-500 dark:text-slate-500 tabular-nums">
+                                        <span className="text-lg font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 tabular-nums">
                                             {currentTime.toLocaleTimeString(undefined, { second: '2-digit' }).slice(-2)}
                                         </span>
                                     </div>
@@ -387,7 +387,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                                     {/* Date & Météo */}
                                     <div className="hidden sm:flex flex-col gap-1">
-                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 capitalize">
+                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 capitalize">
                                             {currentTime.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
                                         </span>
                                         {weather && (
@@ -412,7 +412,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                                 onClick={onToggleEdit}
                                                 className={`p-2.5 rounded-xl transition-all duration-300 ${isEditing
                                                     ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30'
-                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50'
                                                     }`}
                                                 aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
                                             >
@@ -425,7 +425,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <button
                                             onClick={generateExecutiveReport}
                                             disabled={isGeneratingReport}
-                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:opacity-50"
+                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                                             aria-label={t('dashboard.executiveReport')}
                                         >
                                             {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
@@ -435,7 +435,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.exportIcal')} position="bottom">
                                         <button
                                             onClick={generateICal}
-                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300"
+                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700/50 transition-all duration-300"
                                             aria-label={t('dashboard.exportIcal')}
                                         >
                                             <CalendarDays className="h-4 w-4" />
@@ -446,7 +446,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <Tooltip content={t('dashboard.showGettingStarted')} position="bottom">
                                             <button
                                                 onClick={onShowGettingStarted}
-                                                className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all duration-300"
+                                                className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300"
                                                 aria-label={t('dashboard.showGettingStarted')}
                                             >
                                                 <Rocket className="h-4 w-4" />
@@ -459,7 +459,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <Tooltip content="Télécharger les agents" position="bottom">
                                     <button
                                         onClick={() => navigate('/settings?tab=agents')}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800 text-white dark:text-slate-900 text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
                                         aria-label="Télécharger les agents"
                                     >
                                         <Bot className="h-4 w-4" />
@@ -473,7 +473,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
                                         <button
                                             onClick={() => navigate('/team')}
-                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300"
+                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 dark:text-slate-200 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300"
                                             aria-label={t('dashboard.inviteMember')}
                                         >
                                             <Users className="h-4 w-4" />
@@ -499,12 +499,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                                 Conseil du jour
                                             </span>
                                             <Sparkles className="h-3 w-3 text-slate-400 dark:text-slate-500" />
                                         </div>
-                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
+                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 leading-relaxed">
                                             {todayTip.tip}
                                         </p>
                                     </div>
@@ -529,13 +529,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                                 Prochaine échéance
                                             </span>
                                         </div>
                                         {nextDeadline ? (
                                             <div className="flex items-center justify-between gap-2">
-                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
+                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 truncate">
                                                     {nextDeadline.title}
                                                 </p>
                                                 <div className="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded-full bg-slate-200/80 dark:bg-slate-700/80">
@@ -552,7 +552,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         )}
                                     </div>
                                     {nextDeadline && (
-                                        <ArrowRight className="h-4 w-4 text-slate-400 opacity-0 group-hover/deadline:opacity-100 transition-opacity shrink-0" />
+                                        <ArrowRight className="h-4 w-4 text-slate-400 opacity-0 group-hover/deadline:opacity-70 transition-opacity shrink-0" />
                                     )}
                                 </div>
                             </motion.div>
@@ -565,12 +565,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                className="relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-slate-50/60 dark:from-slate-800/60 dark:via-slate-900/40 dark:to-slate-950/60 border border-white/30 dark:border-slate-700/30 backdrop-blur-xl shadow-sm min-w-[200px] group/incidents hover:border-brand-500/40 hover:shadow-md transition-all duration-500 overflow-hidden"
+                                className="relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-slate-50/60 dark:from-slate-800/60 dark:via-slate-900/40 dark:to-slate-950/60 border border-white/30 dark:border-slate-700/30 backdrop-blur-xl shadow-sm min-w-[200px] group/incidents hover:border-brand-300 hover:shadow-md transition-all duration-500 overflow-hidden"
                             >
-                                <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-brand-500/15 to-info-500/10 rounded-full blur-2xl opacity-0 group-hover/incidents:opacity-100 transition-opacity duration-500" />
+                                <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-brand-500/15 to-info-500/10 rounded-full blur-2xl opacity-0 group-hover/incidents:opacity-70 transition-opacity duration-500" />
 
                                 <div className="relative flex items-center justify-between mb-2">
-                                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
+                                    <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
                                         {t('dashboard.incidents')} Actifs
                                     </span>
                                     <div className="relative">
@@ -603,10 +603,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     }}
                                     className={`relative flex-1 flex text-left items-center gap-4 p-5 rounded-2xl border transition-all duration-500 cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 backdrop-blur-xl overflow-hidden
                                         ${insight.type === 'danger'
-                                            ? 'bg-error-500/5 border-error-500/20 hover:bg-error-500/10 hover:border-error-500/40'
+                                            ? 'bg-error-bg border-error-500/20 hover:bg-error-500/10 hover:border-error-500/40'
                                             : insight.type === 'warning'
-                                                ? 'bg-warning-500/5 border-warning-500/20 hover:bg-warning-500/10 hover:border-warning-500/40'
-                                                : 'bg-success-500/5 border-success-500/20 hover:bg-success-500/10 hover:border-success-500/40'
+                                                ? 'bg-warning-bg border-warning-500/20 hover:bg-warning-bg hover:border-warning-500/40'
+                                                : 'bg-success-bg border-success-500/20 hover:bg-success-bg hover:border-success-500/40'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-xl shrink-0 transition-transform duration-500 group-hover/insight:scale-110
@@ -621,7 +621,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <p className="text-sm font-bold text-foreground truncate pr-2 tracking-tight mb-0.5">{insight.text}</p>
                                         <p className="text-xs text-muted-foreground truncate">{insight.details}</p>
                                     </div>
-                                    <div className="p-2 rounded-lg bg-background/50 opacity-0 group-hover/insight:opacity-100 transition-all duration-300">
+                                    <div className="p-2 rounded-lg bg-background/50 opacity-0 group-hover/insight:opacity-70 transition-all duration-300">
                                         <ArrowRight className="h-4 w-4 text-brand-500" />
                                     </div>
                                 </motion.button>
@@ -632,8 +632,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     transition={{ delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex-1 flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-slate-50/60 dark:from-slate-800/60 dark:via-slate-900/40 dark:to-slate-950/60 border border-white/30 dark:border-slate-700/30 backdrop-blur-xl shadow-sm"
                                 >
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/5 ring-1 ring-inset ring-brand-500/10 shadow-sm relative overflow-hidden group">
-                                        <div className="absolute inset-0 bg-brand-500/5 animate-pulse group-hover:bg-brand-500/10 transition-colors" />
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 ring-1 ring-inset ring-brand-200 shadow-sm relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-brand-50 animate-pulse group-hover:bg-brand-50 transition-colors" />
                                         <img
                                             src="/images/tableau-de-bord.png"
                                             alt="DASHBOARD"

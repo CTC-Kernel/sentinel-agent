@@ -123,9 +123,9 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                             </button>
                             <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
                             {canEdit && (
-                                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => handleDownloadICS(task)} className="p-1.5 text-slate-500 hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                                <div className="flex items-center opacity-0 group-hover:opacity-70 transition-opacity">
+                                    <button onClick={() => handleDownloadICS(task)} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-3.5 w-3.5" /></button>
                                 </div>
                             )}
                         </div>

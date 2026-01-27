@@ -247,9 +247,9 @@ export const CalendarDashboard: React.FC = () => {
             <div className="flex flex-col xl:flex-row items-center justify-between mb-6 gap-4 animate-fade-in">
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
                     <div className="flex bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/10 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
-                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="h-5 w-5" /></button>
-                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
-                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="h-5 w-5" /></button>
+                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="h-5 w-5" /></button>
+                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
+                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="h-5 w-5" /></button>
                     </div>
                     {label()}
                 </div>
@@ -277,7 +277,7 @@ export const CalendarDashboard: React.FC = () => {
                         <button
                             onClick={handleExport}
                             disabled={isExporting}
-                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                             title="Exporter le calendrier"
                             aria-label="Exporter le calendrier"
                         >
@@ -308,7 +308,7 @@ export const CalendarDashboard: React.FC = () => {
         <div className="flex flex-col space-y-6 md:h-full">
             {/* Filters - Scrollable on mobile */}
             <div className="relative z-20 flex flex-nowrap md:flex-wrap items-center gap-3 p-1 overflow-x-auto no-scrollbar mask-gradient-right pb-4 shrink-0">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 shrink-0">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 shrink-0">
                     <Filter className="h-4 w-4" />
                 </div>
                 {Object.keys(filters).map(key => (
@@ -321,12 +321,12 @@ export const CalendarDashboard: React.FC = () => {
                             px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                             ${filters[key as keyof typeof filters]
                                 ? key === 'audit' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20 shadow-purple-500/10'
-                                    : key === 'project' ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20 shadow-blue-500/10'
+                                    : key === 'project' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500/20 shadow-blue-500/10'
                                         : key === 'maintenance' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 shadow-emerald-500/10'
-                                            : key === 'incident' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20 shadow-red-500/10'
-                                                : key === 'drill' ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20 shadow-orange-500/10'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                                : 'bg-transparent text-slate-500 border-slate-200 dark:text-slate-600 dark:border-white/5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0'
+                                            : key === 'incident' ? 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-50 dark:text-red-300 dark:border-red-500/20 shadow-red-500/10'
+                                                : key === 'drill' ? 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20 shadow-orange-500/10'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                : 'bg-transparent text-slate-500 dark:text-slate-400 border-slate-200 dark:text-slate-600 dark:border-white/5 grayscale opacity-60 hover:opacity-70 hover:grayscale-0'
                             }
                         `}
                     >
@@ -348,8 +348,8 @@ export const CalendarDashboard: React.FC = () => {
             {/* Calendar */}
             <div className="flex-1 relative overflow-hidden glass-panel p-4 md:p-8 h-[85vh] min-h-[600px] group isolation-auto">
                 {/* Subtle premium background effects */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/5 dark:bg-brand-400/5 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/5 dark:bg-indigo-400/5 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/20 dark:bg-indigo-400/15 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
 
                 <div className="relative z-10 h-full">
                     <DnDCalendar
@@ -395,10 +395,10 @@ export const CalendarDashboard: React.FC = () => {
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center justify-between">
                                 <span className={`text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border shadow-sm ${selectedEvent.type === 'audit' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20' :
-                                    selectedEvent.type === 'project' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20' :
+                                    selectedEvent.type === 'project' ? 'bg-blue-50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500/20' :
                                         selectedEvent.type === 'maintenance' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20' :
-                                            selectedEvent.type === 'incident' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20' :
-                                                'bg-slate-50 dark:bg-slate-900 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                            selectedEvent.type === 'incident' ? 'bg-red-50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-50 dark:text-red-300 dark:border-red-500/20' :
+                                                'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                                     }`}>
                                     {selectedEvent.type}
                                 </span>

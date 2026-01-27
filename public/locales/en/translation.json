@@ -297,7 +297,10 @@
     "softwareInventory": "Software Inventory",
     "threatIntel": "Threat Intel",
     "smsi": "ISMS Program",
-    "systemHealth": "System Health"
+    "systemHealth": "System Health",
+    "training": "Training",
+    "certificates": "Certificates",
+    "accessReview": "Access Review"
   },
   "frameworks": {
     "ISO27001": "ISO 27001 (IS Security)",
@@ -1381,6 +1384,7 @@
     "calendar": "Calendar",
     "findings": "Findings",
     "methods": "Methods & Workshops",
+    "auditTrail": "Audit Trail",
     "searchPlaceholder": "Search for an audit...",
     "allStatuses": "All Statuses",
     "aiAssistant": "AI Assistant",

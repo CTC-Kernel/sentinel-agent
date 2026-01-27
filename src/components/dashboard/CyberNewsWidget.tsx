@@ -115,10 +115,10 @@ export const CyberNewsWidget: React.FC = () => {
                                     <h4 className="font-bold text-sm text-foreground group-hover:text-primary line-clamp-2 mb-2">
                                         {item.title}
                                     </h4>
-                                    <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
+                                    <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 ml-2" />
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                    <span className="bg-accent px-2 py-0.5 rounded text-[10px] font-bold">
+                                    <span className="bg-accent px-2 py-0.5 rounded text-[11px] font-bold">
                                         {item.source}
                                     </span>
                                     <span>

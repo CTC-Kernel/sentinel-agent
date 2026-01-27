@@ -275,7 +275,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
                         {formatDuration(selectedCourse.duration)}
                       </span>
                       {selectedCourse.isRequired && (
-                        <span className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[10px] font-bold uppercase">
+                        <span className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[11px] font-bold uppercase">
                           {t('common.required')}
                         </span>
                       )}
@@ -515,7 +515,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
                 type="button"
                 onClick={handleSubmit(onFormSubmit)}
                 isLoading={isLoading}
-                className="px-8 shadow-elevation-sm shadow-primary"
+                className="px-8 shadow-sm shadow-primary"
               >
                 {t('training.assignment.assign')}
               </Button>

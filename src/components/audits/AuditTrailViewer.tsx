@@ -71,10 +71,10 @@ export const AuditTrailViewer: React.FC = () => {
 
     const getActionColor = (action: string) => {
         switch (action) {
-            case 'create': return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
-            case 'update': return 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400';
-            case 'delete': return 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400';
-            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+            case 'create': return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/20 dark:text-green-400';
+            case 'update': return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-slate-900/20 dark:text-blue-400';
+            case 'delete': return 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/20 dark:text-red-400';
+            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-400';
         }
     };
 
@@ -250,7 +250,7 @@ export const AuditTrailViewer: React.FC = () => {
                                 key={log.id}
                                 onClick={() => setSelectedLog(log)}
                                 className={`w-full text-left p-4 rounded-xl border transition-all ${selectedLog?.id === log.id
-                                    ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
+                                    ? 'bg-brand-50 dark:bg-brand-800 border-brand-200 dark:border-brand-800'
                                     : 'bg-card border-border hover:border-brand-200 dark:hover:border-brand-800'
                                     }`}
                                 aria-label={`Voir les détails du log ${log.action} sur ${log.entityType} par ${log.userName}`}
@@ -264,7 +264,7 @@ export const AuditTrailViewer: React.FC = () => {
                                             {log.entityType}
                                         </span>
                                     </div>
-                                    <ChevronRight className={`h-4 w-4 text-slate-500 transition-transform ${selectedLog?.id === log.id ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform ${selectedLog?.id === log.id ? 'rotate-90' : ''}`} />
                                 </div>
 
                                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground mb-1">
@@ -272,7 +272,7 @@ export const AuditTrailViewer: React.FC = () => {
                                     <span>{log.userName}</span>
                                 </div>
 
-                                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-500">
+                                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 dark:text-slate-500">
                                     <Calendar className="h-3 w-3" />
                                     <span>{log.timestamp.toLocaleString('fr-FR')}</span>
                                 </div>

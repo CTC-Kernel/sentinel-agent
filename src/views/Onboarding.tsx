@@ -435,7 +435,7 @@ export const Onboarding: React.FC = () => {
             />
 
             <div className="w-full max-w-xl p-6 relative z-10 animate-scale-in">
-                <div className="glass-premium rounded-5xl p-10 md:p-12 shadow-2xl">
+                <div className="glass-premium rounded-3xl p-10 md:p-12 shadow-2xl">
                     {/* ... (Header and UI structure) ... */}
                     <div className="text-center mb-10">
                         <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-6 ring-1 ring-black/5 mx-auto">
@@ -468,7 +468,7 @@ export const Onboarding: React.FC = () => {
                                 className="group relative p-6 h-auto rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left w-full justify-start whitespace-normal"
                             >
                                 <div className="flex items-center gap-4 w-full">
-                                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 text-brand-600 dark:text-brand-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <Plus className="h-6 w-6" />
                                     </div>
                                     <div>
@@ -517,7 +517,7 @@ export const Onboarding: React.FC = () => {
                                             disabled={loading || !searchQuery}
                                             isLoading={loading}
                                             size="sm"
-                                            className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:opacity-50 h-auto"
+                                            className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto"
                                         >
                                             {!loading && t('onboarding.actions.search')}
                                         </Button>
@@ -536,21 +536,21 @@ export const Onboarding: React.FC = () => {
                                                     disabled={loading || joinRequestSent}
                                                     isLoading={loading}
                                                     size="sm"
-                                                    className="px-4 py-2 bg-brand-50 dark:bg-slate-900 text-brand-600 dark:bg-slate-900/20 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors disabled:opacity-50 h-auto"
+                                                    className="px-4 py-2 bg-brand-50 dark:bg-slate-900 text-brand-600 dark:bg-slate-900/20 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto"
                                                 >
                                                     {!loading && t('onboarding.actions.join')}
                                                 </Button>
                                             </div>
                                         ))}
                                         {searchResults.length === 0 && searchQuery && !loading && (
-                                            <p className="text-center text-slate-600 text-sm py-4">{t('onboarding.toasts.emptySearch') || "Aucune organisation trouvée."}</p>
+                                            <p className="text-center text-slate-600 dark:text-slate-400 text-sm py-4">{t('onboarding.toasts.emptySearch') || "Aucune organisation trouvée."}</p>
                                         )}
                                     </div>
                                 </>
                             ) : (
                                 // ... sent confirmation
                                 <div className="text-center py-8">
-                                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
+                                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
                                         <Check className="h-8 w-8" strokeWidth={3} />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('onboarding.actions.sent')}</h3>
@@ -561,7 +561,7 @@ export const Onboarding: React.FC = () => {
                                         aria-label={t('onboarding.actions.home')}
                                         onClick={() => window.location.reload()}
                                         variant="outline"
-                                        className="mt-8 px-6 py-3 bg-white/40 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl font-bold text-sm hover:bg-white/60 dark:hover:bg-white/20 transition-colors h-auto border-white/20"
+                                        className="mt-8 px-6 py-3 bg-white/40 dark:bg-white/10 text-slate-600 dark:text-slate-400 dark:text-white rounded-xl font-bold text-sm hover:bg-white/60 dark:hover:bg-white/20 transition-colors h-auto border-white/20"
                                     >
                                         {t('onboarding.actions.home')}
                                     </Button>
@@ -616,7 +616,7 @@ export const Onboarding: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('onboarding.form.industry')}</label>
+                                        <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">{t('onboarding.form.industry')}</label>
                                         {/* Select */}
                                         <Controller
                                             name="industry"
@@ -641,15 +641,15 @@ export const Onboarding: React.FC = () => {
                                         />
                                     </div>
                                     {error && (
-                                        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl space-y-3">
+                                        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800 rounded-2xl space-y-3">
                                             <div className="flex items-start gap-3">
-                                                <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                                                 <div className="flex-1">
                                                     <p className="text-sm font-semibold text-red-900 dark:text-red-200">{t('onboarding.toasts.configError')}</p>
-                                                    <p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p>
+                                                    <p className="text-xs text-red-700 dark:text-red-400 dark:text-red-300 mt-1">{error}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex gap-2 pt-2 border-t border-red-200 dark:border-red-800">
+                                            <div className="flex gap-2 pt-2 border-t border-red-200 dark:border-red-800 dark:border-red-800">
                                                 {error.includes('session') || error.includes('Session') || error.includes('authentifi') ? (
                                                     <Button
                                                         type="button"
@@ -660,7 +660,7 @@ export const Onboarding: React.FC = () => {
                                                             await refreshSession();
                                                             addToast(t('auth.sessionRefreshed') || 'Session actualisée', 'success');
                                                         }}
-                                                        className="text-xs text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
+                                                        className="text-xs text-red-700 dark:text-red-400 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
                                                     >
                                                         {t('auth.refreshSession') || 'Actualiser la session'}
                                                     </Button>
@@ -670,7 +670,7 @@ export const Onboarding: React.FC = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => setError('')}
-                                                        className="text-xs text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
+                                                        className="text-xs text-red-700 dark:text-red-400 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
                                                     >
                                                         {t('common.close') || 'Fermer'}
                                                     </Button>
@@ -711,7 +711,7 @@ export const Onboarding: React.FC = () => {
                                                 type="submit"
                                                 disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted}
                                                 isLoading={loading}
-                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed h-auto"
+                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 h-auto"
                                             >
                                                 {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
@@ -741,7 +741,7 @@ export const Onboarding: React.FC = () => {
                                                         }
                                                     }}
                                                     className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
-                                                        ? 'bg-brand-50/50 dark:bg-slate-900/10 border-brand-500 ring-1 ring-brand-500 shadow-lg shadow-brand-500/10'
+                                                        ? 'bg-brand-50 dark:bg-slate-900/10 border-brand-500 ring-1 ring-brand-500 shadow-lg shadow-brand-500/25'
                                                         : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'
                                                         }`}
                                                 >
@@ -799,7 +799,7 @@ export const Onboarding: React.FC = () => {
                                                 onClick={() => setStep(3)}
                                                 disabled={loading}
                                                 isLoading={loading}
-                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none h-auto"
+                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 disabled:transform-none h-auto"
                                             >
                                                 {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
@@ -812,7 +812,7 @@ export const Onboarding: React.FC = () => {
                                 // Pilotage - Sector-specific frameworks
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-4 ml-1 flex items-center gap-2">
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-4 ml-1 flex items-center gap-2">
                                             <ShieldCheck className="h-4 w-4" /> {t('onboarding.steps.standards')}
                                         </label>
                                         <div className="grid grid-cols-2 gap-3">
@@ -820,12 +820,12 @@ export const Onboarding: React.FC = () => {
                                                 <div
                                                     key={fw.id}
                                                     onClick={() => handleToggleStandard(fw.name)}
-                                                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(fw.name) ? 'bg-brand-50/50 border-brand-500 ring-1 ring-brand-500' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300'}`}
+                                                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(fw.name) ? 'bg-brand-50 border-brand-500 ring-1 ring-brand-500' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300'}`}
                                                 >
                                                     <div className="flex flex-col">
                                                         <span className="font-bold text-slate-700 dark:text-white">{fw.name}</span>
                                                         {fw.isMandatory && (
-                                                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                                                            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 dark:text-amber-400 uppercase tracking-wider">
                                                                 {t('common.mandatory') || 'Obligatoire'}
                                                             </span>
                                                         )}
@@ -836,7 +836,7 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('onboarding.steps.scope')}</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">{t('onboarding.steps.scope')}</label>
                                         <FloatingLabelInput
                                             value={scope}
                                             onChange={e => {
@@ -851,7 +851,7 @@ export const Onboarding: React.FC = () => {
                                     <div className="pt-4 flex gap-3">
                                         <div className="pt-4 flex gap-3">
                                             <Button aria-label="Retour à l'étape 2" onClick={() => setStep(2)} variant="ghost" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
-                                            <Button aria-label="Valider le périmètre et continuer" onClick={handleStep3} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50 h-auto">
+                                            <Button aria-label="Valider le périmètre et continuer" onClick={handleStep3} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto">
                                                 {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
                                         </div>
@@ -863,7 +863,7 @@ export const Onboarding: React.FC = () => {
                                 // Team
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('onboarding.steps.invite')}</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">{t('onboarding.steps.invite')}</label>
                                         <div className="flex gap-2 items-start">
                                             <div className="relative flex-[2]">
                                                 <FloatingLabelInput
@@ -902,12 +902,12 @@ export const Onboarding: React.FC = () => {
                                             {invitedUsers.map(userInvite => (
                                                 <div key={userInvite.email} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center font-bold text-xs">
+                                                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-600 flex items-center justify-center font-bold text-xs">
                                                             {userInvite.email.charAt(0).toUpperCase()}
                                                         </div>
                                                         <div className="flex flex-col">
-                                                            <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{userInvite.email}</span>
-                                                            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">{userInvite.role}</span>
+                                                            <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 text-sm">{userInvite.email}</span>
+                                                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">{userInvite.role}</span>
                                                         </div>
                                                     </div>
                                                     <Button variant="ghost" size="icon" aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
@@ -920,7 +920,7 @@ export const Onboarding: React.FC = () => {
                                     <div className="pt-4 flex gap-3">
                                         <div className="pt-4 flex gap-3">
                                             <Button aria-label="Retour à l'étape 3" onClick={() => setStep(3)} variant="ghost" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
-                                            <Button aria-label="Continuer vers l'étape 5" onClick={handleStep4} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50 h-auto">
+                                            <Button aria-label="Continuer vers l'étape 5" onClick={handleStep4} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto">
                                                 {!loading && <>{invitedUsers.length > 0 ? t('onboarding.actions.inviteContinue') : t('onboarding.actions.skip')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
                                         </div>
@@ -939,7 +939,7 @@ export const Onboarding: React.FC = () => {
                                     {/* (Assets UI) */}
                                     <div>
                                         <div className="flex items-center justify-between mb-4">
-                                            <label className="text-xs font-bold uppercase tracking-widest text-slate-600 flex items-center gap-2">
+                                            <label className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 flex items-center gap-2">
                                                 <Server className="h-4 w-4" /> {t('onboarding.steps.assets')}
                                             </label>
                                             {initialAssets.length === 0 && !isScanning && (
@@ -959,7 +959,7 @@ export const Onboarding: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-bold text-slate-900 dark:text-white text-lg">{t('onboarding.steps.scanning')}</h3>
-                                                    <p className="text-sm text-slate-500 mt-1">{scanText}</p>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{scanText}</p>
                                                 </div>
                                             </div>
                                         ) : (
@@ -986,7 +986,7 @@ export const Onboarding: React.FC = () => {
                                                                 placeholder="Type"
                                                             />
                                                         </div>
-                                                        <Button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
+                                                        <Button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
                                                             <Plus className="h-5 w-5" />
                                                         </Button>
                                                     </div>
@@ -998,7 +998,7 @@ export const Onboarding: React.FC = () => {
                                                         onClick={runAutoScan}
                                                         className="py-10 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-300 dark:border-white/10 hover:border-brand-500 dark:hover:border-brand-500 cursor-pointer group transition-all text-center"
                                                     >
-                                                        <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                                        <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-600 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                                                             <BrainCircuit className="h-6 w-6" />
                                                             {/* BrainCircuit not imported, using Globe or Activity instead if not available. Wait, previously it was imported? */}
                                                             {/* Checking imports: ArrowRight, User, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, Globe, Activity */}
@@ -1022,8 +1022,8 @@ export const Onboarding: React.FC = () => {
                                                                 <Server className="h-4 w-4" />
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{asset.name}</span>
-                                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">{asset.type}</span>
+                                                                <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 text-sm">{asset.name}</span>
+                                                                <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">{asset.type}</span>
                                                             </div>
                                                         </div>
                                                         <Button variant="ghost" size="icon" onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-slate-500 hover:text-red-500 transition-colors">
@@ -1038,7 +1038,7 @@ export const Onboarding: React.FC = () => {
                                     <div className="pt-4 flex gap-3">
                                         <div className="pt-4 flex gap-3">
                                             <Button onClick={() => setStep(4)} variant="ghost" aria-label="Retour à l'étape 4" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
-                                            <Button onClick={handleStep5} disabled={loading} isLoading={loading} aria-label="Finaliser l'inscription" className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50 h-auto">
+                                            <Button onClick={handleStep5} disabled={loading} isLoading={loading} aria-label="Finaliser l'inscription" className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto">
                                                 {!loading && <>{t('onboarding.actions.finalize')} <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={3} /></>}
                                             </Button>
                                         </div>

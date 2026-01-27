@@ -82,12 +82,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                     as={Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px]" />
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">
@@ -96,9 +96,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                             as={Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
+                            enterTo="opacity-70 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
+                            leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl glass-panel p-8 text-left align-middle transition-all">

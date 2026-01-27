@@ -179,7 +179,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     };
 
     return createPortal(
-        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-gradient-to-r from-brand-50 to-brand-100 dark:bg-slate-950/95 dark:from-transparent dark:to-transparent backdrop-blur-xl p-6 rounded-t-2xl rounded-b-none border border-brand-200/50 dark:border-brand-700/50 border-b-0 shadow-[0_-10px_40px_-15px_rgba(59,130,246,0.15)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-gradient-to-r from-brand-50 to-brand-100 dark:bg-slate-950/95 dark:from-transparent dark:to-transparent backdrop-blur-xl p-6 rounded-t-2xl rounded-b-none border border-brand-200 dark:border-brand-600 border-b-0 shadow-[0_-10px_40px_-15px_rgba(59,130,246,0.15)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 shadow-lg border border-slate-200/50 dark:border-slate-700/50">
@@ -209,7 +209,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 </div>
             </div>
 
-            <div className={`space-y-1 transition-all duration-300 ${isExpanded ? 'opacity-100 max-h-96' : 'opacity-50 max-h-12 overflow-hidden'}`}>
+            <div className={`space-y-1 transition-all duration-300 ${isExpanded ? 'opacity-70 max-h-96' : 'opacity-60 max-h-12 overflow-hidden'}`}>
                 {steps.map((step) => (
                     <div
                         key={step.id}
@@ -242,7 +242,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             </span>
                         </div>
                         {step.isCompleted ? (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-success-bg dark:bg-success/20 px-2 py-1 rounded-full text-success-text dark:text-success shadow-sm">
+                            <span className="text-[11px] font-bold uppercase tracking-wider bg-success-bg dark:bg-success/20 px-2 py-1 rounded-full text-success-text dark:text-success shadow-sm">
                                 {t('common.done')}
                             </span>
                         ) : (

@@ -176,7 +176,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
                 {icon}
                 <div>
                     <div className="text-sm font-bold text-slate-900 dark:text-white">{label}</div>
-                    <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{sublabel}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">{sublabel}</div>
                 </div>
             </div>
             {loading ? (
@@ -184,7 +184,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
             ) : available ? (
                 <Download className="w-4 h-4 text-muted-foreground group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
             ) : (
-                <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">
+                <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-600">
                     Bientôt
                 </Badge>
             )}
@@ -192,9 +192,9 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
     );
 
     const baseClasses = cn(
-        "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full",
+        "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group text-left w-full",
         !available && !loading && "opacity-60",
-        loading && "opacity-50 cursor-wait"
+        loading && "opacity-60 cursor-wait"
     );
 
     if (available && !loading) {
@@ -291,10 +291,10 @@ const renderActiveShape = (props: unknown) => {
 // Tech corner decoration component
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     <div className={cn("pointer-events-none", className)}>
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-500/30 rounded-tl-lg" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-500/30 rounded-tr-lg" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-500/30 rounded-bl-lg" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-500/30 rounded-br-lg" />
+        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-300 rounded-tl-lg" />
+        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-300 rounded-tr-lg" />
+        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-300 rounded-bl-lg" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-300 rounded-br-lg" />
     </div>
 );
 
@@ -531,7 +531,7 @@ export const AgentManagement: React.FC = () => {
         switch (status) {
             case 'active':
                 return {
-                    badge: 'bg-success-500/10 text-success-600 dark:text-success-400 border-success-500/20',
+                    badge: 'bg-success-bg text-success-600 dark:text-success-400 border-success-500/20',
                     icon: <CheckCircle2 className="w-4 h-4 text-success-500" />,
                     bg: 'bg-success-500'
                 };
@@ -543,7 +543,7 @@ export const AgentManagement: React.FC = () => {
                 };
             case 'error':
                 return {
-                    badge: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
+                    badge: 'bg-red-50 text-red-600 dark:text-red-400 border-red-500/20',
                     icon: <XCircle className="w-4 h-4 text-red-500" />,
                     bg: 'bg-red-500'
                 };
@@ -594,7 +594,7 @@ export const AgentManagement: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-2xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-2xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
                             <Server className="w-6 h-6" />
                         </div>
                         Gestion des Agents
@@ -629,7 +629,7 @@ export const AgentManagement: React.FC = () => {
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Score Santé</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Score Santé</span>
                         <Activity className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[140px] relative">
@@ -656,7 +656,7 @@ export const AgentManagement: React.FC = () => {
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
                                 {agentStats.healthRate}%
                             </span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
                                 {agentStats.healthRate >= 80 ? 'Excellent' : agentStats.healthRate >= 50 ? 'Attention' : 'Critique'}
                             </span>
                         </div>
@@ -671,10 +671,10 @@ export const AgentManagement: React.FC = () => {
                     className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="p-3 bg-success-500/10 rounded-2xl">
+                        <div className="p-3 bg-success-bg rounded-2xl">
                             <Wifi className="w-5 h-5 text-success-500" />
                         </div>
-                        <Badge className="bg-success-500/10 text-success-600 border-success-500/20 text-[10px]">
+                        <Badge className="bg-success-bg text-success-600 border-success-500/20 text-[11px]">
                             +{Math.round(agentStats.active * 0.1)} ce mois
                         </Badge>
                     </div>
@@ -682,7 +682,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.active}
                         </div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Agents Actifs</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">Agents Actifs</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -704,7 +704,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="p-3 bg-slate-500/10 rounded-2xl">
                             <WifiOff className="w-5 h-5 text-slate-500" />
                         </div>
-                        <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20 text-[10px]">
+                        <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 text-[11px]">
                             Inactifs
                         </Badge>
                     </div>
@@ -712,7 +712,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.offline}
                         </div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Hors-ligne</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">Hors-ligne</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -731,11 +731,11 @@ export const AgentManagement: React.FC = () => {
                     className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="p-3 bg-red-500/10 rounded-2xl">
+                        <div className="p-3 bg-red-50 rounded-2xl">
                             <AlertTriangle className="w-5 h-5 text-red-500" />
                         </div>
                         {agentStats.error > 0 && (
-                            <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-[10px] animate-pulse">
+                            <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20 text-[11px] animate-pulse">
                                 Action requise
                             </Badge>
                         )}
@@ -744,7 +744,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.error}
                         </div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">En Erreur</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-1">En Erreur</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -794,7 +794,7 @@ export const AgentManagement: React.FC = () => {
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
                             Aucun agent déployé
                         </div>
                     )}
@@ -843,7 +843,7 @@ export const AgentManagement: React.FC = () => {
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
                             Aucun agent déployé
                         </div>
                     )}
@@ -943,14 +943,14 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.35 }}
-                        className="bg-white/50 dark:bg-slate-900/50 rounded-5xl border border-white/60 dark:border-white/10 overflow-hidden backdrop-blur-sm"
+                        className="bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-white/60 dark:border-white/10 overflow-hidden backdrop-blur-sm"
                     >
                         <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Server className="w-4 h-4 text-brand-500" />
                                 Liste des Agents ({agentStats.total})
                             </h3>
-                            <Badge variant="outline" className="text-[10px]">
+                            <Badge variant="outline" className="text-[11px]">
                                 {agentStats.active} connectés
                             </Badge>
                         </div>
@@ -1012,7 +1012,7 @@ export const AgentManagement: React.FC = () => {
                                                                 <div className="font-bold text-slate-900 dark:text-white text-sm">
                                                                     {agent.name}
                                                                 </div>
-                                                                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                                                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                                                                     v{agent.version} • {agent.ipAddress}
                                                                 </div>
                                                             </div>
@@ -1040,7 +1040,7 @@ export const AgentManagement: React.FC = () => {
                                                                 handleDelete(agent.id);
                                                             }}
                                                             aria-label="Supprimer"
-                                                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-all opacity-0 group-hover:opacity-70"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -1062,10 +1062,10 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-4"
+                        className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-4"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-success-500/10 rounded-xl text-success-600 dark:text-success-400">
+                            <div className="p-2.5 bg-success-bg rounded-xl text-success-600 dark:text-success-400">
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Qu'est-ce que l'Agent ?</h3>
@@ -1100,7 +1100,7 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.45 }}
-                        className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-6"
+                        className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-6"
                     >
                         {/* Tab Navigation */}
                         <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl">
@@ -1141,11 +1141,11 @@ export const AgentManagement: React.FC = () => {
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Téléchargements</h3>
                                             {releaseInfo?.currentVersion && (
                                                 <div className="flex items-center gap-2 mt-0.5">
-                                                    <Badge variant="outline" className="text-[10px] bg-brand-500/10 border-brand-500/30 text-brand-600">
+                                                    <Badge variant="outline" className="text-[11px] bg-brand-50 border-brand-300 text-brand-600">
                                                         v{releaseInfo.currentVersion}
                                                     </Badge>
                                                     {releaseInfo.releaseDate && (
-                                                        <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                                             <Calendar className="w-3 h-3" />
                                                             {new Date(releaseInfo.releaseDate).toLocaleDateString('fr-FR')}
                                                         </span>
@@ -1219,13 +1219,13 @@ export const AgentManagement: React.FC = () => {
                                                 href={releaseInfo?.mobile?.ios?.appStoreUrl || '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
+                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group text-center"
                                             >
-                                                <Cpu className="w-6 h-6 text-slate-600 mb-2" />
+                                                <Cpu className="w-6 h-6 text-slate-600 dark:text-slate-400 mb-2" />
                                                 <div className="text-sm font-bold text-slate-900 dark:text-white">iOS</div>
                                                 <div className="text-[11px] text-slate-500">App Store</div>
                                                 {releaseInfo?.mobile?.ios?.comingSoon && (
-                                                    <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                                    <Badge variant="outline" className="mt-2 text-[11px] border-amber-500/30 text-amber-600">
                                                         Bientôt
                                                     </Badge>
                                                 )}
@@ -1234,13 +1234,13 @@ export const AgentManagement: React.FC = () => {
                                                 href={releaseInfo?.mobile?.android?.playStoreUrl || '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
+                                                className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group text-center"
                                             >
                                                 <Server className="w-6 h-6 text-success-500 mb-2" />
                                                 <div className="text-sm font-bold text-slate-900 dark:text-white">Android</div>
                                                 <div className="text-[11px] text-slate-500">Play Store</div>
                                                 {releaseInfo?.mobile?.android?.comingSoon && (
-                                                    <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                                    <Badge variant="outline" className="mt-2 text-[11px] border-amber-500/30 text-amber-600">
                                                         Bientôt
                                                     </Badge>
                                                 )}
@@ -1284,7 +1284,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Documentation</h3>
-                                        <p className="text-sm text-slate-500 mt-1">Guides et références techniques pour l'agent Sentinel.</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Guides et références techniques pour l'agent Sentinel.</p>
                                     </div>
 
                                     {/* Quick Links */}
@@ -1293,7 +1293,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/quickstart"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Zap className="w-4 h-4 text-amber-500" />
@@ -1308,7 +1308,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/configuration"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Settings className="w-4 h-4 text-slate-500" />
@@ -1323,7 +1323,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/security"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Shield className="w-4 h-4 text-success-500" />
@@ -1338,7 +1338,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/troubleshooting"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -1353,7 +1353,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/api"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Network className="w-4 h-4 text-brand-500" />
@@ -1433,7 +1433,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questions fréquentes</h3>
-                                        <p className="text-sm text-slate-500 mt-1">Trouvez rapidement des réponses à vos questions.</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Trouvez rapidement des réponses à vos questions.</p>
                                     </div>
 
                                     <div className="space-y-0">
@@ -1449,7 +1449,7 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <div className="p-4 rounded-2xl bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/20">
+                                        <div className="p-4 rounded-2xl bg-brand-50 dark:bg-brand-900 border border-brand-200 dark:border-brand-700">
                                             <div className="flex items-start gap-3">
                                                 <HelpCircle className="w-5 h-5 text-brand-500 mt-0.5" />
                                                 <div>
@@ -1497,17 +1497,17 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Support technique</h3>
-                                        <p className="text-sm text-slate-500 mt-1">Besoin d'aide ? Nous sommes là pour vous.</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Besoin d'aide ? Nous sommes là pour vous.</p>
                                     </div>
 
                                     {/* Support Options */}
                                     <div className="grid grid-cols-1 gap-3">
                                         <a
                                             href="mailto:support@sentinel-grc.com"
-                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-brand-500/10 rounded-xl">
+                                                <div className="p-2.5 bg-brand-50 rounded-xl">
                                                     <Headset className="w-5 h-5 text-brand-500" />
                                                 </div>
                                                 <div>
@@ -1522,10 +1522,10 @@ export const AgentManagement: React.FC = () => {
                                             href="https://github.com/sentinel/agent/issues/new"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-red-500/10 rounded-xl">
+                                                <div className="p-2.5 bg-red-50 rounded-xl">
                                                     <Bug className="w-5 h-5 text-red-500" />
                                                 </div>
                                                 <div>
@@ -1540,7 +1540,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://community.sentinel-grc.com"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2.5 bg-purple-500/10 rounded-xl">
@@ -1600,25 +1600,25 @@ export const AgentManagement: React.FC = () => {
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-slate-600 dark:text-slate-400">Critique (P1)</span>
-                                                <Badge className="bg-red-500/10 text-red-600 border-red-500/20">{"<"} 1h</Badge>
+                                                <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20">{"<"} 1h</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-slate-600 dark:text-slate-400">Important (P2)</span>
-                                                <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">{"<"} 4h</Badge>
+                                                <Badge className="bg-amber-50 text-amber-600 dark:text-amber-400 border-amber-500/20">{"<"} 4h</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-slate-600 dark:text-slate-400">Normal (P3)</span>
-                                                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">{"<"} 24h</Badge>
+                                                <Badge className="bg-blue-50 text-blue-600 dark:text-blue-400 border-blue-500/20">{"<"} 24h</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-slate-600 dark:text-slate-400">Demande (P4)</span>
-                                                <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20">{"<"} 72h</Badge>
+                                                <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20">{"<"} 72h</Badge>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Security Notice */}
-                                    <div className="p-4 rounded-2xl bg-success-50 dark:bg-success-500/10 border border-success-200 dark:border-success-500/20">
+                                    <div className="p-4 rounded-2xl bg-success-50 dark:bg-success-bg border border-success-200 dark:border-success-500/20">
                                         <div className="flex items-start gap-3">
                                             <Lock className="w-5 h-5 text-success-600 dark:text-success-400 mt-0.5" />
                                             <div>

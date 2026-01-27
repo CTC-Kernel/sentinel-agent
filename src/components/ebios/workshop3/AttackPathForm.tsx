@@ -149,7 +149,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/30">
+            <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30">
               <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
@@ -250,9 +250,9 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           {/* Path Preview */}
           {watchedSourceId && watchedTargetAssetId && (
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-              <p className="text-sm text-slate-500 mb-2">{t('ebios.workshop3.pathPreview', 'Aperçu du chemin')}:</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('ebios.workshop3.pathPreview', 'Aperçu du chemin')}:</p>
               <div className="flex items-center flex-wrap gap-2">
-                <span className="px-2 py-1 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm font-medium">
+                <span className="px-2 py-1 rounded bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm font-medium">
                   {getPartyName(watchedSourceId)}
                 </span>
                 {watchedIntermediates?.map((id) => (
@@ -277,7 +277,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 {t('ebios.workshop3.intermediateParties', 'Parties intermédiaires')}
               </label>
-              <p className="text-xs text-slate-500 mb-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                 {t('ebios.workshop3.intermediateHelp', 'Sélectionnez les parties traversées par l\'attaque')}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -320,7 +320,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                   {t('ebios.workshop3.likelihood', 'Vraisemblance')}
                 </label>
                 <span className={cn(
@@ -348,7 +348,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                   {t('ebios.workshop3.complexity', 'Complexité')}
                 </label>
                 <span className={cn(
@@ -383,7 +383,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   {t('common.delete', 'Supprimer')}

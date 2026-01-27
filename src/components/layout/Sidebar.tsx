@@ -6,7 +6,8 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot,
+  Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot, GraduationCap, Package,
+  KeyRound, UserCheck,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -96,6 +97,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren, resource: 'Incident' },
         { key: 'vulnerabilities', name: t('sidebar.vulnerabilities'), to: '/vulnerabilities', icon: Bug, resource: 'Asset' },
         { key: 'agents', name: t('sidebar.agents'), to: '/agents', icon: Bot, resource: 'Agent' },
+        { key: 'agent-policies', name: t('sidebar.agentPolicies'), to: '/agent-policies', icon: Shield, resource: 'Agent', action: 'manage' },
+        { key: 'software-inventory', name: t('sidebar.softwareInventory'), to: '/software-inventory', icon: Package, resource: 'Asset' },
         { key: 'threat-intelligence', name: t('sidebar.threatIntel'), to: '/threat-intelligence', icon: Globe }, // Open feature
         { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Box, resource: 'CTCEngine' },
       ]
@@ -107,6 +110,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'smsi', name: t('sidebar.smsi'), to: '/smsi', icon: RefreshCcw, resource: 'Risk' }, // ISO 27003 PDCA
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
+        { key: 'training', name: t('sidebar.training'), to: '/training', icon: GraduationCap, resource: 'User' }, // NIS2 Art. 21.2(g)
+        { key: 'access-review', name: t('sidebar.accessReview'), to: '/access-review', icon: UserCheck, resource: 'User', action: 'manage' }, // NIS2 Art. 21.2(i)
         { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP
         { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint, resource: 'Document' }, // Privacy
       ]
@@ -115,6 +120,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.repository'),
       items: [
         { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server, resource: 'Asset' },
+        { key: 'certificates', name: t('sidebar.certificates'), to: '/certificates', icon: KeyRound, resource: 'Asset' }, // NIS2 Art. 21.2(h)
         { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building, resource: 'Supplier' },
         { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase, resource: 'Document' },
       ]
@@ -185,14 +191,14 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             </div>
             <div className="flex flex-col justify-center">
               <h1 className="text-[17px] font-extrabold font-display tracking-tight text-slate-900 dark:text-white leading-none">Sentinel</h1>
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-500 tracking-[0.4em] mt-1 uppercase">GRC</span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-[0.4em] mt-1 uppercase">GRC</span>
             </div>
           </div>
           {/* Mobile Close Button */}
           <button
             aria-label={t('common.closeMenu')}
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-2 -mr-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+            className="lg:hidden p-2 -mr-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5"
           >
             <X className="h-5 w-5" />
           </button>
@@ -250,10 +256,10 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/help"
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) => `
-                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                 ${isActive
                 ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-semibold border border-slate-200 dark:border-white/10'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
               `}
           >
             {({ isActive }) => (
@@ -273,17 +279,17 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/settings"
             data-tour="settings"
             className={({ isActive }) => `
-                group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                 ${isActive ? 'bg-white/60 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
               `}
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100/80 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100/80 text-slate-500 dark:text-slate-400 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
                   <Settings className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1">{t('sidebar.settings')}</span>
-                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-500 dark:text-slate-500 group-hover:opacity-70'}`} />
+                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-500 dark:text-slate-400 dark:text-slate-500 group-hover:opacity-70'}`} />
               </>
             )}
           </NavLink>
@@ -291,7 +297,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             variant="ghost"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 rounded-xl"
+            className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 hover:text-red-600 dark:hover:text-red-400 rounded-xl"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 dark:text-red-400/80 mr-3 bg-red-50 dark:bg-red-900/20">
               {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" strokeWidth={2} />}
@@ -304,7 +310,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
               variant="ghost"
               size="sm"
               onClick={() => setShowLegalModal(true)}
-              className="w-full flex items-center justify-center gap-2 h-8 text-[10px] font-medium text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="w-full flex items-center justify-center gap-2 h-8 text-[11px] font-medium text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             >
               <Scale className="h-3 w-3" />
               <span>{t('settings.mentionsLegales')}</span>

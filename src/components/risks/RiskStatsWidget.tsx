@@ -28,7 +28,7 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
             value: totalRisks,
             icon: Activity,
             color: 'text-brand-600 dark:text-brand-400',
-            bg: 'bg-brand-500/10'
+            bg: 'bg-brand-50'
         },
         {
             label: "Risques Critiques",

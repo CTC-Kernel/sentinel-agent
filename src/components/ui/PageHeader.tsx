@@ -34,7 +34,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <header className={`relative z-40 ${className}`}>
       {/* Background Glow Effect - subtle ambiance */}
-      <div className="absolute -top-20 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none opacity-50 mix-blend-screen" />
+      <div className="absolute -top-20 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none opacity-60 mix-blend-screen" />
 
       <div className={`
         relative flex flex-col gap-6
@@ -54,7 +54,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 className={`
                   relative flex shrink-0 items-center justify-center
-                  ${compact ? 'w-20 h-20 sm:w-24 sm:h-24 rounded-2xl' : 'w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 xl:w-56 xl:h-56 rounded-3xl sm:rounded-4xl lg:rounded-5xl'}
+                  ${compact ? 'w-20 h-20 sm:w-24 sm:h-24 rounded-2xl' : 'w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 xl:w-56 xl:h-56 rounded-3xl sm:rounded-4xl lg:rounded-3xl'}
                   bg-white/60 dark:bg-slate-950/40 backdrop-blur-2xl
                   shadow-2xl shadow-black/5 dark:shadow-black/20
                   ring-1 ring-[color:var(--glass-border)]
@@ -64,8 +64,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 `}
               >
                 {/* Dynamic Glass Reflections */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-transparent opacity-50" />
-                <div className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] opacity-10 animate-[spin_8s_linear_infinite]" style={{ animationDuration: '20s' }} />
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-transparent opacity-60" />
+                <div className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] opacity-30 animate-[spin_8s_linear_infinite]" style={{ animationDuration: '20s' }} />
 
                 {/* Inner Bevel */}
                 <div className="absolute inset-[1px] rounded-[inherit] bg-white/20 dark:bg-black/40 backdrop-blur-md" />

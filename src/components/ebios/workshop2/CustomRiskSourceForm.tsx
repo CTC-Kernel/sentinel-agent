@@ -123,7 +123,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30">
+            <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30">
               <Users className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
@@ -279,7 +279,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   {t('common.delete', 'Supprimer')}

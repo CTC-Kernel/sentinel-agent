@@ -42,10 +42,10 @@ import { SupplierConcentrationTab } from '../components/suppliers/SupplierConcen
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
-        case Criticality.CRITICAL: return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-        case Criticality.HIGH: return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
+        case Criticality.CRITICAL: return 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+        case Criticality.HIGH: return 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
         case Criticality.MEDIUM: return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-        default: return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+        default: return 'bg-green-100 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
     }
 };
 
@@ -530,19 +530,19 @@ export const Suppliers: React.FC = () => {
                             actions={canEdit && (
                                 <>
                                     <Menu as="div" className="relative inline-block text-left">
-                                        <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                        <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                             <MoreVertical className="h-5 w-5" />
                                         </Menu.Button>
                                         <Transition
                                             as={React.Fragment}
                                             enter="transition ease-out duration-100"
                                             enterFrom="transform opacity-0 scale-95"
-                                            enterTo="transform opacity-100 scale-100"
+                                            enterTo="transform opacity-70 scale-100"
                                             leave="transition ease-in duration-75"
-                                            leaveFrom="transform opacity-100 scale-100"
+                                            leaveFrom="transform opacity-70 scale-100"
                                             leaveTo="transform opacity-0 scale-95"
                                         >
-                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                                 <div className="p-1">
                                                     <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                                         {t('suppliers.tools')}
@@ -551,7 +551,7 @@ export const Suppliers: React.FC = () => {
                                                         {({ active }) => (
                                                             <button
                                                                 onClick={() => setImportModalOpen(true)}
-                                                                className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                                                                className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'
                                                                     } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                                 aria-label="Import Suppliers CSV"
                                                             >
@@ -572,7 +572,7 @@ export const Suppliers: React.FC = () => {
                                                                 onClick={handleExportCSV}
                                                                 disabled={isExportingCSV}
                                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                             >
                                                                 {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                                 {t('suppliers.exportCsv')}
@@ -586,7 +586,7 @@ export const Suppliers: React.FC = () => {
                                                                 onClick={handleExportDORARegister}
                                                                 disabled={isExportingDORA}
                                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                             >
                                                                 {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                                 Export DORA
@@ -604,7 +604,7 @@ export const Suppliers: React.FC = () => {
                                             variant="outline"
                                             size="icon"
                                             onClick={handleTemplateModeOpen}
-                                            className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm"
+                                            className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 shadow-sm"
                                             aria-label="Gérer les modèles d'évaluation"
                                         >
                                             <ClipboardList className="h-5 w-5" />
@@ -616,7 +616,7 @@ export const Suppliers: React.FC = () => {
                                             variant="outline"
                                             size="icon"
                                             onClick={() => window.open('/#/dora/providers', '_blank')}
-                                            className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm"
+                                            className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 shadow-sm"
                                             aria-label="Vue DORA des fournisseurs ICT"
                                         >
                                             <ShieldAlert className="h-5 w-5" />
@@ -639,7 +639,7 @@ export const Suppliers: React.FC = () => {
                         />
 
                         {viewMode === 'list' ? (
-                            <motion.div variants={slideUpVariants} className="glass-premium rounded-5xl overflow-hidden shadow-apple-sm border border-white/60 dark:border-white/5">
+                            <motion.div variants={slideUpVariants} className="glass-premium rounded-3xl overflow-hidden shadow-apple-sm border border-white/60 dark:border-white/5">
                                 <DataTable
                                     columns={columns}
                                     data={filteredSuppliers}

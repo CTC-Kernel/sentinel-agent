@@ -93,7 +93,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                     'rounded-xl',
                     'text-sm text-slate-900 dark:text-white',
                     'placeholder:text-muted-foreground',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20 focus-visible:border-brand-500',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:border-brand-500',
                     'transition-all duration-200'
                 )}
             />

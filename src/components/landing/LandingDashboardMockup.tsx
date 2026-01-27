@@ -17,7 +17,7 @@ import {
 
 export const LandingDashboardMockup: React.FC = () => {
     return (
-        <div className="w-full h-full bg-slate-900/80 backdrop-blur-sm rounded-[1.5rem] overflow-hidden flex text-sans shadow-2xl ring-1 ring-white/10 select-none text-[10px] sm:text-xs md:text-sm font-medium">
+        <div className="w-full h-full bg-slate-900/80 backdrop-blur-sm rounded-[1.5rem] overflow-hidden flex text-sans shadow-2xl ring-1 ring-white/10 select-none text-[11px] sm:text-xs md:text-sm font-medium">
             {/* Sidebar Mockup */}
             <div className="w-16 sm:w-20 md:w-64 bg-slate-950/50 backdrop-blur-md flex flex-col border-r border-white/5 flex-shrink-0 relative">
                 <div className="p-4 md:p-6 flex items-center gap-3 mb-6">
@@ -39,7 +39,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         <div
                             key={item.label}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${item.active
-                                ? 'bg-brand-600 text-white shadow-md shadow-brand-500/10'
+                                ? 'bg-brand-600 text-white shadow-md shadow-brand-500/25'
                                 : 'hover:bg-white/5 hover:text-slate-200'
                                 }`}
                         >
@@ -55,7 +55,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-400 to-purple-500 border-2 border-slate-800"></div>
                         <div className="hidden md:block overflow-hidden">
                             <div className="font-bold text-slate-200 truncate">Thibault L.</div>
-                            <div className="text-xs text-slate-500 truncate">Admin (RSSI)</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 truncate">Admin (RSSI)</div>
                         </div>
                     </div>
                 </div>
@@ -74,7 +74,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10 text-slate-400 hover:bg-white/10 transition-colors">
                             <Search className="h-3.5 w-3.5" />
                             <span className="text-xs">Rechercher...</span>
-                            <span className="text-[10px] border border-white/10 px-1.5 py-0.5 rounded ml-4 text-slate-500">⌘K</span>
+                            <span className="text-[11px] border border-white/10 px-1.5 py-0.5 rounded ml-4 text-slate-500">⌘K</span>
                         </div>
                         <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 relative hover:text-white transition-colors hover:bg-white/10">
                             <Bell className="h-4 w-4" />
@@ -107,10 +107,10 @@ export const LandingDashboardMockup: React.FC = () => {
                         {/* Widget 1 */}
                         <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-2 bg-green-500/10 rounded-lg text-green-400 ring-1 ring-green-500/20">
+                                <div className="p-2 bg-green-50 rounded-lg text-green-400 ring-1 ring-green-500/20">
                                     <Shield className="h-5 w-5" />
                                 </div>
-                                <span className="text-green-400 text-xs font-bold bg-green-500/10 px-2 py-0.5 rounded-full ring-1 ring-green-500/20">+12%</span>
+                                <span className="text-green-400 text-xs font-bold bg-green-50 px-2 py-0.5 rounded-full ring-1 ring-green-500/20">+12%</span>
                             </div>
                             <div className="text-3xl font-bold text-white mb-1 tracking-tight">84%</div>
                             <div className="text-slate-500 text-xs font-medium">Score de Conformité</div>
@@ -122,10 +122,10 @@ export const LandingDashboardMockup: React.FC = () => {
                         {/* Widget 2 */}
                         <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-400 ring-1 ring-yellow-500/20">
+                                <div className="p-2 bg-yellow-50 rounded-lg text-yellow-400 ring-1 ring-yellow-500/20">
                                     <AlertTriangle className="h-5 w-5" />
                                 </div>
-                                <span className="text-yellow-400 text-xs font-bold bg-yellow-500/10 px-2 py-0.5 rounded-full ring-1 ring-yellow-500/20">-2</span>
+                                <span className="text-yellow-400 text-xs font-bold bg-yellow-50 px-2 py-0.5 rounded-full ring-1 ring-yellow-500/20">-2</span>
                             </div>
                             <div className="text-3xl font-bold text-white mb-1 tracking-tight">3</div>
                             <div className="text-slate-500 text-xs font-medium">Risques Critiques</div>
@@ -134,7 +134,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         {/* Widget 3 */}
                         <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 ring-1 ring-blue-500/20">
+                                <div className="p-2 bg-blue-50 rounded-lg text-blue-400 ring-1 ring-blue-500/20">
                                     <Layers className="h-5 w-5" />
                                 </div>
                                 <span className="text-slate-500 hover:text-white transition-colors">
@@ -175,7 +175,7 @@ export const LandingDashboardMockup: React.FC = () => {
                                 {[40, 55, 45, 60, 75, 65, 80, 70, 85, 90, 82, 88].map((h, i) => (
                                     <div key={`bar-${i}`} className="w-full bg-white/5 rounded-t-sm relative group h-full flex items-end overflow-hidden">
                                         <div
-                                            className="w-full bg-brand-500/20 group-hover:bg-brand-500/40 transition-all duration-500 rounded-t-sm relative"
+                                            className="w-full bg-brand-100 group-hover:bg-brand-200 transition-all duration-500 rounded-t-sm relative"
                                             style={{ height: `${h}%` }}
                                         >
                                             <div
@@ -189,14 +189,14 @@ export const LandingDashboardMockup: React.FC = () => {
                         </div>
 
                         <div className="lg:col-span-1 bg-white/5 rounded-2xl border border-white/10 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/25 dark:bg-brand-400/15 blur-[50px] rounded-full pointer-events-none"></div>
 
                             <h3 className="font-bold text-white mb-6 relative z-10">Répartition</h3>
                             <div className="flex-1 flex items-center justify-center relative scale-110">
                                 <div className="w-28 h-28 rounded-full border-[12px] border-green-500 border-r-brand-500 border-b-yellow-500 border-l-slate-800 -rotate-45 shadow-[0_0_20px_-5px_rgba(0,0,0,0.5)]"></div>
                                 <div className="absolute flex flex-col items-center">
                                     <span className="text-2xl font-bold text-white">124</span>
-                                    <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Total</span>
+                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Total</span>
                                 </div>
                             </div>
                             <div className="mt-6 flex flex-col gap-2 relative z-10">

@@ -114,7 +114,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
           ) : (
             <AlertCircle className="w-4 h-4 text-amber-500" />
           )}
-          <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
             {allComplete
               ? 'Toutes les sections sont complètes'
               : `${completedCount}/${items.length} sections complètes`}
@@ -153,7 +153,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
           size={size}
           className={cn(
             'gap-2',
-            !completionStatus.overall && 'opacity-50 cursor-not-allowed'
+            !completionStatus.overall && 'opacity-60 cursor-not-allowed'
           )}
         >
           {isGenerating ? (

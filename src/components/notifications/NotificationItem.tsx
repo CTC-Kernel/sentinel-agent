@@ -28,10 +28,10 @@ const getBgColor = (type: Notification['type'], read: boolean) => {
     if (read) return 'bg-transparent';
     switch (type) {
         case 'danger':
-        case 'error': return 'bg-red-50 dark:bg-red-500/10';
-        case 'warning': return 'bg-amber-50 dark:bg-amber-500/10';
-        case 'success': return 'bg-green-50 dark:bg-green-500/10';
-        case 'mention': return 'bg-brand-50 dark:bg-brand-500/10';
+        case 'error': return 'bg-red-50 dark:bg-red-50';
+        case 'warning': return 'bg-amber-50 dark:bg-amber-50';
+        case 'success': return 'bg-green-50 dark:bg-green-50';
+        case 'mention': return 'bg-brand-50 dark:bg-brand-900';
         default: return 'bg-slate-50 dark:bg-slate-800/50';
     }
 };

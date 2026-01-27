@@ -68,10 +68,10 @@ export const ReportTemplates: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="group relative p-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/5 hover:border-brand-500/30 transition-all hover:shadow-xl"
+                        className="group relative p-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/5 hover:border-brand-300 transition-all hover:shadow-xl"
                     >
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 group-hover:bg-brand-500/10 text-slate-500 group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">
+                            <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 group-hover:bg-brand-50 text-slate-500 dark:text-slate-400 group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">
                                 <FileSpreadsheet className="w-6 h-6" />
                             </div>
                             {template.isPremium && (
@@ -93,7 +93,7 @@ export const ReportTemplates: React.FC = () => {
                             <Badge variant="soft" status="neutral">
                                 {template.category}
                             </Badge>
-                            <Button variant="ghost" size="sm" className="hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-800 dark:hover:text-brand-300">
+                            <Button variant="ghost" size="sm" className="hover:bg-brand-50 dark:hover:bg-brand-50 hover:text-brand-800 dark:hover:text-brand-300">
                                 Utiliser
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>

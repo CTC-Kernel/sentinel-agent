@@ -40,7 +40,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
             <div className="p-6 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
                 {/* Summary Card */}
                 <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 relative z-10">
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Demandeur</h4>
@@ -74,14 +74,14 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
 
                 {/* Dates & SLA */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="p-6 bg-blue-50/80 dark:bg-blue-900/10 rounded-4xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
+                    <div className="p-6 bg-blue-50/80 dark:bg-blue-900/30 dark:bg-blue-900 rounded-4xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 mb-1">Reçu le</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-400 dark:text-blue-300 mb-1">Reçu le</h4>
                             <div className="text-xl font-bold text-slate-900 dark:text-white">{format(new Date(request.submissionDate), 'dd MMMM yyyy', { locale: fr })}</div>
                         </div>
                         <Calendar className="h-8 w-8 text-blue-500/50" />
                     </div>
-                    <div className={`p-6 rounded-4xl border shadow-sm flex items-center justify-between ${new Date(request.dueDate) < new Date() ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-green-50/80 dark:bg-green-900/10 border-green-100 dark:border-green-900/30'
+                    <div className={`p-6 rounded-4xl border shadow-sm flex items-center justify-between ${new Date(request.dueDate) < new Date() ? 'bg-red-50/80 dark:bg-red-50 dark:bg-red-900 border-red-100 dark:border-red-900/30' : 'bg-green-50/80 dark:bg-green-50 dark:bg-green-900 border-green-100 dark:border-green-900/30'
                         }`}>
                         <div>
                             <h4 className={`text-xs font-bold uppercase tracking-widest mb-1 ${new Date(request.dueDate) < new Date() ? 'text-red-700 dark:text-red-300' : 'text-green-700 dark:text-green-300'}`}>Date Limite (30j)</h4>
@@ -134,10 +134,10 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
 
                 {/* Validation Info */}
                 <div className="p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 rounded-xl flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
                     <div>
                         <h5 className="text-sm font-bold text-orange-800 dark:text-orange-200">Vérification d'Identité Requise</h5>
-                        <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
+                        <p className="text-xs text-orange-700 dark:text-orange-400 dark:text-orange-300 mt-1">
                             Avant de fournir toute donnée personnelle, assurez-vous de l'identité du demandeur (CNI, Passeport). Ne jamais envoyer de données sensibles par email non sécurisé.
                         </p>
                     </div>

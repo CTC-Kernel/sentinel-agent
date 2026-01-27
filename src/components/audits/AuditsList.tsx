@@ -26,23 +26,23 @@ interface AuditsListProps {
 // Helper function moved outside component to be stable
 const getStatusColor = (s: string) => {
     switch (s) {
-        case 'Planifié': return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-        case 'En cours': return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+        case 'Planifié': return 'bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:border-blue-800';
+        case 'En cours': return 'bg-amber-50 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800 dark:border-amber-800';
         case 'Terminé': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-        case 'Validé': return 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 border-brand-200 dark:border-brand-800';
-        case 'Annulé': return 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
-        default: return 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:bg-slate-800/50 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+        case 'Validé': return 'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-400 border-brand-200 dark:border-brand-800';
+        case 'Annulé': return 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+        default: return 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 dark:bg-slate-800/50 dark:text-slate-400 border-slate-200 dark:border-slate-700';
     }
 };
 
 const getAuditTypeStyles = (type: string) => {
     switch (type) {
         case 'Interne':
-            return { icon: UserCheck, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-900/20', border: 'border-brand-100 dark:border-brand-800/50' };
+            return { icon: UserCheck, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-800', border: 'border-brand-100 dark:border-brand-700' };
         case 'Externe':
             return { icon: Globe, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-100 dark:border-purple-800/50' };
         case 'Certification':
-            return { icon: Award, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800/50' };
+            return { icon: Award, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-2000' };
         case 'Fournisseur':
             return { icon: Truck, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/50' };
         default:
@@ -106,7 +106,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                             <button type="button" className="text-left font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => onOpen(row.original)} aria-label={`Ouvrir l'audit ${row.original.name}`}>
                                 {row.original.name}
                             </button>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${styles.color}`}>{row.original.type}</span>
+                            <span className={`text-[11px] font-bold uppercase tracking-wider ${styles.color}`}>{row.original.type}</span>
                         </div>
                     </div>
                 );
@@ -142,7 +142,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                                 target.src = getUserAvatarUrl(null, auditorUser?.role);
                             }}
                         />
-                        <span className="text-sm text-slate-700 dark:text-muted-foreground">{auditorName}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{auditorName}</span>
                     </div>
                 );
             }

@@ -118,7 +118,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                     >
 
                         {/* Hover Overlay with Actions */}
-                        <div className="absolute top-4 right-4 z-20 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                        <div className="absolute top-4 right-4 z-20 opacity-70 md:opacity-0 md:group-hover:opacity-70 transition-opacity duration-200 flex gap-2">
                             {canEdit && onEdit && (
                                 <CustomTooltip content="Modifier">
                                     <Button
@@ -154,7 +154,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     </Badge>
                                     {trend === 'up' && <span className="text-error-text" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
                                     {trend === 'down' && <span className="text-success-text" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                    {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
+                                    {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[11px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
                                 </div>
                             </div>
                             <div className="mb-4 flex-1">
@@ -165,8 +165,8 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">
                                     <TextHighlight text={risk.threat} query={searchQuery || ''} />
                                 </h4>
-                                <div className="text-sm text-slate-900 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl inline-block w-full border border-slate-200 dark:border-white/10">
-                                    <span className="font-bold text-xs uppercase text-slate-700 dark:text-slate-400 block mb-1">{t('common.vulnerability')}</span>
+                                <div className="text-sm text-slate-900 dark:text-white dark:text-slate-200 bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl inline-block w-full border border-slate-200 dark:border-white/10">
+                                    <span className="font-bold text-xs uppercase text-slate-700 dark:text-slate-300 block mb-1">{t('common.vulnerability')}</span>
                                     <TextHighlight text={risk.vulnerability || ''} query={searchQuery || ''} isHtml className="line-clamp-3" />
                                 </div>
                             </div>
@@ -177,7 +177,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                         {(() => {
                                             const sla = getSLAStatus(risk);
                                             if (sla) return (
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold ${sla.color}`}>
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold ${sla.color}`}>
                                                     <Clock className="w-3 h-3 mr-1" /> {sla.label}
                                                 </span>
                                             )
@@ -186,7 +186,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-error-bg text-error-text border-error-border' :
+                                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-error-bg text-error-text border-error-border' :
                                                 risk.treatment.slaStatus === 'At Risk' ? 'bg-warning-bg text-warning-text border-warning-border' :
                                                     'bg-success-bg text-success-text border-success-border'
                                                 }`}>
@@ -203,7 +203,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 </div>
                                 {isReviewOverdue(risk) && (
                                     <div className="flex items-center justify-between">
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text border border-warning-border dark:border-warning-border/50 text-[10px] font-bold">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text border border-warning-border dark:border-warning-border/50 text-[11px] font-bold">
                                             <Clock className="h-3 w-3 mr-1" /> Revue en retard
                                         </span>
                                     </div>

@@ -194,7 +194,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                 disabled={isSaving}
                                 className={cn(
                                     'w-full px-2 py-1 text-sm bg-white dark:bg-slate-800 border rounded-lg',
-                                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
+                                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400',
                                     'transition-colors duration-200',
                                     error
                                         ? 'border-error-500 focus-visible:ring-error-500/50'
@@ -221,7 +221,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     type="button"
                                     onClick={saveValue}
                                     disabled={isSaving}
-                                    className="p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                    className="p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                                     aria-label="Sauvegarder"
                                 >
                                     {isSaving ? (
@@ -234,7 +234,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     type="button"
                                     onClick={cancelEditing}
                                     disabled={isSaving}
-                                    className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+                                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                                     aria-label="Annuler"
                                 >
                                     <X className="h-4 w-4" />
@@ -280,7 +280,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                             <motion.span
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity"
                             >
                                 <Pencil className="h-3.5 w-3.5" />
                             </motion.span>

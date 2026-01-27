@@ -27,7 +27,7 @@ const AdminDashboard: React.FC = () => {
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab
-                            ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
+                            ? 'bg-brand-50 text-brand-400 border border-brand-200'
                             : 'text-muted-foreground hover:text-white hover:bg-white/5'
                             }`}
                     >

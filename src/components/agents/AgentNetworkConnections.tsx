@@ -247,7 +247,7 @@ export const AgentNetworkConnections: React.FC<AgentNetworkConnectionsProps> = (
                                     {/* Protocol */}
                                     <div className="col-span-1">
                                         <span className={cn(
-                                            'inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold uppercase',
+                                            'inline-flex px-1.5 py-0.5 rounded text-[11px] font-bold uppercase',
                                             getProtocolColor(connection.protocol)
                                         )}>
                                             {connection.protocol}
@@ -287,7 +287,7 @@ export const AgentNetworkConnections: React.FC<AgentNetworkConnectionsProps> = (
                                     <div className="col-span-2">
                                         <Badge
                                             status={getStateVariant(connection.state)}
-                                            className="text-[9px] px-1.5 py-0"
+                                            className="text-[11px] px-1.5 py-0"
                                         >
                                             {connection.state}
                                         </Badge>

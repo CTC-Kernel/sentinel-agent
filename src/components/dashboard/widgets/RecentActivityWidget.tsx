@@ -110,7 +110,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                                     </p>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[500px] font-medium leading-relaxed">{log.details}</p>
                                 </div>
-                                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wide bg-accent px-2 py-1 rounded-md ml-4 whitespace-nowrap">
+                                <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-wide bg-accent px-2 py-1 rounded-md ml-4 whitespace-nowrap">
                                     {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>

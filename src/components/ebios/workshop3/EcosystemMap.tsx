@@ -413,7 +413,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
               {/* Risk indicator */}
               <div
                 className={cn(
-                  'absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white',
+                  'absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white',
                   riskScore >= 70
                     ? 'bg-red-500'
                     : riskScore >= 40
@@ -459,7 +459,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
               )}
             >
               <AlertTriangle className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              <p className="text-[10px] font-medium text-purple-800 dark:text-purple-200 text-center truncate w-full px-1">
+              <p className="text-[11px] font-medium text-purple-800 dark:text-purple-200 text-center truncate w-full px-1">
                 {asset.name}
               </p>
             </div>
@@ -476,21 +476,21 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         <button
           onClick={handleZoomIn}
-          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.zoomIn')}
         >
           <ZoomIn className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </button>
         <button
           onClick={handleZoomOut}
-          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.zoomOut')}
         >
           <ZoomOut className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </button>
         <button
           onClick={handleFitToView}
-          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.fitToView')}
         >
           <Maximize2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
@@ -501,7 +501,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
           className={cn(
             'p-2 rounded-lg border shadow-sm transition-colors',
             showLegend
-              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700'
+              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 dark:border-blue-700'
               : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
           )}
           title={t('ebios.ecosystem.toggleLegend')}
@@ -540,8 +540,8 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                       className={cn(
                         'flex items-center gap-2 w-full px-2 py-1 rounded text-left transition-colors',
                         isVisible
-                          ? 'hover:bg-slate-100 dark:hover:bg-slate-700'
-                          : 'opacity-50'
+                          ? 'hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700'
+                          : 'opacity-60'
                       )}
                     >
                       {isVisible ? (
@@ -601,7 +601,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                 setSelectedParty(null);
                 setSelectedPath(null);
               }}
-              className="absolute top-2 right-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="absolute top-2 right-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -662,7 +662,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
             {selectedPath && (
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30">
                     <ArrowRight className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>

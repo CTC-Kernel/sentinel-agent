@@ -158,7 +158,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                         <button
                             onClick={handleStartResponse}
                             disabled={isStarting}
-                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                         >
                             {isStarting ? <span className="animate-spin">⏳</span> : <MonitorPlay className="h-5 w-5" />}
                             Démarrer la réponse
@@ -239,7 +239,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                 className={`relative flex items-start p-4 rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isCompleted
                                     ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
                                     : isNext
-                                        ? 'bg-white dark:bg-white/5 border-brand-200 dark:border-brand-500/30 ring-1 ring-brand-100 dark:ring-brand-900/20 cursor-pointer hover:shadow-md'
+                                        ? 'bg-white dark:bg-white/5 border-brand-200 dark:border-brand-300 ring-1 ring-brand-100 dark:ring-brand-700 cursor-pointer hover:shadow-md'
                                         : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-60 cursor-not-allowed'
                                     }`}
                             >
@@ -258,7 +258,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                         <h4 className={`font-bold ${isCompleted ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-900 dark:text-white'}`}>
                                             {step.title}
                                         </h4>
-                                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-md">
+                                        <span className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-md">
                                             {step.type}
                                         </span>
                                     </div>

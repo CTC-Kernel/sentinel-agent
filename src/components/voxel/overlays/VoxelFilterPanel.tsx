@@ -292,7 +292,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
             <div className="relative">
               <Filter className="w-5 h-5 text-muted-foreground" />
               {hasActiveFilters && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-blue-500 text-[8px] text-white flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -321,12 +321,12 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
                   value={filters.searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search nodes..."
-                  className="w-full pl-8 pr-8 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
+                  className="w-full pl-8 pr-8 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-2000"
                 />
                 {filters.searchQuery && (
                   <button
                     onClick={handleClearSearch}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-slate-700/50 text-slate-500 hover:text-slate-300"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:text-slate-300"
                   >
                     <X className="w-4 h-4" />
                   </button>

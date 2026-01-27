@@ -98,10 +98,10 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
         {label}
         <ArrowUpDown className={cn(
             'h-3 w-3',
-            currentSort === field ? 'opacity-100' : 'opacity-30'
+            currentSort === field ? 'opacity-70' : 'opacity-30'
         )} />
         {currentSort === field && (
-            <span className="text-[9px]">{direction === 'asc' ? '↑' : '↓'}</span>
+            <span className="text-[11px]">{direction === 'asc' ? '↑' : '↓'}</span>
         )}
     </button>
 );
@@ -317,7 +317,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                                     <div className="col-span-1">
                                         <Badge
                                             status={getStatusColor(process.status)}
-                                            className="text-[9px] px-1.5 py-0"
+                                            className="text-[11px] px-1.5 py-0"
                                         >
                                             {process.status === 'running' ? 'Actif' :
                                              process.status === 'sleeping' ? 'Veille' :

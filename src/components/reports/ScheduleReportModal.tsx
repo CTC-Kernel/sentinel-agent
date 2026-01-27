@@ -157,9 +157,9 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
@@ -171,9 +171,9 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
+                            enterTo="opacity-70 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
+                            leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
@@ -183,7 +183,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                         <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white">
                                             Planifier un rapport
                                         </Dialog.Title>
-                                        <p className="text-sm text-slate-500 mt-1">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                             Recevez ce rapport automatiquement par email
                                         </p>
                                     </div>
@@ -297,8 +297,8 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                     )}
 
                                     {/* Next Run Preview */}
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800 rounded-lg">
+                                        <p className="text-sm text-blue-700 dark:text-blue-400 dark:text-blue-300">
                                             <Clock className="inline h-4 w-4 mr-1" />
                                             Prochaine exécution: <strong>{nextRun.toLocaleDateString('fr-FR', {
                                                 weekday: 'long',
@@ -328,7 +328,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                                     {recipients.length > 1 && (
                                                         <button
                                                             onClick={() => handleRemoveRecipient(index)}
-                                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </button>
@@ -375,8 +375,8 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
 
                                     {/* Error Message */}
                                     {emailError && (
-                                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                                            <p className="text-sm text-red-700 dark:text-red-300">{emailError}</p>
+                                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800 rounded-lg">
+                                            <p className="text-sm text-red-700 dark:text-red-400 dark:text-red-300">{emailError}</p>
                                         </div>
                                     )}
                                 </div>

@@ -19,9 +19,9 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
                     as={React.Fragment}
                     enter="ease-in-out duration-500"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in-out duration-500"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity" />
@@ -47,7 +47,7 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
                                                     <Dialog.Title className="text-base font-bold text-slate-900 dark:text-white">
                                                         Discussion
                                                     </Dialog.Title>
-                                                    <p className="text-xs text-slate-500 truncate max-w-[280px] mt-1">{threatTitle}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[280px] mt-1">{threatTitle}</p>
                                                 </div>
                                                 <div className="ml-3 flex h-7 items-center">
                                                     <button

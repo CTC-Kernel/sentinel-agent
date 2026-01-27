@@ -81,7 +81,7 @@ export const CalendarService = {
                         end: dueDate,
                         allDay: true,
                         type: 'project',
-                        color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
+                        color: 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
                         description: `Statut: ${data.status}\nResponsable: ${data.manager}`,
                         location: 'Gestion de projet',
                         status: data.status
@@ -127,7 +127,7 @@ export const CalendarService = {
                         start: drillDate,
                         end: new Date(drillDate.getTime() + 4 * 60 * 60 * 1000), // Default 4h
                         type: 'drill',
-                        color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
+                        color: 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
                         description: `Résultat: ${data.result || 'Prévu'}`,
                         location: 'Interne',
                         status: data.result ? 'Completed' : 'Planned'
@@ -150,7 +150,7 @@ export const CalendarService = {
                         start: reportDate,
                         end: new Date(reportDate.getTime() + 1 * 60 * 60 * 1000),
                         type: 'incident',
-                        color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800',
+                        color: 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800',
                         description: `Sévérité: ${data.severity}\nStatut: ${data.status}`,
                         location: 'N/A',
                         status: data.status

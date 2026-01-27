@@ -31,9 +31,9 @@ export const AuditLogList: React.FC = () => {
     );
 
     const getActionColor = (action: string) => {
-        if (action.includes('SUSPEND') || action.includes('DELETE')) return 'text-red-400 bg-red-500/10 border-red-500/20';
+        if (action.includes('SUSPEND') || action.includes('DELETE')) return 'text-red-400 bg-red-50 dark:bg-red-900/30 border-red-500/20';
         if (action.includes('ACTIVATE') || action.includes('CREATE')) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-        if (action.includes('UPDATE') || action.includes('EDIT')) return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+        if (action.includes('UPDATE') || action.includes('EDIT')) return 'text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-blue-500/20';
         return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
     };
 
@@ -74,14 +74,14 @@ export const AuditLogList: React.FC = () => {
                         placeholder="Search logs (Actor, Action, ID)..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-500/50 text-sm focus:bg-slate-900 transition-colors text-white"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-400 text-sm focus:bg-slate-900 transition-colors text-white"
                     />
                 </div>
                 <div className="flex gap-2">
                     <button
                         onClick={handleExport}
                         disabled={logs.length === 0}
-                        className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                         title="Export CSV"
                     >
                         <Download className="w-4 h-4" />
@@ -139,9 +139,9 @@ export const AuditLogList: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="group relative inline-block text-left">
-                                                <Info className="w-4 h-4 text-slate-500 hover:text-white cursor-pointer" />
+                                                <Info className="w-4 h-4 text-slate-500 dark:text-slate-400 hover:text-white cursor-pointer" />
                                                 <div className="absolute right-0 mt-2 w-64 origin-top-right bg-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 z-10 hidden group-hover:block">
-                                                    <pre className="text-[10px] text-slate-300 whitespace-pre-wrap overflow-auto max-h-48">
+                                                    <pre className="text-[11px] text-slate-300 whitespace-pre-wrap overflow-auto max-h-48">
                                                         {JSON.stringify(log.metadata, null, 2)}
                                                     </pre>
                                                 </div>

@@ -147,7 +147,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
                         <div className="col-span-full mb-2">
-                            <span className="text-sm font-semibold text-slate-700 dark:text-muted-foreground">Objectifs de Reprise (SLA)</span>
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Objectifs de Reprise (SLA)</span>
                         </div>
                         <div className="relative">
                             <Controller

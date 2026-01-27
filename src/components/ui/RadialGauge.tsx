@@ -52,12 +52,26 @@ export const RadialGauge: React.FC<RadialGaugeProps> = ({
         return 'text-danger';
     };
 
+    // Generate accessible label
+    const accessibleLabel = label
+        ? `${label}: ${Math.round(value)}${unit} sur ${max}${unit}`
+        : `${Math.round(value)}${unit} sur ${max}${unit}`;
+
     return (
-        <div className={cn('relative inline-flex items-center justify-center', className)}>
+        <div
+            className={cn('relative inline-flex items-center justify-center', className)}
+            role="meter"
+            aria-valuenow={value}
+            aria-valuemin={0}
+            aria-valuemax={max}
+            aria-label={accessibleLabel}
+        >
             <svg
                 width={size}
                 height={size}
                 className="transform -rotate-90"
+                aria-hidden="true"
+                focusable="false"
             >
                 {/* Background circle */}
                 <circle
@@ -114,18 +128,30 @@ export const RadialGauge: React.FC<RadialGaugeProps> = ({
                 )}
             </svg>
 
-            {/* Center content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={cn('font-bold font-display', getColorClass())} style={{ fontSize: size * 0.22 }}>
+            {/* Center content - accessible text display */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center" aria-hidden="true">
+                <span
+                    className={cn('font-bold font-display', getColorClass())}
+                    style={{ fontSize: Math.max(size * 0.22, 14) }}
+                >
                     {Math.round(value)}
                 </span>
                 {unit && (
-                    <span className="text-muted-foreground" style={{ fontSize: size * 0.1 }}>
+                    <span
+                        className="text-muted-foreground"
+                        style={{ fontSize: Math.max(size * 0.1, 11) }}
+                    >
                         {unit}
                     </span>
                 )}
                 {label && (
-                    <span className="text-muted-foreground text-center" style={{ fontSize: size * 0.08, maxWidth: size * 0.7 }}>
+                    <span
+                        className="text-muted-foreground text-center leading-tight"
+                        style={{
+                            fontSize: Math.max(size * 0.09, 11),
+                            maxWidth: size * 0.75
+                        }}
+                    >
                         {label}
                     </span>
                 )}

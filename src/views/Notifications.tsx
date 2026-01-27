@@ -49,7 +49,7 @@ export const Notifications: React.FC = () => {
                     {notifications.some(n => !n.read) && (
                         <button
                             onClick={markAllAsRead}
-                            className="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 px-4 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                            className="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 px-4 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors"
                         >
                             {t('notifications.markAllRead', { defaultValue: 'Tout marquer comme lu' })}
                         </button>
@@ -64,7 +64,7 @@ export const Notifications: React.FC = () => {
                         onClick={() => setFilterStatus('all')}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'all'
                             ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25'
-                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10'
                             }`}
                     >
                         {t('common.all', { defaultValue: 'Toutes' })}
@@ -73,7 +73,7 @@ export const Notifications: React.FC = () => {
                         onClick={() => setFilterStatus('unread')}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'unread'
                             ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25'
-                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10'
                             }`}
                     >
                         {t('notifications.unread', { defaultValue: 'Non lues' })}
@@ -87,7 +87,7 @@ export const Notifications: React.FC = () => {
                         placeholder={t('common.search', { defaultValue: 'Rechercher...' })}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 transition-all"
                     />
                 </div>
             </div>
@@ -116,7 +116,7 @@ export const Notifications: React.FC = () => {
                                             <h3 className={`text-base font-bold ${!notif.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                                 {notif.title}
                                             </h3>
-                                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">
+                                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">
                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                             </span>
                                         </div>
@@ -135,7 +135,7 @@ export const Notifications: React.FC = () => {
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-1 rounded-lg">
+                                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-70 transition-opacity absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-1 rounded-lg">
                                         {!notif.read && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); markAsRead(notif.id); }}

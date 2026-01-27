@@ -262,7 +262,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                             {mapAssetTypeToEbiosType(asset.type)}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-500 truncate">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
                           {asset.owner && `${asset.owner} • `}
                           {asset.location || t('common.noLocation', 'Emplacement non spécifié')}
                         </p>
@@ -277,7 +277,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
 
         {/* Footer */}
         <div className="pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
-          <div className="text-sm text-slate-500 flex items-center gap-1.5">
+          <div className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4" />
             {t('ebios.workshop1.importNote', 'Les actifs importés seront liés à l\'inventaire')}
           </div>

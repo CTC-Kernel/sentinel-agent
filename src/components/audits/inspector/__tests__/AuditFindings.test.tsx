@@ -305,7 +305,7 @@ describe('AuditFindings', () => {
             // Filter to find only the badge (span), not the select option
             const badges = screen.getAllByText('Majeure', { selector: 'span' });
             expect(badges.length).toBeGreaterThan(0);
-            expect(badges[0].className).toContain('bg-red-500/10');
+            expect(badges[0].className).toContain('bg-red-50');
         });
 
         it('applies correct color for opportunity findings', () => {

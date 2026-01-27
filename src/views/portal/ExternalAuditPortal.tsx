@@ -87,11 +87,11 @@ export const ExternalAuditPortal: React.FC = () => {
     if (error || !auditData) {
         return (
             <div className="max-w-md mx-auto mt-20 text-center space-y-4">
-                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Lock className="w-8 h-8" />
                 </div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('certifier.portal.accessDenied')}</h1>
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-xl text-red-800 dark:text-red-200 text-sm">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800 p-4 rounded-xl text-red-800 dark:text-red-200 text-sm">
                     {error || t('certifier.portal.invalidLink')}
                 </div>
                 <p className="text-slate-500 text-sm">
@@ -107,13 +107,13 @@ export const ExternalAuditPortal: React.FC = () => {
         <div className="max-w-5xl mx-auto">
             {/* Header Card */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none mb-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-32 bg-brand-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                <div className="absolute top-0 right-0 p-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
 
                 <div className="relative z-10">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                         <div>
                             <div className="flex items-center gap-2 text-brand-600 font-medium text-sm mb-2">
-                                <span className="bg-brand-50 dark:bg-brand-900/30 px-2 py-1 rounded text-xs uppercase tracking-wider">{audit.type}</span>
+                                <span className="bg-brand-50 dark:bg-brand-900 px-2 py-1 rounded text-xs uppercase tracking-wider">{audit.type}</span>
                                 <ChevronRight className="w-3 h-3 text-slate-300" />
                                 <span className="text-slate-500">{new Date(audit.date).toLocaleDateString()}</span>
                             </div>
@@ -121,9 +121,9 @@ export const ExternalAuditPortal: React.FC = () => {
                             <p className="text-slate-600 dark:text-slate-400 max-w-2xl">{audit.description}</p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                            <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${audit.status === 'Validé' ? 'bg-green-100 text-green-700 border-green-200' :
-                                audit.status === 'Planifié' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                                    'bg-orange-100 text-orange-700 border-orange-200'
+                            <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${audit.status === 'Validé' ? 'bg-green-100 text-green-700 dark:text-green-400 border-green-200' :
+                                audit.status === 'Planifié' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200' :
+                                    'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200'
                                 }`}>
                                 {audit.status}
                             </div>
@@ -234,33 +234,33 @@ export const ExternalAuditPortal: React.FC = () => {
                                 <CheckCircle className="w-5 h-5 text-brand-500" />
                                 {t('certifier.portal.evidence.title')}
                             </h2>
-                            <p className="text-sm text-slate-500 mb-6">{t('certifier.portal.evidence.subtitle')}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t('certifier.portal.evidence.subtitle')}</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {auditData.documents && auditData.documents.length > 0 ? (
                                     auditData.documents.map(doc => (
-                                        <div key={doc.id} className="p-4 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors group">
+                                        <div key={doc.id} className="p-4 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-900/50 transition-colors group">
                                             <div className="flex items-start justify-between mb-2">
-                                                <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
+                                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg">
                                                     <FileText className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 px-2 py-1 rounded">{doc.type}</span>
+                                                <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-1 rounded">{doc.type}</span>
                                             </div>
                                             <h4 className="font-medium text-sm text-slate-900 dark:text-white mb-1 truncate" title={doc.name}>{doc.name}</h4>
-                                            <p className="text-xs text-slate-500 mb-3">{doc.category || t('certifier.portal.evidence.defaultCategory')}</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{doc.category || t('certifier.portal.evidence.defaultCategory')}</p>
 
                                             <a
                                                 href={doc.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full py-2 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:bg-brand-50 dark:group-hover:bg-brand-900/20 group-hover:text-brand-600 group-hover:border-brand-200 transition-all"
+                                                className="w-full py-2 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:bg-brand-50 dark:group-hover:bg-brand-800 group-hover:text-brand-600 group-hover:border-brand-200 transition-all"
                                             >
                                                 <Upload className="w-4 h-4 rotate-180" /> {t('certifier.portal.evidence.download')}
                                             </a>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
+                                    <div className="col-span-full py-12 text-center text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
                                         {t('certifier.portal.evidence.empty')}
                                     </div>
                                 )}

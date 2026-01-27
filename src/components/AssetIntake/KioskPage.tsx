@@ -27,11 +27,11 @@ export const KioskPage: React.FC = () => {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 relative overflow-hidden">
                 <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-emerald-500/10 dark:bg-emerald-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
+                    <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-emerald-500/10 dark:bg-emerald-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float"></div>
                 </div>
 
-                <div className="glass-panel p-12 rounded-5xl max-w-md w-full text-center shadow-2xl animate-scale-in">
-                    <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600 dark:text-emerald-400 shadow-inner">
+                <div className="glass-panel p-12 rounded-3xl max-w-md w-full text-center shadow-2xl animate-scale-in">
+                    <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600 dark:text-emerald-400 shadow-inner">
                         <CheckCircle2 className="h-10 w-10" />
                     </div>
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3 font-display">
@@ -55,7 +55,7 @@ export const KioskPage: React.FC = () => {
         <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
             {/* Background Elements */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-brand-200/30 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
+                <div className="absolute top-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-brand-100 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
                 <div className="absolute bottom-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-indigo-200/30 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[120px] animate-float" style={{ animationDelay: '2s' }}></div>
             </div>
 
@@ -70,7 +70,7 @@ export const KioskPage: React.FC = () => {
                         <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Asset Intake</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-full border border-white/20 dark:border-white/5">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 backdrop-blur-md rounded-full border border-white/20 dark:border-white/5">
                     <Lock className="h-3 w-3 text-slate-600" />
                     <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Connexion Sécurisée</span>
                 </div>
@@ -107,7 +107,7 @@ export const KioskPage: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 py-6 text-center text-xs text-slate-500 dark:text-slate-600">
+            <footer className="relative z-10 py-6 text-center text-xs text-slate-500 dark:text-slate-400 dark:text-slate-600">
                 &copy; {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.
             </footer>
         </div>

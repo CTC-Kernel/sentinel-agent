@@ -87,11 +87,11 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     <button
                         aria-label={mobileOpen ? "Fermer le menu mobile" : "Ouvrir le menu mobile"}
                         onClick={() => setMobileOpen(!mobileOpen)}
-                        className="p-2.5 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                        className="p-2.5 -ml-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5"
                     >
                         <div className="relative h-5 w-5">
-                            <Menu className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'}`} />
-                            <X className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`} />
+                            <Menu className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-70 rotate-0 scale-100'}`} />
+                            <X className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-70 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`} />
                         </div>
                     </button>
 
@@ -103,11 +103,11 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         aria-label="Rechercher (Cmd+K)"
                         data-tour="command-palette"
                         onClick={openCommandPalette}
-                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-sm shadow-sm hover:shadow-md"
+                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-sm shadow-sm hover:shadow-md"
                     >
-                        <Search className="h-4 w-4 text-slate-500 group-hover:text-brand-500 transition-colors" />
+                        <Search className="h-4 w-4 text-slate-500 dark:text-slate-400 group-hover:text-brand-500 transition-colors" />
                         <span className="flex-1 text-left font-medium text-xs uppercase tracking-wide">{t('common.search')}</span>
-                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[10px] font-bold text-slate-500 shadow-sm">
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[11px] font-bold text-slate-500 dark:text-slate-400 shadow-sm">
                             <Command className="h-3 w-3" />
                             <span>K</span>
                         </div>
@@ -117,7 +117,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     <button
                         aria-label="Rechercher"
                         onClick={openCommandPalette}
-                        className="md:hidden p-2.5 text-slate-500 hover:text-slate-600 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                        className="md:hidden p-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5"
                     >
                         <Search className="h-5 w-5" />
                     </button>
@@ -133,7 +133,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     {isSuperAdmin && (
                         <Link
                             to="/admin_management"
-                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
+                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-300 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
                         >
                             <Shield className="h-4 w-4" />
                             {t('common.adminShort')}
@@ -150,7 +150,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         <button
                             data-tour="theme-toggle"
                             onClick={handleThemeToggle}
-                            className="p-2 rounded-full text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-500/50"
+                            className="p-2 rounded-full text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400"
                             aria-label="Toggle Theme"
                         >
                             {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
@@ -161,12 +161,12 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         <button
                             aria-label="Menu utilisateur"
                             data-tour="header-profile"
-                            className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus-visible:ring-brand-500/50"
+                            className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus-visible:ring-brand-400"
                             onClick={() => setShowUserMenu(!showUserMenu)}
                         >
                             <div className="hidden sm:flex flex-col items-end mr-1">
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
-                                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200 leading-none">{user?.displayName}</span>
+                                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
                             </div>
                             <img
                                 alt="Profile"
@@ -192,7 +192,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                             setLanguage(language === 'fr' ? 'en' : 'fr');
                                             setShowUserMenu(false);
                                         }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <Globe className="h-4 w-4 mr-3 text-slate-500" />
                                         {language === 'fr' ? 'Switch to English' : 'Passer en Français'}
@@ -200,7 +200,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <User className="h-4 w-4 mr-3 text-slate-500" />
                                         {t('settings.myProfile')}
@@ -208,7 +208,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <SettingsIcon className="h-4 w-4 mr-3 text-slate-500" />
                                         {t('common.settings.title')}
@@ -216,15 +216,15 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/pricing"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-xl transition-colors"
                                     >
-                                        <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
+                                        <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[11px]">€</span>
                                         {t('settings.plansAndBilling')}
                                     </Link>
                                     <button
                                         aria-label="Donner un avis"
                                         onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <MessageSquare className="h-4 w-4 mr-3 text-slate-500" />
                                         Donner un avis
@@ -235,7 +235,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <button
                                         aria-label="Se déconnecter"
                                         onClick={() => { handleLogout(); setShowUserMenu(false); }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                                     >
                                         <LogOut className="h-4 w-4 mr-3" />
                                         {t('common.logout')}

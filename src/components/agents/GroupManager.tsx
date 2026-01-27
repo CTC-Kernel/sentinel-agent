@@ -400,7 +400,7 @@ const GroupTreeNode: React.FC<{
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                            className="h-7 w-7 opacity-0 group-hover:opacity-70"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <MoreHorizontal className="h-4 w-4" />
@@ -476,7 +476,7 @@ const GroupAgentList: React.FC<{
     if (groupAgents.length === 0) {
         return (
             <div className="text-center py-8 text-muted-foreground">
-                <Monitor className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <Monitor className="h-12 w-12 mx-auto mb-3 opacity-60" />
                 <p>Aucun agent dans ce groupe</p>
                 <p className="text-sm">Glissez des agents ici pour les ajouter</p>
             </div>
@@ -720,7 +720,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
                 <div className="p-2 max-h-[500px] overflow-y-auto">
                     {filteredHierarchy.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
-                            <Folder className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                            <Folder className="h-12 w-12 mx-auto mb-3 opacity-60" />
                             <p>Aucun groupe</p>
                         </div>
                     ) : (

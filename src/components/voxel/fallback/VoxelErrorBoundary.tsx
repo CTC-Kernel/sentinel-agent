@@ -96,7 +96,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
       role="alert"
     >
       {/* Error icon */}
-      <div className="w-20 h-20 mb-6 flex items-center justify-center rounded-full bg-red-500/20 border-2 border-red-500/50">
+      <div className="w-20 h-20 mb-6 flex items-center justify-center rounded-full bg-red-500/20 border-2 border-red-2000">
         <svg
           className="w-10 h-10 text-red-400"
           fill="none"
@@ -126,7 +126,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
       {/* Error details (dev mode only) */}
       {import.meta.env.DEV && error && (
         <details className="mb-6 max-w-lg">
-          <summary className="text-sm text-slate-500 cursor-pointer hover:text-muted-foreground">
+          <summary className="text-sm text-slate-500 dark:text-slate-400 cursor-pointer hover:text-muted-foreground">
             Détails de l'erreur
           </summary>
           <pre className="mt-2 p-3 bg-slate-800 rounded text-xs text-red-400 overflow-auto max-h-32">

@@ -71,7 +71,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             {/* Status & Assignment */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Statut d'implémentation</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Statut d'implémentation</h3>
                     {canEdit ? (
                         <div className="grid grid-cols-2 gap-2">
                             {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
@@ -82,7 +82,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                     onClick={() => handleStatusChange(control, s)}
                                     disabled={updating}
                                     variant={control.status === s ? 'default' : 'outline'}
-                                    className={`h-auto py-2 text-[10px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-brand-600 hover:bg-brand-700' : 'text-slate-600 dark:text-slate-400'}`}
+                                    className={`h-auto py-2 text-[11px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-brand-600 hover:bg-brand-700' : 'text-slate-600 dark:text-slate-400'}`}
                                 >
                                     {updating && control.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                                     {s}
@@ -95,7 +95,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 </div>
 
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Responsable</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Responsable</h3>
                     {canEdit ? (
                         <CustomSelect
                             label="Assigné à"
@@ -107,10 +107,10 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                         />
                     ) : (
                         <div className="flex items-center p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
-                            <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 mr-3">
+                            <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 mr-3">
                                 <User className="h-4 w-4" />
                             </div>
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">
                                 {usersList.find(u => u.uid === control.assigneeId)?.displayName || 'Non assigné'}
                             </span>
                         </div>
@@ -123,7 +123,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4 text-slate-500" />
-                        <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest">Référentiels Satisfaits</h3>
+                        <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-widest">Référentiels Satisfaits</h3>
                     </div>
                     <span className="text-xs text-muted-foreground">
                         {1 + (control.mappedFrameworks?.length || 0)} référentiel(s)
@@ -136,7 +136,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-500 text-white border border-brand-600">
                             <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             {getFrameworkLabel(control.framework)}
-                            <span className="text-[10px] text-brand-100 ml-1">(principal)</span>
+                            <span className="text-[11px] text-brand-100 ml-1">(principal)</span>
                         </span>
                     )}
 
@@ -187,11 +187,11 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
 
             {/* Justification Area */}
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Justification / Politique</h3>
+                <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Justification / Politique</h3>
                 {canEdit ? (
                     <>
                         <textarea
-                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-y disabled:opacity-50"
+                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-y disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                             placeholder="Décrivez comment ce contrôle est implémenté..."
                             value={justification}
                             onChange={(e) => setJustification(e.target.value)}
@@ -199,7 +199,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                             maxLength={2000}
                             disabled={!canEdit || updating || isSaving}
                         />
-                        <div className="text-[10px] text-right text-muted-foreground mt-1">
+                        <div className="text-[11px] text-right text-muted-foreground mt-1">
                             {justification.length}/2000
                         </div>
                     </>

@@ -70,7 +70,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
   };
 
   return (
-    <GlassCard className="mb-6 bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
+    <GlassCard className="mb-6 bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800 dark:border-amber-800">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between"
@@ -82,7 +82,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
           <div className="text-left">
             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               {t('ebios.workshop3.scenarioSuggestions', 'Suggestions de scénarios')}
-              <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+              <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-50 dark:bg-amber-9000 text-amber-700 dark:text-amber-400 dark:text-amber-300">
                 {sectorProfile.name[locale]}
               </span>
             </h3>
@@ -100,7 +100,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
       </button>
 
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-amber-200/50 dark:border-amber-700/50 space-y-3">
+        <div className="mt-4 pt-4 border-t border-amber-1000 dark:border-amber-700/50 space-y-3">
           {availableTemplates.map((template) => {
             const gravityColor = getGravityColor(template.typicalGravity);
             const relevancePercent = template.score;
@@ -117,12 +117,12 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
                         {template.name[locale]}
                       </h4>
                       {relevancePercent >= 50 && (
-                        <span className="px-1.5 py-0.5 rounded text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                        <span className="px-1.5 py-0.5 rounded text-xs bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 text-green-700 dark:text-green-400">
                           {relevancePercent}%
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-slate-500 line-clamp-2">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
                       {template.description[locale]}
                     </p>
                     <div className="flex items-center gap-3 mt-2">
@@ -154,7 +154,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
                         onClick={() => onUseTemplate(template)}
-                        className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-400 transition-colors"
+                        className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:bg-amber-9000 text-amber-700 dark:text-amber-400 dark:text-amber-400 transition-colors"
                         title={t('ebios.workshop3.useTemplate', 'Utiliser ce modèle')}
                       >
                         <Check className="w-4 h-4" />
@@ -162,7 +162,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
                       {onDismissTemplate && (
                         <button
                           onClick={() => onDismissTemplate(template.id)}
-                          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-muted-foreground transition-colors"
+                          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 text-muted-foreground transition-colors"
                           title={t('ebios.workshop3.dismissTemplate', 'Ignorer')}
                         >
                           <X className="w-4 h-4" />

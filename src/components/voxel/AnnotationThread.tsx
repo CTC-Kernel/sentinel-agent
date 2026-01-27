@@ -127,7 +127,7 @@ const ReplyItem: React.FC<{
               {createdDate.toLocaleDateString('fr-FR')} a {createdDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
             </span>
             {reply.isEdited && (
-              <span className="text-xs text-slate-500 italic">(modifié)</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">(modifié)</span>
             )}
           </div>
 
@@ -141,7 +141,7 @@ const ReplyItem: React.FC<{
               {reply.mentions.map((mention, idx) => (
                 <span
                   key={idx}
-                  className="px-1.5 py-0.5 bg-brand-500/20 text-brand-400 text-xs rounded"
+                  className="px-1.5 py-0.5 bg-brand-100 text-brand-400 text-xs rounded"
                 >
                   @{mention}
                 </span>
@@ -152,7 +152,7 @@ const ReplyItem: React.FC<{
 
         {/* Actions */}
         {isOwner && showActions && (
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
             <button
               onClick={() => onEdit(reply)}
               className="p-1.5 rounded-lg hover:bg-slate-700/50 text-muted-foreground hover:text-white transition-colors"
@@ -246,7 +246,7 @@ const ReplyForm: React.FC<{
           disabled={!content.trim() || isSubmitting}
           className={`p-3 rounded-xl transition-all ${content.trim() && !isSubmitting
               ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25'
-              : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+              : 'bg-slate-700/50 text-slate-500 dark:text-slate-400 cursor-not-allowed'
             }`}
         >
           {isSubmitting ? (
@@ -469,7 +469,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                           setShowActions(false);
                           setShowDeleteAnnotationConfirm(true);
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
                       >
                         <Trash2 className="w-4 h-4" />
                         Supprimer
@@ -528,7 +528,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 {annotation.mentions.map((mention, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 bg-brand-500/20 text-brand-400 text-xs rounded-lg"
+                    className="px-2 py-1 bg-brand-100 text-brand-400 text-xs rounded-lg"
                   >
                     @{mention}
                   </span>
@@ -568,7 +568,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
             {/* Resolution info */}
             {annotation.resolvedBy && annotation.resolvedAt && (
-              <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-xl">
+              <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-500/30 rounded-xl">
                 <div className="flex items-center gap-2 text-green-400 text-sm">
                   <Check className="w-4 h-4" />
                   <span>
@@ -613,7 +613,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 >
                   {isLoadingReplies ? (
                     <div className="flex items-center justify-center py-8">
-                      <div className="w-6 h-6 border-2 border-brand-400/30 border-t-brand-400 rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-brand-200 border-t-brand-400 rounded-full animate-spin" />
                     </div>
                   ) : replies.length === 0 ? (
                     <div className="py-8 text-center text-sm text-slate-500">

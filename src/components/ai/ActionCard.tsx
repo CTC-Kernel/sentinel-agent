@@ -66,10 +66,10 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-3 mb-1 bg-white dark:bg-slate-950 border border-brand-100 dark:border-brand-900/50 rounded-xl overflow-hidden shadow-sm"
+            className="mt-3 mb-1 bg-white dark:bg-slate-950 border border-brand-100 dark:border-brand-800 rounded-xl overflow-hidden shadow-sm"
         >
             {/* Header */}
-            <div className="bg-brand-50/50 dark:bg-brand-900/20 px-3 py-2 border-b border-brand-100 dark:border-brand-900/50 flex items-center gap-2">
+            <div className="bg-brand-50 dark:bg-brand-800 px-3 py-2 border-b border-brand-100 dark:border-brand-800 flex items-center gap-2">
                 <ShieldAlert className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
                 <span className="text-xs font-bold text-brand-900 dark:text-brand-200 uppercase tracking-wider">
                     Action Recommandée

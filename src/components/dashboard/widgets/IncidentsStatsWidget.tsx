@@ -141,14 +141,14 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                         }}
                     >
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-success-text dark:text-success">MTTR</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-success-text dark:text-success">MTTR</span>
                             <Clock className="h-3.5 w-3.5 text-success group-hover/card:rotate-12 transition-transform" />
                         </div>
                         <div>
-                            <p className="text-lg font-black text-slate-800 dark:text-success/90 leading-none">
+                            <p className="text-lg font-black text-slate-800 dark:text-slate-200 dark:text-success/90 leading-none">
                                 {stats.avgMttrHours !== null ? `${stats.avgMttrHours}h` : '-'}
                             </p>
-                            <p className="text-[9px] font-bold text-success-text/70 dark:text-success/70 mt-0.5 uppercase tracking-wider">moyen</p>
+                            <p className="text-[11px] font-bold text-success-text/70 dark:text-success/70 mt-0.5 uppercase tracking-wider">moyen</p>
                         </div>
                     </div>
 
@@ -169,14 +169,14 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                         }}
                     >
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-warning-text dark:text-warning">Critiques</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-warning-text dark:text-warning">Critiques</span>
                             <AlertTriangle className="h-3.5 w-3.5 text-warning group-hover/card:shake transition-transform" />
                         </div>
                         <div>
-                            <p className="text-lg font-black text-slate-800 dark:text-warning/90 leading-none">
+                            <p className="text-lg font-black text-slate-800 dark:text-slate-200 dark:text-warning/90 leading-none">
                                 {stats.criticalRatio}%
                             </p>
-                            <p className="text-[9px] font-bold text-warning-text/70 dark:text-warning/70 mt-0.5 uppercase tracking-wider">du total</p>
+                            <p className="text-[11px] font-bold text-warning-text/70 dark:text-warning/70 mt-0.5 uppercase tracking-wider">du total</p>
                         </div>
                     </div>
                 </div>

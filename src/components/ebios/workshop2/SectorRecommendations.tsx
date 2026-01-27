@@ -100,7 +100,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
           <div className="text-left">
             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               {t('ebios.workshop2.sectorRecommendations', 'Recommandations pour votre secteur')}
-              <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300">
+              <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300">
                 {sectorProfile.name[locale]}
               </span>
             </h3>
@@ -158,7 +158,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissSource && (
                           <button
                             onClick={() => onDismissSource(source.code)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 text-slate-400"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                     key={obj.code}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   >
-                    <span className="font-medium text-amber-600 dark:text-amber-400">{obj.code}</span>
+                    <span className="font-medium text-amber-600 dark:text-amber-400 dark:text-amber-400">{obj.code}</span>
                     <span className="text-slate-500 dark:text-muted-foreground">-</span>
                     <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{obj.name}</span>
                     {!readOnly && (
@@ -211,7 +211,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissObjective && (
                           <button
                             onClick={() => onDismissObjective(obj.code)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 text-slate-400"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />

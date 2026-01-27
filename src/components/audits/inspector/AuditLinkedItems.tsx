@@ -143,7 +143,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                             return (
                                 <div
                                     key={ctrl.id}
-                                    className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-500/20 transition-all"
+                                    className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className={color}>{icon}</div>
@@ -171,7 +171,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => navigate(`/compliance?control=${ctrl.id}`)}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="opacity-0 group-hover:opacity-70 transition-opacity"
                                         aria-label={`Voir le contrôle ${ctrl.name}`}
                                     >
                                         <ExternalLink className="h-4 w-4" />
@@ -194,7 +194,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                         {linkedRisks.map(risk => (
                             <div
                                 key={risk.id}
-                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-500/20 transition-all"
+                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <ShieldAlert className="h-4 w-4 text-rose-500 shrink-0" />
@@ -224,7 +224,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => navigate(`/risks?risk=${risk.id}`)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-70 transition-opacity"
                                     aria-label={`Voir le risque ${risk.threat}`}
                                 >
                                     <ExternalLink className="h-4 w-4" />
@@ -246,7 +246,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                         {linkedAssets.map(asset => (
                             <div
                                 key={asset.id}
-                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-500/20 transition-all"
+                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <Server className="h-4 w-4 text-cyan-500 shrink-0" />
@@ -275,7 +275,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => navigate(`/assets?asset=${asset.id}`)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-70 transition-opacity"
                                     aria-label={`Voir l'actif ${asset.name}`}
                                 >
                                     <ExternalLink className="h-4 w-4" />
@@ -297,7 +297,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                         {linkedProjects.map(project => (
                             <div
                                 key={project.id}
-                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-500/20 transition-all"
+                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <FolderKanban className="h-4 w-4 text-indigo-500 shrink-0" />
@@ -326,7 +326,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => navigate(`/projects?project=${project.id}`)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-70 transition-opacity"
                                     aria-label={`Voir le projet ${project.name}`}
                                 >
                                     <ExternalLink className="h-4 w-4" />

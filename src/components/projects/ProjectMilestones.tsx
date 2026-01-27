@@ -207,11 +207,11 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                     />
                 ) : (
                     milestones.map((milestone, index) => (
-                        <div key={milestone.id} className="flex items-center p-4 glass-panel rounded-xl border border-white/20 hover:border-brand-500/30 group hover:shadow-md transition-all">
+                        <div key={milestone.id} className="flex items-center p-4 glass-panel rounded-xl border border-white/20 hover:border-brand-300 group hover:shadow-md transition-all">
                             <div className="flex-shrink-0 mr-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${milestone.status === 'achieved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                                    milestone.status === 'missed' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                                        'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${milestone.status === 'achieved' ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400' :
+                                    milestone.status === 'missed' ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400' :
+                                        'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 dark:bg-slate-700 dark:text-slate-400'
                                     }`}>
                                     {index + 1}
                                 </div>
@@ -232,17 +232,17 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(milestone.targetDate).toLocaleDateString()}</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                                 <button
                                     onClick={() => handleEdit(milestone)}
-                                    className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     aria-label="Modifier le jalon"
                                 >
                                     <Edit className="h-4 w-4" />
                                 </button>
                                 <button
                                     onClick={() => setDeleteMilestoneId(milestone.id)}
-                                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                    className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                     aria-label="Supprimer le jalon"
                                 >
                                     <Trash2 className="h-4 w-4" />

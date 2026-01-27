@@ -73,7 +73,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                     <FloatingLabelInput label="Nom du traitement" {...register('name')} placeholder="ex: Gestion Paie" error={errors.name?.message} />
                 </div>
                 <div>
-                    <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
+                    <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Responsable</label>
                     <CustomSelect
                         value={managerId || ''}
                         onChange={(val) => {
@@ -93,7 +93,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Base Légale</label>
                     <CustomSelect
                         value={legalBasis}
                         onChange={(val) => setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['legalBasis'])}
@@ -102,7 +102,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                     {errors.legalBasis && <p className="text-red-500 text-xs mt-1">{errors.legalBasis.message}</p>}
                 </div>
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">Statut</label>
                     <CustomSelect
                         value={status}
                         onChange={(val) => setValue('status', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['status'])}
@@ -163,7 +163,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
             </div>
 
             <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-white/5">
-                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                 <button aria-label="Save creation" type="submit" className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
             </div>
         </form>

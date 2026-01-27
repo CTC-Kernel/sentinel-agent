@@ -244,7 +244,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
             <div className="absolute top-6 right-6 z-10">
               <button
                 onClick={() => setShowEcosystemMap(false)}
-                className="p-3 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg hover:scale-110 transition-transform hover:bg-slate-50 dark:hover:bg-slate-700"
+                className="p-3 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg hover:scale-110 transition-transform hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
               >
                 <X className="w-5 h-5 text-slate-500" />
               </button>
@@ -279,21 +279,21 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
       {/* Ecosystem Section */}
       <div className="animate-fade-in-up delay-0">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-500/20">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-200">
           <div className="flex items-center justify-between">
             <button
               onClick={() => toggleSection('ecosystem')}
               className="flex-1 flex items-center justify-between group"
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
+                <div className="p-3 rounded-2xl bg-brand-50 text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
                   <Globe className="w-6 h-6" />
                 </div>
                 <div className="text-left">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                     {t('ebios.workshop3.ecosystem')}
                   </h3>
-                  <p className="text-sm text-slate-500 font-medium">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                     {data.ecosystem.length} {t('ebios.workshop3.partiesCount')}
                   </p>
                 </div>
@@ -328,7 +328,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
           {expandedSections.has('ecosystem') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
-              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop3.ecosystemHelp')}
               </p>
@@ -347,7 +347,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                         "bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1",
                         party.category === 'internal'
                           ? "border-info-border hover:border-info"
-                          : "border-slate-200 dark:border-slate-700 hover:border-brand-500/30"
+                          : "border-slate-200 dark:border-slate-700 hover:border-brand-300"
                       )}
                     >
                       <div className="flex items-start justify-between mb-4">
@@ -356,7 +356,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                             "p-3 rounded-xl shadow-sm",
                             party.category === 'internal'
                               ? "bg-info-bg text-info-text"
-                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors"
                           )}>
                             <Icon className="w-6 h-6" />
                           </div>
@@ -365,7 +365,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                               {party.name}
                             </h4>
                             <span className={cn(
-                              "inline-block px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider mt-1",
+                              "inline-block px-2 py-0.5 rounded text-[11px] uppercase font-bold tracking-wider mt-1",
                               party.category === 'internal'
                                 ? "bg-info-bg text-info-text"
                                 : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
@@ -376,7 +376,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                         </div>
 
                         {!readOnly && (
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -425,12 +425,12 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                 {!readOnly && (
                   <button
                     onClick={handleAddParty}
-                    className="group relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-100/50 dark:hover:bg-brand-900/10 transition-all duration-300 min-h-[160px]"
+                    className="group relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all duration-300 min-h-[160px]"
                   >
                     <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-brand-500 group-hover:text-white transition-all duration-300 mb-3 shadow-sm group-hover:shadow-brand group-hover:scale-110">
                       <Plus className="w-6 h-6" />
                     </div>
-                    <span className="font-bold text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                    <span className="font-bold text-slate-500 dark:text-slate-400 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                       {t('ebios.workshop3.addParty')}
                     </span>
                   </button>
@@ -456,7 +456,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                   {t('ebios.workshop3.attackPaths')}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   {data.attackPaths.length} {t('ebios.workshop3.pathsCount')}
                 </p>
               </div>
@@ -474,7 +474,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
           {expandedSections.has('attackPaths') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
-              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop3.attackPathsHelp')}
               </p>
@@ -508,14 +508,14 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                             </h4>
 
                             <div className="flex flex-wrap items-center gap-3 text-sm">
-                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-100 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800/50">
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-700">
                                 <Globe className="w-3.5 h-3.5" />
                                 <span className="font-medium">{sourceParty?.name || '?'}</span>
                               </div>
 
                               <div className="flex items-center text-muted-foreground">
                                 <span className="w-8 h-px bg-current"></span>
-                                <span className="text-[10px] uppercase font-bold tracking-wider px-1">Via</span>
+                                <span className="text-[11px] uppercase font-bold tracking-wider px-1">Via</span>
                                 <span className="w-8 h-px bg-current"></span>
                               </div>
 
@@ -537,7 +537,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                           <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800/50">
                             <div className="flex flex-col items-end">
-                              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop3.likelihood')}</span>
+                              <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop3.likelihood')}</span>
                               <span className={cn(
                                 "px-3 py-1 rounded-lg text-sm font-bold shadow-sm border",
                                 `bg-${likelihoodScale?.color || 'gray'}-50 dark:bg-${likelihoodScale?.color || 'gray'}-900/20`,
@@ -555,7 +555,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                                     setEditingPath(path);
                                     setShowPathForm(true);
                                   }}
-                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-all"
+                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900 transition-all"
                                 >
                                   <Pencil className="w-4 h-4" />
                                 </button>
@@ -576,7 +576,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                   {!readOnly && (
                     <button
                       onClick={handleAddPath}
-                      className="w-full p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-orange-600 font-medium group"
+                      className="w-full p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-orange-600 font-medium group"
                     >
                       <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-200 dark:group-hover:bg-orange-800 transition-colors">
                         <Plus className="w-4 h-4" />
@@ -606,7 +606,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-error-text transition-colors">
                   {t('ebios.workshop3.strategicScenarios')}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   {data.strategicScenarios.length} {t('ebios.workshop3.scenariosCount')}
                 </p>
               </div>
@@ -624,7 +624,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
           {expandedSections.has('strategicScenarios') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
-              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop3.strategicScenariosHelp')}
               </p>
@@ -660,7 +660,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                               </p>
                             )}
                             <div className="flex flex-wrap gap-2">
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-100 dark:border-orange-800/50">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 dark:text-orange-300 border border-orange-100 dark:border-orange-800/50">
                                 <TrendingUp className="w-3.5 h-3.5" />
                                 {scenario.attackPathIds.length} {t('ebios.workshop3.paths')}
                               </span>
@@ -673,7 +673,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                           <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800/50">
                             <div className="flex flex-col items-end">
-                              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop3.gravity')}</span>
+                              <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop3.gravity')}</span>
                               <span className={cn(
                                 "inline-block px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border",
                                 `bg-${gravityScale?.color || 'gray'}-50 dark:bg-${gravityScale?.color || 'gray'}-900/20`,
@@ -691,7 +691,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                                     setEditingScenario(scenario);
                                     setShowScenarioForm(true);
                                   }}
-                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-all"
+                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900 transition-all"
                                 >
                                   <Pencil className="w-4 h-4" />
                                 </button>
@@ -712,7 +712,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                   {!readOnly && (
                     <button
                       onClick={handleAddScenario}
-                      className="w-full p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-error-text font-medium group"
+                      className="w-full p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-error-text font-medium group"
                     >
                       <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                         <Plus className="w-4 h-4" />

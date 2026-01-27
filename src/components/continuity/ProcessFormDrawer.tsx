@@ -177,7 +177,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
 
                     {/* Header - AI Assistant */}
                     {!isEditing && (
-                        <div className="bg-brand-50/50 dark:bg-brand-900/10 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/20">
+                        <div className="bg-brand-50 dark:bg-brand-900 p-4 rounded-2xl border border-brand-100 dark:border-brand-700">
                             <div className="flex justify-between items-center mb-2">
                                 <h4 className="text-sm font-bold text-brand-700 dark:text-brand-300 flex items-center">
                                     <Sparkles className="h-4 w-4 mr-2" />
@@ -209,7 +209,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                                         type="button"
                                         onClick={handleAISuggestion}
                                         disabled={isGenerating}
-                                        className="text-xs px-3 py-1.5 h-auto bg-white dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 border border-brand-200 dark:border-brand-900/30 hover:bg-brand-50"
+                                        className="text-xs px-3 py-1.5 h-auto bg-white dark:bg-brand-900 text-brand-600 dark:text-brand-300 border border-brand-200 dark:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                                         isLoading={isGenerating}
                                     >
                                         {!isGenerating && <Sparkles className="h-3 w-3 mr-2" />}
@@ -326,10 +326,10 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
 
                     <div className="space-y-4">
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">{t('continuity.criticalDependencies')}</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-3">{t('continuity.criticalDependencies')}</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div>
-                                    <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> {t('continuity.internalAssets')}</span>
+                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> {t('continuity.internalAssets')}</span>
                                     <Controller
                                         name="supportingAssetIds"
                                         control={control}
@@ -346,7 +346,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> {t('common.suppliers')}</span>
+                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> {t('common.suppliers')}</span>
                                     <Controller
                                         name="supplierIds"
                                         control={control}
@@ -367,7 +367,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                     </div>
                     <div className="space-y-4">
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">{t('continuity.riskScenarios')}</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-3">{t('continuity.riskScenarios')}</h4>
                             <Controller
                                 name="relatedRiskIds"
                                 control={control}
@@ -392,7 +392,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                                 type="button"
                                 variant="ghost"
                                 onClick={addRecoveryTask}
-                                className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50"
+                                className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                             >
                                 <Plus className="h-3 w-3 mr-1" />
                                 {t('common.addStep')}
@@ -401,7 +401,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                         <div className="space-y-3">
                             {watchedRecoveryTasks?.map((_, index) => (
                                 <div key={`resource-${index}`} className="flex gap-3 items-start bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10">
-                                    <div className="mt-2.5 text-[10px] font-bold text-slate-500 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-slate-200 dark:border-white/10">{index + 1}</div>
+                                    <div className="mt-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-slate-200 dark:border-white/10">{index + 1}</div>
                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
                                         <div className="md:col-span-6">
                                             <Controller
@@ -446,7 +446,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                                     <Button
                                         variant="ghost"
                                         onClick={() => removeRecoveryTask(index)}
-                                        className="mt-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                        className="mt-2 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                                         aria-label={`Supprimer l'étape ${index + 1}`}
                                     >
                                         <Trash2 className="h-4 w-4" />

@@ -17,8 +17,8 @@ export const ComplianceCriticalControls: React.FC<ComplianceCriticalControlsProp
     if (criticalControls.length === 0) return null;
 
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-5xl relative group hover:shadow-apple overflow-hidden transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+        <div className="glass-premium p-6 md:p-8 rounded-3xl relative group hover:shadow-apple overflow-hidden transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
             <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 relative z-10 uppercase tracking-wider">
                 <AlertTriangle className="h-4 w-4 text-warning-text" />
                 Contrôles Critiques à Implémenter ({criticalControls.length})
@@ -30,7 +30,7 @@ export const ComplianceCriticalControls: React.FC<ComplianceCriticalControlsProp
                             <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>
                         </div>
-                        <div className={`shrink-0 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border shadow-sm ${control.status === 'Partiel' ? 'bg-warning-bg text-warning-text border-warning-border/50' :
+                        <div className={`shrink-0 px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider border shadow-sm ${control.status === 'Partiel' ? 'bg-warning-bg text-warning-text border-warning-border/50' :
                             'bg-error-bg text-error-text border-error-border/50'
                             }`}>
                             {control.status}

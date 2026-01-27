@@ -174,7 +174,7 @@ export const ProfileSettings: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            <div className="glass-premium p-8 rounded-5xl border border-border/50 shadow-apple relative overflow-hidden">
+            <div className="glass-premium p-8 rounded-3xl border border-border/50 shadow-apple relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
                     {/* Avatar Section */}
@@ -191,7 +191,7 @@ export const ProfileSettings: React.FC = () => {
                                     }}
                                 />
                                 <div
-                                    className="absolute inset-0 bg-black/30 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center cursor-pointer"
+                                    className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm backdrop-blur-[2px] opacity-0 group-hover:opacity-70 transition-all duration-300 flex items-center justify-center cursor-pointer"
                                     onClick={() => fileInputRef.current?.click()}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
@@ -316,7 +316,7 @@ export const ProfileSettings: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 ${user?.mfaEnabled ? 'bg-success-bg border-success-border/30 shadow-sm' : 'bg-brand-50/30 dark:bg-white/5 border-brand-200/50 dark:border-white/10'}`}>
+                            <div className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 ${user?.mfaEnabled ? 'bg-success-bg border-success-border/30 shadow-sm' : 'bg-brand-50 dark:bg-white/5 border-brand-200 dark:border-white/10'}`}>
                                 <div className={`p-3 rounded-2xl shadow-sm ${user?.mfaEnabled ? 'bg-success-bg text-success-text' : 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400'}`}>
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
@@ -351,8 +351,8 @@ export const ProfileSettings: React.FC = () => {
                                     { key: 'tasks', label: t('common.tasks') },
                                     { key: 'system', label: t('common.system') }
                                 ] as const).map((category) => (
-                                    <div key={category.key} className="p-5 rounded-3xl bg-brand-50/30 dark:bg-white/5 border border-brand-200/50 dark:border-white/10 shadow-sm group/notif hover:bg-brand-50/50 dark:hover:bg-white/10 transition-all">
-                                        <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 group-hover/notif:text-brand-600 transition-colors">{category.label}</h4>
+                                    <div key={category.key} className="p-5 rounded-3xl bg-brand-50 dark:bg-white/5 border border-brand-200 dark:border-white/10 shadow-sm group/notif hover:bg-brand-50 dark:hover:bg-white/10 transition-all">
+                                        <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 group-hover/notif:text-brand-600 transition-colors">{category.label}</h4>
                                         <div className="flex gap-6 flex-wrap">
                                             <Controller
                                                 name={`notificationPreferences.${category.key}.email`}
@@ -400,7 +400,7 @@ export const ProfileSettings: React.FC = () => {
                                     Activez le mode démo pour explorer l'application avec des données fictives complètes.
                                 </p>
                             </div>
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-brand-50/30 dark:bg-white/5 border border-brand-200/50 dark:border-white/10">
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-brand-50 dark:bg-white/5 border border-brand-200 dark:border-white/10">
                                 <Switch
                                     checked={demoMode}
                                     onChange={() => {
@@ -490,7 +490,7 @@ export const ProfileSettings: React.FC = () => {
             </div>
 
             {/* Danger Zone */}
-            <div className="glass-premium p-8 rounded-5xl border border-error-border/30 shadow-apple-sm relative overflow-hidden group">
+            <div className="glass-premium p-8 rounded-3xl border border-error-border/30 shadow-apple-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-error-bg/30 to-transparent dark:from-error-bg/10 pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
                     <div className="space-y-2">

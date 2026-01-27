@@ -71,7 +71,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     className={`p-2 rounded-lg transition-colors ${active
         ? 'bg-blue-500/20 text-blue-400'
         : 'text-muted-foreground hover:text-slate-200 hover:bg-slate-700/50'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
     title={label}
     aria-label={label}
   >
@@ -154,7 +154,7 @@ export const VoxelToolbar: React.FC<VoxelToolbarProps> = ({
           active={showLabels}
         />
         <ToolbarButton
-          icon={showEdges ? <GitBranch className="w-4 h-4" /> : <GitBranch className="w-4 h-4 opacity-50" />}
+          icon={showEdges ? <GitBranch className="w-4 h-4" /> : <GitBranch className="w-4 h-4 opacity-60" />}
           label={showEdges ? 'Hide Edges' : 'Show Edges'}
           onClick={toggleEdges}
           active={showEdges}

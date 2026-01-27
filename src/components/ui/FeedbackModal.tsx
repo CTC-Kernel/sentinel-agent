@@ -94,20 +94,22 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     };
 
     const modalContent = (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px] animate-fade-in">
-            <div className="glass-panel rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh] shadow-2xl animate-scale-in">
-                <div className="p-6 border-b border-white/10 flex items-center justify-between shrink-0 glass-panel relative z-10">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <MessageSquare className="w-6 h-6 text-brand-500" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg flex flex-col max-h-[90vh] shadow-2xl shadow-black/20 dark:shadow-black/50 animate-scale-in border border-slate-200/80 dark:border-slate-700/50">
+                {/* Header - Solid background for clarity */}
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between shrink-0 bg-slate-50/80 dark:bg-slate-800/50 rounded-t-3xl">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 dark:bg-blue-900/50 flex items-center justify-center">
+                            <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
                         Votre Avis Compte
                     </h2>
-                    <Button variant="ghost" size="icon" aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                        <X className="w-6 h-6" />
+                    <Button variant="ghost" size="icon" aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-xl">
+                        <X className="w-5 h-5" />
                     </Button>
-                    <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                 </div>
 
-                <form id="feedback-form" onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto custom-scrollbar space-y-6 relative z-10">
+                <form id="feedback-form" onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto custom-scrollbar space-y-6 bg-white dark:bg-slate-900">
                     {/* Type Selection */}
                     <div className="grid grid-cols-2 gap-3">
                         {(['feature', 'bug', 'improvement', 'other'] as FeedbackType[]).map((t) => (
@@ -117,9 +119,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                 aria-label={`Type de retour : ${getTypeLabel(t)}`}
                                 aria-pressed={formValues.type === t}
                                 onClick={() => setValue('type', t)}
-                                className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all ${formValues.type === t
-                                    ? 'bg-brand-50/50 dark:bg-brand-900/20 border-brand-500 text-brand-700 dark:text-brand-400 ring-1 ring-brand-500 shadow-sm shadow-brand-500/10'
-                                    : 'glass-panel border-white/20 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/5'
+                                className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold transition-all ${formValues.type === t
+                                    ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-500 text-blue-700 dark:text-blue-400 dark:text-blue-300 ring-2 ring-blue-500/30 shadow-sm'
+                                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                     }`}
                             >
                                 {getTypeIcon(t)}
@@ -132,19 +134,19 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     {/* Priority (only for bugs/features) */}
                     {(formValues.type === 'bug' || formValues.type === 'feature') && (
                         <div className="animate-fade-in">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-2">
                                 Priorité / Importance
                             </label>
-                            <div className="flex gap-4 p-1 glass-panel rounded-xl border border-white/10 w-fit">
+                            <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 w-fit">
                                 {(['low', 'medium', 'high'] as const).map((p) => (
-                                    <label key={p} className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'hover:bg-white/10'}`}>
+                                    <label key={p} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                                         <input {...register('priority')}
                                             checked={formValues.priority === p}
                                             type="radio"
                                             value={p}
                                             className="hidden"
                                         />
-                                        <span className={`text-sm capitalize font-medium ${formValues.priority === p ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`}>
+                                        <span className={`text-sm capitalize font-semibold ${formValues.priority === p ? 'text-white' : ''}`}>
                                             {p === 'low' ? 'Faible' : p === 'medium' ? 'Moyenne' : 'Haute'}
                                         </span>
                                     </label>
@@ -156,43 +158,39 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-sm font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-2">
                             Sujet
                         </label>
-                        <div className="relative group">
-                            <input {...register('title')}
-                                type="text"
-                                placeholder="Ex: Ajout d'un filtre par date..."
-                                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-muted-foreground"
-                            />
-                        </div>
+                        <input {...register('title')}
+                            type="text"
+                            placeholder="Ex: Ajout d'un filtre par date..."
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-brand-300 focus:border-brand-500 outline-none transition-all"
+                        />
                         <FormError message={errors.title?.message} />
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-sm font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-2">
                             Description détaillée
                         </label>
-                        <div className="relative group">
-                            <textarea {...register('description')}
-                                placeholder="Dites-nous en plus..."
-                                rows={5}
-                                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-none shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-muted-foreground"
-                            />
-                        </div>
+                        <textarea {...register('description')}
+                            placeholder="Dites-nous en plus..."
+                            rows={5}
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-brand-300 focus:border-brand-500 outline-none transition-all resize-none"
+                        />
                         <FormError message={errors.description?.message} />
                     </div>
                 </form>
 
-                <div className="p-6 border-t border-white/10 glass-panel relative z-10 flex justify-end gap-3 shrink-0 rounded-b-[2rem]">
-                    <div className="absolute inset-0 bg-slate-50/50 dark:bg-black/20 pointer-events-none" />
+                {/* Footer - Solid background */}
+                <div className="p-6 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50/80 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0 rounded-b-3xl">
                     <Button
                         type="button"
                         variant="ghost"
                         aria-label="Annuler le retour"
                         onClick={onClose}
-                        className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors font-medium relative z-10"
+                        className="px-5 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors font-semibold"
                     >
                         Annuler
                     </Button>
@@ -202,14 +200,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                         aria-label="Envoyer le retour"
                         disabled={isSubmitting}
                         isLoading={isSubmitting}
-                        className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                        className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30 transition-all flex items-center gap-2 font-bold"
                     >
-
-                        <>
-                            <Send className="w-4 h-4" />
-                            Envoyer
-                        </>
-
+                        <Send className="w-4 h-4" />
+                        Envoyer
                     </Button>
                 </div>
             </div>

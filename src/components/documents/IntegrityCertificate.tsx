@@ -617,10 +617,10 @@ export function IntegrityCertificate({
                         className={cn(
                           'mt-0.5 rounded-full p-1',
                           event.status === 'verified'
-                            ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                            ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400'
                             : event.status === 'compromised'
-                              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                              ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-400'
                         )}
                       >
                         {event.status === 'verified' ? (
@@ -656,7 +656,7 @@ export function IntegrityCertificate({
 
         {/* Warning for compromised status */}
         {status === 'compromised' && (
-          <div className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 dark:border-red-800 rounded-lg">
             <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
             <div className="text-sm">
               <p className="font-medium text-red-800 dark:text-red-200">

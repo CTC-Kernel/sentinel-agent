@@ -238,7 +238,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
-            <fieldset disabled={readOnly} className="space-y-6 group-disabled:opacity-100">
+            <fieldset disabled={readOnly} className="space-y-6 disabled:text-slate-500 dark:disabled:text-slate-400">
                 {!isEditing && !readOnly && (
                     <AIAssistantHeader
                         templates={SUPPLIER_TEMPLATES}
@@ -290,14 +290,14 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                         key={company.siren}
                                         type="button"
                                         onClick={() => selectCompany(company)}
-                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
+                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
                                         aria-label={`Sélectionner l'entreprise ${company.name}`}
                                     >
                                         <div>
                                             <div className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</div>
                                             <div className="text-xs text-slate-600">{company.address}</div>
                                         </div>
-                                        <div className="text-xs font-mono bg-slate-100 dark:bg-black/30 px-2 py-1 rounded text-slate-600">
+                                        <div className="text-xs font-mono bg-slate-100 dark:bg-slate-900/60 backdrop-blur-sm px-2 py-1 rounded text-slate-600">
                                             {company.siren}
                                         </div>
                                     </button>
@@ -349,7 +349,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                         {logoUrl && (
                             <div className="col-span-1 md:col-span-2 flex justify-center py-4">
-                                <img src={logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-xl bg-white p-2 shadow-sm border border-slate-100" onError={(e) => e.currentTarget.style.display = 'none'} />
+                                <img src={logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-xl bg-white p-2 shadow-sm border border-slate-100 dark:border-slate-800" onError={(e) => e.currentTarget.style.display = 'none'} />
                             </div>
                         )}
 
@@ -399,7 +399,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Responsable Interne</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Responsable Interne</label>
                             <Controller
                                 name="ownerId"
                                 control={control}
@@ -450,13 +450,13 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                     </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
+                        <div className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5">
                             <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('isICTProvider')} />
-                            <label className="text-sm font-bold text-slate-700 dark:text-muted-foreground">Prestataire TIC Critique</label>
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Prestataire TIC Critique</label>
                         </div>
-                        <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
+                        <div className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5">
                             <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('supportsCriticalFunction')} />
-                            <label className="text-sm font-bold text-slate-700 dark:text-muted-foreground">Supporte Fonction Critique</label>
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Supporte Fonction Critique</label>
                         </div>
 
                         <div>
@@ -499,7 +499,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Processus Supportés</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Processus Supportés</label>
                             <Controller
                                 name="supportedProcessIds"
                                 control={control}
@@ -517,7 +517,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Actifs Liés</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Actifs Liés</label>
                                 {/* This button seems to be misplaced or part of a different context, adding it as requested */}
 
                                 <Controller
@@ -535,7 +535,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Risques Liés</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Risques Liés</label>
                                 <Controller
                                     name="relatedRiskIds"
                                     control={control}
@@ -578,7 +578,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         />
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Contrat (Document)</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 ml-1">Contrat (Document)</label>
                             <Controller
                                 name="contractDocumentId"
                                 control={control}
@@ -610,7 +610,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onClick={onCancel}
                             variant="ghost"
                             disabled={isLoading}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors"
                         >
                             Annuler
                         </Button>

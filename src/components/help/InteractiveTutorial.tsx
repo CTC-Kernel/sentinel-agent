@@ -24,8 +24,8 @@ const TutorialStep: React.FC<TutorialStepProps> = ({
       isCurrent 
         ? 'bg-brand-50 border-brand-200 shadow-lg' 
         : isCompleted 
-        ? 'bg-green-50 border-green-200' 
-        : 'bg-white border-slate-200'
+        ? 'bg-green-50 dark:bg-green-900/30 border-green-200' 
+        : 'bg-white border-slate-200 dark:border-slate-700'
     }`}>
       <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
         isCompleted 
@@ -46,7 +46,7 @@ const TutorialStep: React.FC<TutorialStepProps> = ({
         }`}>
           {title}
         </h3>
-        <p className="text-sm text-slate-600 mb-2">{description}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{description}</p>
         {action && isCurrent && (
           <Button size="sm" className="text-xs">
             {action}
@@ -109,7 +109,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
       <div className="border-b border-slate-200 pb-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-slate-900 mb-2">{title}</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{title}</h2>
             <p className="text-slate-600">{description}</p>
           </div>
           <div className="flex items-center gap-2 ml-4">
@@ -164,7 +164,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between pt-4 border-t border-slate-200">
+      <div className="flex justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
         <Button
           variant="outline"
           onClick={handlePreviousStep}

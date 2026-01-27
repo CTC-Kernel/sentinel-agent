@@ -42,9 +42,9 @@ export const PageControls: React.FC<PageControlsProps> = ({
         <div className="flex flex-col md:flex-row flex-wrap gap-4 justify-between items-center w-full">
             {/* Left Section: Search & Count */}
             <div className="flex-1 w-full md:max-w-xl relative group z-20">
-                <div className="absolute inset-0 bg-brand-500/5 dark:bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500/30 transition-all duration-300">
-                    <Search className="h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
+                <div className="absolute inset-0 bg-brand-50 dark:bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-300 focus-within:border-brand-300 transition-all duration-300">
+                    <Search className="h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within:text-brand-500 transition-colors" />
 
                     <input aria-label={searchPlaceholder} value={searchQuery} onChange={e => onSearchChange(e.target.value)}
                         type="text"
@@ -58,7 +58,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
                                 aria-label="Effacer la recherche"
                                 type="button"
                                 onClick={() => onSearchChange('')}
-                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10"
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -87,7 +87,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
                             <Filter className="h-3.5 w-3.5" />
                             <span className="hidden sm:inline">Filtres</span>
                             {activeFiltersCount && activeFiltersCount > 0 ? (
-                                <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-[10px]">
+                                <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-[11px]">
                                     {activeFiltersCount}
                                 </span>
                             ) : null}

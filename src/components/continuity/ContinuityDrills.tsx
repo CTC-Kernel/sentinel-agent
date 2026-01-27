@@ -22,10 +22,10 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
         <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6">
             <div className="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-4xl border border-slate-200 dark:border-white/10 shadow-sm">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 dark:text-brand-400">
+                    <div className="p-2 bg-brand-50 dark:bg-brand-800 rounded-xl text-brand-600 dark:text-brand-400">
                         <Zap className="h-5 w-5" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">Exercices de Crise</h3>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 dark:text-white">Exercices de Crise</h3>
                 </div>
                 <button
                     onClick={onNewDrill}
@@ -37,7 +37,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
             </div>
 
             {drills.length === 0 ? (
-                <div className="glass-panel rounded-5xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                <div className="glass-panel rounded-3xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
                     <EmptyState
                         icon={Zap}
                         title="Aucun exercice enregistré"
@@ -46,10 +46,10 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                 </div>
             ) : (
 
-                <div className="glass-panel rounded-5xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                <div className="glass-panel rounded-3xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-slate-500 font-bold uppercase text-[10px] tracking-widest backdrop-blur-sm">
+                            <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-slate-400 font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
                                 <tr>
                                     <th className="px-8 py-5">Date</th>
                                     <th className="px-6 py-5">Processus testé</th>
@@ -78,7 +78,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                                                 </span>
                                             </td>
                                             <td className="px-6 py-5">
-                                                <span className={`flex items-center w-fit px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30' : drill.result === 'Échec' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30' : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/30'}`}>
+                                                <span className={`flex items-center w-fit px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 dark:text-green-400 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30' : drill.result === 'Échec' ? 'bg-red-50 text-red-700 dark:text-red-400 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30' : 'bg-amber-50 text-amber-700 dark:text-amber-400 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/30'}`}>
                                                     {drill.result === 'Succès' ? <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> : <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />}
                                                     {drill.result}
                                                 </span>

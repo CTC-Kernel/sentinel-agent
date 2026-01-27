@@ -1,7 +1,14 @@
-@import './styles/focus.css';
-@import './styles/calendar.css';
-@import './styles/interactions.css';
+/* CSS Import Order - Critical for proper cascade */
+/* 1. Design tokens first (CSS variables) */
 @import './styles/design-tokens.css';
+/* 2. Base accessibility utilities */
+@import './styles/accessibility.css';
+/* 3. Focus indicators */
+@import './styles/focus.css';
+/* 4. Interaction states */
+@import './styles/interactions.css';
+/* 5. Component-specific styles */
+@import './styles/calendar.css';
 
 @tailwind base;
 @tailwind components;

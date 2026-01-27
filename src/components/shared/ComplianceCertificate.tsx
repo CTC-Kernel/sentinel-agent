@@ -18,7 +18,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
     return (
         <div className="max-w-2xl mx-auto my-8 relative">
             {/* Certificate Frame */}
-            <div className="bg-white text-slate-900 border-[10px] border-double border-slate-200 p-8 shadow-2xl relative overflow-hidden">
+            <div className="bg-white text-slate-900 dark:text-white border-[10px] border-double border-slate-200 p-8 shadow-2xl relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
                     <MasterpieceBackground />
@@ -37,24 +37,24 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
                     </div>
 
                     <div>
-                        <h2 className="text-3xl font-serif font-bold text-slate-800 tracking-wide mb-1">CERTIFICAT DE CONFORMITÉ</h2>
+                        <h2 className="text-3xl font-serif font-bold text-slate-800 dark:text-slate-200 tracking-wide mb-1">CERTIFICAT DE CONFORMITÉ</h2>
                         <p className="text-brand-600 font-bold uppercase tracking-widest text-sm">Sentinel GRC Platform</p>
                     </div>
 
-                    <div className="py-6 border-t border-b border-slate-100">
+                    <div className="py-6 border-t border-b border-slate-100 dark:border-slate-800">
                         <p className="text-slate-500 italic mb-4">Ce document certifie que</p>
-                        <h3 className="text-2xl font-bold text-slate-900 mb-4">{recipientName}</h3>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{recipientName}</h3>
                         <p className="text-slate-500 italic mb-2">a atteint un score de conformité de</p>
                         <div className="inline-block px-6 py-2 bg-slate-900 text-white rounded-full font-mono text-xl font-bold">
                             {score}%
                         </div>
-                        <p className="text-slate-500 italic mt-4">pour le référentiel <span className="font-bold text-slate-700 not-italic">{type}</span></p>
+                        <p className="text-slate-500 italic mt-4">pour le référentiel <span className="font-bold text-slate-700 dark:text-slate-300 not-italic">{type}</span></p>
                     </div>
 
                     <div className="flex justify-between items-end pt-8 px-8">
                         <div className="text-left">
                             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Délivré le</p>
-                            <div className="flex items-center gap-2 text-slate-700 font-medium">
+                            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
                                 <Calendar className="h-4 w-4" />
                                 {issueDate.toLocaleDateString()}
                             </div>

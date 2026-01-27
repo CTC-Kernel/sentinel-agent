@@ -243,8 +243,8 @@ function TrendWarningBanner({ warnings }: { warnings: TrendWarning[] }) {
           className={cn(
             'flex items-center gap-2 p-3 rounded-lg text-sm',
             warning.severity === 'critical'
-              ? 'bg-red-500/10 text-red-700 dark:text-red-400'
-              : 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+              ? 'bg-red-50 text-red-700 dark:text-red-400'
+              : 'bg-yellow-50 text-yellow-700 dark:text-yellow-400'
           )}
         >
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />

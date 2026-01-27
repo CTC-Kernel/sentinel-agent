@@ -22,8 +22,8 @@ interface AuditsToolbarProps {
     setTypeFilter: (value: string) => void;
 
     // View Mode
-    activeTab: 'overview' | 'list' | 'calendar' | 'findings' | 'methods';
-    onTabChange: (tab: 'overview' | 'list' | 'calendar' | 'findings' | 'methods') => void;
+    activeTab: 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail';
+    onTabChange: (tab: 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail') => void;
 
     // Data Actions
     selectedAudits: string[];
@@ -110,24 +110,24 @@ export const AuditsToolbar: React.FC<AuditsToolbarProps> = ({
                             as={React.Fragment}
                             enter="transition ease-out duration-100"
                             enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
+                            enterTo="transform opacity-70 scale-100"
                             leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
+                            leaveFrom="transform opacity-70 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                         >
-                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                 <div className="p-1">
                                     <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('audits.exports')}</div>
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button onClick={handleExportCalendar} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
+                                            <button onClick={handleExportCalendar} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5`}>
                                                 <CalendarIcon className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCalendar')}
                                             </button>
                                         )}
                                     </Menu.Item>
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
+                                            <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5`}>
                                                 <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCSV')}
                                             </button>
                                         )}
@@ -137,7 +137,7 @@ export const AuditsToolbar: React.FC<AuditsToolbarProps> = ({
                                     <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.import.label')}</div>
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
+                                            <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5`}>
                                                 <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('common.importCsv')}
                                             </button>
                                         )}

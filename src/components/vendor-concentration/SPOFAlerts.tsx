@@ -193,7 +193,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
               {t('vendorConcentration.spof.recommendation')}
             </p>
-            <p className="text-sm text-slate-700 dark:text-muted-foreground">
+            <p className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               {alert.recommendation}
             </p>
           </div>
@@ -226,7 +226,7 @@ export const SPOFAlerts: React.FC<SPOFAlertsProps> = ({
   if (summary.totalSPOFs === 0) {
     return (
       <div className="text-center py-8">
-        <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 w-fit mx-auto mb-4">
+        <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 w-fit mx-auto mb-4">
           <Shield className="h-8 w-8 text-green-500" />
         </div>
         <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">

@@ -87,7 +87,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
           {data.name}
         </span>
         {data.hasSPOF && (
-          <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600">
+          <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600">
             SPOF
           </span>
         )}
@@ -219,7 +219,7 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
     <div className="space-y-4">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+        className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
       >
         <ChevronRight className="h-4 w-4 rotate-180" />
         {t('common.back')}
@@ -229,13 +229,13 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
         <h3 className="text-lg font-medium text-slate-900 dark:text-white">
           {category.categoryLabel}
         </h3>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           {category.vendorCount} {t('vendorConcentration.chart.vendor', { count: category.vendorCount })} • HHI: {Math.round(category.herfindahlIndex)}
         </p>
       </div>
 
       {category.hasSPOF && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800">
           <AlertTriangle className="h-4 w-4 text-red-500" />
           <span className="text-sm text-red-700 dark:text-red-400">
             {t('vendorConcentration.chart.spofWarning')}

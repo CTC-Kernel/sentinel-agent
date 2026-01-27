@@ -65,7 +65,7 @@ export const SystemHealth: React.FC = () => {
                         variants={slideUpVariants}
                         className="glass-premium p-4 sm:p-6 rounded-2xl relative overflow-hidden group"
                     >
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
                             <metric.icon className="h-24 w-24" />
                         </div>
                         <div className="relative z-10 flex flex-col h-full justify-between">
@@ -108,7 +108,7 @@ export const SystemHealth: React.FC = () => {
                             </div>
                             <div className="text-right">
                                 <p className="text-xs font-bold text-success-text">{service.uptime}</p>
-                                <p className="text-[10px] text-muted-foreground">uptime</p>
+                                <p className="text-[11px] text-muted-foreground">uptime</p>
                             </div>
                         </div>
                     ))}

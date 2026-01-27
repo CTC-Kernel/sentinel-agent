@@ -17,10 +17,10 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
 
     return (
         <div className="glass-panel p-5 rounded-2xl border border-blue-200/50 dark:border-blue-900/30 shadow-sm flex flex-col relative overflow-hidden group">
-            <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/10 pointer-events-none" />
+            <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/30 dark:bg-blue-900 pointer-events-none" />
             <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
                         {req.displayName.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -34,7 +34,7 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
                             type="button"
                             aria-label={t('team.actions.reject')}
                             onClick={handleReject}
-                            className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
+                            className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
                         >
                             <XCircle className="h-3.5 w-3.5" /> {t('team.actions.reject')}
                         </button>

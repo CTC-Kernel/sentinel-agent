@@ -75,20 +75,20 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
             )}
         >
             {/* Gradient overlay - visible at 60%, 100% on hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none opacity-60 group-hover:opacity-70 transition-opacity duration-500" />
 
             <div className="flex flex-col h-full justify-between relative z-10">
                 {/* Header with icon and trend */}
                 <div className="flex justify-between items-start mb-6">
                     <div className={cn(
-                        "p-4 rounded-2xl bg-opacity-10 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm transition-transform duration-500 group-hover:scale-110",
+                        "p-4 rounded-2xl bg-opacity-30 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm transition-transform duration-500 group-hover:scale-110",
                         colorClass
                     )}>
                         <Icon className={cn("h-6 w-6", colorClass.replace('bg-', 'text-'))} strokeWidth={2} />
                     </div>
 
                     {trend && (
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset shadow-sm ${getTrendColor()}`}>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ring-1 ring-inset shadow-sm ${getTrendColor()}`}>
                             {getTrendIcon()}
                             {Math.abs(trend.value)}% {trend.label}
                         </span>
@@ -120,7 +120,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                                 return (
                                     <div
                                         key={`spark-${idx}`}
-                                        className={`flex-1 rounded-t ${colorClass} opacity-50 transition-all hover:opacity-80`}
+                                        className={`flex-1 rounded-t ${colorClass} opacity-60 transition-all hover:opacity-80`}
                                         style={{ height: `${height}%` }}
                                     />
                                 );

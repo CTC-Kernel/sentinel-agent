@@ -53,7 +53,7 @@ const MODULE_CONFIG: Record<string, {
     strategies: {
         icon: ShieldCheck,
         color: 'bg-brand-500',
-        bgColor: 'bg-brand-50/50 dark:bg-brand-900/10',
+        bgColor: 'bg-brand-50 dark:bg-brand-900',
         borderColor: 'border-brand-200 dark:border-brand-800',
         label: 'Strategies',
         labelFr: 'Stratégies'
@@ -718,7 +718,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                 className={cn(
                                     "p-5 cursor-pointer transition-all border-2",
                                     isSelected ? "ring-2 ring-indigo-500 border-indigo-300 dark:border-indigo-700" : "border-transparent",
-                                    isActive && "bg-green-50/50 dark:bg-green-900/10 border-green-300 dark:border-green-700",
+                                    isActive && "bg-green-500 dark:bg-green-50 dark:bg-green-900 border-green-300 dark:border-green-700 dark:border-green-700",
                                     config.bgColor,
                                     config.borderColor
                                 )}
@@ -878,9 +878,9 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                             <div className="flex items-center gap-3">
                                                 <div className={cn(
                                                     "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
-                                                    phaseStatus === 'completed' ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" :
+                                                    phaseStatus === 'completed' ? "bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400" :
                                                         phaseStatus === 'in_progress' ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400" :
-                                                            "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                                            "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-400"
                                                 )}>
                                                     {phaseStatus === 'completed' ? <CheckCircle className="w-4 h-4" /> : index + 1}
                                                 </div>
@@ -918,7 +918,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                                         className={cn(
                                                                             "flex items-start gap-3 p-3 rounded-lg transition-all",
                                                                             isWorkshopActive ? "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" : "opacity-70",
-                                                                            task.isCompleted && "bg-green-50 dark:bg-green-900/10"
+                                                                            task.isCompleted && "bg-green-50 dark:bg-green-50 dark:bg-green-900"
                                                                         )}
                                                                         onClick={() => isWorkshopActive && handleToggleTask(phase.id, task.id)}
                                                                     >
@@ -972,7 +972,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
             {/* Empty State when no template selected */}
             {!selectedTemplate && (
                 <GlassCard className="p-12 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
                         <BookOpen className="w-8 h-8 text-indigo-500" />
                     </div>
                     <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">

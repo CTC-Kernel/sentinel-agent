@@ -23,13 +23,14 @@ export interface CategoryScore {
 
 /**
  * Breakdown of scores by category
- * Default weights: controls 40%, risks 30%, audits 20%, docs 10%
+ * Updated weights (NIS2-TRN-011): controls 35%, risks 25%, audits 20%, docs 10%, training 10%
  */
 export interface ScoreBreakdown {
   risks: CategoryScore;
   controls: CategoryScore;
   documents: CategoryScore;
   audits: CategoryScore;
+  training?: CategoryScore; // NIS2 Art. 21.2(g) - Formation & Sensibilisation
 }
 
 /**
@@ -54,6 +55,9 @@ export interface CalculationDetails {
   totalDocuments: number;
   compliantFindings: number;
   totalFindings: number;
+  // NIS2 Art. 21.2(g) - Training & Awareness
+  completedTrainings?: number;
+  totalTrainings?: number;
 }
 
 /**
@@ -112,12 +116,14 @@ export interface ComplianceScoreHookResult {
 
 /**
  * Default weights for score calculation
+ * NIS2-TRN-011: Updated to include training (Art. 21.2g)
  */
 export const DEFAULT_SCORE_WEIGHTS = {
-  controls: 0.40,
-  risks: 0.30,
-  audits: 0.20,
-  documents: 0.10,
+  controls: 0.35,   // Was 0.40 - reduced to include training
+  risks: 0.25,      // Was 0.30 - reduced to include training
+  audits: 0.20,     // Unchanged
+  documents: 0.10,  // Unchanged
+  training: 0.10,   // NEW: NIS2 Article 21.2(g)
 } as const;
 
 /**

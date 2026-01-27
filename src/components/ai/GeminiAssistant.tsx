@@ -165,7 +165,7 @@ export const GeminiAssistant: React.FC = () => {
             <button
                 type="button"
                 onClick={() => planAiEnabled ? navigate('/settings') : navigate('/pricing')}
-                className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-slate-200 to-slate-100 text-slate-700 rounded-full shadow-2xl hover:shadow-slate-400/40 transition-all duration-300 z-50 group border border-white/40"
+                className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-slate-200 to-slate-100 text-slate-700 dark:text-slate-300 rounded-full shadow-2xl hover:shadow-slate-400/40 transition-all duration-300 z-50 group border border-white/40"
                 aria-label={planAiEnabled ? "Assistant IA désactivé par l'administrateur" : "Assistant IA réservé"}
             >
                 <span className="relative flex items-center gap-2 font-bold text-sm">
@@ -173,7 +173,7 @@ export const GeminiAssistant: React.FC = () => {
                     Assistant IA
                     <Lock className="h-4 w-4 text-slate-500" />
                 </span>
-                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg hidden md:block">
+                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-70 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg hidden md:block">
                     {!planAiEnabled
                         ? "Disponible à partir du plan Professional"
                         : "Désactivé par votre administrateur"}
@@ -191,22 +191,22 @@ export const GeminiAssistant: React.FC = () => {
                 aria-label="Ouvrir l'assistant IA"
             >
                 {/* Holographic Ring Animation */}
-                <div className="absolute inset-0 -m-2 rounded-full border border-brand-500/30 w-20 h-20 animate-[spin_10s_linear_infinite] opacity-50 pointer-events-none"></div>
-                <div className="absolute inset-0 -m-1 rounded-full border border-brand-500/20 w-18 h-18 animate-ping opacity-20 pointer-events-none"></div>
+                <div className="absolute inset-0 -m-2 rounded-full border border-brand-300 dark:border-brand-500 w-20 h-20 animate-[spin_10s_linear_infinite] opacity-60 pointer-events-none"></div>
+                <div className="absolute inset-0 -m-1 rounded-full border border-brand-200 dark:border-brand-400 w-18 h-18 animate-ping opacity-20 pointer-events-none"></div>
 
                 {/* Core Orb */}
-                <div className="relative w-16 h-16 rounded-full bg-slate-950/80 backdrop-blur-md border border-brand-500/50 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(99,102,241,0.6)] group-hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.9)] transition-all duration-500 overflow-hidden">
+                <div className="relative w-16 h-16 rounded-full bg-slate-950/80 backdrop-blur-md border border-brand-400 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(99,102,241,0.6)] group-hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.9)] transition-all duration-500 overflow-hidden">
 
                     {/* Inner Energy Flow */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-brand-900/50 via-transparent to-violet-900/50 group-hover:rotate-45 transition-transform duration-1000"></div>
-                    <div className="absolute inset-0 bg-brand-500/10 blur-xl animate-pulse"></div>
+                    <div className="absolute inset-0 bg-brand-500/40 dark:bg-brand-400/30 blur-xl animate-pulse"></div>
 
                     {/* Icon */}
                     <Sparkles className="h-6 w-6 text-brand-400 drop-shadow-[0_0_5px_rgba(129,140,248,0.8)] relative z-10 transition-transform duration-500 group-hover:scale-110" />
                 </div>
 
                 {/* High-Tech Status Label */}
-                <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-900 backdrop-blur border border-white/20 text-white text-[10px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
+                <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-900 backdrop-blur border border-white/20 text-white text-[11px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-70 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
                     <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
@@ -235,7 +235,7 @@ export const GeminiAssistant: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm">Sentinel AI</h3>
-                        <p className="text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
+                        <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
@@ -283,7 +283,7 @@ export const GeminiAssistant: React.FC = () => {
 
                 {isLoading && (
                     <div className="flex gap-4 animate-pulse">
-                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-500/30 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 border border-brand-200 dark:border-brand-300 flex items-center justify-center flex-shrink-0">
                             <Bot className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                         </div>
                         <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-none border border-slate-200 dark:border-slate-700/50 shadow-sm flex items-center gap-2">
@@ -303,7 +303,7 @@ export const GeminiAssistant: React.FC = () => {
                             type="button"
                             key={qp.label}
                             onClick={(e) => handleSend(e, qp.prompt)}
-                            className="whitespace-nowrap flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:border-brand-200 dark:hover:border-brand-500/30 hover:text-brand-600 dark:hover:text-brand-300 transition-all"
+                            className="whitespace-nowrap flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-200 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 transition-all"
                             aria-label={`Prompt rapide : ${qp.label}`}
                         >
                             <Zap className="h-3 w-3" />
@@ -328,14 +328,14 @@ export const GeminiAssistant: React.FC = () => {
                                 }
                             }}
                             placeholder="Posez une question..."
-                            className="w-full pl-4 pr-10 py-3.5 bg-slate-100 dark:bg-slate-950 border border-transparent focus:bg-white dark:focus:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-brand-500/50 dark:focus:border-brand-500/50 rounded-2xl focus:ring-4 focus:ring-brand-500/10 outline-none text-sm font-medium text-slate-900 dark:text-white transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-4 pr-10 py-3.5 bg-slate-100 dark:bg-slate-950 border border-transparent focus:bg-white dark:focus:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-brand-400 dark:focus:border-brand-400 rounded-2xl focus:ring-4 focus:ring-brand-200 outline-none text-sm font-medium text-slate-900 dark:text-white transition-all placeholder:text-muted-foreground"
                             disabled={isLoading}
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {isLoading ? (
                                 <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
                             ) : (
-                                <div className="text-[10px] font-bold text-slate-300 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 pointer-events-none">
+                                <div className="text-[11px] font-bold text-slate-300 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 pointer-events-none">
                                     ⏎
                                 </div>
                             )}
@@ -355,7 +355,7 @@ export const GeminiAssistant: React.FC = () => {
                         <Send className="h-5 w-5" />
                     </button>
                 </div>
-                <p className="text-[10px] text-center text-slate-500 mt-3 flex items-center justify-center gap-1.5 opacity-60">
+                <p className="text-[11px] text-center text-slate-500 dark:text-slate-400 mt-3 flex items-center justify-center gap-1.5 opacity-60">
                     <Sparkles className="h-3 w-3" /> Propulsé par Cyber Threat Consulting
                 </p>
             </form>

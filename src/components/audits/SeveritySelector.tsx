@@ -48,7 +48,7 @@ export const SeveritySelector: React.FC<SeveritySelectorProps> = ({
                             `}>
                                 <Icon className="h-4 w-4" />
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
+                            <span className={`text-[11px] font-bold uppercase tracking-wide ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
                                 {opt.label}
                             </span>
                         </button>

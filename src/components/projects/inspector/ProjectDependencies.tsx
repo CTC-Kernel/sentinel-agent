@@ -50,7 +50,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
         const { icon: Icon, text } = getEmptyState();
         return (
             <div className="flex flex-col items-center justify-center h-64 text-slate-500">
-                <Icon className="h-12 w-12 mb-2 opacity-50" />
+                <Icon className="h-12 w-12 mb-2 opacity-60" />
                 <p>{text}</p>
             </div>
         );
@@ -75,7 +75,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
                     case 'controls': {
                         const control = item as Control;
                         return (
-                            <div key={control.id} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
+                            <div key={control.id} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
                                 <LinkedControlItem control={control} />
                             </div>
                         );
@@ -231,7 +231,7 @@ const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () 
                     <span className="text-xs text-slate-500">{risk.category}</span>
                 </div>
             </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="opacity-0 group-hover:opacity-70 transition-opacity">
                 <Edit className="h-4 w-4 text-slate-400" />
             </div>
         </div>

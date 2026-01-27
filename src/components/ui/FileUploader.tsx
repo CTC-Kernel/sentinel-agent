@@ -167,7 +167,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                     {label || "Cliquez pour sélectionner un fichier"}
                                 </p>
                                 {!compact && (
-                                    <p className="text-xs text-slate-600 dark:text-slate-500 mt-1">
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 dark:text-slate-500 mt-1">
                                         Max {maxSizeMB}MB • PDF, Images, Excel
                                     </p>
                                 )}
@@ -200,7 +200,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 variant="ghost"
                                 size="icon"
                                 aria-label="Annuler le téléversement"
-                                className="ml-2 py-0 h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                className="ml-2 py-0 h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
                             >
                                 <X className="h-4 w-4" />
                             </Button>
@@ -230,7 +230,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                         <div className="mt-3">
                             <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                                 <div
-                                    className="h-full bg-brand-600 dark:bg-brand-500 transition-all duration-300 ease-out"
+                                    className="h-full bg-brand-600 dark:bg-brand-9000 transition-all duration-300 ease-out"
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
@@ -255,7 +255,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
             {/* Error Message */}
             {error && (
-                <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800 rounded-xl">
                     <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0" />
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>

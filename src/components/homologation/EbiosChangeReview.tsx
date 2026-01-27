@@ -181,21 +181,21 @@ export const EbiosChangeReview: React.FC<EbiosChangeReviewProps> = ({
   return (
     <div
       className={cn(
-        'bg-amber-50 border border-amber-200 rounded-lg p-4 shadow-sm',
+        'bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 shadow-sm',
         className
       )}
     >
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-amber-100 rounded-full">
+          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-full">
             <AlertTriangle className="h-5 w-5 text-amber-600" />
           </div>
           <div>
             <h4 className="font-semibold text-amber-900">
               {t('homologation.ebios.changesDetectedTitle', 'Analyse EBIOS mise à jour')}
             </h4>
-            <p className="text-sm text-amber-700 mt-0.5">
+            <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5">
               {t(
                 'homologation.ebios.changesDetectedDesc',
                 'L\'analyse EBIOS liée a été modifiée depuis la dernière synchronisation.'
@@ -205,17 +205,17 @@ export const EbiosChangeReview: React.FC<EbiosChangeReviewProps> = ({
             {/* Change summary badges */}
             <div className="flex flex-wrap gap-1 mt-2">
               {changes.completionChanged && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 dark:border-amber-700 text-xs">
                   {t('homologation.ebios.completionChanged', 'Progression modifiée')}
                 </Badge>
               )}
               {changes.workshopStatusChanged && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 dark:border-amber-700 text-xs">
                   {t('homologation.ebios.workshopChanged', 'Ateliers modifiés')}
                 </Badge>
               )}
               {changes.itemCountsChanged && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 dark:border-amber-700 text-xs">
                   {t('homologation.ebios.dataChanged', 'Données modifiées')}
                 </Badge>
               )}
@@ -227,7 +227,7 @@ export const EbiosChangeReview: React.FC<EbiosChangeReviewProps> = ({
                 <p className="text-xs font-medium text-amber-800 mb-1">
                   {t('homologation.ebios.changeDetails', 'Détail des modifications')}:
                 </p>
-                <ul className="text-xs text-amber-700 list-disc list-inside space-y-0.5">
+                <ul className="text-xs text-amber-700 dark:text-amber-400 list-disc list-inside space-y-0.5">
                   {changes.details.map((detail, i) => (
                     <li key={i}>{detail}</li>
                   ))}
@@ -268,7 +268,7 @@ export const EbiosChangeReview: React.FC<EbiosChangeReviewProps> = ({
           size="sm"
           variant="outline"
           onClick={handleViewEbios}
-          className="border-amber-300 text-amber-700 hover:bg-amber-100"
+          className="border-amber-300 text-amber-700 dark:text-amber-400 hover:bg-amber-100"
         >
           <ExternalLink className="h-4 w-4 mr-1" />
           {t('homologation.ebios.viewAnalysis', 'Voir l\'analyse')}

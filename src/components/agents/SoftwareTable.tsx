@@ -236,7 +236,7 @@ const SoftwareRow: React.FC<{
                         variant="ghost"
                         size="sm"
                         onClick={onClick}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="opacity-0 group-hover:opacity-70 transition-opacity"
                     >
                         <ExternalLink className="h-4 w-4" />
                     </Button>

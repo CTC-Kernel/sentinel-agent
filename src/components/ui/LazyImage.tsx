@@ -71,7 +71,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
             alt=""
             role="presentation"
             aria-hidden="true"
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover opacity-60"
           />
         </div>
       )}
@@ -86,7 +86,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           onError={handleError}
           className={cn(
             "w-full h-full object-cover transition-opacity duration-300",
-            isLoaded ? "opacity-100" : "opacity-0"
+            isLoaded ? "opacity-70" : "opacity-0"
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
@@ -100,7 +100,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           <img
             src={fallback}
             alt={alt}
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover opacity-60"
           />
         </div>
       )}

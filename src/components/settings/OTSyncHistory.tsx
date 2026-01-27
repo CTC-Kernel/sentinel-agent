@@ -302,7 +302,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                     <button
                       type="button"
                       onClick={() => toggleExpanded(sync.id)}
-                      className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
+                      className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
                       {/* Status icon */}
                       {getStatusIcon(sync.status)}
@@ -315,7 +315,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                           </span>
                           {getStatusBadge(sync.status)}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
+                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mt-1">
                           <span className="flex items-center gap-1">
                             <Timer className="h-3 w-3" />
                             {formatDuration(sync.durationMs)}
@@ -355,7 +355,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                     {isExpanded && hasErrors && (
                       <div className="px-4 pb-4 pt-0">
                         <div className="bg-red-50 rounded-lg p-3">
-                          <h4 className="text-sm font-medium text-red-700 mb-2">
+                          <h4 className="text-sm font-medium text-red-700 dark:text-red-400 mb-2">
                             {t('otConnector.history.errors', 'Errors')} ({sync.errors.length})
                           </h4>
                           <ul className="space-y-2 max-h-40 overflow-y-auto">

@@ -224,7 +224,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                         <CustomTooltip content={t('assets.deleteAssetTooltip')}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                                className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>

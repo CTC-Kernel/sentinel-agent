@@ -46,7 +46,7 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
             >
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                        <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400">
+                        <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-800 text-brand-600 dark:text-brand-400">
                             <Server className="w-4 h-4" />
                         </div>
                         Actifs
@@ -76,7 +76,7 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
         >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400">
+                    <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-800 text-brand-700 dark:text-brand-400">
                         <Server className="w-4 h-4" />
                     </div>
                     Actifs
@@ -99,7 +99,7 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
                     <div className="p-3 rounded-xl bg-error-bg/50 dark:bg-error/5 border border-error-border dark:border-error/10 flex flex-col">
                         <div className="flex items-center gap-1.5 text-error-text dark:text-error mb-1">
                             <ShieldAlert className="w-3.5 h-3.5" />
-                            <span className="text-[10px] uppercase font-bold tracking-wider">Critiques</span>
+                            <span className="text-[11px] uppercase font-bold tracking-wider">Critiques</span>
                         </div>
                         <span className="text-xl font-bold text-error-text dark:text-error">{stats.critical}</span>
                     </div>
@@ -107,7 +107,7 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
                     <div className="p-3 rounded-xl bg-warning-bg/50 dark:bg-warning/5 border border-warning-border dark:border-warning/10 flex flex-col">
                         <div className="flex items-center gap-1.5 text-warning-text dark:text-warning mb-1">
                             <ShieldCheck className="w-3.5 h-3.5" />
-                            <span className="text-[10px] uppercase font-bold tracking-wider">Elevés</span>
+                            <span className="text-[11px] uppercase font-bold tracking-wider">Elevés</span>
                         </div>
                         <span className="text-xl font-bold text-warning-text dark:text-warning">{stats.high}</span>
                     </div>

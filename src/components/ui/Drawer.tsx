@@ -74,13 +74,13 @@ export const Drawer: React.FC<DrawerProps> = ({
                     as={React.Fragment}
                     enter="duration-400"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="duration-300"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div
-                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px]"
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
                         style={{ transition: `opacity 400ms ${APPLE_EASING}` }}
                     />
                 </Transition.Child>
@@ -114,7 +114,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                                     onClick={handleClose}
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="rounded-full text-muted-foreground hover:text-slate-900 dark:text-slate-500 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                                                    className="rounded-full text-muted-foreground hover:text-slate-900 dark:text-slate-500 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10"
                                                     aria-label="Fermer"
                                                 >
                                                     <X className="h-5 w-5" />
@@ -142,9 +142,9 @@ export const Drawer: React.FC<DrawerProps> = ({
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
@@ -156,9 +156,9 @@ export const Drawer: React.FC<DrawerProps> = ({
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
+                            enterTo="opacity-70 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
+                            leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="relative transform overflow-hidden rounded-2xl glass-premium p-6 text-left shadow-xl transition-all sm:max-w-md w-full">

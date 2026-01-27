@@ -105,12 +105,12 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {filteredPlans.map(plan => (
-                        <div key={plan.id} className="glass-panel p-4 sm:p-6 rounded-2xl relative group hover:border-brand-500/30 transition-all flex flex-col h-full">
-                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <div key={plan.id} className="glass-panel p-4 sm:p-6 rounded-2xl relative group hover:border-brand-300 transition-all flex flex-col h-full">
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity z-10">
                                 <button onClick={() => handleEdit(plan)} className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
                                     <Edit2 className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
+                                <button onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
@@ -136,11 +136,11 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                             <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">
                                 <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
                                     <span className="block text-xs uppercase text-slate-500 dark:text-muted-foreground font-bold mb-1">RTO</span>
-                                    <span className="font-mono font-bold text-slate-700 dark:text-muted-foreground">{plan.rto}</span>
+                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{plan.rto}</span>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
                                     <span className="block text-xs uppercase text-slate-500 dark:text-muted-foreground font-bold mb-1">RPO</span>
-                                    <span className="font-mono font-bold text-slate-700 dark:text-muted-foreground">{plan.rpo}</span>
+                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{plan.rpo}</span>
                                 </div>
                             </div>
 

@@ -68,7 +68,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
                     <div className="text-center p-8">
                         <div className="mb-4">
-                            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 dark:bg-red-900 rounded-full flex items-center justify-center">
                                 <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h8m-8-6v2m0 4h8" />
                                 </svg>

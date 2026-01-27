@@ -154,7 +154,7 @@ const SentinelChat: React.FC = () => {
                             <p className="text-xs font-bold text-warning">
                                 Limite de questions atteinte pour cette session.
                             </p>
-                            <p className="text-[10px] text-warning/80 mt-1">
+                            <p className="text-[11px] text-warning/80 mt-1">
                                 Connectez-vous ou créez un compte pour continuer à échanger avec Sentinel.
                             </p>
                         </div>
@@ -168,7 +168,7 @@ const SentinelChat: React.FC = () => {
                     <button onClick={() => handleSuggestionClick("Parlez-moi de la sécurité")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-muted/30 hover:bg-primary/10 border border-primary/20 text-xs font-medium text-primary transition-colors flex items-center gap-1">
                         <Sparkles size={12} /> Sécurité
                     </button>
-                    <button onClick={() => handleSuggestionClick("Où sont mes données ?")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-muted/30 hover:bg-primary/10 border border-blue-200 dark:border-blue-800 text-xs font-medium text-primary transition-colors">
+                    <button onClick={() => handleSuggestionClick("Où sont mes données ?")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-muted/30 hover:bg-primary/10 border border-blue-200 dark:border-blue-800 dark:border-blue-800 text-xs font-medium text-primary transition-colors">
                         Souveraineté (Cloud)
                     </button>
                     <button onClick={() => handleSuggestionClick("Quel est le ROI ?")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-muted/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-success transition-colors">
@@ -185,12 +185,12 @@ const SentinelChat: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={messageCount >= MAX_MESSAGES ? "Limite atteinte" : "Posez votre question..."}
                     disabled={messageCount >= MAX_MESSAGES}
-                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-xl py-3 pl-4 pr-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-xl py-3 pl-4 pr-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                 />
                 <button
                     type="submit"
                     disabled={!input.trim() || isTyping || messageCount >= MAX_MESSAGES}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-primary hover:bg-primary/80 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-primary hover:bg-primary/80 text-white rounded-lg disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 transition-colors shadow-md"
                 >
                     <Send size={16} />
                 </button>

@@ -233,8 +233,8 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                         <button
                             onClick={() => setIsCreating(!isCreating)}
                             className={`p-2 rounded-xl transition-colors ${isCreating
-                                ? 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400'
-                                : 'bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400'
+                                ? 'bg-red-50 text-red-600 dark:text-red-400 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400'
+                                : 'bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-brand-800 dark:text-brand-400'
                                 }`}
                             aria-label={isCreating ? "Annuler la création" : "Nouvelle demande"}
                         >
@@ -284,7 +284,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                 type="submit"
                                 disabled={isSubmitting}
                                 aria-label="Soumettre la demande"
-                                className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                             >
                                 {isSubmitting ? 'Création...' : 'Créer la demande'}
                             </button>

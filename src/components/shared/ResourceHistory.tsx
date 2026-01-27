@@ -25,7 +25,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
     if (!loading && logs.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-slate-400 border border-dashed border-slate-200 dark:border-white/10 rounded-xl">
-                <History className="h-8 w-8 mb-2 opacity-50" />
+                <History className="h-8 w-8 mb-2 opacity-60" />
                 <p className="text-sm">Aucun historique disponible pour cet élément.</p>
             </div>
         );
@@ -67,7 +67,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                 <div className="space-y-1">
-                                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white dark:text-slate-100">
                                         {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: fr }) : '-'}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-muted-foreground">

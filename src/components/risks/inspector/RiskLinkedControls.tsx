@@ -113,7 +113,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
             {/* Coverage Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 {/* Mitigation Coverage */}
-                <div className="sm:col-span-2 p-4 bg-white/50 dark:bg-black/20 rounded-xl border border-slate-200 dark:border-white/10">
+                <div className="sm:col-span-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                             Couverture de Mitigation
@@ -132,7 +132,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                             style={{ width: `${mitigationCoverage}%` }}
                         />
                     </div>
-                    <p className="text-xs text-slate-500 mt-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                         Basé sur le statut d'implémentation des contrôles liés
                     </p>
                 </div>
@@ -195,7 +195,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleControlClick(ctrl.id)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-70 transition-opacity"
                                     aria-label={`Voir le contrôle ${ctrl.name}`}
                                 >
                                     <ExternalLink className="h-4 w-4" />

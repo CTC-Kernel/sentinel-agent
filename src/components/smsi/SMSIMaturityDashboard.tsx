@@ -86,7 +86,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
     red: 'text-error-text bg-error-bg border-error-text/20 dark:bg-error-bg dark:border-error-text/30',
     orange: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
     yellow: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
-    blue: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-700',
+    blue: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-800 border-brand-200 dark:border-brand-700',
     green: 'text-success-text bg-success-bg border-success-text/20 dark:bg-success-bg dark:border-success-text/30',
   };
 
@@ -96,7 +96,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
       <GlassCard className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
+            <div className="p-2.5 rounded-xl bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400">
               <BarChart3 className="w-6 h-6" />
             </div>
             <div>
@@ -157,7 +157,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                 <span className="text-3xl font-bold text-slate-900 dark:text-white">
                   {maturity.overall.score}%
                 </span>
-                <span className="text-xs text-slate-500 flex items-center gap-1">
+                <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                   {getTrendIcon(maturity.overall.trend)}
                 </span>
               </div>
@@ -168,7 +168,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
             )}>
               {maturity.overall.level.label}
             </div>
-            <p className="mt-2 text-xs text-slate-500 text-center max-w-[200px]">
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 text-center max-w-[200px]">
               {maturity.overall.level.description}
             </p>
           </div>
@@ -199,7 +199,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <span className={cn("w-2 h-2 rounded-full", phaseColors[phase])} />
-                        <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                           {phaseLabels[phase]}
                         </span>
                       </div>
@@ -210,7 +210,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                             {phaseData.overdueMilestones} en retard
                           </Badge>
                         )}
-                        <span className="font-bold text-slate-700 dark:text-muted-foreground">
+                        <span className="font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                           {phaseData.score}%
                         </span>
                       </div>
@@ -235,8 +235,8 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
       <GlassCard className={cn(
         "p-6 border-2",
         readiness.ready
-          ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/10"
-          : "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10"
+          ? "border-green-200 dark:border-green-800 bg-green-500 dark:bg-green-50 dark:bg-green-900"
+          : "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-50 dark:bg-amber-900"
       )}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
               "p-2.5 rounded-xl",
               readiness.ready
                 ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+                : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 dark:text-amber-400"
             )}>
               {readiness.ready ? <CheckCircle className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
             </div>
@@ -269,7 +269,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
 
         {/* Blockers & Warnings */}
         {readiness.blockers.length > 0 && (
-          <div className="mb-4 p-4 rounded-xl bg-red-100/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+          <div className="mb-4 p-4 rounded-xl bg-red-100/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800">
             <h4 className="flex items-center gap-2 text-sm font-bold text-red-700 dark:text-red-400 mb-2">
               <XCircle className="w-4 h-4" />
               Points bloquants
@@ -283,14 +283,14 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         )}
 
         {readiness.warnings.length > 0 && (
-          <div className="mb-4 p-4 rounded-xl bg-amber-100/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-            <h4 className="flex items-center gap-2 text-sm font-bold text-amber-700 dark:text-amber-400 mb-2">
+          <div className="mb-4 p-4 rounded-xl bg-amber-100/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800">
+            <h4 className="flex items-center gap-2 text-sm font-bold text-amber-700 dark:text-amber-400 dark:text-amber-400 mb-2">
               <AlertTriangle className="w-4 h-4" />
               Points d'attention
             </h4>
             <ul className="space-y-1">
               {readiness.warnings.map((warning, i) => (
-                <li key={i} className="text-sm text-amber-600 dark:text-amber-400">• {warning}</li>
+                <li key={i} className="text-sm text-amber-600 dark:text-amber-400 dark:text-amber-400">• {warning}</li>
               ))}
             </ul>
           </div>
@@ -303,7 +303,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         >
           <div className="flex items-center gap-2">
             <FileCheck className="w-5 h-5 text-slate-400 group-hover:text-indigo-500" />
-            <span className="font-medium text-slate-700 dark:text-muted-foreground">
+            <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               Checklist de certification
             </span>
             <Badge variant="outline" size="sm">
@@ -328,16 +328,16 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                 key={i}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-xl border",
-                  item.status === 'passed' && "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800",
-                  item.status === 'warning' && "bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800",
-                  item.status === 'failed' && "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800",
+                  item.status === 'passed' && "bg-green-50 dark:bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-800 dark:border-green-800",
+                  item.status === 'warning' && "bg-amber-50 dark:bg-amber-50 dark:bg-amber-900 border-amber-200 dark:border-amber-800 dark:border-amber-800",
+                  item.status === 'failed' && "bg-red-50 dark:bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-800 dark:border-red-800",
                   item.status === 'not_applicable' && "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
                 )}
               >
-                <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">{item.item}</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{item.item}</span>
                 <div className="flex items-center gap-2">
                   {item.details && (
-                    <span className="text-xs text-slate-500 max-w-[200px] truncate">{item.details}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate">{item.details}</span>
                   )}
                   {item.status === 'passed' && <CheckCircle className="w-5 h-5 text-green-500" />}
                   {item.status === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
@@ -460,7 +460,7 @@ interface DimensionCardProps {
 
 const DimensionCard: React.FC<DimensionCardProps> = ({ title, score, icon, color }) => {
   const colorClasses = {
-    blue: 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-700',
+    blue: 'bg-brand-50 dark:bg-brand-800 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-700',
     orange: 'bg-warning-bg text-warning-text border-warning-text/20 dark:border-warning-text/30',
     green: 'bg-success-bg text-success-text border-success-text/20 dark:border-success-text/30',
     purple: 'bg-info-bg text-info-text border-info-text/20 dark:border-info-text/30',
@@ -499,10 +499,10 @@ interface RecommendationCardProps {
 
 const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation }) => {
   const priorityStyles = {
-    critical: 'border-l-red-500 bg-red-50/50 dark:bg-red-900/10',
+    critical: 'border-l-red-500 bg-red-500 dark:bg-red-50 dark:bg-red-900',
     high: 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-900/10',
     medium: 'border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10',
-    low: 'border-l-green-500 bg-green-50/50 dark:bg-green-900/10',
+    low: 'border-l-green-500 bg-green-500 dark:bg-green-50 dark:bg-green-900',
   };
 
   const priorityBadges = {

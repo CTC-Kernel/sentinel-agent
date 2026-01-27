@@ -510,14 +510,14 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
             {selectedLevel &&
               recommendation.recommendedLevel &&
               selectedLevel !== recommendation.recommendedLevel && (
-                <Card className="p-4 mb-4 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
+                <Card className="p-4 mb-4 border-amber-200 dark:border-amber-800 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                    <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
                     <div>
                       <p className="font-medium text-amber-800 dark:text-amber-200">
                         {t('homologation.levelOverrideWarning', 'Modification du niveau recommandé')}
                       </p>
-                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                      <p className="text-sm text-amber-700 dark:text-amber-400 dark:text-amber-300 mt-1">
                         {t(
                           'homologation.justificationRequired',
                           'Une justification sera requise pour expliquer ce choix.'

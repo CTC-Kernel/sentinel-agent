@@ -18,13 +18,13 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
         <motion.div
             variants={slideUpVariants}
             onClick={() => onClick(activity)}
-            className="glass-panel rounded-5xl p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5 hover:border-purple-500/30 transition-all"
+            className="glass-panel rounded-3xl p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5 hover:border-purple-500/30 transition-all"
         >
             <div className="flex justify-between items-start mb-5">
                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
                     <Fingerprint className="h-6 w-6" />
                 </div>
-                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-slate-50 dark:bg-slate-900 text-slate-600 border-slate-100 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'}`}>
+                <span className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 dark:text-green-400 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-100 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'}`}>
                     {activity.status}
                 </span>
             </div>
@@ -56,11 +56,11 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
             )}
 
             {canEdit && (
-                <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                     <button
                         aria-label="Delete"
                         onClick={(e) => { e.stopPropagation(); setShowConfirmDelete(true); }}
-                        className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 dark:text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <Trash2 className="h-4 w-4" />
                     </button>

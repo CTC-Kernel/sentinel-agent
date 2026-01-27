@@ -156,7 +156,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, b
   >
     {icon}
     {badge !== undefined && (
-      <span className={`absolute - top - 0.5 - right - 0.5 flex items - center justify - center rounded - full bg - brand - 500 font - bold text - white ${compact ? 'min-w-[14px] h-[14px] text-[8px] px-0.5' : 'min-w-[16px] h-[16px] text-[9px] px-1'} `}>
+      <span className={`absolute - top - 0.5 - right - 0.5 flex items - center justify - center rounded - full bg - brand - 500 font - bold text - white ${compact ? 'min-w-[14px] h-[14px] text-[11px] px-0.5' : 'min-w-[16px] h-[16px] text-[11px] px-1'} `}>
         {badge}
       </span>
     )}
@@ -197,13 +197,13 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
       {criticalCount > 0 && (
         <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/30">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-[10px] font-medium text-red-400">{criticalCount}</span>
+          <span className="text-[11px] font-medium text-red-400">{criticalCount}</span>
         </div>
       )}
       {warningCount > 0 && (
         <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-          <span className="text-[10px] font-medium text-amber-400">{warningCount}</span>
+          <span className="text-[11px] font-medium text-amber-400">{warningCount}</span>
         </div>
       )}
     </div>
@@ -216,22 +216,22 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-gradient-to-r from-brand-500/20 to-violet-500/20 border border-brand-500/30"
+          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-gradient-to-r from-brand-500/20 to-violet-500/20 border border-brand-300"
         >
           <span className="w-2 h-2 rounded-full bg-brand-400" />
           <span className="text-xs text-white/90 font-medium max-w-[150px] truncate">
             {safeRender((selectedNode.data as { name?: string; title?: string; threat?: string }).name || (selectedNode.data as { title?: string }).title || (selectedNode.data as { threat?: string }).threat)}
           </span>
-          <span className="text-[10px] text-white/40 capitalize">{selectedNode.type}</span>
+          <span className="text-[11px] text-white/40 capitalize">{selectedNode.type}</span>
           {connectionCount > 0 && (
-            <span className="text-[10px] text-brand-400">{connectionCount}</span>
+            <span className="text-[11px] text-brand-400">{connectionCount}</span>
           )}
         </motion.div>
       )}
     </AnimatePresence>
 
     {/* Right - Controls hint (compact) */}
-    <div className="flex items-center gap-2 sm:gap-3 text-[10px] text-white/30">
+    <div className="flex items-center gap-2 sm:gap-3 text-[11px] text-white/30">
       {isFullscreen && (
         <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/50">ESC</span>
       )}
@@ -761,7 +761,7 @@ export const VoxelView: React.FC = () => {
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-brand-500/5 ring-1 ring-white/10 shadow-lg relative overflow-hidden group">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-brand-50 ring-1 ring-white/10 shadow-lg relative overflow-hidden group">
                 <img
                   src="/images/tableau-de-bord.png"
                   alt="VOXEL"
@@ -770,7 +770,7 @@ export const VoxelView: React.FC = () => {
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-sm font-bold text-white tracking-tight">CTC Engine</h1>
-                <p className="text-[10px] text-white/40 hidden lg:block">Cyber Threat Cartography</p>
+                <p className="text-[11px] text-white/40 hidden lg:block">Cyber Threat Cartography</p>
               </div>
             </div>
           </div>
@@ -781,27 +781,27 @@ export const VoxelView: React.FC = () => {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-red-500/15 border border-red-500/30"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-500/30"
               >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                 </span>
                 <span className="text-xs font-medium text-red-400">{criticalCount}</span>
-                <span className="text-[10px] text-red-400/70 hidden lg:inline">critiques</span>
+                <span className="text-[11px] text-red-400/70 hidden lg:inline">critiques</span>
               </motion.div>
             )}
             {warningCount > 0 && (
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-500/30">
                 <span className="w-2 h-2 rounded-full bg-amber-500" />
                 <span className="text-xs font-medium text-amber-400">{warningCount}</span>
-                <span className="text-[10px] text-amber-400/70 hidden lg:inline">alertes</span>
+                <span className="text-[11px] text-amber-400/70 hidden lg:inline">alertes</span>
               </div>
             )}
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-success/15 border border-success/30">
               <Activity className="w-3.5 h-3.5 text-success" />
               <span className="text-xs font-medium text-success">{orderedNodes.length}</span>
-              <span className="text-[10px] text-success/70 hidden lg:inline">nœuds</span>
+              <span className="text-[11px] text-success/70 hidden lg:inline">nœuds</span>
             </div>
           </div>
 
@@ -813,7 +813,7 @@ export const VoxelView: React.FC = () => {
               className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 group"
             >
               <Search className="w-4 h-4" />
-              <kbd className="hidden sm:flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/10 text-[9px] font-medium text-white/40 group-hover:text-white/60">
+              <kbd className="hidden sm:flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/10 text-[11px] font-medium text-white/40 group-hover:text-white/60">
                 <Command className="w-2.5 h-2.5" />K
               </kbd>
             </button>
@@ -841,7 +841,7 @@ export const VoxelView: React.FC = () => {
               onClick={handleAIAnalysis}
               disabled={analyzing}
               className={`flex items - center gap - 1.5 px - 2.5 py - 1.5 rounded - lg font - medium text - xs transition - all duration - 200 ${analyzing
-                  ? 'bg-brand-500/20 text-brand-300 cursor-wait'
+                  ? 'bg-brand-100 text-brand-300 cursor-wait'
                   : 'bg-gradient-to-r from-brand-500 to-violet-600 text-white hover:shadow-lg hover:shadow-brand-500/30'
                 } `}
             >
@@ -910,8 +910,8 @@ export const VoxelView: React.FC = () => {
                 className="absolute right-10 top-0 w-44 p-1.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
               >
                 <div className="flex items-center justify-between px-2 py-1 mb-0.5">
-                  <span className="text-[10px] font-medium text-white/60">Calques</span>
-                  <span className="text-[10px] text-white/40">{activeLayers.length}/7</span>
+                  <span className="text-[11px] font-medium text-white/60">Calques</span>
+                  <span className="text-[11px] text-white/40">{activeLayers.length}/7</span>
                 </div>
                 {LAYER_CONFIG.map(layer => {
                   const isActive = activeLayers.includes(layer.id);
@@ -927,7 +927,7 @@ export const VoxelView: React.FC = () => {
                         <span className={`w - 2 h - 2 rounded - full ${layer.bgColor} `} />
                         <span>{layer.label}</span>
                       </div>
-                      <span className="text-[9px] text-white/40">{count}</span>
+                      <span className="text-[11px] text-white/40">{count}</span>
                     </button>
                   );
                 })}
@@ -988,12 +988,12 @@ export const VoxelView: React.FC = () => {
 
             {/* Node Types */}
             <div className="mb-2">
-              <span className="text-[10px] font-medium text-white/40 uppercase tracking-wide">Types</span>
+              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">Types</span>
               <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5">
                 {LAYER_CONFIG.map(layer => (
                   <div key={layer.id} className="flex items-center gap-1 py-0.5">
                     <span className={`w - 2 h - 2 rounded - full ${layer.bgColor} `} />
-                    <span className="text-[10px] text-white/80 truncate">{layer.label}</span>
+                    <span className="text-[11px] text-white/80 truncate">{layer.label}</span>
                   </div>
                 ))}
               </div>
@@ -1001,34 +1001,34 @@ export const VoxelView: React.FC = () => {
 
             {/* Status */}
             <div className="mb-2 pt-2 border-t border-white/5">
-              <span className="text-[10px] font-medium text-white/40 uppercase tracking-wide">États</span>
+              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">États</span>
               <div className="mt-1 flex flex-wrap gap-2">
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-[10px] text-red-400">{criticalCount}</span>
+                  <span className="text-[11px] text-red-400">{criticalCount}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span className="text-[10px] text-amber-400">{warningCount}</span>
+                  <span className="text-[11px] text-amber-400">{warningCount}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-success" />
-                  <span className="text-[10px] text-success">{orderedNodes.length - criticalCount - warningCount}</span>
+                  <span className="text-[11px] text-success">{orderedNodes.length - criticalCount - warningCount}</span>
                 </div>
               </div>
             </div>
 
             {/* Connections */}
             <div className="pt-2 border-t border-white/5">
-              <span className="text-[10px] font-medium text-white/40 uppercase tracking-wide">Liens</span>
+              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">Liens</span>
               <div className="mt-1 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <div className="w-4 h-0.5 bg-gradient-to-r from-brand-500 to-violet-500 rounded" />
-                  <span className="text-[10px] text-white/70">Dépendance</span>
+                  <span className="text-[11px] text-white/70">Dépendance</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-4 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded" />
-                  <span className="text-[10px] text-white/70">Impact</span>
+                  <span className="text-[11px] text-white/70">Impact</span>
                 </div>
               </div>
             </div>
@@ -1053,7 +1053,7 @@ export const VoxelView: React.FC = () => {
             </div>
             <div className="space-y-1">
               {KEYBOARD_SHORTCUTS.map(({ key, action }) => (
-                <div key={key} className="flex items-center justify-between text-[10px]">
+                <div key={key} className="flex items-center justify-between text-[11px]">
                   <span className="text-white/60">{action}</span>
                   <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/80 font-mono">{key}</kbd>
                 </div>
@@ -1102,7 +1102,7 @@ export const VoxelView: React.FC = () => {
                 <div className="max-h-80 overflow-y-auto p-2">
                   {commandPaletteResults.length === 0 ? (
                     <div className="py-8 text-center text-white/40">
-                      <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <Target className="w-8 h-8 mx-auto mb-2 opacity-60" />
                       <p>Aucun résultat trouvé</p>
                     </div>
                   ) : (
@@ -1113,7 +1113,7 @@ export const VoxelView: React.FC = () => {
                           <button
                             key={node.id}
                             onClick={() => handleCommandSelect(node)}
-                            className={`w - full flex items - center gap - 3 px - 3 py - 2.5 rounded - xl text - left transition - all duration - 150 ${index === 0 ? 'bg-brand-500/20 border border-brand-500/30' : 'hover:bg-white/5'
+                            className={`w - full flex items - center gap - 3 px - 3 py - 2.5 rounded - xl text - left transition - all duration - 150 ${index === 0 ? 'bg-brand-100 border border-brand-300' : 'hover:bg-white/5'
                               } `}
                           >
                             <span className={`w - 3 h - 3 rounded - full ${layer?.bgColor || 'bg-slate-500'} `} />
@@ -1122,7 +1122,7 @@ export const VoxelView: React.FC = () => {
                               <span className="text-xs text-white/40 capitalize">{layer?.label || node.type}</span>
                             </div>
                             {index === 0 && (
-                              <kbd className="px-2 py-0.5 rounded bg-white/10 text-[10px] text-white/50">↵</kbd>
+                              <kbd className="px-2 py-0.5 rounded bg-white/10 text-[11px] text-white/50">↵</kbd>
                             )}
                           </button>
                         );

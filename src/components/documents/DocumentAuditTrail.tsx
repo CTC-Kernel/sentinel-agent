@@ -392,7 +392,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
       {/* Empty State */}
       {!loading && entries.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-          <Activity className="h-12 w-12 mb-4 opacity-50" />
+          <Activity className="h-12 w-12 mb-4 opacity-60" />
           <p className="text-sm">Aucune activite enregistree</p>
           {(selectedActions.length > 0 || dateRange.start || dateRange.end) && (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-2">
@@ -443,7 +443,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                             {entry.userEmail}
                           </span>
                         </div>
-                        <span className="text-xs text-slate-500 whitespace-nowrap" title={formatFullTimestamp(entry.timestamp)}>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap" title={formatFullTimestamp(entry.timestamp)}>
                           {formatRelativeTime(entry.timestamp)}
                         </span>
                       </div>
@@ -453,7 +453,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                           {VaultAuditService.getActionLabel(entry.action)}
                         </span>
                         {entry.documentId && (
-                          <span className="text-xs text-slate-500 truncate">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
                             Document: {entry.documentId.substring(0, 8)}...
                           </span>
                         )}

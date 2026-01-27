@@ -42,21 +42,21 @@ const CRITICALITY_CONFIG: Record<CriticalityLevel, {
     label: 'Haute',
     color: 'text-red-600 dark:text-red-400',
     bgColor: 'bg-red-50 dark:bg-red-900/20',
-    borderColor: 'border-red-200 dark:border-red-800/50',
+    borderColor: 'border-red-200 dark:border-red-2000',
   },
   medium: {
     icon: AlertCircle,
     label: 'Moyenne',
     color: 'text-amber-600 dark:text-amber-400',
     bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-    borderColor: 'border-amber-200 dark:border-amber-800/50',
+    borderColor: 'border-amber-200 dark:border-amber-2000',
   },
   low: {
     icon: Info,
     label: 'Basse',
     color: 'text-blue-600 dark:text-blue-400',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-    borderColor: 'border-blue-200 dark:border-blue-800/50',
+    borderColor: 'border-blue-200 dark:border-blue-2000',
   },
 };
 
@@ -147,7 +147,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                   {/* Article Badge */}
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 mb-3">
                     <FileText className="w-4 h-4 text-slate-500" />
-                    <span className="font-mono font-semibold text-sm text-slate-700 dark:text-muted-foreground">
+                    <span className="font-mono font-semibold text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                       {requirement.articleRef}
                     </span>
                   </div>

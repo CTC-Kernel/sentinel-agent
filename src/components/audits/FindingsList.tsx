@@ -45,11 +45,11 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
 
     const getTypeColor = (type: Finding['type']) => {
         switch (type) {
-            case 'Majeure': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
-            case 'Mineure': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
-            case 'Observation': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
-            case 'Opportunité': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
-            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+            case 'Majeure': return 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
+            case 'Mineure': return 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
+            case 'Observation': return 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+            case 'Opportunité': return 'bg-green-100 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
         }
     };
 
@@ -84,8 +84,8 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                 key={type}
                                 onClick={() => setTypeFilter(typeFilter === type ? null : type)}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${typeFilter === type
-                                    ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/20 dark:border-brand-800 dark:text-brand-300'
-                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/10'
+                                    ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-800 dark:border-brand-800 dark:text-brand-300'
+                                    : 'bg-white border-slate-200 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/10'
                                     }`}
                             >
                                 {type}
@@ -120,7 +120,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                 ))
                             ) : filteredFindings.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-8 text-center text-slate-500 text-sm">
+                                    <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
                                         Aucun résultat trouvé pour cette recherche.
                                     </td>
                                 </tr>

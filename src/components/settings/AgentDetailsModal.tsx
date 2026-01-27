@@ -97,7 +97,7 @@ const RadialGauge: React.FC<{
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label}</span>
             </div>
             {subtitle && (
-                <span className="text-xs text-slate-500 mt-1">{subtitle}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">{subtitle}</span>
             )}
         </div>
     );
@@ -212,11 +212,11 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
     const getStatusBadge = (status: AgentStatus) => {
         switch (status) {
             case 'active':
-                return <Badge className="bg-success-500/10 text-success-600 border-success-500/20"><CheckCircle2 className="w-3 h-3 mr-1" /> Actif</Badge>;
+                return <Badge className="bg-success-bg text-success-600 border-success-500/20"><CheckCircle2 className="w-3 h-3 mr-1" /> Actif</Badge>;
             case 'offline':
-                return <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20"><Clock className="w-3 h-3 mr-1" /> Hors-ligne</Badge>;
+                return <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20"><Clock className="w-3 h-3 mr-1" /> Hors-ligne</Badge>;
             case 'error':
-                return <Badge className="bg-red-500/10 text-red-600 border-red-500/20"><XCircle className="w-3 h-3 mr-1" /> Erreur</Badge>;
+                return <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20"><XCircle className="w-3 h-3 mr-1" /> Erreur</Badge>;
         }
     };
 
@@ -234,7 +234,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             {agentDetails?.name || 'Chargement...'}
                         </h2>
-                        <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
+                        <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mt-1">
                             <span className="flex items-center gap-1"><Monitor className="w-3 h-3" /> {agentDetails?.hostname || 'N/A'}</span>
                             <span className="flex items-center gap-1"><Network className="w-3 h-3" /> {agentDetails?.ipAddress || 'N/A'}</span>
                             <span className="font-mono bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded">v{agentDetails?.version}</span>
@@ -266,7 +266,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                     "pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors",
                                     activeTab === tab.id
                                         ? "border-brand-500 text-brand-600 dark:text-brand-400"
-                                        : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                        : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                                 )}
                             >
                                 <tab.icon className="w-4 h-4" />
@@ -297,7 +297,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             value={agentDetails.cpuPercent || 0}
                                             label="CPU"
                                             color="text-blue-500"
-                                            bgColor="bg-blue-500/10"
+                                            bgColor="bg-blue-50"
                                             icon={Cpu}
                                             subtitle="Utilisation"
                                         />
@@ -313,7 +313,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             value={agentDetails.diskPercent || 0}
                                             label="Disque"
                                             color="text-amber-500"
-                                            bgColor="bg-amber-500/10"
+                                            bgColor="bg-amber-50"
                                             icon={Server}
                                             subtitle={agentDetails.diskUsedBytes ? formatBytes(agentDetails.diskUsedBytes) : undefined}
                                         />
@@ -489,13 +489,13 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                         {/* Compliance Text Stats */}
                                         <div className="space-y-4">
                                             <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border-l-4 border-success-500">
-                                                <div className="text-xs text-slate-500 uppercase font-bold">Conforme</div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Conforme</div>
                                                 <div className="text-2xl font-black text-slate-900 dark:text-white">
                                                     {agentDetails.complianceScore ?? 0}%
                                                 </div>
                                             </div>
                                             <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border-l-4 border-slate-500">
-                                                <div className="text-xs text-slate-500 uppercase font-bold">Total Contrôles</div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Total Contrôles</div>
                                                 <div className="text-2xl font-black text-slate-900 dark:text-white">
                                                     {agentDetails.resultsSummary?.total ?? 0}
                                                 </div>
@@ -503,7 +503,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                         </div>
                                     </div>
 
-                                    <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-800 dark:text-blue-300 text-sm flex items-start gap-3">
+                                    <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm flex items-start gap-3">
                                         <Activity className="w-5 h-5 flex-shrink-0 mt-0.5" />
                                         <div>
                                             <p className="font-bold">Analyse Détaillée</p>

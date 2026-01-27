@@ -43,9 +43,9 @@ export const PHASE_STYLES: Record<PDCAPhase, {
 }> = {
     plan: {
         borderActive: 'border-brand-400',
-        bgActive: 'bg-brand-50/50 dark:bg-brand-900/10',
+        bgActive: 'bg-brand-50 dark:bg-brand-50 dark:bg-brand-900',
         badge: 'bg-brand-500',
-        iconBg: 'bg-brand-50 dark:bg-brand-900/20',
+        iconBg: 'bg-brand-50 dark:bg-brand-800',
         iconText: 'text-brand-600 dark:text-brand-400',
         textActive: 'text-brand-600 dark:text-brand-400',
         cardBorder: 'border-brand-200 dark:border-brand-800',

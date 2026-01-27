@@ -112,7 +112,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                             {comment.content.split(' ').map((word, i) => {
                                 if (word.startsWith('@')) {
-                                    return <span key={`${i}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-500/10 px-1 rounded">{word} </span>
+                                    return <span key={`${i}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-900 px-1 rounded">{word} </span>
                                 }
                                 return word + ' ';
                             })}
@@ -122,7 +122,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         <button
                             type="button"
                             onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-                            className="mt-1 text-xs text-slate-500 hover:text-brand-600 font-medium flex items-center gap-1 transition-colors px-2"
+                            className="mt-1 text-xs text-slate-500 dark:text-slate-400 hover:text-brand-600 font-medium flex items-center gap-1 transition-colors px-2"
                         >
                             <Reply className="h-3 w-3" />
                             Répondre
@@ -168,12 +168,12 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         aria-label={replyTo ? "Votre réponse" : "Ajouter un commentaire"}
                         type="text"
                         placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire..."}
-                        className={cn("w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm", errors.content && "border-red-500 focus:border-red-500")}
+                        className={cn("w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm", errors.content && "border-red-500 focus:border-red-500")}
                     />
                     <button
                         type="submit"
                         disabled={isSubmitting || !isValid}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:hover:bg-brand-600 transition-colors"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:hover:bg-brand-600 transition-colors"
                     >
                         {isSubmitting ? <span className="animate-spin">⌛</span> : <Send className="h-4 w-4" />}
                     </button>

@@ -330,7 +330,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                     </div>
 
                     {connector.errorMessage && (
-                      <p className="text-sm text-red-600 mt-1 truncate">
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1 truncate">
                         {connector.errorMessage}
                       </p>
                     )}
@@ -395,7 +395,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeleteTarget(connector)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
                       title={t('common.delete', 'Delete')}
                     >
                       <Trash2 className="h-4 w-4" />

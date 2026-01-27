@@ -375,7 +375,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
                   onClick={() => onToggleType(type)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     activeTypes.includes(type)
-                      ? 'bg-brand-500/20 text-brand-400 border border-brand-500/50'
+                      ? 'bg-brand-100 text-brand-400 border border-brand-400'
                       : 'bg-slate-800/50 text-slate-400 border border-transparent hover:bg-slate-700/50'
                   }`}
                 >

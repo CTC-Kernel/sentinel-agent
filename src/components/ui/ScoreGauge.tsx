@@ -158,8 +158,8 @@ export function ScoreGauge({
 
   const isClickable = !!onClick;
 
-  // Delta badge size based on gauge size
-  const deltaBadgeClass = size === 'lg' ? 'text-sm px-2 py-1' : size === 'md' ? 'text-xs px-1.5 py-0.5' : 'text-[10px] px-1 py-0.5';
+  // Delta badge size based on gauge size - WCAG AAA: minimum 11px font size
+  const deltaBadgeClass = size === 'lg' ? 'text-sm px-2.5 py-1' : size === 'md' ? 'text-xs px-2 py-1' : 'text-[11px] px-1.5 py-0.5';
 
   return (
     <div className={cn('flex flex-col items-center gap-2', className)}>
@@ -252,8 +252,8 @@ export function ScoreGauge({
               'absolute -top-1 -right-1 rounded-full font-bold',
               deltaBadgeClass,
               delta > 0
-                ? 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400'
-                : 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400'
+                ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/50 dark:text-green-400'
+                : 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-50 dark:bg-red-9000 dark:text-red-400'
             )}
           >
             {delta > 0 ? '+' : ''}{delta}
@@ -275,10 +275,10 @@ export function ScoreGauge({
             trend === 'stable' && 'text-slate-400'
           )}
         >
-          {trend === 'up' && <TrendingUp className="w-3 h-3" />}
-          {trend === 'down' && <TrendingDown className="w-3 h-3" />}
-          {trend === 'stable' && <Minus className="w-3 h-3" />}
-          <span>
+          {trend === 'up' && <TrendingUp className="w-4 h-4" aria-hidden="true" />}
+          {trend === 'down' && <TrendingDown className="w-4 h-4" aria-hidden="true" />}
+          {trend === 'stable' && <Minus className="w-4 h-4" aria-hidden="true" />}
+          <span className="text-sm">
             {trend === 'up' && 'En progression'}
             {trend === 'down' && 'En baisse'}
             {trend === 'stable' && 'Stable'}

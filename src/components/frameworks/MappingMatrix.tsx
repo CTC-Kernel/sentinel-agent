@@ -58,9 +58,9 @@ const CoverageLegend: React.FC = () => {
   const { t } = useTranslation();
 
   const items = [
-    { status: 'full', icon: Check, label: t('mapping.coverage.full'), color: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30' },
-    { status: 'partial', icon: Minus, label: t('mapping.coverage.partial'), color: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30' },
-    { status: 'none', icon: X, label: t('mapping.coverage.none'), color: 'text-red-500 bg-red-100 dark:bg-red-900/30' },
+    { status: 'full', icon: Check, label: t('mapping.coverage.full'), color: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-900/30' },
+    { status: 'partial', icon: Minus, label: t('mapping.coverage.partial'), color: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30' },
+    { status: 'none', icon: X, label: t('mapping.coverage.none'), color: 'text-red-500 bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30' },
     { status: 'not_assessed', icon: AlertCircle, label: t('mapping.coverage.not_assessed'), color: 'text-slate-400 bg-slate-100 dark:bg-slate-800' },
   ];
 
@@ -126,7 +126,7 @@ const StatsSummary: React.FC<StatsSummaryProps> = ({ controls, frameworks }) => 
         <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.fullCoverage')}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="font-bold text-amber-600 dark:text-amber-400">{stats.partialCoverage}</span>
+        <span className="font-bold text-amber-600 dark:text-amber-400 dark:text-amber-400">{stats.partialCoverage}</span>
         <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.partialCoverage')}</span>
       </div>
       <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                   transition={{ delay: index * 0.02 }}
                   className={cn(
                     'border-b border-slate-100 dark:border-white/5 transition-colors',
-                    selectedControlId === control.controlId && 'bg-brand-50/50 dark:bg-brand-900/10'
+                    selectedControlId === control.controlId && 'bg-brand-50 dark:bg-brand-900'
                   )}
                 >
                   <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-3">

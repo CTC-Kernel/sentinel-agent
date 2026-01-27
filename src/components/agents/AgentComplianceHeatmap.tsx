@@ -167,7 +167,7 @@ const HeatmapCell: React.FC<HeatmapCellProps> = ({ status, agentName, checkName,
                 className={cn(
                     'w-8 h-8 rounded-md flex items-center justify-center',
                     'border transition-all duration-200',
-                    'focus:outline-none focus:ring-2 focus:ring-brand-500/50',
+                    'focus:outline-none focus:ring-2 focus:ring-brand-400',
                     colors.bg,
                     colors.border
                 )}
@@ -338,14 +338,14 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
                                         }
                                         position="top"
                                     >
-                                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap max-w-[60px] truncate block cursor-help">
+                                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap max-w-[60px] truncate block cursor-help">
                                             {check.name.split(' ')[0]}
                                         </span>
                                     </Tooltip>
                                 </th>
                             ))}
                             <th className="px-4 py-3 text-center">
-                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                                     Score
                                 </span>
                             </th>
@@ -381,11 +381,11 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
                                             <div className="text-sm font-medium text-foreground truncate max-w-[120px] group-hover:text-brand-500 transition-colors">
                                                 {agent.name || agent.hostname || agent.id.slice(0, 8)}
                                             </div>
-                                            <div className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+                                            <div className="text-[11px] text-muted-foreground truncate max-w-[120px]">
                                                 {agent.ipAddress}
                                             </div>
                                         </div>
-                                        <ChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <ChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity" />
                                     </button>
                                 </td>
 

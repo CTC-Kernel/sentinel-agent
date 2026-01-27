@@ -73,7 +73,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = React.memo(({
                                     }`}></div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-info-bg border-info-border text-info-text dark:bg-info/10 dark:border-info/20 dark:text-info' :
+                                        <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-info-bg border-info-border text-info-text dark:bg-info/10 dark:border-info/20 dark:text-info' :
                                             item.type === 'policy' ? 'bg-error-bg border-error-border text-error-text dark:bg-error/10 dark:border-error/20 dark:text-error' :
                                                 item.type === 'incident' ? 'bg-error-bg border-error-border text-error-text dark:bg-error/10 dark:border-error/20 dark:text-error' :
                                                     item.type === 'risk' ? 'bg-warning-bg border-warning-border text-warning-text dark:bg-warning/10 dark:border-warning/20 dark:text-warning' :
@@ -91,7 +91,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = React.memo(({
                                     <h4 className="text-sm font-bold text-foreground group-hover/item:text-brand-600 dark:group-hover/item:text-brand-400 transition-colors truncate">{item.title}</h4>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.status}</p>
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover/item:text-foreground -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
+                                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover/item:text-foreground -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-70 transition-all" />
                             </div>
                         ))}
                     </div>

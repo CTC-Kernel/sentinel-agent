@@ -765,7 +765,7 @@ export const Help: React.FC = () => {
                 }
             />
 
-            <div className="flex h-[calc(100vh-16rem)] animate-fade-in overflow-hidden rounded-5xl glass-premium border border-slate-200 dark:border-slate-800 shadow-2xl relative">
+            <div className="flex h-[calc(100vh-16rem)] animate-fade-in overflow-hidden rounded-3xl glass-premium border border-slate-200 dark:border-slate-800 shadow-2xl relative">
 
                 {/* Mobile Menu Overlay */}
                 {mobileMenuOpen && (
@@ -827,7 +827,7 @@ export const Help: React.FC = () => {
                                 variant="outline"
                                 aria-label="Donner mon avis"
                                 onClick={() => setIsFeedbackOpen(true)}
-                                className="w-full py-3 bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-white rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-500/30 hover:bg-brand-100 dark:hover:bg-brand-500/30 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-white rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900 transition-all flex items-center justify-center gap-2"
                             >
                                 <MessageSquare className="w-4 h-4 mr-2" />
                                 Donner mon avis
@@ -862,7 +862,7 @@ export const Help: React.FC = () => {
                         {activeCategory ? (
                             <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
                                 <div className="flex items-center gap-4 mb-8">
-                                    <div className="p-3 bg-brand-500/10 rounded-2xl ring-1 ring-brand-500/20">
+                                    <div className="p-3 bg-brand-50 rounded-2xl ring-1 ring-brand-300">
                                         <activeCategory.icon className="w-8 h-8 text-brand-600 dark:text-brand-400" />
                                     </div>
                                     <div>
@@ -879,8 +879,8 @@ export const Help: React.FC = () => {
                                             key={article.id}
                                             id={article.id}
                                             className={`group rounded-2xl border transition-all duration-300 overflow-hidden ${selectedArticle === article.id
-                                                ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-200 dark:border-brand-500/30 ring-1 ring-brand-500/20'
-                                                : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-lg hover:shadow-brand-500/5'
+                                                ? 'bg-brand-50 dark:bg-brand-900 border-brand-200 dark:border-brand-300 ring-1 ring-brand-300'
+                                                : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-lg hover:shadow-brand-500/25'
                                                 }`}
                                         >
                                             <div
@@ -897,7 +897,7 @@ export const Help: React.FC = () => {
                                             >
                                                 <div className={`p-2 rounded-xl shrink-0 transition-colors ${selectedArticle === article.id
                                                     ? 'bg-brand-500 text-white'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-500/30 group-hover:text-brand-600 dark:group-hover:text-white'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-white'
                                                     }`}>
                                                     {article.icon ? <article.icon className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                                 </div>
@@ -908,7 +908,7 @@ export const Help: React.FC = () => {
                                                             }`}>
                                                             {article.title}
                                                         </h2>
-                                                        <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
+                                                        <ChevronDown className={`w-5 h-5 text-slate-500 dark:text-slate-400 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
                                                     </div>
                                                     <p className="text-slate-600 dark:text-muted-foreground mt-1 text-sm leading-relaxed">
                                                         {article.description}
@@ -916,7 +916,7 @@ export const Help: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            <div className={`grid transition-all duration-300 ease-in-out ${selectedArticle === article.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                                            <div className={`grid transition-all duration-300 ease-in-out ${selectedArticle === article.id ? 'grid-rows-[1fr] opacity-70' : 'grid-rows-[0fr] opacity-0'
                                                 }`}>
                                                 <div className="overflow-hidden">
                                                     <div className="px-6 pb-6 pt-0 space-y-6">
@@ -929,7 +929,7 @@ export const Help: React.FC = () => {
                                                                         {section.title}
                                                                     </h3>
                                                                 )}
-                                                                <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pl-3.5 border-l-2 border-brand-200 dark:border-brand-500/30">
+                                                                <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pl-3.5 border-l-2 border-brand-200 dark:border-brand-300">
                                                                     {section.content}
                                                                 </div>
                                                             </div>

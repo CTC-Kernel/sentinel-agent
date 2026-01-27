@@ -59,12 +59,13 @@
   filter: brightness(0.95);
 }
 
-/* Disabled states - standardized */
+/* Disabled states - WCAG AAA compliant (explicit colors instead of opacity) */
 .disabled-state {
-  opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
   transition: none;
+  @apply bg-slate-100 text-slate-500 border-slate-200;
+  @apply dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700;
 }
 
 /* Loading states - standardized */
@@ -263,56 +264,18 @@
   border-radius: var(--radius-lg);
 }
 
-/* Accessibility improvements - standardized */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 /* Focus visible for keyboard navigation - standardized */
 .focus-visible-only:focus-visible {
   outline: 2px solid hsl(var(--primary) / 0.5);
   outline-offset: 2px;
 }
 
-/* High contrast mode support - standardized */
-@media (prefers-contrast: high) {
-  .hover-primary:hover {
-    outline: 2px solid currentColor;
-  }
+/* Note: Screen reader utilities (.sr-only) are defined in accessibility.css */
+/* Note: Reduced motion support is defined in accessibility.css */
+/* Note: High contrast mode support is defined in accessibility.css */
 
-  .focus-ring:focus {
-    outline: 3px solid currentColor;
-  }
-}
-
-/* Reduced motion support - standardized */
+/* Interaction-specific reduced motion - loading animations only */
 @media (prefers-reduced-motion: reduce) {
-
-  .interactive-element,
-  .interactive-element-fast,
-  .interactive-element-slow {
-    transition: none;
-  }
-
-  .hover-primary:hover,
-  .hover-secondary:hover,
-  .hover-danger:hover,
-  .hover-success:hover {
-    transform: none;
-  }
-
-  .active-scale:active {
-    transform: none;
-  }
-
   .loading-state::after {
     animation: none;
   }

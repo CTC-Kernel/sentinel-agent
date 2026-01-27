@@ -22,7 +22,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
         <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-4xl shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8 overflow-hidden hover:shadow-apple transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="absolute inset-0 overflow-hidden rounded-4xl pointer-events-none">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
             </div>
 
             {/* Tech Corners */}
@@ -74,19 +74,19 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
                     role="button"
                     tabIndex={0}
                     aria-label="Afficher tous les audits"
-                    className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors p-2"
+                    className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors p-2"
                 >
-                    <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-500 mb-2 tracking-widest group-hover/item:text-brand-500 transition-colors">Total Audits</div>
+                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2 tracking-widest group-hover/item:text-brand-500 transition-colors">Total Audits</div>
                     <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{totalAudits}</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-500 mb-2 tracking-widest">Actions Requises</div>
+                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2 tracking-widest">Actions Requises</div>
                     <div className={`text-3xl font-black font-mono ${openFindings > 0 ? 'text-red-500 drop-shadow-red-md' : 'text-slate-900 dark:text-white'}`}>
                         {openFindings}
                     </div>
                 </div>
                 <div className="text-center">
-                    <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-500 mb-2 tracking-widest">À Venir (30j)</div>
+                    <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2 tracking-widest">À Venir (30j)</div>
                     <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{upcomingAudits}</div>
                 </div>
             </div>
@@ -94,7 +94,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
             {/* Alerts/Status */}
             <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-10">
                 {openFindings > 0 && (
-                    <div className="flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-100/50 dark:bg-red-500/10 px-4 py-3 rounded-lg border border-red-200 dark:border-red-500/20 backdrop-blur-md animate-pulse-slow">
+                    <div className="flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-100/50 dark:bg-red-50 px-4 py-3 rounded-lg border border-red-200 dark:border-red-800 dark:border-red-500/20 backdrop-blur-md animate-pulse-slow">
                         <AlertTriangle className="h-4 w-4 shrink-0" />
                         <span className="uppercase tracking-wide">{openFindings} actions requises</span>
                     </div>

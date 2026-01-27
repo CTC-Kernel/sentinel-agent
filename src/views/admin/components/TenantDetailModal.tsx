@@ -97,9 +97,9 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
@@ -110,9 +110,9 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                         as={React.Fragment}
                         enter="ease-out duration-300"
                         enterFrom="opacity-0 scale-95"
-                        enterTo="opacity-100 scale-100"
+                        enterTo="opacity-70 scale-100"
                         leave="ease-in duration-200"
-                        leaveFrom="opacity-100 scale-100"
+                        leaveFrom="opacity-70 scale-100"
                         leaveTo="opacity-0 scale-95"
                     >
                         <Dialog.Panel className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -128,7 +128,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                         </Dialog.Title>
                                         <div className="flex items-center space-x-2">
                                             <span className="text-sm text-muted-foreground font-mono">{tenant.id}</span>
-                                            <span className={`px-2 py-0.5 text-[10px] rounded-full uppercase font-bold tracking-wide ${isTenantActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                                            <span className={`px-2 py-0.5 text-[11px] rounded-full uppercase font-bold tracking-wide ${isTenantActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-50 text-red-400'
                                                 }`}>
                                                 {isTenantActive ? 'Active' : 'Suspended'}
                                             </span>
@@ -191,7 +191,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             </div>
                                         </div>
 
-                                        <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
+                                        <div className="bg-red-50 dark:bg-red-900/30 border border-red-500/20 rounded-xl p-6">
                                             <h4 className="text-red-400 font-medium flex items-center mb-4">
                                                 <AlertTriangle className="w-4 h-4 mr-2" />
                                                 Danger Zone
@@ -206,7 +206,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 <button
                                                     onClick={() => setShowToggleStatusConfirm(true)}
                                                     disabled={processing}
-                                                    className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-colors"
+                                                    className="px-4 py-2 rounded-lg text-sm font-medium bg-red-50 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-colors"
                                                 >
                                                     {isTenantActive ? 'Suspend' : 'Activate'}
                                                 </button>
@@ -262,7 +262,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 <button
                                                     onClick={handleSaveSubscription}
                                                     disabled={processing}
-                                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                                                 >
                                                     <Save className="w-4 h-4 mr-2" />
                                                     Save Changes

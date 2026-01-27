@@ -136,7 +136,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     <div className="space-y-4">
                         {questions.map((q, index) => (
                             <div key={q.id} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-white/10 relative group">
-                                <div className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-300 cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-300 cursor-move opacity-0 group-hover:opacity-70 transition-opacity">
                                     <Move className="w-5 h-5" />
                                 </div>
 
@@ -167,7 +167,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                         <button
                                             aria-label="Supprimer la question"
                                             onClick={() => removeQuestion(q.id)}
-                                            className="p-2 text-slate-500 hover:text-red-500 transition-colors"
+                                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
                                             title="Supprimer"
                                         >
                                             <Trash2 className="w-5 h-5" />
@@ -176,8 +176,8 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
 
                                     {/* Options for Choice types */}
                                     {(q.type === 'choice' || q.type === 'multiple_choice') && (
-                                        <div className="md:col-span-12 pl-4 border-l-2 border-brand-500/20">
-                                            <label className="text-xs font-bold uppercase text-slate-600 mb-2 block">Options de réponse</label>
+                                        <div className="md:col-span-12 pl-4 border-l-2 border-brand-200">
+                                            <label className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-2 block">Options de réponse</label>
                                             <div className="space-y-2">
                                                 {q.options?.map((opt, optIndex) => (
                                                     <div key={optIndex} className="flex gap-2">
@@ -199,7 +199,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                                 const newOptions = q.options?.filter((_, i) => i !== optIndex);
                                                                 updateQuestion(q.id, { options: newOptions });
                                                             }}
-                                                            className="p-2 text-slate-500 hover:text-red-500"
+                                                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500"
                                                         >
                                                             <X className="w-4 h-4" />
                                                         </button>
@@ -238,7 +238,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                 <button
                     aria-label="Annuler les modifications"
                     onClick={onClose}
-                    className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors"
                 >
                     Annuler
                 </button>
@@ -246,7 +246,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     aria-label="Enregistrer le questionnaire"
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors disabled:opacity-50 shadow-lg shadow-brand-600/20"
+                    className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 shadow-lg shadow-brand-600/20"
                 >
                     <Save className="w-4 h-4 mr-2" />
                     {saving ? 'Enregistrement...' : 'Enregistrer le Questionnaire'}

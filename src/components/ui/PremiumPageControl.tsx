@@ -74,7 +74,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
-                        className="p-2 text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
+                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-2xl transition-all"
                         title="Actualiser"
                     >
                         <RefreshCcw className="h-4 w-4" />
@@ -94,7 +94,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                             onClick={onToggleAdvancedSearch}
                             className={`p-2 rounded-2xl transition-all duration-300 ${showAdvancedSearch
                                 ? 'bg-brand-500 text-white shadow-inner'
-                                : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
+                                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:bg-white/5'
                                 }`}
                             title="Filtres avancés"
                         >
@@ -112,7 +112,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                         key={option.id}
                                         onClick={() => onViewChange(option.id)}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
-                                            ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white font-bold'
+                                            ? 'bg-white text-slate-900 dark:text-white shadow-sm dark:bg-slate-800 dark:text-white font-bold'
                                             : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                             }`}
                                         title={option.label}

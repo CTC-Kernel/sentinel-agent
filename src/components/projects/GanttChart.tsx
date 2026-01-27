@@ -171,12 +171,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         return (
             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-4 min-w-[280px] transform transition-all duration-200 z-50 animate-scale-in">
                 <div className="flex items-center justify-between mb-3">
-                    <div className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate pr-4 flex-1">
+                    <div className="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100 text-sm truncate pr-4 flex-1">
                         {task.name}
                     </div>
-                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${task.progress === 100
-                        ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+                    <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${task.progress === 100
+                        ? 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-500/20 dark:text-green-400'
+                        : 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/300/20 dark:text-blue-400'
                         }`}>
                         {task.progress}%
                     </div>
@@ -199,12 +199,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                 <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                     <div className="flex flex-col">
-                        <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Début</span>
+                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Début</span>
                         <span>{startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                     <div className="text-slate-300 dark:text-slate-700">→</div>
                     <div className="flex flex-col items-end">
-                        <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Fin</span>
+                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Fin</span>
                         <span>{endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                 </div>
@@ -237,7 +237,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         <div
                             key={t.id}
                             style={{ height: rowHeight }}
-                            className="flex items-center px-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                            className="flex items-center px-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-blue-500 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
                             onClick={() => handleTaskClick(t)}
                             role="button"
                             tabIndex={0}
@@ -252,10 +252,10 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                    <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                         {t.name}
                                     </div>
-                                    <div className="text-[10px] text-slate-500 truncate">
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                                         {new Date(t.start).toLocaleDateString()} - {new Date(t.end).toLocaleDateString()}
                                     </div>
                                 </div>
@@ -279,8 +279,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         <CalendarDays className="w-4 h-4" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Planning Projet</p>
-                        <p className="text-[10px] text-slate-600 dark:text-muted-foreground">{tasks.length} tâches • {Math.round(tasks.reduce((acc, t) => acc + (t.progress || 0), 0) / (tasks.length || 1))}% global</p>
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">Planning Projet</p>
+                        <p className="text-[11px] text-slate-600 dark:text-muted-foreground">{tasks.length} tâches • {Math.round(tasks.reduce((acc, t) => acc + (t.progress || 0), 0) / (tasks.length || 1))}% global</p>
                     </div>
                 </div>
 
@@ -312,7 +312,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                             <button
                                 key={mode}
                                 onClick={() => onViewModeChange(mode)}
-                                className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
+                                className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
                                     ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-105'
                                     : 'text-slate-600 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}

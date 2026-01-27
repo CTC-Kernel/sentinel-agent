@@ -30,7 +30,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
         <div className="space-y-6">
             {/* Alerts for Overdue Milestones */}
             {overdueMilestones.length > 0 && (
-                <GlassCard className="p-4 border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-900/10">
+                <GlassCard className="p-4 border-red-200 dark:border-red-800 dark:border-red-900 bg-red-500 dark:bg-red-50 dark:bg-red-900">
                     <div className="flex items-start gap-3">
                         <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                         <div>

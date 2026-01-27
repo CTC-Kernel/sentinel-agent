@@ -64,7 +64,7 @@ function PresetThumbnail({ config }: { config: ExtendedViewPresetConfig }) {
         />
       ))}
       {config.layers.length > 5 && (
-        <span className="text-[8px] text-muted-foreground">+{config.layers.length - 5}</span>
+        <span className="text-[11px] text-muted-foreground">+{config.layers.length - 5}</span>
       )}
     </div>
   );
@@ -131,7 +131,7 @@ export function ViewSelector({
         className={cn(
           'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'disabled:pointer-events-none disabled:opacity-50',
+          'disabled:pointer-events-none disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400',
           'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
           'h-9 px-3 gap-2',
           className
@@ -141,7 +141,7 @@ export function ViewSelector({
         <span className="hidden sm:inline">
           {t(`voxel.presets.${currentPreset}`, currentConfig.description)}
         </span>
-        <ChevronDown className="h-4 w-4 opacity-50" />
+        <ChevronDown className="h-4 w-4 opacity-60" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuLabel>
@@ -166,7 +166,7 @@ export function ViewSelector({
                 <PresetThumbnail config={config} />
               </div>
               <div className="flex items-center gap-2">
-                <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[11px] font-medium text-muted-foreground">
                   {KEYBOARD_SHORTCUTS[key]}
                 </kbd>
                 {currentPreset === key && (

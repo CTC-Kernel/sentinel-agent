@@ -121,7 +121,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                     <option key={u.uid} value={u.uid}>{u.displayName || u.email}</option>
                                 ))}
                             </select>
-                            <p className="text-[10px] text-slate-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
                         </div>
                         <input value={comment} onChange={(e) => setComment(e.target.value)}
                             aria-label="Message pour les réviseurs"
@@ -131,13 +131,13 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         />
                         <div className="flex justify-end gap-2">
                             <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>
-                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">Confirmer</button>
+                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">Confirmer</button>
                         </div>
                     </motion.div>
                 )}
 
                 {actionView === 'reject' && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-red-200 dark:border-red-900/30">
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-red-200 dark:border-red-800 dark:border-red-900/30">
                         <textarea
                             aria-label="Raison du rejet"
                             placeholder="Raison du rejet (obligatoire)..."
@@ -147,7 +147,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         />
                         <div className="flex justify-end gap-2">
                             <button aria-label="Annuler le rejet" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>
-                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">Confirmer le Rejet</button>
+                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">Confirmer le Rejet</button>
                         </div>
                     </motion.div>
                 )}
@@ -156,7 +156,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
             {/* TIMELINE */}
             <div className="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800 space-y-6">
                 {history.length === 0 && (
-                    <div className="text-sm text-slate-500 italic pl-2">Aucun historique de workflow.</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 italic pl-2">Aucun historique de workflow.</div>
                 )}
                 {history.map((item) => (
                     <div key={item.id} className="relative">

@@ -24,7 +24,7 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
                         <div key={proj.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
-                                <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20' : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20'}`}>
+                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20' : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20'}`}>
                                     {proj.status}
                                 </span>
                             </div>
@@ -33,7 +33,7 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
                                 <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
                                     <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
                                 </div>
-                                <span className="text-xs font-bold text-slate-700 dark:text-muted-foreground">{proj.progress}%</span>
+                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{proj.progress}%</span>
                             </div>
                         </div>
                     ))}

@@ -102,13 +102,13 @@ describe('ReportConfigurationModal', () => {
 
             // Initially all sections are active (have specific border color)
             const risksButton = screen.getByText('Risques Cyber').closest('button');
-            expect(risksButton).toHaveClass('border-red-500/50');
+            expect(risksButton).toHaveClass('border-red-2000');
 
             // Click to toggle
             if (risksButton) fireEvent.click(risksButton);
 
             // Should now be inactive
-            expect(risksButton).not.toHaveClass('border-red-500/50');
+            expect(risksButton).not.toHaveClass('border-red-2000');
         });
     });
 

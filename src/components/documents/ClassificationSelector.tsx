@@ -97,7 +97,7 @@ export function ClassificationSelector({
         <DropdownMenuTrigger
           disabled={disabled}
           className={cn(
-            'inline-flex items-center gap-2 justify-between min-w-[160px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            'inline-flex items-center gap-2 justify-between min-w-[160px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400',
             className
           )}
         >
@@ -105,7 +105,7 @@ export function ClassificationSelector({
             <span className="text-base">{currentConfig.icon}</span>
             <span>{currentConfig.label}</span>
           </div>
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          <ChevronDown className="h-4 w-4 opacity-60" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuLabel className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export function ClassificationSelector({
                 disabled={!canAccess}
                 className={cn(
                   'gap-3 cursor-pointer',
-                  !canAccess && 'opacity-50 cursor-not-allowed'
+                  !canAccess && 'opacity-60 cursor-not-allowed'
                 )}
               >
                 <span

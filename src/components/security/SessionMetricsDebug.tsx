@@ -20,7 +20,7 @@ export const SessionMetricsDebug: React.FC = () => {
             <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">
                 Session Metrics
             </h3>
-            <dl className="space-y-1 text-slate-700 dark:text-muted-foreground">
+            <dl className="space-y-1 text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                 <div className="flex justify-between">
                     <dt>Durée de session:</dt>
                     <dd className="font-mono">{formatDuration(metrics.sessionDuration)}</dd>

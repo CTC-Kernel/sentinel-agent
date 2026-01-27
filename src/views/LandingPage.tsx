@@ -10,14 +10,14 @@ import { SystemEntrance } from '../components/landing/SystemEntrance';
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIcon, title: string, description: string, delay: string }) => (
     <div className={`glass-premium p-8 rounded-3xl bg-white/70 dark:bg-white/5 overflow-hidden transition-all duration-500 group animate-slide-up flex flex-col items-start relative hover:z-20`} style={{ animationDelay: delay }}>
         {/* Hover Highlight Line */}
-        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
 
-        <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 group-hover:bg-brand-50 dark:group-hover:bg-brand-500/20 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 mb-6 ring-1 ring-slate-200 dark:ring-white/10 group-hover:ring-brand-500/20 dark:group-hover:ring-brand-500/20">
+        <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 group-hover:bg-brand-50 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 mb-6 ring-1 ring-slate-200 dark:ring-white/10 group-hover:ring-brand-300 dark:group-hover:ring-brand-300">
             <span className="inline-flex" inert>
                 <Icon className="h-8 w-8" />
             </span>
         </div>
-        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-200 mb-3 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors font-mono tracking-tight">{title}</h3>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white dark:text-slate-200 mb-3 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors font-mono tracking-tight">{title}</h3>
         <p className="text-slate-500 dark:text-muted-foreground leading-relaxed font-medium">{description}</p>
     </div>
 );
@@ -43,7 +43,7 @@ export const LandingPage: React.FC = () => {
                 <div className="max-w-6xl mx-auto relative group perspective-1000">
                     <div className="absolute inset-x-0 -top-40 h-[500px] bg-gradient-to-b from-transparent via-slate-200/50 dark:via-brand-500/5 to-transparent pointer-events-none"></div>
 
-                    <div className="relative rounded-5xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900 shadow-2xl overflow-hidden transform transition-all duration-1000 group-hover:rotate-x-2 group-hover:scale-[1.01] shadow-slate-200/50 dark:shadow-brand-500/10">
+                    <div className="relative rounded-3xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900 shadow-2xl overflow-hidden transform transition-all duration-1000 group-hover:rotate-x-2 group-hover:scale-[1.01] shadow-slate-200/50 dark:shadow-brand-500/25">
                         {/* Tech Corners Generic */}
                         <svg className="absolute top-8 left-8 w-6 h-6 text-slate-400/50 dark:text-white/20 z-20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                         <svg className="absolute top-8 right-8 w-6 h-6 text-slate-400/50 dark:text-white/20 rotate-90 z-20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -100,7 +100,7 @@ export const LandingPage: React.FC = () => {
                     <div className="w-12 h-1 bg-slate-300 dark:bg-slate-800 rounded-full"></div>
                     <p className="text-xs font-bold font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest">Opérationnel dans toute l'Europe</p>
 
-                    <p className="text-[10px] text-muted-foreground font-mono">
+                    <p className="text-[11px] text-muted-foreground font-mono">
                         © 2022 SENTINEL GRC. CYBER THREAT CONSULTING.
                     </p>
                 </div>

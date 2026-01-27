@@ -42,6 +42,10 @@ interface KPICardProps {
 // KPI Card Component
 // ============================================================================
 
+// ============================================================================
+// KPI Card Component
+// ============================================================================
+
 const KPICard: React.FC<KPICardProps> = ({
   title,
   value,
@@ -50,45 +54,58 @@ const KPICard: React.FC<KPICardProps> = ({
   suffix = '',
   delay = 0,
 }) => {
-  const colorClasses = {
+  const colorConfig = {
     primary: {
-      bg: 'bg-primary/10',
-      text: 'text-primary',
+      bg: 'bg-brand-50',
+      text: 'text-brand-500',
+      border: 'group-hover:border-brand-300',
     },
     success: {
-      bg: 'bg-success-bg',
-      text: 'text-success-text',
+      bg: 'bg-emerald-500/10',
+      text: 'text-emerald-500',
+      border: 'group-hover:border-emerald-500/30',
     },
     warning: {
-      bg: 'bg-warning-bg',
-      text: 'text-warning-text',
+      bg: 'bg-amber-50',
+      text: 'text-amber-500',
+      border: 'group-hover:border-amber-500/30',
     },
     error: {
-      bg: 'bg-error-bg',
-      text: 'text-error-text',
+      bg: 'bg-red-50',
+      text: 'text-red-500',
+      border: 'group-hover:border-red-500/30',
     },
   };
 
-  const classes = colorClasses[color];
+  const config = colorConfig[color];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.3 }}
-      className="glass-panel p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all hover:shadow-elevation-md"
+      transition={{ delay, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} // Apple-like ease
+      className={`glass-premium p-6 rounded-3xl border border-white/10 transition-all duration-300 hover:shadow-apple-md group relative overflow-hidden ${config.border}`}
     >
-      <div className="flex items-center justify-between">
-        <div className={`p-3 rounded-xl ${classes.bg}`}>
-          <Icon className={`w-6 h-6 ${classes.text}`} />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-4">
+          <div className={`p-3 rounded-2xl ${config.bg} transition-transform group-hover:scale-110 duration-300`}>
+            <Icon className={`w-6 h-6 ${config.text}`} />
+          </div>
         </div>
-      </div>
-      <div className="mt-4">
-        <div className="text-3xl font-bold text-foreground">
-          {value}
-          {suffix && <span className="text-lg text-muted-foreground">{suffix}</span>}
+
+        <div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-black text-foreground tracking-tight">
+              {value}
+            </span>
+            {suffix && <span className="text-sm font-semibold text-muted-foreground">{suffix}</span>}
+          </div>
+          <div className="text-sm font-medium text-muted-foreground mt-1 uppercase tracking-wide opacity-80 group-hover:opacity-70 transition-opacity">
+            {title}
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground mt-1">{title}</div>
       </div>
     </motion.div>
   );
@@ -99,12 +116,12 @@ const KPICard: React.FC<KPICardProps> = ({
 // ============================================================================
 
 const KPICardSkeleton: React.FC = () => (
-  <div className="glass-panel p-5 rounded-2xl border border-white/10">
-    <div className="flex items-center justify-between">
-      <Skeleton className="w-12 h-12 rounded-xl" />
+  <div className="glass-premium p-6 rounded-3xl border border-white/10">
+    <div className="flex items-center justify-between mb-4">
+      <Skeleton className="w-12 h-12 rounded-2xl" />
     </div>
-    <div className="mt-4">
-      <Skeleton className="h-9 w-20 rounded-md mb-2" />
+    <div>
+      <Skeleton className="h-8 w-24 rounded-lg mb-2" />
       <Skeleton className="h-4 w-32 rounded-md" />
     </div>
   </div>
@@ -122,7 +139,7 @@ export const TrainingKPICards: React.FC<TrainingKPICardsProps> = ({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
           <KPICardSkeleton key={i} />
         ))}
@@ -147,14 +164,14 @@ export const TrainingKPICards: React.FC<TrainingKPICardsProps> = ({
       value: stats.completed,
       icon: CheckCircle,
       color: 'success',
-      delay: 0.05,
+      delay: 0.1,
     },
     {
       title: t('training.stats.overdue'),
       value: stats.overdue,
       icon: AlertTriangle,
       color: 'error',
-      delay: 0.1,
+      delay: 0.2,
     },
     {
       title: t('training.stats.completionRate'),
@@ -162,12 +179,12 @@ export const TrainingKPICards: React.FC<TrainingKPICardsProps> = ({
       icon: TrendingUp,
       color: stats.completionRate >= 80 ? 'success' : stats.completionRate >= 50 ? 'warning' : 'error',
       suffix: '%',
-      delay: 0.15,
+      delay: 0.3,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {kpis.map((kpi, index) => (
         <KPICard key={index} {...kpi} />
       ))}

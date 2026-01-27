@@ -23,11 +23,11 @@ export const SentinelAssistant: React.FC = () => {
             </div>
 
             {/* Main Card - Fluid Premium Design */}
-            <div className="relative z-10 glass-premium glass-noise rounded-[3rem] p-12 shadow-2xl overflow-hidden group hover:shadow-[0_0_50px_-12px_rgba(var(--brand-500),0.3)] hover:border-brand-500/30 transition-all duration-700 ease-out h-[600px] flex flex-col justify-between">
+            <div className="relative z-10 glass-premium glass-noise rounded-[3rem] p-12 shadow-2xl overflow-hidden group hover:shadow-[0_0_50px_-12px_rgba(var(--brand-500),0.3)] hover:border-brand-300 transition-all duration-700 ease-out h-[600px] flex flex-col justify-between">
 
                 {/* Subtle glow effect on hover */}
-                <div className="absolute inset-0 bg-gradient-to-b from-brand-500/5 via-transparent to-brand-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-                <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-500/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-brand-500/20 transition-colors duration-700"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-brand-500/5 via-transparent to-brand-500/5 opacity-0 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none"></div>
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-[80px] pointer-events-none group-hover:bg-brand-300/40 dark:group-hover:bg-brand-400/25 transition-colors duration-700"></div>
 
                 {/* AI Avatar / Core */}
                 {/* AI Avatar / Core */}
@@ -40,7 +40,7 @@ export const SentinelAssistant: React.FC = () => {
                     <div className="z-10">
                         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
                             Sentinel-Core AI
-                            <span className="px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 text-[10px] border border-brand-200 dark:border-brand-800 font-bold">BETA</span>
+                            <span className="px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 text-[11px] border border-brand-200 dark:border-brand-800 font-bold">BETA</span>
                         </h2>
                         <div className="flex items-center gap-2">
                             <span className="relative flex h-2 w-2">
@@ -72,9 +72,9 @@ export const SentinelAssistant: React.FC = () => {
 
                             <button
                                 onClick={() => setShowChat(true)}
-                                className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-brand-50 dark:hover:bg-brand-900/20 border border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800 transition-all w-full text-left"
+                                className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-brand-50 dark:hover:bg-brand-800 border border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800 transition-all w-full text-left"
                             >
-                                <div className="p-2 bg-brand-100 dark:bg-brand-900/50 rounded-lg text-brand-700 dark:text-brand-300 group-hover:scale-110 transition-transform">
+                                <div className="p-2 bg-brand-100 dark:bg-brand-900 rounded-lg text-brand-700 dark:text-brand-300 group-hover:scale-110 transition-transform">
                                     <Bot size={20} />
                                 </div>
                                 <div>
@@ -91,14 +91,14 @@ export const SentinelAssistant: React.FC = () => {
                 </div>
 
                 {/* Footer / Certification Badges */}
-                <div className="mt-10 pt-6 border-t border-slate-200 dark:border-white/10 flex justify-between items-center opacity-70 hover:opacity-100 transition-opacity">
+                <div className="mt-10 pt-6 border-t border-slate-200 dark:border-white/10 flex justify-between items-center opacity-70 hover:opacity-70 transition-opacity">
                     <div className="flex items-center gap-2" title="Hébergement certifié SecNumCloud">
                         <Globe className="w-4 h-4 text-brand-600 dark:text-brand-400" />
-                        <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">SecNumCloud Ready</span>
+                        <span className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">SecNumCloud Ready</span>
                     </div>
                     <div className="flex items-center gap-2" title="Chiffrement de bout en bout">
                         <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">End-To-End Encrypted</span>
+                        <span className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">End-To-End Encrypted</span>
                     </div>
                 </div>
 

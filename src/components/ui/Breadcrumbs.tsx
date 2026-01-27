@@ -99,7 +99,7 @@ export const Breadcrumbs: React.FC = () => {
                                         to={crumb.path}
                                         className={cn(
                                             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
-                                            "text-slate-600 dark:text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/10"
+                                            "text-slate-600 dark:text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900"
                                         )}
                                     >
                                         {crumb.label}

@@ -152,11 +152,11 @@ export const UserActivityLog: React.FC = () => {
                 )}
             </div>
 
-            <div className="glass-panel p-0 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+            <div className="glass-panel p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md shadow-sm">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md shadow-sm">
                             <Activity className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">

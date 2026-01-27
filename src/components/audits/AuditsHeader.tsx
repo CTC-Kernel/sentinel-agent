@@ -44,7 +44,7 @@ export const AuditsHeader: React.FC<AuditsHeaderProps> = ({
                             </Button>
                             <Button
                                 onClick={onNewAudit}
-                                className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-sm hover:shadow-md"
+                                className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800 shadow-sm hover:shadow-md"
                             >
                                 <Plus className="w-4 h-4" />
                                 <span>{t('audits.newAudit')}</span>

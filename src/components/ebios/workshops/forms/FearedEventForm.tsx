@@ -227,7 +227,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 {t('ebios.workshop1.linkedMissions')} *
               </label>
               {missions.length === 0 ? (
-                <p className="text-sm text-slate-500 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                <p className="text-sm text-slate-500 dark:text-slate-400 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
                   {t('ebios.workshop1.noMissionsYet')}
                 </p>
               ) : (
@@ -263,7 +263,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 {t('ebios.workshop1.linkedEssentialAssets')} *
               </label>
               {essentialAssets.length === 0 ? (
-                <p className="text-sm text-slate-500 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                <p className="text-sm text-slate-500 dark:text-slate-400 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
                   {t('ebios.workshop1.noEssentialAssetsYet')}
                 </p>
               ) : (
@@ -323,7 +323,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-1.5" />
                   {t('common.delete')}

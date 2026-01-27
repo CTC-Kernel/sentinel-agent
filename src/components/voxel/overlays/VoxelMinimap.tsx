@@ -391,7 +391,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
         {/* Hover info */}
         {isHovered && (
           <div className="absolute bottom-1 left-1 right-1 text-center">
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[11px] text-slate-500">
               {nodes.length} nodes
               {onNavigate && ' | Click to navigate'}
             </span>

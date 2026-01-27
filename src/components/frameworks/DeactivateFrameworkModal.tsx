@@ -55,12 +55,12 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
           as={React.Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
-          enterTo="opacity-100"
+          enterTo="opacity-70"
           leave="ease-in duration-200"
-          leaveFrom="opacity-100"
+          leaveFrom="opacity-70"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" />
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -69,16 +69,16 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
               as={React.Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              enterTo="opacity-70 translate-y-0 sm:scale-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveFrom="opacity-70 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
                 <div className="p-6 text-center">
                   {/* Warning Icon */}
                   <motion.div
-                    className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+                    className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400"
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
@@ -133,7 +133,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                     <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">
                       {t('frameworks.deactivateWarningTitle', 'Attention')}
                     </h4>
-                    <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-1.5">
+                    <ul className="text-xs text-amber-700 dark:text-amber-400 dark:text-amber-400 space-y-1.5">
                       <li className="flex items-start gap-2">
                         <span className="mt-1 w-1 h-1 rounded-full bg-amber-500 flex-shrink-0" />
                         {t(
@@ -164,7 +164,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors"
                     onClick={onClose}
                     disabled={isLoading}
                     ref={cancelButtonRef}
@@ -176,7 +176,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                     type="button"
                     variant="ghost"
                     isLoading={isLoading}
-                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors"
                     onClick={onConfirm}
                   >
                     {t('frameworks.deactivate', 'Désactiver')}

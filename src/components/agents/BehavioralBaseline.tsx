@@ -578,7 +578,7 @@ const AgentBaselineView: React.FC<{
 
                         {baseline.hourlyPatterns.length === 0 && baseline.weeklyPatterns.length === 0 && (
                             <div className="text-center py-8 text-muted-foreground">
-                                <Activity className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                                <Activity className="h-12 w-12 mx-auto mb-3 opacity-60" />
                                 <p>Pas assez de données pour détecter des patterns</p>
                                 <p className="text-sm">Minimum 7 jours requis</p>
                             </div>

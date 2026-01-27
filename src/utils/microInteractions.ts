@@ -343,10 +343,10 @@ export const getImpactColor = (impact: number): string => {
  */
 export const getSeverityColorClass = (severity: 'critical' | 'high' | 'medium' | 'low'): string => {
   const colors = {
-    critical: 'text-red-500 bg-red-50 border-red-200',
-    high: 'text-orange-500 bg-orange-50 border-orange-200',
-    medium: 'text-yellow-500 bg-yellow-50 border-yellow-200',
-    low: 'text-green-500 bg-green-50 border-green-200',
+    critical: 'text-red-500 bg-red-50 dark:bg-red-900/30 border-red-200',
+    high: 'text-orange-500 bg-orange-50 dark:bg-orange-900/30 border-orange-200',
+    medium: 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200',
+    low: 'text-green-500 bg-green-50 dark:bg-green-900/30 border-green-200',
   };
   return colors[severity];
 };

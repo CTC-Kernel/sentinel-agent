@@ -16,7 +16,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Calendar as CalendarIcon, List, LayoutDashboard, ClipboardCheck, BookOpen } from '../components/ui/Icons';
+import { Calendar as CalendarIcon, List, LayoutDashboard, ClipboardCheck, BookOpen, Activity } from '../components/ui/Icons';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditCalendar } from '../components/audits/AuditCalendar';
@@ -28,9 +28,14 @@ import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { OnboardingService } from '../services/onboardingService';
 import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 import { AuditPremiumStats } from '../components/audits/AuditPremiumStats';
+import { useActivityLogs } from '../hooks/useActivityLogs';
+import { ActivityLogList } from '../components/activity/ActivityLogList';
 
 export const Audits: React.FC = () => {
     const { t } = useStore();
+
+    // Activity logs for audit-trail tab
+    const { logs: activityLogs, loading: activityLoading, hasMore: activityHasMore, loadMore: loadMoreActivity } = useActivityLogs();
 
     // Start module tour
     React.useEffect(() => {
@@ -41,7 +46,7 @@ export const Audits: React.FC = () => {
     }, []);
 
     // Local UI State (Hoisted to top for useAudits)
-    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings' | 'methods'>('audits-active-tab', 'overview');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail'>('audits-active-tab', 'overview');
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
@@ -92,6 +97,7 @@ export const Audits: React.FC = () => {
         { id: 'calendar', label: t('audits.calendar'), icon: CalendarIcon },
         { id: 'findings', label: t('audits.findings'), icon: ClipboardCheck },
         { id: 'methods', label: t('audits.methods') || 'Méthodes', icon: BookOpen },
+        { id: 'audit-trail', label: t('audits.auditTrail') || 'Journal d\'audit', icon: Activity },
     ];
 
     // Filter Logic
@@ -205,7 +211,7 @@ export const Audits: React.FC = () => {
                 <ScrollableTabs
                     tabs={tabs}
                     activeTab={activeTab}
-                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods')}
+                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail')}
                 />
             </div>
 
@@ -222,7 +228,7 @@ export const Audits: React.FC = () => {
                 typeFilter={typeFilter}
                 setTypeFilter={setTypeFilter}
                 activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id)}
+                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail')}
                 selectedAudits={selectedAudits}
                 handleBulkDelete={handleBulkDelete}
                 handleExportCalendar={handleExportCalendar}
@@ -261,7 +267,7 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'list' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6 sm:space-y-8">
-                        <div className="glass-premium overflow-hidden rounded-5xl border border-white/60 dark:border-white/5 shadow-apple-sm">
+                        <div className="glass-premium overflow-hidden rounded-3xl border border-white/60 dark:border-white/5 shadow-apple-sm">
                             <AuditsList
                                 audits={filteredAudits}
                                 isLoading={loading}
@@ -309,6 +315,21 @@ export const Audits: React.FC = () => {
                                 // TODO: Implement workshop start functionality
                             }}
                         />
+                    </motion.div>
+                )
+            }
+
+            {
+                activeTab === 'audit-trail' && (
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                        <div className="glass-premium rounded-3xl p-6 border border-white/60 dark:border-white/5">
+                            <ActivityLogList
+                                logs={activityLogs}
+                                loading={activityLoading}
+                                hasMore={activityHasMore}
+                                onLoadMore={loadMoreActivity}
+                            />
+                        </div>
                     </motion.div>
                 )
             }

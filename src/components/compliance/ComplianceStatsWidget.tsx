@@ -30,10 +30,10 @@ interface ComplianceStatsWidgetProps {
 // Tech corner decoration
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     <div className={cn("pointer-events-none", className)}>
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-500/30 rounded-tl-lg" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-500/30 rounded-tr-lg" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-500/30 rounded-bl-lg" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-500/30 rounded-br-lg" />
+        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-300 rounded-tl-lg" />
+        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-300 rounded-tr-lg" />
+        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-300 rounded-bl-lg" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-300 rounded-br-lg" />
     </div>
 );
 
@@ -123,7 +123,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.globalScore}%
                             </span>
-                            <span className="text-[9px] text-slate-500 uppercase tracking-wider">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 {currentFramework}
                             </span>
                         </div>
@@ -135,7 +135,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                                 Conformité
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 max-w-[180px]">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[180px]">
                             {stats.globalScore >= 80 ? 'Excellent niveau de conformité' :
                              stats.globalScore >= 50 ? 'Progression en cours' : 'Attention requise'}
                         </p>
@@ -150,14 +150,14 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                     {/* Implemented Controls */}
                     <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-success-500/10 rounded-xl">
+                            <div className="p-2 bg-success-bg rounded-xl">
                                 <CheckCircle2 className="w-4 h-4 text-success-500" />
                             </div>
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.implementedControls}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Implémentés
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -175,7 +175,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
                                 "p-2 rounded-xl",
-                                stats.todoControls > 0 ? "bg-warning-500/10" : "bg-success-500/10"
+                                stats.todoControls > 0 ? "bg-warning-bg" : "bg-success-bg"
                             )}>
                                 <AlertTriangle className={cn(
                                     "w-4 h-4",
@@ -195,7 +195,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                         )}>
                             {stats.todoControls}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             À traiter
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -214,14 +214,14 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                     {/* Evidence Count */}
                     <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-info-500/10 rounded-xl">
+                            <div className="p-2 bg-info-bg rounded-xl">
                                 <Paperclip className="w-4 h-4 text-info-500" />
                             </div>
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.evidenceCount}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Preuves
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -237,14 +237,14 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                     {/* Total Scope */}
                     <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-brand-500/10 rounded-xl">
+                            <div className="p-2 bg-brand-50 rounded-xl">
                                 <ShieldCheck className="w-4 h-4 text-brand-500" />
                             </div>
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.actionableControls}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Périmètre
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -266,15 +266,15 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                     <span>{stats.partialControls} partiels • {stats.totalControls - stats.actionableControls} exclus/N/A</span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-success-500" />
                         <span className="text-slate-500">Implémentés</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-warning-500" />
                         <span className="text-slate-500">À traiter</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-brand-500" />
                         <span className="text-slate-500">Périmètre</span>
                     </div>

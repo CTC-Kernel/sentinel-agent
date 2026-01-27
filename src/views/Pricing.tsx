@@ -168,7 +168,7 @@ const Pricing = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50 border border-brand-200 mb-6"
           >
             <Sparkles className="w-4 h-4 text-brand-500" />
             <span className="text-sm font-bold text-brand-600 dark:text-brand-400">Tarification transparente</span>
@@ -218,7 +218,7 @@ const Pricing = () => {
               )}
             >
               Annuel
-              <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success-500 to-emerald-500 text-white text-[10px] uppercase tracking-wider font-black shadow-sm">
+              <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success-500 to-emerald-500 text-white text-[11px] uppercase tracking-wider font-black shadow-sm">
                 -20%
               </span>
             </button>
@@ -247,7 +247,7 @@ const Pricing = () => {
                   hover={true}
                   className={cn(
                     "h-full flex flex-col pt-10 px-8 pb-8",
-                    isPopular ? 'scale-105 z-10 border-brand-500/30' : 'border-white/60 dark:border-white/10'
+                    isPopular ? 'scale-105 z-10 border-brand-300' : 'border-white/60 dark:border-white/10'
                   )}
                 >
                   {isPopular && (
@@ -300,7 +300,7 @@ const Pricing = () => {
                   <div className="space-y-4 mb-8 flex-grow">
                     {(plan.featuresList || []).slice(0, 6).map((feature, i) => (
                       <div key={i} className="flex items-start gap-3">
-                        <div className="mt-0.5 p-1 rounded-full bg-success-500/10 dark:bg-success-500/20">
+                        <div className="mt-0.5 p-1 rounded-full bg-success-bg dark:bg-success-500/20">
                           <Check className="w-3 h-3 text-success-600 dark:text-success-400" />
                         </div>
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -325,7 +325,7 @@ const Pricing = () => {
                     {isLoading === plan.id ? 'Chargement...' : (
                       <span className="flex items-center gap-2">
                         Commencer maintenant
-                        <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-70 group-hover:translate-x-0 transition-all" />
                       </span>
                     )}
                   </Button>
@@ -354,7 +354,7 @@ const Pricing = () => {
 
             {/* Table Header - Sticky */}
             <div className="grid grid-cols-4 p-6 border-b border-slate-200/50 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-              <div className="col-span-1 p-2 font-black text-slate-500 uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
+              <div className="col-span-1 p-2 font-black text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
               <div className="col-span-1 p-2 text-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800">
                   <Star className="w-4 h-4 text-slate-500" />
@@ -362,7 +362,7 @@ const Pricing = () => {
                 </div>
               </div>
               <div className="col-span-1 p-2 text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-brand-500/10 to-violet-500/10 border border-brand-500/20">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-brand-500/10 to-violet-500/10 border border-brand-200">
                   <Crown className="w-4 h-4 text-brand-500" />
                   <span className="font-bold text-brand-600 dark:text-brand-400">Professional</span>
                 </div>
@@ -410,7 +410,7 @@ const Pricing = () => {
                                     <feature.icon className="w-4 h-4 text-slate-500 dark:text-slate-300" />
                                   </div>
                                 )}
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">
                                   {feature.name}
                                   {feature.tooltip && (
                                     <Tooltip content={feature.tooltip}>
@@ -420,7 +420,7 @@ const Pricing = () => {
                                 </span>
                               </div>
                               <div className="col-span-1 text-center py-2">{renderFeatureValue(feature.discovery)}</div>
-                              <div className="col-span-1 text-center bg-brand-50/30 dark:bg-brand-900/10 py-2 rounded-xl mx-2">{renderFeatureValue(feature.professional)}</div>
+                              <div className="col-span-1 text-center bg-brand-50 dark:bg-brand-900 py-2 rounded-xl mx-2">{renderFeatureValue(feature.professional)}</div>
                               <div className="col-span-1 text-center py-2">{renderFeatureValue(feature.enterprise)}</div>
                             </div>
                           ))}
@@ -449,7 +449,7 @@ const Pricing = () => {
                 <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('pricing.faq')}</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc')}</p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-brand-500/10 to-violet-500/10 rounded-2xl border border-brand-500/20">
+              <div className="p-3 bg-gradient-to-br from-brand-500/10 to-violet-500/10 rounded-2xl border border-brand-200">
                 <HelpCircle className="w-6 h-6 text-brand-500" />
               </div>
             </div>
@@ -461,7 +461,7 @@ const Pricing = () => {
                     onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
                     className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
                   >
-                    <span className="font-bold text-slate-800 dark:text-slate-100 text-base pr-4">{faq.q}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100 text-base pr-4">{faq.q}</span>
                     <ChevronDown
                       className={cn(
                         "w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-transform duration-300",
@@ -526,13 +526,13 @@ const Pricing = () => {
         {/* Footer Section */}
         <div className="text-center pb-8 border-t border-slate-200/50 dark:border-white/5 pt-8">
           <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-bold text-slate-500">
-            <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
+            <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5">
               CGV
             </button>
-            <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
+            <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5">
               Confidentialité
             </button>
-            <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
+            <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5">
               Mentions Légales
             </button>
           </div>

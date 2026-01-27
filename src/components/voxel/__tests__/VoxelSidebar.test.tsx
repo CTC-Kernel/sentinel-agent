@@ -117,7 +117,7 @@ describe('VoxelSidebar', () => {
             const { container } = render(<VoxelSidebar {...defaultProps} navCollapsed={false} />);
 
             expect(container.querySelector('.w-80')).toBeInTheDocument();
-            expect(container.querySelector('.opacity-100')).toBeInTheDocument();
+            expect(container.querySelector('.opacity-70')).toBeInTheDocument();
         });
     });
 

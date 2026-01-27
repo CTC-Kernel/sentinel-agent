@@ -61,18 +61,18 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
             <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Identification du Risque</h4>
                 <div>
-                    <span className="text-[10px] uppercase text-muted-foreground font-bold">Menace</span>
+                    <span className="text-[11px] uppercase text-muted-foreground font-bold">Menace</span>
                     <p className="text-sm font-medium text-slate-900 dark:text-white">{risk.threat}</p>
                 </div>
                 {risk.scenario && (
                     <div>
-                        <span className="text-[10px] uppercase text-muted-foreground font-bold">Scénario</span>
+                        <span className="text-[11px] uppercase text-muted-foreground font-bold">Scénario</span>
                         <p className="text-sm text-slate-600 dark:text-muted-foreground">{risk.scenario}</p>
                     </div>
                 )}
                 {risk.vulnerability && (
                     <div>
-                        <span className="text-[10px] uppercase text-muted-foreground font-bold">Vulnérabilité Exploitée</span>
+                        <span className="text-[11px] uppercase text-muted-foreground font-bold">Vulnérabilité Exploitée</span>
                         <SafeHTML content={risk.vulnerability} className="text-sm text-slate-600 dark:text-slate-300" />
                     </div>
                 )}
@@ -85,11 +85,11 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
 
             <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Stratégie de Traitement</h4>
-                <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
+                <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{risk.strategy}</div>
             </div>
             <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Propriétaire</h4>
-                <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
+                <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
             </div>
             <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Statut Actuel</h4>
@@ -102,7 +102,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                                     key={s}
                                     onClick={() => onStatusChangeRequest(s as Risk['status'])}
                                     disabled={updating}
-                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'} ${updating ? 'opacity-60 cursor-wait' : ''}`}
                                 >
                                     {s}
                                 </button>
@@ -139,7 +139,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                         </button>
                     )}
                 </div>
-                {risk.lastReviewDate && (<p className="text-xs text-slate-500 mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString()}</p>)}
+                {risk.lastReviewDate && (<p className="text-xs text-slate-500 dark:text-slate-400 mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString()}</p>)}
             </div>
         </div>
     );

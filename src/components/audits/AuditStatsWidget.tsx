@@ -50,7 +50,7 @@ export const AuditStatsWidget: React.FC<AuditStatsWidgetProps> = ({ audits, find
             subtext: "À préparer",
             icon: ClockIcon,
             color: 'text-brand-600 dark:text-brand-400',
-            bg: 'bg-brand-500/10'
+            bg: 'bg-brand-50'
         },
         {
             label: "Non-conformités",

@@ -89,7 +89,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
     };
 
     return (
-        <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-500/30">
+        <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-300">
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-white dark:bg-slate-900/50 rounded-xl shadow-sm">
                     <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -104,7 +104,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                 <button
                     onClick={() => handleAction('summary')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'summary' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'summary' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'}`}
                     aria-label="Générer un résumé exécutif"
                 >
                     {loading && mode === 'summary' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-2" />}
@@ -113,7 +113,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                 <button
                     onClick={() => handleAction('analysis')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'analysis' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'analysis' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'}`}
                     aria-label="Analyser les constats"
                 >
                     {loading && mode === 'analysis' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
@@ -122,7 +122,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                 <button
                     onClick={() => handleAction('scope')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'scope' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'scope' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'}`}
                     aria-label="Revoir le périmètre"
                 >
                     {loading && mode === 'scope' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ClipboardCheck className="h-3.5 w-3.5 mr-2" />}
@@ -135,7 +135,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
             )}
 
             {response && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-500/20 shadow-sm animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-700 shadow-sm animate-fade-in">
                     <div className="flex justify-between items-start mb-2">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center">
                             <Bot className="h-3.5 w-3.5 mr-1.5" />

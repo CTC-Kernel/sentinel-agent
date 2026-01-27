@@ -152,7 +152,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     onClick={handleCreateRoot}
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-slate-600 hover:text-brand-600"
+                    className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:text-brand-600"
                     title="Nouveau dossier racine"
                 >
                     <Plus className="h-4 w-4" />
@@ -161,7 +161,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
             <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                 <div
-                    className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedFolderId === null ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold ring-1 ring-slate-200 dark:ring-slate-700' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
+                    className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedFolderId === null ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold ring-1 ring-slate-200 dark:ring-slate-700' : 'hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
                     onClick={handleSelectAll}
                     tabIndex={0}
                     onKeyDown={handleSelectAllKeyDown}
@@ -258,7 +258,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                             aria-label="Nouveau sous-dossier"
                             onClick={handleContextMenuCreateSub}
                             variant="ghost"
-                            className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                            className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5"
                         >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau sous-dossier
                         </Button>
@@ -266,7 +266,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                             aria-label="Renommer le dossier"
                             onClick={handleContextMenuRename}
                             variant="ghost"
-                            className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                            className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5"
                         >
                             <Edit2 className="h-4 w-4 mr-2" /> Renommer
                         </Button>
@@ -275,7 +275,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                             aria-label="Supprimer le dossier"
                             onClick={handleContextMenuDelete}
                             variant="ghost"
-                            className="w-full justify-start text-sm font-normal px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="w-full justify-start text-sm font-normal px-4 py-2 text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                         >
                             <Trash2 className="h-4 w-4 mr-2" /> Supprimer
                         </Button>
@@ -358,7 +358,7 @@ const FolderNode = React.memo(({
     return (
         <div className="select-none">
             <div
-                className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
+                className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
                 style={{ paddingLeft: `${depth * 16 + 12}px` }}
                 onClick={handleSelectClick}
                 tabIndex={0}
@@ -392,7 +392,7 @@ const FolderNode = React.memo(({
 
                 <Button
                     aria-label="Options du dossier"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 rounded"
+                    className="opacity-0 group-hover:opacity-70 transition-opacity h-6 w-6 rounded"
                     variant="ghost"
                     size="icon"
                     onClick={handleMoreClick}

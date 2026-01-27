@@ -34,9 +34,9 @@ const PHASE_ICONS = {
 };
 
 const PHASE_COLORS = {
-    plan: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/30' },
+    plan: { bg: 'bg-blue-50', text: 'text-blue-500', border: 'border-blue-500/30' },
     do: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/30' },
-    check: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/30' },
+    check: { bg: 'bg-amber-50', text: 'text-amber-500', border: 'border-amber-500/30' },
     act: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/30' }
 };
 
@@ -50,10 +50,10 @@ const PHASE_LABELS = {
 // Tech corner decoration
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     <div className={cn("pointer-events-none", className)}>
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-500/30 rounded-tl-lg" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-500/30 rounded-tr-lg" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-500/30 rounded-bl-lg" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-500/30 rounded-br-lg" />
+        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-300 rounded-tl-lg" />
+        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-300 rounded-tr-lg" />
+        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-300 rounded-bl-lg" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-300 rounded-br-lg" />
     </div>
 );
 
@@ -137,7 +137,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {program.overallProgress}%
                             </span>
-                            <span className="text-[9px] text-slate-500 uppercase tracking-wider">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 Conformité
                             </span>
                         </div>
@@ -149,7 +149,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 Programme SMSI
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 max-w-[180px]">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[180px]">
                             {program.overallProgress >= 80 ? 'Excellente progression' :
                              program.overallProgress >= 50 ? 'En bonne voie' : 'Effort nécessaire'}
                         </p>
@@ -171,7 +171,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 <PhaseIcon className={cn("w-4 h-4", phaseColors.text)} />
                             </div>
                             <Badge className={cn(
-                                "text-[9px] font-bold",
+                                "text-[11px] font-bold",
                                 phaseColors.bg, phaseColors.text, phaseColors.border
                             )}>
                                 Actif
@@ -180,7 +180,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className={cn("text-2xl font-black", phaseColors.text)}>
                             {phaseLabel}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Phase Active
                         </div>
                         {/* Phase Progress Dots */}
@@ -211,7 +211,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
                                 "p-2 rounded-xl",
-                                overdueCount > 0 ? "bg-red-500/10" : "bg-success-500/10"
+                                overdueCount > 0 ? "bg-red-50" : "bg-success-bg"
                             )}>
                                 {overdueCount > 0 ? (
                                     <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -232,7 +232,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         )}>
                             {overdueCount}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             Jalons en retard
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -253,7 +253,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
                                 "p-2 rounded-xl",
-                                certOverdue ? "bg-red-500/10" : "bg-indigo-500/10"
+                                certOverdue ? "bg-red-50" : "bg-indigo-500/10"
                             )}>
                                 <Calendar className={cn(
                                     "w-4 h-4",
@@ -261,7 +261,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 )} />
                             </div>
                             {targetDate && (
-                                <span className="text-[10px] text-slate-500 font-medium">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                                     {targetDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </span>
                             )}
@@ -278,12 +278,12 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 ) : '—'}
                             </div>
                             {certOverdue && (
-                                <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-[9px]">
+                                <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20 text-[11px]">
                                     En retard
                                 </Badge>
                             )}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                             {targetDate ? 'Objectif Certification' : 'Certification non définie'}
                         </div>
                         {daysUntilCertification !== null && !certOverdue && (
@@ -327,7 +327,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                     isActive || isPast ? colors.text : "text-slate-400"
                                 )} />
                                 <span className={cn(
-                                    "text-[10px] font-bold uppercase",
+                                    "text-[11px] font-bold uppercase",
                                     isActive || isPast ? colors.text : "text-slate-400"
                                 )}>
                                     {PHASE_LABELS[phase]}

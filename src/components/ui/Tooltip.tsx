@@ -155,7 +155,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
                             animate={variants.animate}
                             exit={variants.exit}
                             transition={{ duration: 0.2, ease: appleEasing }}
-                            className="fixed z-[9999] px-3 py-1.5 text-xs font-semibold text-white bg-slate-900/90 dark:bg-white/95 dark:text-slate-900 backdrop-blur-md border border-white/10 dark:border-slate-900/10 rounded-lg shadow-xl shadow-black/20 whitespace-normal max-w-[250px] pointer-events-none"
+                            className="fixed z-[9999] px-3 py-2 text-sm font-medium text-white bg-slate-900/95 dark:bg-white/95 dark:text-slate-900 backdrop-blur-md border border-white/10 dark:border-slate-900/10 rounded-xl shadow-xl shadow-black/20 whitespace-normal max-w-[280px] pointer-events-none leading-relaxed"
                             style={{
                                 top: coords.top,
                                 left: coords.left,

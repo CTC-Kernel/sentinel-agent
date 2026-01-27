@@ -171,7 +171,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30">
+            <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30">
               <Map className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
@@ -248,7 +248,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
               {t('ebios.workshop3.fearedEvents', 'Événements redoutés')} *
             </label>
             {fearedEvents.length === 0 ? (
-              <p className="text-sm text-slate-500 italic">
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                 {t('ebios.workshop3.noFearedEvents', 'Aucun événement redouté défini dans l\'Atelier 1')}
               </p>
             ) : (
@@ -263,7 +263,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                       className={cn(
                         "px-3 py-1.5 rounded-lg border text-sm transition-all",
                         isSelected
-                          ? "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                          ? "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 dark:text-red-300"
                           : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                       )}
                     >
@@ -298,7 +298,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                       className={cn(
                         "px-3 py-1.5 rounded-lg border text-sm transition-all",
                         isSelected
-                          ? "border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
+                          ? "border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 dark:text-orange-300"
                           : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                       )}
                     >
@@ -324,7 +324,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
           </div>
 
           {/* Gravity Evaluation - Story 17.4 */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 dark:border-red-800">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -334,7 +334,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                 <button
                   type="button"
                   onClick={inheritGravity}
-                  className="text-xs px-2 py-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors flex items-center gap-1"
+                  className="text-xs px-2 py-1 rounded bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:bg-amber-9000 transition-colors flex items-center gap-1"
                 >
                   <Lightbulb className="w-3 h-3" />
                   {t('ebios.workshop3.inheritGravity', 'Reprendre G{level}').replace('{level}', String(suggestedGravity))}
@@ -403,7 +403,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   {t('common.delete', 'Supprimer')}

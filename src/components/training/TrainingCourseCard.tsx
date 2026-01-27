@@ -153,7 +153,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
       {course.isRequired && (
         <div className="absolute -top-2 -right-2 z-10">
           <Tooltip content={t('training.course.isRequired')}>
-            <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[10px] font-bold uppercase tracking-wider border border-error-border/50 shadow-sm">
+            <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[11px] font-bold uppercase tracking-wider border border-error-border/50 shadow-sm">
               {t('common.required') || 'Obligatoire'}
             </div>
           </Tooltip>
@@ -186,12 +186,12 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
               <Transition
                 enter="transition duration-100 ease-out"
                 enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
+                enterTo="transform scale-100 opacity-70"
                 leave="transition duration-75 ease-in"
-                leaveFrom="transform scale-100 opacity-100"
+                leaveFrom="transform scale-100 opacity-70"
                 leaveTo="transform scale-95 opacity-0"
               >
-                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-panel rounded-2xl p-1 shadow-elevation-lg z-50 border border-white/10">
+                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-panel rounded-2xl p-1 shadow-lg z-50 border border-white/10">
                   {onAssign && (
                     <Menu.Item>
                       {({ active }) => (
@@ -264,7 +264,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
           <Clock className="w-3.5 h-3.5" />
           <span>{formatDuration(course.duration)}</span>
         </div>
-        <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${sourceConfig.color}`}>
+        <div className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${sourceConfig.color}`}>
           {sourceConfig.label}
         </div>
       </div>
@@ -275,7 +275,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
           {frameworkBadges.map((badge) => (
             <span
               key={badge.label}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${badge.color}`}
+              className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${badge.color}`}
             >
               {badge.label}
             </span>
@@ -299,7 +299,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
       )}
 
       {/* Hover overlay */}
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-primary/5 to-transparent opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none" />
     </motion.div>
   );
 });

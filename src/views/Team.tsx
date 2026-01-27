@@ -222,9 +222,9 @@ const Team: React.FC = () => {
             />
 
             {/* Summary Card */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-5xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-apple transition-all duration-500">
-                <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-apple transition-all duration-500">
+                <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70 opacity-70"></div>
                 </div>
 
                 {/* Global Score */}
@@ -257,7 +257,7 @@ const Team: React.FC = () => {
                             <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-success-text' : activityRate >= 50 ? 'text-brand-600 dark:text-brand-400' : 'text-warning-text'}`}>
                                 {Math.round(activityRate)}%
                             </span>
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Actifs</span>
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Actifs</span>
                         </div>
                     </div>
                     <div>
@@ -396,7 +396,7 @@ const Team: React.FC = () => {
                                         <JoinRequestCard key={req.id} req={req} onApprove={handleApproveRequest} onReject={handleRejectRequest} />
                                     ))}
                                 </div>
-                                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-10 opacity-50" />
+                                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-10 opacity-60" />
                             </div>
                         )}
 

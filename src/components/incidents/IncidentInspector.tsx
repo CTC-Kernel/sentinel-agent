@@ -96,7 +96,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                                     onClick={() => onDelete(incident.id)}
                                     variant="ghost"
                                     size="icon"
-                                    className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                                 >
                                     <Trash2 className="h-5 w-5" />
                                 </Button>

@@ -1,7 +1,8 @@
 /* Calendar Custom Styles */
 /* Hide 'Show More' text link that is often hard to click, we will style it as a badge */
+/* WCAG AAA: minimum text size 11px */
 .rbc-show-more {
-    @apply bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/90 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block transition-colors hover:bg-slate-200 dark:hover:bg-white/20 !important;
+    @apply bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/90 text-[11px] font-bold px-2.5 py-1 rounded-full mt-1 inline-block transition-colors hover:bg-slate-200 dark:hover:bg-white/20 min-h-[24px] !important;
     text-decoration: none !important;
     display: block !important;
     text-align: center;
@@ -70,11 +71,12 @@
 }
 
 /* Events in the view */
+/* WCAG AAA: minimum text size 11px, minimum touch target 24px */
 .rbc-event {
-    @apply rounded-md border-none shadow-sm text-[10px] font-bold px-1.5 py-0.5 transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer !important;
-    min-height: 20px !important;
+    @apply rounded-md border-none shadow-sm text-[11px] font-bold px-2 py-1 transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer !important;
+    min-height: 24px !important;
     margin-bottom: 2px !important;
-    line-height: normal !important;
+    line-height: 1.4 !important;
 }
 
 /* Time Gutter (Day/Week view left side) */

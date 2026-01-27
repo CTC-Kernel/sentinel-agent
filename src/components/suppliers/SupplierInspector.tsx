@@ -89,7 +89,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                                 target.src = getUserAvatarUrl(null, contactUser?.role || 'user');
                             }}
                         />
-                        <span className="font-medium text-slate-700 dark:text-muted-foreground">
+                        <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                             {supplier.contactName || 'Non assigné'}
                         </span>
                     </div>
@@ -103,7 +103,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                             <button
                                 aria-label="Démarrer une évaluation"
                                 onClick={onStartAssessment}
-                                className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <ClipboardList className="h-5 w-5" />
                             </button>

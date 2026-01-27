@@ -28,8 +28,8 @@ import {
 import { Button } from '../ui/button';
 import { useStore } from '../../store';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../../lib/firebase';
-import { ErrorLogger } from '../../utils/errorLogger';
+import { functions } from '../../firebase';
+import { ErrorLogger } from '../../services/errorLogger';
 import type { TrainingAssignment } from '../../types/training';
 
 // ============================================================================
@@ -89,10 +89,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
         setVerificationHash(result.data.verificationHash);
         setState('ready');
 
-        addToast({
-          type: 'success',
-          message: t('training.certificate.generated'),
-        });
+        addToast(t('training.certificate.generated'), 'success');
       } else {
         throw new Error('Certificate generation failed');
       }
@@ -116,10 +113,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
         await navigator.clipboard.writeText(verificationHash);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-        addToast({
-          type: 'success',
-          message: t('common.copied'),
-        });
+        addToast(t('common.copied'), 'success');
       } catch {
         ErrorLogger.handleErrorWithToast(new Error('Copy failed'), 'common.copyError');
       }

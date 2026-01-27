@@ -33,7 +33,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
     if (resourceLogs.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
-                <History className="h-10 w-10 mb-3 opacity-50" />
+                <History className="h-10 w-10 mb-3 opacity-60" />
                 <p className="text-sm">Aucun historique disponible pour cet élément.</p>
             </div>
         );
@@ -54,7 +54,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                         {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                <span className="text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-800 px-2 py-0.5 rounded-full uppercase tracking-wider">
                                     {log.action}
                                 </span>
                                 <span className="text-xs text-slate-500">
@@ -89,12 +89,12 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                                 <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/10 mt-2">
                                     {log.changes.map((change, idx) => (
                                         <div key={`${idx}-${change.field}`} className="flex items-center gap-2 text-xs">
-                                            <span className="font-mono text-slate-500 w-24 truncate text-right">{change.field}</span>
-                                            <span className="px-1.5 py-0.5 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded line-through">
+                                            <span className="font-mono text-slate-500 dark:text-slate-400 w-24 truncate text-right">{change.field}</span>
+                                            <span className="px-1.5 py-0.5 bg-red-50 text-red-600 dark:text-red-400 dark:bg-red-900/20 dark:text-red-400 rounded line-through">
                                                 {String(change.oldValue === undefined || change.oldValue === '' ? 'Empty' : change.oldValue)}
                                             </span>
                                             <ArrowRight className="h-3 w-3 text-slate-400" />
-                                            <span className="px-1.5 py-0.5 bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 rounded font-medium">
+                                            <span className="px-1.5 py-0.5 bg-green-50 text-green-600 dark:text-green-400 dark:bg-green-900/20 dark:text-green-400 rounded font-medium">
                                                 {String(change.newValue)}
                                             </span>
                                         </div>

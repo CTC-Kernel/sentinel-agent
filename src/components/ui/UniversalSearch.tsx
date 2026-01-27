@@ -102,7 +102,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
       <div className="relative">
         <motion.button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors w-64"
+          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors w-64"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >

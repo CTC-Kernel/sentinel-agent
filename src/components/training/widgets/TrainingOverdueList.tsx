@@ -59,6 +59,10 @@ const OverdueItemSkeleton: React.FC = () => (
 // Component
 // ============================================================================
 
+// ============================================================================
+// Component
+// ============================================================================
+
 export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
   assignments,
   isLoading,
@@ -84,10 +88,10 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
 
   if (isLoading) {
     return (
-      <div className="glass-panel p-5 rounded-2xl border border-white/10">
+      <div className="glass-premium p-6 rounded-3xl border border-white/10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Skeleton className="w-10 h-10 rounded-xl" />
+            <Skeleton className="w-12 h-12 rounded-2xl" />
             <div>
               <Skeleton className="h-5 w-40 rounded-md mb-2" />
               <Skeleton className="h-3 w-24 rounded-md" />
@@ -108,17 +112,20 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
   const hasMore = assignments.length > maxItems;
 
   return (
-    <div className="glass-panel p-5 rounded-2xl border border-white/10">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-error-bg">
-            <AlertTriangle className="w-5 h-5 text-error-text" />
+    <div className="glass-premium p-6 rounded-3xl border border-white/10 h-full relative overflow-hidden">
+      {/* Background Decorator */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-xl bg-red-50">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">
+            <h3 className="font-bold text-lg text-foreground">
               {t('training.dashboard.overdueTrainings')}
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {assignments.length} {t('training.dashboard.requiresAttention')}
             </p>
           </div>
@@ -128,7 +135,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
             variant="ghost"
             size="sm"
             onClick={onViewAll}
-            className="text-xs"
+            className="text-xs font-medium hover:bg-white/10"
           >
             {t('common.viewAll')}
             <ChevronRight className="w-4 h-4 ml-1" />
@@ -137,15 +144,17 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
       </div>
 
       {assignments.length === 0 ? (
-        <EmptyState
-          icon={Clock}
-          title={t('training.dashboard.noOverdue')}
-          description={t('training.dashboard.noOverdueDesc')}
-          semantic="success"
-          compact
-        />
+        <div className="relative z-10">
+          <EmptyState
+            icon={Clock}
+            title={t('training.dashboard.noOverdue')}
+            description={t('training.dashboard.noOverdueDesc')}
+            semantic="success"
+            compact
+          />
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 relative z-10">
           <AnimatePresence>
             {displayAssignments.map((assignment, index) => {
               const dueDate = assignment.dueDate.toDate();
@@ -154,26 +163,26 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
               return (
                 <motion.div
                   key={assignment.id}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
+                  exit={{ opacity: 0, x: 10 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-error-bg/20 border border-error-border/30 hover:bg-error-bg/30 transition-colors"
+                  className="group flex items-center gap-4 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30 border border-slate-100 dark:border-white/5 hover:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all duration-300"
                 >
                   {/* User Avatar Placeholder */}
-                  <div className="w-10 h-10 rounded-xl bg-error-bg flex items-center justify-center">
-                    <User className="w-5 h-5 text-error-text" />
+                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center border border-slate-100 dark:border-white/5 group-hover:scale-110 transition-transform duration-300">
+                    <User className="w-5 h-5 text-slate-400 group-hover:text-red-500 transition-colors" />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-foreground truncate">
+                    <div className="font-bold text-sm text-foreground truncate">
                       {assignment.userName || assignment.userId}
                     </div>
-                    <div className="text-sm text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground truncate mb-1">
                       {assignment.courseName || assignment.courseId}
                     </div>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-error-text">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/20 text-[11px] font-bold text-red-600 dark:text-red-400">
                       <Calendar className="w-3 h-3" />
                       <span>
                         {daysOverdue} {t('training.dashboard.daysOverdue')}
@@ -186,10 +195,9 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => handleSendReminder(assignment.id)}
-                    className="shrink-0"
+                    className="shrink-0 opacity-0 group-hover:opacity-70 transition-all transform translate-x-2 group-hover:translate-x-0 bg-white dark:bg-slate-800 shadow-sm border-slate-200 dark:border-white/10 hover:border-red-2000 hover:text-red-600 dark:hover:text-red-400"
                   >
-                    <Mail className="w-4 h-4 mr-1" />
-                    {t('training.dashboard.remind')}
+                    <Mail className="w-4 h-4" />
                   </Button>
                 </motion.div>
               );
@@ -198,7 +206,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
 
           {hasMore && (
             <div className="text-center pt-2">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground font-medium">
                 +{assignments.length - maxItems} {t('common.more')}
               </span>
             </div>

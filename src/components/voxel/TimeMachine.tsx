@@ -208,15 +208,15 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     </div>
     <div className="space-y-3 text-xs text-white/70">
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">1</span>
+        <span className="w-5 h-5 rounded bg-brand-100 flex items-center justify-center text-brand-400 shrink-0">1</span>
         <p><strong className="text-white">Navigation temporelle</strong> - Utilisez le calendrier ou le slider pour naviguer dans l'historique de votre graphe (jusqu'a 90 jours).</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">2</span>
+        <span className="w-5 h-5 rounded bg-brand-100 flex items-center justify-center text-brand-400 shrink-0">2</span>
         <p><strong className="text-white">Snapshots quotidiens</strong> - Chaque jour, un snapshot capture l'etat de vos noeuds, connexions, anomalies et metriques de conformite.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">3</span>
+        <span className="w-5 h-5 rounded bg-brand-100 flex items-center justify-center text-brand-400 shrink-0">3</span>
         <p><strong className="text-white">Mode comparaison</strong> - Cliquez sur "Comparer" pour voir les differences entre deux dates et identifier les tendances.</p>
       </div>
       <div className="flex gap-2">
@@ -446,7 +446,7 @@ export function TimeMachine({
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowHelp(!showHelp)}
-            className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-brand-500/20 text-brand-400' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
+            className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-brand-100 text-brand-400' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
             title="Aide"
           >
             <Info className="h-5 w-5" />

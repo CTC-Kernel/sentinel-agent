@@ -28,9 +28,9 @@ export const Modal: React.FC<ModalProps> = ({
                     as={Fragment}
                     enter="ease-out duration-normal"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-fast"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
@@ -42,9 +42,9 @@ export const Modal: React.FC<ModalProps> = ({
                             as={Fragment}
                             enter="ease-apple duration-normal"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-100 translate-y-0 sm:scale-100"
+                            enterTo="opacity-70 translate-y-0 sm:scale-100"
                             leave="ease-in duration-fast"
-                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                            leaveFrom="opacity-70 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
                             <Dialog.Panel className={`relative transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 text-left shadow-modal transition-all w-full border border-white/60 dark:border-white/5 glass-premium ${maxWidth}`}>
@@ -57,7 +57,7 @@ export const Modal: React.FC<ModalProps> = ({
                                             onClick={onClose}
                                             variant="ghost"
                                             size="icon"
-                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                                             aria-label="Fermer"
                                         >
                                             <X className="w-5 h-5" aria-hidden="true" />

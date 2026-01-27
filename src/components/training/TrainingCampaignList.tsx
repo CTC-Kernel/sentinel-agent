@@ -160,7 +160,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
   return (
     <motion.div
       variants={staggerItem}
-      className="glass-panel p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all hover:shadow-elevation-md cursor-pointer group"
+      className="glass-panel p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all hover:shadow-md cursor-pointer group"
       onClick={onView}
     >
       {/* Header */}

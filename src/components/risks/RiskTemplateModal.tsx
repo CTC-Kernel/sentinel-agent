@@ -61,9 +61,9 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
@@ -75,9 +75,9 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
+                            enterTo="opacity-70 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
+                            leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-slate-200 dark:border-white/10 text-left align-middle transition-all transform">
@@ -111,7 +111,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                         className="text-left p-6 rounded-xl border-2 border-slate-200 dark:border-white/10 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 w-full"
                                                     >
                                                         <div className="flex items-start gap-4">
-                                                            <div className={`text-5xl p-3 rounded-xl bg-gradient-to-br ${getCategoryColor(template.category)} bg-opacity-10`}>
+                                                            <div className={`text-5xl p-3 rounded-xl bg-gradient-to-br ${getCategoryColor(template.category)} bg-opacity-30`}>
                                                                 {template.icon}
                                                             </div>
                                                             <div className="flex-1">

@@ -104,7 +104,7 @@ export function RowActionsMenu({
               className={cn(
                 'p-2 rounded-xl transition-all duration-150',
                 'hover:bg-slate-100 dark:hover:bg-slate-800',
-                'focus:outline-none focus:ring-2 focus-visible:ring-brand-500/20 focus:ring-offset-0',
+                'focus:outline-none focus:ring-2 focus-visible:ring-brand-300 focus:ring-offset-0',
                 open && 'bg-slate-100 dark:bg-slate-800'
               )}
               aria-label={ariaLabel || 'Actions'}
@@ -117,9 +117,9 @@ export function RowActionsMenu({
               as={Fragment}
               enter="transition duration-100 ease-out"
               enterFrom="transform scale-95 opacity-0"
-              enterTo="transform scale-100 opacity-100"
+              enterTo="transform scale-100 opacity-70"
               leave="transition duration-75 ease-in"
-              leaveFrom="transform scale-100 opacity-100"
+              leaveFrom="transform scale-100 opacity-70"
               leaveTo="transform scale-95 opacity-0"
             >
               <Menu.Items
@@ -145,7 +145,7 @@ export function RowActionsMenu({
                           <item.icon
                             className={cn(
                               'h-4 w-4 flex-shrink-0',
-                              item.disabled && 'opacity-50'
+                              item.disabled && 'opacity-60'
                             )}
                           />
                           <span>{item.label}</span>

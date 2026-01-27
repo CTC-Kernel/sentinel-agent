@@ -128,7 +128,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
 
           {/* Phase Selection - Story 20.2 */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               Phase PDCA *
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -169,7 +169,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                       >
                         {config.label}
                       </p>
-                      <p className="text-xs text-slate-500 line-clamp-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
                         {config.description.substring(0, 30)}...
                       </p>
                     </div>
@@ -200,7 +200,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
             </label>
             <select
               {...register('responsibleId')}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 focus:border-blue-500"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-400 focus:border-blue-500"
             >
               <option value="">Non assigné</option>
               {teamMembers.map((member) => (
@@ -217,7 +217,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
           </div>
 
           {/* Quick Tips */}
-          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800">
             <p className="text-sm text-blue-700 dark:text-blue-400">
               <strong>Conseil :</strong> Définissez des jalons SMART (Spécifiques,
               Mesurables, Atteignables, Réalistes, Temporellement définis) pour

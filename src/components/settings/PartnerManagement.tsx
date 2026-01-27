@@ -118,8 +118,8 @@ export const PartnerManagement: React.FC = () => {
 
     if (permissionError) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-center bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30">
-                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-red-50 dark:bg-red-50 dark:bg-red-900 rounded-2xl border border-red-100 dark:border-red-900/30">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
                     <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
                 </div>
                 <h3 className="text-xl font-bold text-red-900 dark:text-red-300 mb-2">Accès restreint</h3>
@@ -194,12 +194,12 @@ export const PartnerManagement: React.FC = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="group bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-500/30 dark:hover:border-brand-500/30 shadow-sm hover:shadow-xl hover:shadow-brand-900/5 transition-all duration-300 relative overflow-hidden"
+                                className="group bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-300 dark:hover:border-brand-300 shadow-sm hover:shadow-xl hover:shadow-brand-900/25 transition-all duration-300 relative overflow-hidden"
                             >
-                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity z-10">
                                     <button
                                         onClick={() => setPartnerToDelete(partner)}
-                                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         title="Retirer ce partenaire"
                                     >
                                         <Trash2 className="w-4 h-4" />
@@ -218,7 +218,7 @@ export const PartnerManagement: React.FC = () => {
                                             {partner.tenantName || partner.contactEmail}
                                         </h4>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${partner.status === 'ACTIVE'
+                                            <span className={`text-[11px] uppercase font-bold px-2 py-0.5 rounded-full ${partner.status === 'ACTIVE'
                                                 ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
                                                 : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
                                                 }`}>
@@ -236,7 +236,7 @@ export const PartnerManagement: React.FC = () => {
 
                                     {partner.status === 'ACTIVE' && (
                                         <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-white/5">
-                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">ID Certifieur:</span>
+                                            <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">ID Certifieur:</span>
                                             <code className="ml-2 px-1 py-0.5 bg-white dark:bg-black/20 rounded border border-slate-200 dark:border-white/10 font-mono">
                                                 {partner.certifierId?.substring(0, 12)}...
                                             </code>
@@ -244,7 +244,7 @@ export const PartnerManagement: React.FC = () => {
                                     )}
 
                                     {partner.status === 'PENDING' && (
-                                        <button className="w-full mt-2 py-2 text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors border border-dashed border-brand-200 dark:border-brand-800/30">
+                                        <button className="w-full mt-2 py-2 text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors border border-dashed border-brand-200 dark:border-brand-600">
                                             {t('certifier.partners.resendInvite') || "Renvoyer l'invitation"}
                                         </button>
                                     )}
@@ -275,13 +275,13 @@ export const PartnerManagement: React.FC = () => {
                             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">
                                 {t('certifier.partners.modalTitle') || "Inviter un partenaire"}
                             </h3>
-                            <p className="text-sm text-slate-500 mb-6">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                                 Le partenaire recevra un email pour rejoindre votre espace. Il devra posséder un compte Sentinel GRC "Certifieur".
                             </p>
 
                             <form onSubmit={handleInvite} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-muted-foreground">
+                                    <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                         {t('certifier.partners.emailLabel') || "Email du contact principal"}
                                     </label>
                                     <div className="relative group">
@@ -301,7 +301,7 @@ export const PartnerManagement: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setIsInviteOpen(false)}
-                                        className="px-4 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 rounded-xl transition-colors text-sm font-medium"
+                                        className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 rounded-xl transition-colors text-sm font-medium"
                                     >
                                         {t('certifier.partners.cancel') || "Annuler"}
                                     </button>

@@ -27,7 +27,7 @@
   --secondary-foreground: 222.2 47.4% 11.2%;
 
   --muted: 210 40% 92%;
-  --muted-foreground: 215.4 20% 28%; /* WCAG AAA: 7:1 on light backgrounds */
+  --muted-foreground: 215.4 25% 20%; /* WCAG AAA: 7.5:1+ on light backgrounds - luminosity 20% for safe contrast */
 
   --accent: 210 40% 92%;
   --accent-foreground: 222.2 47.4% 11.2%;
@@ -166,13 +166,14 @@
   --blur-xl: 40px;
 
   /* ===== GLASSMORPHISM ===== */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(28, 32, 48, 0.12);
+  /* WCAG AAA: Increased opacity for better text readability (Apple-style) */
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(28, 32, 48, 0.18);
   --glass-shadow: var(--shadow-md);
 
-  /* Modal Overlay */
-  --overlay-bg: rgba(15, 23, 42, 0.4);
-  --overlay-blur: var(--blur-xs);
+  /* Modal Overlay - 60% for sufficient contrast */
+  --overlay-bg: rgba(15, 23, 42, 0.6);
+  --overlay-blur: var(--blur-sm);
 }
 
 .dark {
@@ -203,7 +204,7 @@
   --secondary-foreground: 210 40% 98%;
 
   --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 68%; /* WCAG AAA: 7:1 on dark backgrounds */
+  --muted-foreground: 215 22% 72%; /* WCAG AAA: 7.5:1 on dark backgrounds - improved from 68% to 72% luminosity */
 
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
@@ -255,12 +256,13 @@
   --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.25);
   --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.6);
 
-  /* Glassmorphism Dark - Ethereal */
-  --glass-bg: rgba(15, 23, 42, 0.80);
-  --glass-border: rgba(255, 255, 255, 0.12);
+  /* Glassmorphism Dark - Premium Apple-style */
+  /* WCAG AAA: Increased opacity for better text readability */
+  --glass-bg: rgba(15, 23, 42, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.15);
   --glass-shadow: var(--shadow-lg);
 
   /* Modal Overlay - Dark Mode */
-  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --overlay-bg: rgba(0, 0, 0, 0.65);
   --overlay-blur: var(--blur-sm);
 }

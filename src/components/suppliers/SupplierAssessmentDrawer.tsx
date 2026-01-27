@@ -289,7 +289,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                       <span className="w-6 h-6 flex items-center justify-center text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">
                         {idx + 1}
                       </span>
-                      <span className="text-sm text-slate-700 dark:text-muted-foreground">
+                      <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                         {section.title}
                       </span>
                     </div>
@@ -332,7 +332,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
           {/* Custom Review Days */}
           {reviewCycle === 'custom' && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                 {t('vendorAssessment.customPeriod', 'Custom Period (days)')}
               </label>
               <input
@@ -348,7 +348,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
 
           {/* Respondent Email */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               {t('vendorAssessment.respondentEmail', 'Respondent Email (optional)')}
             </label>
             <input

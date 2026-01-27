@@ -42,7 +42,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
     return (
         <aside
             aria-label="Navigation latérale"
-            className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'
+            className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-70'
                 } bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-50 p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}
         >
             <div className="flex items-center justify-between text-white mb-6 shrink-0">
@@ -52,7 +52,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
                     </div>
                     <div>
                         <span className="text-sm font-bold tracking-tight block">CTC Engine</span>
-                        <span className="text-[10px] text-white/50 font-medium uppercase tracking-wider">
+                        <span className="text-[11px] text-white/50 font-medium uppercase tracking-wider">
                             {orderedNodesLength} Éléments
                         </span>
                     </div>
@@ -75,14 +75,14 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
                     type="text"
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Rechercher..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500/50 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-500/50 transition-all shadow-sm"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-400 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-400 transition-all shadow-sm"
                 />
             </div>
 
             <div className="space-y-6 overflow-y-auto flex-1 pr-1 custom-scrollbar">
                 {categorizedNodes.map((category) => (
                     <div key={category.id} className="animate-[fadeIn_0.5s_ease-out]">
-                        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 mb-3 px-1">
+                        <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] font-bold text-white/40 mb-3 px-1">
                             <span className="flex items-center gap-2">
                                 <span className={`w-1.5 h-1.5 rounded-full ${category.color} shadow-[0_0_8px_currentColor]`}></span>
                                 {category.label}
@@ -120,14 +120,14 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
                                         key={item.id}
                                         onClick={() => onNodeSelect(item.id, category.id as LayerType)}
                                         className={`w-full text-left px-3 py-2 rounded-lg transition-all text-xs border group relative overflow-hidden ${selectedNodeId === item.id
-                                            ? 'bg-brand-500/20 border-brand-500/50 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+                                            ? 'bg-brand-100 border-brand-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]'
                                             : 'bg-transparent border-transparent hover:bg-white/5 hover:border-white/10 text-white/60 hover:text-white'
                                             }`}
                                     >
                                         <div className="relative z-10 flex items-center justify-between gap-2">
                                             <span className="font-medium truncate">{item.label}</span>
                                             {item.meta && (
-                                                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/5 ${selectedNodeId === item.id ? 'text-brand-200' : 'text-white/30 group-hover:text-white/50'
+                                                <span className={`text-[11px] px-1.5 py-0.5 rounded bg-white/5 border border-white/5 ${selectedNodeId === item.id ? 'text-brand-200' : 'text-white/30 group-hover:text-white/50'
                                                     }`}>
                                                     {item.meta}
                                                 </span>

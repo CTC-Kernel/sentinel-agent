@@ -168,7 +168,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                 variants={slideUpVariants}
                 initial="hidden"
                 animate="visible"
-                className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                 <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
@@ -201,16 +201,16 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {/* Status Distribution Interactive Pie */}
-                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     {/* Tech Corners */}
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                         </div>
                         Distribution par Statut
@@ -259,13 +259,13 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                 </motion.div>
 
                 {/* Domain Progress Bar Chart */}
-                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-violet-500/10 rounded-xl">
                             <BarChartIcon className="w-4 h-4 text-violet-500" />
@@ -308,13 +308,13 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                 </motion.div>
 
                 {/* Radar Chart */}
-                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-5xl lg:col-span-2 xl:col-span-1 relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} initial="hidden" animate="visible" className="glass-premium p-6 rounded-3xl lg:col-span-2 xl:col-span-1 relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-emerald-500/10 rounded-xl">
                             <Target className="w-4 h-4 text-emerald-500" />

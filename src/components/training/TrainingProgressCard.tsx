@@ -202,7 +202,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: appleEasing }}
-      className={`relative glass-panel p-5 rounded-3xl border transition-all duration-300 hover:shadow-elevation-md ${
+      className={`relative glass-panel p-5 rounded-3xl border transition-all duration-300 hover:shadow-md ${
         isOverdue
           ? 'border-error-border/50 bg-error-bg/5'
           : assignment.status === 'completed'
@@ -253,7 +253,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
         {/* Required badge */}
         {course.isRequired && (
           <Tooltip content={t('training.course.isRequired')}>
-            <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[10px] font-bold uppercase">
+            <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[11px] font-bold uppercase">
               {t('common.required')}
             </div>
           </Tooltip>
@@ -348,7 +348,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
             <Button
               size="sm"
               onClick={() => onStart(assignment)}
-              className="flex-1 shadow-elevation-sm shadow-primary"
+              className="flex-1 shadow-sm shadow-primary"
             >
               <Play className="w-4 h-4 mr-2" />
               {t('training.assignment.start')}
@@ -378,7 +378,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
             <Button
               size="sm"
               onClick={() => onComplete(assignment)}
-              className="shadow-elevation-sm shadow-success"
+              className="shadow-sm shadow-success"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
               {t('training.assignment.markComplete')}

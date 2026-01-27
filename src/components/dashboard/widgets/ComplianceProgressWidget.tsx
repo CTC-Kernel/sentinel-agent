@@ -120,7 +120,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
 
             {/* Background gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-success-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-success-bg rounded-full blur-2xl pointer-events-none" />
 
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
@@ -135,7 +135,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                     className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group/btn"
                 >
                     Voir tout
-                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all" />
+                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-70 group-hover/btn:translate-x-0 transition-all" />
                 </button>
             </div>
 
@@ -170,12 +170,12 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.complianceRate}%
                             </span>
-                            <span className="text-[9px] text-slate-500 uppercase tracking-wider">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 Score
                             </span>
                         </div>
                     </div>
-                    <div className="absolute inset-0 rounded-full bg-success-500/0 group-hover/chart:bg-success-500/5 transition-colors" />
+                    <div className="absolute inset-0 rounded-full bg-success-500/0 group-hover/chart:bg-success-bg transition-colors" />
                 </div>
 
                 {/* Stats */}
@@ -186,12 +186,12 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                         <div className={cn(
-                            "text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border",
+                            "text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border",
                             stats.complianceRate >= 80
-                                ? "bg-success-500/10 text-success-600 dark:text-success-400 border-success-500/20"
+                                ? "bg-success-bg text-success-600 dark:text-success-400 border-success-500/20"
                                 : stats.complianceRate >= 50
-                                    ? "bg-warning-500/10 text-warning-600 dark:text-warning-400 border-warning-500/20"
-                                    : "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
+                                    ? "bg-warning-bg text-warning-600 dark:text-warning-400 border-warning-500/20"
+                                    : "bg-red-50 text-red-600 dark:text-red-400 border-red-500/20"
                         )}>
                             <TrendingUp className="w-3 h-3" />
                             {stats.complianceRate >= 80 ? 'Excellent' :
@@ -206,7 +206,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
                     <div className="flex items-center gap-1.5 mb-1">
                         <CheckCircle2 className="w-3 h-3 text-success-500" />
-                        <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Impl.</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Impl.</span>
                     </div>
                     <div className="text-lg font-black text-slate-900 dark:text-white">
                         {stats.implementedControls}
@@ -215,7 +215,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
                     <div className="flex items-center gap-1.5 mb-1">
                         <Clock className="w-3 h-3 text-warning-500" />
-                        <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Partiels</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Partiels</span>
                     </div>
                     <div className="text-lg font-black text-slate-900 dark:text-white">
                         {stats.inProgressControls}
@@ -224,7 +224,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
                     <div className="flex items-center gap-1.5 mb-1">
                         <AlertTriangle className="w-3 h-3 text-slate-400" />
-                        <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Non impl.</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Non impl.</span>
                     </div>
                     <div className="text-lg font-black text-slate-900 dark:text-white">
                         {stats.notImplementedControls}
@@ -235,7 +235,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             {/* Progress Bar */}
             <div className="mt-3 space-y-1.5 relative z-10">
                 <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground font-bold uppercase tracking-wider text-[10px]">Progression</span>
+                    <span className="text-muted-foreground font-bold uppercase tracking-wider text-[11px]">Progression</span>
                     <span className="font-bold text-foreground">{stats.implementedControls}/{stats.totalControls}</span>
                 </div>
                 <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex">

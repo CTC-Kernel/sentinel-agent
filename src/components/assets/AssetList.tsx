@@ -137,7 +137,7 @@ export const AssetList = React.memo<AssetListProps>(({
                         <div className={`p-1.5 rounded-lg ${styles.bg} ${styles.color} border ${styles.border}`}>
                             <TypeIcon className="h-3.5 w-3.5" />
                         </div>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-sm ${styles.badge}`}>
+                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border shadow-sm ${styles.badge}`}>
                             {row.original.type}
                         </span>
                     </div>
@@ -147,7 +147,7 @@ export const AssetList = React.memo<AssetListProps>(({
         {
             header: t('common.criticality'),
             accessorKey: 'confidentiality',
-            cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
+            cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
         },
         {
             header: t('common.owner'),
@@ -303,12 +303,12 @@ export const AssetList = React.memo<AssetListProps>(({
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
-                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity flex gap-2">
                                     <div className="flex gap-2">
                                         <Tooltip content={t('assets.printLabel')}>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
-                                                className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                                 disabled={isGeneratingLabels}
                                             >
                                                 <Tag className="h-4 w-4" />
@@ -341,12 +341,12 @@ export const AssetList = React.memo<AssetListProps>(({
                                         {React.createElement(getTypeStyles(asset.type).icon, { className: "h-6 w-6" })}
                                     </div>
                                     <div className="flex gap-2">
-                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
+                                        <span className={`px-2 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
                                 <div className="flex items-center gap-2 mb-4">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
+                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
                                     <span className="text-muted-foreground/50">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <img
@@ -374,7 +374,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             })()}
                                         </span>
                                     </div>
-                                    {warrantyExpired && <span className="text-[10px] font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-lg shadow-sm">{t('assets.warrantyExp')}</span>}
+                                    {warrantyExpired && <span className="text-[11px] font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-lg shadow-sm">{t('assets.warrantyExp')}</span>}
                                 </div>
                             </div>
                         </div>

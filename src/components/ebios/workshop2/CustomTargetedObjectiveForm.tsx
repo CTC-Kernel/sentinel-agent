@@ -117,8 +117,8 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
-              <Flag className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30">
+              <Flag className="w-5 h-5 text-amber-600 dark:text-amber-400 dark:text-amber-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -260,7 +260,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
                   type="button"
                   variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   {t('common.delete', 'Supprimer')}

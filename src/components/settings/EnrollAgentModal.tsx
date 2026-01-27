@@ -82,16 +82,16 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
             onClick={handleDownload}
             disabled={loading}
             className={cn(
-                "flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full border border-transparent hover:border-slate-200 dark:hover:border-white/10",
+                "flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-all group text-left w-full border border-transparent hover:border-slate-200 dark:hover:border-white/10",
                 !available && !loading && "opacity-60",
-                loading && "opacity-50 cursor-wait"
+                loading && "opacity-60 cursor-wait"
             )}
         >
             <div className="flex items-center gap-3">
                 {icon}
                 <div>
                     <div className="text-sm font-bold text-slate-900 dark:text-white">{label}</div>
-                    <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{sublabel}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">{sublabel}</div>
                 </div>
             </div>
             {loading ? (
@@ -99,7 +99,7 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
             ) : available ? (
                 <Download className="w-4 h-4 text-muted-foreground group-hover:text-brand-500 transition-colors" />
             ) : (
-                <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">
+                <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-600">
                     Bientôt
                 </Badge>
             )}
@@ -193,7 +193,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                     {/* Token Card */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 bg-brand-500/10 rounded-lg text-brand-600 dark:text-brand-400">
+                            <div className="p-2 bg-brand-50 rounded-lg text-brand-600 dark:text-brand-400">
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
                             <h4 className="text-base font-bold text-slate-900 dark:text-white">Token d'Installation</h4>
@@ -214,7 +214,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                 <Copy className="w-3.5 h-3.5 mr-2" />
                                 Copier le Token
                             </Button>
-                            <p className="text-[10px] text-slate-500 text-center mt-2.5">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center mt-2.5">
                                 Expire dans 24 heures. Usage unique recommandé.
                             </p>
                         </div>
@@ -236,7 +236,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                     navigator.clipboard.writeText(`sentinel-agent enroll --token ${enrollmentToken}`);
                                     toast.success("Commande copiée !");
                                 }}
-                                className="absolute right-2 top-2 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                className="absolute right-2 top-2 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover:opacity-70"
                                 title="Copier la commande"
                             >
                                 <Copy className="w-3.5 h-3.5 text-white" />
@@ -292,10 +292,10 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                             <h3 className="text-base font-bold text-slate-900 dark:text-white">Dernière version</h3>
                                             {releaseInfo?.currentVersion && (
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <Badge variant="outline" className="text-[10px] bg-brand-500/5 border-brand-500/20 text-brand-600">
+                                                    <Badge variant="outline" className="text-[11px] bg-brand-50 border-brand-200 text-brand-600">
                                                         v{releaseInfo.currentVersion}
                                                     </Badge>
-                                                    <span className="text-[10px] text-slate-400">
+                                                    <span className="text-[11px] text-slate-400">
                                                         {releaseInfo.releaseDate && new Date(releaseInfo.releaseDate).toLocaleDateString('fr-FR')}
                                                     </span>
                                                 </div>
@@ -363,7 +363,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
 
                                     {/* System Requirements Mini Table */}
                                     <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Requis</h4>
+                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Requis</h4>
                                         <div className="space-y-2 text-[11px]">
                                             {Object.entries(systemRequirements).map(([os, req]) => (
                                                 <div key={os} className="flex items-center justify-between py-1.5 border-b border-slate-50 dark:border-white/5 last:border-0">
@@ -418,7 +418,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                                         {activeTab === 'docs' ? 'Documentation Complète' : 'Support Technique'}
                                     </h3>
-                                    <p className="text-xs text-slate-500 mt-1 max-w-[200px] mb-4">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[200px] mb-4">
                                         {activeTab === 'docs'
                                             ? "Consultez notre documentation en ligne pour des guides détaillés."
                                             : "Notre équipe est là pour vous aider en cas de problème."}

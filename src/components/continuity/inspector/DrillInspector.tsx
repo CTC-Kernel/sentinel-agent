@@ -63,7 +63,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
                         <Calendar className="w-4 h-4" />
                         Planification de l'exercice
                     </h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    <p className="text-sm text-blue-700 dark:text-blue-400 dark:text-blue-300 mt-1">
                         Les exercices réguliers sont essentiels pour valider vos plans de continuité.
                     </p>
                 </div>

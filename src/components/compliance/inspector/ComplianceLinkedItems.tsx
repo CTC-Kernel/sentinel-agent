@@ -51,18 +51,18 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Assets */}
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Actifs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedAssetIds) ? control.relatedAssetIds : []).map(assetId => {
                             const asset = safeAssets.find(a => a.id === assetId);
                             return asset ? (
                                 <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
-                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="h-6 w-6 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
+                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{asset.name}</span>
+                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                 </div>
                             ) : null;
                         })}
-                        {(!control.relatedAssetIds || control.relatedAssetIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun actif lié.</p>}
+                        {(!control.relatedAssetIds || control.relatedAssetIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-400 italic">Aucun actif lié.</p>}
                     </div>
                     {canEdit && (
                         <CustomSelect
@@ -78,18 +78,18 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 
                 {/* Suppliers */}
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Fournisseurs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedSupplierIds) ? control.relatedSupplierIds : []).map(supplierId => {
                             const supplier = safeSuppliers.find(s => s.id === supplierId);
                             return supplier ? (
                                 <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
-                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
-                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="h-6 w-6 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
+                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">{supplier.name}</span>
+                                    {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                 </div>
                             ) : null;
                         })}
-                        {(!control.relatedSupplierIds || control.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun fournisseur lié.</p>}
+                        {(!control.relatedSupplierIds || control.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-400 italic">Aucun fournisseur lié.</p>}
                     </div>
                     {canEdit && (
                         <CustomSelect
@@ -106,7 +106,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 
             {/* Projects (Full Width) */}
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Projets Liés</h3>
+                <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-4 tracking-widest">Projets Liés</h3>
                 <div className="space-y-2 mb-4">
                     {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).map(pid => {
                         const project = safeProjects.find(p => p.id === pid);
@@ -121,11 +121,11 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                                         <span className="text-xs text-slate-500">{project.status}</span>
                                     </div>
                                 </div>
-                                {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le projet" onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="h-6 w-6 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
+                                {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le projet" onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                             </div>
                         ) : null;
                     })}
-                    {(!control.relatedProjectIds || control.relatedProjectIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun projet lié.</p>}
+                    {(!control.relatedProjectIds || control.relatedProjectIds.length === 0) && <p className="text-xs text-slate-500 dark:text-slate-400 italic">Aucun projet lié.</p>}
                 </div>
                 {canEdit && (
                     <CustomSelect
@@ -141,7 +141,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 
             {/* Risks & Findings Display (Read Only) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 bg-red-50/30 dark:bg-red-900/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 bg-red-50/30 dark:bg-red-50 dark:bg-red-900">
                     <div className="flex items-center gap-3 mb-4">
                         <ShieldAlert className="h-5 w-5 text-red-500" />
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Risques ({riskCount})</h3>

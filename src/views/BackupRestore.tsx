@@ -302,8 +302,8 @@ export const BackupRestore: React.FC = () => {
                   ].map((item) => (
                     <label key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
                       <div className="flex items-center gap-2">
-                        <item.icon className="h-4 w-4 text-slate-500 group-hover:text-indigo-500 transition-colors" />
-                        <span className="font-medium text-slate-700 dark:text-muted-foreground">{item.label}</span>
+                        <item.icon className="h-4 w-4 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                        <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{item.label}</span>
                       </div>
                       <Controller
                         control={backupForm.control}
@@ -368,7 +368,7 @@ export const BackupRestore: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                       {selectedBackup.collections.map((col) => (
                         <label key={col} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
-                          <span className="text-sm font-medium capitalize text-slate-700 dark:text-muted-foreground">{col}</span>
+                          <span className="text-sm font-medium capitalize text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{col}</span>
                           <Switch
                             checked={restoreForm.watch('collections').includes(col)}
                             onChange={() => toggleCollection(col)}

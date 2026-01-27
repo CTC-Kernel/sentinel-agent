@@ -72,7 +72,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 "border font-medium text-sm backdrop-blur-md",
                 locked && "opacity-40 cursor-not-allowed border-transparent bg-slate-100 dark:bg-slate-800 text-slate-400",
                 !locked && "cursor-pointer hover:scale-105 hover:bg-white/10 dark:hover:bg-white/5",
-                isActive && "ring-2 ring-offset-2 ring-brand-500 dark:ring-offset-slate-900 border-brand-500/50 bg-brand-500/10 text-brand-600 dark:text-brand-400",
+                isActive && "ring-2 ring-offset-2 ring-brand-500 dark:ring-offset-slate-900 border-brand-400 bg-brand-50 text-brand-600 dark:text-brand-400",
                 (workshop.status === 'validated' || workshop.status === 'completed') && !isActive && "bg-success/10 border-success/50 text-success-text",
               )}
               title={info.name[locale]}
@@ -133,9 +133,9 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                   "shadow-lg backdrop-blur-xl border border-white/20 dark:border-white/10",
                   locked && "opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400",
                   !locked && "cursor-pointer hover:-translate-y-1 hover:shadow-xl",
-                  isActive && "scale-110 ring-4 ring-brand-500/20 shadow-brand bg-gradient-to-br from-brand-500 to-brand-600 text-white border-transparent",
+                  isActive && "scale-110 ring-4 ring-brand-300 shadow-brand bg-gradient-to-br from-brand-500 to-brand-600 text-white border-transparent",
                   isDone && !isActive && "bg-gradient-to-br from-success to-success text-success-foreground border-transparent shadow-success",
-                  !isDone && !isActive && !locked && "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  !isDone && !isActive && !locked && "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
                 )}
               >
                 {isDone ? (
@@ -150,7 +150,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               {/* Workshop Info */}
               <div className={cn(
                 "mt-4 text-center transition-all duration-300 px-2",
-                isActive ? "opacity-100 transform-none" : "opacity-70 group-hover:opacity-100"
+                isActive ? "opacity-70 transform-none" : "opacity-70 group-hover:opacity-70"
               )}>
                 <p className={cn(
                   "font-semibold text-sm leading-tight mb-1",
@@ -160,7 +160,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 </p>
                 <div className="flex justify-center">
                   <span className={cn(
-                    "text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
+                    "text-[11px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
                     isDone ? "bg-success-bg text-success-text" :
                       isActive ? "bg-brand-500 text-white" :
                         "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
@@ -191,10 +191,10 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               className={cn(
                 "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300",
                 "border backdrop-blur-md",
-                locked && "opacity-50 cursor-not-allowed bg-slate-50/50 dark:bg-slate-900/50 border-transparent",
+                locked && "opacity-60 cursor-not-allowed bg-slate-50/50 dark:bg-slate-900/50 border-transparent",
                 !locked && "cursor-pointer active:scale-[0.98]",
                 isActive
-                  ? "border-brand-500/30 bg-brand-100/80 dark:bg-brand-900/20 shadow-lg shadow-brand"
+                  ? "border-brand-300 bg-brand-100 dark:bg-brand-800 shadow-lg shadow-brand"
                   : "border-white/10 bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
               )}
             >
@@ -235,7 +235,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               </div>
 
               {isActive && (
-                <div className="w-1.5 h-8 rounded-full bg-brand-500/50" />
+                <div className="w-1.5 h-8 rounded-full bg-brand-500" />
               )}
             </button>
           );

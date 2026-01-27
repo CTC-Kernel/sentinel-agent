@@ -193,15 +193,15 @@ export function DashboardEditModeToggle({
             'group inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-200 border',
             isEditing
               ? [
-                'border-blue-500/20 bg-blue-500/10 text-blue-600',
+                'border-blue-500/20 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
                 'dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-400',
                 'hover:bg-blue-500/20 dark:hover:bg-blue-400/20',
                 'focus:ring-blue-500',
               ]
               : [
-                'border-slate-200 bg-white text-slate-700 shadow-sm',
+                'border-slate-200 bg-white text-slate-700 dark:text-slate-300 shadow-sm',
                 'dark:border-white/10 dark:bg-white/5 dark:text-slate-200',
-                'hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20',
+                'hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20',
                 'focus:ring-slate-500',
               ],
             'focus:outline-none focus:ring-2 focus:ring-offset-2',

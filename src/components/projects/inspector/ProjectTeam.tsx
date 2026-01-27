@@ -30,9 +30,9 @@ export const ProjectTeam: React.FC<ProjectTeamProps> = ({ project, usersList }) 
                             </div>
                             <div className="min-w-0">
                                 <h4 className="font-bold text-slate-900 dark:text-white truncate">{member.displayName || 'Utilisateur'}</h4>
-                                <p className="text-xs text-slate-500 truncate">{member.email}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{member.email}</p>
                                 <div className="mt-1.5 inline-flex">
-                                    <Badge variant="soft" status="neutral" className="text-[10px] px-2 py-0.5 h-auto">{member.role}</Badge>
+                                    <Badge variant="soft" status="neutral" className="text-[11px] px-2 py-0.5 h-auto">{member.role}</Badge>
                                 </div>
                             </div>
                         </div>
@@ -40,7 +40,7 @@ export const ProjectTeam: React.FC<ProjectTeamProps> = ({ project, usersList }) 
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-slate-500">
-                    <Users className="h-12 w-12 mb-2 opacity-50" />
+                    <Users className="h-12 w-12 mb-2 opacity-60" />
                     <p>Aucun membre affecté à ce projet.</p>
                 </div>
             )}

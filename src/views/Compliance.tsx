@@ -475,7 +475,7 @@ export const Compliance: React.FC = () => {
                                         size="sm"
                                         onClick={() => setShowMissingEvidence(!showMissingEvidence)}
                                         className={`transition-all ${showMissingEvidence
-                                            ? 'bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'
+                                            ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'
                                             : ''
                                             }`}
                                     >

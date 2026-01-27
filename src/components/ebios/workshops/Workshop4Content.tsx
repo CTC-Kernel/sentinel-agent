@@ -309,16 +309,16 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
       {/* Summary Stats */}
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-brand-200/50 dark:border-brand-800/50">
-          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform">
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-brand-200 dark:border-brand-700">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform">
             <Cpu className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{totalScenarios}</p>
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.totalScenarios')}</p>
         </GlassCard>
 
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-red-200/50 dark:border-red-800/50">
-          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-red-1000 dark:border-red-2000">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">{criticalScenarios}</p>
@@ -326,7 +326,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
         </GlassCard>
 
         <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-orange-200/50 dark:border-orange-800/50">
-          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-orange-100 dark:bg-orange-900/30 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
             <List className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
@@ -447,7 +447,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                               className={cn(
                                 "rounded-2xl border transition-all duration-300 overflow-hidden",
                                 isExpanded
-                                  ? "bg-white/60 dark:bg-slate-800/60 border-brand-200 dark:border-brand-800 shadow-md ring-1 ring-brand-500/10"
+                                  ? "bg-white/60 dark:bg-slate-800/60 border-brand-200 dark:border-brand-800 shadow-md ring-1 ring-brand-200"
                                   : "bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md"
                               )}
                             >
@@ -463,7 +463,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                     `border-${riskColor}-200 dark:border-${riskColor}-800`,
                                     `text-${riskColor}-700 dark:text-${riskColor}-400`
                                   )}>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Risk</span>
+                                    <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Risk</span>
                                     <span className="text-lg font-bold leading-none">R{opScenario.riskLevel}</span>
                                   </div>
 
@@ -492,7 +492,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                 <div className="flex items-center gap-6">
                                   {/* Likelihood Selector (Compact) */}
                                   <div className="flex flex-col items-end mr-4">
-                                    <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
+                                    <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
                                     <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
                                       {!readOnly ? (
                                         LIKELIHOOD_SCALE.map((level) => (
@@ -527,7 +527,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                   <div className={cn(
                                     "p-2 rounded-full transition-all duration-300",
                                     isExpanded
-                                      ? "bg-brand-100 dark:bg-brand-900/30 text-brand-600 rotate-180"
+                                      ? "bg-brand-100 dark:bg-brand-900 text-brand-600 rotate-180"
                                       : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
                                   )}>
                                     <ChevronDown className="w-5 h-5" />
@@ -541,7 +541,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                   <div className="p-5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
                                     <div className="flex items-center justify-between mb-5">
                                       <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <div className="p-1.5 rounded-lg bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
+                                        <div className="p-1.5 rounded-lg bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400">
                                           <List className="w-4 h-4" />
                                         </div>
                                         {t('ebios.workshop4.attackSequence')}
@@ -569,7 +569,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                         opScenario.attackSequence.map((step) => (
                                           <div key={step.id} className="relative flex items-start group/step">
                                             {/* Step Number Bubble */}
-                                            <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-slate-50 dark:ring-slate-800/80">
+                                            <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-brand-500 text-white text-[11px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-slate-50 dark:ring-slate-800/80">
                                               {step.order}
                                             </div>
 
@@ -582,7 +582,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                       value={step.description}
                                                       onChange={(e) => handleUpdateAttackStep(opScenario.id, step.id, { description: e.target.value })}
                                                       placeholder={t('ebios.workshop4.stepDescriptionPlaceholder')}
-                                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm resize-none min-h-[60px]"
+                                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none min-h-[60px]"
                                                     />
                                                   ) : (
                                                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -613,7 +613,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                   ) : !readOnly && (
                                                     <button
                                                       onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
-                                                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-brand-600 transition-colors py-1 px-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 border border-transparent hover:border-brand-100 dark:hover:border-brand-800"
+                                                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-brand-600 transition-colors py-1 px-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-800 border border-transparent hover:border-brand-100 dark:hover:border-brand-800"
                                                     >
                                                       <Link2 className="w-3 h-3" />
                                                       {t('ebios.workshop4.addMitreRef')}
@@ -624,7 +624,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                 {!readOnly && (
                                                   <button
                                                     onClick={() => handleDeleteAttackStep(opScenario.id, step.id)}
-                                                    className="p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover/step:opacity-100"
+                                                    className="p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover/step:opacity-70"
                                                     title={t('common.delete')}
                                                   >
                                                     <Trash2 className="w-4 h-4" />
@@ -665,7 +665,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             onClick={() => handleCreateRiskFromScenario(opScenario)}
                                             disabled={creatingRiskForScenario === opScenario.id}
                                             className={cn(
-                                              "flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                                              "flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600",
                                               "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800"
                                             )}
                                           >
@@ -696,7 +696,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                           </button>
                                           <button
                                             onClick={() => handleDeleteScenario(opScenario.id)}
-                                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors"
                                           >
                                             <Trash2 className="w-4 h-4" />
                                             {t('common.delete')}

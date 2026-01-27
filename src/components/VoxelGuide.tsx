@@ -19,7 +19,7 @@ const GUIDE_SECTIONS = [
                     CTC Engine est votre centre de commandement pour visualiser et analyser l'ensemble de votre écosystème de sécurité en 3D.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                    <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-500/20">
                         <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mb-2">
                             <Network className="w-4 h-4 text-blue-400" />
                         </div>
@@ -103,7 +103,7 @@ const GUIDE_SECTIONS = [
                         </div>
                     ))}
                 </div>
-                <div className="mt-3 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <div className="mt-3 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-500/20">
                     <p className="text-xs text-amber-300">
                         <strong>Astuce :</strong> Utilisez le bouton <Layers className="w-3 h-3 inline" /> pour afficher/masquer les calques
                     </p>
@@ -120,14 +120,14 @@ const GUIDE_SECTIONS = [
             <div className="space-y-4">
                 <p className="text-xs text-muted-foreground">La taille et la couleur indiquent la criticité :</p>
                 <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-500/20">
                         <span className="w-4 h-4 rounded-full bg-red-500 animate-pulse" />
                         <div>
                             <h4 className="text-sm font-medium text-red-400">Critique</h4>
                             <p className="text-xs text-muted-foreground">Risque score ≥15, Incident critique, Asset C/I/A critique</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-500/20">
                         <span className="w-4 h-4 rounded-full bg-amber-500" />
                         <div>
                             <h4 className="text-sm font-medium text-amber-400">Alerte</h4>
@@ -248,7 +248,7 @@ const GUIDE_SECTIONS = [
                     <div className="flex items-center gap-3 mb-3">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">Rechercher un nœud...</span>
-                        <kbd className="ml-auto px-2 py-0.5 rounded bg-white/10 text-[10px] text-muted-foreground">
+                        <kbd className="ml-auto px-2 py-0.5 rounded bg-white/10 text-[11px] text-muted-foreground">
                             <Command className="w-3 h-3 inline" />K
                         </kbd>
                     </div>
@@ -368,9 +368,10 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                 <button
                                     onClick={() => setCurrentSection(prev => Math.max(prev - 1, 0))}
                                     disabled={currentSection === 0}
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    aria-label="Section précédente"
+                                    className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white disabled:bg-slate-700/50 disabled:text-slate-500 disabled:cursor-not-allowed transition-all"
                                 >
-                                    <ChevronLeft className="w-4 h-4" />
+                                    <ChevronLeft className="w-5 h-5" aria-hidden="true" />
                                 </button>
                                 {currentSection === GUIDE_SECTIONS.length - 1 ? (
                                     <button
@@ -382,9 +383,10 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                 ) : (
                                     <button
                                         onClick={() => setCurrentSection(prev => Math.min(prev + 1, GUIDE_SECTIONS.length - 1))}
-                                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-all"
+                                        aria-label="Section suivante"
+                                        className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-all"
                                     >
-                                        <ChevronRight className="w-4 h-4" />
+                                        <ChevronRight className="w-5 h-5" aria-hidden="true" />
                                     </button>
                                 )}
                             </div>

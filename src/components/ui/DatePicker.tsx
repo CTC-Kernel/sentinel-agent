@@ -72,9 +72,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 className={`
                     relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                     ${error
-                        ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
+                        ? 'border-red-500 bg-red-500 dark:bg-red-50 dark:bg-red-900'
                         : isOpen
-                            ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-slate-800'
+                            ? 'border-brand-500 ring-2 ring-brand-300 bg-white dark:bg-slate-800'
                             : 'border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 hover:border-slate-300 dark:hover:border-white/20'
                     }
                 `}
@@ -83,14 +83,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                     <span className={`font-medium ${value ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
                         {displayValue || (isOpen ? placeholder : (label ? '' : placeholder))}
                     </span>
-                    <CalendarIcon className={`h-4 w-4 text-slate-500 transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
+                    <CalendarIcon className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
                 </div>
 
                 <label
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
                         ${(isOpen || value)
-                            ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
+                            ? '-top-2.5 text-[11px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
                             : 'top-3.5 text-sm font-medium text-slate-600'
                         }
                         ${error ? '!text-red-500' : ''}
@@ -112,7 +112,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                         <div className="p-2 border-t border-slate-100 dark:border-white/5 mt-2">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
-                                className="w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                className="w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             >
                                 Effacer la date
                             </button>

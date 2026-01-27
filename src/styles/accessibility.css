@@ -1,0 +1,260 @@
+/**
+ * Accessibility Utilities (WCAG AAA)
+ * Provides CSS utilities for meeting WCAG AAA accessibility standards
+ *
+ * Key principles:
+ * - Minimum text size: 11px (ideally 14px for body text)
+ * - Color contrast: 7:1 for normal text, 4.5:1 for large text
+ * - Touch targets: 44x44px minimum
+ * - Focus indicators: visible and high contrast
+ */
+
+/* ============================================================================
+   Text Size Utilities - WCAG AAA compliant
+   ============================================================================ */
+
+/* Minimum accessible text size (11px) */
+.text-accessible-min {
+  font-size: 0.6875rem !important; /* 11px */
+  line-height: 1.5;
+}
+
+/* Small but accessible (12px) */
+.text-accessible-sm {
+  font-size: 0.75rem !important; /* 12px */
+  line-height: 1.5;
+}
+
+/* Default accessible size (14px) */
+.text-accessible-base {
+  font-size: 0.875rem !important; /* 14px */
+  line-height: 1.6;
+}
+
+/* ============================================================================
+   Touch Target Utilities - WCAG 2.5.5 Level AAA
+   ============================================================================ */
+
+/* Minimum touch target (24x24px for pointer devices) */
+.touch-target-min {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* Standard touch target (32x32px) */
+.touch-target-sm {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* Full AAA touch target (44x44px) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Large touch target (48x48px) */
+.touch-target-lg {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+/* ============================================================================
+   Contrast Utilities - WCAG AAA 7:1 ratio
+   ============================================================================ */
+
+/* High contrast text for light backgrounds */
+.text-high-contrast {
+  @apply text-slate-900 dark:text-white;
+}
+
+/* High contrast muted text */
+.text-high-contrast-muted {
+  @apply text-slate-700 dark:text-slate-200;
+}
+
+/* ============================================================================
+   Disabled State Utilities - Proper contrast
+   ============================================================================ */
+
+/* Accessible disabled state (no opacity reduction) */
+.disabled-accessible {
+  @apply cursor-not-allowed;
+  @apply bg-slate-100 text-slate-500 border-slate-200;
+  @apply dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700;
+}
+
+/* ============================================================================
+   Screen Reader Utilities
+   ============================================================================ */
+
+/* Visually hidden but accessible to screen readers */
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Live region for dynamic content */
+.live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================================
+   Motion Preferences - Reduced motion support (consolidated from all CSS files)
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable hover transforms */
+  .hover-primary:hover,
+  .hover-secondary:hover,
+  .hover-danger:hover,
+  .hover-success:hover {
+    transform: none !important;
+  }
+
+  /* Disable active scale effects */
+  .active-scale:active {
+    transform: none !important;
+  }
+
+  /* Disable interactive element transitions */
+  .interactive-element,
+  .interactive-element-fast,
+  .interactive-element-slow {
+    transition: none !important;
+  }
+}
+
+/* ============================================================================
+   Color Contrast Safe Combinations
+   ============================================================================ */
+
+/* Success - AAA compliant */
+.bg-success-safe {
+  @apply bg-success-bg text-success-text;
+}
+
+/* Warning - AAA compliant */
+.bg-warning-safe {
+  @apply bg-warning-bg text-warning-text;
+}
+
+/* Error - AAA compliant */
+.bg-error-safe {
+  @apply bg-error-bg text-error-text;
+}
+
+/* Info - AAA compliant */
+.bg-info-safe {
+  @apply bg-info-bg text-info-text;
+}
+
+/* ============================================================================
+   Interactive Element Utilities
+   ============================================================================ */
+
+/* Accessible button base */
+.btn-accessible {
+  @apply inline-flex items-center justify-center;
+  @apply min-h-[44px] min-w-[44px] px-4;
+  @apply text-sm font-medium;
+  @apply rounded-xl;
+  @apply transition-colors duration-200;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+}
+
+/* Accessible link */
+.link-accessible {
+  @apply text-primary underline underline-offset-4;
+  @apply hover:text-primary/80;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:rounded;
+}
+
+/* ============================================================================
+   Form Element Utilities
+   ============================================================================ */
+
+/* Accessible form label */
+.label-accessible {
+  @apply block text-sm font-medium text-foreground mb-1.5;
+}
+
+/* Accessible form help text */
+.help-text-accessible {
+  @apply text-sm text-muted-foreground mt-1.5 leading-relaxed;
+}
+
+/* Accessible form error */
+.error-text-accessible {
+  @apply text-sm text-error-text mt-1.5 font-medium;
+}
+
+/* ============================================================================
+   High Contrast Mode Support
+   ============================================================================ */
+
+@media (prefers-contrast: more) {
+  /* Increase border visibility */
+  .border,
+  [class*="border-"] {
+    border-width: 2px !important;
+  }
+
+  /* Ensure text is fully opaque */
+  .text-muted-foreground {
+    @apply text-foreground;
+  }
+
+  /* Stronger focus indicators */
+  *:focus-visible {
+    outline: 3px solid currentColor !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* ============================================================================
+   Forced Colors Mode Support (Windows High Contrast)
+   ============================================================================ */
+
+@media (forced-colors: active) {
+  /* Ensure focus is visible */
+  *:focus-visible {
+    outline: 2px solid CanvasText !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Ensure buttons are visible */
+  button,
+  [role="button"] {
+    border: 1px solid ButtonText !important;
+  }
+
+  /* Ensure links are visible */
+  a {
+    text-decoration: underline !important;
+  }
+}

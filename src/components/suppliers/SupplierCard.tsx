@@ -6,10 +6,10 @@ import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
-        case Criticality.CRITICAL: return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-        case Criticality.HIGH: return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
+        case Criticality.CRITICAL: return 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+        case Criticality.HIGH: return 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
         case Criticality.MEDIUM: return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-        default: return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+        default: return 'bg-green-100 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
     }
 };
 
@@ -42,16 +42,16 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
             role="button"
             tabIndex={0}
             onKeyDown={handleKeyDown}
-            className="glass-panel p-4 sm:p-6 rounded-5xl shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors"
+            className="glass-panel p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="relative z-10 flex flex-col h-full">
 
                 <div className="flex justify-between items-start mb-5">
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-inner group-hover:bg-brand-50 dark:group-hover:bg-brand-900/10 group-hover:text-brand-600 transition-colors">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-inner group-hover:bg-brand-50 dark:group-hover:bg-brand-50 dark:bg-brand-900 group-hover:text-brand-600 transition-colors">
                         {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
                     </div>
-                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border shadow-sm ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
+                    <span className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase border shadow-sm ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
                         {supplier.criticality}
                     </span>
                 </div>
@@ -59,9 +59,9 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{supplier.name}</h3>
                 <div className="flex flex-wrap gap-2 mb-6">
                     <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-muted-foreground">{supplier.category}</span>
-                    <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-slate-50 dark:bg-slate-900 text-slate-600 border-slate-200'}`}>{supplier.status}</span>
+                    <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 dark:text-green-400 border-green-100 dark:bg-green-900/20' : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>{supplier.status}</span>
                     {supplier.isICTProvider && (
-                        <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
+                        <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
                     )}
                 </div>
 

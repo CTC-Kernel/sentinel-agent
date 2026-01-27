@@ -283,7 +283,7 @@ const typeColors: Record<string, string> = {
 };
 
 const typeBgColors: Record<string, string> = {
-  'Interne': 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-200 dark:border-brand-800',
+  'Interne': 'bg-brand-50 dark:bg-brand-900 border-brand-200 dark:border-brand-800',
   'Externe': 'bg-violet-50/50 dark:bg-violet-900/10 border-violet-200 dark:border-violet-800',
   'Certification': 'bg-warning-bg dark:bg-warning/10 border-warning-border dark:border-warning/30',
 };
@@ -365,7 +365,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
             Méthodes & Ateliers d'Audit
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Méthodologies structurées pour conduire vos audits de sécurité
           </p>
         </div>
@@ -393,7 +393,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                 className={cn(
                   "p-5 cursor-pointer transition-all border-2",
                   isSelected ? "ring-2 ring-indigo-500 border-indigo-300 dark:border-indigo-700" : "border-transparent",
-                  isActive && "bg-green-50/50 dark:bg-green-900/10 border-green-300 dark:border-green-700",
+                  isActive && "bg-green-500 dark:bg-green-50 dark:bg-green-900 border-green-300 dark:border-green-700 dark:border-green-700",
                   typeBgColors[template.type]
                 )}
                 onClick={() => setSelectedTemplate(template)}
@@ -605,7 +605,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                   className={cn(
                                     "flex items-start gap-3 p-3 rounded-xl border transition-colors",
                                     task.isCompleted
-                                      ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800"
+                                      ? "bg-green-50 dark:bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-800 dark:border-green-800"
                                       : "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700",
                                     isWorkshopActive && "cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700"
                                   )}
@@ -632,7 +632,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                         <Badge status="warning" size="sm">Requis</Badge>
                                       )}
                                     </div>
-                                    <p className="text-sm text-slate-500 mt-0.5">{task.description}</p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{task.description}</p>
                                     {task.helpText && (
                                       <p className="text-xs text-indigo-500 mt-1 flex items-center gap-1">
                                         <BookOpen className="w-3 h-3" />
@@ -675,7 +675,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
       {!selectedTemplate && (
         <GlassCard className="p-12 text-center">
           <div className="max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-indigo-500" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">

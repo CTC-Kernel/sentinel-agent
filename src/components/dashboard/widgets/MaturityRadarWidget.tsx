@@ -20,7 +20,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
 
     return (
         <div className="relative group/chart flex flex-col items-center pt-2 w-full h-full min-h-[380px]">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-70 transition-opacity duration-700 pointer-events-none"></div>
 
             {/* Radar Chart Section */}
             <div
@@ -87,7 +87,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                 </div>
                 {!radarData.every(d => d.A === 0) && (
                     <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center z-20">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-[11px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
                             {t('dashboard.isoMaturity')}
                         </span>
                     </div>
@@ -105,7 +105,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
 
                 <div className="h-3 w-full bg-secondary/50 rounded-full overflow-hidden backdrop-blur-sm border border-border/50 shadow-inner relative">
                     {/* Background Grid Pattern */}
-                    <div className="absolute inset-0 opacity-10 bg-[linear-gradient(90deg,transparent_90%,#000_90%)] bg-[length:10px_100%] dark:bg-[linear-gradient(90deg,transparent_90%,#fff_90%)]"></div>
+                    <div className="absolute inset-0 opacity-30 bg-[linear-gradient(90deg,transparent_90%,#000_90%)] bg-[length:10px_100%] dark:bg-[linear-gradient(90deg,transparent_90%,#fff_90%)]"></div>
 
                     {/* Progress Bar with Gradient and Glow */}
                     <div

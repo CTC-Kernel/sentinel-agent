@@ -85,7 +85,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
         'group relative p-4 rounded-xl cursor-pointer transition-all duration-200',
         'border backdrop-blur-sm',
         isSelected
-          ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-300 dark:border-brand-700 shadow-md'
+          ? 'bg-brand-50 dark:bg-brand-800 border-brand-300 dark:border-brand-700 shadow-md'
           : 'bg-white/60 dark:bg-slate-900/60 border-slate-200/50 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-sm'
       )}
       onClick={() => onClick?.(requirement)}

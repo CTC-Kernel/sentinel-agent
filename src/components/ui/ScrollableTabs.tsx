@@ -57,7 +57,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                         exit={{ opacity: 0, x: -10 }}
                         onClick={() => scroll('left')}
                         aria-label="Défiler vers la gauche"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </motion.button>
@@ -98,14 +98,14 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                             {tab.icon && (
                                 <tab.icon
                                     aria-hidden="true"
-                                    className={`h-4 w-4 mr-2 transition-colors ${isActive ? 'text-brand-500 dark:text-brand-500' : 'opacity-70 group-hover:opacity-100'
+                                    className={`h-4 w-4 mr-2 transition-colors ${isActive ? 'text-brand-500 dark:text-brand-500' : 'opacity-70 group-hover:opacity-70'
                                         }`}
                                 />
                             )}
                             <span className="relative">{tab.label}</span>
 
                             {tab.count !== undefined && (
-                                <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${isActive
+                                <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[11px] font-bold transition-colors ${isActive
                                     ? 'bg-brand-500 text-white'
                                     : 'bg-slate-200/50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400'
                                     }`}>
@@ -125,7 +125,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                         exit={{ opacity: 0, x: 10 }}
                         onClick={() => scroll('right')}
                         aria-label="Défiler vers la droite"
-                        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </motion.button>

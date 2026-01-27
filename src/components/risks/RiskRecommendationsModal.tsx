@@ -33,7 +33,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                 {/* Header */}
                 <div className="p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-brand-500/10 rounded-2xl">
+                        <div className="p-3 bg-brand-50 rounded-2xl">
                             <BrainCircuit className="w-8 h-8 text-brand-500" />
                         </div>
                         <div>
@@ -91,8 +91,8 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Actions Suggérées</h4>
                                         <ul className="space-y-3">
                                             {rec.suggested_actions.map((action) => (
-                                                <li key={action.action} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
-                                                    <div className="mt-0.5 p-1 bg-brand-100 dark:bg-brand-900/30 rounded-full text-brand-600 dark:text-brand-400">
+                                                <li key={action.action} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 dark:text-slate-200">
+                                                    <div className="mt-0.5 p-1 bg-brand-100 dark:bg-brand-900 rounded-full text-brand-600 dark:text-brand-400">
                                                         <CheckCircle2 className="w-3 h-3" />
                                                     </div>
                                                     {action.action}
@@ -118,7 +118,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                 <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         Fermer
                     </button>

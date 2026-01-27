@@ -82,9 +82,9 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
     };
 
     const variantClasses = {
-        ghost: 'text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10',
+        ghost: 'text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10',
         outline: 'border border-slate-200 dark:border-slate-700 text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800',
-        filled: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+        filled: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
     };
 
     const tooltipPositionClasses = {
@@ -102,7 +102,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
                 className={cn(
-                    'relative inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
+                    'relative inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400',
                     sizeClasses[size],
                     variantClasses[variant],
                     copied && 'text-success-600 dark:text-success-400',

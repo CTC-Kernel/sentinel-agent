@@ -334,11 +334,11 @@ export const SMSIProgramView: React.FC = () => {
 
       {/* Upcoming Milestones Alert */}
       {upcomingMilestones.length > 0 && (
-        <GlassCard className="p-4 border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-900/10">
+        <GlassCard className="p-4 border-amber-200 dark:border-amber-800 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-50 dark:bg-amber-900">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium text-amber-700 dark:text-amber-400">
+              <h4 className="font-medium text-amber-700 dark:text-amber-400 dark:text-amber-400">
                 {upcomingMilestones.length} jalon{upcomingMilestones.length > 1 ? 's' : ''} à venir cette semaine
               </h4>
               <p className="text-sm text-amber-600/80 dark:text-amber-400/80 mt-1">
@@ -557,8 +557,8 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                         key={milestone.id}
                         className={cn(
                           "relative flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.02]",
-                          isOverdue ? "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-900/10" :
-                            isCompleted ? "border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-900/10" :
+                          isOverdue ? "border-red-200 dark:border-red-900 bg-red-500 dark:bg-red-50 dark:bg-red-900" :
+                            isCompleted ? "border-green-200 dark:border-green-900 bg-green-500 dark:bg-green-50 dark:bg-green-900" :
                               "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                         )}
                         onClick={() => onSelect(milestone)}

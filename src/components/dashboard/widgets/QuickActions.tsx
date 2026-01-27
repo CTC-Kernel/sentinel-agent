@@ -65,7 +65,7 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
                         className="glass-premium px-4 py-6 rounded-4xl flex flex-col items-center gap-4 relative"
                     >
                         {/* Dock Background Glow */}
-                        <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-4xl blur-xl opacity-50 -z-10" />
+                        <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-4xl blur-xl opacity-60 -z-10" />
 
                         <DockItem
                             icon={Settings3D}
@@ -127,7 +127,7 @@ interface DockItemProps {
 
 const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, badge, delay }) => {
     const colorStyles = {
-        purple: 'text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-500/20',
+        purple: 'text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900',
         red: 'text-destructive dark:text-destructive group-hover:bg-error-bg dark:group-hover:bg-destructive/20',
         orange: 'text-warning-text dark:text-warning group-hover:bg-warning-bg dark:group-hover:bg-warning/20',
         blue: 'text-info-text dark:text-info group-hover:bg-info-bg dark:group-hover:bg-info/20',
@@ -157,14 +157,14 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
                 <Icon className="h-7 w-7" />
             </div>
             {(badge || 0) > 0 && (
-                <span className={`absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
+                <span className={`absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-[11px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
                     {badge}
                 </span>
             )}
-            <span className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm whitespace-nowrap z-50 pointer-events-none">
+            <span className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm whitespace-nowrap z-50 pointer-events-none">
                 {label}
             </span>
-            <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 opacity-0 group-hover:opacity-70 transition-opacity" />
         </motion.button>
     );
 };

@@ -184,7 +184,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                             return coverage ? (
                                 <>
                                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                        <p className="text-sm text-green-700 dark:text-green-300">Mappés</p>
+                                        <p className="text-sm text-green-700 dark:text-green-400 dark:text-green-300">Mappés</p>
                                         <p className="text-xl font-bold text-green-800 dark:text-green-200">{coverage.mappedCount}</p>
                                     </div>
                                     <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
@@ -245,7 +245,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                     className="group hover:bg-slate-50 dark:hover:bg-slate-800/30 cursor-pointer transition-colors"
                                     onClick={() => onControlClick?.(control)}
                                 >
-                                    <td className="sticky left-0 bg-white/95 dark:bg-slate-900/95 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/30 px-4 py-3 z-10 transition-colors">
+                                    <td className="sticky left-0 bg-white/95 dark:bg-slate-900/95 group-hover:bg-slate-50 dark:hover:bg-slate-800 dark:group-hover:bg-slate-800/30 px-4 py-3 z-10 transition-colors">
                                         <div className="flex items-center gap-2">
                                             <span className="font-mono text-xs text-slate-500">{control.code}</span>
                                             <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
@@ -263,7 +263,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                                     <div className={cn(
                                                         "inline-flex items-center justify-center w-6 h-6 rounded-full",
                                                         isPrimary
-                                                            ? "bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400"
+                                                            ? "bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400"
                                                             : "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
                                                     )}>
                                                         <Check className="w-4 h-4" />
@@ -290,13 +290,13 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
             {/* Legend */}
             <div className="flex items-center gap-6 text-xs text-slate-500 dark:text-muted-foreground">
                 <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                         <Check className="w-3 h-3 text-brand-600 dark:text-brand-400" />
                     </div>
                     <span>Référentiel principal</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center">
                         <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
                     </div>
                     <span>Mapping additionnel</span>

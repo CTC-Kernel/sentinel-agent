@@ -75,7 +75,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     type="text"
                     {...register('title')}
                     placeholder="Ex: Mettre à jour la politique de sécurité"
-                    className={`w-full rounded-xl border ${errors.title ? 'border-red-500' : 'border-slate-200 dark:border-white/10'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
+                    className={`w-full rounded-xl border ${errors.title ? 'border-red-500' : 'border-slate-200 dark:border-white/10'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
                 />
                 {errors.title && (
                     <p className="text-xs text-red-500">{errors.title.message}</p>
@@ -91,7 +91,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     {...register('description')}
                     rows={2}
                     placeholder="Décrivez l'action à réaliser..."
-                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
                 />
                 {errors.description && (
                     <p className="text-xs text-red-500">{errors.description.message}</p>
@@ -108,7 +108,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <select
                             {...register('ownerId')}
-                            className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none appearance-none"
+                            className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
                         >
                             <option value="">Non assigné</option>
                             {users.map(u => (
@@ -128,7 +128,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                         <input
                             type="date"
                             {...register('deadline')}
-                            className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none"
+                            className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
                         />
                     </div>
                 </div>
@@ -140,7 +140,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     </label>
                     <select
                         {...register('status')}
-                        className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none appearance-none"
+                        className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
                     >
                         <option value="À faire">À faire</option>
                         <option value="En cours">En cours</option>

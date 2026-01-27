@@ -19,19 +19,19 @@ const STATUS_OPTIONS: (AssessmentStatus | 'all')[] = ['all', 'Draft', 'Sent', 'I
 const getStatusColorClasses = (status: string): string => {
   switch (status) {
     case 'Submitted':
-      return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400';
     case 'Reviewed':
-      return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400';
     case 'Archived':
-      return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+      return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-400';
     case 'Expired':
-      return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      return 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400';
     case 'In Progress':
       return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
     case 'Sent':
       return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400';
     default:
-      return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      return 'bg-amber-100 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400';
   }
 };
 
@@ -91,7 +91,7 @@ const ExpirationBadge: React.FC<{ dueDate?: string | null; status: string }> = (
 
   if (daysUntil < 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400 rounded-full">
         <AlertTriangle className="w-3 h-3" />
         {t('vendorAssessment.overdue', 'Overdue')}
       </span>
@@ -100,7 +100,7 @@ const ExpirationBadge: React.FC<{ dueDate?: string | null; status: string }> = (
 
   if (daysUntil <= 7) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 dark:bg-orange-900/30 dark:text-orange-400 rounded-full">
         <Clock className="w-3 h-3" />
         {t('vendorAssessment.daysLeft', '{{count}} days left', { count: daysUntil })}
       </span>
@@ -109,7 +109,7 @@ const ExpirationBadge: React.FC<{ dueDate?: string | null; status: string }> = (
 
   if (daysUntil <= 30) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400 rounded-full">
         <Clock className="w-3 h-3" />
         {t('vendorAssessment.daysLeft', '{{count}} days left', { count: daysUntil })}
       </span>
@@ -130,7 +130,7 @@ const NextReviewBadge: React.FC<{ nextReviewDate?: string | null }> = ({ nextRev
 
   if (daysUntil <= 30) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-full">
         <RefreshCw className="w-3 h-3" />
         {t('vendorAssessment.reviewIn', 'Review in {{count}} days', { count: daysUntil })}
       </span>
@@ -138,7 +138,7 @@ const NextReviewBadge: React.FC<{ nextReviewDate?: string | null }> = ({ nextRev
   }
 
   return (
-    <span className="text-xs text-slate-500 flex items-center gap-1">
+    <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
       <Calendar className="w-3 h-3" />
       {t('vendorAssessment.nextReview', 'Next review: {{date}}', {
         date: date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -206,8 +206,8 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                    ? 'bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-400'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
                 }`}
               >
                 {status === 'all' ? t('vendorAssessment.allStatuses', 'All') : getStatusLabel(status, t)}
@@ -256,12 +256,12 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                         assessment.status === 'Reviewed'
-                          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                          ? 'bg-blue-100 text-blue-600 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400'
                           : assessment.status === 'Submitted'
-                          ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                          ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400'
                           : assessment.status === 'Expired'
-                          ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                          : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                          ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
+                          : 'bg-amber-100 text-amber-600 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400'
                       }`}
                     >
                       {assessment.status === 'Reviewed' || assessment.status === 'Submitted' ? (
@@ -285,7 +285,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                         </h3>
                         {/* Framework badge */}
                         {enhanced.framework && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-700 dark:text-slate-400 rounded">
+                          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 dark:bg-slate-700 dark:text-slate-400 rounded">
                             {enhanced.framework}
                           </span>
                         )}
@@ -293,7 +293,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
 
                       {/* Date and badges row */}
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                        <p className="text-sm text-slate-500 flex items-center gap-1">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {updatedAt ? updatedAt.toLocaleDateString('fr-FR') : t('common.unknownDate', 'Unknown date')}
                         </p>
@@ -304,7 +304,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                       {/* Progress bar for in-progress assessments */}
                       {showProgress && (
                         <div className="mt-3">
-                          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
                             <span>{t('vendorAssessment.completion', 'Completion')}</span>
                             <span>{completionPercentage}%</span>
                           </div>
@@ -341,7 +341,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onViewAssessment(assessment.id!)}
-                    className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                    className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-800"
                   >
                     {t('vendorAssessment.viewDetails', 'View Details')}
                     <ChevronRight className="w-4 h-4 ml-1" />

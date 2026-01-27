@@ -134,7 +134,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                 {/* Header */}
                 <div className="glass-panel p-4 sm:p-6 rounded-xl">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                             <Layers className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                         </div>
                         <div>
@@ -169,7 +169,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
             {/* Header with Effort Savings */}
             <div className="glass-panel p-4 sm:p-6 rounded-xl">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                         <Layers className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                     </div>
                     <div>
@@ -187,7 +187,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                     <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/30">
                         <div className="flex items-center gap-2 mb-1">
                             <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
-                            <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                            <span className="text-xs font-medium text-green-700 dark:text-green-400 dark:text-green-300">
                                 Économie d'effort
                             </span>
                         </div>
@@ -196,7 +196,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                         </p>
                     </div>
 
-                    <div className="p-4 bg-brand-50 dark:bg-brand-900/20 rounded-xl border border-brand-100 dark:border-brand-900/30">
+                    <div className="p-4 bg-brand-50 dark:bg-brand-800 rounded-xl border border-brand-100 dark:border-brand-800">
                         <div className="flex items-center gap-2 mb-1">
                             <Layers className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                             <span className="text-xs font-medium text-brand-700 dark:text-brand-300">
@@ -286,8 +286,8 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                                                         className={cn(
                                                             "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
                                                             idx === 0
-                                                                ? "bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300"
-                                                                : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                                                                ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
+                                                                : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 dark:text-green-300"
                                                         )}
                                                     >
                                                         {idx > 0 && <Check className="w-3 h-3" />}

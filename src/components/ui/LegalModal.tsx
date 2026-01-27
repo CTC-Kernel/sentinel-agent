@@ -23,13 +23,13 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
     return createPortal(
         <div className="fixed inset-0 z-max flex items-center justify-center p-4 sm:p-6">
             <div
-                className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity"
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-4xl glass-panel rounded-5xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
+            <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+                <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Informations Légales</h2>
                         <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">Transparence et conformité</p>
@@ -37,7 +37,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="p-2.5 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -64,7 +64,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-50/30 dark:bg-black/20">
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white dark:bg-slate-900">
                     <div className="prose prose-slate dark:prose-invert max-w-none">
                         {activeTab === 'mentions' && (
                             <div className="space-y-6 animate-fade-in">
@@ -72,10 +72,10 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Éditeur du Service</h3>
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                                         <p className="font-medium">Cyber Threat Consulting</p>
-                                        <p className="text-sm text-slate-600 mt-1">EURL au capital de 10 000 €</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">EURL au capital de 10 000 €</p>
                                         <p className="text-sm text-slate-600">SIRET 919 340 794 00024 - TVA FR54 919 340 794</p>
                                         <p className="text-sm text-slate-600">Siège social : Avenue Rosa Parks, 69009 Lyon</p>
-                                        <p className="text-sm text-slate-600 mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a></p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a></p>
                                         <p className="text-sm text-slate-600">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">cyber-threat-consulting.com</a></p>
                                     </div>
                                 </section>
@@ -85,12 +85,12 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
                                         <div>
                                             <p className="font-medium">Google Cloud Platform</p>
-                                            <p className="text-sm text-slate-600 mt-1">Google Ireland Limited</p>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Google Ireland Limited</p>
                                             <p className="text-sm text-slate-600">Gordon House, Barrow Street, Dublin 4, Irlande</p>
                                         </div>
                                         <div>
                                             <p className="font-medium">OVHcloud</p>
-                                            <p className="text-sm text-slate-600 mt-1">OVH SAS</p>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">OVH SAS</p>
                                             <p className="text-sm text-slate-600">2 rue Kellermann, 59100 Roubaix, France</p>
                                         </div>
                                     </div>
@@ -243,7 +243,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-end">
+                <div className="p-6 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}

@@ -80,7 +80,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                                 target.src = getUserAvatarUrl(null, ownerUser?.role);
                             }}
                         />
-                        <span className="font-medium text-slate-700 dark:text-muted-foreground">
+                        <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                             {process.owner}
                         </span>
                     </div>
@@ -107,7 +107,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                         variant="ghost"
                         size="icon"
                         onClick={() => onEdit(process)}
-                        className="text-muted-foreground hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                        className="text-muted-foreground hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800"
                         aria-label="Modifier le processus"
                     >
                         <Edit2 className="w-5 h-5" />
@@ -117,7 +117,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                         size="icon"
                         onClick={handleDelete}
                         disabled={isDeleting}
-                        className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                         aria-label={isDeleting ? "Suppression en cours" : "Supprimer le processus"}
                     >
                         {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}

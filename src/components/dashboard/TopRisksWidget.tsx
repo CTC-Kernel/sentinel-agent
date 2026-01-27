@@ -15,7 +15,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
         .slice(0, 5);
 
     return (
-        <div className="glass-panel p-4 sm:p-6 rounded-5xl h-full">
+        <div className="glass-panel p-4 sm:p-6 rounded-3xl h-full">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-foreground">Risques Critiques</h3>
@@ -29,7 +29,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
             <div className="space-y-3">
                 {topRisks.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground text-sm flex flex-col items-center">
-                        <CheckCircle2 className="h-12 w-12 mb-2 text-success opacity-50" />
+                        <CheckCircle2 className="h-12 w-12 mb-2 text-success opacity-60" />
                         <p>Aucun risque critique identifié.</p>
                         <p className="text-xs mt-1">Excellente posture de sécurité !</p>
                     </div>
@@ -52,7 +52,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                                 </span>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onMitigate(risk); }}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs font-bold text-primary hover:text-primary/80 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-1"
+                                    className="opacity-0 group-hover:opacity-70 transition-opacity flex items-center text-xs font-bold text-primary hover:text-primary/80 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-1"
                                 >
                                     Traiter <ArrowRight className="h-3 w-3 ml-1" />
                                 </button>

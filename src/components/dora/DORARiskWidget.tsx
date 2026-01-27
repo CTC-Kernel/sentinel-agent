@@ -87,11 +87,11 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                 <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30">
                     <div className="flex items-center gap-2 mb-1">
                         <Clock className="w-4 h-4 text-amber-500" />
-                        <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                        <span className="text-xs font-medium text-amber-700 dark:text-amber-400 dark:text-amber-400">
                             {t('dora.riskWidget.reassessmentDue', 'À Réévaluer')}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 dark:text-amber-400">
                         {riskStats.reassessmentsDueCount}
                     </p>
                 </div>
@@ -117,7 +117,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                             {t('dora.riskWidget.nonEu', 'Hors UE')}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold text-slate-700 dark:text-muted-foreground">
+                    <p className="text-2xl font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                         {concentrationAnalysis.nonEuProviders?.length || 0}
                     </p>
                 </div>
@@ -125,7 +125,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
 
             {/* Risk Distribution Bar */}
             <div className="mb-4">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
                     <span>{t('dora.riskWidget.distribution', 'Distribution des risques')}</span>
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1">
@@ -168,7 +168,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                         {highRiskProviders.slice(0, 3).map(provider => (
                             <div
                                 key={provider.id}
-                                className="flex items-center justify-between p-2 bg-red-50/50 dark:bg-red-900/10 rounded-lg"
+                                className="flex items-center justify-between p-2 bg-red-500 dark:bg-red-50 dark:bg-red-900 rounded-lg"
                             >
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />

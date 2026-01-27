@@ -109,7 +109,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                                     </span>
                                                 </div>
                                                 <div className="mt-3">
-                                                    <span className="px-2 py-1 bg-brand-100 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 rounded-lg text-xs font-bold">
+                                                    <span className="px-2 py-1 bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-400 rounded-lg text-xs font-bold">
                                                         {template.category}
                                                     </span>
                                                 </div>
@@ -122,7 +122,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     ) : (
                         /* Template Configuration */
                         <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-6">
-                            <div className="glass-panel p-4 rounded-xl border border-brand-200/50 dark:border-brand-800/50 bg-brand-50/50 dark:bg-brand-900/10">
+                            <div className="glass-panel p-4 rounded-xl border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900">
                                 <div className="flex items-center gap-3">
                                     <span className="text-3xl">{selectedTemplate.icon}</span>
                                     <div>

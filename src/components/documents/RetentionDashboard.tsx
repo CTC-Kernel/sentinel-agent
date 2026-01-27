@@ -656,7 +656,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border border-red-200 dark:border-red-900">
+                <div className="rounded-md border border-red-200 dark:border-red-800 dark:border-red-900">
                   <Table>
                     <TableHeader>
                       <TableRow>

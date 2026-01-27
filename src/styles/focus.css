@@ -79,14 +79,25 @@ input[type="radio"]:focus-visible {
   @apply ring-2 ring-primary ring-offset-2;
 }
 
-/* Suppression du focus par défaut du navigateur */
-*:focus {
+/* Suppression du focus par défaut du navigateur pour les éléments avec focus-visible */
+/* Note: On ne supprime PAS outline globalement pour préserver l'accessibilité */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible),
+[tabindex]:focus:not(:focus-visible) {
   outline: none;
 }
 
 /* Assurer que :focus-visible fonctionne sur tous les navigateurs */
+/* Fallback pour les navigateurs sans support focus-visible */
 @supports not selector(:focus-visible) {
-  *:focus {
+  button:focus,
+  a:focus,
+  [role="button"]:focus,
+  [tabindex]:focus,
+  input:focus,
+  textarea:focus,
+  select:focus {
     @apply ring-2 ring-primary ring-offset-2;
   }
 }

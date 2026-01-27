@@ -217,13 +217,13 @@ const VendorListItem: React.FC<{
       {/* Trend */}
       <div className="flex items-center gap-2">
         {vendor.scoreTrend === 'improving' && (
-          <span className="flex items-center gap-1 text-green-600 text-sm">
+          <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm">
             <TrendingUp className="w-4 h-4" />
             +{vendor.trendPercentage}%
           </span>
         )}
         {vendor.scoreTrend === 'declining' && (
-          <span className="flex items-center gap-1 text-red-600 text-sm">
+          <span className="flex items-center gap-1 text-red-600 dark:text-red-400 text-sm">
             <TrendingDown className="w-4 h-4" />
             -{vendor.trendPercentage}%
           </span>
@@ -407,7 +407,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
                 onClick={() => handleSort(field)}
                 className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   sortField === field
-                    ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300'
+                    ? 'bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300'
                     : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >

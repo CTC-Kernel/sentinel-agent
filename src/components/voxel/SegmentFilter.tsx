@@ -93,8 +93,8 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
           'relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200',
           'border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isActive
-            ? 'bg-opacity-20 border-opacity-50'
-            : 'bg-slate-800/50 border-slate-700/50 opacity-50 hover:opacity-75',
+            ? 'bg-opacity-20 border-opacity-60'
+            : 'bg-slate-800/50 border-slate-700/50 opacity-60 hover:opacity-75',
           compact && 'px-2 py-1.5'
         )}
         style={{
@@ -128,7 +128,7 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
         {nodeCount !== undefined && nodeCount > 0 && (
           <span
             className={cn(
-              'px-1.5 py-0.5 text-[10px] font-medium rounded-full transition-colors',
+              'px-1.5 py-0.5 text-[11px] font-medium rounded-full transition-colors',
               isActive ? 'bg-white/20 text-white' : 'bg-slate-700 text-slate-400'
             )}
           >
@@ -197,7 +197,7 @@ const PresetDropdown: React.FC<PresetDropdownProps> = React.memo(
             <span className="hidden sm:inline">
               {presets.find((p) => p.key === currentPreset)?.label || 'Filtre'}
             </span>
-            <ChevronDown className="h-3 w-3 opacity-50" />
+            <ChevronDown className="h-3 w-3 opacity-60" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">

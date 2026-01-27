@@ -25,21 +25,21 @@ export const EbiosStatsWidget: React.FC<EbiosStatsWidgetProps> = ({ analyses }) 
             value: total,
             icon: Shield,
             color: 'text-blue-500',
-            bg: 'bg-blue-500/10'
+            bg: 'bg-blue-50'
         },
         {
             label: t('ebios.stats.inProgress'),
             value: inProgress,
             icon: Clock,
             color: 'text-amber-500',
-            bg: 'bg-amber-500/10'
+            bg: 'bg-amber-50'
         },
         {
             label: t('ebios.stats.completed'),
             value: completed,
             icon: CheckCircle2,
             color: 'text-green-500',
-            bg: 'bg-green-500/10'
+            bg: 'bg-green-50'
         },
         {
             label: t('ebios.stats.avgProgress'),

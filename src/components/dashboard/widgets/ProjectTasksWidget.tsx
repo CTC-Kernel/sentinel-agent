@@ -72,7 +72,7 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
 
             <div className="grid grid-cols-3 gap-2 mb-4">
                 <div className="bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg text-center">
-                    <div className="text-xl font-bold text-slate-700 dark:text-slate-200">{projectStats.activeCount}</div>
+                    <div className="text-xl font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200">{projectStats.activeCount}</div>
                     <div className="text-xs text-muted-foreground">En cours</div>
                 </div>
                 <div className="bg-success-bg dark:bg-success/10 p-2 rounded-lg text-center">
@@ -102,8 +102,8 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate text-foreground group-hover:text-brand-500 transition-colors">{project.name}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                    {isOverdue && <span className="text-[10px] font-bold text-error-text dark:text-error bg-error-bg dark:bg-error/10 px-1.5 py-0.5 rounded">En retard</span>}
-                                    <span className="text-[10px] text-muted-foreground">
+                                    {isOverdue && <span className="text-[11px] font-bold text-error-text dark:text-error bg-error-bg dark:bg-error/10 px-1.5 py-0.5 rounded">En retard</span>}
+                                    <span className="text-[11px] text-muted-foreground">
                                         {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'Sans date'}
                                     </span>
                                 </div>

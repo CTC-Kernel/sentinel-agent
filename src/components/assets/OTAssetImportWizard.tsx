@@ -315,7 +315,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         <p className="text-lg font-medium text-slate-700">
           {t('otImport.upload.dragDrop', 'Glissez votre fichier CSV ici')}
         </p>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           {t('otImport.upload.orClick', 'ou cliquez pour sélectionner')}
         </p>
       </div>
@@ -324,7 +324,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
               <FileText className="h-5 w-5 text-green-600" />
             </div>
             <div>
@@ -378,7 +378,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
           ))}
         </select>
         {getMappedColumn(fieldName) && (
-          <Badge variant="outline" className="bg-green-50 text-green-700">
+          <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400">
             <Check className="h-3 w-3 mr-1" />
             {t('otImport.mapping.mapped', 'Mappé')}
           </Badge>
@@ -391,7 +391,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         {/* File info */}
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <Table className="h-5 w-5 text-blue-600" />
             </div>
             <div>
@@ -405,7 +405,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
 
         {/* Required fields */}
         <div>
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
             {t('otImport.mapping.requiredFields', 'Champs obligatoires')}
           </h3>
           <Card className="p-4">
@@ -415,7 +415,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
 
         {/* Optional fields */}
         <div>
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
             {t('otImport.mapping.optionalFields', 'Champs optionnels')}
           </h3>
           <Card className="p-4 max-h-64 overflow-y-auto">
@@ -482,12 +482,12 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
                           {row.errors.length} {t('otImport.preview.error', 'erreur(s)')}
                         </Badge>
                       ) : row.warnings.length > 0 ? (
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 gap-1">
+                        <Badge variant="outline" className="bg-amber-100 text-amber-700 dark:text-amber-400 gap-1">
                           <AlertTriangle className="h-3 w-3" />
                           {row.warnings.length} {t('otImport.preview.warning', 'avert.')}
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-green-100 text-green-700 gap-1">
+                        <Badge variant="outline" className="bg-green-100 text-green-700 dark:text-green-400 gap-1">
                           <Check className="h-3 w-3" />
                           OK
                         </Badge>
@@ -499,7 +499,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
             </table>
           </div>
           {validatedRows.length > 20 && (
-            <div className="px-4 py-2 bg-slate-50 text-sm text-slate-500 text-center">
+            <div className="px-4 py-2 bg-slate-50 text-sm text-slate-500 dark:text-slate-400 text-center">
               {t('otImport.preview.showingFirst', 'Affichage des 20 premières lignes sur {{total}}', {
                 total: validatedRows.length
               })}
@@ -513,7 +513,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
   // Render import progress
   const renderImportStep = () => (
     <div className="flex flex-col items-center justify-center py-12">
-      <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
+      <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400 mb-4" />
       <p className="text-lg font-medium">
         {t('otImport.importing.title', 'Import en cours...')}
       </p>
@@ -569,7 +569,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         {/* Error details */}
         {importResult.errors.length > 0 && (
           <Card className="p-4">
-            <h4 className="font-medium text-red-700 mb-2">
+            <h4 className="font-medium text-red-700 dark:text-red-400 mb-2">
               {t('otImport.complete.errorDetails', 'Détail des erreurs')}
             </h4>
             <div className="max-h-40 overflow-y-auto space-y-2">

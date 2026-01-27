@@ -33,7 +33,7 @@ export const NotificationCenter: React.FC = () => {
         <div className="relative" ref={containerRef}>
             <button
                 onClick={toggle}
-                className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label={unreadCount > 0 ? `Notifications - ${unreadCount} non lues` : "Notifications"}
             >
                 <Bell className="h-5 w-5" aria-hidden="true" />
@@ -64,7 +64,7 @@ export const NotificationCenter: React.FC = () => {
                                         className={cn(
                                             "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
                                             filter === 'unread'
-                                                ? "bg-slate-100/50 text-slate-700 dark:bg-white/10 dark:text-slate-200"
+                                                ? "bg-slate-100/50 text-slate-700 dark:text-slate-300 dark:bg-white/10 dark:text-slate-200"
                                                 : "text-slate-500 hover:bg-slate-100/50 dark:hover:bg-white/5"
                                         )}
                                     >
@@ -75,7 +75,7 @@ export const NotificationCenter: React.FC = () => {
                                 <Tooltip content="Tout marquer comme lu">
                                     <button
                                         onClick={() => markAllAsRead()}
-                                        className="p-1.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <CheckCheck className="h-4 w-4" />
                                     </button>
@@ -93,7 +93,7 @@ export const NotificationCenter: React.FC = () => {
                                 </div>
                             ) : filteredNotifications.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-                                    <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-800/50 flex items-center justify-center mb-3">
+                                    <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-800 flex items-center justify-center mb-3">
                                         <Bell className="h-6 w-6 text-brand-600 dark:text-brand-400" />
                                     </div>
                                     <p className="text-slate-900 dark:text-white font-medium mb-1">Aucune notification</p>

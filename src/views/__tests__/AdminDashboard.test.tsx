@@ -93,10 +93,10 @@ describe('AdminDashboard', () => {
         render(<AdminDashboard />);
 
         const overviewTab = screen.getByText('Overview');
-        expect(overviewTab.className).toContain('bg-brand-500/10');
+        expect(overviewTab.className).toContain('bg-brand-50');
 
         fireEvent.click(screen.getByText('Tenants'));
         const tenantsTab = screen.getByText('Tenants');
-        expect(tenantsTab.className).toContain('bg-brand-500/10');
+        expect(tenantsTab.className).toContain('bg-brand-50');
     });
 });

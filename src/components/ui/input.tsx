@@ -22,8 +22,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     // Hover states for better feedback
                     "hover:border-primary/30 hover:bg-background/80 transition-colors duration-200",
-                    // Disabled state
-                    "disabled:cursor-not-allowed disabled:opacity-50",
+                    // Disabled state - WCAG AAA: using colors instead of opacity for proper contrast
+                    "disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:border-slate-200",
+                    "dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700",
                     // Dark mode explicit styles - improved placeholder contrast
                     "dark:bg-slate-800/50 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500",
                     "dark:hover:border-primary/40 dark:hover:bg-slate-800/70",

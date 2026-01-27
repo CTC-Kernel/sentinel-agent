@@ -58,6 +58,15 @@ const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDe
 // SMSI Program Module (ISO 27003)
 const SMSIProgram = React.lazy(() => import('../../views/SMSIProgram').then(module => ({ default: module.SMSIProgramView })));
 
+// Training Module (NIS2 Art. 21.2g)
+const Training = React.lazy(() => import('../../views/Training'));
+
+// Certificates Module (NIS2 Art. 21.2h)
+const Certificates = React.lazy(() => import('../../views/Certificates'));
+
+// Access Review Module (NIS2 Art. 21.2i)
+const AccessReview = React.lazy(() => import('../../views/AccessReview'));
+
 // DORA ICT Register Module (DORA Art. 28)
 
 
@@ -108,6 +117,9 @@ export const AnimatedRoutes: React.FC = () => {
                     </RoleGuardComponent>
                 } />
                 <Route path="/audits" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Audits /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/training" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Training /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/certificates" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Certificates /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/access-review" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><AccessReview /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/team" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
                         <AnimatedPage><Team /></AnimatedPage>

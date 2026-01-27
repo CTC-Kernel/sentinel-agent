@@ -63,12 +63,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           as={React.Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
-          enterTo="opacity-100"
+          enterTo="opacity-70"
           leave="ease-in duration-200"
-          leaveFrom="opacity-100"
+          leaveFrom="opacity-70"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" />
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -77,9 +77,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               as={React.Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              enterTo="opacity-70 translate-y-0 sm:scale-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveFrom="opacity-70 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
@@ -163,7 +163,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                     onClick={onClose}
                     disabled={loading}
                     ref={cancelButtonRef}
@@ -175,7 +175,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     type="button"
                     variant="ghost"
                     isLoading={loading}
-                    className={`flex-1 py-4 h-auto rounded-none text-sm font-bold ${buttonClass} transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}
+                    className={`flex-1 py-4 h-auto rounded-none text-sm font-bold ${buttonClass} transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 flex items-center justify-center gap-2`}
                     onClick={() => { onConfirm(); if (closeOnConfirm) onClose(); }}
                   >
                     {confirmText}

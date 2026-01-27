@@ -80,9 +80,9 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" />
@@ -94,9 +94,9 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-100 translate-y-0 sm:scale-100"
+                            enterTo="opacity-70 translate-y-0 sm:scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                            leaveFrom="opacity-70 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
                             <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-white/20 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl flex flex-col max-h-[85vh]">
@@ -142,7 +142,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                 <div className="flex-1 overflow-y-auto p-6">
                                     {activeTab === 'general' ? (
                                         <div className="space-y-6 sm:space-y-8">
-                                            <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-200 dark:border-blue-800 flex items-start gap-3">
+                                            <div className="bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900 p-4 rounded-xl border border-blue-200 dark:border-blue-800 dark:border-blue-800 flex items-start gap-3">
                                                 <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                                                 <div className="text-sm text-blue-800 dark:text-blue-300">
                                                     <p className="font-bold mb-1">Confidentialité par défaut</p>
@@ -166,7 +166,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                                 aria-label={`Définir la portée sur ${option.label}`}
                                                                 onClick={() => handleScopeChange(option.id as SharingPreferences['defaultScope'])}
                                                                 className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${settings.defaultScope === option.id
-                                                                    ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 ring-1 ring-brand-500'
+                                                                    ? 'border-brand-500 bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-300 ring-1 ring-brand-500'
                                                                     : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                                                             >
                                                                 <option.icon className="h-5 w-5" />
@@ -261,7 +261,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                             </div>
                                                             <div>
                                                                 <div className="font-bold text-slate-900 dark:text-white">{partner.targetOrgName}</div>
-                                                                <div className="text-xs text-slate-500 capitalize flex items-center gap-1">
+                                                                <div className="text-xs text-slate-500 dark:text-slate-400 capitalize flex items-center gap-1">
                                                                     {partner.status === 'trusted' && <Shield className="h-3 w-3 text-green-500" />}
                                                                     Status: {partner.status === 'pending' ? 'En attente' : partner.status === 'trusted' ? 'Approuvé' : 'Bloqué'}
                                                                 </div>
@@ -270,21 +270,21 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                         <div className="flex items-center gap-2">
                                                             {partner.status === 'pending' && (
                                                                 <>
-                                                                    <button type="button" aria-label="Approuver le partenaire" onClick={() => onTrustAction(partner.id, 'trust')} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100" title="Approuver">
+                                                                    <button type="button" aria-label="Approuver le partenaire" onClick={() => onTrustAction(partner.id, 'trust')} className="p-2 bg-green-50 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100" title="Approuver">
                                                                         <Check className="h-4 w-4" />
                                                                     </button>
-                                                                    <button type="button" aria-label="Bloquer le partenaire" onClick={() => onTrustAction(partner.id, 'block')} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100" title="Bloquer">
+                                                                    <button type="button" aria-label="Bloquer le partenaire" onClick={() => onTrustAction(partner.id, 'block')} className="p-2 bg-red-50 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100" title="Bloquer">
                                                                         <X className="h-4 w-4" />
                                                                     </button>
                                                                 </>
                                                             )}
                                                             {partner.status === 'trusted' && (
-                                                                <button type="button" aria-label="Révoquer le statut de confiance" onClick={() => onTrustAction(partner.id, 'remove')} className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50">
+                                                                <button type="button" aria-label="Révoquer le statut de confiance" onClick={() => onTrustAction(partner.id, 'remove')} className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30">
                                                                     Révoquer
                                                                 </button>
                                                             )}
                                                             {partner.status === 'blocked' && (
-                                                                <button type="button" aria-label="Débloquer le partenaire" onClick={() => onTrustAction(partner.id, 'trust')} className="px-3 py-1.5 text-xs font-medium text-green-600 border border-green-200 rounded-lg hover:bg-green-50">
+                                                                <button type="button" aria-label="Débloquer le partenaire" onClick={() => onTrustAction(partner.id, 'trust')} className="px-3 py-1.5 text-xs font-medium text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30">
                                                                     Débloquer
                                                                 </button>
                                                             )}

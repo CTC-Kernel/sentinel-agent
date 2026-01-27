@@ -131,7 +131,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                     variant="ghost"
                     type="button"
                     onClick={handleAddSection}
-                    className="flex items-center text-sm font-medium text-brand-600 bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100"
+                    className="flex items-center text-sm font-medium text-brand-600 bg-brand-50 dark:bg-brand-800 hover:bg-brand-100"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Ajouter une Section
@@ -144,7 +144,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                             type="button"
                             onClick={onCancel}
                             disabled={isSubmitting}
-                            className="text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
                         >
                             Annuler
                         </Button>

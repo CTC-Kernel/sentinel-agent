@@ -264,7 +264,7 @@ const RootCauseNodeHighlight: React.FC<RootCauseNodeHighlightProps> = React.memo
           distanceFactor={15}
           style={{ pointerEvents: 'none' }}
         >
-          <div className="bg-slate-900/90 rounded-lg px-2 py-1 text-[10px] text-white/70 whitespace-nowrap border border-white/10">
+          <div className="bg-slate-900/90 rounded-lg px-2 py-1 text-[11px] text-white/70 whitespace-nowrap border border-white/10">
             {contributingFactors.slice(0, 2).join(' | ')}
           </div>
         </Html>

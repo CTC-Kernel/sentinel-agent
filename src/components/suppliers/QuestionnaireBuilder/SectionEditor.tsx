@@ -59,7 +59,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
                     type="button"
                     aria-label="Supprimer la section"
                     onClick={handleRemoveSection}
-                    className="ml-4 text-muted-foreground hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="ml-4 text-muted-foreground hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                     <Trash2 className="w-5 h-5" />
                 </button>
@@ -80,7 +80,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
                     type="button"
                     aria-label="Ajouter une Question"
                     onClick={handleAddQuestion}
-                    className="text-sm text-brand-600 font-medium hover:text-brand-700 flex items-center mt-2 px-2 py-1 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-colors w-fit"
+                    className="text-sm text-brand-600 font-medium hover:text-brand-700 flex items-center mt-2 px-2 py-1 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900 transition-colors w-fit"
                 >
                     <Plus className="w-3 h-3 mr-1" />
                     Ajouter une Question

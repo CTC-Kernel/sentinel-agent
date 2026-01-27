@@ -37,10 +37,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
                     <MasterpieceBackground />
 
-                    <div className="glass-panel p-12 md:p-16 rounded-5xl max-w-lg w-full mx-6 text-center shadow-2xl border border-white/40 dark:border-white/5 relative z-10 transition-all duration-500">
+                    <div className="glass-panel p-12 md:p-16 rounded-3xl max-w-lg w-full mx-6 text-center shadow-2xl border border-white/40 dark:border-white/5 relative z-10 transition-all duration-500">
                         <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner ring-1 ring-white/10 ${isPermissionError
-                            ? 'bg-amber-500/10 text-amber-500'
-                            : 'bg-red-500/10 text-red-500'
+                            ? 'bg-amber-50 text-amber-500'
+                            : 'bg-red-50 text-red-500'
                             }`}>
                             <Shield className="h-10 w-10" />
                         </div>
@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             <Button
                                 variant="ghost"
                                 onClick={() => window.location.href = '/'} // Intentional: full reload to recover from error state
-                                className="w-full text-base py-6 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                                className="w-full text-base py-6 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-all"
                             >
                                 <Home className="mr-2 h-5 w-5" />
                                 Retour au tableau de bord

@@ -130,7 +130,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className={cn('p-2 rounded-xl', isError ? 'bg-error-100 dark:bg-error-900/30' : isComplete ? 'bg-success-100 dark:bg-success-900/30' : 'bg-brand-100 dark:bg-brand-900/30')}>
+                    <div className={cn('p-2 rounded-xl', isError ? 'bg-error-100 dark:bg-error-900/30' : isComplete ? 'bg-success-100 dark:bg-success-900/30' : 'bg-brand-100 dark:bg-brand-900')}>
                         <StatusIcon className={cn('h-5 w-5', statusColor, !isComplete && !isError && 'animate-spin')} />
                     </div>
                     <div>
@@ -229,7 +229,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
                             <div className={cn(
                                 'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-colors',
                                 step.status === 'completed' && 'bg-success-100 dark:bg-success-900/30 text-success-600',
-                                step.status === 'processing' && 'bg-brand-100 dark:bg-brand-900/30 text-brand-600',
+                                step.status === 'processing' && 'bg-brand-100 dark:bg-brand-900 text-brand-600',
                                 step.status === 'error' && 'bg-error-100 dark:bg-error-900/30 text-error-600',
                                 step.status === 'pending' && 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                             )}>

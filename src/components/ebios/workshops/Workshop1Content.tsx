@@ -193,20 +193,20 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
     <div className="space-y-6">
       {/* Missions Section */}
       <div className="animate-fade-in-up delay-100">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-500/20">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-200">
           <button
             onClick={() => toggleSection('missions')}
             className="w-full flex items-center justify-between group"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-brand-50 text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
                 <Building2 className="w-6 h-6" />
               </div>
               <div className="text-left">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                   {t('ebios.workshop1.missions')}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   {data.scope.missions.length} {t('ebios.workshop1.missionCount')}
                 </p>
               </div>
@@ -231,7 +231,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   className={cn(
                     "group p-4 rounded-2xl border transition-all duration-200",
                     "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-brand-500/30 hover:shadow-md hover:-translate-y-0.5"
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
                   )}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -240,7 +240,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         {mission.name}
                       </h4>
                       {mission.description && (
-                        <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                           {mission.description}
                         </p>
                       )}
@@ -260,7 +260,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddMission}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-100/50 dark:hover:bg-brand-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-brand-600 font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                     <Plus className="w-4 h-4" />
@@ -288,7 +288,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                   {t('ebios.workshop1.essentialAssets')}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   {data.scope.essentialAssets.length} {t('ebios.workshop1.assetCount')}
                 </p>
               </div>
@@ -322,12 +322,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                           {asset.name}
                         </h4>
-                        <span className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                           {t(`ebios.assetTypes.${asset.type}`)}
                         </span>
                       </div>
                       {asset.description && (
-                        <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                           {asset.description}
                         </p>
                       )}
@@ -351,7 +351,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddEssentialAsset}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-violet-500/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-violet-600 font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-violet-500/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-violet-600 font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors">
                     <Plus className="w-4 h-4" />
@@ -379,7 +379,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
                   {t('ebios.workshop1.supportingAssets')}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   {data.scope.supportingAssets.length} {t('ebios.workshop1.assetCount')}
                 </p>
               </div>
@@ -412,12 +412,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                         {asset.name}
                       </h4>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                         {t(`ebios.supportingAssetTypes.${asset.type}`)}
                       </span>
                       {asset.linkedAssetId && (
                         <span
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-info-bg text-info-text border border-info-border"
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-info-bg text-info-text border border-info-border"
                           title={t('ebios.workshop1.linkedToInventory', 'Lié à l\'inventaire')}
                         >
                           <Link2 className="w-3 h-3" />
@@ -426,7 +426,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       )}
                     </div>
                     {asset.description && (
-                      <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                         {asset.description}
                       </p>
                     )}
@@ -442,7 +442,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleAddSupportingAsset}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-400/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-slate-700 font-medium group"
+                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-400/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 transition-colors">
                       <Plus className="w-4 h-4" />
@@ -451,7 +451,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   </button>
                   <button
                     onClick={() => setShowImportModal(true)}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-100/50 dark:hover:bg-brand-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-brand-600 font-medium group"
+                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                       <Download className="w-4 h-4" />
@@ -480,7 +480,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-error-text transition-colors">
                   {t('ebios.workshop1.fearedEvents')}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   {data.fearedEvents.length} {t('ebios.workshop1.eventCount')}
                 </p>
               </div>
@@ -515,7 +515,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                           {event.name}
                         </h4>
                         <span className={cn(
-                          "px-2 py-0.5 rounded-md text-[10px] uppercase font-bold border",
+                          "px-2 py-0.5 rounded-md text-[11px] uppercase font-bold border",
                           event.impactType === 'confidentiality' && "bg-info-bg text-info-text border-info-border",
                           event.impactType === 'integrity' && "bg-success-bg text-success-text border-success-border",
                           event.impactType === 'availability' && "bg-warning-bg text-warning-text border-warning-border"
@@ -524,7 +524,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         </span>
                       </div>
                       {event.description && (
-                        <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                           {event.description}
                         </p>
                       )}
@@ -555,7 +555,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddFearedEvent}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-error-text font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-error-text font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                     <Plus className="w-4 h-4" />
@@ -583,7 +583,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-success-text transition-colors">
                   {t('ebios.workshop1.securityBaseline')}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   {data.securityBaseline.implementedMeasures}/{data.securityBaseline.totalMeasures} {t('ebios.workshop1.measuresImplemented')}
                 </p>
               </div>

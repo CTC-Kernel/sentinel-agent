@@ -54,12 +54,12 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                     as={Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" />
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -68,9 +68,9 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                             as={Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-100 translate-y-0 sm:scale-100"
+                            enterTo="opacity-70 translate-y-0 sm:scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                            leaveFrom="opacity-70 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
                             <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
@@ -85,7 +85,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                                     <div className="space-y-6">
                                         {/* Title Input */}
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 Titre du rapport
                                             </label>
                                             <input
@@ -104,7 +104,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
 
                                             <button
                                                 onClick={() => toggleSection('includeRisks')}
-                                                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeRisks ? 'border-red-500/50 bg-red-50 dark:bg-red-900/10' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
+                                                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeRisks ? 'border-red-2000 bg-red-50 dark:bg-red-50 dark:bg-red-900' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <ShieldAlert className={`h-5 w-5 ${sections.includeRisks ? 'text-red-500' : 'text-slate-400'}`} />
@@ -130,7 +130,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
 
                                             <button
                                                 onClick={() => toggleSection('includeProjects')}
-                                                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeProjects ? 'border-blue-500/50 bg-blue-50 dark:bg-blue-900/10' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
+                                                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeProjects ? 'border-blue-2000 bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <Activity className={`h-5 w-5 ${sections.includeProjects ? 'text-blue-500' : 'text-slate-400'}`} />
@@ -160,7 +160,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                                     <Button
                                         type="button"
                                         variant="ghost"
-                                        className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                        className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors"
                                         onClick={onClose}
                                     >
                                         Annuler

@@ -263,9 +263,9 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
@@ -277,12 +277,12 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
+                            enterTo="opacity-70 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
+                            leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-5xl bg-white dark:bg-slate-900 p-0 text-left align-middle shadow-2xl transition-all">
+                            <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-0 text-left align-middle shadow-2xl transition-all">
                                 <div className="relative">
                                     {/* Header */}
                                     <div className="relative h-32 bg-gradient-to-br from-brand-600 to-purple-700">
@@ -398,9 +398,9 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                         {recentActivity.map((activity: RecentActivity, index: number) => (
                                                             <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
                                                                 <div className={`p-2 rounded-lg ${
-                                                                    activity.type === 'threat' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
+                                                                    activity.type === 'threat' ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/20' :
                                                                     activity.type === 'verification' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' :
-                                                                    'bg-blue-100 text-blue-600 dark:bg-blue-900/20'
+                                                                    'bg-blue-100 text-blue-600 dark:text-blue-400 dark:bg-blue-900/20'
                                                                 }`}>
                                                                     <Activity className="h-4 w-4" />
                                                                 </div>

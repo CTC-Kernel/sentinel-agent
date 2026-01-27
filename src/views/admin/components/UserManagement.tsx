@@ -81,7 +81,7 @@ export const UserManagement: React.FC = () => {
                     <button
                         type="submit"
                         disabled={loading || !searchTerm}
-                        className="absolute right-2 top-2 bottom-2 px-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:hover:bg-brand-600 text-white rounded-lg font-medium transition-colors"
+                        className="absolute right-2 top-2 bottom-2 px-4 bg-brand-600 hover:bg-brand-500 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:hover:bg-brand-600 text-white rounded-lg font-medium transition-colors"
                     >
                         {loading ? 'Searching...' : 'Search'}
                     </button>
@@ -117,7 +117,7 @@ export const UserManagement: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                                     <button
                                         className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
                                         title="Impersonate User"
@@ -136,7 +136,7 @@ export const UserManagement: React.FC = () => {
                         ))}
 
                         {users.length === 0 && !loading && (
-                            <div className="text-center py-12 text-slate-500 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                            <div className="text-center py-12 text-slate-500 dark:text-slate-400 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
                                 No users found matching "{searchTerm}"
                             </div>
                         )}

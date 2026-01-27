@@ -109,7 +109,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                     {title}
                 </p>
                 {subtitle && (
-                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500 mt-0.5">
                         {subtitle}
                     </p>
                 )}
@@ -246,7 +246,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                 <button
                     onClick={() => loadData(true)}
                     disabled={isRefreshing}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                 >
                     <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                     {t('common.refresh')}
@@ -325,7 +325,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                                 {t('vendorConcentration.spofAlerts.title')}
                             </h3>
                             {spofSummary && spofSummary.totalSPOFs > 0 && (
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600">
                                     {spofSummary.totalSPOFs} {t('vendorConcentration.spofAlerts.alertCount')}
                                 </span>
                             )}
@@ -394,7 +394,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                             </p>
                         </div>
                         {recommendations.highPriority > 0 && (
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 dark:bg-red-900/30 text-red-600">
                                 {recommendations.highPriority} {t('vendorConcentration.recommendations.highPriority')}
                             </span>
                         )}

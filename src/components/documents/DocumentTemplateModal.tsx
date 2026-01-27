@@ -76,9 +76,9 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-100"
+                    enterTo="opacity-70"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
+                    leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
@@ -90,9 +90,9 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
+                            enterTo="opacity-70 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
+                            leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
@@ -102,7 +102,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                         <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white">
                                             Créer depuis un modèle
                                         </Dialog.Title>
-                                        <p className="text-sm text-slate-500 mt-1">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                             Sélectionnez un modèle de document réglementaire
                                         </p>
                                     </div>
@@ -123,7 +123,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                             className={cn(
                                                 "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                                                 selectedCategory === null
-                                                    ? "bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300"
+                                                    ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                                                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                             )}
                                         >
@@ -136,7 +136,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                 className={cn(
                                                     "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                                                     selectedCategory === category
-                                                        ? "bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300"
+                                                        ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                                                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                                 )}
                                             >
@@ -178,7 +178,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                                 className={cn(
                                                                     "text-left p-4 rounded-xl border transition-all",
                                                                     previewTemplate?.id === template.id
-                                                                        ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20 ring-2 ring-brand-500"
+                                                                        ? "border-brand-500 bg-brand-50 dark:bg-brand-800 ring-2 ring-brand-500"
                                                                         : "border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                                                                 )}
                                                             >
@@ -195,7 +195,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                                         <h4 className="font-medium text-slate-900 dark:text-white text-sm truncate">
                                                                             {template.title}
                                                                         </h4>
-                                                                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                                                                             {template.description}
                                                                         </p>
                                                                         <div className="flex items-center gap-2 mt-2">
@@ -230,7 +230,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                 <h4 className="font-medium text-slate-900 dark:text-white mb-2">
                                                     {previewTemplate.title}
                                                 </h4>
-                                                <p className="text-sm text-slate-500 mb-4">
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                                                     {previewTemplate.description}
                                                 </p>
                                                 <div className="space-y-2 text-xs">

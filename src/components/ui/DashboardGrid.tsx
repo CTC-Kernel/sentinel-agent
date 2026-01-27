@@ -155,7 +155,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       }}
       className={cn(
         "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden",
-        isDragging && "shadow-2xl ring-2 ring-brand-500/20"
+        isDragging && "shadow-2xl ring-2 ring-brand-300"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -177,7 +177,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           {widget.resizable && (
             <button
               onClick={() => setShowControls(!showControls)}
-              className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded"
+              className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-slate-700 rounded"
             >
               <Settings className="w-4 h-4 text-muted-foreground" />
             </button>

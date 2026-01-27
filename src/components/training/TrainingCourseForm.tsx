@@ -424,7 +424,7 @@ export const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({
         <Button
           type="submit"
           isLoading={isLoading}
-          className="px-8 shadow-elevation-sm shadow-primary"
+          className="px-8 shadow-sm shadow-primary"
         >
           {initialData ? t('common.save') : t('training.course.create')}
         </Button>

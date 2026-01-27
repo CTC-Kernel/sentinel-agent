@@ -278,7 +278,7 @@ export const OrganizationSettings: React.FC = () => {
                                             currentOrg?.subscription?.planId === 'enterprise' ? t('settings.plans.enterprise') :
                                                 t('settings.plans.discovery')}
                                     </h2>
-                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
                                         {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
                                     </span>
                                 </div>
@@ -302,11 +302,11 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Admin Details */}
             {hasPermission(user, 'Settings', 'manage') && (
-                <GlassCard className="p-0 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <GlassCard className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400">
+                            <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-brand-600 dark:text-brand-400">
                                 <Building className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.admin')}</h3>
@@ -353,13 +353,13 @@ export const OrganizationSettings: React.FC = () => {
                                         placeholder="Ex: 549300EXAMPLE00LEI90"
                                     />
                                     <div className="space-y-1">
-                                        <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                        <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                             {t('settings.country', { defaultValue: 'Pays (UE)' })}
                                         </label>
                                         <select
                                             id="country-select"
                                             {...orgForm.register('country')}
-                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 transition-all"
+                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 transition-all"
                                         >
                                             <option value="">{t('settings.selectCountry', { defaultValue: 'Sélectionner un pays' })}</option>
                                             <option value="AT">Autriche</option>
@@ -405,7 +405,7 @@ export const OrganizationSettings: React.FC = () => {
                                 <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 {t('settings.enableAI', { defaultValue: 'Activer Sentinel AI' })}
                                             </label>
                                             <p className="text-xs text-slate-500 dark:text-muted-foreground max-w-md">
@@ -422,7 +422,7 @@ export const OrganizationSettings: React.FC = () => {
                                         <>
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                         {t('settings.dataSanitization', { defaultValue: 'Anonymisation des Données' })}
                                                     </label>
                                                     <p className="text-xs text-slate-500 dark:text-muted-foreground max-w-md">
@@ -437,7 +437,7 @@ export const OrganizationSettings: React.FC = () => {
 
                                             <div className="flex items-center justify-between opacity-80">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                         {t('settings.aiConsent', { defaultValue: 'Consentement d\'analyse' })}
                                                     </label>
                                                     <p className="text-xs text-slate-500 dark:text-muted-foreground max-w-md">
@@ -466,7 +466,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* User Management */}
             {user && hasPermission(user, 'User', 'manage') && (
-                <GlassCard className="p-0 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <GlassCard className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -487,7 +487,7 @@ export const OrganizationSettings: React.FC = () => {
                                 placeholder={t('settings.searchMembers')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-2 bg-brand-50/50 dark:bg-white/5 border border-brand-200/50 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 w-48 transition-all focus:w-64 placeholder:text-slate-400"
+                                className="pl-9 pr-4 py-2 bg-brand-50 dark:bg-white/5 border border-brand-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 w-48 transition-all focus:w-64 placeholder:text-slate-400"
                             />
                         </div>
                     </div>

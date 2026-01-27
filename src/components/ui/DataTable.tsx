@@ -64,35 +64,45 @@ export function DataTable<TData extends { id: string }, TValue>({
         const selectionColumn: ColumnDef<TData, unknown> = {
             id: 'select',
             header: ({ table }) => (
-                <div className="px-1" onClick={(e) => e.stopPropagation()} role="presentation">
-                    <input
-                        id="select-all-rows"
-                        aria-label="Sélectionner toutes les lignes"
-                        checked={table.getIsAllPageRowsSelected()}
-                        onChange={table.getToggleAllPageRowsSelectedHandler()}
-                        name="select-all-rows"
-                        type="checkbox"
-                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
-                    />
+                <div className="px-1 py-1" onClick={(e) => e.stopPropagation()} role="presentation">
+                    <label className="inline-flex items-center justify-center min-w-[24px] min-h-[24px] cursor-pointer">
+                        <input
+                            id="select-all-rows"
+                            aria-label="Sélectionner toutes les lignes de cette page"
+                            checked={table.getIsAllPageRowsSelected()}
+                            onChange={table.getToggleAllPageRowsSelectedHandler()}
+                            name="select-all-rows"
+                            type="checkbox"
+                            className="w-5 h-5 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-400"
+                        />
+                    </label>
                 </div>
             ),
-            cell: ({ row }) => (
-                <div className="px-1" onClick={(e) => e.stopPropagation()} role="presentation">
-                    <input
-                        id={`select-row-${row.id}`}
-                        aria-label={`Sélectionner la ligne ${row.index + 1}`}
-                        checked={row.getIsSelected()}
-                        onChange={row.getToggleSelectedHandler()}
-                        name={`select-row-${row.id}`}
-                        type="checkbox"
-                        disabled={!row.getCanSelect()}
-                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
-                    />
-                </div>
-            ),
+            cell: ({ row }) => {
+                // Get a meaningful identifier from the row data
+                const rowData = row.original as Record<string, unknown>;
+                const rowIdentifier = (rowData.name || rowData.title || rowData.code || rowData.email || `élément ${row.index + 1}`) as string;
+
+                return (
+                    <div className="px-1 py-1" onClick={(e) => e.stopPropagation()} role="presentation">
+                        <label className="inline-flex items-center justify-center min-w-[24px] min-h-[24px] cursor-pointer">
+                            <input
+                                id={`select-row-${row.id}`}
+                                aria-label={`Sélectionner ${rowIdentifier}`}
+                                checked={row.getIsSelected()}
+                                onChange={row.getToggleSelectedHandler()}
+                                name={`select-row-${row.id}`}
+                                type="checkbox"
+                                disabled={!row.getCanSelect()}
+                                className="w-5 h-5 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:border-slate-600"
+                            />
+                        </label>
+                    </div>
+                );
+            },
             enableSorting: false,
             enableHiding: false,
-            size: 40,
+            size: 48,
         };
 
         return [selectionColumn, ...columns];
@@ -160,7 +170,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             onChange={(e) => setGlobalFilter(e.target.value)}
                             type="text"
                             placeholder="Rechercher..."
-                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-2xl text-sm focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-2xl text-sm focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
                         />
                     </div>
                 )}
@@ -200,7 +210,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-5xl glass-premium overflow-hidden">
+            <div className="w-full overflow-x-auto rounded-3xl glass-premium overflow-hidden">
                 <table
                     className="w-full"
                     role="table"
@@ -345,7 +355,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                         size="icon"
                                         className={cn(
                                             "w-10 h-10 rounded-lg font-bold transition-colors",
-                                            currentPage !== pageNum && "hover:bg-slate-50 dark:hover:bg-slate-700"
+                                            currentPage !== pageNum && "hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-slate-700"
                                         )}
                                     >
                                         {pageNum}

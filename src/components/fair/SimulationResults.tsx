@@ -256,14 +256,14 @@ export const SimulationResults: React.FC<SimulationResultsProps> = ({
 
       {/* Warnings */}
       {results.warnings && results.warnings.length > 0 && (
-        <Card className="p-4 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+        <Card className="p-4 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800 dark:border-amber-800">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="font-medium text-amber-800 dark:text-amber-200">
                 {t('fair.results.warnings', 'Points d\'attention')}
               </p>
-              <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+              <ul className="text-sm text-amber-700 dark:text-amber-400 dark:text-amber-300 space-y-1">
                 {results.warnings.map((warning, i) => (
                   <li key={i} className="flex items-center gap-2">
                     <ChevronRight className="h-3 w-3" />
@@ -463,8 +463,8 @@ export const SimulationResults: React.FC<SimulationResultsProps> = ({
         </h4>
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950">
-            <p className="text-sm text-amber-600 dark:text-amber-400">CVaR 95%</p>
-            <p className="text-xl font-bold text-amber-700 dark:text-amber-300">
+            <p className="text-sm text-amber-600 dark:text-amber-400 dark:text-amber-400">CVaR 95%</p>
+            <p className="text-xl font-bold text-amber-700 dark:text-amber-400 dark:text-amber-300">
               {formatCurrency(results.valueAtRisk.cvar95, currency)}
             </p>
             <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-1">
@@ -473,7 +473,7 @@ export const SimulationResults: React.FC<SimulationResultsProps> = ({
           </div>
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950">
             <p className="text-sm text-red-600 dark:text-red-400">CVaR 99%</p>
-            <p className="text-xl font-bold text-red-700 dark:text-red-300">
+            <p className="text-xl font-bold text-red-700 dark:text-red-400 dark:text-red-300">
               {formatCurrency(results.valueAtRisk.cvar99, currency)}
             </p>
             <p className="text-xs text-red-600/70 dark:text-red-400/70 mt-1">

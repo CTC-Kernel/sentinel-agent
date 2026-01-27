@@ -63,7 +63,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                 className="space-y-6"
             >
                 {/* Skeleton for AuditScoreCard */}
-                <div className="glass-premium p-4 sm:p-6 rounded-5xl animate-pulse">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl animate-pulse">
                     <div className="h-40 bg-slate-200 dark:bg-slate-700/50 rounded-2xl"></div>
                 </div>
                 {/* Skeleton for AuditCharts */}
@@ -85,7 +85,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                 <EmptyChartState
                     message="Aucun audit pour le moment"
                     description="Commencez par planifier un audit pour voir apparaître des métriques et des analyses détaillées."
-                    className="glass-premium rounded-5xl min-h-[400px]"
+                    className="glass-premium rounded-3xl min-h-[400px]"
                     variant="default"
                     icon={<CheckCircle2 className="h-10 w-10 text-brand-500" />}
                 />

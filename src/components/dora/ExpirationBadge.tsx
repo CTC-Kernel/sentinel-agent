@@ -151,8 +151,8 @@ export const ExpirationAlertBanner: React.FC<ExpirationAlertBannerProps> = ({
             className={cn(
                 'flex items-center justify-between p-4 rounded-xl border',
                 isUrgent
-                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 dark:border-red-800'
+                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 dark:border-amber-800',
                 className
             )}
         >

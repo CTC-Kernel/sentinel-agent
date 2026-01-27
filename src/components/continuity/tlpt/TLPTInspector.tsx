@@ -57,7 +57,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
                         >
                             <Trash className="h-4 w-4" />
                         </Button>

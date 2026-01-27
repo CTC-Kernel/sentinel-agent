@@ -305,7 +305,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
       )}>
         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
         <div className="relative z-10 flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center mb-4">
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
@@ -329,7 +329,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
             <Shield className="w-5 h-5 text-brand-600 dark:text-brand-400" />
           </div>
           <div>

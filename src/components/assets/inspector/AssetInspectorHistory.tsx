@@ -17,7 +17,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
                     <History className="h-4 w-4 mr-2" /> Historique DICP
                 </h3>
                 {!selectedAsset.history || selectedAsset.history.length === 0 ? (
-                    <p className="text-sm text-slate-500 italic">Aucune modification enregistrée.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">Aucune modification enregistrée.</p>
                 ) : (
                     <div className="space-y-4">
                         {selectedAsset.history.slice().reverse().map((h, i) => (
@@ -28,25 +28,25 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
                                 </div>
                                 <div className="grid grid-cols-3 gap-2 text-xs">
                                     <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                        <span className="text-[10px] text-slate-500 uppercase">Confidentialité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Confidentialité</span>
                                         <div className="flex items-center gap-1 mt-1">
-                                            <span className="line-through opacity-50">{h.previousConfidentiality}</span>
+                                            <span className="line-through opacity-60">{h.previousConfidentiality}</span>
                                             <span>→</span>
                                             <span className="font-bold">{h.newConfidentiality}</span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                        <span className="text-[10px] text-slate-500 uppercase">Intégrité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Intégrité</span>
                                         <div className="flex items-center gap-1 mt-1">
-                                            <span className="line-through opacity-50">{h.previousIntegrity}</span>
+                                            <span className="line-through opacity-60">{h.previousIntegrity}</span>
                                             <span>→</span>
                                             <span className="font-bold">{h.newIntegrity}</span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                        <span className="text-[10px] text-slate-500 uppercase">Disponibilité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase">Disponibilité</span>
                                         <div className="flex items-center gap-1 mt-1">
-                                            <span className="line-through opacity-50">{h.previousAvailability}</span>
+                                            <span className="line-through opacity-60">{h.previousAvailability}</span>
                                             <span>→</span>
                                             <span className="font-bold">{h.newAvailability}</span>
                                         </div>

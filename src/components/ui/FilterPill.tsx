@@ -16,11 +16,11 @@ export const FilterPill: React.FC<FilterPillProps> = ({
     color = 'brand'
 }) => {
     const colorStyles = {
-        brand: 'bg-brand-50 text-brand-700 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-800/50',
+        brand: 'bg-brand-50 text-brand-700 border-brand-100 dark:bg-brand-800 dark:text-brand-400 dark:border-brand-700',
         warning: 'bg-warning-50 text-warning-700 border-warning-100 dark:bg-warning-900/20 dark:text-warning-400 dark:border-warning-800/50',
         success: 'bg-success-50 text-success-700 border-success-100 dark:bg-success-900/20 dark:text-success-400 dark:border-success-800/50',
         error: 'bg-error-50 text-error-700 border-error-100 dark:bg-error-900/20 dark:text-error-400 dark:border-error-800/50',
-        slate: 'bg-slate-50 dark:bg-slate-900 text-slate-700 border-slate-100 dark:bg-white/5 dark:text-slate-400 dark:border-white/10'
+        slate: 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-100 dark:bg-white/5 dark:text-slate-400 dark:border-white/10'
     };
 
     return (

@@ -67,12 +67,12 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
           as={React.Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
-          enterTo="opacity-100"
+          enterTo="opacity-70"
           leave="ease-in duration-200"
-          leaveFrom="opacity-100"
+          leaveFrom="opacity-70"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" />
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -81,16 +81,16 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
               as={React.Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              enterTo="opacity-70 translate-y-0 sm:scale-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveFrom="opacity-70 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
                 <div className="p-6">
                   {/* Icon */}
                   <motion.div
-                    className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
+                    className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
@@ -180,7 +180,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
                   >
-                    <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                    <p className="text-xs text-blue-700 dark:text-blue-400 dark:text-blue-300 font-medium">
                       {t(
                         'frameworks.activateInfo',
                         'Vous pourrez mapper vos contrôles existants aux exigences de ce framework et suivre votre score de conformité.'
@@ -194,7 +194,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors"
                     onClick={handleClose}
                     disabled={isLoading}
                     ref={cancelButtonRef}

@@ -63,11 +63,11 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
     return (
         <div className="space-y-6">
             {/* KPI Cards Consolidated (Threat Intel Style) */}
-            <div className="glass-premium p-6 md:p-8 rounded-5xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+            <div className="glass-premium p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
                 <div className="space-y-2 relative z-10">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                         Menaces en temps réel
                     </p>
@@ -81,30 +81,30 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
                     {/* Critical Threats Card */}
-                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20">
-                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-500 dark:hover:bg-red-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
 
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Critiques</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Critiques</span>
                             <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
                                 <AlertTriangle className="h-4 w-4" />
                             </div>
                         </div>
                         <div className="space-y-1">
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{stats.critical}</p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priorité haute</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priorité haute</p>
                         </div>
                     </div>
 
                     {/* Ransomware Card */}
-                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-brand-50/50 dark:hover:bg-brand-900/20">
-                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-brand-50 dark:hover:bg-brand-800">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
 
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">Ransomware</span>
-                            <div className="p-1.5 rounded-lg bg-brand-100/50 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400">
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">Ransomware</span>
+                            <div className="p-1.5 rounded-lg bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400">
                                 <Shield className="h-4 w-4" />
                             </div>
                         </div>
@@ -112,17 +112,17 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.ransomware}
                             </p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Campagnes</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Campagnes</p>
                         </div>
                     </div>
 
                     {/* Malware Card */}
                     <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20">
-                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
 
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Malware</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Malware</span>
                             <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
                                 <Activity className="h-4 w-4" />
                             </div>
@@ -131,7 +131,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.malware}
                             </p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Détectés</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Détectés</p>
                         </div>
                     </div>
                 </div>

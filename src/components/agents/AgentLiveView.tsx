@@ -218,7 +218,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             <h2 className="text-lg font-bold text-foreground">
                                 {agent.name || agent.hostname || agent.id.slice(0, 8)}
                             </h2>
-                            <Badge status={isActive ? 'success' : 'neutral'} className="text-[10px]">
+                            <Badge status={isActive ? 'success' : 'neutral'} className="text-[11px]">
                                 {isActive ? 'En ligne' : 'Hors ligne'}
                             </Badge>
                         </div>
@@ -277,7 +277,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                                 <Cpu className="h-4 w-4" />
                                 <span className="hidden sm:inline">Processus</span>
                                 {realtimeData && (
-                                    <Badge status="neutral" className="text-[9px] ml-1">
+                                    <Badge status="neutral" className="text-[11px] ml-1">
                                         {realtimeData.processes.length}
                                     </Badge>
                                 )}
@@ -289,7 +289,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                                 <Network className="h-4 w-4" />
                                 <span className="hidden sm:inline">Réseau</span>
                                 {realtimeData && (
-                                    <Badge status="neutral" className="text-[9px] ml-1">
+                                    <Badge status="neutral" className="text-[11px] ml-1">
                                         {realtimeData.connections.length}
                                     </Badge>
                                 )}

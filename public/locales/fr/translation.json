@@ -42,6 +42,7 @@
     "continuity": "Continuité",
     "projects": "Projets",
     "operations": "Opérations",
+    "training": "Formation & Sensibilisation",
     "retry": "Réessayer",
     "closeMenu": "Fermer le menu",
     "settings": {
@@ -170,6 +171,7 @@
       "summary": "Résumé de l'import",
       "noData": "Aucune donnée à importer"
     },
+    "pricing": "Planification & Tarifs",
     "pricingTitle": "Planification & Tarifs",
     "pricingSubtitle": "Des solutions flexibles pour sécuriser votre entreprise, de la startup au grand groupe.",
     "adminSec": "Admin & Sécurité",
@@ -1050,6 +1052,12 @@
   "pricing": {
     "title": "Plans & Tarification",
     "subtitle": "Des tarifs transparents adaptés à votre croissance.",
+    "detailed_comparison": "Comparatif détaillé",
+    "features_intro": "Toutes les fonctionnalités",
+    "features_header": "Fonctionnalités",
+    "custom_solution_title": "Solution sur Mesure",
+    "custom_solution_desc": "Besoin d'une offre adaptée à votre entreprise ?",
+    "contact_us": "Contactez-nous",
     "popular": "Populaire",
     "startFree": "Commencer Gratuitement",
     "unlimited": "Illimité",
@@ -1495,7 +1503,10 @@
     "softwareInventory": "Inventaire Logiciels",
     "threatIntel": "Threat Intel",
     "smsi": "Programme SMSI",
-    "systemHealth": "État du Système"
+    "systemHealth": "État du Système",
+    "training": "Formation",
+    "certificates": "Certificats",
+    "accessReview": "Revue des Accès"
   },
   "documents": {
     "title": "Base Documentaire",
@@ -1892,6 +1903,7 @@
     "dashboard": "Tableau de Bord",
     "findings": "Constats",
     "methods": "Méthodes & Ateliers",
+    "auditTrail": "Journal d'audit",
     "exports": "Exports",
     "exportCSV": "Export CSV",
     "exportCalendar": "Export Calendrier",
@@ -4411,10 +4423,9 @@
   "training": {
     "title": "Formation & Sensibilisation",
     "subtitle": "Gérez les formations et la sensibilisation cyber de votre organisation.",
-    "dashboard": "Tableau de bord Formation",
     "catalog": "Catalogue des formations",
-    "myCourses": "Mes formations",
     "campaigns": "Campagnes",
+    "myCourses": "Mes formations",
     "categories": {
       "security": "Sécurité",
       "compliance": "Conformité",
@@ -4486,26 +4497,6 @@
       "confirmAndAssign": "Confirmer et assigner",
       "confirmTitle": "Confirmer l'assignation",
       "confirmDesc": "Vous êtes sur le point d'assigner la formation \"{{course}}\" à {{count}} personne(s)."
-    },
-    "campaign": {
-      "create": "Créer une campagne",
-      "name": "Nom de la campagne",
-      "startDate": "Date de début",
-      "endDate": "Date de fin",
-      "scope": "Périmètre",
-      "scopeAll": "Toute l'organisation",
-      "scopeDepartment": "Par département",
-      "scopeRole": "Par rôle",
-      "courses": "Formations incluses",
-      "recurrence": "Récurrence",
-      "recurrenceEnabled": "Activer la récurrence",
-      "frequency": {
-        "monthly": "Mensuelle",
-        "quarterly": "Trimestrielle",
-        "yearly": "Annuelle"
-      },
-      "launch": "Lancer la campagne",
-      "progress": "Progression"
     },
     "stats": {
       "total": "Total formations",

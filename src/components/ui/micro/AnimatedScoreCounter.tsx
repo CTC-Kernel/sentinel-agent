@@ -79,7 +79,7 @@ const trendSizeClasses = {
 };
 
 const deltaSizeClasses = {
-  sm: 'text-[10px] px-1.5 py-0.5',
+  sm: 'text-[11px] px-1.5 py-0.5',
   md: 'text-xs px-2 py-1',
   lg: 'text-sm px-2.5 py-1',
   xl: 'text-base px-3 py-1.5',
@@ -256,8 +256,8 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
               'inline-flex items-center gap-0.5 rounded-full font-medium',
               deltaSizeClasses[size],
               delta > 0
-                ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
             )}
           >
             {delta > 0 ? '+' : ''}

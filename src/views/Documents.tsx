@@ -464,16 +464,16 @@ export const Documents: React.FC = () => {
                                             <div className="flex items-center gap-2">
                                                 {/* Secondary Actions Menu */}
                                                 <Menu as="div" className="relative inline-block text-left">
-                                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/10 transition-colors shadow-sm">
                                                         <MoreVertical className="h-5 w-5" />
                                                     </Menu.Button>
-                                                    <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                    <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-70 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-70 scale-100" leaveTo="transform opacity-0 scale-95">
+                                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                                             <div className="p-1">
                                                                 <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.actions.title')}</div>
                                                                 <Menu.Item>
                                                                     {({ active }) => (
-                                                                        <button aria-label={t('documents.newDocument')} onClick={handleCreateClick} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm md:hidden`}>
+                                                                        <button aria-label={t('documents.newDocument')} onClick={handleCreateClick} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm md:hidden`}>
                                                                             <Plus className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('documents.newDocument')}
                                                                         </button>
                                                                     )}
@@ -484,7 +484,7 @@ export const Documents: React.FC = () => {
                                                                             aria-label={t('documents.exportCsv')}
                                                                             onClick={handleExportClick}
                                                                             disabled={isExportingCSV}
-                                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 disabled:cursor-wait`}
+                                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-wait`}
                                                                         >
                                                                             <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'} ${isExportingCSV ? 'animate-pulse' : ''}`} />
                                                                             {isExportingCSV ? 'Export...' : t('documents.exportCsv')}
@@ -493,7 +493,7 @@ export const Documents: React.FC = () => {
                                                                 </Menu.Item>
                                                                 <Menu.Item>
                                                                     {({ active }) => (
-                                                                        <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                                        <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                                             <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
                                                                         </button>
                                                                     )}
@@ -678,7 +678,7 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { d
     return (
         <div
             onClick={handleClick}
-            className={`glass-premium p-5 rounded-3xl border border-border/50 hover:border-brand-500/50 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-4 shadow-sm hover:shadow-apple-sm ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
+            className={`glass-premium p-5 rounded-3xl border border-border/50 hover:border-brand-400 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-4 shadow-sm hover:shadow-apple-sm ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
         >
             <div className="flex-1">
                 <h4 className="text-base font-black text-slate-900 dark:text-white truncate tracking-tight">{doc.title}</h4>
@@ -702,8 +702,8 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { d
                 </div>
             </div>
             <div className="shrink-0 flex items-center">
-                <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm border ${doc.status === 'Publié' || doc.status === 'Approuvé' ? 'bg-success-bg text-success-text border-success-border/30' :
-                    doc.status === 'En revue' ? 'bg-warning-bg text-warning-text border-warning-border/30' : 'bg-slate-100/80 text-slate-600 border-border/30'
+                <span className={`px-4 py-1.5 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-sm border ${doc.status === 'Publié' || doc.status === 'Approuvé' ? 'bg-success-bg text-success-text border-success-border/30' :
+                    doc.status === 'En revue' ? 'bg-warning-bg text-warning-text border-warning-border/30' : 'bg-slate-100/80 text-slate-600 dark:text-slate-400 border-border/30'
                     }`}>
                     {doc.status}
                 </span>

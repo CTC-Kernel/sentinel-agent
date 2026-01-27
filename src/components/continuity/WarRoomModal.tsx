@@ -173,7 +173,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                             className="bg-slate-900 w-full max-w-[95vw] md:max-w-6xl h-[90vh] md:h-[85vh] rounded-3xl border border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.2)] flex overflow-hidden flex-col md:flex-row relative"
                         >
                             {/* CRT/Scanline Overlay */}
-                            <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-50 z-decorator mix-blend-overlay" />
+                            <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-60 z-decorator mix-blend-overlay" />
 
                             {/* Left Panel: Context & Docs */}
                             <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 bg-black/20 flex flex-col">
@@ -229,7 +229,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <div className="space-y-2">
                                             <button
                                                 onClick={() => navigate(`/incidents/${incidentId}`)}
-                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all text-left"
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-500/20 hover:bg-red-500/20 transition-all text-left"
                                             >
                                                 <AlertTriangle className="w-4 h-4 text-red-500" />
                                                 <span className="text-sm font-medium text-red-400">Voir l'incident</span>
@@ -300,7 +300,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                 {/* Messages Area */}
                                 <div className="flex-1 overflow-y-auto p-6 space-y-4 font-mono text-sm max-h-[60vh] md:max-h-none">
                                     {messages.length === 0 && !loading && (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-2">
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400 gap-2">
                                             <ShieldAlert className="w-12 h-12 opacity-20" />
                                             <p>Aucun message. Le canal est ouvert.</p>
                                         </div>
@@ -322,7 +322,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                     ? 'bg-blue-600/20 border-blue-500/30 text-blue-100 rounded-tr-none'
                                                     : 'bg-slate-800 border-white/10 text-slate-300 rounded-tl-none'
                                                     }`}>
-                                                    <div className="flex items-center gap-2 mb-1 opacity-50 text-xs">
+                                                    <div className="flex items-center gap-2 mb-1 opacity-60 text-xs">
                                                         <span className="font-bold">{msg.sender}</span>
                                                         <span>•</span>
                                                         <span>{msg.role}</span>
@@ -343,7 +343,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                                 >
                                                                     {getFileIcon(att.type)}
                                                                     <span className="truncate flex-1">{att.name}</span>
-                                                                    <Download className="w-3 h-3 opacity-50" />
+                                                                    <Download className="w-3 h-3 opacity-60" />
                                                                 </a>
                                                             ))}
                                                         </div>

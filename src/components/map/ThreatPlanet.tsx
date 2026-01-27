@@ -100,17 +100,17 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
                                     <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isHigh ? 'bg-red-500' : 'bg-orange-500'}`}></span>
                                     <span className={`relative inline-flex rounded-full h-2 w-2 ${isHigh ? 'bg-red-500' : 'bg-orange-500'}`}></span>
                                 </span>
-                                <span className={`text-[10px] font-mono font-bold tracking-wider ${isHigh ? 'text-red-400' : 'text-orange-400'}`}>{severity ? severity.toUpperCase() : (isHigh ? 'CRITICAL' : 'WARNING')}</span>
+                                <span className={`text-[11px] font-mono font-bold tracking-wider ${isHigh ? 'text-red-400' : 'text-orange-400'}`}>{severity ? severity.toUpperCase() : (isHigh ? 'CRITICAL' : 'WARNING')}</span>
                             </div>
                         </div>
 
                         {/* Content */}
                         <div className="flex items-start gap-3 mb-2">
-                            <div className={`mt-0.5 p-1 rounded-md ${isHigh ? 'bg-red-500/10' : 'bg-orange-500/10'} border ${isHigh ? 'border-red-500/20' : 'border-orange-500/20'}`}>
+                            <div className={`mt-0.5 p-1 rounded-md ${isHigh ? 'bg-red-50' : 'bg-orange-500/10'} border ${isHigh ? 'border-red-500/20' : 'border-orange-500/20'}`}>
                                 <AlertTriangle className={`w-3.5 h-3.5 ${isHigh ? 'text-red-500' : 'text-orange-500'}`} />
                             </div>
                             <div>
-                                <div className="text-[10px] uppercase text-slate-500 font-bold mb-0.5">{type || 'Threat Detected'}</div>
+                                <div className="text-[11px] uppercase text-slate-500 dark:text-slate-400 font-bold mb-0.5">{type || 'Threat Detected'}</div>
                                 <div className="text-xs text-slate-200 font-medium leading-snug">{name}</div>
                             </div>
                         </div>
@@ -118,11 +118,11 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
                         {/* Footer Stats */}
                         <div className="flex gap-2 mt-2 pt-2 border-t border-white/5 bg-white/5 -mx-3 -mb-3 px-3 pb-3 rounded-b-xl">
                             <div className="flex-1">
-                                <div className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Intensity</div>
+                                <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Intensity</div>
                                 <div className="text-sm font-mono font-bold text-white">{intensity.toFixed(1)}</div>
                             </div>
                             <div className="flex-1 text-right">
-                                <div className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</div>
+                                <div className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</div>
                                 <div className="text-sm font-mono font-bold text-emerald-400">ACTIVE</div>
                             </div>
                         </div>
@@ -265,7 +265,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
 export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
     return (
         <div
-            className="w-full h-full bg-slate-950 rounded-5xl overflow-hidden relative isolate"
+            className="w-full h-full bg-slate-950 rounded-3xl overflow-hidden relative isolate"
             role="region"
             aria-label="Interactive 3D Threat Map"
         >
@@ -291,7 +291,7 @@ export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
                 <OrbitControls enablePan={false} minDistance={4} maxDistance={10} enableZoom={true} />
             </Canvas>
 
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-slate-500 font-mono pointer-events-none flex gap-4" aria-hidden="true">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[11px] text-slate-500 dark:text-slate-400 font-mono pointer-events-none flex gap-4" aria-hidden="true">
                 <span>ROTATION: AUTO</span>
                 <span>GRID: ACTIVE</span>
                 <span>THREATS: {data.reduce((acc, curr) => acc + curr.markers.length, 0)} DETECTED</span>

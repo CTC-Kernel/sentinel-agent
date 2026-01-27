@@ -24,6 +24,7 @@ import { EmptyState } from '../../ui/EmptyState';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { useStore } from '../../../store';
 import type { DepartmentTrainingStats } from '../../../types/training';
+import { SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
 
 // ============================================================================
 // Types
@@ -38,16 +39,6 @@ interface TrainingByDepartmentProps {
 // Helpers
 // ============================================================================
 
-const getBarColor = (completionRate: number): string => {
-  if (completionRate >= 80) return 'hsl(var(--success))';
-  if (completionRate >= 50) return 'hsl(var(--warning))';
-  return 'hsl(var(--destructive))';
-};
-
-// ============================================================================
-// Component
-// ============================================================================
-
 export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
   data,
   isLoading,
@@ -58,38 +49,44 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
   const chartColors = {
     grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
     text: 'hsl(var(--muted-foreground))',
-    primary: 'hsl(var(--primary))',
+    primary: SENTINEL_PALETTE.primary,
+  };
+
+  const getBarColor = (completionRate: number): string => {
+    if (completionRate >= 80) return SENTINEL_PALETTE.success;
+    if (completionRate >= 50) return SENTINEL_PALETTE.warning;
+    return SENTINEL_PALETTE.danger;
   };
 
   if (isLoading) {
     return (
-      <div className="glass-panel p-5 rounded-2xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Skeleton className="w-10 h-10 rounded-xl" />
+            <Skeleton className="w-12 h-12 rounded-2xl" />
             <div>
               <Skeleton className="h-5 w-48 rounded-md mb-2" />
               <Skeleton className="h-3 w-32 rounded-md" />
             </div>
           </div>
         </div>
-        <Skeleton className="h-[300px] w-full rounded-xl" />
+        <Skeleton className="h-[300px] w-full rounded-2xl" />
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="glass-panel p-5 rounded-2xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-xl bg-primary/10">
+          <div className="p-2.5 rounded-xl bg-primary/10">
             <Building2 className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">
+            <h3 className="font-bold text-lg text-foreground">
               {t('training.dashboard.byDepartment')}
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {t('training.dashboard.byDepartmentDesc')}
             </p>
           </div>
@@ -110,26 +107,29 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
   const displayData = data.slice(0, 8);
 
   return (
-    <div className="glass-panel p-5 rounded-2xl border border-white/10 h-[400px]">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-xl bg-primary/10">
+    <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px] relative overflow-hidden group/chart hover:shadow-apple-lg transition-all duration-300">
+      {/* Dynamic Background Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+
+      <div className="flex items-center gap-4 mb-6 relative z-10">
+        <div className="p-2.5 rounded-xl bg-primary/10 transition-transform group-hover/chart:scale-110 duration-300">
           <Building2 className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-bold text-foreground">
+          <h3 className="font-bold text-lg text-foreground">
             {t('training.dashboard.byDepartment')}
           </h3>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {t('training.dashboard.byDepartmentDesc')}
           </p>
         </div>
       </div>
 
-      <div className="h-[300px]">
+      <div className="h-[300px] relative z-10">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={displayData}
-            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+            margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
             layout="vertical"
           >
             <defs>
@@ -141,8 +141,8 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
             <CartesianGrid
               strokeDasharray="3 3"
               horizontal={false}
-              stroke={chartColors.grid}
-              opacity={0.5}
+              stroke={CHART_STYLES.grid.stroke}
+              opacity={CHART_STYLES.grid.opacity}
             />
             <XAxis
               type="number"
@@ -166,18 +166,20 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
                   formatter={(value) => `${value}%`}
                 />
               }
-              cursor={{ fill: chartColors.grid, opacity: 0.3 }}
+              cursor={{ fill: CHART_STYLES.grid.stroke, opacity: 0.1 }}
             />
             <Bar
               dataKey="completionRate"
               name={t('training.stats.completionRate')}
-              radius={[0, 4, 4, 0]}
+              radius={[0, 6, 6, 0]}
               animationDuration={1000}
+              barSize={24}
             >
               {displayData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={getBarColor(entry.completionRate)}
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
                 />
               ))}
             </Bar>

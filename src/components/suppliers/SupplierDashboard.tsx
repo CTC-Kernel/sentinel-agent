@@ -111,7 +111,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
         return (
             <div className="space-y-6 animate-fade-in">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-3xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                     <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[...Array(4)].map((_, i) => (
                             <div key={i} className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
@@ -119,8 +119,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                     </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
-                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
-                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-3xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-3xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                 </div>
             </div>
         );
@@ -132,7 +132,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <EmptyChartState
                     message="Aucun fournisseur"
                     description="Commencez par ajouter des fournisseurs pour voir apparaître des métriques et des analyses détaillées."
-                    className="glass-premium rounded-5xl min-h-[400px]"
+                    className="glass-premium rounded-3xl min-h-[400px]"
                     variant="default"
                     icon={<Building className="h-10 w-10 text-brand-500" />}
                 />
@@ -170,10 +170,10 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
             {/* Hero Section with Gauges */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Score Gauge */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <Star className="h-4 w-4 text-brand-500" />
                         </div>
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Score Moyen</span>
@@ -193,7 +193,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 </motion.div>
 
                 {/* Compliance Rate Gauge */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
                         <div className="p-2 bg-emerald-500/10 rounded-xl">
@@ -234,7 +234,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
                                 {item.value}
                             </span>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
                         </div>
                     ))}
                 </motion.div>
@@ -243,8 +243,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Interactive Criticality Distribution */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-orange-500/10 rounded-xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -298,10 +298,10 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 </motion.div>
 
                 {/* Top Categories Chart */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-brand-500/10 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-xl">
                             <Building className="w-4 h-4 text-brand-500" />
                         </div>
                         Top Catégories
@@ -338,8 +338,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 </motion.div>
 
                 {/* Score Distribution */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-emerald-500/10 rounded-xl">
                             <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -364,10 +364,10 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 </motion.div>
 
                 {/* Top Suppliers List */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-amber-500/10 rounded-xl">
+                        <div className="p-2 bg-amber-50 rounded-xl">
                             <Star className="w-4 h-4 text-amber-500" />
                         </div>
                         Top 5 Fournisseurs
@@ -401,8 +401,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className={`px-2.5 py-1 rounded-lg text-xs font-black ${(supplier.securityScore || 0) >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                            (supplier.securityScore || 0) >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                            (supplier.securityScore || 0) >= 50 ? 'bg-amber-100 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400' :
+                                                'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400'
                                             }`}>
                                             {supplier.securityScore}
                                         </div>

@@ -23,8 +23,8 @@ const getFrameworkStyles = (framework: Framework) => {
         case 'ISO27001':
             return {
                 accent: 'text-brand-600 dark:text-brand-400',
-                bg: 'bg-brand-50 dark:bg-brand-900/20',
-                border: 'border-brand-100 dark:border-brand-800/50',
+                bg: 'bg-brand-50 dark:bg-brand-800',
+                border: 'border-brand-100 dark:border-brand-700',
                 progress: 'bg-brand-600 shadow-brand-600/20'
             };
         case 'NIS2':
@@ -59,21 +59,21 @@ const getFrameworkStyles = (framework: Framework) => {
             return {
                 accent: 'text-red-600 dark:text-red-400',
                 bg: 'bg-red-50 dark:bg-red-900/20',
-                border: 'border-red-100 dark:border-red-800/50',
+                border: 'border-red-100 dark:border-red-2000',
                 progress: 'bg-red-600 shadow-red-600/20'
             };
         case 'HDS':
             return {
                 accent: 'text-blue-600 dark:text-blue-400',
                 bg: 'bg-blue-50 dark:bg-blue-900/20',
-                border: 'border-blue-100 dark:border-blue-800/50',
+                border: 'border-blue-100 dark:border-blue-2000',
                 progress: 'bg-blue-600 shadow-blue-600/20'
             };
         case 'PCI_DSS':
             return {
                 accent: 'text-red-600 dark:text-red-400',
                 bg: 'bg-red-50 dark:bg-red-900/20',
-                border: 'border-red-100 dark:border-red-800/50',
+                border: 'border-red-100 dark:border-red-2000',
                 progress: 'bg-red-600 shadow-red-600/20'
             };
         case 'NIST_CSF':
@@ -86,8 +86,8 @@ const getFrameworkStyles = (framework: Framework) => {
         default:
             return {
                 accent: 'text-brand-600 dark:text-brand-400',
-                bg: 'bg-brand-50 dark:bg-brand-900/20',
-                border: 'border-brand-100 dark:border-brand-800/50',
+                bg: 'bg-brand-50 dark:bg-brand-800',
+                border: 'border-brand-100 dark:border-brand-700',
                 progress: 'bg-brand-600 shadow-brand-600/20'
             };
     }
@@ -174,12 +174,12 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                 const fwStyles = getFrameworkStyles(currentFramework);
 
                 return (
-                    <div key={domain.id} className="glass-premium rounded-5xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
+                    <div key={domain.id} className="glass-premium rounded-3xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div
                             data-testid={`domain-header-${domain.id}`}
                             onClick={() => toggleDomain(domain.id)}
-                            className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-5 flex-1 min-w-0">
                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shrink-0 shadow-sm shadow-black/5 transition-all group-hover:scale-110 ${fwStyles.bg} ${fwStyles.accent} ${fwStyles.border}`}>
@@ -200,7 +200,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                         <div className={`h-full rounded-full transition-all duration-700 ease-in-out ${stats.progress === 100 ? 'bg-success-text shadow-glow shadow-success-text/20' : `${fwStyles.progress} shadow-glow`}`} style={{ width: `${stats.progress}%` }}></div>
                                     </div>
                                 </div>
-                                <div className={`p-2 rounded-xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-slate-900 dark:text-white ring-1 ring-black/5' : 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100 dark:group-hover:bg-white/5'}`}>
+                                <div className={`p-2 rounded-xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-slate-900 dark:text-white ring-1 ring-black/5' : 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100 dark:hover:bg-slate-800 dark:group-hover:bg-white/5'}`}>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
                             </div>
@@ -223,8 +223,8 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                     onSelectControl(control);
                                                 }}
                                                 className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md ${isActive
-                                                    ? 'bg-brand-50/50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-800'
-                                                    : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-brand-200 dark:hover:border-brand-700/50'
+                                                    ? 'bg-brand-50 border-brand-200 dark:bg-brand-800 dark:border-brand-800'
+                                                    : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-brand-200 dark:hover:border-brand-600'
                                                     }`}
                                             >
                                                 <div className="flex items-start justify-between gap-4">
@@ -236,10 +236,10 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                             <h4 className={`text-sm font-bold truncate pr-2 leading-tight ${isActive ? 'text-brand-900 dark:text-brand-100' : 'text-slate-900 dark:text-white'}`}>
                                                                 {control.name}
                                                             </h4>
-                                                            <p className="text-[11px] text-slate-500 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
+                                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
                                                         </div>
                                                     </div>
-                                                    <div className={`shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-success-text bg-success-bg border-success-border/50' :
+                                                    <div className={`shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-success-text bg-success-bg border-success-border/50' :
                                                         control.status === 'Partiel' ? 'text-warning-text bg-warning-bg border-warning-border/50' :
                                                             control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700' :
                                                                 'text-slate-600 bg-white border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
@@ -250,13 +250,13 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
 
                                                 <div className="flex items-center gap-2 mt-4 pl-[3.25rem]">
                                                     {control.evidenceIds && control.evidenceIds.length > 0 ? (
-                                                        <span className="flex items-center text-success-text bg-success-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-success-border/30">
+                                                        <span className="flex items-center text-success-text bg-success-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-success-border/30">
                                                             <Paperclip className="h-3 w-3 mr-1.5" />
                                                             {control.evidenceIds.length}
                                                         </span>
                                                     ) : (control.status === 'Implémenté') ? (
                                                         <CustomTooltip content="Preuve obligatoire manquante">
-                                                            <span className="flex items-center text-warning-text bg-warning-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-warning-border/30">
+                                                            <span className="flex items-center text-warning-text bg-warning-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-warning-border/30">
                                                                 <AlertTriangle className="h-3 w-3 mr-1.5" />
                                                                 Manquante
                                                             </span>
@@ -264,14 +264,14 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                     ) : null}
 
                                                     {riskCount > 0 && (
-                                                        <span className="flex items-center text-info-text bg-info-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-info-border/30">
+                                                        <span className="flex items-center text-info-text bg-info-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-info-border/30">
                                                             <ShieldAlert className="h-3 w-3 mr-1.5" />
                                                             {riskCount}
                                                         </span>
                                                     )}
 
                                                     {findingsCount > 0 && (
-                                                        <span className="flex items-center text-error-text bg-error-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-error-border/30">
+                                                        <span className="flex items-center text-error-text bg-error-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-error-border/30">
                                                             <AlertOctagon className="h-3 w-3 mr-1.5" />
                                                             {findingsCount}
                                                         </span>

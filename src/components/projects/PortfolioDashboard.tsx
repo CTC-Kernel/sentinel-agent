@@ -122,7 +122,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
 
     if (projects.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-5xl border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
+            <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
                 <EmptyChartState
                     message="Aucun projet en cours"
                     description="Créez votre premier projet pour suivre son avancement et piloter votre portefeuille."

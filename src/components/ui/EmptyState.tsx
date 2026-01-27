@@ -69,7 +69,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
                 transition={{ duration: 0.4, ease: appleEasing }}
             >
                 <motion.div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-elevation-xs border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
                     animate={floatingAnimation}
                 >
                     <Icon className="w-5 h-5" />
@@ -91,7 +91,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
             }}
         >
             <motion.div
-                className={`w-20 h-20 rounded-4xl flex items-center justify-center mb-6 shadow-elevation-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
+                className={`w-20 h-20 rounded-4xl flex items-center justify-center mb-6 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
                 variants={{
                     hidden: { scale: 0, rotate: -180 },
                     visible: { scale: 1, rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 15 } }
@@ -154,7 +154,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
                     <motion.button
                         onClick={onAction}
                         aria-label={actionLabel}
-                        className="px-8 py-3.5 bg-primary text-primary-foreground rounded-2xl font-bold text-sm shadow-elevation-md shadow-primary hover:shadow-elevation-lg hover:shadow-primary transition-all duration-normal ease-apple focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background inline-flex items-center gap-2"
+                        className="px-8 py-3.5 bg-primary text-primary-foreground rounded-2xl font-bold text-sm shadow-md shadow-primary hover:shadow-lg hover:shadow-primary transition-all duration-normal ease-apple focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background inline-flex items-center gap-2"
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                     >

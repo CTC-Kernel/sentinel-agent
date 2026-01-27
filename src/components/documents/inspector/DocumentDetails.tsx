@@ -44,11 +44,11 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
                                     <div className="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold text-xs">
                                         {ctrl.code}
                                     </div>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-brand-600 truncate max-w-[200px]">
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200 group-hover:text-brand-600 truncate max-w-[200px]">
                                         {ctrl.name}
                                     </span>
                                 </div>
-                                <ExternalLink className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <ExternalLink className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-70 transition-opacity" />
                             </div>
                         ))}
                     </div>
@@ -65,7 +65,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
                             href={selectedDocument.externalUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline break-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline break-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
                         >
                             {selectedDocument.externalUrl}
                         </a>

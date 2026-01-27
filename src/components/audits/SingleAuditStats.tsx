@@ -35,13 +35,13 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                     className="p-6 relative overflow-hidden group"
                     gradientOverlay={true}
                 >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mr-16 -mt-16 transition-opacity group-hover:opacity-70 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-2xl -mr-16 -mt-16 transition-opacity group-hover:opacity-70 pointer-events-none" />
                     <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Santé de l'audit</h4>
                     <div className="flex items-end gap-2 relative z-10">
                         <span className="text-4xl font-black text-slate-900 dark:text-white">
                             {100 - (openFindings * 10)}%
                         </span>
-                        <span className="text-sm text-slate-500 mb-1 font-medium">Score estimé</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-400 mb-1 font-medium">Score estimé</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 relative z-10">
                         Basé sur la sévérité des écarts ouverts.
@@ -81,7 +81,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                             <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100 dark:text-slate-800" />
                             <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={226} strokeDashoffset={226 - (226 * completionRate) / 100} className="text-blue-500 transition-all duration-1000" />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-200">
+                        <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 dark:text-slate-200">
                             {completionRate}%
                         </div>
                     </div>

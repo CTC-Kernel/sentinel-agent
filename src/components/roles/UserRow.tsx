@@ -26,7 +26,7 @@ export const UserRow: React.FC<UserRowProps> = ({
     onSave
 }) => {
     return (
-        <tr className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:hover:bg-white/5 transition-colors">
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
                     <img
@@ -90,7 +90,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                         </button>
                         <button
                             onClick={onEditCancel}
-                            className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/10 rounded-lg transition-colors"
                             title="Annuler"
                         >
                             <X className="h-4 w-4" />
@@ -100,7 +100,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                     <button
                         onClick={() => onEditStart(user.uid, user.role as Role)}
                         disabled={user.uid === currentUser?.uid}
-                        className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                         title="Modifier le rôle"
                     >
                         <Edit className="h-4 w-4" />

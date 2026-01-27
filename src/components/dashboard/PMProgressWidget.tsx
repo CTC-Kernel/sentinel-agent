@@ -313,8 +313,8 @@ function ErrorState({
         onClick={onRetry}
         className={cn(
           'mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-md',
-          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-          'hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors',
+          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 dark:text-red-300',
+          'hover:bg-red-200 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-9000 transition-colors',
           'text-sm font-medium'
         )}
       >

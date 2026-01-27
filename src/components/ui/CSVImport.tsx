@@ -157,7 +157,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
     return (
         <div className="fixed inset-0 z-modal flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
             <div className="bg-white dark:bg-slate-900 rounded-4xl shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
-                <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-brand-50/30 dark:bg-brand-900/10 flex justify-between items-center">
+                <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-brand-50 dark:bg-brand-900 flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-brand-900 dark:text-brand-100 tracking-tight">{title}</h2>
                     <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         <X className="h-5 w-5" />
@@ -168,7 +168,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                     {step === 'upload' && (
                         <div className="space-y-6">
                             <div className="text-center">
-                                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                                     <Upload className="h-10 w-10 text-brand-600 dark:text-brand-400" />
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importer depuis un fichier CSV</h3>
@@ -186,9 +186,9 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     aria-label="Importer un fichier CSV"
                                 />
                                 <div className="relative z-0">
-                                    <Upload className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-                                    <p className="text-sm font-bold text-slate-700 dark:text-muted-foreground">Cliquez pour sélectionner un fichier CSV</p>
-                                    <p className="text-xs text-slate-600 mt-1">ou glissez-déposez ici</p>
+                                    <Upload className="h-12 w-12 text-slate-500 dark:text-slate-400 mx-auto mb-3" />
+                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Cliquez pour sélectionner un fichier CSV</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">ou glissez-déposez ici</p>
                                     {file && (
                                         <p className="text-xs text-brand-600 dark:text-brand-400 mt-2 font-medium">
                                             Fichier sélectionné : {file.name}
@@ -218,14 +218,14 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     )}
                                 </div>
                                 <div className="flex gap-2">
-                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
+                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
                                         Annuler
                                     </button>
                                     <button
                                         aria-label={`Importer ${parsedData.length} éléments`}
                                         onClick={handleImport}
                                         disabled={errors.length > 0}
-                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                                     >
                                         Importer {parsedData.length} élément{parsedData.length > 1 ? 's' : ''}
                                     </button>
@@ -233,14 +233,14 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             </div>
 
                             {errors.length > 0 && (
-                                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-4 space-y-2">
+                                <div className="bg-red-50 dark:bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 dark:border-red-900/30 rounded-xl p-4 space-y-2">
                                     <div className="flex items-center gap-2 mb-2">
                                         <AlertTriangle className="h-5 w-5 text-red-600" />
                                         <h4 className="font-bold text-red-900 dark:text-red-100">Erreurs de validation</h4>
                                     </div>
                                     <div className="max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
                                         {errors.slice(0, 10).map((err, i) => (
-                                            <p key={`err-${i}`} className="text-sm text-red-700 dark:text-red-300">
+                                            <p key={`err-${i}`} className="text-sm text-red-700 dark:text-red-400 dark:text-red-300">
                                                 Ligne {err.row}: {err.message}
                                             </p>
                                         ))}
@@ -258,7 +258,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     <thead className="bg-slate-50 dark:bg-slate-800/50">
                                         <tr>
                                             {fields.map(field => (
-                                                <th key={field.key} className="px-4 py-3 text-left font-bold text-slate-700 dark:text-muted-foreground">
+                                                <th key={field.key} className="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                     {field.label} {field.required && <span className="text-red-500">*</span>}
                                                 </th>
                                             ))}
@@ -278,7 +278,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 </table>
                             </div>
                             {parsedData.length > 5 && (
-                                <p className="text-xs text-slate-600 text-center">...et {parsedData.length - 5} ligne{parsedData.length - 5 > 1 ? 's' : ''} supplémentaire{parsedData.length - 5 > 1 ? 's' : ''}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 text-center">...et {parsedData.length - 5} ligne{parsedData.length - 5 > 1 ? 's' : ''} supplémentaire{parsedData.length - 5 > 1 ? 's' : ''}</p>
                             )}
                         </div>
                     )}
@@ -295,11 +295,11 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
 
                     {step === 'complete' && (
                         <div className="text-center py-12">
-                            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-green-100 dark:bg-green-900/30 dark:bg-green-900/30 flex items-center justify-center">
                                 <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importation réussie !</h3>
-                            <p className="text-sm text-slate-600 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
                             <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
                                 Terminer
                             </button>

@@ -30,34 +30,34 @@ const getSeverityColor = (s: Criticality) => {
     switch (s) {
         case Criticality.CRITICAL: return 'bg-error-bg text-error-text border-error-border/60 shadow-sm';
         case Criticality.HIGH: return 'bg-warning-bg text-warning-text border-warning-border/60 shadow-sm';
-        case Criticality.MEDIUM: return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200/50 dark:border-amber-800/50 shadow-sm';
+        case Criticality.MEDIUM: return 'bg-amber-50 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-400 border-amber-1000 dark:border-amber-2000 shadow-sm';
         default: return 'bg-info-bg text-info-text border-info-border/60 shadow-sm';
     }
 };
 
 const getStatusColor = (s: string) => {
     switch (s) {
-        case 'Nouveau': return 'text-purple-600 bg-purple-50 border-purple-100 dark:bg-purple-900/20 dark:border-purple-800/50';
-        case 'Analyse': return 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/50';
-        case 'Contenu': return 'text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-900/20 dark:border-amber-800/50';
-        case 'Résolu': return 'text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800/50';
+        case 'Nouveau': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:bg-purple-900/20 dark:border-purple-800/50';
+        case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:bg-blue-900/20 dark:border-blue-2000';
+        case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 border-amber-100 dark:bg-amber-900/20 dark:border-amber-2000';
+        case 'Résolu': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800/50';
         case 'Fermé': return 'text-slate-500 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 line-through opacity-70';
-        default: return 'text-slate-600 bg-slate-50 border-slate-200';
+        default: return 'text-slate-600 bg-slate-50 border-slate-200 dark:border-slate-700';
     }
 };
 
 const getIncidentCategoryStyles = (category: string) => {
     switch (category) {
         case 'Ransomware':
-            return { icon: Lock, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-800/50' };
+            return { icon: Lock, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-2000' };
         case 'Phishing':
             return { icon: Mail, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-100 dark:border-purple-800/50' };
         case 'Vol Matériel':
             return { icon: HardDrive, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-100 dark:border-orange-800/50' };
         case 'Indisponibilité':
-            return { icon: WifiOff, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800/50' };
+            return { icon: WifiOff, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-2000' };
         case 'Fuite de Données':
-            return { icon: Database, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800/50' };
+            return { icon: Database, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-2000' };
         default:
             return { icon: ShieldAlert, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10' };
     }
@@ -146,7 +146,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                         </div>
                         <div>
                             <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.title}</div>
-                            <div className="text-xs text-slate-600 font-medium line-clamp-1">{row.original.description}</div>
+                            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-1">{row.original.description}</div>
                         </div>
                     </div>
                 );
@@ -157,7 +157,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             header: t('incidents.column.severity'),
             meta: { className: 'hidden sm:table-cell' },
             cell: ({ row }) => (
-                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getSeverityColor(row.original.severity)}`}>
+                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getSeverityColor(row.original.severity)}`}>
                     {getSeverityLabel(row.original.severity)}
                 </span>
             )
@@ -167,7 +167,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             header: t('incidents.column.status'),
             meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => (
-                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(row.original.status)}`}>
+                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(row.original.status)}`}>
                     {getStatusLabel(row.original.status)}
                 </span>
             )
@@ -228,7 +228,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                     e.stopPropagation();
                                     onDelete(row.original.id);
                                 }}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:opacity-100"
+                                className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:opacity-70"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -264,7 +264,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
             {/* Incident list */}
             {viewMode === 'list' ? (
-                <div className="glass-panel w-full max-w-full rounded-5xl overflow-hidden shadow-sm">
+                <div className="glass-panel w-full max-w-full rounded-3xl overflow-hidden shadow-sm">
                     <DataTable
                         columns={columns}
                         data={filteredIncidents}
@@ -320,10 +320,10 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <div className="flex gap-2">
-                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getSeverityColor(inc.severity)}`}>
+                                                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getSeverityColor(inc.severity)}`}>
                                                     {getSeverityLabel(inc.severity)}
                                                 </span>
-                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(inc.status)}`}>
+                                                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(inc.status)}`}>
                                                     {getStatusLabel(inc.status)}
                                                 </span>
                                             </div>
@@ -341,7 +341,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                                     e.stopPropagation();
                                                     onDelete(inc.id);
                                                 }}
-                                                className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>

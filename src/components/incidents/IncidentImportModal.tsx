@@ -79,37 +79,37 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                         <button
                             onClick={() => handleSourceSelect('splunk')}
                             disabled={loading}
-                            className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                 <span className="text-white font-bold text-xs">&gt;_</span>
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Splunk</span>
-                            <span className="text-xs text-slate-600 mt-1">SIEM</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">SIEM</span>
                         </button>
 
                         <button
                             onClick={() => handleSourceSelect('microsoft')}
                             disabled={loading}
-                            className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                            className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                         >
                             <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                 <Disc className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Microsoft</span>
-                            <span className="text-xs text-slate-600 mt-1">Sentinel / Defender</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">Sentinel / Defender</span>
                         </button>
 
                         <button
                             onClick={() => handleSourceSelect('crowdstrike')}
                             disabled={loading}
-                            className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         >
                             <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                 <Activity className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">CrowdStrike</span>
-                            <span className="text-xs text-slate-600 mt-1">EDR</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">EDR</span>
                         </button>
 
                         <button
@@ -121,7 +121,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <Shield className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">SentinelOne</span>
-                            <span className="text-xs text-slate-600 mt-1">EDR</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">EDR</span>
                         </button>
                     </div>
                 )}
@@ -152,7 +152,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                     aria-checked={selectedEvents.has(event.id)}
                                     tabIndex={0}
                                     className={`p-4 rounded-xl border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedEvents.has(event.id)
-                                        ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
+                                        ? 'border-brand-500 bg-brand-50 dark:bg-brand-800'
                                         : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                         }`}
                                 >

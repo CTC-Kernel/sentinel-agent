@@ -127,7 +127,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
             <Sliders className="w-5 h-5 text-brand-600 dark:text-brand-400" />
           </div>
           <div>
@@ -153,7 +153,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
 
       {/* Weight validation */}
       {!isValidWeight && (
-        <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+        <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 dark:text-amber-300">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           {t('vendorScoring.weightWarning', 'Section weights should total 100%. Current: {{total}}%', {
             total: Math.round(totalWeight),
@@ -199,7 +199,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
                   onChange={(e) => handleWeightChange(section.sectionId, parseInt(e.target.value) || 0)}
                   className="w-12 px-2 py-1 text-center text-sm border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800"
                 />
-                <span className="text-sm text-slate-500 ml-1">%</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400 ml-1">%</span>
               </div>
             </div>
           </div>

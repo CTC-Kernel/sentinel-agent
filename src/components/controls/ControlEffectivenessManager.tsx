@@ -70,7 +70,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
     <div className="space-y-6">
       {/* Error Banner */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 flex items-center gap-3">
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-900 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500" />
           <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
@@ -104,7 +104,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
                   "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
                   maturityLevel >= 4 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
                     maturityLevel >= 3 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
-                      maturityLevel >= 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
+                      maturityLevel >= 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 dark:text-amber-400' :
                         'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                 )}>
                   {maturityLevel}
@@ -112,7 +112,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
               </div>
 
               <h4 className="font-medium text-slate-900 dark:text-white text-sm mb-1">{domain.title}</h4>
-              <p className="text-xs text-slate-500 mb-3 line-clamp-1">{domain.description}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 line-clamp-1">{domain.description}</p>
 
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-500">{assessedCount}/{controls.length} évalués</span>

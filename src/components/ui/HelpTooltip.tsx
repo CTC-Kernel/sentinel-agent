@@ -33,19 +33,42 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
     className = '',
     size = 'sm'
 }) => {
-    const sizeClasses = {
-        sm: 'w-3.5 h-3.5',
-        md: 'w-4 h-4',
-        lg: 'w-5 h-5'
+    // Icon sizes - visual size of the icon
+    const iconSizeClasses = {
+        sm: 'w-4 h-4',      // 16px - increased from 14px
+        md: 'w-5 h-5',      // 20px - increased from 16px
+        lg: 'w-6 h-6'       // 24px - increased from 20px
+    };
+
+    // Touch target sizes - WCAG AAA requires minimum 44x44px for touch, 24x24px for pointer
+    // We use padding to expand the touch target while keeping visual size smaller
+    const touchTargetClasses = {
+        sm: 'min-w-[24px] min-h-[24px] p-1',     // 24px minimum touch target
+        md: 'min-w-[32px] min-h-[32px] p-1.5',   // 32px touch target
+        lg: 'min-w-[44px] min-h-[44px] p-2'      // 44px AAA compliant touch target
     };
 
     return (
         <Tooltip content={content} position={position}>
             <span
-                className={`inline-flex items-center justify-center text-muted-foreground hover:text-primary transition-colors cursor-help ${className}`}
-                aria-label="Aide"
+                className={`
+                    inline-flex items-center justify-center
+                    text-muted-foreground hover:text-primary
+                    transition-colors cursor-help
+                    rounded-full hover:bg-muted/50
+                    focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+                    ${touchTargetClasses[size]}
+                    ${className}
+                `}
+                role="button"
+                tabIndex={0}
+                aria-label="Afficher l'aide"
+                aria-describedby={undefined}
             >
-                <HelpCircle className={sizeClasses[size]} />
+                <HelpCircle
+                    className={iconSizeClasses[size]}
+                    aria-hidden="true"
+                />
             </span>
         </Tooltip>
     );
@@ -59,7 +82,10 @@ export const FieldHelp: React.FC<{
     children: React.ReactNode;
     className?: string;
 }> = ({ children, className = '' }) => (
-    <p className={`text-xs text-muted-foreground mt-1.5 leading-relaxed ${className}`}>
+    <p
+        className={`text-sm text-muted-foreground mt-1.5 leading-relaxed ${className}`}
+        role="note"
+    >
         {children}
     </p>
 );

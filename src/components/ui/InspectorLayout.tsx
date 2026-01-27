@@ -65,13 +65,13 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             title={
                 <div className="flex items-center gap-3 relative z-10">
                     {Icon && (
-                        <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-slate-700 dark:text-brand-400 shadow-sm border border-brand-500/20 dark:border-brand-500/30">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-slate-700 dark:text-slate-300 dark:text-brand-400 shadow-sm border border-brand-200 dark:border-brand-300">
                             <Icon className="h-5 w-5" />
                         </div>
                     )}
                     <div>
                         <div className="flex items-center gap-3">
-                            <span className="font-semibold text-lg tracking-tight text-slate-900 dark:text-slate-100">{title}</span>
+                            <span className="font-semibold text-lg tracking-tight text-slate-900 dark:text-white dark:text-slate-100">{title}</span>
                             {statusBadge}
                         </div>
                     </div>

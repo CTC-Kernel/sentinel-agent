@@ -235,7 +235,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
           ${positionClasses} ${className}
         `}
       >
-        <VRHeadsetIcon className="w-4 h-4 opacity-50" />
+        <VRHeadsetIcon className="w-4 h-4 opacity-60" />
         <span>XR not available</span>
       </div>
     );
@@ -260,7 +260,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
                 ? 'bg-blue-500 text-white'
                 : 'bg-slate-800/80 backdrop-blur-sm border border-white/10 text-slate-300 hover:bg-slate-700/80'
               }
-              disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600
             `}
             title={isVRActive ? 'Exit VR' : 'Enter VR'}
           >
@@ -277,7 +277,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
                 ? 'bg-purple-500 text-white'
                 : 'bg-slate-800/80 backdrop-blur-sm border border-white/10 text-slate-300 hover:bg-slate-700/80'
               }
-              disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600
             `}
             title={isARActive ? 'Exit AR' : 'Enter AR'}
           >
@@ -333,7 +333,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
                 ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
                 : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
               }
-              disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600
             `}
           >
             {isVRActive ? (
@@ -362,7 +362,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
                 ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
                 : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
               }
-              disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600
             `}
           >
             {isARActive ? (
@@ -399,7 +399,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
               </div>
             </div>
           )}
-          <div className="text-xs text-slate-500 pt-1">{deviceInfo}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 pt-1">{deviceInfo}</div>
         </div>
       </Tooltip>
     </div>

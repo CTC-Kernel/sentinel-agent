@@ -218,7 +218,7 @@ export const Integrations: React.FC = () => {
                                     onClick={() => setCategoryFilter(cat.id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${categoryFilter === cat.id
                                         ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-900/20 dark:shadow-white/20'
-                                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                 >
                                     <cat.icon className="h-3.5 w-3.5 mr-2" />
@@ -236,7 +236,7 @@ export const Integrations: React.FC = () => {
                                         error: 'Erreur de connexion N8N'
                                     });
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 text-brand-500 hover:bg-brand-50"
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                             >
                                 <Cloud className="h-3.5 w-3.5 mr-2" />
                                 Test N8N
@@ -306,7 +306,7 @@ export const Integrations: React.FC = () => {
                                     onClick={confirmConnect}
                                     disabled={isSubmittingKey || !apiKey.trim()}
                                     isLoading={isSubmittingKey}
-                                    className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 flex items-center gap-2"
                                 >
                                     {!isSubmittingKey && 'Connecter l\'intégration'}
                                     {isSubmittingKey && 'Connexion...'}

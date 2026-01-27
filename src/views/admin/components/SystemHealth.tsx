@@ -26,8 +26,8 @@ const ServiceStatus: React.FC<{
                 </div>
                 <div>
                     <h4 className="font-medium text-white text-sm">{name}</h4>
-                    <p className="text-xs text-slate-500 flex items-center mt-0.5">
-                        <Activity className="w-3 h-3 mr-1 opacity-50" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center mt-0.5">
+                        <Activity className="w-3 h-3 mr-1 opacity-60" />
                         {error ? <span className="text-red-400">{error}</span> : 'Uptime: 99.99%'}
                     </p>
                 </div>
@@ -40,9 +40,9 @@ const ServiceStatus: React.FC<{
                     </span>
                 </div>
                 {latency !== undefined && latency > 0 && (
-                    <div className={`text-xs font-mono px-2 py-1 rounded border ${latency < 200 ? 'text-emerald-400 border-emerald-500/10 bg-emerald-500/5' :
-                        latency < 800 ? 'text-yellow-400 border-yellow-500/10 bg-yellow-500/5' :
-                            'text-red-400 border-red-500/10 bg-red-500/5'
+                    <div className={`text-xs font-mono px-2 py-1 rounded border ${latency < 200 ? 'text-emerald-400 border-emerald-500/10 bg-emerald-50' :
+                        latency < 800 ? 'text-yellow-400 border-yellow-500/10 bg-yellow-50' :
+                            'text-red-400 border-red-500/10 bg-red-50'
                         }`}>
                         {latency}ms
                     </div>
@@ -99,7 +99,7 @@ export const SystemHealth: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                         <h3 className="text-lg font-semibold text-white mr-3">System Status</h3>
-                        {loading && <RefreshCw className="w-4 h-4 text-slate-500 animate-spin" />}
+                        {loading && <RefreshCw className="w-4 h-4 text-slate-500 dark:text-slate-400 animate-spin" />}
                     </div>
                     <span className="flex h-2.5 w-2.5 relative">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -112,7 +112,7 @@ export const SystemHealth: React.FC = () => {
                         <ServiceStatus key={service.name} {...service} />
                     ))}
                     {services.length === 0 && loading && (
-                        <div className="text-center py-8 text-slate-500 text-sm">
+                        <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
                             Checking system connectivity...
                         </div>
                     )}

@@ -81,18 +81,18 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
                                     'bg-slate-200 border-slate-200 dark:bg-slate-700 dark:border-slate-700'
                                 }`} />
 
-                            <div className={`flex flex-col ${isCompleted || isCurrent ? 'opacity-100' : 'opacity-50'}`}>
+                            <div className={`flex flex-col ${isCompleted || isCurrent ? 'opacity-70' : 'opacity-60'}`}>
                                 <div className="flex items-center justify-between">
                                     <span className={`text-sm font-bold ${isCurrent ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
                                         {step.label}
                                     </span>
                                     {step.date && (
-                                        <span className="text-xs text-slate-600 font-mono">
+                                        <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">
                                             {new Date(step.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-600 mt-1">{step.description}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{step.description}</p>
                             </div>
                         </div>
                     );

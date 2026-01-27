@@ -95,7 +95,7 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
                 return (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="context-tab" role="tabpanel">
                         {loading ? <RiskContextSkeleton /> : (
-                            <div className="glass-premium p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-apple-sm">
+                            <div className="glass-premium p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-apple-sm">
                                 <RiskContextManager />
                             </div>
                         )}

@@ -44,7 +44,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
         try {
             const date = parseISO(deadline);
             if (isPast(date) && !isToday(date)) {
-                return { label: 'En retard', color: 'text-red-600 bg-red-50 border-red-200' };
+                return { label: 'En retard', color: 'text-red-600 bg-red-50 dark:bg-red-900/30 border-red-200' };
             }
             if (isToday(date)) {
                 return { label: 'Aujourd\'hui', color: 'text-warning-text bg-warning-bg border-warning-border' };
@@ -115,7 +115,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
             {/* Actions List */}
             <div className="space-y-2">
                 {actions.length === 0 && !isAdding ? (
-                    <p className="text-sm text-slate-500 italic py-4 text-center">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 italic py-4 text-center">
                         Aucune action de traitement définie. Ajoutez des actions pour suivre la mise en oeuvre du plan.
                     </p>
                 ) : (
@@ -171,7 +171,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                         {action.title}
                                     </p>
                                     {action.description && (
-                                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
                                             {action.description}
                                         </p>
                                     )}
