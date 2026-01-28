@@ -5,13 +5,11 @@ import {
   collection,
   doc,
   setDoc,
-  getDoc,
   getDocs,
   deleteDoc,
   query,
   where,
   orderBy,
-  limit,
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
@@ -345,7 +343,7 @@ class SessionMonitoringService {
       if (geolocation && existingSessions.length > 0) {
         const lastSession = existingSessions[0];
         if (lastSession.geolocation?.latitude && lastSession.geolocation?.longitude &&
-            geolocation.latitude && geolocation.longitude) {
+          geolocation.latitude && geolocation.longitude) {
           const impossibleTravel = this.detectImpossibleTravel(
             lastSession.geolocation as { latitude: number; longitude: number },
             geolocation as { latitude: number; longitude: number },
@@ -604,7 +602,7 @@ class SessionMonitoringService {
 
     // Detect device change for same user
     if (existingSession && existingSession.userId === user.uid &&
-        existingSession.deviceFingerprint) {
+      existingSession.deviceFingerprint) {
       const similarity = this.compareFingerprints(
         existingSession.deviceFingerprint,
         fingerprint

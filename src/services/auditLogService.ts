@@ -495,7 +495,7 @@ export class AuditLogService {
         try {
             const changes = calculateChanges(input.before, input.after);
 
-            const entry: AuditLogEntry = {
+            const entry: AuditLogEntryWithTimestamp = {
                 organizationId: input.organizationId,
                 userId: input.userId,
                 userName: input.userName,
@@ -788,7 +788,7 @@ export class AuditLogService {
 
                 for (const input of chunk) {
                     const changes = calculateChanges(input.before, input.after);
-                    const entry: AuditLogEntry = {
+                    const entry: AuditLogEntryWithTimestamp = {
                         organizationId: input.organizationId,
                         userId: input.userId,
                         userName: input.userName,

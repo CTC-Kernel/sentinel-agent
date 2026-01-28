@@ -757,8 +757,3 @@ class SecurityAnomalyDetectionService {
 // Export singleton
 export const SecurityAnomalyService = new SecurityAnomalyDetectionService();
 
-// Export types
-export type {
-  SecurityConfig,
-  FailedLoginEvent
-};

@@ -23,7 +23,7 @@ export const SentinelAssistant: React.FC = () => {
             </div>
 
             {/* Main Card - Fluid Premium Design */}
-            <div className="relative z-10 glass-premium glass-noise rounded-[3rem] p-12 shadow-2xl overflow-hidden group hover:shadow-[0_0_50px_-12px_rgba(var(--brand-500),0.3)] hover:border-brand-300 transition-all duration-700 ease-out h-[600px] flex flex-col justify-between">
+            <div className="relative z-10 glass-premium glass-noise rounded-[3rem] p-12 shadow-2xl overflow-hidden group hover:shadow-[0_0_50px_-12px_rgba(var(--brand-500),0.3)] transition-all duration-700 ease-out h-[600px] flex flex-col justify-between">
 
                 {/* Subtle glow effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-b from-brand-500/5 via-transparent to-brand-500/5 opacity-0 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none"></div>

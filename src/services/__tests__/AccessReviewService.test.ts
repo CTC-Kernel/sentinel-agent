@@ -11,7 +11,6 @@ import type {
   AccessReviewCampaign,
   AccessReview,
   DormantAccount,
-  AccessReviewStats,
 } from '../../types/accessReview';
 
 // Mock Firebase
@@ -105,7 +104,9 @@ describe('AccessReviewService', () => {
       userEmail: 'inactive@example.com',
       daysSinceLastLogin: 120,
       neverLoggedIn: false,
+      userRole: 'user',
       status: 'detected',
+      detectedAt: Timestamp.now(),
       createdAt: Timestamp.now(),
       ...overrides,
     });

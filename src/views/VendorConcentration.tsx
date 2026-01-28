@@ -93,10 +93,12 @@ const MetricCard: React.FC<MetricCardProps> = ({
       ? 'text-success-text'
       : 'text-slate-500';
 
+  const Component = onClick ? 'button' : 'div';
+
   return (
-    <div
+    <Component
       className={`
-        glass-panel p-5 rounded-2xl
+        glass-panel p-5 rounded-2xl text-left w-full
         ${onClick ? 'cursor-pointer hover:shadow-apple-md transition-shadow' : ''}
       `}
       onClick={onClick}
@@ -125,7 +127,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
           </p>
         )}
       </div>
-    </div>
+    </Component>
   );
 };
 

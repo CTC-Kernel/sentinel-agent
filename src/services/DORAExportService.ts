@@ -6,7 +6,7 @@
  * in ESA-compliant formats (JSON, Excel, PDF)
  */
 
-import ExcelJS from 'exceljs';
+import type { Workbook, Worksheet } from 'exceljs';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -117,11 +117,12 @@ export class DORAExportService {
         providers: ICTProvider[],
         _organizationInfo: { name: string; lei?: string; country: string },
         options: DORAExportOptions
-    ): Promise<{ workbook: ExcelJS.Workbook; blob: Blob; filename: string }> {
+    ): Promise<{ workbook: Workbook; blob: Blob; filename: string }> {
         const filteredProviders = this.filterProviders(providers, options);
         const locale = options.language === 'en' ? enUS : fr;
         const t = this.getTranslations(options.language || 'fr');
 
+        const { default: ExcelJS } = await import('exceljs');
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'Sentinel GRC - DORA Export';
         workbook.created = new Date();
@@ -519,7 +520,7 @@ export class DORAExportService {
         };
     }
 
-    private static styleHeaderRow(sheet: ExcelJS.Worksheet): void {
+    private static styleHeaderRow(sheet: Worksheet): void {
         sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
         sheet.getRow(1).fill = {
             type: 'pattern',

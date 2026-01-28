@@ -7,7 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Timestamp } from 'firebase/firestore';
-import type { Certificate, CertificateStats } from '../../types/certificates';
+import type { Certificate } from '../../types/certificates';
 
 // Mock Firebase
 vi.mock('firebase/firestore', () => ({
@@ -62,6 +62,8 @@ describe('CertificateService', () => {
       serialNumber: '123456',
       issuer: 'Test CA',
       issuerType: 'public_ca',
+      signatureAlgorithm: 'SHA256withRSA',
+      autoRenew: true,
       validFrom: Timestamp.fromDate(new Date('2024-01-01')),
       validTo: Timestamp.fromDate(new Date('2025-01-01')),
       status: 'valid',
@@ -193,6 +195,8 @@ describe('CertificateService', () => {
       serialNumber: '123456',
       issuer: 'Test CA',
       issuerType: 'public_ca',
+      signatureAlgorithm: 'SHA256withRSA',
+      autoRenew: true,
       validFrom: Timestamp.fromDate(new Date('2024-01-01')),
       validTo: Timestamp.fromDate(new Date('2025-01-01')),
       status: 'valid',

@@ -133,7 +133,6 @@
 
 .btn-secondary:hover {
   background-color: hsl(var(--primary) / 0.05);
-  border-color: hsl(var(--primary) / 0.2);
   transform: translateY(-1px);
 }
 
@@ -166,7 +165,7 @@
 }
 
 .card-interactive:hover {
-  border-color: hsl(var(--primary) / 0.2);
+  /* Border color change removed for cleaner UI */
 }
 
 /* Input field states - standardized */

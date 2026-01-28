@@ -3,7 +3,7 @@ import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
-import { canEditResource } from '../../utils/permissions';
+import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { toast } from '@/lib/toast';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
@@ -168,7 +168,7 @@ export function useAssets(enabled = true) {
     const deleteAsset = async (id: string, name: string): Promise<{ success: boolean; error?: unknown }> => {
         if (!user?.organizationId) return { success: false, error: 'No organization ID' };
 
-        if (!canEditResource(user as UserProfile, 'Asset')) {
+        if (!canDeleteResource(user as UserProfile, 'Asset')) {
             toast.error(t('common.accessDenied'));
             return { success: false, error: 'PERMISSION_DENIED' };
         }

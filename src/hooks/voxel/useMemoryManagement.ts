@@ -213,7 +213,7 @@ export function useMemoryManagement(options: UseMemoryManagementOptions = {}): U
       setStatus(newStatus);
 
       if (config.logging && newStatus !== 'healthy') {
-        ErrorLogger.warn(`Status: ${newStatus}`, 'MemoryManagement', { metadata: newStats });
+        ErrorLogger.warn(`Status: ${newStatus}`, 'MemoryManagement', { metadata: newStats as unknown as Record<string, unknown> });
       }
     }, config.checkIntervalMs);
 

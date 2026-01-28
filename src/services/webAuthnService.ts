@@ -14,7 +14,6 @@
 import {
   collection,
   doc,
-  addDoc,
   getDoc,
   getDocs,
   deleteDoc,
@@ -165,9 +164,9 @@ class WebAuthnServiceClass {
     if (!this.isSupported()) return false;
 
     try {
-      // @ts-expect-error - isConditionalMediationAvailable is not in all TypeScript definitions
+      // @ts-ignore - isConditionalMediationAvailable is not in all TypeScript definitions
       if (typeof PublicKeyCredential.isConditionalMediationAvailable === 'function') {
-        // @ts-expect-error - isConditionalMediationAvailable is not in all TypeScript definitions
+        // @ts-ignore - isConditionalMediationAvailable is not in all TypeScript definitions
         return await PublicKeyCredential.isConditionalMediationAvailable();
       }
       return false;
@@ -187,7 +186,7 @@ class WebAuthnServiceClass {
     userId: string,
     userEmail: string,
     userName: string,
-    organizationId: string,
+    _organizationId: string,
     authenticatorType: 'platform' | 'cross-platform' = 'platform'
   ): Promise<RegistrationOptions> {
     // Generate challenge
@@ -701,7 +700,4 @@ class WebAuthnServiceClass {
 export const WebAuthnService = new WebAuthnServiceClass();
 
 // Export types
-export type {
-  RegistrationOptions,
-  AuthenticationOptions
-};
+export type { };

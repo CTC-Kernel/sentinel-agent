@@ -327,15 +327,12 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                         type="submit"
                                         isLoading={loading}
                                         disabled={loading || (!isLogin && !privacyAccepted)}
-                                        variant="premium"
-                                        className="w-full py-6 font-bold rounded-2xl card-hover disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 relative overflow-hidden group/btn"
+                                        className="w-full py-6 font-bold rounded-2xl shadow-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 relative overflow-hidden group/btn"
                                     >
                                         <span className="relative z-10 flex items-center justify-center">
                                             {isLogin ? t('auth.login') : t('auth.signup')}
                                             {!loading && <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" strokeWidth={2.5} />}
                                         </span>
-                                        {/* Button Shimmer */}
-                                        <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent w-[50%] animate-shimmer pointer-events-none group-hover/btn:animate-none" style={{ animationDuration: '2.5s' }} />
                                     </Button>
                                 </motion.form>
                             </AnimatePresence>

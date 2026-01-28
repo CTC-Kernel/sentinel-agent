@@ -1,4 +1,3 @@
-import ExcelJS from 'exceljs';
 import { Risk, Asset, Control, Audit, Incident, Project } from '../types';
 
 interface ExportOptions {
@@ -20,6 +19,7 @@ export class ExcelExportService {
      * Exporte des données vers un fichier Excel multi-feuilles
      */
     static async exportToExcel(options: ExportOptions): Promise<void> {
+        const { default: ExcelJS } = await import('exceljs');
         const workbook = new ExcelJS.Workbook();
 
         // Métadonnées

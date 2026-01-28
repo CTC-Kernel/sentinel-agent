@@ -224,8 +224,9 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
                                             <div className="space-y-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">Current Plan</label>
+                                                    <label htmlFor="plan-select" className="block text-sm font-medium text-muted-foreground mb-1.5">Current Plan</label>
                                                     <select
+                                                        id="plan-select"
                                                         value={plan}
                                                         onChange={(e) => setPlan(e.target.value as PlanType)}
                                                         className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
@@ -238,8 +239,9 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-muted-foreground mb-1.5">Max Users</label>
+                                                        <label htmlFor="max-users-input" className="block text-sm font-medium text-muted-foreground mb-1.5">Max Users</label>
                                                         <input
+                                                            id="max-users-input"
                                                             type="number"
                                                             value={maxUsers}
                                                             onChange={(e) => setMaxUsers(parseInt(e.target.value))}
@@ -247,8 +249,9 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-muted-foreground mb-1.5">Max Projects</label>
+                                                        <label htmlFor="max-projects-input" className="block text-sm font-medium text-muted-foreground mb-1.5">Max Projects</label>
                                                         <input
+                                                            id="max-projects-input"
                                                             type="number"
                                                             value={maxProjects}
                                                             onChange={(e) => setMaxProjects(parseInt(e.target.value))}

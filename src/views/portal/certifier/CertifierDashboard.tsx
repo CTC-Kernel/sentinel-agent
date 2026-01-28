@@ -141,6 +141,14 @@ export const CertifierDashboard: React.FC = () => {
                                         <div
                                             key={audit.shareId}
                                             onClick={() => navigate(`/portal/audit/${audit.shareId}`)}
+                                            role="button"
+                                            tabIndex={0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    navigate(`/portal/audit/${audit.shareId}`);
+                                                }
+                                            }}
                                             className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group"
                                         >
                                             <div className="flex items-center justify-between">

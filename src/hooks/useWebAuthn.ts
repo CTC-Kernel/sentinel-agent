@@ -11,8 +11,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   WebAuthnService,
   StoredCredential,
-  RegistrationOptions,
-  AuthenticationOptions
 } from '../services/webAuthnService';
 import { ErrorLogger } from '../services/errorLogger';
 

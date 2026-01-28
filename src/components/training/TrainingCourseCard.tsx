@@ -142,7 +142,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
 
   return (
     <motion.div
-      className="group relative glass-premium p-5 rounded-3xl border border-white/5 hover:border-primary/20 transition-all duration-300 cursor-pointer"
+      className="group relative glass-premium p-5 rounded-3xl border border-white/5 transition-all duration-300 cursor-pointer"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: appleEasing }}
