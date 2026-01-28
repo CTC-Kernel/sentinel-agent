@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Control } from '../../../types';
 import { ShieldAlert } from '../../ui/Icons';
+import { CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 interface ComplianceDomainDetailsProps {
     controls: Control[];
@@ -8,6 +10,8 @@ interface ComplianceDomainDetailsProps {
 }
 
 export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = ({ controls, currentFramework }) => {
+    const { t } = useTranslation();
+
     // Group by Domain
     const domainData = controls.reduce((acc, control) => {
         if (!control.code) return acc;
@@ -18,7 +22,7 @@ export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = (
             acc[domain] = { total: 0, implemented: 0 };
         }
         acc[domain].total++;
-        if (control.status === 'Implémenté') acc[domain].implemented++;
+        if (control.status === CONTROL_STATUS.IMPLEMENTED) acc[domain].implemented++;
         return acc;
     }, {} as Record<string, { total: number; implemented: number }>);
 
@@ -27,7 +31,7 @@ export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = (
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
             <h4 className="text-sm font-bold text-foreground mb-4 relative z-10 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-brand-500" />
-                Détail par Domaine {currentFramework}
+                {t('compliance.dashboard.domainDetailTitle', { framework: currentFramework })}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
                 {Object.entries(domainData).map(([domain, data]) => {
@@ -50,7 +54,7 @@ export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = (
                                 ></div>
                             </div>
                             <div className="text-xs text-muted-foreground font-medium">
-                                {rate.toFixed(0)}% conformité
+                                {rate.toFixed(0)}% {t('compliance.dashboard.conformityLabel')}
                             </div>
                         </div>
                     );

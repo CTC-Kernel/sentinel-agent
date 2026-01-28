@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Control } from '../../types';
 import { RefreshCw } from '../ui/Icons';
 import { Button } from '../ui/button';
@@ -23,6 +24,7 @@ interface ComplianceDashboardProps {
 
 export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, onFilterChange, currentFramework = 'ISO27001', onSeedData, loading }) => {
     const { user } = useStore();
+    const { t } = useTranslation();
     const [trend, setTrend] = useState<number | undefined>(undefined);
 
     const totalControls = controls.length;
@@ -78,6 +80,21 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         );
     }
 
+    const getFrameworkLabel = (fw: string) => {
+        const labels: Record<string, string> = {
+            'ISO27001': 'ISO 27001',
+            'ISO22301': 'ISO 22301',
+            'NIS2': 'NIS 2',
+            'DORA': 'DORA',
+            'GDPR': 'RGPD',
+            'SOC2': 'SOC 2',
+            'HDS': 'HDS',
+            'PCI_DSS': 'PCI DSS',
+            'NIST_CSF': 'NIST CSF'
+        };
+        return labels[fw] || fw;
+    };
+
     return (
         <div className="space-y-6 w-full min-w-0">
             {/* Summary Card */}
@@ -120,8 +137,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 <div className="flex flex-col items-center justify-center space-y-4 py-8">
                     <EmptyChartState
                         variant="bar"
-                        message="Référentiel non initialisé"
-                        description={`Les contrôles pour ${currentFramework} ne sont pas encore chargés.`}
+                        message={t('compliance.dashboard.noFrameworksTitle', 'Référentiel non initialisé')}
+                        description={t('compliance.dashboard.noFrameworksDesc', { framework: getFrameworkLabel(currentFramework), defaultValue: `Les contrôles pour {{framework}} ne sont pas encore chargés.` })}
                         className="glass-premium border-dashed border border-border/40 p-12 w-full max-w-2xl mx-auto shadow-sm"
                     />
                     {onSeedData && (
@@ -134,16 +151,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             >
                                 <RefreshCw className="w-5 h-5 animate-spin-slow" />
                                 <span>
-                                    Initialiser le référentiel {currentFramework === 'ISO27001' ? 'ISO 27001' :
-                                        currentFramework === 'ISO22301' ? 'ISO 22301' :
-                                            currentFramework === 'NIS2' ? 'NIS 2' :
-                                                currentFramework === 'DORA' ? 'DORA' :
-                                                    currentFramework === 'GDPR' ? 'RGPD' :
-                                                        currentFramework === 'SOC2' ? 'SOC 2' :
-                                                            currentFramework === 'HDS' ? 'HDS' :
-                                                                currentFramework === 'PCI_DSS' ? 'PCI DSS' :
-                                                                    currentFramework === 'NIST_CSF' ? 'NIST CSF' :
-                                                                        currentFramework}
+                                    {t('compliance.dashboard.initializeIso', { framework: getFrameworkLabel(currentFramework), defaultValue: `Initialiser le référentiel {{framework}}` })}
                                 </span>
                             </Button>
                         </div>

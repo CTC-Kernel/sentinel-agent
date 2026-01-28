@@ -7,7 +7,7 @@
  * @module TrainingCourseCard
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import {
   PlayCircle,
@@ -124,10 +124,6 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
   const categoryConfig = getCategoryConfig(course.category);
   const sourceConfig = getSourceConfig(course.source);
 
-  // Memoize icons to avoid recreation during render
-  const ContentIcon = useMemo(() => getContentTypeIcon(course.content.type), [course.content.type]);
-  const CategoryIcon = useMemo(() => categoryConfig.icon, [categoryConfig.icon]);
-
   const frameworkBadges = [];
   if (course.frameworkMappings?.nis2?.length) {
     frameworkBadges.push({ label: 'NIS2', color: 'bg-primary/10 text-primary border-primary/20' });
@@ -138,8 +134,9 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
   if (course.frameworkMappings?.dora?.length) {
     frameworkBadges.push({ label: 'DORA', color: 'bg-warning-bg text-warning-text border-warning-border/50' });
   }
-  // No changes needed here, as TrainingCourseCard doesn't seem to define components inside render.
-  // I will check TrainingCampaignList.tsx.
+  if (course.frameworkMappings?.rgpd?.length) {
+    frameworkBadges.push({ label: 'RGPD', color: 'bg-success-bg text-success-text border-success-border/50' });
+  }
 
 
   return (
@@ -165,14 +162,18 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
       {/* Top section: Category Icon + Content Type */}
       <div className="flex items-start justify-between mb-4">
         <div className={`p-3 rounded-2xl ${categoryConfig.bg} ${categoryConfig.border} border backdrop-blur-sm`}>
-          <CategoryIcon className={`w-6 h-6 ${categoryConfig.color}`} />
+          {React.createElement(categoryConfig.icon, {
+            className: `w-6 h-6 ${categoryConfig.color}`
+          })}
         </div>
 
         <div className="flex items-center gap-2">
           {/* Content Type Icon */}
           <Tooltip content={t(`training.contentTypes.${course.content.type}`)}>
             <div className="p-2 rounded-3xl bg-muted/50 border border-muted">
-              <ContentIcon className="w-4 h-4 text-muted-foreground" />
+              {React.createElement(getContentTypeIcon(course.content.type), {
+                className: "w-4 h-4 text-muted-foreground"
+              })}
             </div>
           </Tooltip>
 

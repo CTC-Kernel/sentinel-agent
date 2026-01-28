@@ -32,11 +32,10 @@ import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { useCourses } from '../../stores/trainingStore';
 import { TrainingService } from '../../services/TrainingService';
-import { trainingCampaignSchema } from '../../schemas/trainingSchema';
+import { trainingCampaignSchema, type TrainingCampaignFormData } from '../../schemas/trainingSchema';
 import { toast } from '@/lib/toast';
 import { appleEasing } from '../../utils/microInteractions';
 import type {
-  TrainingCampaignFormData,
   CampaignScope,
   RecurrenceFrequency,
   TrainingCourse,

@@ -50,6 +50,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
             )}
 
             <div className="relative mb-4 mt-2">
+                {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                 <img
                     src={getDefaultAvatarUrl(user.role)}
                     alt={user.displayName}

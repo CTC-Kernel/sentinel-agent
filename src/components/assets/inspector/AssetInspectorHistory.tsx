@@ -1,4 +1,4 @@
-import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { History } from '../../ui/Icons';
 import { ResourceHistory } from '../../shared/ResourceHistory';
 import { Asset } from '../../../types';
@@ -10,25 +10,26 @@ interface AssetInspectorHistoryProps {
 export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
     selectedAsset
 }) => {
+    const { t } = useTranslation();
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6 flex items-center">
-                    <History className="h-4 w-4 mr-2" /> Historique DICP
+                    <History className="h-4 w-4 mr-2" /> {t('common.inspector.history.dicpHistory')}
                 </h3>
                 {!selectedAsset.history || selectedAsset.history.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucune modification enregistrée.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic">{t('common.inspector.history.noChanges')}</p>
                 ) : (
                     <div className="space-y-4">
                         {selectedAsset.history.slice().reverse().map((h, i) => (
                             <div key={`rec-${i}`} className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-border/40">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-xs font-bold text-slate-600 dark:text-muted-foreground">{new Date(h.date).toLocaleString()}</span>
-                                    <span className="text-xs font-medium text-slate-500">par {h.userName}</span>
+                                    <span className="text-xs font-medium text-slate-500">{t('common.inspector.history.by')} {h.userName}</span>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2 text-xs">
                                     <div className="flex flex-col items-center p-2 rounded-3xl bg-white dark:bg-black/20">
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Confidentialité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">{t('common.inspector.history.confidentiality')}</span>
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="line-through opacity-60">{h.previousConfidentiality}</span>
                                             <span>→</span>
@@ -36,7 +37,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center p-2 rounded-3xl bg-white dark:bg-black/20">
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Intégrité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">{t('common.inspector.history.integrity')}</span>
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="line-through opacity-60">{h.previousIntegrity}</span>
                                             <span>→</span>
@@ -44,7 +45,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center p-2 rounded-3xl bg-white dark:bg-black/20">
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Disponibilité</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">{t('common.inspector.history.availability')}</span>
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="line-through opacity-60">{h.previousAvailability}</span>
                                             <span>→</span>

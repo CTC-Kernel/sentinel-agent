@@ -982,7 +982,7 @@
         "desc": "Identifiez et enregistrez les menaces et vulnérabilités."
       },
       "stats": {
-        "title": "Vue d'ensemble",
+        "title": "Vue d'overview",
         "desc": "Visualisez la répartition des risques et les indicateurs clés."
       },
       "filters": {
@@ -1987,13 +1987,9 @@
           "critical": "Critique",
           "high": "Élevée",
           "medium": "Moyenne",
-          "low": "Faible",
-          "info": "Info"
-        },
-        "linkControl": "Lier à un contrôle"
-      },
-      "emptyTitle": "Aucun constat",
-      "emptyDesc": "Tout semble conforme pour l'instant."
+          "low": "Faible"
+        }
+      }
     }
   },
   "compliance": {
@@ -2015,7 +2011,36 @@
     "mapping": "Cartographie",
     "shared": "Partagé",
     "generateDossier": "Générer Dossier",
-    "dossierGenerated": "Dossier généré"
+    "dossierGenerated": "Dossier généré",
+    "dashboard": {
+      "initializing": "Initialisation de la conformité...",
+      "noFrameworks": "Aucun référentiel configuré. Cliquez sur le bouton ci-dessous pour initialiser les données.",
+      "noFrameworksTitle": "Référentiel non initialisé",
+      "noFrameworksDesc": "Les contrôles pour {{framework}} ne sont pas encore chargés.",
+      "initializeIso": "Initialiser le référentiel {{framework}}",
+      "initMessage": "Initialisation des données de base ISO 27001 (Mesures Annex A)...",
+      "initError": "Erreur lors de l'initialisation",
+      "initSuccess": "Données initialisées avec succès",
+      "alerts": "Alertes",
+      "inProgress": "En cours",
+      "partial": "Partiel",
+      "scoreTitle": "Score {{framework}}",
+      "avgCompliance": "Conformité moyenne",
+      "vs30d": "vs 30j",
+      "distributionTitle": "Distribution par Statut",
+      "domainConformityTitle": "Conformité par Domaine",
+      "radarTitle": "Vue Radar - Maturité par Domaine",
+      "criticalControlsTitle": "Contrôles Critiques à Implémenter",
+      "domainDetailTitle": "Détail par Domaine {{framework}}",
+      "implemented": "Implémenté",
+      "notStarted": "Non commencé",
+      "notApplicable": "Non applicable",
+      "conformityRate": "Taux %",
+      "conformityLabel": "conformité",
+      "excellentLevel": "Excellent niveau de conformité.",
+      "acceptableLevel": "Niveau acceptable, continuez les efforts.",
+      "priorityActionsRequired": "Actions correctives prioritaires requises."
+    }
   },
   "requirements": {
     "title": "Exigences",
@@ -2026,6 +2051,7 @@
     "collapseAll": "Tout replier",
     "allCriticalities": "Toutes les criticités",
     "allCategories": "Toutes les catégories",
+    "allThemes": "Tous les thèmes",
     "filterAll": "Toutes",
     "filterLinked": "Liées",
     "filterUnlinked": "Non liées",
@@ -2282,7 +2308,38 @@
       "Valeur",
       "Fin Garantie"
     ],
-    "warrantyExp": "Exp. Garantie"
+    "warrantyExp": "Exp. Garantie",
+    "lifecycle": {
+      "title": "Maintenance & Cycle de Vie",
+      "status": "État de l'Actif",
+      "maintenance": "Maintenance",
+      "history": "Historique de Maintenance",
+      "addMaintenance": "Ajouter une maintenance",
+      "type": "Type",
+      "types": {
+        "preventive": "Préventive",
+        "corrective": "Corrective",
+        "update": "Mise à jour",
+        "inspection": "Inspection"
+      },
+      "description": "Détails / Description",
+      "technician": "Technicien",
+      "cost": "Coût (€)",
+      "noRecords": "Aucun enregistrement de maintenance pour le moment.",
+      "financial": "Information Financière & Amortissement",
+      "purchasePrice": "Prix d'achat",
+      "purchaseDate": "Date d'achat",
+      "depreciation": "Amortissement (5 ans)",
+      "currentValue": "Valeur actuelle",
+      "warranty": {
+        "status": "Statut de garantie",
+        "validUntil": "Valide jusqu'au {{date}}",
+        "expiresSoon": "Expire bientôt",
+        "expired": "Expirée",
+        "expiredLabel": "Garantie expirée",
+        "underWarranty": "Sous garantie"
+      }
+    }
   },
   "ebios": {
     "stats": {

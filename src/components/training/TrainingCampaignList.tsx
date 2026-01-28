@@ -149,9 +149,6 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
   const statusConfig = getStatusConfig(campaign.status);
   const StatusIcon = statusConfig.icon;
 
-  // Memoize the ScopeIcon to avoid recreation during render
-  const ScopeIcon = useMemo(() => getScopeIcon(campaign.scope), [campaign.scope]);
-
   const progressPercent = campaign.progress.totalAssignments > 0
     ? Math.round((campaign.progress.completed / campaign.progress.totalAssignments) * 100)
     : 0;
@@ -220,7 +217,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
       <div className="flex flex-wrap items-center gap-2">
         {/* Scope */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted/50 text-xs text-muted-foreground">
-          <ScopeIcon className="w-3 h-3" />
+          {React.createElement(getScopeIcon(campaign.scope), { className: "w-3 h-3" })}
           {t(`training.campaign.scope.${campaign.scope}`)}
         </div>
 

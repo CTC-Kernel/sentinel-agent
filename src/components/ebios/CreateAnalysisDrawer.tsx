@@ -86,7 +86,6 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
                         placeholder={t('ebios.analysisNamePlaceholder')}
                         error={errors.name?.message}
                         {...register('name')}
-                        autoFocus
                     />
 
                     {/* Description */}

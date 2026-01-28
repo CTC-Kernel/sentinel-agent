@@ -11,7 +11,15 @@ import { TimelineView } from '../TimelineView';
 vi.mock('framer-motion', () => ({
     motion: {
         div: ({ children, className, onClick }: React.PropsWithChildren<{ className?: string; onClick?: () => void }>) => (
-            <div className={className} onClick={onClick}>{children}</div>
+            <div
+                role="button"
+                tabIndex={0}
+                className={className}
+                onClick={onClick}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
+            >
+                {children}
+            </div>
         )
     },
     AnimatePresence: ({ children }: React.PropsWithChildren<{ mode?: string }>) => <>{children}</>

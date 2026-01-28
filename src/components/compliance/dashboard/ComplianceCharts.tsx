@@ -60,10 +60,14 @@ const renderActiveShape = (props: any) => {
     );
 };
 
+import { useTranslation } from 'react-i18next';
+import { CONTROL_STATUS } from '../../../constants/complianceConfig';
+
 export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
     controls,
     currentFramework
 }) => {
+    const { t } = useTranslation();
     const [activeStatusIndex, setActiveStatusIndex] = useState<number | null>(null);
 
     // Chart Theme Configuration
@@ -81,19 +85,19 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
         }
     };
 
-    const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
-    const inProgressControls = controls.filter(c => c.status === 'Partiel').length;
-    const notImplementedControls = controls.filter(c => c.status === 'Non commencé').length;
-    const notApplicableControls = controls.filter(c => c.status === 'Non applicable').length;
+    const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+    const inProgressControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+    const notImplementedControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length;
+    const notApplicableControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_APPLICABLE).length;
 
     const overallScore = controls.length > 0 ? Math.round((implementedControls / controls.length) * 100) : 0;
 
     // Status distribution
     const statusData = [
-        { name: 'Implémenté', value: implementedControls, color: chartTheme.colors.implemented },
-        { name: 'Partiel', value: inProgressControls, color: chartTheme.colors.partial },
-        { name: 'Non commencé', value: notImplementedControls, color: chartTheme.colors.notStarted },
-        { name: 'Non applicable', value: notApplicableControls, color: chartTheme.colors.notApplicable }
+        { name: t('compliance.dashboard.implemented'), value: implementedControls, color: chartTheme.colors.implemented },
+        { name: t('compliance.dashboard.partial'), value: inProgressControls, color: chartTheme.colors.partial },
+        { name: t('compliance.dashboard.notStarted'), value: notImplementedControls, color: chartTheme.colors.notStarted },
+        { name: t('compliance.dashboard.notApplicable'), value: notApplicableControls, color: chartTheme.colors.notApplicable }
     ].filter(d => d.value > 0);
 
     // Group by Domain
@@ -106,8 +110,8 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
             acc[domain] = { total: 0, implemented: 0, inProgress: 0 };
         }
         acc[domain].total++;
-        if (control.status === 'Implémenté') acc[domain].implemented++;
-        if (control.status === 'Partiel') acc[domain].inProgress++;
+        if (control.status === CONTROL_STATUS.IMPLEMENTED) acc[domain].implemented++;
+        if (control.status === CONTROL_STATUS.PARTIAL) acc[domain].inProgress++;
         return acc;
     }, {} as Record<string, { total: number; implemented: number; inProgress: number }>);
 
@@ -126,7 +130,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
         .slice(0, 8);
 
     // Gauge data
-    const scoreGaugeData = [{ name: 'Score', value: overallScore, fill: 'url(#complianceScoreGradient)' }];
+    const scoreGaugeData = [{ name: t('compliance.dashboard.scoreTitle', { framework: '' }).trim(), value: overallScore, fill: 'url(#complianceScoreGradient)' }];
 
     const barGradientPrimaryId = React.useId();
     const barGradientSuccessId = React.useId();
@@ -187,12 +191,18 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         </div>
                     </div>
                     <div className="flex-1 text-center sm:text-left">
-                        <h3 className="text-lg font-bold text-foreground mb-2 uppercase tracking-wide">Score de Conformité - {currentFramework}</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-2 uppercase tracking-wide">
+                            {t('compliance.dashboard.scoreTitle', { framework: currentFramework })}
+                        </h3>
                         <p className="text-sm text-muted-foreground max-w-md">
-                            {implementedControls} contrôles implémentés sur {controls.length} au total.
-                            {overallScore >= 80 ? ' Excellent niveau de conformité.' :
-                                overallScore >= 50 ? ' Niveau acceptable, continuez les efforts.' :
-                                    ' Actions correctives prioritaires requises.'}
+                            {t('compliance.dashboard.statsSummary', {
+                                defaultValue: '{{count}} contrôles implémentés sur {{total}} au total.',
+                                count: implementedControls,
+                                total: controls.length
+                            })}
+                            {overallScore >= 80 ? ` ${t('compliance.dashboard.excellentLevel')}` :
+                                overallScore >= 50 ? ` ${t('compliance.dashboard.acceptableLevel')}` :
+                                    ` ${t('compliance.dashboard.priorityActionsRequired')}`}
                         </p>
                     </div>
                 </div>
@@ -207,13 +217,12 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                     <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-brand-50 rounded-3xl">
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                         </div>
-                        Distribution par Statut
+                        {t('compliance.dashboard.distributionTitle')}
                     </h4>
                     <div className="h-[280px] w-full relative z-10">
                         <ResponsiveContainer width="100%" height="100%">
@@ -270,7 +279,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         <div className="p-2 bg-violet-500/10 rounded-3xl">
                             <BarChartIcon className="w-4 h-4 text-violet-500" />
                         </div>
-                        Conformité par Domaine
+                        {t('compliance.dashboard.domainConformityTitle')}
                     </h4>
                     <div className="h-[280px] w-full relative z-10">
                         <ResponsiveContainer width="100%" height="100%">
@@ -319,7 +328,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <Target className="w-4 h-4 text-emerald-500" />
                         </div>
-                        Vue Radar - Maturité par Domaine
+                        {t('compliance.dashboard.radarTitle')}
                     </h4>
                     <div className="h-[280px] w-full relative z-10">
                         <ResponsiveContainer width="100%" height="100%">

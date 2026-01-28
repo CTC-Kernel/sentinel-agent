@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, ShieldAlert, Server, Plus, Flame, Siren } from '../../ui/Icons';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
 import { Asset, Risk, Incident, Vulnerability } from '../../../types';
@@ -35,6 +36,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
     createRiskFromVuln,
     navigate
 }) => {
+    const { t } = useTranslation();
     const handleCreateRisk = useCallback(() => {
         navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } });
     }, [navigate, selectedAsset.id, selectedAsset.name]);
@@ -46,28 +48,28 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="flex gap-4">
-                <CustomTooltip content="Scanner l'actif avec Shodan.io">
+                <CustomTooltip content={t('common.inspector.security.scanShodanTooltip')}>
                     <button
                         type="button"
                         onClick={scanShodan}
                         disabled={scanning}
-                        aria-label="Lancer un scan Shodan"
+                        aria-label={t('common.inspector.security.scanShodanTooltip')}
                         className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
-                        Scan Shodan
+                        {t('common.inspector.security.scanShodan')}
                     </button>
                 </CustomTooltip>
-                <CustomTooltip content="Rechercher des CVEs (NVD)">
+                <CustomTooltip content={t('common.inspector.security.checkCVEsTooltip')}>
                     <button
                         type="button"
                         onClick={checkCVEs}
                         disabled={scanning}
-                        aria-label="Rechercher des vulnérabilités CVE"
+                        aria-label={t('common.inspector.security.checkCVEsTooltip')}
                         className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-3xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
-                        Check CVEs (NVD)
+                        {t('common.inspector.security.checkCVEs')}
                     </button>
                 </CustomTooltip>
             </div>
@@ -75,7 +77,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
             {shodanResult && (
                 <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-lg">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-4 flex items-center">
-                        <Server className="h-4 w-4 mr-2" /> Résultat Shodan
+                        <Server className="h-4 w-4 mr-2" /> {t('common.inspector.security.shodanResult')}
                     </h3>
                     <div className="space-y-2 text-sm font-mono">
                         <p><span className="text-slate-500 dark:text-slate-400">IP:</span> {shodanResult.ip_str}</p>
@@ -89,7 +91,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
             {vulnerabilities.length > 0 && (
                 <div className="bg-red-50 dark:bg-red-50 dark:bg-red-900 p-6 rounded-3xl border border-red-100 dark:border-red-900/30">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-4 flex items-center">
-                        <ShieldAlert className="h-4 w-4 mr-2" /> Vulnérabilités NVD ({vulnerabilities.length})
+                        <ShieldAlert className="h-4 w-4 mr-2" /> {t('common.inspector.security.nvdVulns')} ({vulnerabilities.length})
                     </h3>
                     <div className="space-y-3">
                         {vulnerabilities.map(vuln => (
@@ -98,10 +100,10 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                                     <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
                                     <div className="flex items-center gap-2">
                                         <span className="text-[11px] font-bold px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-3xl ring-1 ring-red-500/20">{vuln.severity} ({vuln.score})</span>
-                                        <CustomTooltip content="Créer un risque">
+                                        <CustomTooltip content={t('common.inspector.security.newRisk')}>
                                             <button
                                                 onClick={() => createRiskFromVuln(vuln)}
-                                                aria-label={`Créer un risque pour ${vuln.cveId}`}
+                                                aria-label={t('common.inspector.security.newRisk')}
                                                 className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 <Plus className="h-4 w-4" />
@@ -119,19 +121,19 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center">
-                        <ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})
+                        <ShieldAlert className="h-4 w-4 mr-2" /> {t('common.inspector.security.identifiedRisks')} ({linkedRisks.length})
                     </h3>
                     <button
                         type="button"
                         onClick={handleCreateRisk}
-                        aria-label="Créer un nouveau risque"
+                        aria-label={t('common.inspector.security.newRisk')}
                         className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                     >
-                        <Plus className="h-3 w-3 mr-1" /> Nouveau Risque
+                        <Plus className="h-3 w-3 mr-1" /> {t('common.inspector.security.newRisk')}
                     </button>
                 </div>
                 {linkedRisks.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">Aucun risque associé.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">{t('common.inspector.security.noRisks')}</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
@@ -141,7 +143,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                                     <span className={`text-[11px] px-2 py-1 rounded-3xl font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-muted-foreground mb-3">{risk.vulnerability}</p>
-                                {risk.score >= 15 && <div className="flex items-center text-[11px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-3xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}
+                                {risk.score >= 15 && <div className="flex items-center text-[11px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-3xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> {t('common.inspector.security.criticalRisk')}</div>}
                             </div>
                         ))}
                     </div>
@@ -151,19 +153,19 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
             <div className="mt-8">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center">
-                        <Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})
+                        <Siren className="h-4 w-4 mr-2" /> {t('common.inspector.security.incidents')} ({linkedIncidents.length})
                     </h3>
                     <button
                         type="button"
                         onClick={handleCreateIncident}
-                        aria-label="Signaler un incident"
+                        aria-label={t('common.inspector.security.reportIncident')}
                         className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                     >
-                        <Plus className="h-3 w-3 mr-1" /> Signaler Incident
+                        <Plus className="h-3 w-3 mr-1" /> {t('common.inspector.security.reportIncident')}
                     </button>
                 </div>
                 {linkedIncidents.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">Aucun incident signalé.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">{t('common.inspector.security.noIncidents')}</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (

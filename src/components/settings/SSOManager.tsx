@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Shield, Lock, Save, Globe, AlertTriangle } from '../ui/Icons';
 import { SsoProvider, SsoSettings } from '../../types/sso';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { cn } from '../../utils/cn';
 import { ErrorLogger } from '../../services/errorLogger';
 
 export const SSOManager: React.FC = () => {
@@ -124,22 +125,24 @@ export const SSOManager: React.FC = () => {
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {(['google', 'microsoft', 'okta', 'saml'] as SsoProvider[]).map(provider => (
-                            <div
+                            <button
                                 key={provider}
+                                type="button"
                                 onClick={() => toggleProvider(provider)}
-                                className={`
-                                    cursor-pointer p-4 rounded-3xl border flex items-center justify-between transition-all
-                                    ${settings.allowedProviders?.includes(provider)
+                                className={cn(
+                                    "flex items-center justify-between p-4 rounded-3xl border transition-all w-full text-left",
+                                    settings.allowedProviders?.includes(provider)
                                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                                         : 'border-border/40 dark:border-slate-700 bg-white/50 dark:bg-white/5 opacity-60 hover:opacity-70'
-                                    }
-                                `}
+                                )}
+                                aria-label={`Toggle ${provider} SSO`}
+                                aria-pressed={settings.allowedProviders?.includes(provider)}
                             >
                                 <span className="capitalize font-medium text-sm">{provider}</span>
                                 {settings.allowedProviders?.includes(provider) && (
                                     <div className="w-2 h-2 rounded-full bg-purple-500" />
                                 )}
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>

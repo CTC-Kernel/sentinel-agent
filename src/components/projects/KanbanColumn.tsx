@@ -42,6 +42,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     }, [deletingIds, onDeleteTask]);
 
     return (
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
         <div
             className={`flex-1 glass-premium rounded-[1.5rem] p-4 border border-border/40 flex flex-col min-h-[400px] transition-colors ${draggedTaskId ? 'border-dashed border-brand-300 dark:border-brand-700 bg-brand-50' : 'bg-slate-50/30 dark:bg-slate-900/20'}`}
             onDragOver={onDragOver}

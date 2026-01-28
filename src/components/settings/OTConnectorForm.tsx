@@ -486,6 +486,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           {(['manual', 'interval', 'cron'] as ScheduleType[]).map(type => (
             <label
               key={type}
+              htmlFor={`schedule-type-${type}`}
               className={cn(
                 'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors',
                 formData.schedule.type === type
@@ -495,14 +496,20 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             >
               <input
                 type="radio"
+                id={`schedule-type-${type}`}
                 name="scheduleType"
                 value={type}
                 checked={formData.schedule.type === type}
                 onChange={() => updateSchedule('type', type)}
                 className="h-4 w-4 text-blue-600"
               />
-              <div>
-                <span className="font-medium">
+              <span className="sr-only">
+                {type === 'manual' && t('otConnector.schedule.manual', 'Manual only')}
+                {type === 'interval' && t('otConnector.schedule.interval', 'Fixed interval')}
+                {type === 'cron' && t('otConnector.schedule.cron', 'Custom schedule (Cron)')}
+              </span>
+              <span className="block" aria-hidden="true">
+                <span className="font-medium text-slate-900 dark:text-white">
                   {type === 'manual' && t('otConnector.schedule.manual', 'Manual only')}
                   {type === 'interval' && t('otConnector.schedule.interval', 'Fixed interval')}
                   {type === 'cron' && t('otConnector.schedule.cron', 'Custom schedule (Cron)')}
@@ -512,7 +519,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                   {type === 'interval' && t('otConnector.schedule.intervalDesc', 'Run at regular intervals')}
                   {type === 'cron' && t('otConnector.schedule.cronDesc', 'Advanced scheduling with cron expression')}
                 </p>
-              </div>
+              </span>
             </label>
           ))}
         </div>

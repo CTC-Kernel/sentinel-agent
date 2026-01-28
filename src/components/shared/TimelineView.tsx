@@ -161,18 +161,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
 
                 <div className="relative border-l-2 border-border/40 dark:border-slate-800 ml-3 space-y-6 pb-4">
                     {logs.map((log) => (
-                        <div
+                        <button
                             key={log.id}
-                            role="button"
-                            tabIndex={0}
-                            className={`relative pl-6 cursor-pointer group transition-all focus:outline-none`}
+                            type="button"
+                            className={`relative pl-6 group transition-all focus:outline-none w-full text-left`}
                             onClick={() => setSelectedLog(log)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    setSelectedLog(log);
-                                }
-                            }}
+                            aria-label={`Détails de l'événement ${log.action} par ${log.userName}`}
                         >
                             {/* Dot */}
                             <div className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 shadow-sm transition-all
@@ -225,7 +219,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </button>
                     ))}
                 </div>
             </div>

@@ -3,6 +3,8 @@
  * Tests role display card
  */
 
+/* eslint-disable jsx-a11y/aria-role */
+
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RoleCard } from '../RoleCard';

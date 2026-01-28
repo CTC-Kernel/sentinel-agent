@@ -166,8 +166,8 @@ export const trainingCampaignSchema = z.object({
     .trim()
     .max(1000, i18n.t('validation.maxLength', { max: 1000 }))
     .optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
+  startDate: z.date(),
+  endDate: z.date(),
   scope: campaignScopeSchema,
   scopeFilter: z.array(z.string()).optional(),
   courseIds: z.array(z.string()).min(1, i18n.t('training.validation.selectCourses')),

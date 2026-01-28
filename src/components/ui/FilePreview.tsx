@@ -66,6 +66,8 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                         <button
                             onClick={onClose}
                             className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            aria-label="Fermer la prévisualisation"
+                            title="Fermer"
                         >
                             <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                         </button>
@@ -91,10 +93,11 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                     )}
 
                     {isPDF && (
+                        /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */
                         <iframe
                             src={url}
                             className="w-full h-full min-h-[600px] rounded-lg"
-                            title={fileName}
+                            title={`Visualiseur PDF pour ${fileName}`}
                             onLoad={() => setLoading(false)}
                         />
                     )}

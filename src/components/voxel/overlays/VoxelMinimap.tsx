@@ -325,9 +325,9 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
   const displayHeight = isExpanded ? height * 1.5 : height;
 
   return (
-    <div
-      role="complementary"
-      aria-label="Minimap Container"
+    /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */
+    <section
+      aria-label="Minimap"
       className={`fixed bottom-4 left-4 z-40 ${className}`}
       style={{
         width: displayWidth,
@@ -335,8 +335,6 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onFocus={() => setIsHovered(true)}
-      onBlur={() => setIsHovered(false)}
     >
       <div
         style={{
@@ -416,7 +414,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

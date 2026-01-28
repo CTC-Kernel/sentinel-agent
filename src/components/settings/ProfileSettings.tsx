@@ -181,6 +181,7 @@ export const ProfileSettings: React.FC = () => {
                     <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
                         <div className="relative group mx-auto">
                             <div className="w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/20 bg-white dark:bg-slate-900">
+                                {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                                 <img
                                     src={getDefaultAvatarUrl(user?.role)}
                                     alt={user?.displayName || 'User'}

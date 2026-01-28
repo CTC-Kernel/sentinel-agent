@@ -37,6 +37,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
     const [tooltipContent, setTooltip] = useState<{ x: number, y: number, content: React.ReactNode } | null>(null);
 
     return (
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
         <div
             className="w-full h-full bg-slate-950 rounded-3xl overflow-hidden relative isolate group"
             onMouseLeave={() => setTooltip(null)}
@@ -236,28 +237,30 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
             </div>
 
             {/* Floating Tooltip Portal */}
-            {typeof document !== 'undefined' && createPortal(
-                <AnimatePresence>
-                    {tooltipContent && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            style={{
-                                position: 'fixed',
-                                left: tooltipContent.x + 15,
-                                top: tooltipContent.y - 15,
-                                zIndex: 9999,
-                                pointerEvents: 'none'
-                            }}
-                            className="bg-slate-900/95 backdrop-blur-xl border border-border/40 p-3 rounded-3xl shadow-2xl min-w-[150px]"
-                        >
-                            {tooltipContent.content}
-                        </motion.div>
-                    )}
-                </AnimatePresence>,
-                document.body
-            )}
+            {
+                typeof document !== 'undefined' && createPortal(
+                    <AnimatePresence>
+                        {tooltipContent && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                style={{
+                                    position: 'fixed',
+                                    left: tooltipContent.x + 15,
+                                    top: tooltipContent.y - 15,
+                                    zIndex: 9999,
+                                    pointerEvents: 'none'
+                                }}
+                                className="bg-slate-900/95 backdrop-blur-xl border border-border/40 p-3 rounded-3xl shadow-2xl min-w-[150px]"
+                            >
+                                {tooltipContent.content}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>,
+                    document.body
+                )
+            }
 
             {/* Legend overlay */}
             <div className="absolute bottom-4 left-8 pointer-events-none">
@@ -268,6 +271,6 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> CRIT</div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 });

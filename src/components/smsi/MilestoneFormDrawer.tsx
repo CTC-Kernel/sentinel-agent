@@ -128,10 +128,10 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
 
           {/* Phase Selection - Story 20.2 */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
+            <h4 id="phase-label" className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
               Phase PDCA *
-            </label>
-            <div className="grid grid-cols-2 gap-3">
+            </h4>
+            <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="phase-label">
               {(Object.keys(PHASE_CONFIG) as PDCAPhase[]).map((phase) => {
                 const config = PHASE_CONFIG[phase];
                 const style = PHASE_STYLES[phase];
@@ -194,11 +194,12 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
 
           {/* Responsible Person - Story 20.4 */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <label htmlFor="responsible-select" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
               <Users className="w-4 h-4" />
               Responsable
             </label>
             <select
+              id="responsible-select"
               {...register('responsibleId')}
               className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-400 focus:border-blue-500"
             >

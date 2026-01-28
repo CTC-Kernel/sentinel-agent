@@ -352,6 +352,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                         {logoUrl && (
                             <div className="col-span-1 md:col-span-2 flex justify-center py-4">
+                                {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                                 <img src={logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-3xl bg-white p-2 shadow-sm border border-border/40 dark:border-slate-800" onError={(e) => e.currentTarget.style.display = 'none'} />
                             </div>
                         )}

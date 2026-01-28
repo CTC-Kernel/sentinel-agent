@@ -127,16 +127,19 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
 
                     {!isEditing && (
                         <div className="pt-4">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                            <h4 id="template-label" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                                 Modèle de programme
-                            </label>
-                            <div className="grid gap-3">
+                            </h4>
+                            <div className="grid gap-3" role="radiogroup" aria-labelledby="template-label">
                                 {PROGRAM_TEMPLATES.map((template) => (
-                                    <div
+                                    <button
                                         key={template.id}
+                                        type="button"
                                         onClick={() => setValue('template', template.id)}
+                                        aria-checked={selectedTemplate === template.id}
+                                        role="radio"
                                         className={cn(
-                                            "relative flex items-start gap-3 p-3 rounded-3xl border cursor-pointer transition-all",
+                                            "relative flex items-start gap-3 p-3 rounded-3xl border cursor-pointer transition-all w-full text-left",
                                             selectedTemplate === template.id
                                                 ? "border-brand-500 bg-brand-50 dark:bg-brand-800 ring-1 ring-brand-500"
                                                 : "border-border/40 dark:border-border/40 hover:border-border/40 dark:hover:border-white/20 bg-white dark:bg-slate-900"
@@ -164,7 +167,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                                                 <CheckCircle2 className="w-5 h-5 fill-current" />
                                             </div>
                                         )}
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         </div>

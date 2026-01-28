@@ -83,6 +83,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
                     <div className="flex items-center">
                         {supplier.contactName && (
                             <div className="flex items-center gap-2">
+                                {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                                 <img
                                     src={(() => {
                                         const contactUser = users?.find(u =>

@@ -290,7 +290,6 @@ export const PartnerManagement: React.FC = () => {
                                             name="email"
                                             type="email"
                                             required
-                                            autoFocus
                                             placeholder="contact@cabinet-audit.com"
                                             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
                                         />

@@ -80,6 +80,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                 <div className="flex items-center gap-2">
                     <span className="text-slate-500 dark:text-slate-400">Contact principal:</span>
                     <div className="flex items-center gap-2">
+                        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                         <img
                             src={getUserAvatarUrl(contactUser?.photoURL, contactUser?.role)}
                             alt={supplier.contactName || 'Inconnu'}

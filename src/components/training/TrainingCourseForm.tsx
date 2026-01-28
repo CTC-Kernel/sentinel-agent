@@ -228,12 +228,14 @@ export const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({
             control={control}
             name="isRequired"
             render={({ field }) => (
-              <label className="flex items-center gap-3 cursor-pointer flex-1">
+              <label htmlFor="isRequired-checkbox" className="flex items-center gap-3 cursor-pointer flex-1">
                 <input
+                  id="isRequired-checkbox"
                   type="checkbox"
                   checked={field.value || false}
                   onChange={(e) => field.onChange(e.target.checked)}
                   className="w-5 h-5 rounded-lg border-muted text-primary focus:ring-primary/20"
+                  aria-label={t('training.course.isRequired')}
                 />
                 <div>
                   <span className="text-sm font-semibold text-foreground">
@@ -323,8 +325,8 @@ export const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({
               contentType === 'video'
                 ? 'https://example.com/video.mp4'
                 : contentType === 'document'
-                ? 'https://example.com/document.pdf'
-                : 'https://example.com/external-training'
+                  ? 'https://example.com/document.pdf'
+                  : 'https://example.com/external-training'
             }
           />
         )}
