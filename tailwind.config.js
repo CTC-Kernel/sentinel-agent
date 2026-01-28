@@ -137,6 +137,55 @@ export default {
           900: '#18181b',
           950: '#09090b',
         },
+        // Standardizing aggressive colors by shadowing default Tailwind palettes
+        blue: {
+          50: '#f0f7ff',
+          100: '#e0effe',
+          200: '#bae0fd',
+          300: '#7cc7fb',
+          400: '#38a9f8',
+          500: '#5a8ed5', // Refined desaturated blue
+          600: '#4a7ec5',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+        },
+        red: {
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#cc6e6e', // Refined desaturated red
+          600: '#bc5e5e',
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
+        },
+        green: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#5e9b7e', // Refined desaturated green
+          600: '#4e8b6e',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+        },
+        amber: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#c59a6e', // Refined desaturated amber
+          600: '#b58a5e',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
+        },
         // Navigation section colors (harmonized with design tokens)
         nav: {
           pilotage: "hsl(var(--nav-pilotage))",
@@ -206,6 +255,7 @@ export default {
         'gradient-warning': 'var(--gradient-warning)',
         'gradient-danger': 'var(--gradient-danger)',
         'gradient-info': 'var(--gradient-info)',
+        'aurora': "repeating-linear-gradient(100deg,var(--blue-500) 10%,var(--indigo-300) 15%,var(--blue-300) 20%,var(--violet-200) 25%,var(--blue-400) 30%)",
       },
       animation: {
         'fade-in': 'fadeIn 0.5s var(--ease-apple)',
@@ -291,6 +341,10 @@ export default {
         "pulse-gentle": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.6" },
+        },
+        "shimmer-rotate": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
         },
       }
     },

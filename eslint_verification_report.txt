@@ -1,0 +1,23 @@
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ebios/workshops/Workshop1Content.tsx
+  232:17  error  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+  323:17  error  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+  423:17  error  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+  533:17  error  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/suppliers/SupplierForm.tsx
+  355:33  error  Non-interactive elements should not be assigned mouse or keyboard event listeners  jsx-a11y/no-noninteractive-element-interactions
+  508:29  error  A form label must be associated with a control                                     jsx-a11y/label-has-associated-control
+  526:33  error  A form label must be associated with a control                                     jsx-a11y/label-has-associated-control
+  544:33  error  A form label must be associated with a control                                     jsx-a11y/label-has-associated-control
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/training/TrainingCampaignForm.tsx
+  138:3   error    The attribute aria-checked is not supported by the role button                                                                                                                                                          jsx-a11y/role-supports-aria-props
+  216:9   warning  The 'selectedCourseIds' logical expression could make the dependencies of useMemo Hook (at line 234) change on every render. To fix this, wrap the initialization of 'selectedCourseIds' in its own useMemo() Hook      react-hooks/exhaustive-deps
+  216:9   warning  The 'selectedCourseIds' logical expression could make the dependencies of useCallback Hook (at line 258) change on every render. To fix this, wrap the initialization of 'selectedCourseIds' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  216:9   warning  The 'selectedCourseIds' logical expression could make the dependencies of useMemo Hook (at line 280) change on every render. To fix this, wrap the initialization of 'selectedCourseIds' in its own useMemo() Hook      react-hooks/exhaustive-deps
+  270:14  warning  'error' is defined but never used                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  514:29  error    The attribute aria-checked is not supported by the role button                                                                                                                                                          jsx-a11y/role-supports-aria-props
+
+✖ 14 problems (10 errors, 4 warnings)
+
