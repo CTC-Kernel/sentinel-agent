@@ -7,7 +7,7 @@ import { db } from '../../firebase';
 import { Project, ProjectTask, ProjectMilestone } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { ProjectService } from '../../services/projectService';
-import { logAction } from '../../services/logger';
+import { AuditLogService } from '../../services/auditLogService';
 import { projectSchema } from '../../schemas/projectSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { z } from 'zod';
@@ -93,7 +93,17 @@ export const useProjectLogic = () => {
                 });
 
                 await batch.commit();
-                await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
+
+                // Audit Log
+                await AuditLogService.logUpdate(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                    'project',
+                    editingProject.id,
+                    editingProject as unknown as Record<string, unknown>,
+                    cleanData as Record<string, unknown>,
+                    editingProject.name
+                );
 
             } else {
                 // Create
@@ -115,13 +125,15 @@ export const useProjectLogic = () => {
                 }
 
                 const newProjectRef = doc(collection(db, 'projects'));
-                batch.set(newProjectRef, {
+                const newProjectData = {
                     ...finalData,
                     organizationId: user.organizationId,
                     progress: 0,
                     tasks: [],
                     createdAt: serverTimestamp()
-                });
+                };
+
+                batch.set(newProjectRef, newProjectData);
 
                 // Use ProjectService to sync new project links
                 ProjectService.syncNewProjectLinks(
@@ -134,7 +146,17 @@ export const useProjectLogic = () => {
                 );
 
                 await batch.commit();
-                await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
+
+                // Audit Log
+                await AuditLogService.logCreate(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                    'project',
+                    newProjectRef.id,
+                    newProjectData as unknown as Record<string, unknown>,
+                    validatedData.name
+                );
+
                 addToast("Projet créé avec succès", "success");
             }
         } catch (e) {
@@ -170,8 +192,17 @@ export const useProjectLogic = () => {
             // @ts-expect-error - Timestamp type mismatch with external library
             delete newProjData.id;
 
-            await addDoc(collection(db, 'projects'), sanitizeData(newProjData));
-            await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
+            const docRef = await addDoc(collection(db, 'projects'), sanitizeData(newProjData));
+
+            await AuditLogService.logCreate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'project',
+                docRef.id,
+                sanitizeData(newProjData) as Record<string, unknown>,
+                `Duplication: ${newProjData.name}`
+            );
+
             addToast("Projet dupliqué", "success");
             return 'SUCCESS';
         } catch (e) {
@@ -191,10 +222,21 @@ export const useProjectLogic = () => {
     const deleteProject = async (id: string, name?: string) => {
         if (!canDeleteResource(user, 'Project') || !user?.organizationId) return;
         try {
+            // Fetch project text details for log fallback if name not provided
+            // ideally we pass the object, but here we only have id/name
+
             // Use ProjectService for cascade deletion with dependency cleanup
             await ProjectService.deleteProjectWithCascade(id, user.organizationId);
 
-            await logAction(user, 'DELETE', 'Project', `Suppression projet: ${name || id}`);
+            await AuditLogService.logDelete(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'project',
+                id,
+                { id, name }, // Limited before data
+                name || 'Projet'
+            );
+
             addToast("Projet supprimé", "info");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.deleteProject', 'DELETE_FAILED');
@@ -202,12 +244,16 @@ export const useProjectLogic = () => {
     };
 
     const updateProjectTasks = async (project: Project, tasks: ProjectTask[]) => {
-        if (!canEdit) return;
+        if (!canEdit || !user?.organizationId) return; // Added organization check
         const completed = tasks.filter(t => t.status === 'Terminé').length;
         const progress = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
 
         try {
             await updateDoc(doc(db, 'projects', project.id), { tasks, progress });
+
+            // Not logging every task update to avoid spam, but could if critical
+            // AuditLogService.logUpdate(...) 
+
             return { tasks, progress };
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.updateTasks', 'UPDATE_FAILED');
@@ -217,6 +263,10 @@ export const useProjectLogic = () => {
 
     const importProjects = useCallback(async (csvContent: string) => {
         if (!user?.organizationId) return;
+        if (!canEditResource(user, 'Project')) {
+            addToast("Permission refusée", "error");
+            return;
+        }
 
         try {
             const lines = ImportService.parseCSV(csvContent);
@@ -232,14 +282,21 @@ export const useProjectLogic = () => {
                 user.displayName || 'Utilisateur'
             );
 
-            await logAction(user, 'IMPORT', 'Project', `Import CSV de ${count} projets`);
+            await AuditLogService.logImport(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'project',
+                count,
+                'CSV Upload'
+            );
+
             addToast(`Import de ${count} projets réussi`, "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useProjectLogic.importProjects');
         } finally {
             setIsSubmitting(false);
         }
-    }, [user, addToast]);
+    }, [user, addToast, canEdit]); // Added canEdit to deps
 
     const createProjectFromTemplateData = async (
         projectData: Omit<Project, 'id'>,
@@ -284,7 +341,16 @@ export const useProjectLogic = () => {
             });
 
             await batch.commit();
-            await logAction(user, 'CREATE', 'Project', `Projet créé depuis template: ${projectData.name}`);
+
+            await AuditLogService.logCreate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'project',
+                newProjectRef.id,
+                finalProjectData as Record<string, unknown>,
+                `Template: ${projectData.name}`
+            );
+
             addToast("Projet et jalons créés avec succès", "success");
 
             return newProjectRef.id;

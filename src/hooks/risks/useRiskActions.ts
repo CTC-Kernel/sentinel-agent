@@ -6,18 +6,17 @@ import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
-import { logAction } from '../../services/logger';
-import { getDiff } from '../../utils/diffUtils';
 import { ImportService } from '../../services/ImportService';
 import { NotificationService } from '../../services/notificationService';
 import { DependencyService } from '../../services/dependencyService';
 import { riskSchema } from '../../schemas/riskSchema';
 import { FunctionsService } from '../../services/FunctionsService';
 import { sanitizeData } from '../../utils/dataSanitizer';
-import { canEditResource } from '../../utils/permissions';
+import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { UserProfile } from '../../types';
 import { createRiskDraftSchema, RISK_DRAFT_STATUS, RISK_PUBLISHED_STATUS } from '../../utils/riskDraftSchema';
 import { RiskService } from '../../services/RiskService';
+import { AuditLogService, CreateAuditLogInput } from '../../services/auditLogService';
 
 export const useRiskActions = (onRefresh: () => void) => {
     const { t } = useStore();
@@ -49,6 +48,10 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const createRisk = async (data: Partial<Risk>) => {
         if (!user) return false;
+        if (!canEditResource(user as UserProfile, 'Risk')) {
+            toast.error(t('common.accessDenied'));
+            return false;
+        }
 
         setSubmitting(true);
         try {
@@ -72,12 +75,27 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const bulkCreateRisks = async (risksData: Partial<Risk>[]) => {
         if (!user?.organizationId) return false;
+        if (!canEditResource(user as UserProfile, 'Risk')) {
+            toast.error(t('common.accessDenied'));
+            return false;
+        }
 
         setSubmitting(true);
         const batch = writeBatch(db);
         const risksCollection = collection(db, 'risks');
+        const auditEntries: CreateAuditLogInput[] = [];
 
         try {
+            // Validate all risks first
+            for (const riskItem of risksData) {
+                const logicCheck = validateRiskLogic(riskItem);
+                if (!logicCheck.valid) {
+                    toast.error(t('risks.batchValidationError', { name: riskItem.threat, error: logicCheck.error }));
+                    setSubmitting(false);
+                    return false;
+                }
+            }
+
             risksData.forEach(riskItem => {
                 const newDocRef = doc(risksCollection);
                 const sanitized = sanitizeData({
@@ -97,10 +115,29 @@ export const useRiskActions = (onRefresh: () => void) => {
                     }]
                 });
                 batch.set(newDocRef, sanitized);
+
+                // Prepare audit entry
+                auditEntries.push({
+                    organizationId: user.organizationId!,
+                    userId: user.uid,
+                    userName: user.displayName || user.email || 'Unknown',
+                    userEmail: user.email || '',
+                    action: 'create',
+                    entityType: 'risk',
+                    entityId: newDocRef.id,
+                    entityName: riskItem.threat,
+                    after: sanitized,
+                    details: 'Création groupée'
+                });
             });
 
             await batch.commit();
-            logAction(user, 'BULK_CREATE_RISKS', 'Risk', `Création groupée de ${risksData.length} risques`);
+
+            // Async batch logging
+            AuditLogService.logBatch(auditEntries).catch(err =>
+                ErrorLogger.warn('Failed to log batch risk creation', 'useRiskActions.bulkCreateRisks', { error: err })
+            );
+
             toast.success(t('risks.templateSuccess', { count: risksData.length }));
             onRefresh();
             return true;
@@ -158,9 +195,18 @@ export const useRiskActions = (onRefresh: () => void) => {
             const docRef = await addDoc(collection(db, 'risks'), riskData);
             toast.success(t('common.draftSaved') || 'Brouillon enregistré');
             onRefresh();
-            if (user) {
-                logAction(user, 'CREATE_RISK_DRAFT', 'Risk', 'Brouillon de risque créé');
+            if (user && user.organizationId) {
+                await AuditLogService.logCreate(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                    'risk',
+                    docRef.id,
+                    riskData,
+                    'Brouillon de risque'
+                );
             }
+            toast.success(t('common.draftSaved') || 'Brouillon enregistré');
+            onRefresh();
             return docRef.id;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.saveRiskAsDraft', 'CREATE_FAILED');
@@ -203,8 +249,16 @@ export const useRiskActions = (onRefresh: () => void) => {
                 updatedAt: serverTimestamp()
             }));
 
-            if (user) {
-                logAction(user, 'UPDATE_RISK_DRAFT', 'Risk', 'Brouillon de risque mis à jour', undefined, id);
+            if (user && user.organizationId) {
+                await AuditLogService.logUpdate(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                    'risk',
+                    id,
+                    { status: 'Brouillon_old' }, // Pseudo-state
+                    data as Record<string, unknown>,
+                    data.threat
+                );
             }
 
             toast.success(t('common.draftSaved') || 'Brouillon enregistré');
@@ -261,17 +315,15 @@ export const useRiskActions = (onRefresh: () => void) => {
                 updatedAt: serverTimestamp()
             }));
 
-            if (user) {
-                const changes = currentRisk ? getDiff(data, currentRisk as unknown as Record<string, unknown>) : [];
-                logAction(
-                    user,
-                    'PUBLISH_RISK',
-                    'Risk',
-                    'Risque publié (brouillon → ouvert)',
-                    undefined,
+            if (user && user.organizationId) {
+                await AuditLogService.logStatusChange(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                    'risk',
                     id,
-                    undefined,
-                    changes
+                    currentRisk?.threat || 'Risk',
+                    RISK_DRAFT_STATUS,
+                    RISK_PUBLISHED_STATUS
                 );
             }
 
@@ -293,6 +345,10 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const updateRisk = async (id: string, data: Partial<Risk>, currentRisk?: Risk) => {
         if (!user) return false;
+        if (!canEditResource(user as UserProfile, 'Risk')) {
+            toast.error(t('common.accessDenied'));
+            return false;
+        }
         setSubmitting(true);
         try {
             const result = await RiskService.updateRisk(user as UserProfile, id, data, currentRisk);
@@ -327,6 +383,10 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const deleteRisk = async (id: string, _name?: string, riskOrganizationId?: string) => {
         if (!user) return false;
+        if (!canDeleteResource(user as UserProfile, 'Risk')) {
+            toast.error(t('common.accessDenied'));
+            return false;
+        }
         setSubmitting(true);
         try {
             // Need a proper risk object for verification, creating a shim if only ID provided
@@ -412,6 +472,7 @@ export const useRiskActions = (onRefresh: () => void) => {
     const bulkDeleteRisks = async (ids: string[]) => {
         setSubmitting(true);
         if (!user?.organizationId || !canEditResource(user as UserProfile, 'Risk')) {
+            toast.error(t('common.accessDenied'));
             setSubmitting(false);
             return;
         }
@@ -420,13 +481,14 @@ export const useRiskActions = (onRefresh: () => void) => {
             let successCount = 0;
             let blockedCount = 0;
             const errors: string[] = [];
+            const deletedIds: string[] = [];
 
             // Process sequentially or semi-parallel to track individual results
-            // We use Promise.all to attempt all, but catch individual errors
             await Promise.all(ids.map(async (id) => {
                 try {
                     await FunctionsService.deleteResource('risks', id);
                     successCount++;
+                    deletedIds.push(id);
                 } catch (error: unknown) {
                     blockedCount++;
                     const errWithMsg = error as { message?: string } | null;
@@ -435,8 +497,22 @@ export const useRiskActions = (onRefresh: () => void) => {
             }));
 
             if (successCount > 0) {
-                if (user) {
-                    await logAction(user, 'DELETE_RISK', 'Risk', `Suppression multiple: ${successCount} risques`);
+                if (user && user.organizationId) {
+                    // Log the bulk deletion
+                    await AuditLogService.log({
+                        organizationId: user.organizationId,
+                        userId: user.uid,
+                        userName: user.displayName || user.email || 'Unknown',
+                        userEmail: user.email || '',
+                        action: 'delete',
+                        entityType: 'risk',
+                        entityId: 'bulk',
+                        details: `Suppression multiple: ${successCount} risques`,
+                        before: {
+                            deletedIds,
+                            count: successCount
+                        }
+                    });
                 }
                 toast.success(t('common.risksDeleted', { count: successCount }) + (blockedCount > 0 ? ` (${blockedCount} bloqués)` : ''));
                 onRefresh();

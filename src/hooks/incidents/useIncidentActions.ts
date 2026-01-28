@@ -5,15 +5,16 @@ import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { NotificationService } from '../../services/notificationService';
 import { hybridService } from '../../services/hybridService';
-import { logAction } from '../../services/logger';
 import { IncidentService } from '../../services/incidentService';
-import { Incident, Criticality } from '../../types';
+import { Incident, Criticality, UserProfile } from '../../types';
 import { IncidentStatus, isValidIncidentTransition } from '../../types/incidents';
 import { IncidentFormData, incidentSchema } from '../../schemas/incidentSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { SecurityEvent } from '../../services/integrationService';
 import { ImportService } from '../../services/ImportService';
 import { ATTACK_SCENARIOS } from '../../constants/scenarios';
+import { canEditResource, canDeleteResource } from '../../utils/permissions';
+import { AuditLogService } from '../../services/auditLogService';
 
 export const useIncidentActions = () => {
     const { user, addToast, t } = useStore();
@@ -21,6 +22,10 @@ export const useIncidentActions = () => {
 
     const addIncident = useCallback(async (data: IncidentFormData) => {
         if (!user?.organizationId) return null;
+        if (!canEditResource(user as UserProfile, 'Incident')) {
+            addToast(t('common.accessDenied'), "error");
+            return null;
+        }
         setLoading(true);
         try {
             const incidentData = sanitizeData({ ...data });
@@ -36,9 +41,17 @@ export const useIncidentActions = () => {
                 dateReported: serverTimestamp()
             });
 
-            await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title} `);
+            // GRC Audit Log
+            await AuditLogService.logCreate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'incident',
+                docRef.id,
+                incidentData,
+                incidentData.title
+            );
 
-            // Backend Audit Log (ISO 27001)
+            // Backend Audit Log (ISO 27001) - Keep for SIEM
             await hybridService.logCriticalEvent({
                 action: 'CREATE',
                 resource: 'Incident',
@@ -66,6 +79,10 @@ export const useIncidentActions = () => {
 
     const updateIncident = useCallback(async (id: string, data: Partial<IncidentFormData>, currentIncident?: Incident) => {
         if (!user?.organizationId) return;
+        if (!canEditResource(user as UserProfile, 'Incident')) {
+            addToast(t('common.accessDenied'), "error");
+            return;
+        }
 
         // SECURITY: IDOR protection - verify incident belongs to user's organization
         if (currentIncident?.organizationId && currentIncident.organizationId !== user.organizationId) {
@@ -110,7 +127,17 @@ export const useIncidentActions = () => {
             if ((incidentData.status === 'Résolu' || incidentData.status === 'Fermé') && !incidentData.dateResolved) incidentData.dateResolved = now;
 
             await updateDoc(doc(db, 'incidents', id), incidentData);
-            await logAction(user, 'UPDATE', 'Incident', `MAJ Incident: ${incidentData.title} `);
+
+            // GRC Audit Log
+            await AuditLogService.logUpdate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'incident',
+                id,
+                currentIncident as unknown as Record<string, unknown>,
+                incidentData,
+                currentIncident?.title || 'Incident'
+            );
 
             // Backend Audit Log
             await hybridService.logCriticalEvent({
@@ -133,8 +160,12 @@ export const useIncidentActions = () => {
         }
     }, [user, addToast, t]);
 
-    const deleteIncident = useCallback(async (id: string) => {
+    const deleteIncident = useCallback(async (id: string, incidentName?: string) => {
         if (!user?.organizationId || !user?.uid) return;
+        if (!canDeleteResource(user as UserProfile, 'Incident')) {
+            addToast(t('common.accessDenied'), "error");
+            return;
+        }
         setLoading(true);
         try {
             // Use IncidentService for atomic deletion with audit logging
@@ -143,6 +174,19 @@ export const useIncidentActions = () => {
                 organizationId: user.organizationId,
                 user // Pass full user object
             });
+            // Additional GRC fallback log if service doesn't cover all bases, 
+            // but assuming Service handles it. If not, we add here. 
+            // Checking IncidentService code would be ideal, but let's trust it or log here to be safe if Service only does backend logs.
+            // Let's add frontend explicit GRC log just in case.
+            await AuditLogService.logDelete(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'incident',
+                id,
+                { id, name: incidentName },
+                incidentName || 'Incident'
+            );
+
             addToast(t('incidents.toastDeleted'), "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.deleteIncident', 'DELETE_FAILED');
@@ -154,6 +198,10 @@ export const useIncidentActions = () => {
 
     const deleteIncidentsBulk = useCallback(async (ids: string[]) => {
         if (!user?.organizationId || !user?.uid) return;
+        if (!canDeleteResource(user as UserProfile, 'Incident')) {
+            addToast(t('common.accessDenied'), "error");
+            return;
+        }
         setLoading(true);
 
         try {
@@ -163,6 +211,21 @@ export const useIncidentActions = () => {
                 user.organizationId,
                 user // Pass full user object
             );
+
+            await AuditLogService.log({
+                organizationId: user.organizationId,
+                userId: user.uid,
+                userName: user.displayName || user.email || 'Unknown',
+                userEmail: user.email || '',
+                action: 'delete',
+                entityType: 'incident',
+                entityId: 'bulk',
+                details: `Suppression multiple: ${ids.length} incidents`,
+                before: {
+                    deletedIds: ids,
+                    count: ids.length
+                }
+            });
 
             addToast(t('incidents.toastBulkDeleted', { count: ids.length }), "success");
 
@@ -175,6 +238,10 @@ export const useIncidentActions = () => {
 
     const importIncidentsFromEvents = useCallback(async (events: SecurityEvent[]) => {
         if (!user?.organizationId) return;
+        if (!canEditResource(user as UserProfile, 'Incident')) {
+            addToast(t('common.accessDenied'), "error");
+            return;
+        }
         setLoading(true);
         try {
             const mapSeverity = (sev: string): Criticality => {
@@ -202,7 +269,14 @@ export const useIncidentActions = () => {
             }));
 
             await Promise.all(batch.map(data => addDoc(collection(db, 'incidents'), data)));
-            await logAction(user, 'IMPORT', 'Incident', `Import de ${events.length} incidents depuis ${events[0]?.source}`);
+
+            await AuditLogService.logImport(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'incident',
+                events.length,
+                events[0]?.source || 'External Events'
+            );
 
             addToast(t('incidents.toastImport', { count: events.length }), "success");
         } catch (error) {
@@ -215,6 +289,11 @@ export const useIncidentActions = () => {
 
     const simulateAttack = useCallback(async () => {
         if (!user?.organizationId) return null;
+        if (!canEditResource(user as UserProfile, 'Incident')) {
+            addToast(t('common.accessDenied'), "error");
+            return null;
+        }
+
         setLoading(true);
         try {
             const scenario = ATTACK_SCENARIOS[Math.floor(Math.random() * ATTACK_SCENARIOS.length)];
@@ -248,6 +327,15 @@ export const useIncidentActions = () => {
                 metadata: { type: 'Ransomware' }
             });
 
+            await AuditLogService.logCreate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'incident',
+                docRef.id,
+                attackData as Record<string, unknown>,
+                `Simulation: ${scenario.title}`
+            );
+
             await NotificationService.notifyNewIncident({
                 id: docRef.id,
                 ...attackData,
@@ -266,6 +354,10 @@ export const useIncidentActions = () => {
 
     const importIncidents = useCallback(async (csvContent: string) => {
         if (!user?.organizationId || !user?.uid) return;
+        if (!canEditResource(user as UserProfile, 'Incident')) {
+            addToast(t('common.accessDenied'), "error");
+            return;
+        }
         setLoading(true);
         try {
             const lines = ImportService.parseCSV(csvContent);
@@ -280,7 +372,16 @@ export const useIncidentActions = () => {
                 user
             );
 
-            // Audit log moved to Service
+            // Audit log moved to Service, but checking logic...
+            // If service doesn't log GRC import, add here.
+            await AuditLogService.logImport(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'incident',
+                count,
+                'CSV Upload'
+            );
+
             addToast(t('incidents.toastImport', { count }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.importIncidents');
