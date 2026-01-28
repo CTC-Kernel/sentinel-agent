@@ -237,7 +237,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
 
             {/* Version History Panel */}
             {showHistory && (
-                <div className="glass-premium rounded-xl p-4 space-y-3 border border-border/40">
+                <div className="glass-premium rounded-3xl p-4 space-y-3 border border-border/40">
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                             <History className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -270,7 +270,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                         "w-full p-3 rounded-lg border text-left transition-all",
                                         selectedVersion?.id === version.id
                                             ? "border-brand-500 bg-brand-50 dark:bg-brand-800"
-                                            : "border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                            : "border-border/40 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                                     )}
                                 >
                                     <div className="flex items-center justify-between">
@@ -339,7 +339,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             )}
 
             {/* SoA Table */}
-            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/10">
+            <div className="overflow-x-auto rounded-lg border border-border/40 dark:border-border/40">
                 {displayControls.length === 0 ? (
                     <div className="text-center py-12 space-y-4">
                         <p className="text-slate-600 dark:text-muted-foreground">Aucun contrôle disponible dans ce référentiel.</p>
@@ -391,7 +391,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                         type="checkbox"
                                                         className="sr-only peer"
                                                     />
-                                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border/40 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
                                                 </label>
                                             )}
                                         </td>

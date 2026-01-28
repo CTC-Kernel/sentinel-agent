@@ -64,7 +64,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900/50">
             {/* Tabs Header */}
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10 border-b border-slate-100 dark:border-white/5">
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10 border-b border-border/40 dark:border-white/5">
                 {linkingToProjectId && (
                     <div className="bg-brand-50 dark:bg-brand-900 px-6 py-3 border-b border-brand-100 dark:border-brand-800 flex items-center justify-between animate-fade-in">
                         <div className="flex items-center text-sm text-brand-700 dark:text-brand-300">

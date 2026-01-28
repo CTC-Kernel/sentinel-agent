@@ -21,14 +21,14 @@ const StatCard: React.FC<{
     };
 
     return (
-        <div className={`p-6 rounded-2xl bg-gradient-to-br border backdrop-blur-sm ${colorClasses[color]}`}>
+        <div className={`p-6 rounded-3xl bg-gradient-to-br border backdrop-blur-sm border-border/40 dark:border-border/40 shadow-apple-sm ${colorClasses[color]}`}>
             <div className="flex items-start justify-between">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">{title}</p>
                     <h3 className="text-3xl font-bold mt-2 text-white">{value}</h3>
                     {trend && <p className="text-xs mt-1 text-emerald-400">{trend}</p>}
                 </div>
-                <div className={`p-3 rounded-xl bg-white/5`}>
+                <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 shadow-inner`}>
                     <Icon className="w-6 h-6" />
                 </div>
             </div>
@@ -81,7 +81,7 @@ export const GlobalMetrics: React.FC = () => {
         { name: 'Jun', tenants: 35, users: 340 },
     ];
 
-    if (loading) return <div className="animate-pulse h-64 bg-white/5 rounded-2xl"></div>;
+    if (loading) return <div className="animate-pulse h-64 bg-white/5 rounded-3xl border border-border/40"></div>;
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -114,7 +114,7 @@ export const GlobalMetrics: React.FC = () => {
                 />
             </div>
 
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+            <div className="bg-slate-900/50 border border-border/40 rounded-3xl p-6 shadow-apple">
                 <h3 className="text-lg font-semibold mb-6 flex items-center">
                     <Activity className="w-5 h-5 mr-2 text-brand-400" />
                     Growth Analytics

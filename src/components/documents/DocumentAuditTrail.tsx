@@ -259,9 +259,9 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
   const allActions = VaultAuditService.getAllActions();
 
   return (
-    <div className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 ${className}`}>
+    <div className={`bg-white dark:bg-slate-900 rounded-3xl border border-border/40 dark:border-slate-700 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex items-center justify-between p-4 border-b border-border/40 dark:border-slate-700">
         <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
           <Activity className="h-5 w-5 text-brand-600" />
           Journal d'Audit
@@ -303,7 +303,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 space-y-4">
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-border/40 dark:border-slate-700 space-y-4">
           {/* Action Type Filter */}
           <div>
             <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -326,7 +326,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                     }}
                     className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
                       ? `${colors.bg} ${colors.text} ${colors.border}`
-                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
+                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-border/40 dark:border-slate-600 hover:border-brand-300'
                       }`}
                   >
                     {label}
@@ -348,7 +348,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 text-sm border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -362,7 +362,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 text-sm border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -494,7 +494,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                                 {JSON.stringify(entry.details, null, 2)}
                               </pre>
                               {entry.integrity?.hash && (
-                                <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                <div className="mt-2 pt-2 border-t border-border/40 dark:border-slate-700">
                                   <span className="text-slate-500 dark:text-slate-400">Hash d'integrite: </span>
                                   <code className="text-slate-600 dark:text-muted-foreground">
                                     {entry.integrity.hash.substring(0, 16)}...
@@ -523,7 +523,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
 
           {/* Load More */}
           {hasMore && (
-            <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="p-4 border-t border-border/40 dark:border-slate-700">
               <Button
                 variant="ghost"
                 onClick={() => fetchAuditTrail(false)}

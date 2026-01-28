@@ -222,7 +222,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     return (
         <form ref={formRef} onSubmit={submitHandler} className="space-y-8 animate-fade-in relative">
             {isGenerating && (
-                <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm rounded-xl">
+                <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm rounded-3xl">
                     <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
                 </div>
             )}
@@ -418,20 +418,20 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 
             {
                 !hideActions && (
-                    <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100 dark:border-white/5">
+                    <div className="flex justify-end space-x-4 pt-6 border-t border-border/40 dark:border-white/5">
                         <Button
                             type="button"
                             onClick={onCancel}
                             variant="ghost"
                             disabled={isLoading}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors"
                         >
                             Annuler
                         </Button>
                         <Button
                             type="submit"
                             isLoading={isLoading}
-                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
+                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
                         >
                             {existingProject ? 'Enregistrer' : 'Créer le Projet'}
                         </Button>

@@ -29,9 +29,9 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 aria-hidden="true"
             />
 
-            <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
+            <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-border/40 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                <div className="px-8 py-6 border-b border-border/40 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Informations Légales</h2>
                         <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">Transparence et conformité</p>
@@ -39,14 +39,14 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="p-2.5 text-slate-500 dark:text-slate-300 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="p-2.5 text-slate-500 dark:text-slate-300 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <X className="h-6 w-6" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="px-8 border-b border-slate-100 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900">
+                <div className="px-8 border-b border-border/40 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
@@ -72,7 +72,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                             <div className="space-y-6 animate-fade-in">
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Éditeur du Service</h3>
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-border/40 dark:border-white/5 shadow-sm">
                                         <p className="font-medium">Cyber Threat Consulting</p>
                                         <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">EURL au capital de 10 000 €</p>
                                         <p className="text-sm text-slate-600">SIRET 919 340 794 00024 - TVA FR54 919 340 794</p>
@@ -84,7 +84,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Hébergement</h3>
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-border/40 dark:border-white/5 shadow-sm space-y-4">
                                         <div>
                                             <p className="font-medium">Google Cloud Platform</p>
                                             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Google Ireland Limited</p>
@@ -107,7 +107,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                         {activeTab === 'privacy' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="bg-info-50 dark:bg-slate-900/20 p-4 rounded-xl border border-info-100 dark:border-info-800 text-info-800 dark:text-info-200 text-sm font-medium mb-6">
+                                <div className="bg-info-50 dark:bg-slate-900/20 p-4 rounded-3xl border border-info-100 dark:border-info-800 text-info-800 dark:text-info-200 text-sm font-medium mb-6">
                                     Conformément au RGPD, Sentinel GRC assure la protection de vos données personnelles.
                                 </div>
 
@@ -190,7 +190,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                         {activeTab === 'cgv' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="bg-success-50 dark:bg-success-900/20 p-4 rounded-xl border border-success-100 dark:border-success-800 text-success-800 dark:text-success-200 text-sm font-medium mb-6">
+                                <div className="bg-success-50 dark:bg-success-900/20 p-4 rounded-3xl border border-success-100 dark:border-success-800 text-success-800 dark:text-success-200 text-sm font-medium mb-6">
                                     Conditions Générales de Vente (CGV) applicables aux abonnements SaaS Sentinel GRC.
                                 </div>
 
@@ -245,11 +245,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+                <div className="p-6 border-t border-border/40 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform shadow-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                        className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                     >
                         Fermer
                     </button>

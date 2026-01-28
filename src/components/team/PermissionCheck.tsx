@@ -17,7 +17,7 @@ export const PermissionCheck = memo(({ resource, action, isChecked, onToggle }: 
                 onClick={() => onToggle(resource, action)}
                 className={`w-5 h-5 rounded border flex items-center justify-center transition-all mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isChecked
                     ? 'bg-brand-600 border-brand-600 text-white'
-                    : 'border-slate-300 dark:border-slate-600 hover:border-brand-500'
+                    : 'border-border/40 dark:border-slate-600 hover:border-brand-500'
                     }`}
             >
                 {isChecked && <Check className="h-3.5 w-3.5" />}

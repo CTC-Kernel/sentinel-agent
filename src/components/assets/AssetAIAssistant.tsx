@@ -170,99 +170,102 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
     }
 
     return (
-        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-3xl p-5 border border-primary/20">
-            <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-background rounded-xl shadow-sm">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">Assistant IA Sentinel</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-300">Analyse et suggestions intelligentes</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-                <button
-                    onClick={() => handleAction('analyze')}
-                    disabled={loading}
-                    aria-label="Lancer l'analyse de criticité"
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'analyze' ? 'bg-primary text-white shadow-md' : 'bg-background text-muted-foreground dark:text-slate-300 hover:bg-primary/10 dark:bg-slate-900 dark:hover:bg-primary/20 border border-transparent hover:border-primary/30'}`}
-                >
-                    {loading && mode === 'analyze' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
-                    Analyser Criticité
-                </button>
-                <button
-                    onClick={() => handleAction('maintenance')}
-                    disabled={loading}
-                    aria-label="Générer un plan de maintenance"
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'maintenance' ? 'bg-primary text-white shadow-md' : 'bg-background text-muted-foreground dark:text-slate-300 hover:bg-primary/10 dark:bg-slate-900 dark:hover:bg-primary/20 border border-transparent hover:border-primary/30'}`}
-                >
-                    {loading && mode === 'maintenance' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Wrench className="h-3.5 w-3.5 mr-2" />}
-                    Plan Maintenance
-                </button>
-                <button
-                    onClick={() => handleAction('optimize')}
-                    disabled={loading}
-                    aria-label="Obtenir des suggestions d'optimisation"
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'optimize' ? 'bg-primary text-white shadow-md' : 'bg-background text-muted-foreground dark:text-muted-foreground hover:bg-primary/10 dark:bg-muted/10 dark:hover:bg-primary/20 border border-transparent hover:border-primary/30'}`}
-                >
-                    {loading && mode === 'optimize' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
-                    Optimiser
-                </button>
-            </div>
-
-            {error && (
-                <div className="text-xs text-destructive mb-2">{error}</div>
-            )}
-
-            {response && (
-                <div className="bg-background rounded-2xl p-4 border border-primary/20 shadow-sm animate-fade-in">
-                    <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center">
-                            <Bot className="h-3.5 w-3.5 mr-1.5" />
-                            Réponse de l'IA
-                        </h4>
-                        <button onClick={handleDismiss} aria-label="Fermer la réponse IA" className="text-muted-foreground hover:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"><X className="h-3.5 w-3.5" /></button>
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-4xl p-6 border border-border/40 relative overflow-hidden">
+            <div className="absolute inset-0 bg-white/40 dark:bg-black/20 backdrop-blur-sm pointer-events-none" />
+            <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2.5 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-border/40">
+                        <Sparkles className="h-5 w-5 text-primary" />
                     </div>
+                    <div>
+                        <h3 className="font-bold text-slate-900 dark:text-white text-base">Assistant IA Sentinel</h3>
+                        <p className="text-xs text-muted-foreground">Expertise ISO 27001 & Automatisation</p>
+                    </div>
+                </div>
 
-                    <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                        {mode === 'analyze' && typeof response.confidentiality === 'string' && (
-                            <div>
-                                <p><strong>Confidentialité :</strong> {String(response.confidentiality)}</p>
-                                <p><strong>Intégrité :</strong> {String(response.integrity)}</p>
-                                <p><strong>Disponibilité :</strong> {String(response.availability)}</p>
-                                <p className="mt-2"><em>{String(response.justification)}</em></p>
-                            </div>
-                        )}
-                        {mode === 'maintenance' && Array.isArray(response.tasks) && (
-                            <div>
-                                <p className="mb-1"><strong>Fréquence suggérée :</strong> {String(response.frequency)}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    <button
+                        onClick={() => handleAction('analyze')}
+                        disabled={loading}
+                        aria-label="Lancer l'analyse de criticité"
+                        className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'analyze' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-white/80 dark:bg-slate-900/80 text-muted-foreground dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border border-border/40 hover:border-primary/30'}`}
+                    >
+                        {loading && mode === 'analyze' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
+                        Analyse ISO
+                    </button>
+                    <button
+                        onClick={() => handleAction('maintenance')}
+                        disabled={loading}
+                        aria-label="Générer un plan de maintenance"
+                        className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'maintenance' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-white/80 dark:bg-slate-900/80 text-muted-foreground dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border border-border/40 hover:border-primary/30'}`}
+                    >
+                        {loading && mode === 'maintenance' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Wrench className="h-3.5 w-3.5 mr-2" />}
+                        Maintenance
+                    </button>
+                    <button
+                        onClick={() => handleAction('optimize')}
+                        disabled={loading}
+                        aria-label="Obtenir des suggestions d'optimisation"
+                        className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'optimize' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-white/80 dark:bg-slate-900/80 text-muted-foreground dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border border-border/40 hover:border-primary/30'}`}
+                    >
+                        {loading && mode === 'optimize' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
+                        Optimisation
+                    </button>
+                </div>
+
+                {error && (
+                    <div className="text-xs text-destructive mb-4 px-2">{error}</div>
+                )}
+
+                {response && (
+                    <div className="bg-white/90 dark:bg-slate-900/90 rounded-3xl p-5 border border-border/40 shadow-sm animate-fade-in backdrop-blur-md">
+                        <div className="flex justify-between items-start mb-2">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center">
+                                <Bot className="h-3.5 w-3.5 mr-1.5" />
+                                Réponse de l'IA
+                            </h4>
+                            <button onClick={handleDismiss} aria-label="Fermer la réponse IA" className="text-muted-foreground hover:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"><X className="h-3.5 w-3.5" /></button>
+                        </div>
+
+                        <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                            {mode === 'analyze' && typeof response.confidentiality === 'string' && (
+                                <div>
+                                    <p><strong>Confidentialité :</strong> {String(response.confidentiality)}</p>
+                                    <p><strong>Intégrité :</strong> {String(response.integrity)}</p>
+                                    <p><strong>Disponibilité :</strong> {String(response.availability)}</p>
+                                    <p className="mt-2"><em>{String(response.justification)}</em></p>
+                                </div>
+                            )}
+                            {mode === 'maintenance' && Array.isArray(response.tasks) && (
+                                <div>
+                                    <p className="mb-1"><strong>Fréquence suggérée :</strong> {String(response.frequency)}</p>
+                                    <ul className="list-disc pl-4 space-y-1">
+                                        {response.tasks.map((t: unknown, i: number) => <li key={`task-${i}`}>{String(t)}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+                            {mode === 'optimize' && Array.isArray(response.suggestions) && (
                                 <ul className="list-disc pl-4 space-y-1">
-                                    {response.tasks.map((t: unknown, i: number) => <li key={`task-${i}`}>{String(t)}</li>)}
+                                    {response.suggestions.map((s: unknown, i: number) => <li key={`sugg-${i}`}>{String(s)}</li>)}
                                 </ul>
-                            </div>
-                        )}
-                        {mode === 'optimize' && Array.isArray(response.suggestions) && (
-                            <ul className="list-disc pl-4 space-y-1">
-                                {response.suggestions.map((s: unknown, i: number) => <li key={`sugg-${i}`}>{String(s)}</li>)}
-                            </ul>
-                        )}
-                        {typeof response.text === 'string' && <p>{response.text}</p>}
-                    </div>
+                            )}
+                            {typeof response.text === 'string' && <p>{response.text}</p>}
+                        </div>
 
-                    {onUpdate && mode === 'analyze' && !response.text && (
-                        <button
-                            onClick={handleApply}
-                            disabled={applying}
-                            aria-label="Appliquer les recommandations de criticité"
-                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-xl text-xs font-bold transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                        >
-                            {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
-                            {applying ? 'Application...' : 'Appliquer les changements'}
-                        </button>
-                    )}
-                </div>
-            )}
+                        {onUpdate && mode === 'analyze' && !response.text && (
+                            <button
+                                onClick={handleApply}
+                                disabled={applying}
+                                aria-label="Appliquer les recommandations de criticité"
+                                className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-3xl text-xs font-bold transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                            >
+                                {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
+                                {applying ? 'Application...' : 'Appliquer les changements'}
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -284,5 +287,5 @@ function X(props: React.SVGProps<SVGSVGElement>) {
             <path d="M18 6 6 18" />
             <path d="m6 6 12 12" />
         </svg>
-    )
+    );
 }

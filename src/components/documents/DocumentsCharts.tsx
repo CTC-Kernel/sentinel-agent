@@ -608,7 +608,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                 return (
                                     <div
                                         key={doc.id}
-                                        className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10"
+                                        className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-border/40"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className={cn(
@@ -649,7 +649,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">

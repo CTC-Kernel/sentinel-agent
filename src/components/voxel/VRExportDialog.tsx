@@ -125,10 +125,10 @@ const PlatformCard: React.FC<PlatformCardProps> = ({ platform, isSelected, onSel
     <button
       onClick={onSelect}
       className={`
-        relative p-4 rounded-xl border-2 transition-all duration-200 text-left
+        relative p-4 rounded-3xl border-2 transition-all duration-200 text-left
         ${isSelected
           ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10'
-          : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+          : 'border-border/40 bg-white/5 hover:border-white/20 hover:bg-white/10'
         }
       `}
     >
@@ -184,7 +184,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, pl
               p-3 rounded-lg border transition-all text-center
               ${quality === q.value
                 ? 'border-blue-500 bg-blue-500/20 text-white'
-                : 'border-white/10 bg-white/5 text-slate-400 hover:border-white/20'
+                : 'border-border/40 bg-white/5 text-slate-400 hover:border-white/20'
               }
             `}
           >
@@ -364,9 +364,9 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-slate-900 border border-border/40 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4 border-b border-border/40">
           <div>
             <h2 className="text-lg font-semibold text-white">Export for VR</h2>
             <p className="text-sm text-muted-foreground">Download optimized GLTF for VR headsets</p>
@@ -432,7 +432,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
               type="text"
               value={filename}
               onChange={(e) => setFilename(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 bg-slate-800 border border-border/40 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               placeholder="voxel-vr-export"
             />
             <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
@@ -501,7 +501,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-white/10 bg-slate-900/50">
+        <div className="flex items-center justify-between p-4 border-t border-border/40 bg-slate-900/50">
           <div className="text-xs text-slate-500">
             {isExporting && `Exporting... ${exportProgress}%`}
             {!isExporting && !exportResult && 'Ready to export'}

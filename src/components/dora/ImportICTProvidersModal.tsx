@@ -169,7 +169,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                         border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer
                                         ${file
                                             ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/20'
-                                            : 'border-slate-200 hover:border-indigo-300 dark:border-slate-700 dark:hover:border-indigo-600'
+                                            : 'border-border/40 hover:border-indigo-300 dark:border-slate-700 dark:hover:border-indigo-600'
                                         }
                                     `}
                                     onClick={() => document.getElementById('csv-upload')?.click()}
@@ -213,7 +213,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                 </div>
 
                                 {/* Expected Format */}
-                                <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl">
                                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">
                                         {t('dora.import.expectedColumns')}
                                     </p>
@@ -230,7 +230,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                             <span>{t('dora.import.providersImported', { count: result.imported })}</span>
                                         </div>
                                         {result.errors.length > 0 && (
-                                            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                                            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-3xl">
                                                 <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-2">
                                                     <AlertCircle className="w-5 h-5" />
                                                     <span>{t('dora.import.errorsCount', { count: result.errors.length })}</span>

@@ -64,7 +64,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     }
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/5">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-premium rounded-2xl border border-border/40 dark:border-white/5">
             <div className="flex items-center gap-4">
                 <p className="text-sm text-slate-600 dark:text-muted-foreground font-medium">
                     {startItem} à {endItem} sur {totalItems}
@@ -83,7 +83,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 id="items-per-page"
                                 value={itemsPerPage}
                                 onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 pr-10 min-h-[44px] text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 outline-none cursor-pointer"
+                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 pr-10 min-h-[44px] text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 outline-none cursor-pointer"
                                 aria-label="Nombre d'éléments par page"
                             >
                                 {itemsPerPageOptions.map(option => (
@@ -106,7 +106,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     disabled={currentPage === 1}
                     size="icon"
                     variant="ghost"
-                    className="min-w-[44px] min-h-[44px] rounded-xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    className="min-w-[44px] min-h-[44px] rounded-3xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                     aria-label="Page précédente"
                     aria-disabled={currentPage === 1}
                 >
@@ -135,7 +135,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 key={pageNum}
                                 onClick={() => onPageChange(pageNum)}
                                 variant={isActive ? 'default' : 'ghost'}
-                                className={`min-w-[44px] min-h-[44px] px-4 py-2 rounded-xl text-sm font-bold transition-all ${isActive
+                                className={`min-w-[44px] min-h-[44px] px-4 py-2 rounded-3xl text-sm font-bold transition-all ${isActive
                                     ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'
                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
@@ -153,7 +153,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     disabled={currentPage === totalPages}
                     size="icon"
                     variant="ghost"
-                    className="min-w-[44px] min-h-[44px] rounded-xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    className="min-w-[44px] min-h-[44px] rounded-3xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                     aria-label="Page suivante"
                     aria-disabled={currentPage === totalPages}
                 >

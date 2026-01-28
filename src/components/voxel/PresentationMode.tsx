@@ -194,7 +194,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
       {/* Slide info panel */}
       {slide && (
         <div className="absolute left-4 bottom-20 max-w-md pointer-events-auto">
-          <div className="bg-black/80 backdrop-blur-md rounded-lg p-4 shadow-xl border border-white/10">
+          <div className="bg-black/80 backdrop-blur-md rounded-lg p-4 shadow-xl border border-border/40">
             <h3 className="text-white font-medium text-lg mb-2">{slide.title}</h3>
             {slide.notes && <p className="text-slate-300 text-sm">{slide.notes}</p>}
           </div>

@@ -145,7 +145,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
     return (
         <div className="h-full flex flex-col">
-            <div className="p-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+            <div className="p-4 border-b border-border/40 dark:border-white/5 flex justify-between items-center">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">Dossiers</h3>
                 <Button
                     aria-label="Créer un nouveau dossier racine"
@@ -210,7 +210,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     aria-label="Nom du nouveau dossier"
                                     type="text"
                                     placeholder="Nom du dossier"
-                                    className={`w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                                    className={`w-full px-4 py-2 rounded-3xl bg-slate-50 dark:bg-slate-800 border ${errors.name ? 'border-red-500' : 'border-border/40 dark:border-slate-700'
                                         } mb-1 focus:ring-2 focus-visible:ring-brand-500 outline-none`}
                                 />
                                 {errors.name && (
@@ -252,7 +252,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         onClick={handleContextMenuBackdropClick}
                     />
                     <div
-                        className="fixed z-modal glass-premium rounded-xl shadow-2xl border border-white/20 py-1 w-48 animate-scale-in overflow-hidden backdrop-blur-md"
+                        className="fixed z-modal glass-premium rounded-3xl shadow-2xl border border-white/20 py-1 w-48 animate-scale-in overflow-hidden backdrop-blur-md"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
                         <Button

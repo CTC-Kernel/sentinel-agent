@@ -120,7 +120,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, color, su
   const classes = colorClasses[color];
 
   return (
-    <div className="glass-premium p-4 rounded-xl border border-border/40">
+    <div className="glass-premium p-4 rounded-3xl border border-border/40">
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg ${classes.bg}`}>
           <Icon className={`w-5 h-5 ${classes.text}`} />
@@ -201,7 +201,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
         <Skeleton className="h-40 w-full rounded-2xl" />
         <div className="grid grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
+            <Skeleton key={i} className="h-24 rounded-3xl" />
           ))}
         </div>
       </div>
@@ -370,7 +370,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
           {campaignCourses.map((course) => (
             <div
               key={course.id}
-              className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-white/5"
+              className="flex items-center justify-between p-3 rounded-3xl bg-muted/30 border border-white/5"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10">

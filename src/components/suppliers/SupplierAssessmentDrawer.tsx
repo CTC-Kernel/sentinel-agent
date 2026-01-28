@@ -189,7 +189,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
       onClose={onClose}
       title={
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-slate-200 dark:border-white/5">
+          <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-border/40 dark:border-white/5">
             <FileText className="w-5 h-5" />
           </div>
           <span>{t('vendorAssessment.newAssessment', 'New Vendor Assessment')}</span>
@@ -201,7 +201,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
       <div className="flex flex-col h-full pt-6 px-1">
         <div className="space-y-6 flex-1 overflow-y-auto">
           {/* Info Banner */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-3xl border border-blue-100 dark:border-blue-800 flex gap-3">
             <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-300">
               <p className="font-semibold mb-1">
@@ -217,7 +217,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
           {/* Template Selection */}
           <div className="space-y-3">
             {loading ? (
-              <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+              <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
             ) : (
               <CustomSelect
                 label={t('vendorAssessment.questionnaireTemplate', 'Questionnaire Template')}
@@ -231,9 +231,9 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
 
           {/* Template Preview */}
           {selectedTemplatePreview && (
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-border/40 overflow-hidden">
               {/* Preview Header */}
-              <div className="p-4 border-b border-slate-200 dark:border-white/10">
+              <div className="p-4 border-b border-border/40 dark:border-border/40">
                 <div className="flex items-start justify-between">
                   <div>
                     <h4 className="font-semibold text-slate-900 dark:text-white">
@@ -283,7 +283,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                 {selectedTemplatePreview.sections.map((section, idx) => (
                   <div
                     key={section.id}
-                    className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-white/5"
+                    className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/50 rounded-lg border border-border/40 dark:border-white/5"
                   >
                     <div className="flex items-center gap-3">
                       <span className="w-6 h-6 flex items-center justify-center text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full">
@@ -341,7 +341,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                 max="730"
                 value={customReviewDays}
                 onChange={(e) => setCustomReviewDays(parseInt(e.target.value) || 180)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
+                className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
               />
             </div>
           )}
@@ -356,7 +356,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
               value={respondentEmail}
               onChange={(e) => setRespondentEmail(e.target.value)}
               placeholder={t('vendorAssessment.enterEmail', 'vendor@example.com')}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
+              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
             />
             <p className="text-xs text-slate-500">
               {t(
@@ -368,7 +368,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
         </div>
 
         {/* Actions */}
-        <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+        <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40">
           <Button variant="ghost" onClick={onClose}>
             {t('common.cancel', 'Cancel')}
           </Button>

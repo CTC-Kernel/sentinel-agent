@@ -73,7 +73,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
       {/* Modal */}
       <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
+        <div className="flex items-center justify-between p-6 border-b border-border/40 dark:border-border/40">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <Send className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -93,7 +93,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
         {/* Content */}
         <div className="p-6">
           {/* Summary */}
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-6">
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-3xl p-4 mb-6">
             <h3 className="font-medium text-slate-900 dark:text-white mb-3">
               {t('vendorPortal.completionSummary', 'Completion Summary')}
             </h3>
@@ -126,7 +126,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
 
           {/* Warning if incomplete sections */}
           {incompleteSections.length > 0 && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-xl p-4 mb-6">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-3xl p-4 mb-6">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
@@ -179,7 +179,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/50">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-border/40 dark:border-border/40 bg-slate-50 dark:bg-slate-900/50">
           <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
             {t('common.cancel', 'Cancel')}
           </Button>

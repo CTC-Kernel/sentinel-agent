@@ -124,14 +124,14 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
                 {/* Hardware Detected Section */}
-                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 bg-white/50 dark:bg-slate-800/50">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 bg-white/50 dark:bg-slate-800/50">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                         {assetTypeIcons[hardwareType]}
                         Matériel Détecté
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                        <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
                             <div className="flex items-center gap-2 text-slate-600 dark:text-muted-foreground mb-1">
                                 <User className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Processeur / GPU</span>
@@ -144,7 +144,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                             </div>
                         </div>
 
-                        <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                        <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
                             <div className="flex items-center gap-2 text-slate-600 dark:text-muted-foreground mb-1">
                                 <Database className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Mémoire & OS</span>
@@ -157,7 +157,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                             </div>
                         </div>
 
-                        <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 col-span-1 md:col-span-2">
+                        <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5 col-span-1 md:col-span-2">
                             <div className="flex items-center gap-2 text-slate-600 dark:text-muted-foreground mb-1">
                                 <Laptop className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Affichage</span>
@@ -170,7 +170,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 </div>
 
                 {/* User Input Section */}
-                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
                         Informations Complémentaires
                     </h3>
@@ -246,7 +246,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
                 {
                     error && (
-                        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-2 text-sm font-medium border border-red-100 dark:border-red-900/30">
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-3xl flex items-center gap-2 text-sm font-medium border border-red-100 dark:border-red-900/30">
                             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
                             {error}
                         </div>
@@ -257,7 +257,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                     type="submit"
                     isLoading={loading}
                     disabled={loading}
-                    className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-3xl font-bold text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all border border-border/40"
                 >
                     <Save className="h-5 w-5 mr-2" />
                     Enregistrer l'équipement

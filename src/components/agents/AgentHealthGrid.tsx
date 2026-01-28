@@ -210,7 +210,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         {/* OS Icon with status */}
                         <div className="relative">
                             <div className={cn(
-                                'w-11 h-11 rounded-xl flex items-center justify-center',
+                                'w-11 h-11 rounded-3xl flex items-center justify-center',
                                 'bg-muted/50 group-hover:bg-muted transition-colors'
                             )}>
                                 <OSIcon os={agent.os} className="w-5 h-5 text-foreground" />

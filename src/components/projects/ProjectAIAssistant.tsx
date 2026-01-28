@@ -62,7 +62,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
             </div>
 
             <div className="flex items-center gap-3 mb-6 relative z-10">
-                <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm text-brand-600 dark:text-brand-400">
+                <div className="p-2 bg-white dark:bg-white/10 rounded-3xl shadow-sm text-brand-600 dark:text-brand-400">
                     <Bot className="w-5 h-5" />
                 </div>
                 <div>
@@ -73,7 +73,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-3 relative z-10">
-                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         <div className="p-2 bg-info/10 text-info rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <FileText className="w-5 h-5" />
                         </div>
@@ -83,7 +83,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-warning">
+                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 group focus:outline-none focus-visible:ring-2 focus-visible:ring-warning">
                         <div className="p-2 bg-warning/10 text-warning rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <AlertTriangle className="w-5 h-5" />
                         </div>
@@ -93,7 +93,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-success">
+                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 group focus:outline-none focus-visible:ring-2 focus-visible:ring-success">
                         <div className="p-2 bg-success/10 text-success rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <Target className="w-5 h-5" />
                         </div>
@@ -121,7 +121,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                             </ReactMarkdown>
                         </div>
                     </div>
-                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-muted-foreground rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-muted-foreground rounded-3xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         Retour aux options
                     </button>
                 </div>

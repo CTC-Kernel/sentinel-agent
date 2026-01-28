@@ -126,7 +126,7 @@ export const FrameworkSettings: React.FC = () => {
 
     if (!hasPermission(user, 'Settings', 'manage')) {
         return (
-            <div className="glass-premium p-8 text-center rounded-2xl border border-border/40">
+            <div className="glass-premium p-8 text-center rounded-3xl border border-border/40">
                 <Landmark className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Accès restreint
@@ -141,7 +141,7 @@ export const FrameworkSettings: React.FC = () => {
     return (
         <div className="space-y-6 sm:space-y-8">
             {/* Header */}
-            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-border/40">
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -163,7 +163,7 @@ export const FrameworkSettings: React.FC = () => {
 
                 {/* Plan limit warning */}
                 {isAtLimit && planId !== 'enterprise' && (
-                    <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 dark:border-amber-800">
+                    <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-200 dark:border-amber-800 dark:border-amber-800">
                         <div className="flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                             <div>
@@ -205,10 +205,10 @@ export const FrameworkSettings: React.FC = () => {
                                         onClick={() => handleToggleFramework(fw.id as Framework)}
                                         disabled={isDisabled}
                                         className={`
-                                            relative p-4 rounded-xl border-2 transition-all text-left
+                                            relative p-4 rounded-3xl border-2 transition-all text-left
                                             ${isSelected
                                                 ? 'border-brand-500 bg-brand-50 dark:bg-brand-800'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/50'
+                                                : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600 bg-white dark:bg-slate-800/50'
                                             }
                                             ${isDisabled ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
                                         `}
@@ -233,7 +233,7 @@ export const FrameworkSettings: React.FC = () => {
                                                 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
                                                 ${isSelected
                                                     ? 'bg-brand-500 text-white'
-                                                    : 'border-2 border-slate-300 dark:border-slate-600'
+                                                    : 'border-2 border-border/40 dark:border-slate-600'
                                                 }
                                             `}>
                                                 {isSelected && <Check className="w-4 h-4" />}
@@ -248,7 +248,7 @@ export const FrameworkSettings: React.FC = () => {
             })}
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/40 dark:border-slate-700">
                 {hasChanges && (
                     <Button
                         variant="ghost"

@@ -221,7 +221,7 @@ export const AnimatedWidgetCard: React.FC<AnimatedWidgetCardProps> = ({
         'relative overflow-hidden rounded-2xl',
         'bg-white/80 dark:bg-slate-800/80',
         'backdrop-blur-sm',
-        'border border-slate-200/50 dark:border-slate-700/50',
+        'border border-border/40 dark:border-slate-700/50',
         'shadow-apple dark:shadow-none',
         'p-4 md:p-6',
         onClick && 'cursor-pointer',

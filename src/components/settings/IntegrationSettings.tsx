@@ -118,11 +118,11 @@ export const IntegrationSettings: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 col-span-1 md:col-span-2">{t('settings.integrations')}</h2>
 
             {/* AI Settings */}
-            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-xl text-purple-600 dark:text-purple-400 backdrop-blur-md">
+                        <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-3xl text-purple-600 dark:text-purple-400 backdrop-blur-md">
                             <BrainCircuit className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.aiSettings')}</h3>
@@ -158,7 +158,7 @@ export const IntegrationSettings: React.FC = () => {
                             <Button
                                 type="submit"
                                 isLoading={savingKeys}
-                                className="w-full mt-2 shadow-lg shadow-brand-500/20"
+                                className="w-full mt-2 rounded-3xl shadow-lg shadow-brand-500/20"
                             >
                                 {t('settings.saveProfile')}
                             </Button>
@@ -168,11 +168,11 @@ export const IntegrationSettings: React.FC = () => {
             </div>
 
             {/* Google Calendar */}
-            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
+                        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-3xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
                             <Calendar className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -187,7 +187,7 @@ export const IntegrationSettings: React.FC = () => {
                         </p>
 
                         {hasGoogleCalendarSession ? (
-                            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-500/20 rounded-xl border border-green-500/20 backdrop-blur-sm">
+                            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-500/20 rounded-3xl border border-green-500/20 backdrop-blur-sm">
                                 <span className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center">
                                     <CheckCircle2 className="h-5 w-5 mr-2" />
                                     {t('settings.accountConnected')}
@@ -210,7 +210,7 @@ export const IntegrationSettings: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => loginToGoogle()}
-                                className="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-white/40 dark:border-white/10 rounded-2xl text-sm font-bold text-slate-700 dark:text-white hover:border-blue-500 hover:bg-blue-500 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
+                                className="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-white/40 dark:border-border/40 rounded-3xl text-sm font-bold text-slate-700 dark:text-white hover:border-blue-500 hover:bg-blue-500 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
                             >
                                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                                 {t('settings.connectGoogle')}
@@ -227,7 +227,7 @@ export const IntegrationSettings: React.FC = () => {
                             onClick={handleExportCalendar}
                             isLoading={exportingCalendar}
                             variant="outline"
-                            className="w-full border-white/40 dark:border-white/10"
+                            className="w-full border-white/40 dark:border-border/40"
                         >
                             <Download className="h-4 w-4 mr-2" />
                             {t('settings.integrationsPage.downloadIcs')}
@@ -237,11 +237,11 @@ export const IntegrationSettings: React.FC = () => {
             </div>
 
             {/* SSO Settings - Enterprise */}
-            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-3xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.integrationsPage.ssoTitle')}</h3>
@@ -281,7 +281,7 @@ export const IntegrationSettings: React.FC = () => {
 
                     <div className="space-y-4 md:border-l md:border-white/20 md:pl-8 dark:border-white/5">
                         <h4 className="font-medium text-slate-900 dark:text-white">{t('settings.integrationsPage.ssoStatus')}</h4>
-                        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center gap-3">
+                        <div className="p-4 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-border/40 flex items-center gap-3">
                             <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
                             <span className="text-sm text-slate-600 dark:text-muted-foreground">{t('settings.integrationsPage.notConfigured')}</span>
                         </div>

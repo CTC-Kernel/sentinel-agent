@@ -28,10 +28,10 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-4xl shadow-2xl border border-white/10 flex flex-col max-h-[90vh] animate-scale-in overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-4xl shadow-2xl border border-border/40 flex flex-col max-h-[90vh] animate-scale-in overflow-hidden">
 
                 {/* Header */}
-                <div className="p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="p-8 border-b border-border/40 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-brand-50 rounded-2xl">
                             <BrainCircuit className="w-8 h-8 text-brand-500" />
@@ -64,7 +64,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                     ) : recommendations.length > 0 ? (
                         <div className="grid gap-6">
                             {recommendations.map((rec) => (
-                                <div key={rec.title} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
+                                <div key={rec.title} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-border/40 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${rec.priority === 'urgent' ? 'bg-error-bg text-error-text dark:bg-error-bg/30 dark:text-error-text' :
@@ -115,10 +115,10 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end">
+                <div className="p-6 border-t border-border/40 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         Fermer
                     </button>

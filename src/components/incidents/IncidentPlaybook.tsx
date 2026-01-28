@@ -116,7 +116,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     // CASE 1: No active response -> Selection Mode
     if (!response) {
         return (
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-6">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-white/5 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 text-amber-500">
                     <AlertTriangle className="h-6 w-6" />
                     <h3 className="font-bold text-lg">Aucune réponse initiée</h3>
@@ -135,7 +135,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                 id="playbook-select"
                                 value={selectedPlaybookId}
                                 onChange={(e) => setSelectedPlaybookId(e.target.value)}
-                                className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+                                className="w-full rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                             >
                                 {availablePlaybooks.map(pb => (
                                     <option key={pb.id} value={pb.id}>{pb.title} ({pb.severity})</option>
@@ -148,7 +148,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                             const selected = availablePlaybooks.find(p => p.id === selectedPlaybookId);
                             if (!selected) return null;
                             return (
-                                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-white/5 text-sm space-y-2">
+                                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-3xl border border-border/40 dark:border-white/5 text-sm space-y-2">
                                     <p><strong>Durée estimée:</strong> {selected.estimatedDuration}</p>
                                     <p><strong>Étapes:</strong> {selected.steps.length}</p>
                                     <p className="text-slate-600">{selected.description}</p>
@@ -159,14 +159,14 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                         <button
                             onClick={handleStartResponse}
                             disabled={isStarting}
-                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold transition-colors flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                         >
                             {isStarting ? <span className="animate-spin">⏳</span> : <MonitorPlay className="h-5 w-5" />}
                             Démarrer la réponse
                         </button>
                     </div>
                 ) : (
-                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl">
                         <p className="text-slate-600">Aucun playbook disponible pour la catégorie "{incident.category}".</p>
                         <button
                             onClick={handleInitializePlaybooks}
@@ -190,7 +190,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     return (
         <div className="space-y-6">
             {/* Header / Progress */}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <div>
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-1">Playbook Actif</h3>
@@ -216,7 +216,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
             </div>
 
             {/* Steps List */}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-white/5 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Étapes de résolution</h3>
                 <div className="space-y-4">
                     {playbook.steps.sort((a, b) => a.order - b.order).map((step) => {
@@ -237,11 +237,11 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                 }}
                                 role="button"
                                 tabIndex={isNext && !readOnly ? 0 : -1}
-                                className={`relative flex items-start p-4 rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isCompleted
+                                className={`relative flex items-start p-4 rounded-3xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isCompleted
                                     ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
                                     : isNext
                                         ? 'bg-white dark:bg-white/5 border-brand-200 dark:border-brand-300 ring-1 ring-brand-100 dark:ring-brand-700 cursor-pointer hover:shadow-md'
-                                        : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-70 cursor-not-allowed'
+                                        : 'bg-slate-50 dark:bg-white/5 border-border/40 dark:border-white/5 opacity-70 cursor-not-allowed'
                                     }`}
                             >
                                 {/* Status Icon */}

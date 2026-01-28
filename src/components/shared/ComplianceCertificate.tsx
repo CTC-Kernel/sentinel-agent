@@ -18,7 +18,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
     return (
         <div className="max-w-2xl mx-auto my-8 relative">
             {/* Certificate Frame */}
-            <div className="bg-white text-slate-900 dark:text-white border-[10px] border-double border-slate-200 p-8 shadow-2xl relative overflow-hidden">
+            <div className="bg-white text-slate-900 dark:text-white border-[10px] border-double border-border/40 p-8 shadow-2xl relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
                     <MasterpieceBackground />
@@ -41,7 +41,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
                         <p className="text-brand-600 font-bold uppercase tracking-widest text-sm">Sentinel GRC Platform</p>
                     </div>
 
-                    <div className="py-6 border-t border-b border-slate-100 dark:border-slate-800">
+                    <div className="py-6 border-t border-b border-border/40 dark:border-slate-800">
                         <p className="text-slate-500 italic mb-4">Ce document certifie que</p>
                         <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{recipientName}</h3>
                         <p className="text-slate-500 italic mb-2">a atteint un score de conformité de</p>
@@ -61,7 +61,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
                         </div>
 
                         <div className="text-right">
-                            <div className="h-12 w-32 border-b border-slate-300 mb-1 flex items-end justify-end pb-1">
+                            <div className="h-12 w-32 border-b border-border/40 mb-1 flex items-end justify-end pb-1">
                                 <span className="font-dancing text-xl text-slate-600">Sentinel System</span>
                             </div>
                             <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider">Signature</p>
@@ -72,7 +72,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
 
             {/* Actions */}
             <div className="mt-6 flex justify-center gap-4">
-                <button className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-lg shadow-brand-500/20 font-bold transition-all hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                <button className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl shadow-lg shadow-brand-500/20 font-bold transition-all hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
                     <Download className="h-5 w-5" />
                     Télécharger PDF
                 </button>

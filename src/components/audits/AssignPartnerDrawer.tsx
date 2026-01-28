@@ -99,7 +99,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                         placeholder="Rechercher un partenaire..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
                     />
                 </div>
 
@@ -108,7 +108,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
                     </div>
                 ) : filteredPartners.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">
                         <Building2 className="w-10 h-10 text-slate-300 mb-3" />
                         <p className="text-slate-600 dark:text-muted-foreground font-medium">Aucun partenaire trouvé</p>
                         {partners.length === 0 && (
@@ -124,7 +124,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                                 key={partner.id}
                                 onClick={() => handleAssign(partner)}
                                 disabled={!!assigning}
-                                className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:border-brand-400 dark:hover:border-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"
+                                className="w-full flex items-center justify-between p-4 rounded-3xl border border-border/40 dark:border-white/5 hover:border-brand-400 dark:hover:border-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 shrink-0">
@@ -151,7 +151,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                     </div>
                 )}
 
-                <div className="pt-6 border-t border-slate-200 dark:border-white/10 shrink-0">
+                <div className="pt-6 border-t border-border/40 dark:border-border/40 shrink-0">
                     <Button variant="ghost" onClick={onClose} className="w-full">
                         Annuler
                     </Button>

@@ -123,7 +123,7 @@ export const UserActivityLog: React.FC = () => {
                 </div>
 
                 {isAdmin && (
-                    <div className="flex items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg border border-slate-200 dark:border-white/10 self-start md:self-center">
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg border border-border/40 dark:border-border/40 self-start md:self-center">
                         <button
                             onClick={() => setViewMode('my')}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'my'
@@ -152,11 +152,11 @@ export const UserActivityLog: React.FC = () => {
                 )}
             </div>
 
-            <div className="glass-premium p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+            <div className="glass-premium p-0 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md shadow-sm">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-3xl text-brand-600 dark:text-brand-400 backdrop-blur-md shadow-sm">
                             <Activity className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">

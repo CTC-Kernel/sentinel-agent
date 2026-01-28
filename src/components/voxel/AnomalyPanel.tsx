@@ -139,7 +139,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       className={`
-        p-3 rounded-xl border transition-all cursor-pointer
+        p-3 rounded-3xl border transition-all cursor-pointer
         ${isSelected ? 'ring-2 ring-brand-500' : ''}
         ${config.bgColor}
         hover:border-white/20
@@ -198,7 +198,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute right-0 top-8 z-10 w-48 bg-slate-800 rounded-xl border border-white/10 shadow-xl overflow-hidden"
+                className="absolute right-0 top-8 z-10 w-48 bg-slate-800 rounded-3xl border border-border/40 shadow-xl overflow-hidden"
               >
                 <button
                   onClick={(e) => {
@@ -266,14 +266,14 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-3 pt-3 border-t border-white/10"
+            className="mt-3 pt-3 border-t border-border/40"
           >
             <input
               type="text"
               value={dismissReason}
               onChange={(e) => setDismissReason(e.target.value)}
               placeholder="Raison de l'exclusion..."
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
+              className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
               onClick={(e) => e.stopPropagation()}
             />
             <div className="flex justify-end gap-2 mt-2">
@@ -315,7 +315,7 @@ const AnomalyHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => (
     initial={{ opacity: 0, height: 0 }}
     animate={{ opacity: 1, height: 'auto' }}
     exit={{ opacity: 0, height: 0 }}
-    className="px-5 py-4 bg-gradient-to-r from-brand-500/10 to-purple-500/10 border-b border-white/10"
+    className="px-5 py-4 bg-gradient-to-r from-brand-500/10 to-purple-500/10 border-b border-border/40"
   >
     <div className="flex items-start justify-between mb-3">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -471,10 +471,10 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
             }}
           >
       {/* Header */}
-      <div className="p-5 border-b border-white/10 shrink-0">
+      <div className="p-5 border-b border-border/40 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+            <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20">
               <AlertTriangle className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -521,7 +521,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
       </div>
 
       {/* Toolbar */}
-      <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2 shrink-0">
+      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2 shrink-0">
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`
@@ -583,7 +583,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="px-5 py-3 border-b border-white/10 bg-white/5 overflow-hidden"
+            className="px-5 py-3 border-b border-border/40 bg-white/5 overflow-hidden"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-white/50">Filtrer par type</span>
@@ -616,7 +616,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className="px-5 py-3 border-b border-white/10 bg-brand-50 flex items-center gap-2">
+        <div className="px-5 py-3 border-b border-border/40 bg-brand-50 flex items-center gap-2">
           <button
             onClick={handleSelectAll}
             className="text-xs text-brand-400 hover:text-brand-300"

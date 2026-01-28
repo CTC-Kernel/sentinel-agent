@@ -96,19 +96,19 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                     ) : displayActivity.map((log, i) => (
                         <div
                             key={`activity-${i}`}
-                            className={`relative group ${log.resourceId ? 'rounded-xl' : ''}`}
+                            className={`relative group ${log.resourceId ? 'rounded-3xl' : ''}`}
                         >
                             {log.resourceId && (
                                 <button
                                     onClick={() => handleLogClick(log)}
-                                    className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl"
+                                    className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-3xl"
                                     aria-label={`Voir les détails: ${log.action}`}
                                 />
                             )}
                             <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-brand-400 transition-all z-10">
                                 {getActivityIcon(log.resource)}
                             </span>
-                            <div className="flex justify-between items-start bg-card/60 p-3 rounded-xl border border-transparent hover:border-border transition-colors group-hover:bg-accent/50">
+                            <div className="flex justify-between items-start bg-card/60 p-3 rounded-3xl border border-transparent hover:border-border transition-colors group-hover:bg-accent/50">
                                 <div>
                                     <p className="text-sm font-bold text-foreground">
                                         {t(`dashboard.actions.${log.action}`) !== `dashboard.actions.${log.action}`

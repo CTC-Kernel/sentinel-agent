@@ -40,7 +40,7 @@ export const BackupList: React.FC<BackupListProps> = ({
     };
 
     return (
-        <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
+        <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <Clock className="h-5 w-5 text-brand-500" /> Historique
             </h2>
@@ -58,7 +58,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                             animate={{ opacity: 1, scale: 1 }}
                             key={backup.id}
                             onClick={() => onSelect(backup)}
-                            className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-brand-50 border-brand-200 dark:bg-brand-800 dark:border-brand-300 ring-1 ring-brand-300' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
+                            className={`p-4 rounded-3xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-brand-50 border-brand-200 dark:bg-brand-800 dark:border-brand-300 ring-1 ring-brand-300' : 'bg-white/50 dark:bg-white/5 border-border/40 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
                         >
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-2">

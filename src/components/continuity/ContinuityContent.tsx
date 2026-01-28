@@ -105,7 +105,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                                     <button
                                         aria-label="Générer le rapport"
                                         onClick={onGenerateReport}
-                                        className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white rounded-3xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <Download className="h-5 w-5" />
                                     </button>
@@ -113,7 +113,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                                         <button
                                             aria-label={t('continuity.newProcess')}
                                             onClick={onOpenProcessModal}
-                                            className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
+                                            className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
                                         >
                                             <Plus className="h-5 w-5 mr-2" />
                                             {t('continuity.newProcess')}
@@ -124,7 +124,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                                         <button
                                             aria-label={t('common.importCsv')}
                                             onClick={onImportCsv}
-                                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            className="p-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white rounded-3xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         >
                                             <Upload className="h-5 w-5" />
                                         </button>

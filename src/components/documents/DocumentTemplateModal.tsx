@@ -97,7 +97,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                         >
                             <Dialog.Panel className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
                                 {/* Header */}
-                                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                <div className="px-6 py-4 border-b border-border/40 dark:border-slate-800 flex items-center justify-between">
                                     <div>
                                         <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white">
                                             Créer depuis un modèle
@@ -117,7 +117,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                 {/* Content */}
                                 <div className="flex h-[500px]">
                                     {/* Sidebar - Categories */}
-                                    <div className="w-48 border-r border-slate-200 dark:border-slate-800 p-4 space-y-2">
+                                    <div className="w-48 border-r border-border/40 dark:border-slate-800 p-4 space-y-2">
                                         <button
                                             onClick={() => setSelectedCategory(null)}
                                             className={cn(
@@ -148,7 +148,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                     {/* Main Content */}
                                     <div className="flex-1 flex flex-col">
                                         {/* Search */}
-                                        <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                                        <div className="p-4 border-b border-border/40 dark:border-slate-800">
                                             <div className="relative">
                                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                                 <input
@@ -156,7 +156,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     placeholder="Rechercher un modèle..."
-                                                    className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                                                    className="w-full pl-10 pr-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                                 />
                                             </div>
                                         </div>
@@ -176,10 +176,10 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                                 key={template.id}
                                                                 onClick={() => setPreviewTemplate(template)}
                                                                 className={cn(
-                                                                    "text-left p-4 rounded-xl border transition-all",
+                                                                    "text-left p-4 rounded-3xl border transition-all",
                                                                     previewTemplate?.id === template.id
                                                                         ? "border-brand-500 bg-brand-50 dark:bg-brand-800 ring-2 ring-brand-500"
-                                                                        : "border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                                                        : "border-border/40 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                                                                 )}
                                                             >
                                                                 <div className="flex items-start gap-3">
@@ -220,8 +220,8 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
 
                                     {/* Preview Panel */}
                                     {previewTemplate && (
-                                        <div className="w-80 border-l border-slate-200 dark:border-slate-800 flex flex-col">
-                                            <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                                        <div className="w-80 border-l border-border/40 dark:border-slate-800 flex flex-col">
+                                            <div className="p-4 border-b border-border/40 dark:border-slate-800">
                                                 <h3 className="font-bold text-slate-900 dark:text-white">
                                                     Aperçu
                                                 </h3>
@@ -255,7 +255,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+                                            <div className="p-4 border-t border-border/40 dark:border-slate-800">
                                                 <Button
                                                     onClick={() => handleSelect(previewTemplate)}
                                                     className="w-full"

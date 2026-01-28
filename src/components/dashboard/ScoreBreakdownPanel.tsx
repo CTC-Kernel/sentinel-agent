@@ -108,7 +108,7 @@ export function ScoreBreakdownPanel({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4',
+        'bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-border/40 dark:border-slate-700 p-4',
         className
       )}
     >

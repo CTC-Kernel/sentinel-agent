@@ -59,11 +59,11 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Détails de la demande</h4>
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10">
+                                <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40">
                                     <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Type</span>
                                     <span className="font-bold text-brand-600 dark:text-brand-400">{request.requestType}</span>
                                 </div>
-                                <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10">
+                                <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40">
                                     <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Priorité</span>
                                     <Badge status={request.priority === 'High' ? 'error' : 'warning'} size="sm">{request.priority}</Badge>
                                 </div>
@@ -95,7 +95,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Workflow de Traitement</h4>
 
-                    <div className="relative pl-8 border-l-2 border-slate-200 dark:border-slate-700 space-y-6 sm:space-y-8">
+                    <div className="relative pl-8 border-l-2 border-border/40 dark:border-slate-700 space-y-6 sm:space-y-8">
                         {['New', 'Verifying', 'Processing', 'Review', 'Completed'].map((step) => {
                             const steps = ['New', 'Verifying', 'Processing', 'Review', 'Completed'];
                             const currentIdx = steps.indexOf(request.status);
@@ -105,7 +105,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
 
                             return (
                                 <div key={step} className="relative">
-                                    <div className={`absolute -left-[41px] top-0 h-5 w-5 rounded-full border-2 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm ${isCompleted ? 'border-brand-500 text-brand-500' : 'border-slate-300 dark:border-slate-600 text-transparent'
+                                    <div className={`absolute -left-[41px] top-0 h-5 w-5 rounded-full border-2 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm ${isCompleted ? 'border-brand-500 text-brand-500' : 'border-border/40 dark:border-slate-600 text-transparent'
                                         }`}>
                                         <div className={`h-2.5 w-2.5 rounded-full ${isCompleted ? 'bg-brand-500' : 'bg-slate-300'}`}></div>
                                     </div>
@@ -118,10 +118,10 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                                     </h5>
                                     {isCurrent && (
                                         <div className="mt-4 flex gap-3">
-                                            <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                                            <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl text-sm font-bold transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
                                                 Valider l'étape
                                             </button>
-                                            <button className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                                            <button className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-3xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
                                                 Mettre en attente
                                             </button>
                                         </div>
@@ -133,7 +133,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                 </div>
 
                 {/* Validation Info */}
-                <div className="p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 rounded-xl flex items-start gap-3">
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 rounded-3xl flex items-start gap-3">
                     <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
                     <div>
                         <h5 className="text-sm font-bold text-orange-800 dark:text-orange-200">Vérification d'Identité Requise</h5>

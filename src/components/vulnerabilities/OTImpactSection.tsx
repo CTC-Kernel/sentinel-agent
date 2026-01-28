@@ -107,14 +107,14 @@ const AssetMatchCard: React.FC<{
   return (
     <div
       className={`
-        rounded-xl border transition-colors
+        rounded-3xl border transition-colors
         ${compact ? 'p-2' : 'p-3'}
-        ${asset.isManual ? 'border-indigo-500/30 bg-indigo-50' : 'border-white/10 bg-white/5'}
+        ${asset.isManual ? 'border-indigo-500/30 bg-indigo-50' : 'border-border/40 bg-white/5'}
         hover:bg-white/10
       `}
     >
       <div className="flex items-start gap-3">
-        <div className={`${compact ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center shrink-0`}>
+        <div className={`${compact ? 'w-8 h-8' : 'w-10 h-10'} rounded-3xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center shrink-0`}>
           <Cpu className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} text-orange-400`} />
         </div>
 
@@ -201,7 +201,7 @@ const ScorePreview: React.FC<{
 
   if (!adjustedScore) {
     return (
-      <div className={`rounded-xl border border-dashed border-slate-300 dark:border-white/20 ${compact ? 'p-3' : 'p-4'} text-center`}>
+      <div className={`rounded-3xl border border-dashed border-border/40 dark:border-white/20 ${compact ? 'p-3' : 'p-4'} text-center`}>
         <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-white/50">
           Link OT assets to calculate adjusted score
         </p>
@@ -213,7 +213,7 @@ const ScorePreview: React.FC<{
   const severityClass = SEVERITY_COLORS[adjustedScore.severity];
 
   return (
-    <div className={`rounded-xl border border-white/10 bg-white/5 overflow-hidden ${compact ? '' : ''}`}>
+    <div className={`rounded-3xl border border-border/40 bg-white/5 overflow-hidden ${compact ? '' : ''}`}>
       {/* Header */}
       <button
         type="button"
@@ -269,7 +269,7 @@ const ScorePreview: React.FC<{
 
       {/* Factor breakdown */}
       {showDetails && adjustedScore.factors.length > 0 && (
-        <div className={`border-t border-white/10 ${compact ? 'p-3' : 'p-4'} space-y-2`}>
+        <div className={`border-t border-border/40 ${compact ? 'p-3' : 'p-4'} space-y-2`}>
           <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-white/40 mb-2">
             Adjustment Factors
           </p>
@@ -466,7 +466,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-3xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center">
             <Cpu className="h-4 w-4 text-orange-400" />
           </div>
           <div>
@@ -494,7 +494,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
           <button
             type="button"
             onClick={() => setShowAddAsset(!showAddAsset)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-600 dark:text-slate-300 dark:text-white/70 text-xs font-medium transition-colors border border-slate-200 dark:border-white/10"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-600 dark:text-slate-300 dark:text-white/70 text-xs font-medium transition-colors border border-border/40 dark:border-border/40"
           >
             <Plus className="h-3.5 w-3.5" />
             {t('otVulnerability.addAsset', 'Add Asset')}
@@ -504,7 +504,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
 
       {/* Add asset dropdown */}
       {showAddAsset && (
-        <div className="rounded-xl border border-white/10 bg-white dark:bg-slate-900/50 p-3 space-y-3">
+        <div className="rounded-3xl border border-border/40 bg-white dark:bg-slate-900/50 p-3 space-y-3">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -513,7 +513,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('otVulnerability.searchAssets', 'Search OT assets...')}
-              className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/30 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/30 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
@@ -573,7 +573,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
 
       {/* Empty state */}
       {allMatchedAssets.length === 0 && !showAddAsset && (
-        <div className={`rounded-xl border border-dashed border-slate-300 dark:border-white/20 ${compact ? 'p-4' : 'p-6'} text-center`}>
+        <div className={`rounded-3xl border border-dashed border-border/40 dark:border-white/20 ${compact ? 'p-4' : 'p-6'} text-center`}>
           <Cpu className="h-8 w-8 mx-auto text-slate-300 dark:text-white/30 mb-2" />
           <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-white/50 mb-1">
             {t('otVulnerability.noOTImpact', 'No OT assets linked')}

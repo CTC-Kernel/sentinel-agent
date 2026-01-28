@@ -105,11 +105,11 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
               {...register('name')}
               id="name"
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border transition-colors",
+                "w-full px-4 py-2.5 rounded-3xl border transition-colors",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? "border-red-300 dark:border-red-700"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
               placeholder={t('ebios.workshop1.assetNamePlaceholder')}
             />
@@ -130,10 +130,10 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                   type="button"
                   onClick={() => setValue('type', type)}
                   className={cn(
-                    "p-3 rounded-xl border-2 transition-all text-center",
+                    "p-3 rounded-3xl border-2 transition-all text-center",
                     selectedType === type
                       ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                      : "border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600"
                   )}
                 >
                   <span className={cn(
@@ -158,7 +158,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
               {...register('description')}
               id="description"
               rows={3}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+              className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
               placeholder={t('ebios.workshop1.assetDescriptionPlaceholder')}
             />
           </div>
@@ -175,10 +175,10 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                   type="button"
                   onClick={() => setValue('criticality', level.level as 1 | 2 | 3 | 4)}
                   className={cn(
-                    "p-3 rounded-xl border-2 transition-all text-center",
+                    "p-3 rounded-3xl border-2 transition-all text-center",
                     criticality === level.level
                       ? `border-${level.color}-500 bg-${level.color}-50 dark:bg-${level.color}-900/20`
-                      : "border-slate-200 dark:border-slate-700"
+                      : "border-border/40 dark:border-slate-700"
                   )}
                 >
                   <span className={cn(
@@ -218,10 +218,10 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                     key={mission.id}
                     htmlFor={`mission-${mission.id}`}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                      "flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-colors",
                       linkedMissionIds?.includes(mission.id)
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                        : "border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600"
                     )}
                   >
                     <input
@@ -229,7 +229,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                       id={`mission-${mission.id}`}
                       checked={linkedMissionIds?.includes(mission.id) || false}
                       onChange={() => toggleMission(mission.id)}
-                      className="w-4 h-4 rounded border-slate-300 text-info focus-visible:ring-brand-500"
+                      className="w-4 h-4 rounded border-border/40 text-info focus-visible:ring-brand-500"
                     />
                     <span className="text-sm text-slate-700 dark:text-muted-foreground">
                       {mission.name}
@@ -244,7 +244,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-slate-700/50">
             {isEditing && onDelete ? (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">

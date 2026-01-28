@@ -141,7 +141,7 @@ export const PartnerManagement: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass-premium rounded-2xl border border-border/40 dark:border-border/40 shadow-sm">
                 <div>
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent flex items-center gap-3">
                         <Handshake className="w-8 h-8 text-brand-500" />
@@ -169,7 +169,7 @@ export const PartnerManagement: React.FC = () => {
                             animate={{ opacity: 1 }}
                             className="col-span-full"
                         >
-                            <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-white/10 flex flex-col items-center">
+                            <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-border/40 dark:border-border/40 flex flex-col items-center">
                                 <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
                                     <Building2 className="w-10 h-10 text-muted-foreground" />
                                 </div>
@@ -181,7 +181,7 @@ export const PartnerManagement: React.FC = () => {
                                 </p>
                                 <button
                                     onClick={() => setIsInviteOpen(true)}
-                                    className="px-6 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors"
+                                    className="px-6 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-3xl font-medium transition-colors"
                                 >
                                     Inviter maintenant
                                 </button>
@@ -194,7 +194,7 @@ export const PartnerManagement: React.FC = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="group bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-300 dark:hover:border-brand-300 shadow-sm hover:shadow-xl hover:shadow-brand-900/25 transition-all duration-300 relative overflow-hidden"
+                                className="group bg-white dark:bg-slate-900 p-6 rounded-2xl border border-border/40 dark:border-white/5 hover:border-brand-300 dark:hover:border-brand-300 shadow-sm hover:shadow-xl hover:shadow-brand-900/25 transition-all duration-300 relative overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity z-10">
                                     <button
@@ -207,7 +207,7 @@ export const PartnerManagement: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-start gap-4 mb-4">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${partner.status === 'ACTIVE'
+                                    <div className={`w-12 h-12 rounded-3xl flex items-center justify-center flex-shrink-0 ${partner.status === 'ACTIVE'
                                         ? 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-lg shadow-success-500/20'
                                         : 'bg-gradient-to-br from-warning-400 to-warning-500 text-white shadow-lg shadow-warning-500/20'
                                         }`}>
@@ -235,9 +235,9 @@ export const PartnerManagement: React.FC = () => {
                                     </div>
 
                                     {partner.status === 'ACTIVE' && (
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-500 dark:text-slate-300 border border-slate-100 dark:border-white/5">
+                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl text-xs text-slate-500 dark:text-slate-300 border border-border/40 dark:border-white/5">
                                             <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">ID Certifieur:</span>
-                                            <code className="ml-2 px-1 py-0.5 bg-white dark:bg-black/20 rounded border border-slate-200 dark:border-white/10 font-mono">
+                                            <code className="ml-2 px-1 py-0.5 bg-white dark:bg-black/20 rounded border border-border/40 dark:border-border/40 font-mono">
                                                 {partner.certifierId?.substring(0, 12)}...
                                             </code>
                                         </div>
@@ -270,7 +270,7 @@ export const PartnerManagement: React.FC = () => {
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-200 dark:border-white/10 relative z-10"
+                            className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-border/40 dark:border-border/40 relative z-10"
                         >
                             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">
                                 {t('certifier.partners.modalTitle') || "Inviter un partenaire"}
@@ -292,16 +292,16 @@ export const PartnerManagement: React.FC = () => {
                                             required
                                             autoFocus
                                             placeholder="contact@cabinet-audit.com"
-                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100 dark:border-white/5">
+                                <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-border/40 dark:border-white/5">
                                     <button
                                         type="button"
                                         onClick={() => setIsInviteOpen(false)}
-                                        className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 rounded-xl transition-colors text-sm font-medium"
+                                        className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 rounded-3xl transition-colors text-sm font-medium"
                                     >
                                         {t('certifier.partners.cancel') || "Annuler"}
                                     </button>

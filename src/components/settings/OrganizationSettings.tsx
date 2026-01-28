@@ -262,7 +262,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Subscription */}
             {user?.organizationId && (
-                <div className="bg-gradient-to-r from-violet-900 via-violet-800 to-violet-900 rounded-4xl p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-white/10">
+                <div className="bg-gradient-to-r from-violet-900 via-violet-800 to-violet-900 rounded-4xl p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-border/40">
                     <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/15 transition-colors duration-500"></div>
 
                     <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -302,11 +302,11 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Admin Details */}
             {hasPermission(user, 'Settings', 'manage') && (
-                <PremiumCard glass className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <PremiumCard glass className="p-0 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-brand-600 dark:text-brand-400">
+                            <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-3xl text-brand-600 dark:text-brand-400">
                                 <Building className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.admin')}</h3>
@@ -338,7 +338,7 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
 
                             {/* DORA Compliance Section */}
-                            <div className="pt-6 border-t border-white/10">
+                            <div className="pt-6 border-t border-border/40">
                                 <h4 className="text-md font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                                     <span className="text-blue-500">🏛️</span> {t('settings.doraCompliance', { defaultValue: 'Conformité DORA' })}
                                 </h4>
@@ -359,7 +359,7 @@ export const OrganizationSettings: React.FC = () => {
                                         <select
                                             id="country-select"
                                             {...orgForm.register('country')}
-                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 transition-all"
+                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 transition-all"
                                         >
                                             <option value="">{t('settings.selectCountry', { defaultValue: 'Sélectionner un pays' })}</option>
                                             <option value="AT">Autriche</option>
@@ -398,11 +398,11 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
 
                             {/* AI & Privacy Section */}
-                            <div className="pt-6 border-t border-white/10">
+                            <div className="pt-6 border-t border-border/40">
                                 <h4 className="text-md font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                                     <span className="text-brand-500">✨</span> {t('settings.aiPrivacyTitle', { defaultValue: 'Sentinel AI & Confidentialité' })}
                                 </h4>
-                                <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                                <div className="space-y-4 bg-white/5 p-4 rounded-3xl border border-border/40">
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <label className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
@@ -466,11 +466,11 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* User Management */}
             {user && hasPermission(user, 'User', 'manage') && (
-                <PremiumCard glass className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <PremiumCard glass className="p-0 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-violet-500/10 dark:bg-violet-500/20 rounded-xl text-violet-600 dark:text-violet-400">
+                            <div className="p-2.5 bg-violet-500/10 dark:bg-violet-500/20 rounded-3xl text-violet-600 dark:text-violet-400">
                                 <Users className="w-5 h-5" />
                             </div>
                             <div>
@@ -487,7 +487,7 @@ export const OrganizationSettings: React.FC = () => {
                                 placeholder={t('settings.searchMembers')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-2 bg-brand-50 dark:bg-white/5 border border-brand-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 w-48 transition-all focus:w-64 placeholder:text-slate-400"
+                                className="pl-9 pr-4 py-2 bg-brand-50 dark:bg-white/5 border border-brand-200 dark:border-border/40 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 w-48 transition-all focus:w-64 placeholder:text-slate-400"
                             />
                         </div>
                     </div>

@@ -299,7 +299,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
 
       {/* Risk Sources Section */}
       <div className="animate-fade-in-up delay-100">
-        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 hover:border-error/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 border-border/40 rounded-3xl">
           <button
             onClick={() => toggleSection('riskSources')}
             className="w-full flex items-center justify-between group"
@@ -329,8 +329,8 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
           </button>
 
           {expandedSections.has('riskSources') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-muted/30 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+            <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
+              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop2.riskSourcesHelp')}
               </p>
@@ -361,7 +361,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                             "group relative p-4 rounded-2xl border text-left transition-all duration-200",
                             isRiskSourceSelected(source.id)
                               ? "border-error bg-error-bg shadow-sm"
-                              : "border-slate-200 dark:border-slate-700 bg-muted/30/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-error/50 hover:shadow-md",
+                              : "border-border/40 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-error/50 hover:shadow-md",
                             readOnly && "cursor-default opacity-80"
                           )}
                         >
@@ -370,7 +370,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                               "w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-colors",
                               isRiskSourceSelected(source.id)
                                 ? "border-error bg-error shadow-sm"
-                                : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-error/60"
+                                : "border-border/40 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-error/60"
                             )}>
                               {isRiskSourceSelected(source.id) && (
                                 <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
@@ -401,7 +401,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                       setEditingRiskSource(null);
                       setShowRiskSourceForm(true);
                     }}
-                    className="w-full mt-6 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-error-text font-medium group"
+                    className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-error-text font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                       <Plus className="w-4 h-4" />
@@ -447,8 +447,8 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
           </button>
 
           {expandedSections.has('targetedObjectives') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-muted/30 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+            <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
+              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop2.targetedObjectivesHelp')}
               </p>
@@ -478,7 +478,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                               "group relative p-4 rounded-2xl border text-left transition-all duration-200",
                               isTargetedObjectiveSelected(objective.id)
                                 ? "border-warning bg-warning-bg shadow-sm"
-                                : "border-slate-200 dark:border-slate-700 bg-muted/30/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-warning/50 hover:shadow-md",
+                                : "border-border/40 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-warning/50 hover:shadow-md",
                               readOnly && "cursor-default opacity-80"
                             )}
                           >
@@ -487,7 +487,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                                 "w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-colors",
                                 isTargetedObjectiveSelected(objective.id)
                                   ? "border-warning bg-warning shadow-sm"
-                                  : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-warning/60"
+                                  : "border-border/40 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-warning/60"
                               )}>
                                 {isTargetedObjectiveSelected(objective.id) && (
                                   <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
@@ -519,7 +519,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                       setEditingObjective(null);
                       setShowObjectiveForm(true);
                     }}
-                    className="w-full mt-6 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-warning/50 hover:bg-warning-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-warning-text font-medium group"
+                    className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-warning/50 hover:bg-warning-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-warning-text font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-warning-bg transition-colors">
                       <Plus className="w-4 h-4" />
@@ -565,9 +565,9 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
           </button>
 
           {expandedSections.has('srOvPairs') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+            <div className="mt-6 pt-6 border-t border-border/40 dark:border-slate-700/50 animate-accordion-down">
               {selectedSourcesCount === 0 || selectedObjectivesCount === 0 ? (
-                <div className="text-center py-12 bg-muted/30/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                <div className="text-center py-12 bg-muted/30/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-border/40 dark:border-slate-700">
                   <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
                     <Info className="w-8 h-8 text-muted-foreground" />
                   </div>
@@ -584,7 +584,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                     <div className="flex justify-end mb-6">
                       <button
                         onClick={generatePairs}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold shadow-lg shadow-brand hover:shadow-brand transition-all transform hover:-translate-y-0.5"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-3xl bg-brand-500 hover:bg-brand-600 text-white font-bold shadow-lg shadow-brand hover:shadow-brand transition-all transform hover:-translate-y-0.5"
                       >
                         <Plus className="w-5 h-5" />
                         {t('ebios.workshop2.generatePairs')}
@@ -593,7 +593,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                   )}
 
                   {data.srOvPairs.length === 0 ? (
-                    <div className="text-center py-12 bg-muted/30/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="text-center py-12 bg-slate-50/30 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40">
                       <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                         {t('ebios.workshop2.noPairsYet')}
                       </p>
@@ -617,7 +617,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                               "group p-5 rounded-2xl border transition-all duration-300",
                               pair.retainedForAnalysis
                                 ? "border-success/50 bg-success-bg shadow-sm"
-                                : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-brand-300 hover:shadow-md"
+                                : "border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-brand-300 hover:shadow-md"
                             )}
                           >
                             <div className="flex flex-col lg:flex-row lg:items-center gap-6">
@@ -660,7 +660,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                                 </div>
                               </div>
 
-                              <div className="flex items-center justify-between lg:justify-end gap-6 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-700/50">
+                              <div className="flex items-center justify-between lg:justify-end gap-6 pt-4 lg:pt-0 border-t lg:border-t-0 border-border/40 dark:border-slate-700/50">
                                 {/* Relevance Selector */}
                                 <div className="flex flex-col items-center lg:items-end gap-2">
                                   <span className="text-[11px] items-center uppercase font-bold text-slate-500 dark:text-slate-300 tracking-wider">
@@ -702,7 +702,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                                   onClick={() => !readOnly && updatePair(pair.id, { retainedForAnalysis: !pair.retainedForAnalysis })}
                                   disabled={readOnly}
                                   className={cn(
-                                    "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 transform active:scale-95",
+                                    "flex items-center gap-2 px-4 py-2.5 rounded-3xl font-bold text-sm transition-all duration-200 transform active:scale-95",
                                     pair.retainedForAnalysis
                                       ? "bg-success text-success-foreground shadow-lg shadow-success hover:bg-success/90"
                                       : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300",

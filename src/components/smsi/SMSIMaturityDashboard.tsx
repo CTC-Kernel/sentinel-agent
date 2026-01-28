@@ -96,7 +96,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
       <PremiumCard glass className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400">
+            <div className="p-2.5 rounded-3xl bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400">
               <BarChart3 className="w-6 h-6" />
             </div>
             <div>
@@ -122,7 +122,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         {/* Main Score Display */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Score Gauge */}
-          <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-border/40 dark:border-slate-700">
             <div className="relative w-32 h-32">
               {/* Background circle */}
               <svg className="w-full h-full transform -rotate-90">
@@ -241,7 +241,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className={cn(
-              "p-2.5 rounded-xl",
+              "p-2.5 rounded-3xl",
               readiness.ready
                 ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
                 : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
@@ -269,7 +269,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
 
         {/* Blockers & Warnings */}
         {readiness.blockers.length > 0 && (
-          <div className="mb-4 p-4 rounded-xl bg-red-100/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+          <div className="mb-4 p-4 rounded-3xl bg-red-100/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
             <h4 className="flex items-center gap-2 text-sm font-bold text-red-700 dark:text-red-400 mb-2">
               <XCircle className="w-4 h-4" />
               Points bloquants
@@ -283,7 +283,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         )}
 
         {readiness.warnings.length > 0 && (
-          <div className="mb-4 p-4 rounded-xl bg-amber-100/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+          <div className="mb-4 p-4 rounded-3xl bg-amber-100/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
             <h4 className="flex items-center gap-2 text-sm font-bold text-amber-700 dark:text-amber-400 mb-2">
               <AlertTriangle className="w-4 h-4" />
               Points d'attention
@@ -299,7 +299,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         {/* Checklist toggle */}
         <button
           onClick={() => setShowChecklist(!showChecklist)}
-          className="flex items-center justify-between w-full p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-colors group"
+          className="flex items-center justify-between w-full p-3 rounded-3xl bg-white/50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-colors group"
         >
           <div className="flex items-center gap-2">
             <FileCheck className="w-5 h-5 text-slate-400 group-hover:text-indigo-500" />
@@ -327,11 +327,11 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
               <div
                 key={i}
                 className={cn(
-                  "flex items-center justify-between p-3 rounded-xl border",
+                  "flex items-center justify-between p-3 rounded-3xl border",
                   item.status === 'passed' && "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800",
                   item.status === 'warning' && "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800",
                   item.status === 'failed' && "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800",
-                  item.status === 'not_applicable' && "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+                  item.status === 'not_applicable' && "bg-slate-50 dark:bg-slate-800/50 border-border/40 dark:border-slate-700"
                 )}
               >
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.item}</span>
@@ -357,7 +357,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
             className="flex items-center justify-between w-full group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-info-100 dark:bg-info-900/30 text-info-600 dark:text-info-400">
+              <div className="p-2.5 rounded-3xl bg-info-100 dark:bg-info-900/30 text-info-600 dark:text-info-400">
                 <Lightbulb className="w-6 h-6" />
               </div>
               <div className="text-left">
@@ -474,7 +474,7 @@ const DimensionCard: React.FC<DimensionCardProps> = ({ title, score, icon, color
   };
 
   return (
-    <div className={cn("p-4 rounded-xl border", colorClasses[color])}>
+    <div className={cn("p-4 rounded-3xl border", colorClasses[color])}>
       <div className="flex items-center gap-2 mb-3">
         {icon}
         <span className="text-sm font-bold truncate">{title}</span>
@@ -522,7 +522,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation 
 
   return (
     <div className={cn(
-      "p-4 rounded-xl border border-l-4",
+      "p-4 rounded-3xl border border-l-4",
       priorityStyles[recommendation.priority]
     )}>
       <div className="flex items-start justify-between gap-4">

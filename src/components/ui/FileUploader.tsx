@@ -153,7 +153,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     />
                     <label
                         htmlFor={disabled ? undefined : "file-upload"}
-                        className={`flex flex-col items-center justify-center w-full ${compact ? 'h-20' : 'h-32'} border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-brand-500 dark:hover:border-brand-400 bg-slate-50 dark:bg-slate-800/50'}`}
+                        className={`flex flex-col items-center justify-center w-full ${compact ? 'h-20' : 'h-32'} border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-border/40 bg-slate-100 cursor-not-allowed' : 'border-border/40 dark:border-slate-600 cursor-pointer hover:border-brand-500 dark:hover:border-brand-400 bg-slate-50 dark:bg-slate-800/50'}`}
                     >
                         {disabled ? (
                             <div className="text-center">
@@ -179,7 +179,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
             {/* Selected File */}
             {selectedFile && (
-                <div className="glass-premium p-4 rounded-xl">
+                <div className="glass-premium p-4 rounded-3xl">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                             <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-100 dark:bg-slate-900/30 flex items-center justify-center">
@@ -209,7 +209,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
                     {/* Security Toggle */}
                     {!uploading && (
-                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 mb-4">
+                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-border/40 mb-4">
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-success-500' : 'text-slate-500'}`} />
                                 <div>
@@ -255,14 +255,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
             {/* Error Message */}
             {error && (
-                <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800 rounded-xl">
+                <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800 rounded-3xl">
                     <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0" />
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
             {/* Success Message */}
             {progress === 100 && !uploading && (
-                <div className="flex items-center space-x-2 p-3 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-xl">
+                <div className="flex items-center space-x-2 p-3 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-3xl">
                     <CheckCircle2 className="h-4 w-4 text-success-600 dark:text-success-400 flex-shrink-0" />
                     <p className="text-sm text-success-600 dark:text-success-400">Fichier téléversé avec succès !</p>
                 </div>

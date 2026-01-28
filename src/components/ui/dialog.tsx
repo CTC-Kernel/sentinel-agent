@@ -35,7 +35,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({ children, classNam
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" aria-hidden="true">
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <HeadlessDialogPanel className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl p-6 max-w-lg w-full max-h-[90vh] overflow-auto ${className}`}>
+        <HeadlessDialogPanel className={`bg-white dark:bg-slate-900 border border-border/40 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl p-6 max-w-lg w-full max-h-[90vh] overflow-auto ${className}`}>
           {children}
         </HeadlessDialogPanel>
       </div>

@@ -144,10 +144,10 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                     type="button"
                     onClick={() => setValue('phase', phase)}
                     className={cn(
-                      'flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left',
+                      'flex items-center gap-3 p-3 rounded-3xl border-2 transition-all text-left',
                       isSelected
                         ? `${style.borderActive} ${style.bgActive}`
-                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                        : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600'
                     )}
                   >
                     <div
@@ -200,7 +200,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
             </label>
             <select
               {...register('responsibleId')}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-400 focus:border-blue-500"
+              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-400 focus:border-blue-500"
             >
               <option value="">Non assigné</option>
               {teamMembers.map((member) => (
@@ -217,7 +217,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
           </div>
 
           {/* Quick Tips */}
-          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800">
+          <div className="p-4 rounded-3xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800">
             <p className="text-sm text-blue-700 dark:text-blue-400">
               <strong>Conseil :</strong> Définissez des jalons SMART (Spécifiques,
               Mesurables, Atteignables, Réalistes, Temporellement définis) pour
@@ -226,7 +226,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
           </div>
         </div>
 
-        <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+        <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40">
           <Button
             type="button"
             variant="ghost"

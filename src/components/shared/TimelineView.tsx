@@ -127,7 +127,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
             case 'create': return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800 dark:border-green-800';
             case 'update': return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:border-blue-800';
             case 'delete': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800 dark:border-red-800';
-            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-border/40 dark:border-slate-700';
         }
     };
 
@@ -141,7 +141,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
 
     if (logs.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+            <div className="flex flex-col items-center justify-center p-12 text-slate-400 border-2 border-dashed border-border/40 dark:border-slate-800 rounded-3xl">
                 <History className="h-10 w-10 mb-3 opacity-60" />
                 <p className="text-sm font-medium">Aucun historique disponible</p>
             </div>
@@ -159,7 +159,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                     </h3>
                 </div>
 
-                <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-6 pb-4">
+                <div className="relative border-l-2 border-border/40 dark:border-slate-800 ml-3 space-y-6 pb-4">
                     {logs.map((log) => (
                         <div
                             key={log.id}
@@ -178,16 +178,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                             <div className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 shadow-sm transition-all
                                 ${selectedLog?.id === log.id
                                     ? 'bg-brand-500 border-brand-300 scale-110'
-                                    : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 group-hover:border-brand-400'
+                                    : 'bg-white dark:bg-slate-900 border-border/40 dark:border-slate-600 group-hover:border-brand-400'
                                 }`}
                             />
 
                             {/* Card */}
-                            <div className={`p-4 rounded-xl border transition-all
+                            <div className={`p-4 rounded-3xl border transition-all
                                 ${selectedLog?.id === log.id
                                     ? 'bg-brand-50 dark:bg-brand-900 border-brand-200 dark:border-brand-800 shadow-md ring-1 ring-brand-300'
-                                    : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-sm'}
-                                group-focus:ring-2 group-focus-visible:ring-brand-500 group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-xl
+                                    : 'bg-white dark:bg-white/5 border-border/40 dark:border-border/40 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-sm'}
+                                group-focus:ring-2 group-focus-visible:ring-brand-500 group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-3xl
                                 `}>
 
                                 <div className="flex items-center justify-between mb-2">
@@ -210,7 +210,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 </div>
 
                                 {log.changes && log.changes.length > 0 && (
-                                    <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-white/5">
+                                    <div className="space-y-1 pt-2 border-t border-border/40 dark:border-white/5">
                                         {log.changes.slice(0, 3).map((change, idx) => (
                                             <div key={`${idx}-${change}`} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-muted-foreground">
                                                 <div className="w-1 h-1 rounded-full bg-slate-400"></div>
@@ -240,9 +240,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl"
+                                className="bg-white dark:bg-slate-900 border border-border/40 dark:border-slate-800 rounded-2xl p-6 shadow-xl"
                             >
-                                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                                <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/40 dark:border-slate-800">
                                     <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
                                         <Eye className="h-5 w-5 text-brand-500" />
                                         Détails de l'événement
@@ -282,7 +282,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                             <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
                                                 Visualisation des changements
                                             </h4>
-                                            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 text-xs shadow-inner bg-slate-50 dark:bg-black/20">
+                                            <div className="rounded-3xl overflow-hidden border border-border/40 dark:border-slate-700 text-xs shadow-inner bg-slate-50 dark:bg-black/20">
                                                 <ReactDiffViewer
                                                     oldValue={JSON.stringify(selectedLog.before, null, 2)}
                                                     newValue={JSON.stringify(selectedLog.after, null, 2)}
@@ -315,7 +315,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="p-8 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                                        <div className="p-8 text-center border-2 border-dashed border-border/40 dark:border-slate-700 rounded-3xl">
                                             <p className="text-slate-500 dark:text-slate-300 text-sm">
                                                 Aucun détail technique disponible pour cette action (probablement une création initiale ou une suppression simple).
                                             </p>
@@ -327,7 +327,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="hidden lg:flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-white/5 text-slate-400"
+                                className="hidden lg:flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border/40 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-white/5 text-slate-400"
                             >
                                 <Eye className="h-12 w-12 mb-3 opacity-60" />
                                 <p className="font-medium">Sélectionnez un événement</p>

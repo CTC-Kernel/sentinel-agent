@@ -101,7 +101,7 @@ const STATE_CONFIG: Record<ValidityState, {
   not_set: {
     color: 'text-slate-500',
     bgColor: 'bg-slate-100',
-    borderColor: 'border-slate-300',
+    borderColor: 'border-border/40',
     icon: Clock,
     label: 'Non défini',
     labelEn: 'Not set'

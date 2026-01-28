@@ -214,7 +214,7 @@ export const CommandPalette: React.FC = () => {
             />
 
             <div className="relative w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl glass-premium rounded-3xl sm:rounded-4xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-border/40 ring-1 ring-black/5 pointer-events-none">
-                <div className="pointer-events-auto flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 relative z-10">
+                <div className="pointer-events-auto flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-border/40 relative z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />
                     <input value={queryStr} onChange={e => { setQueryStr(e.target.value); setSelectedIndex(0); }}
@@ -226,7 +226,7 @@ export const CommandPalette: React.FC = () => {
                     />
                     <div className="hidden sm:flex items-center gap-2">
                         {loading && <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>}
-                        <kbd className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-white/10 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 tracking-wider shadow-sm border border-slate-200 dark:border-white/5 font-mono">
+                        <kbd className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-white/10 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 tracking-wider shadow-sm border border-border/40 dark:border-white/5 font-mono">
                             ESC
                         </kbd>
                     </div>
@@ -247,14 +247,14 @@ export const CommandPalette: React.FC = () => {
                                     key={item.id}
                                     onClick={() => handleSelect(item)}
                                     onMouseEnter={() => setSelectedIndex(index)}
-                                    className={`w-full flex items-center px-4 py-3.5 rounded-xl group transition-all duration-200 ${index === selectedIndex
+                                    className={`w-full flex items-center px-4 py-3.5 rounded-3xl group transition-all duration-200 ${index === selectedIndex
                                         ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-[1.01] ring-1 ring-white/20'
                                         : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5'
                                         }`}
                                 >
-                                    <div className={`p-2.5 rounded-xl mr-4 transition-colors ${index === selectedIndex
+                                    <div className={`p-2.5 rounded-3xl mr-4 transition-colors ${index === selectedIndex
                                         ? 'bg-white/20 text-white'
-                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/5'
+                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-border/40 dark:border-white/5'
                                         }`}>
                                         <item.icon className="h-5 w-5" />
                                     </div>
@@ -265,7 +265,7 @@ export const CommandPalette: React.FC = () => {
                                     <div className="flex items-center">
                                         <span className={`text-[11px] uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${index === selectedIndex
                                             ? 'bg-white/20 text-white border border-white/20'
-                                            : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/5'
+                                            : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 border border-border/40 dark:border-white/5'
                                             }`}>{item.category}</span>
                                         <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${index === selectedIndex ? 'text-white translate-x-1' : 'text-slate-300 opacity-0 group-hover:opacity-70'}`} />
                                     </div>
@@ -275,7 +275,7 @@ export const CommandPalette: React.FC = () => {
                     )}
                 </div>
 
-                <div className="px-6 py-3 bg-slate-50/80 dark:bg-black/40 border-t border-slate-200/50 dark:border-white/5 flex justify-between items-center text-[11px] font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider backdrop-blur-md relative z-10">
+                <div className="px-6 py-3 bg-slate-50/80 dark:bg-black/40 border-t border-border/40 dark:border-white/5 flex justify-between items-center text-[11px] font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider backdrop-blur-md relative z-10">
                     <span className="flex items-center gap-2">
                         <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                         <span className="font-bold">Sentinel GRC Pro</span>

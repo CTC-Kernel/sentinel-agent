@@ -44,7 +44,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
     return (
         <div className="animate-fade-in space-y-6 h-full overflow-y-auto p-6">
             {!aiAnalysis ? (
-                <div className="bg-slate-50 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 text-center">
+                <div className="bg-slate-50 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-border/40 dark:border-border/40 text-center">
                     <BrainCircuit className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                     <h3 className="font-bold text-slate-900 dark:text-white mb-2">Analyse IA de l'incident</h3>
                     <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 max-w-md mx-auto">
@@ -53,7 +53,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                     <button
                         onClick={handleAnalyzeIncident}
                         disabled={analyzing}
-                        className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-brand-500/20 flex items-center gap-2 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                        className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold text-sm transition-all shadow-lg shadow-brand-500/20 flex items-center gap-2 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                     >
                         {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                         {analyzing ? 'Analyse en cours...' : 'Lancer l\'analyse'}
@@ -74,7 +74,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                             <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-white/5 shadow-sm overflow-hidden">
                         <div className="prose dark:prose-invert max-w-none text-sm">
                             <ReactMarkdown>
                                 {aiAnalysis}

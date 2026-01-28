@@ -42,7 +42,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
             </div>
 
             <div className="flex items-center gap-3 mb-6 relative z-10">
-                <div className="p-3 rounded-xl bg-brand-50 dark:bg-brand-800 text-brand-600 dark:text-brand-400">
+                <div className="p-3 rounded-3xl bg-brand-50 dark:bg-brand-800 text-brand-600 dark:text-brand-400">
                     <Shield className="w-6 h-6" />
                 </div>
                 <div>
@@ -53,7 +53,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
 
             <div className="grid grid-cols-2 gap-4 flex-1">
                 {/* NIS 2 Section */}
-                <div className="bg-white/50 dark:bg-white/5 rounded-xl p-4 border border-brand-100 dark:border-brand-100 relative overflow-hidden">
+                <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-4 border border-brand-100 dark:border-brand-100 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-brand-500"></div>
                     <div className="flex justify-between items-start mb-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">NIS 2</span>
@@ -83,7 +83,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
                 </div>
 
                 {/* DORA Section */}
-                <div className="bg-white/50 dark:bg-white/5 rounded-xl p-4 border border-success-border dark:border-success/10 relative overflow-hidden">
+                <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-4 border border-success-border dark:border-success/10 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-success"></div>
                     <div className="flex justify-between items-start mb-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-success-text dark:text-success">DORA</span>
@@ -113,7 +113,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
                 </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex justify-between items-center">
+            <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex justify-between items-center">
                 <div className="flex -space-x-2">
                     {/* Fake avatars or status icons could go here */}
                 </div>

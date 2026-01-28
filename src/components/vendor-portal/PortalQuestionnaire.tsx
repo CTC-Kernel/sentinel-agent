@@ -150,9 +150,9 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Sidebar - Section Navigation */}
       <div className="lg:w-72 shrink-0">
-        <div className="sticky top-24 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
+        <div className="sticky top-24 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40 overflow-hidden">
           {/* Header */}
-          <div className="p-4 border-b border-slate-200 dark:border-white/10">
+          <div className="p-4 border-b border-border/40 dark:border-border/40">
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300 mb-2">
               <Building2 className="w-4 h-4" />
               {access.organizationName}
@@ -161,7 +161,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
           </div>
 
           {/* Progress Bar */}
-          <div className="p-4 border-b border-slate-200 dark:border-white/10">
+          <div className="p-4 border-b border-border/40 dark:border-border/40">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-slate-600 dark:text-muted-foreground">
                 {t('vendorPortal.progress', 'Progress')}
@@ -231,7 +231,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         {/* Section Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10 p-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
@@ -345,7 +345,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10 p-6">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40 p-6">
       <div className="flex items-start gap-4">
         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
           <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
@@ -382,7 +382,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   className={`px-6 py-2.5 rounded-lg border-2 transition-all font-medium ${
                     answer?.value === option.value
                       ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-800 dark:text-brand-300'
-                      : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                      : 'border-border/40 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-border/40'
                   } ${isReadOnly ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {option.label}
@@ -401,7 +401,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   className={`w-12 h-12 rounded-lg border-2 transition-all font-medium ${
                     answer?.value === rating
                       ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-800 dark:text-brand-300'
-                      : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                      : 'border-border/40 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-border/40'
                   } ${isReadOnly ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {rating}
@@ -420,7 +420,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
                     answer?.value === option
                       ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-800 dark:text-brand-300'
-                      : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                      : 'border-border/40 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-border/40'
                   } ${isReadOnly ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {option}
@@ -436,7 +436,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               disabled={isReadOnly}
               placeholder={t('vendorPortal.enterAnswer', 'Enter your answer...')}
               rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-slate-200 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
+              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
             />
           )}
 
@@ -460,7 +460,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   disabled={isReadOnly}
                   placeholder={t('vendorPortal.commentPlaceholder', 'Add any additional context or link to evidence...')}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-slate-200 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
+                  className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
                 />
               </div>
             )}

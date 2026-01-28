@@ -77,12 +77,12 @@ export const SSOManager: React.FC = () => {
     // In production we would enforce the check: if (!isEnterprise) return <SSOPlaceholder />;
 
     return (
-        <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
+        <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
             <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-xl text-purple-600 dark:text-purple-400 backdrop-blur-md">
+                    <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-3xl text-purple-600 dark:text-purple-400 backdrop-blur-md">
                         <Shield className="w-5 h-5" />
                     </div>
                     <div>
@@ -128,10 +128,10 @@ export const SSOManager: React.FC = () => {
                                 key={provider}
                                 onClick={() => toggleProvider(provider)}
                                 className={`
-                                    cursor-pointer p-4 rounded-xl border flex items-center justify-between transition-all
+                                    cursor-pointer p-4 rounded-3xl border flex items-center justify-between transition-all
                                     ${settings.allowedProviders?.includes(provider)
                                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 opacity-60 hover:opacity-70'
+                                        : 'border-border/40 dark:border-slate-700 bg-white/50 dark:bg-white/5 opacity-60 hover:opacity-70'
                                     }
                                 `}
                             >
@@ -146,7 +146,7 @@ export const SSOManager: React.FC = () => {
 
                 {/* Configuration Fields (Mock for SAML/OIDC) */}
                 {settings.allowedProviders?.includes('saml') && (
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4 animate-fade-in">
+                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border/40 dark:border-slate-800 space-y-4 animate-fade-in">
                         <h5 className="text-xs font-bold uppercase text-slate-500">Configuration SAML 2.0</h5>
                         <FloatingLabelInput label="Entity ID (Issuer)" placeholder="https://sts.windows.net/..." />
                         <FloatingLabelInput label="SSO URL (Login)" placeholder="https://login.microsoftonline.com/..." />

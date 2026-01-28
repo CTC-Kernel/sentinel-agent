@@ -28,14 +28,14 @@ export const MemberSelector: React.FC<MemberSelectorProps> = React.memo(({ users
                                 onToggle(u.uid);
                             }
                         }}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected
+                        className={`flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected
                             ? 'bg-brand-50 dark:bg-brand-800 border-brand-200 dark:border-brand-800'
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 hover:border-brand-300'
+                            : 'bg-white dark:bg-slate-800 border-border/40 dark:border-white/5 hover:border-brand-300'
                             }`}
                     >
                         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${isSelected
                             ? 'bg-brand-600 border-brand-600 text-white'
-                            : 'border-slate-300 dark:border-slate-600'
+                            : 'border-border/40 dark:border-slate-600'
                             }`}>
                             {isSelected && <Check className="h-3 w-3" />}
                         </div>

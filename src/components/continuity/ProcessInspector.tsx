@@ -74,7 +74,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                         <img
                             src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
                             alt=""
-                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-border/40 dark:border-slate-700"
                         />
                         <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                             {process.owner}

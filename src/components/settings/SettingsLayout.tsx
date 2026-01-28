@@ -37,7 +37,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
                     {/* Mobile: Glass Sticky Nav */}
                     <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-50 pb-4 pt-2">
-                        <div className="glass-premium p-1.5 rounded-2xl flex overflow-x-auto no-scrollbar gap-1 border-none shadow-apple backdrop-blur-xl snap-x">
+                        <div className="glass-premium p-1.5 rounded-3xl flex overflow-x-auto no-scrollbar gap-1 border border-border/40 shadow-apple backdrop-blur-xl snap-x">
                             {visibleTabs.map(tab => {
                                 const isActive = currentTab === tab.id;
                                 return (
@@ -45,14 +45,14 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         key={tab.id}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
-                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
+                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-2xl font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
                                             isActive ? "text-white" : "text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
                                         {isActive && (
                                             <motion.div
                                                 layoutId="activeTabMobile"
-                                                className="absolute inset-0 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg shadow-sm"
+                                                className="absolute inset-0 bg-gradient-to-r from-brand-600 to-brand-500 rounded-2xl shadow-sm"
                                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                             />
                                         )}
@@ -68,7 +68,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
                     {/* Desktop: Vertical list */}
                     <div className="hidden lg:flex flex-col gap-2">
-                        <div className="glass-premium p-2 rounded-3xl border border-border/50 bg-white/40 dark:bg-slate-900/40 shadow-apple-sm backdrop-blur-md">
+                        <div className="glass-premium p-2 rounded-3xl border border-border/40 bg-white/40 dark:bg-slate-900/40 shadow-apple-sm backdrop-blur-md">
                             {visibleTabs.map(tab => {
                                 const isActive = currentTab === tab.id;
                                 return (
@@ -78,7 +78,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         className={cn(
                                             "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset",
                                             isActive
-                                                ? "bg-brand-500 text-white shadow-md shadow-brand-500/20"
+                                                ? "bg-brand-500 text-white shadow-md shadow-brand-500/20 border border-border/40"
                                                 : "text-slate-500 dark:text-slate-300 hover:bg-slate-50/80 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >

@@ -247,7 +247,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <UiTooltip content="Lancer une visite interactive du tableau de bord" position="bottom">
                         <button
                             onClick={() => OnboardingService.startAnalyticsTour()}
-                            className="px-4 py-2 bg-white/50 dark:bg-slate-800/50 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-800 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-800 transition-all flex items-center gap-2 backdrop-blur-sm"
+                            className="px-4 py-2 bg-white/50 dark:bg-slate-800/50 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-800 rounded-3xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-800 transition-all flex items-center gap-2 backdrop-blur-sm"
                         >
                             <HelpCircle className="h-4 w-4" />
                             Visite guidée
@@ -255,7 +255,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     </UiTooltip>
 
                     {/* Time range selector */}
-                    <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-md">
+                    <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-3xl border border-white/20 dark:border-white/5 backdrop-blur-md">
                         {(['7d', '30d', '90d', '1y'] as const).map((range) => (
                             <UiTooltip key={range} content={`Afficher les données sur ${range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}`} position="top">
                                 <button
@@ -429,7 +429,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                 <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{controls.filter(c => c.status === 'Partiel').length}</p>
                                 <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70 mt-1">Partiels</p>
                             </div>
-                            <div className="p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/30">
+                            <div className="p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-border/40 dark:border-slate-700/30">
                                 <p className="text-2xl font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
                                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-300/70 mt-1">Non commencés</p>
                             </div>
@@ -504,14 +504,14 @@ export const AnalyticsDashboard: React.FC = () => {
                         </div>
                         <button
                             onClick={() => navigate('/risks')}
-                            className="px-4 py-2 rounded-xl bg-brand-500 text-white font-bold text-sm hover:bg-brand-600 transition-colors flex items-center gap-2 shadow-sm"
+                            className="px-4 py-2 rounded-3xl bg-brand-500 text-white font-bold text-sm hover:bg-brand-600 transition-colors flex items-center gap-2 shadow-sm"
                         >
                             Voir tous les risques
                             <TrendingUp className="h-4 w-4" />
                         </button>
                     </div>
 
-                    <div className="rounded-xl overflow-hidden border border-slate-200/60 dark:border-white/5">
+                    <div className="rounded-3xl overflow-hidden border border-border/40 dark:border-white/5">
                         <DataTable
                             data={topRisks}
                             columns={topRisksColumns}

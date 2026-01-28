@@ -18,7 +18,7 @@ export const GettingStartedButton: React.FC<GettingStartedButtonProps> = ({ onSh
             onClick={handleShow}
             className="group fixed bottom-8 right-8 z-50 flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 border border-brand-200 backdrop-blur-sm"
         >
-            <div className="p-2 bg-white/20 rounded-xl">
+            <div className="p-2 bg-white/20 rounded-3xl">
                 <Rocket className="h-5 w-5" />
             </div>
             <div className="text-left">

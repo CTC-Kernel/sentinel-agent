@@ -97,7 +97,7 @@ const VendorRow: React.FC<VendorRowProps> = ({ vendor, services, cells, onClick 
   return (
     <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
       <td
-        className="p-3 sticky left-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 cursor-pointer"
+        className="p-3 sticky left-0 bg-white dark:bg-slate-900 border-r border-border/40 dark:border-slate-700 cursor-pointer"
         onClick={onClick}
       >
         <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ const ListItem: React.FC<ListItemProps> = ({ vendor, cells, expanded, onToggle }
   const criticalCount = vendorCells.filter(c => c.isCritical).length;
 
   return (
-    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+    <div className="border border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -188,7 +188,7 @@ const ListItem: React.FC<ListItemProps> = ({ vendor, cells, expanded, onToggle }
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/30">
+        <div className="border-t border-border/40 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/30">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-3">
             {t('vendorConcentration.matrix.services')}
           </p>
@@ -295,7 +295,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
             value={filters.searchQuery}
             onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
             placeholder={t('vendorConcentration.matrix.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+            className="w-full pl-10 pr-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
           />
         </div>
 
@@ -304,7 +304,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
           {/* Critical only toggle */}
           <button
             onClick={() => setFilters(prev => ({ ...prev, showCriticalOnly: !prev.showCriticalOnly }))}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-3xl text-sm transition-all ${
               filters.showCriticalOnly
                 ? 'bg-red-100 dark:bg-red-900/30 text-red-600'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
@@ -318,7 +318,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
           <select
             value={filters.dependencyLevel}
             onChange={(e) => setFilters(prev => ({ ...prev, dependencyLevel: e.target.value as DependencyLevel | 'all' }))}
-            className="px-3 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+            className="px-3 py-2 rounded-3xl text-sm border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
           >
             <option value="all">{t('vendorConcentration.matrix.allLevels')}</option>
             <option value="critical">{t('vendorConcentration.matrix.levelCritical')}</option>
@@ -328,7 +328,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
           </select>
 
           {/* View mode toggle */}
-          <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+          <div className="flex items-center rounded-3xl bg-slate-100 dark:bg-slate-800 p-1">
             <button
               onClick={() => setViewMode('matrix')}
               className={`p-2 rounded-lg transition-all ${
@@ -399,11 +399,11 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
         </div>
       ) : viewMode === 'matrix' ? (
         /* Matrix View */
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-xl">
+        <div className="overflow-x-auto border border-border/40 dark:border-slate-700 rounded-3xl">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800">
-                <th className="p-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide sticky left-0 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
+                <th className="p-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide sticky left-0 bg-slate-50 dark:bg-slate-800 border-r border-border/40 dark:border-slate-700">
                   {t('vendorConcentration.matrix.vendor')}
                 </th>
                 {filteredData.services.map(service => (

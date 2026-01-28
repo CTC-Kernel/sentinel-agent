@@ -35,7 +35,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                 <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-40 mb-4" />
                 <div className="grid grid-cols-2 gap-4">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+                        <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-3xl" />
                     ))}
                 </div>
             </div>
@@ -47,7 +47,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl">
+                    <div className="p-2 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-3xl">
                         <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
@@ -71,7 +71,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
             {/* KPI Grid */}
             <div className="grid grid-cols-2 gap-3 mb-5">
                 {/* High Risk */}
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30">
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-3xl border border-red-100 dark:border-red-800/30">
                     <div className="flex items-center gap-2 mb-1">
                         <AlertTriangle className="w-4 h-4 text-red-500" />
                         <span className="text-xs font-medium text-red-700 dark:text-red-400">
@@ -84,7 +84,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                 </div>
 
                 {/* Reassessment Due */}
-                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30">
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-100 dark:border-amber-800/30">
                     <div className="flex items-center gap-2 mb-1">
                         <Clock className="w-4 h-4 text-amber-500" />
                         <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
@@ -97,7 +97,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                 </div>
 
                 {/* Avg Concentration */}
-                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
+                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl border border-indigo-100 dark:border-indigo-800/30">
                     <div className="flex items-center gap-2 mb-1">
                         <TrendingUp className="w-4 h-4 text-indigo-500" />
                         <span className="text-xs font-medium text-indigo-700 dark:text-indigo-400">
@@ -110,7 +110,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                 </div>
 
                 {/* Non-EU */}
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/30">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-slate-700/30">
                     <div className="flex items-center gap-2 mb-1">
                         <Shield className="w-4 h-4 text-slate-500" />
                         <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">

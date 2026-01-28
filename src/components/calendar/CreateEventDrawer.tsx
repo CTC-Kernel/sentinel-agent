@@ -155,7 +155,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pb-6 pr-2">
 
                     {/* Event Type Toggle */}
-                    <div className="flex space-x-2 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                    <div className="flex space-x-2 bg-slate-100 dark:bg-white/5 p-1 rounded-3xl">
                         {(['audit', 'project', 'maintenance', 'drill'] as EventType[]).map((type) => (
                             <button
                                 type="button"
@@ -334,7 +334,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                     )}
 
                     {/* Linking Section */}
-                    <div className="border-t border-slate-200 dark:border-white/10 pt-6">
+                    <div className="border-t border-border/40 dark:border-border/40 pt-6">
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center">
                             <LinkIcon className="h-4 w-4 mr-2 text-brand-500" />
                             Lier des éléments
@@ -384,7 +384,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                             <input
                                 type="checkbox"
                                 id="allDay"
-                                className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
+                                className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
                                 {...register('allDay')}
                             />
                             <label htmlFor="allDay" className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">Toute la journée</label>
@@ -396,7 +396,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     id="syncGoogle"
                                     checked={syncToGoogle}
                                     onChange={(e) => setSyncToGoogle(e.target.checked)}
-                                    className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
+                                    className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
                                 />
                                 <label htmlFor="syncGoogle" className="text-sm text-slate-700 dark:text-slate-300 flex items-center cursor-pointer select-none">
                                     Sync Google
@@ -424,7 +424,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                     </div>
                 </div>
 
-                <div className="pt-6 border-t border-slate-200 dark:border-white/10 shrink-0 flex justify-end gap-3">
+                <div className="pt-6 border-t border-border/40 dark:border-border/40 shrink-0 flex justify-end gap-3">
                     <Button
                         type="button"
                         variant="ghost"

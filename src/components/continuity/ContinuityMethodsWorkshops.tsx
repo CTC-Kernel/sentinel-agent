@@ -733,7 +733,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                 tabIndex={0}
                             >
                                 <div className="flex items-start justify-between mb-4">
-                                    <div className={cn("p-3 rounded-xl text-white", config.color)}>
+                                    <div className={cn("p-3 rounded-3xl text-white", config.color)}>
                                         {React.createElement(Icon, { className: "w-6 h-6" })}
                                     </div>
                                     {isActive && (
@@ -768,7 +768,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                 </div>
 
                                 {isActive && (
-                                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                    <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Progression</span>
                                             <span className="text-xs font-bold text-slate-900 dark:text-white">{workshopProgress}%</span>
@@ -828,7 +828,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
 
                             {/* Best Practices & Deliverables */}
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800">
+                                <div className="p-4 rounded-3xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800">
                                     <h4 className="flex items-center gap-2 text-sm font-bold text-indigo-700 dark:text-indigo-400 mb-3">
                                         <Lightbulb className="w-4 h-4" />
                                         Bonnes pratiques
@@ -843,7 +843,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                     </ul>
                                 </div>
 
-                                <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
+                                <div className="p-4 rounded-3xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
                                     <h4 className="flex items-center gap-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-3">
                                         <FileText className="w-4 h-4" />
                                         Livrables attendus
@@ -913,7 +913,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                     exit={{ height: 0, opacity: 0 }}
                                                     transition={{ duration: 0.2 }}
                                                 >
-                                                    <div className="px-4 pb-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+                                                    <div className="px-4 pb-4 border-t border-border/40 dark:border-slate-700 pt-4">
                                                         <p className="text-sm text-slate-600 dark:text-muted-foreground mb-4">{phase.description}</p>
 
                                                         {/* Tasks */}
@@ -961,7 +961,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
 
                                                         {/* Phase Deliverables */}
                                                         {phase.deliverables && phase.deliverables.length > 0 && (
-                                                            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                                            <div className="pt-4 border-t border-border/40 dark:border-slate-700">
                                                                 <div className="text-xs font-medium text-slate-500 dark:text-muted-foreground mb-2">
                                                                     Livrables de cette phase:
                                                                 </div>

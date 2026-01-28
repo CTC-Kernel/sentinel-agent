@@ -66,7 +66,7 @@ const SoftwareCard: React.FC<{
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                     <div className={cn(
-                        'p-2 rounded-xl shrink-0',
+                        'p-2 rounded-3xl shrink-0',
                         getRiskLevelBgColor(software.riskLevel)
                     )}>
                         <Package className={cn('h-5 w-5', getRiskLevelColor(software.riskLevel))} />

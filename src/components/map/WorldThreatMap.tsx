@@ -106,7 +106,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                     content: (
                                                         <div className="min-w-[220px]">
                                                             {/* Header */}
-                                                            <div className="flex justify-between items-start mb-2 pb-2 border-b border-white/10">
+                                                            <div className="flex justify-between items-start mb-2 pb-2 border-b border-border/40">
                                                                 <div className="font-bold text-white text-sm tracking-wide">{countryName}</div>
                                                                 {hasThreats && (
                                                                     <div className="flex items-center gap-1.5">
@@ -250,7 +250,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                 zIndex: 9999,
                                 pointerEvents: 'none'
                             }}
-                            className="bg-slate-900/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl min-w-[150px]"
+                            className="bg-slate-900/95 backdrop-blur-xl border border-border/40 p-3 rounded-3xl shadow-2xl min-w-[150px]"
                         >
                             {tooltipContent.content}
                         </motion.div>

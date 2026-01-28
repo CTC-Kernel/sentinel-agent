@@ -219,7 +219,7 @@ const CheckRow: React.FC<CheckRowProps> = ({
             className="group"
         >
             <div className={cn(
-                'flex items-center gap-2 p-2 rounded-xl transition-colors',
+                'flex items-center gap-2 p-2 rounded-3xl transition-colors',
                 isExpanded ? 'bg-muted/30' : 'hover:bg-muted/20'
             )}>
                 {/* Check info */}

@@ -200,7 +200,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
           border: '1px solid rgba(148, 163, 184, 0.1)',
           boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
         }}
-        className="rounded-xl overflow-hidden"
+        className="rounded-3xl overflow-hidden"
       >
         {/* Header */}
         <button

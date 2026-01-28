@@ -141,11 +141,11 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             className="fixed right-0 top-0 h-full w-full max-w-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden flex flex-col"
           >
             {/* Header */}
-            <div className="flex-shrink-0 px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+            <div className="flex-shrink-0 px-6 py-4 border-b border-border/40 dark:border-border/40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   {/* Article Badge */}
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-border/40 dark:border-border/40 mb-3">
                     <FileText className="w-4 h-4 text-slate-500" />
                     <span className="font-mono font-semibold text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                       {requirement.articleRef}
@@ -193,7 +193,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                 )}
 
                 {/* Linked controls count */}
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-border/40 dark:border-border/40">
                   <Link2 className="w-4 h-4 text-slate-500" />
                   <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
                     {linkedControls.length} {t('requirements.controls')}
@@ -205,7 +205,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
               {/* Description Section */}
-              <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
+              <div className="px-6 py-5 border-b border-border/40 dark:border-white/5">
                 <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                   {t('requirements.description')}
                 </h3>
@@ -218,7 +218,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
 
               {/* Keywords Section */}
               {requirement.keywords && requirement.keywords.length > 0 && (
-                <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
+                <div className="px-6 py-5 border-b border-border/40 dark:border-white/5">
                   <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                     {t('requirements.keywords')}
                   </h3>
@@ -244,7 +244,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
 
                 {linkedControls.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                       <Link2 className="w-6 h-6 text-muted-foreground" />
                     </div>
                     <p className="text-sm text-slate-500 dark:text-muted-foreground">
@@ -260,7 +260,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                       <motion.button
                         key={control.id}
                         onClick={() => onNavigateToControl?.(control.id)}
-                        className="w-full p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all text-left group"
+                        className="w-full p-3 rounded-3xl bg-white dark:bg-slate-800/50 border border-border/40 dark:border-border/40 hover:border-border/40 dark:hover:border-white/20 transition-all text-left group"
                         whileHover={{ x: 2 }}
                         whileTap={{ scale: 0.99 }}
                       >
@@ -304,7 +304,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex-shrink-0 px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-slate-800/50">
+            <div className="flex-shrink-0 px-6 py-4 border-t border-border/40 dark:border-border/40 bg-slate-50/80 dark:bg-slate-800/50">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />

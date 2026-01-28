@@ -53,9 +53,9 @@ export const CookieConsent: React.FC = () => {
     return (
         <>
             <div className="fixed bottom-0 left-0 right-0 z-max p-4 animate-slide-up">
-                <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-border/40 dark:border-border/40 rounded-2xl shadow-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-xl text-brand-600 shrink-0">
+                        <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-3xl text-brand-600 shrink-0">
                             <Cookie className="h-6 w-6" />
                         </div>
                         <div>
@@ -75,13 +75,13 @@ export const CookieConsent: React.FC = () => {
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <button
                             onClick={handleAccept}
-                            className="flex-1 md:flex-none px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                            className="flex-1 md:flex-none px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             Accepter et Fermer
                         </button>
                         <button
                             onClick={() => setIsVisible(false)}
-                            className="p-3 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            className="p-3 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                             aria-label="Fermer"
                         >
                             <X className="h-5 w-5" />

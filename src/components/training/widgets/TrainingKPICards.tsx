@@ -84,7 +84,7 @@ const KPICard: React.FC<KPICardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} // Apple-like ease
-      className={`glass-premium p-6 rounded-3xl border border-white/10 transition-all duration-300 hover:shadow-apple-md group relative overflow-hidden ${config.border}`}
+      className={`glass-premium p-6 rounded-3xl border border-border/40 transition-all duration-300 hover:shadow-apple-md group relative overflow-hidden ${config.border}`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
 
@@ -116,7 +116,7 @@ const KPICard: React.FC<KPICardProps> = ({
 // ============================================================================
 
 const KPICardSkeleton: React.FC = () => (
-  <div className="glass-premium p-6 rounded-3xl border border-white/10">
+  <div className="glass-premium p-6 rounded-3xl border border-border/40">
     <div className="flex items-center justify-between mb-4">
       <Skeleton className="w-12 h-12 rounded-2xl" />
     </div>

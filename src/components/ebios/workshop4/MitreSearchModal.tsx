@@ -99,9 +99,9 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <PremiumCard glass className="w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/30">
+            <div className="p-2 rounded-3xl bg-purple-100 dark:bg-purple-900/30">
               <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
@@ -133,14 +133,14 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
               setShowSuggestions(false);
             }}
             placeholder={t('ebios.workshop4.searchMitre')}
-            className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+            className="w-full pl-12 pr-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
           />
         </div>
 
         {/* Content */}
         <div className="mt-4 flex-1 overflow-hidden flex">
           {/* Left Column - Tactics or Search Results */}
-          <div className="w-1/3 border-r border-slate-200/50 dark:border-slate-700/50 overflow-y-auto pr-4">
+          <div className="w-1/3 border-r border-border/40 dark:border-slate-700/50 overflow-y-auto pr-4">
             {/* Suggestions Section */}
             {showSuggestions && suggestions.length > 0 && !searchQuery && (
               <div className="mb-4">
@@ -256,7 +256,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                   {tacticTechniques.map((technique) => (
                     <div
                       key={technique.id}
-                      className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+                      className="rounded-3xl border border-border/40 dark:border-slate-700 overflow-hidden"
                     >
                       {/* Technique Header */}
                       <button
@@ -279,7 +279,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
 
                       {/* Subtechniques */}
                       {technique.subtechniques && technique.subtechniques.length > 0 && (
-                        <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 p-2">
+                        <div className="border-t border-border/40 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 p-2">
                           <p className="text-xs text-slate-500 dark:text-slate-300 mb-2 px-2">
                             {t('ebios.workshop4.subtechniques')}
                           </p>
@@ -320,7 +320,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                 {searchResults.map((technique) => (
                   <div
                     key={technique.id}
-                    className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+                    className="rounded-3xl border border-border/40 dark:border-slate-700 overflow-hidden"
                   >
                     <button
                       onClick={() => handleSelectTechnique(technique)}
@@ -344,7 +344,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                     </button>
 
                     {technique.subtechniques && technique.subtechniques.length > 0 && (
-                      <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 p-2">
+                      <div className="border-t border-border/40 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 p-2">
                         <div className="space-y-1">
                           {technique.subtechniques.map((sub) => (
                             <button
@@ -371,13 +371,13 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex justify-between items-center">
+        <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700/50 flex justify-between items-center">
           <p className="text-xs text-slate-500">
             {MITRE_TECHNIQUES.length} {t('ebios.workshop4.techniquesAvailable')}
           </p>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="px-4 py-2 rounded-3xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             {t('common.cancel')}
           </button>

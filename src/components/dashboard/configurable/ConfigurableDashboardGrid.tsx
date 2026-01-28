@@ -61,7 +61,7 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
 
     const renderWidget = (item: WidgetLayout) => {
         const entry = WIDGET_REGISTRY[item.widgetId];
-        if (!entry) return <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-800 rounded-xl">Widget not found: {item.widgetId}</div>;
+        if (!entry) return <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-800 rounded-3xl">Widget not found: {item.widgetId}</div>;
 
         const Component = entry.component;
 

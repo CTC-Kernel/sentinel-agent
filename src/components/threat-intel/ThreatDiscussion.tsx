@@ -40,8 +40,8 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
                                 leaveTo="translate-x-full"
                             >
                                 <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                                    <div className="flex h-full flex-col overflow-y-scroll bg-white dark:bg-slate-900 shadow-xl border-l border-slate-200 dark:border-slate-800">
-                                        <div className="px-4 py-4 sm:px-6 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                                    <div className="flex h-full flex-col overflow-y-scroll bg-white dark:bg-slate-900 shadow-xl border-l border-border/40 dark:border-slate-800">
+                                        <div className="px-4 py-4 sm:px-6 bg-slate-50 dark:bg-slate-900/50 border-b border-border/40 dark:border-slate-800">
                                             <div className="flex items-start justify-between">
                                                 <div>
                                                     <Dialog.Title className="text-base font-bold text-slate-900 dark:text-white">

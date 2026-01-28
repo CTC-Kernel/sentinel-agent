@@ -210,7 +210,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                         </div>
                         Distribution par Statut
@@ -267,7 +267,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
-                        <div className="p-2 bg-violet-500/10 rounded-xl">
+                        <div className="p-2 bg-violet-500/10 rounded-3xl">
                             <BarChartIcon className="w-4 h-4 text-violet-500" />
                         </div>
                         Conformité par Domaine
@@ -316,7 +316,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
-                        <div className="p-2 bg-emerald-500/10 rounded-xl">
+                        <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <Target className="w-4 h-4 text-emerald-500" />
                         </div>
                         Vue Radar - Maturité par Domaine

@@ -136,13 +136,13 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col h-full">
             {/* Tabs */}
-            <div className="flex gap-1 px-6 py-3 border-b border-slate-200/60 dark:border-white/5 overflow-x-auto">
+            <div className="flex gap-1 px-6 py-3 border-b border-border/40 dark:border-white/5 overflow-x-auto">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab.id
+                        className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium transition-all ${activeTab === tab.id
                             ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
                             : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-white/5'
                             }`}
@@ -500,7 +500,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40"
                                                     />
                                                 )}
                                             />
@@ -535,7 +535,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40"
                                                     />
                                                 )}
                                             />
@@ -554,7 +554,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40"
                                                     />
                                                 )}
                                             />
@@ -645,7 +645,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                 return (
                                                     <div className="space-y-3">
                                                         {/* Visual Risk Bar */}
-                                                        <div className="relative h-10 rounded-xl overflow-hidden bg-gradient-to-r from-green-500 via-amber-500 to-red-500">
+                                                        <div className="relative h-10 rounded-3xl overflow-hidden bg-gradient-to-r from-green-500 via-amber-500 to-red-500">
                                                             {/* Zones overlay */}
                                                             <div className="absolute inset-0 flex">
                                                                 <div className="w-[40%] border-r border-white/30 flex items-center justify-center">
@@ -749,7 +749,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                                 onClick={() => field.onChange(level)}
                                                                 className={`p-4 rounded-2xl border-2 text-left transition-all ${isSelected
                                                                     ? `border-${config.color}-500 bg-${config.color}-50 dark:bg-${config.color}-900/20`
-                                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                                    : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600'
                                                                     }`}
                                                             >
                                                                 <div className="flex items-center gap-2 mb-2">
@@ -796,9 +796,9 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                             disabled={readOnly}
                                                             rows={4}
                                                             placeholder={t('dora.risk.notesPlaceholder', 'Décrivez les raisons de cette évaluation et les mesures de mitigation prévues...')}
-                                                            className={`w-full px-4 py-3 rounded-xl border ${isHighRisk && !field.value
+                                                            className={`w-full px-4 py-3 rounded-3xl border ${isHighRisk && !field.value
                                                                 ? 'border-red-300 dark:border-red-700'
-                                                                : 'border-slate-200 dark:border-slate-700'
+                                                                : 'border-border/40 dark:border-slate-700'
                                                                 } bg-white dark:bg-slate-800 focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all`}
                                                         />
                                                     </div>
@@ -809,7 +809,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
                                     {/* Last Assessment Info (Read Only) */}
                                     {initialData?.riskAssessment?.lastAssessment && (
-                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-300 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-300 pt-2 border-t border-border/40 dark:border-slate-700">
                                             <span>{t('dora.risk.lastAssessment')}:</span>
                                             <span className="font-medium">
                                                 {typeof initialData.riskAssessment.lastAssessment === 'string'
@@ -833,7 +833,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
             {/* Footer */}
             {!readOnly && (
-                <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-border/40 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
                     <Button
                         type="button"
                         onClick={onCancel}

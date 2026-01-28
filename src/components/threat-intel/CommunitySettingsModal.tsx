@@ -101,7 +101,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                         >
                             <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-white/20 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl flex flex-col max-h-[85vh]">
                                 {/* Header */}
-                                <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                                <div className="p-6 border-b border-border/40 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                                     <div>
                                         <Dialog.Title as="h2" className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                             <Users className="h-5 w-5 text-brand-500" />
@@ -115,7 +115,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                 </div>
 
                                 {/* Tabs */}
-                                <div className="flex border-b border-slate-200 dark:border-slate-800 px-6">
+                                <div className="flex border-b border-border/40 dark:border-slate-800 px-6">
                                     <button
                                         type="button"
                                         role="tab"
@@ -142,7 +142,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                 <div className="flex-1 overflow-y-auto p-6">
                                     {activeTab === 'general' ? (
                                         <div className="space-y-6 sm:space-y-8">
-                                            <div className="bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900 p-4 rounded-xl border border-blue-200 dark:border-blue-800 dark:border-blue-800 flex items-start gap-3">
+                                            <div className="bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900 p-4 rounded-3xl border border-blue-200 dark:border-blue-800 dark:border-blue-800 flex items-start gap-3">
                                                 <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                                                 <div className="text-sm text-blue-800 dark:text-blue-300">
                                                     <p className="font-bold mb-1">Confidentialité par défaut</p>
@@ -152,8 +152,8 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
 
                                             <div className="space-y-6">
                                                 <div>
-                                                    <label className="text-sm font-bold text-slate-900 dark:text-white mb-2 block">Portée de partage par défaut</label>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <h4 id="sharing-scope-label" className="text-sm font-bold text-slate-900 dark:text-white mb-2 block">Portée de partage par défaut</h4>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-labelledby="sharing-scope-label">
                                                         {[
                                                             { id: 'public', label: 'Publique (Tout le monde)', icon: Globe },
                                                             { id: 'community', label: 'Communauté Sentinel (Auth)', icon: Users },
@@ -165,9 +165,9 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                                 key={option.id}
                                                                 aria-label={`Définir la portée sur ${option.label}`}
                                                                 onClick={() => handleScopeChange(option.id as SharingPreferences['defaultScope'])}
-                                                                className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${settings.defaultScope === option.id
+                                                                className={`flex items-center gap-3 p-3 rounded-3xl border text-left transition-all ${settings.defaultScope === option.id
                                                                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-300 ring-1 ring-brand-500'
-                                                                    : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                                                                    : 'border-border/40 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                                                             >
                                                                 <option.icon className="h-5 w-5" />
                                                                 <span className="text-sm font-medium">{option.label}</span>
@@ -177,7 +177,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                 </div>
 
                                                 <div className="space-y-3">
-                                                    <label className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
+                                                    <div className="flex items-center justify-between p-4 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
                                                             <div className={`p-2 rounded-lg ${settings.anonymizeIdentity ? 'bg-green-100 text-green-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                                                                 <UserMinus className="h-5 w-5" />
@@ -187,24 +187,19 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                                 <div className="text-xs text-slate-500">Votre organisation apparaîtra comme "Anonyme" pour la communauté.</div>
                                                             </div>
                                                         </div>
-                                                        <div
+                                                        <button
+                                                            id="toggle-anonymize"
+                                                            type="button"
                                                             className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${settings.anonymizeIdentity ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                                                             onClick={handleToggleAnonymize}
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                                    e.preventDefault();
-                                                                    handleToggleAnonymize(e as unknown as React.MouseEvent);
-                                                                }
-                                                            }}
-                                                            role="button"
-                                                            tabIndex={0}
                                                             aria-pressed={settings.anonymizeIdentity}
+                                                            aria-label="Anonymiser mon identité"
                                                         >
                                                             <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${settings.anonymizeIdentity ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                        </div>
-                                                    </label>
+                                                        </button>
+                                                    </div>
 
-                                                    <label className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
+                                                    <div className="flex items-center justify-between p-4 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
                                                             <div className={`p-2 rounded-lg ${settings.autoShareHighSeverity ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                                                                 <AlertTriangle className="h-5 w-5" />
@@ -214,22 +209,17 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                                 <div className="text-xs text-slate-500">Partager automatiquement les menaces critiques détectées.</div>
                                                             </div>
                                                         </div>
-                                                        <div
+                                                        <button
+                                                            id="toggle-autoshare"
+                                                            type="button"
                                                             className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${settings.autoShareHighSeverity ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                                                             onClick={handleToggleAutoShare}
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                                    e.preventDefault();
-                                                                    handleToggleAutoShare(e as unknown as React.MouseEvent);
-                                                                }
-                                                            }}
-                                                            role="button"
-                                                            tabIndex={0}
                                                             aria-pressed={settings.autoShareHighSeverity}
+                                                            aria-label="Partage automatique pour sévérité critique"
                                                         >
                                                             <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${settings.autoShareHighSeverity ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                        </div>
-                                                    </label>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -241,7 +231,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                     id="search-orgs"
                                                     type="text"
                                                     placeholder="Rechercher une organisation..."
-                                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
+                                                    className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
                                                     aria-label="Rechercher une organisation"
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -252,7 +242,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                 {partners.filter(p =>
                                                     p.targetOrgName.toLowerCase().includes(searchQuery.toLowerCase())
                                                 ).map(partner => (
-                                                    <div key={partner.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
+                                                    <div key={partner.id} className="flex items-center justify-between p-4 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
                                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white
                                                             ${partner.status === 'trusted' ? 'bg-green-500' : partner.status === 'blocked' ? 'bg-red-500' : 'bg-slate-400'}
@@ -297,7 +287,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                 </div>
 
                                 {/* Footer */}
-                                <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+                                <div className="p-4 border-t border-border/40 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
                                     <Button type="button" onClick={handleSaveSettings} isLoading={isSubmitting} className="bg-brand-600 hover:bg-brand-500 text-white">
                                         <Save className="h-4 w-4 mr-2" />
                                         Enregistrer

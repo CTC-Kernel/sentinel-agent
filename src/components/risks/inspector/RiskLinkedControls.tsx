@@ -113,7 +113,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
             {/* Coverage Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 {/* Mitigation Coverage */}
-                <div className="sm:col-span-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
+                <div className="sm:col-span-2 p-4 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                             Couverture de Mitigation
@@ -138,14 +138,14 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                 </div>
 
                 {/* Status Counts */}
-                <div className="p-4 bg-success-bg dark:bg-success-bg/20 rounded-xl border border-success-border dark:border-success-border/30 text-center">
+                <div className="p-4 bg-success-bg dark:bg-success-bg/20 rounded-3xl border border-success-border dark:border-success-border/30 text-center">
                     <div className="text-2xl font-black text-success-text dark:text-success-text">
                         {statusCounts.implemented}
                     </div>
                     <div className="text-xs font-medium text-success-text dark:text-success-text/80">Implémentés</div>
                 </div>
 
-                <div className="p-4 bg-warning-bg dark:bg-warning-bg/20 rounded-xl border border-warning-border dark:border-warning-border/30 text-center">
+                <div className="p-4 bg-warning-bg dark:bg-warning-bg/20 rounded-3xl border border-warning-border dark:border-warning-border/30 text-center">
                     <div className="text-2xl font-black text-warning-text dark:text-warning-text">
                         {statusCounts.partial + statusCounts.notStarted}
                     </div>
@@ -167,7 +167,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                         return (
                             <div
                                 key={ctrl.id}
-                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm group hover:shadow-md transition-all"
+                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm group hover:shadow-md transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <div className={color}>{icon}</div>

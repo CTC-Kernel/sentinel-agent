@@ -104,7 +104,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
 
   return (
     <div
-      className={`border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden border-l-4 ${borderColor}`}
+      className={`border border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden border-l-4 ${borderColor}`}
     >
       <button
         onClick={() => setExpanded(!expanded)}
@@ -135,7 +135,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/30 space-y-4">
+        <div className="border-t border-border/40 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/30 space-y-4">
           {/* Vendor Info */}
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">
@@ -201,7 +201,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
           {/* Action Button */}
           <button
             onClick={onClick}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
           >
             <Shield className="h-4 w-4" />
             {t('vendorConcentration.spof.viewRecommendations')}
@@ -243,19 +243,19 @@ export const SPOFAlerts: React.FC<SPOFAlertsProps> = ({
     <div className="space-y-4">
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="text-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+        <div className="text-center p-3 rounded-3xl bg-slate-50 dark:bg-slate-800/50">
           <p className="text-2xl font-bold text-slate-900 dark:text-white">
             {summary.totalSPOFs}
           </p>
           <p className="text-xs text-slate-500">{t('vendorConcentration.spof.total')}</p>
         </div>
-        <div className="text-center p-3 rounded-xl bg-red-50 dark:bg-red-900/20">
+        <div className="text-center p-3 rounded-3xl bg-red-50 dark:bg-red-900/20">
           <p className="text-2xl font-bold text-red-600">
             {summary.criticalSPOFs}
           </p>
           <p className="text-xs text-red-500">{t('vendorConcentration.spof.criticalCount')}</p>
         </div>
-        <div className="text-center p-3 rounded-xl bg-orange-50 dark:bg-orange-900/20">
+        <div className="text-center p-3 rounded-3xl bg-orange-50 dark:bg-orange-900/20">
           <p className="text-2xl font-bold text-orange-600">
             {summary.highImpactSPOFs}
           </p>
@@ -278,7 +278,7 @@ export const SPOFAlerts: React.FC<SPOFAlertsProps> = ({
       {onViewDetails && summary.totalSPOFs > 3 && (
         <button
           onClick={onViewDetails}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium border border-border/40 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
           {t('vendorConcentration.spof.viewAll')}
           <ExternalLink className="h-4 w-4" />

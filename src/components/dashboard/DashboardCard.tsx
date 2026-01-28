@@ -63,7 +63,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
             <div className={`px-4 py-4 md:px-6 md:py-5 border-b border-muted/30 flex justify-between items-center backdrop-blur-md transition-colors duration-300 ${isExpanded ? 'bg-background/80' : 'bg-muted/10'}`}>
                 <div className="flex items-center gap-3">
                     {icon && (
-                        <div className="p-2 rounded-xl bg-primary/10 shadow-sm ring-1 ring-primary/20 text-primary">
+                        <div className="p-2 rounded-3xl bg-primary/10 shadow-sm ring-1 ring-primary/20 text-primary">
                             {icon}
                         </div>
                     )}
@@ -105,7 +105,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                 <div className={`h-full ${!isExpanded ? 'bg-transparent' : ''}`}>
                     {loading ? (
                         <div className="p-6 h-full">
-                            <Skeleton className="h-full w-full rounded-xl bg-black/5 dark:bg-white/5" />
+                            <Skeleton className="h-full w-full rounded-3xl bg-black/5 dark:bg-white/5" />
                         </div>
                     ) : (
                         <div className={!isExpanded ? 'p-0 h-full' : ''}>

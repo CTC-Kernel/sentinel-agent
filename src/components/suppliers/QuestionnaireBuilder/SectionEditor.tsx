@@ -30,7 +30,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
     }, [onRemove, sIndex]);
 
     return (
-        <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-border/40 dark:border-slate-700">
             <div className="flex justify-between items-start mb-4">
                 <div className="flex-1 grid grid-cols-12 gap-4">
                     <div className="col-span-8">
@@ -39,7 +39,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
                             id={`section-title-${sIndex}`}
                             aria-label="Titre de la section"
                             {...register(`sections.${sIndex}.title`, { required: true })}
-                            className="w-full text-lg font-bold bg-transparent border-0 border-b border-dashed border-slate-300 focus:border-brand-500 focus:ring-0 px-0"
+                            className="w-full text-lg font-bold bg-transparent border-0 border-b border-dashed border-border/40 focus:border-brand-500 focus:ring-0 px-0"
                             placeholder="Titre de la section"
                         />
                     </div>
@@ -50,7 +50,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
                             aria-label="Poids de la section"
                             type="number"
                             {...register(`sections.${sIndex}.weight`)}
-                            className="w-full bg-transparent border border-slate-200 rounded-lg text-sm px-2 py-1"
+                            className="w-full bg-transparent border border-border/40 rounded-lg text-sm px-2 py-1"
                             placeholder="Poids (ex: 1)"
                         />
                     </div>
@@ -65,7 +65,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
                 </button>
             </div>
 
-            <div className="space-y-3 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
+            <div className="space-y-3 pl-4 border-l-2 border-border/40 dark:border-slate-700">
                 {questions.map((q, qIndex) => (
                     <QuestionItem
                         key={q.id}

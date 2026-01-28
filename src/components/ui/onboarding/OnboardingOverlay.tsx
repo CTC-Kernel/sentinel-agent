@@ -109,7 +109,7 @@ export const OnboardingOverlay: React.FC = () => {
                             damping: 25,
                             stiffness: 300
                         }}
-                        className="absolute border-2 border-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)] rounded-xl pointer-events-none"
+                        className="absolute border-2 border-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)] rounded-3xl pointer-events-none"
                     />
                 )}
 

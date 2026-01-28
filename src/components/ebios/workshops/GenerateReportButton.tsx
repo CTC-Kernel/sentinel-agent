@@ -107,7 +107,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
     const allComplete = completedCount === items.length;
 
     return (
-      <div className="mt-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+      <div className="mt-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700">
         <div className="flex items-center gap-2 mb-2">
           {allComplete ? (
             <CheckCircle className="w-4 h-4 text-green-500" />
@@ -126,7 +126,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
               {item.completed ? (
                 <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
               ) : (
-                <div className="w-3 h-3 rounded-full border border-slate-300 dark:border-slate-600 flex-shrink-0" />
+                <div className="w-3 h-3 rounded-full border border-border/40 dark:border-slate-600 flex-shrink-0" />
               )}
               <span
                 className={cn(

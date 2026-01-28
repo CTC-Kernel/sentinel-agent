@@ -90,10 +90,10 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
                 <Html distanceFactor={10} zIndexRange={[100, 0]}>
                     <div
                         role="tooltip"
-                        className="bg-slate-900/95 text-white min-w-[240px] p-3 rounded-xl border border-white/10 shadow-2xl backdrop-blur-xl select-none pointer-events-none transform -translate-x-1/2 -translate-y-[120%] mb-2"
+                        className="bg-slate-900/95 text-white min-w-[240px] p-3 rounded-3xl border border-border/40 shadow-2xl backdrop-blur-xl select-none pointer-events-none transform -translate-x-1/2 -translate-y-[120%] mb-2"
                     >
                         {/* Header */}
-                        <div className="flex justify-between items-start mb-2 pb-2 border-b border-white/10">
+                        <div className="flex justify-between items-start mb-2 pb-2 border-b border-border/40">
                             <div className="font-bold text-sm tracking-wide">{country}</div>
                             <div className="flex items-center gap-1.5">
                                 <span className={`relative flex h-2 w-2`}>

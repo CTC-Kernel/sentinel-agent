@@ -83,26 +83,26 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <select {...findingForm.register('type')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-all outline-none">
+                            <select {...findingForm.register('type')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-all outline-none">
                                 <option value="Mineure">{t('audits.findingsSection.form.type.minor')}</option>
                                 <option value="Majeure">{t('audits.findingsSection.form.type.major')}</option>
                                 <option value="Observation">{t('audits.findingsSection.form.type.observation')}</option>
                                 <option value="Opportunité">{t('audits.findingsSection.form.type.opportunity')}</option>
                             </select>
-                            <select {...findingForm.register('severity')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-all outline-none">
+                            <select {...findingForm.register('severity')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-all outline-none">
                                 <option value="Critique">{t('audits.findingsSection.form.severity.critical')}</option>
                                 <option value="Haute">{t('audits.findingsSection.form.severity.high')}</option>
                                 <option value="Moyenne">{t('audits.findingsSection.form.severity.medium')}</option>
                                 <option value="Faible">{t('audits.findingsSection.form.severity.low')}</option>
                                 <option value="Info">{t('audits.findingsSection.form.severity.info')}</option>
                             </select>
-                            <select {...findingForm.register('relatedControlId')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-all outline-none">
+                            <select {...findingForm.register('relatedControlId')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-all outline-none">
                                 <option value="">{t('audits.findingsSection.form.linkControl')}</option>
                                 {controls.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name.substring(0, 30)}...</option>)}
                             </select>
                         </div>
                         <div className="flex justify-end">
-                            <button type="submit" aria-label={t('audits.findingsSection.add')} className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            <button type="submit" aria-label={t('audits.findingsSection.add')} className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-semibold rounded-3xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 {t('audits.findingsSection.add')}
                             </button>
                         </div>
@@ -145,7 +145,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                 {canEdit && (
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
                                         <CustomTooltip content={t('audits.findingsSection.uploadEvidence')}>
-                                            <label htmlFor={`file-upload-${f.id}`} className={`cursor-pointer p-2 transition-all rounded-xl hover:bg-indigo-500/10 ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-slate-400 hover:text-indigo-500'}`}>
+                                            <label htmlFor={`file-upload-${f.id}`} className={`cursor-pointer p-2 transition-all rounded-3xl hover:bg-indigo-500/10 ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-slate-400 hover:text-indigo-500'}`}>
                                                 {uploadingFindingId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                                                 <input type="file"
                                                     id={`file-upload-${f.id}`}
@@ -157,7 +157,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                             </label>
                                         </CustomTooltip>
                                         <CustomTooltip content={t('audits.findingsSection.delete')}>
-                                            <button onClick={() => onDeleteFinding(f.id)} aria-label={t('audits.findingsSection.delete')} className="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                            <button onClick={() => onDeleteFinding(f.id)} aria-label={t('audits.findingsSection.delete')} className="text-slate-400 hover:text-red-500 p-2 rounded-3xl hover:bg-red-50 dark:hover:bg-red-900/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </CustomTooltip>

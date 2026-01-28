@@ -130,7 +130,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className={cn('p-2 rounded-xl', isError ? 'bg-error-100 dark:bg-error-900/30' : isComplete ? 'bg-success-100 dark:bg-success-900/30' : 'bg-brand-100 dark:bg-brand-900')}>
+                    <div className={cn('p-2 rounded-3xl', isError ? 'bg-error-100 dark:bg-error-900/30' : isComplete ? 'bg-success-100 dark:bg-success-900/30' : 'bg-brand-100 dark:bg-brand-900')}>
                         <StatusIcon className={cn('h-5 w-5', statusColor, !isComplete && !isError && 'animate-spin')} />
                     </div>
                     <div>
@@ -209,7 +209,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-xl"
+                    className="p-3 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-3xl"
                 >
                     <p className="text-sm text-error-600 dark:text-error-400">{errorMessage}</p>
                 </motion.div>
@@ -217,7 +217,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
 
             {/* Steps (for multi-step operations) */}
             {steps && steps.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <div className="space-y-2 pt-2 border-t border-border/40 dark:border-slate-700">
                     {steps.map((step, index) => (
                         <motion.div
                             key={step.id}
@@ -270,7 +270,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 p-6"
+                    className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border/40 dark:border-border/40 p-6"
                 >
                     {content}
                 </motion.div>
@@ -284,7 +284,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-6 right-6 z-50 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 p-4"
+                className="fixed bottom-6 right-6 z-50 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border/40 dark:border-border/40 p-4"
             >
                 {content}
             </motion.div>
@@ -293,7 +293,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
 
     // Inline variant
     return (
-        <div className={cn('bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 p-4', className)}>
+        <div className={cn('bg-white dark:bg-slate-900 rounded-2xl border border-border/40 dark:border-border/40 p-4', className)}>
             {content}
         </div>
     );

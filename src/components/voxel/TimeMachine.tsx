@@ -195,7 +195,7 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     initial={{ opacity: 0, height: 0 }}
     animate={{ opacity: 1, height: 'auto' }}
     exit={{ opacity: 0, height: 0 }}
-    className="px-5 py-4 bg-gradient-to-r from-slate-500/10 to-slate-600/10 border-b border-white/10"
+    className="px-5 py-4 bg-gradient-to-r from-slate-500/10 to-slate-600/10 border-b border-border/40"
   >
     <div className="flex items-start justify-between mb-3">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -433,9 +433,9 @@ export function TimeMachine({
             }}
           >
             {/* Header */}
-            <div className="p-5 border-b border-white/10 flex items-center justify-between shrink-0">
+            <div className="p-5 border-b border-border/40 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
                   <Clock className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -721,7 +721,7 @@ export function TimeMachine({
             </div>
 
             {/* Footer with read-only indicator */}
-            <div className="p-4 border-t border-white/10 shrink-0" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <div className="p-4 border-t border-border/40 shrink-0" style={{ background: 'rgba(255,255,255,0.03)' }}>
               <div className="flex items-center gap-2 text-xs text-white/50">
                 <Badge variant="outline" className="border-white/20 text-white/60">Lecture seule</Badge>
                 <span>Données historiques - non modifiables</span>

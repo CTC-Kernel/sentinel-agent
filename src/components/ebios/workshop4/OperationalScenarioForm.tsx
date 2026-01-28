@@ -110,9 +110,9 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <PremiumCard glass className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-orange-100 dark:bg-amber-900/30">
+            <div className="p-2 rounded-3xl bg-orange-100 dark:bg-amber-900/30">
               <Cpu className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
@@ -144,10 +144,10 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
               {...register('strategicScenarioId')}
               id="strategicScenarioId"
               className={cn(
-                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
+                "w-full px-4 py-3 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.strategicScenarioId
                   ? 'border-red-300 dark:border-red-700'
-                  : 'border-slate-200 dark:border-slate-700'
+                  : 'border-border/40 dark:border-slate-700'
               )}
             >
               <option value="">{t('ebios.workshop4.selectStrategicScenario')}</option>
@@ -167,7 +167,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Selected Strategic Scenario Info */}
           {selectedStrategic && (
-            <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800">
+            <div className="p-4 rounded-3xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800">
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
@@ -205,10 +205,10 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
               type="text"
               placeholder="Ex: Phishing ciblé via messagerie"
               className={cn(
-                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
+                "w-full px-4 py-3 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? 'border-red-300 dark:border-red-700'
-                  : 'border-slate-200 dark:border-slate-700'
+                  : 'border-border/40 dark:border-slate-700'
               )}
             />
             {errors.name && (
@@ -230,10 +230,10 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
               rows={4}
               placeholder="Décrivez le mode opératoire détaillé de ce scénario..."
               className={cn(
-                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none",
+                "w-full px-4 py-3 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none",
                 errors.description
                   ? 'border-red-300 dark:border-red-700'
-                  : 'border-slate-200 dark:border-slate-700'
+                  : 'border-border/40 dark:border-slate-700'
               )}
             />
             {errors.description && (
@@ -248,7 +248,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
           </div>
 
           {/* Info about next steps */}
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700">
             <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop4.nextSteps')}
             </h4>
@@ -260,18 +260,18 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border/40 dark:border-slate-700/50">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-3xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+              className="px-6 py-2 rounded-3xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
             >
               {isSubmitting ? t('common.saving') : isEdit ? t('common.save') : t('common.create')}
             </button>

@@ -722,7 +722,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                         transition={{ duration: 0.2 }}
                     >
                         {/* Stats bar */}
-                        <div className="flex items-center gap-4 mb-6 p-4 glass-premium rounded-xl border border-border/40">
+                        <div className="flex items-center gap-4 mb-6 p-4 glass-premium rounded-3xl border border-border/40">
                             <div className="flex-1">
                                 <div className="flex items-center gap-4 text-sm">
                                     <span className="flex items-center gap-1">

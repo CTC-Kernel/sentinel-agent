@@ -145,7 +145,7 @@ const SectionScoreBar: React.FC<{
   const bgColorClass = getScoreBgColor(displayScore);
 
   return (
-    <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
+    <div className="border border-border/40 dark:border-border/40 rounded-3xl overflow-hidden">
       {/* Header */}
       <button
         onClick={onToggle}
@@ -211,7 +211,7 @@ const SectionScoreBar: React.FC<{
 
       {/* Expanded content - Question scores */}
       {expanded && section.questionScores.length > 0 && (
-        <div className="px-4 pb-4 space-y-2 border-t border-slate-100 dark:border-white/5 pt-4">
+        <div className="px-4 pb-4 space-y-2 border-t border-border/40 dark:border-white/5 pt-4">
           {section.questionScores.map((qs) => {
             const qDisplayScore = 100 - qs.rawScore;
             const qColorClass = getScoreColor(qDisplayScore);
@@ -380,7 +380,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
 
       {/* Mitigating factors */}
       {score.mitigatingFactors && score.mitigatingFactors.length > 0 && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 dark:border-green-800 rounded-xl p-4">
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 dark:border-green-800 rounded-3xl p-4">
           <h4 className="font-medium text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
             <Shield className="w-4 h-4" />
             {t('vendorScoring.mitigatingFactors', 'Mitigating Factors')}

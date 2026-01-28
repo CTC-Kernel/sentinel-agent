@@ -15,7 +15,7 @@ export const SkipLink: React.FC = () => {
         px-6 py-3
         bg-brand-600 text-white
         font-bold text-sm
-        rounded-xl shadow-2xl
+        rounded-3xl shadow-2xl
         ring-4 ring-brand-300
         transition-all duration-200
         hover:bg-brand-700
@@ -58,7 +58,7 @@ export const SkipLinks: React.FC<SkipLinksProps> = ({ links }) => {
             px-6 py-3 mr-2
             bg-brand-600 text-white
             font-bold text-sm
-            rounded-xl shadow-2xl
+            rounded-3xl shadow-2xl
             ring-4 ring-brand-300
             transition-all duration-200
             hover:bg-brand-700

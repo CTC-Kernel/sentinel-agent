@@ -50,7 +50,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-slate-700">
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                     {action ? 'Modifier l\'action' : 'Nouvelle action'}
@@ -76,7 +76,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     type="text"
                     {...register('title')}
                     placeholder="Ex: Mettre à jour la politique de sécurité"
-                    className={`w-full rounded-xl border ${errors.title ? 'border-red-500' : 'border-slate-200 dark:border-white/10'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
+                    className={`w-full rounded-3xl border ${errors.title ? 'border-red-500' : 'border-border/40 dark:border-border/40'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
                 />
 
                 {errors.title && (
@@ -94,7 +94,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     {...register('description')}
                     rows={2}
                     placeholder="Décrivez l'action à réaliser..."
-                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
+                    className="w-full rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
                 />
 
                 {errors.description && (
@@ -113,7 +113,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                         <select
                             id="action-owner"
                             {...register('ownerId')}
-                            className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
+                            className="w-full pl-9 pr-4 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
                         >
                             <option value="">Non assigné</option>
                             {users.map(u => (
@@ -135,7 +135,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                             id="action-deadline"
                             type="date"
                             {...register('deadline')}
-                            className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
+                            className="w-full pl-9 pr-4 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
                         />
                     </div>
                 </div>
@@ -149,7 +149,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     <select
                         id="action-status"
                         {...register('status')}
-                        className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
+                        className="w-full rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
                     >
                         <option value="À faire">À faire</option>
                         <option value="En cours">En cours</option>

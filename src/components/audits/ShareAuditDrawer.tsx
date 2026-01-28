@@ -90,7 +90,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
             <div className="p-6 space-y-6">
                 {!generatedLink ? (
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="bg-brand-50 dark:bg-brand-800 p-4 rounded-xl border border-brand-100 dark:border-brand-800 flex items-start gap-4">
+                        <div className="bg-brand-50 dark:bg-brand-800 p-4 rounded-3xl border border-brand-100 dark:border-brand-800 flex items-start gap-4">
                             <div className="bg-brand-100 dark:bg-brand-800 p-2 rounded-lg text-brand-600 dark:text-brand-300">
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
@@ -150,8 +150,8 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
                         </div>
 
                         <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-purple-600 rounded-xl opacity-20 group-hover:opacity-40 blur transition duration-200"></div>
-                            <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl p-1 pr-1.5 shadow-sm">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-purple-600 rounded-3xl opacity-20 group-hover:opacity-40 blur transition duration-200"></div>
+                            <div className="relative flex items-center bg-white dark:bg-slate-900 border border-border/40 dark:border-border/40 rounded-3xl p-1 pr-1.5 shadow-sm">
                                 <div className="pl-4 py-3 flex-1 overflow-hidden">
                                     <p className="text-sm font-mono text-slate-600 dark:text-slate-300 truncate select-all">
                                         {generatedLink}

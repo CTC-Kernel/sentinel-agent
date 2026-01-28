@@ -281,7 +281,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                 <div className="flex items-start gap-4">
                   {/* Type icon */}
                   <div className={cn(
-                    'p-3 rounded-xl',
+                    'p-3 rounded-3xl',
                     connector.status === 'error' ? 'bg-red-100' :
                       connector.status === 'active' ? 'bg-green-100' :
                         'bg-slate-100'

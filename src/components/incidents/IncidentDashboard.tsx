@@ -41,8 +41,8 @@ const getStatusColor = (s: string) => {
         case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800';
         case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 border-amber-100 dark:bg-amber-900/20 dark:border-amber-800';
         case 'Résolu': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800/50';
-        case 'Fermé': return 'text-slate-500 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 line-through opacity-70';
-        default: return 'text-slate-600 bg-slate-50 border-slate-200 dark:border-slate-700';
+        case 'Fermé': return 'text-slate-500 bg-slate-50 dark:bg-slate-800 border-border/40 dark:border-slate-700 line-through opacity-70';
+        default: return 'text-slate-600 bg-slate-50 border-border/40 dark:border-slate-700';
     }
 };
 
@@ -59,7 +59,7 @@ const getIncidentCategoryStyles = (category: string) => {
         case 'Fuite de Données':
             return { icon: Database, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800' };
         default:
-            return { icon: ShieldAlert, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10' };
+            return { icon: ShieldAlert, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-border/40 dark:border-border/40' };
     }
 };
 
@@ -195,7 +195,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                             <img
                                 src={getUserAvatarUrl(reporterUser?.photoURL, reporterUser?.role)}
                                 alt={reporterName}
-                                className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
+                                className="w-6 h-6 rounded-full border border-border/40 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
                             />
                         </div>
                         <span className="text-slate-600 dark:text-muted-foreground font-medium">
@@ -301,7 +301,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 role="button"
                                 tabIndex={0}
                                 hover={true}
-                                className="p-7 flex flex-col relative overflow-hidden group border border-white/60 dark:border-white/10 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                                className="p-7 flex flex-col relative overflow-hidden group border border-border/40 dark:border-border/40 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                             >
                                 {inc.severity === Criticality.CRITICAL && (
                                     <div className="absolute top-6 right-6 z-10">
@@ -313,7 +313,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 )}
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex gap-2">
-                                        <div className={`p-2 rounded-xl border shadow-sm ${getIncidentCategoryStyles(inc.category || '').bg} ${getIncidentCategoryStyles(inc.category || '').color} ${getIncidentCategoryStyles(inc.category || '').border}`}>
+                                        <div className={`p-2 rounded-3xl border shadow-sm ${getIncidentCategoryStyles(inc.category || '').bg} ${getIncidentCategoryStyles(inc.category || '').color} ${getIncidentCategoryStyles(inc.category || '').border}`}>
                                             {React.createElement(getIncidentCategoryStyles(inc.category || '').icon, { className: "h-5 w-5" })}
                                         </div>
                                         <div className="flex flex-col gap-1">
@@ -352,7 +352,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 line-clamp-2 leading-relaxed">
                                     {inc.description}
                                 </p>
-                                <div className="flex items-center justify-between pt-5 border-t border-dashed border-slate-200 dark:border-white/10 mt-auto">
+                                <div className="flex items-center justify-between pt-5 border-t border-dashed border-border/40 dark:border-border/40 mt-auto">
                                     <div className="flex items-center text-xs font-medium text-slate-500">
                                         <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                                         <span>{new Date(inc.dateReported).toLocaleDateString()}</span>

@@ -21,7 +21,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
     }, [onDelete, user]);
 
     return (
-        <div className={`glass-premium rounded-3xl p-6 flex flex-col items-center text-center card-hover group relative border border-border/40 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+        <div className={`glass-premium rounded-3xl p-6 flex flex-col items-center text-center card-hover group relative border border-border/40 ${user.isPending ? 'border-dashed border-border/40 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
             {canAdmin && (
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                     {!user.isPending && (
@@ -78,7 +78,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                     </div>
                 </div>
             ) : (
-                <div className="w-full pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
+                <div className="w-full pt-4 border-t border-dashed border-border/40 dark:border-border/40 flex justify-between items-center text-xs mt-auto">
                     <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
                         <Building className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
                         {user.department || 'Général'}

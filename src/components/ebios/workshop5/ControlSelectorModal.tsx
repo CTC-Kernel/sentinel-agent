@@ -143,9 +143,9 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <PremiumCard glass className="w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/30">
+            <div className="p-2 rounded-3xl bg-blue-100 dark:bg-blue-900/30">
               <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
@@ -166,7 +166,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
         </div>
 
         {/* Search & Filters */}
-        <div className="py-4 space-y-3 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="py-4 space-y-3 border-b border-border/40 dark:border-slate-700/50">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
@@ -174,7 +174,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('ebios.workshop5.searchControls')}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+              className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
             />
           </div>
 
@@ -226,7 +226,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
             const suggestedInDomain = domainControls.filter((c) => c.isSuggested).length;
 
             return (
-              <div key={domain.id} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+              <div key={domain.id} className="border border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden">
                 {/* Domain Header */}
                 <button
                   onClick={() => toggleDomain(domain.id)}
@@ -283,7 +283,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                                 "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors",
                                 isSelected
                                   ? "bg-blue-500 border-blue-500"
-                                  : "border-slate-300 dark:border-slate-600"
+                                  : "border-border/40 dark:border-slate-600"
                               )}
                             >
                               {isSelected && (
@@ -323,20 +323,20 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
+        <div className="pt-4 border-t border-border/40 dark:border-slate-700/50 flex items-center justify-between">
           <div className="text-sm text-slate-500">
             {localSelection.length} {locale === 'fr' ? 'contrôles sélectionnés' : 'controls selected'}
           </div>
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-3xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               {t('common.cancel')}
             </button>
             <button
               onClick={handleSave}
-              className="px-6 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors"
+              className="px-6 py-2 rounded-3xl bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors"
             >
               {t('ebios.workshop5.applyControls')}
             </button>

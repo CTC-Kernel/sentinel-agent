@@ -139,12 +139,12 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                         </div>
                     )}
                     {activeTab === 'playbook' && (
-                        <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                        <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                             <IncidentPlaybook incident={incident} />
                         </div>
                     )}
                     {activeTab === 'timeline' && (
-                        <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                        <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                             <IncidentTimeline selectedIncident={incident} getTimeToResolve={getTimeToResolveLabel} />
                         </div>
                     )}

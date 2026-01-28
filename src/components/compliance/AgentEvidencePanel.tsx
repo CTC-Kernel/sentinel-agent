@@ -137,7 +137,7 @@ const EvidenceRow: React.FC<EvidenceRowProps> = ({ evidence, onClick }) => {
             variants={slideUpVariants}
             onClick={onClick}
             className={cn(
-                'group flex items-center gap-3 p-3 rounded-xl border border-border/30',
+                'group flex items-center gap-3 p-3 rounded-3xl border border-border/30',
                 'bg-card/50 hover:bg-card hover:border-border transition-all duration-200',
                 onClick && 'cursor-pointer hover:shadow-apple-sm'
             )}
@@ -213,7 +213,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
         <div className="glass-premium rounded-2xl p-4 border border-border/50">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', config.bg)}>
+                    <div className={cn('w-12 h-12 rounded-3xl flex items-center justify-center', config.bg)}>
                         <Icon className={cn('h-6 w-6', config.color)} />
                     </div>
                     <div>
@@ -279,7 +279,7 @@ const LoadingSkeleton: React.FC = () => (
         <div className="h-32 bg-muted/50 rounded-2xl" />
         <div className="space-y-2">
             {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-muted/50 rounded-xl" />
+                <div key={i} className="h-16 bg-muted/50 rounded-3xl" />
             ))}
         </div>
     </div>

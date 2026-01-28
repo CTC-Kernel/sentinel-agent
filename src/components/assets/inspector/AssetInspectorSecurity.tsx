@@ -52,7 +52,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                         onClick={scanShodan}
                         disabled={scanning}
                         aria-label="Lancer un scan Shodan"
-                        className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
                         Scan Shodan
@@ -64,7 +64,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                         onClick={checkCVEs}
                         disabled={scanning}
                         aria-label="Rechercher des vulnérabilités CVE"
-                        className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-3xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
                         Check CVEs (NVD)
@@ -93,11 +93,11 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </h3>
                     <div className="space-y-3">
                         {vulnerabilities.map(vuln => (
-                            <div key={vuln.cveId} className="p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-red-200/60 dark:border-red-900/30 shadow-sm hover:shadow-md transition-all">
+                            <div key={vuln.cveId} className="p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-red-200/60 dark:border-red-900/30 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-bold px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-xl ring-1 ring-red-500/20">{vuln.severity} ({vuln.score})</span>
+                                        <span className="text-[11px] font-bold px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-3xl ring-1 ring-red-500/20">{vuln.severity} ({vuln.score})</span>
                                         <CustomTooltip content="Créer un risque">
                                             <button
                                                 onClick={() => createRiskFromVuln(vuln)}
@@ -131,17 +131,17 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </button>
                 </div>
                 {linkedRisks.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">Aucun risque associé.</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
                             <div key={risk.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
-                                    <span className={`text-[11px] px-2 py-1 rounded-xl font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
+                                    <span className={`text-[11px] px-2 py-1 rounded-3xl font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-muted-foreground mb-3">{risk.vulnerability}</p>
-                                {risk.score >= 15 && <div className="flex items-center text-[11px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}
+                                {risk.score >= 15 && <div className="flex items-center text-[11px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-3xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}
                             </div>
                         ))}
                     </div>
@@ -163,14 +163,14 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </button>
                 </div>
                 {linkedIncidents.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">Aucun incident signalé.</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (
                             <div key={inc.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
-                                    <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-xl ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>
+                                    <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-3xl ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-muted-foreground mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p>
                             </div>

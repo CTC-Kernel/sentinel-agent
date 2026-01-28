@@ -11,29 +11,27 @@ interface TutorialStepProps {
   isCurrent?: boolean;
 }
 
-const TutorialStep: React.FC<TutorialStepProps> = ({ 
-  step, 
-  title, 
-  description, 
-  action, 
-  isCompleted = false, 
-  isCurrent = false 
+const TutorialStep: React.FC<TutorialStepProps> = ({
+  step,
+  title,
+  description,
+  action,
+  isCompleted = false,
+  isCurrent = false
 }) => {
   return (
-    <div className={`flex gap-4 p-4 rounded-xl border transition-all ${
-      isCurrent 
-        ? 'bg-brand-50 border-brand-200 shadow-lg' 
-        : isCompleted 
-        ? 'bg-green-50 dark:bg-green-900/30 border-green-200' 
-        : 'bg-white border-slate-200 dark:border-slate-700'
-    }`}>
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-        isCompleted 
-          ? 'bg-green-500 text-white' 
-          : isCurrent 
-          ? 'bg-brand-500 text-white' 
-          : 'bg-slate-200 text-slate-600'
+    <div className={`flex gap-4 p-4 rounded-3xl border transition-all ${isCurrent
+        ? 'bg-brand-50 border-brand-200 shadow-lg'
+        : isCompleted
+          ? 'bg-green-50 dark:bg-green-900/30 border-green-200'
+          : 'bg-white border-border/40 dark:border-slate-700'
       }`}>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isCompleted
+          ? 'bg-green-500 text-white'
+          : isCurrent
+            ? 'bg-brand-500 text-white'
+            : 'bg-slate-200 text-slate-600'
+        }`}>
         {isCompleted ? (
           <CheckCircle className="w-4 h-4" />
         ) : (
@@ -41,9 +39,8 @@ const TutorialStep: React.FC<TutorialStepProps> = ({
         )}
       </div>
       <div className="flex-1">
-        <h3 className={`font-bold mb-1 ${
-          isCurrent ? 'text-brand-700' : isCompleted ? 'text-green-700' : 'text-slate-900'
-        }`}>
+        <h3 className={`font-bold mb-1 ${isCurrent ? 'text-brand-700' : isCompleted ? 'text-green-700' : 'text-slate-900'
+          }`}>
           {title}
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{description}</p>
@@ -104,9 +101,9 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-6">
+    <div className="bg-white rounded-3xl border border-border/40 p-6 space-y-6">
       {/* Header */}
-      <div className="border-b border-slate-200 pb-4">
+      <div className="border-b border-border/40 pb-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{title}</h2>
@@ -117,7 +114,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
             <span className="text-sm font-medium text-brand-600">Tutoriel interactif</span>
           </div>
         </div>
-        
+
         {/* Metadata */}
         <div className="flex flex-wrap gap-3 text-sm">
           <div className="flex items-center gap-1.5 text-slate-600">
@@ -141,7 +138,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
           <span>{currentStep + 1} / {steps.length}</span>
         </div>
         <div className="w-full bg-slate-200 rounded-full h-2">
-          <div 
+          <div
             className="bg-brand-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           />
@@ -164,7 +161,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
+      <div className="flex justify-between pt-4 border-t border-border/40 dark:border-slate-700">
         <Button
           variant="outline"
           onClick={handlePreviousStep}

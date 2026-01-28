@@ -180,10 +180,10 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                                         type="button"
                                         onClick={() => setSelectedFormat(option.value)}
                                         className={cn(
-                                            'flex flex-col items-center p-4 rounded-xl border-2 transition-all',
+                                            'flex flex-col items-center p-4 rounded-3xl border-2 transition-all',
                                             isSelected
                                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600'
                                         )}
                                     >
                                         <Icon className={cn(
@@ -218,7 +218,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                     </div>
 
                     {/* Preview Summary */}
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-4">
                         <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                             {t('dora.export.preview')}
                         </h4>

@@ -50,7 +50,7 @@ const COVERAGE_CONFIG: Record<CoverageStatus, {
     icon: AlertCircle,
     bgColor: 'bg-slate-100 dark:bg-slate-800',
     textColor: 'text-slate-400 dark:text-slate-400',
-    borderColor: 'border-slate-200 dark:border-slate-700',
+    borderColor: 'border-border/40 dark:border-slate-700',
     label: 'Non évalué',
   },
 };
@@ -129,14 +129,14 @@ export const MappingCell: React.FC<MappingCellProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2 w-64 p-3 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-white/10"
+            className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2 w-64 p-3 rounded-3xl bg-white dark:bg-slate-800 shadow-xl border border-border/40 dark:border-border/40"
           >
             {/* Arrow */}
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-slate-800 border-l border-t border-slate-200 dark:border-white/10 rotate-45" />
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-slate-800 border-l border-t border-border/40 dark:border-border/40 rotate-45" />
 
             <div className="relative">
               {/* Header */}
-              <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-white/5">
+              <div className="flex items-center justify-between mb-2 pb-2 border-b border-border/40 dark:border-white/5">
                 <span className={cn('text-sm font-semibold', config.textColor)}>
                   {t(`mapping.coverage.${coverageStatus}`)}
                 </span>

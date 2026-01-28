@@ -106,10 +106,10 @@ export const SecuritySettings: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fade-in-up">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 col-span-1 md:col-span-2">{t('settings.security')}</h2>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-brand-100 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
-                <div className="p-6 border-b border-brand-100 dark:border-slate-700/50 bg-brand-50 dark:bg-brand-900">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full">
+                <div className="p-6 border-b border-border/40 bg-slate-50/50 dark:bg-white/5 backdrop-blur-md">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-brand-100 dark:bg-brand-900 rounded-lg text-brand-600 dark:text-brand-400">
+                        <div className="p-2 bg-brand-50 dark:bg-brand-900/40 rounded-2xl text-brand-600 dark:text-brand-400 border border-brand-100/50 dark:border-brand-500/20 shadow-inner">
                             <Key className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.changePassword')}</h3>
@@ -143,10 +143,10 @@ export const SecuritySettings: React.FC = () => {
             </div>
 
             {/* MFA Settings */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-brand-100 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
-                <div className="p-6 border-b border-brand-100 dark:border-slate-700/50 bg-brand-50 dark:bg-brand-900">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full">
+                <div className="p-6 border-b border-border/40 bg-slate-50/50 dark:bg-white/5 backdrop-blur-md">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-success-100 dark:bg-success-900/30 rounded-lg text-success-600 dark:text-success-400">
+                        <div className="p-2 bg-success-50 dark:bg-success-900/30 rounded-2xl text-success-600 dark:text-success-400 border border-success-100/50 dark:border-success-500/10 shadow-inner">
                             <ShieldAlert className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Authentification à deux facteurs</h3>
@@ -175,9 +175,9 @@ export const SecuritySettings: React.FC = () => {
                     ) : (
                         <div className="space-y-6 animate-fade-in">
                             {qrCodeUrl && (
-                                <div className="flex flex-col items-center p-6 bg-white rounded-xl border border-slate-200 shadow-inner">
+                                <div className="flex flex-col items-center p-6 bg-white rounded-3xl border border-border/40 shadow-inner">
                                     <p className="text-xs font-bold text-slate-500 dark:text-slate-300 mb-4 text-center uppercase tracking-wider">Scannez ce QR Code</p>
-                                    <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-lg">
+                                    <div className="bg-white p-2 rounded-3xl border border-border/40 shadow-lg">
                                         <img src={qrCodeUrl} alt="QR Code" className="w-40 h-40 mix-blend-multiply" />
                                     </div>
                                     <p className="text-[11px] text-slate-400 mt-4 text-center max-w-[200px]">Utilisez Google Authenticator ou Authy</p>

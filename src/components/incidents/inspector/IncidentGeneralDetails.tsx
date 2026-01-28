@@ -15,7 +15,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6 sm:space-y-8">
                 {/* Description */}
-                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
@@ -49,7 +49,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
 
                 {/* Badges & Status */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="p-4 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-slate-500 dark:text-slate-300 block mb-1">Sévérité</span>
@@ -61,7 +61,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                             </Badge>
                         </div>
                     </div>
-                    <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="p-4 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-slate-500 dark:text-slate-300 block mb-1">Statut</span>
@@ -70,14 +70,14 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                             </Badge>
                         </div>
                     </div>
-                    <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="p-4 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-slate-500 dark:text-slate-300 block mb-1">Impact Financier</span>
                             <span className="font-bold text-slate-900 dark:text-white">{incident.financialImpact ? `${incident.financialImpact} €` : '-'}</span>
                         </div>
                     </div>
-                    <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="p-4 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-slate-500 dark:text-slate-300 block mb-1">Reporter</span>
@@ -89,7 +89,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
 
             <div className="space-y-6">
                 {/* Meta Info */}
-                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm space-y-4 relative overflow-hidden">
+                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm space-y-4 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <div>

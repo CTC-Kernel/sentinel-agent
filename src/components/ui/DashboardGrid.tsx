@@ -69,7 +69,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
         {Array.from({ length: 24 }).map((_, i) => (
           <div
             key={i}
-            className="border border-dashed border-slate-200 dark:border-slate-700 rounded-lg"
+            className="border border-dashed border-border/40 dark:border-slate-700 rounded-lg"
           />
         ))}
       </div>
@@ -154,14 +154,14 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         transition: { duration: 0.2 }
       }}
       className={cn(
-        "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden",
+        "bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden",
         isDragging && "shadow-2xl ring-2 ring-brand-300"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex items-center justify-between p-3 border-b border-border/40 dark:border-slate-700">
         <div className="flex items-center gap-2">
           <GripVertical className="w-4 h-4 text-slate-400 cursor-move" />
           <h3 className="font-medium text-slate-900 dark:text-white truncate">
@@ -203,7 +203,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-2 z-50"
+          className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg shadow-lg p-2 z-50"
         >
           <div className="flex gap-1">
             {(['small', 'medium', 'large', 'full'] as const).map((size) => (

@@ -219,7 +219,7 @@ export const CopyField: React.FC<CopyFieldProps> = ({
                     {label}
                 </label>
             )}
-            <div className="flex items-center gap-2 p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+            <div className="flex items-center gap-2 p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-3xl">
                 <code className="flex-1 text-sm font-mono text-slate-700 dark:text-slate-300 truncate">
                     {displayValue}
                 </code>

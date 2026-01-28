@@ -660,7 +660,7 @@ export function SignatureWorkflow({
                               ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 dark:border-green-800'
                               : signer.status === 'rejected'
                                 ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 dark:border-red-800'
-                                : 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700'
+                                : 'bg-slate-50 dark:bg-slate-900/50 border-border/40 dark:border-slate-700'
                           )}
                         >
                           {/* Order number */}
@@ -933,7 +933,7 @@ export function SignatureWorkflow({
             {signatureType === 'advanced' && (
               <div className="space-y-2">
                 <Label>Dessinez votre signature</Label>
-                <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white">
+                <div className="border-2 border-dashed border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden bg-white">
                   <SignatureCanvas
                     ref={signaturePadRef}
                     canvasProps={{

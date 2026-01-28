@@ -83,7 +83,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                         <img
                             src={getUserAvatarUrl(contactUser?.photoURL, contactUser?.role)}
                             alt={supplier.contactName || 'Inconnu'}
-                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-border/40 dark:border-slate-700"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = getUserAvatarUrl(null, contactUser?.role || 'user');

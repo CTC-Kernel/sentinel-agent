@@ -163,8 +163,8 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
             </div>
 
             <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border">
-                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-muted-foreground hover:bg-muted rounded-xl transition-colors">Annuler</button>
-                <button aria-label="Save creation" type="submit" className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-primary/30">Enregistrer</button>
+                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-muted-foreground hover:bg-muted rounded-3xl transition-colors">Annuler</button>
+                <button aria-label="Save creation" type="submit" className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-3xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-primary/30">Enregistrer</button>
             </div>
         </form>
     );

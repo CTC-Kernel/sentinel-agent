@@ -268,7 +268,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
-        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-brand-200 dark:border-brand-700">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-border/40 rounded-3xl">
           <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform">
             <AlertTriangle className="w-5 h-5" />
           </div>
@@ -276,7 +276,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop5.totalRisks')}</p>
         </PremiumCard>
 
-        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-info-border">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-border/40 rounded-3xl">
           <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-info-bg flex items-center justify-center text-info group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-5 h-5" />
           </div>
@@ -284,7 +284,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop5.treatedRisks')}</p>
         </PremiumCard>
 
-        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-success-border">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-border/40 rounded-3xl">
           <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-success-bg flex items-center justify-center text-success group-hover:scale-110 transition-transform">
             <CheckCircle className="w-5 h-5" />
           </div>
@@ -292,7 +292,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop5.acceptedRisks')}</p>
         </PremiumCard>
 
-        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-violet-200/50 dark:border-violet-800/50">
+        <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-border/40 rounded-3xl">
           <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
             <BarChart3 className="w-5 h-5" />
           </div>
@@ -302,7 +302,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
       </div>
 
       {/* Treatment Overview Progress */}
-      <PremiumCard glass className="animate-fade-in-up delay-100">
+      <PremiumCard glass className="animate-fade-in-up delay-100 border-border/40 rounded-3xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-info-bg text-info">
@@ -315,7 +315,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
           </span>
         </div>
 
-        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-4 overflow-hidden border border-slate-200 dark:border-slate-700 p-0.5">
+        <div className="w-full bg-slate-100/50 dark:bg-slate-800 rounded-full h-4 overflow-hidden border border-border/40 p-0.5">
           <div
             className="bg-gradient-primary h-full rounded-full transition-all duration-700 ease-out shadow-sm relative group"
             style={{ width: `${operationalScenarios.length > 0 ? (treatedCount / operationalScenarios.length) * 100 : 0}%` }}
@@ -338,7 +338,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                 <div
                   key={strategy.value}
                   className={cn(
-                    "flex flex-col items-center p-3 rounded-xl border transition-all duration-300 hover:shadow-md",
+                    "flex flex-col items-center p-3 rounded-3xl border transition-all duration-300 hover:shadow-md",
                     `bg-${strategy.color}-50/50 dark:bg-${strategy.color}-900/10`,
                     `border-${strategy.color}-100 dark:border-${strategy.color}-800/30`,
                     `hover:border-${strategy.color}-200 dark:hover:border-${strategy.color}-700`
@@ -371,7 +371,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
           </PremiumCard>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-info-bg border border-info-border animate-fade-in-up delay-200">
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-800/50 border border-border/40 animate-fade-in-up delay-200">
               <Sparkles className="w-5 h-5 text-info flex-shrink-0" />
               <p className="text-sm text-info-text">
                 {t('ebios.workshop5.helpText', 'Définissez la stratégie de traitement pour chaque risque. L\'objectif est de ramener le risque résiduel à un niveau acceptable.')}
@@ -399,7 +399,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
               return (
                 <div key={opScenario.id} className={`animate-fade-in-up delay-${(index + 3) * 100}`}>
                   <PremiumCard glass className={cn(
-                    "overflow-hidden transition-all duration-300 hover:shadow-lg",
+                    "overflow-hidden transition-all duration-300 hover:shadow-lg border-border/40 rounded-3xl",
                     isExpanded ? "ring-1 ring-brand-300" : ""
                   )}>
                     {/* Scenario Header */}
@@ -420,7 +420,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                         {/* Risk Badge Transition */}
                         <div className="flex items-center gap-3">
                           <div className={cn(
-                            "flex flex-col items-center justify-center w-14 h-14 rounded-xl shadow-sm border transition-all",
+                            "flex flex-col items-center justify-center w-14 h-14 rounded-3xl shadow-sm border transition-all",
                             `bg-${initialRiskColor}-50 dark:bg-${initialRiskColor}-900/20`,
                             `border-${initialRiskColor}-100 dark:border-${initialRiskColor}-800`,
                             `text-${initialRiskColor}-700 dark:text-${initialRiskColor}-400`
@@ -435,7 +435,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                 <TrendingDown className="w-5 h-5 -rotate-90" />
                               </div>
                               <div className={cn(
-                                "flex flex-col items-center justify-center w-14 h-14 rounded-xl shadow-sm border transition-all",
+                                "flex flex-col items-center justify-center w-14 h-14 rounded-3xl shadow-sm border transition-all",
                                 `bg-${residualRiskColor}-50 dark:bg-${residualRiskColor}-900/20`,
                                 `border-${residualRiskColor}-100 dark:border-${residualRiskColor}-800`,
                                 `text-${residualRiskColor}-700 dark:text-${residualRiskColor}-400`
@@ -497,7 +497,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                             ) : null}
                           </div>
                         ) : (
-                          <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 text-xs font-bold uppercase tracking-wide border border-slate-200 dark:border-slate-700">
+                          <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 text-xs font-bold uppercase tracking-wide border border-border/40 dark:border-slate-700">
                             {t('ebios.workshop5.notTreated')}
                           </span>
                         )}
@@ -515,7 +515,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
 
                     {/* Expanded Content */}
                     {isExpanded && (
-                      <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+                      <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                           {/* Left Column: Treatment Strategy */}
                           <div className="lg:col-span-7 space-y-6">
@@ -529,7 +529,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                 <button
                                   onClick={() => handleCreateTreatment(opScenario.id)}
                                   disabled={readOnly}
-                                  className="w-full py-8 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all group/add flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-300 hover:text-brand-600"
+                                  className="w-full py-8 rounded-3xl border-2 border-dashed border-border/40 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all group/add flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-300 hover:text-brand-600"
                                 >
                                   <div className="p-3 rounded-full bg-slate-100 dark:bg-slate-800 group-hover/add:bg-brand-100 dark:group-hover/add:bg-brand-900 transition-colors">
                                     <Plus className="w-6 h-6" />
@@ -549,10 +549,10 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                           onClick={() => !readOnly && handleUpdateTreatment(opScenario.id, { strategy: strategy.value })}
                                           disabled={readOnly}
                                           className={cn(
-                                            "relative p-4 rounded-xl border-2 transition-all text-left overflow-hidden group/card",
+                                            "relative p-4 rounded-3xl border-2 transition-all text-left overflow-hidden group/card",
                                             isSelected
                                               ? `border-${strategy.color}-500 bg-${strategy.color}-50 dark:bg-${strategy.color}-900/20 shadow-md`
-                                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-muted/30 dark:hover:bg-slate-800/50"
+                                              : "border-border/40 bg-slate-50/50 dark:hover:bg-slate-800/50 hover:bg-muted/30 dark:hover:bg-slate-800/50"
                                           )}
                                         >
                                           {isSelected && (
@@ -583,7 +583,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   </div>
 
                                   {/* Strategy Details Form */}
-                                  <div className="bg-muted/30/80 dark:bg-slate-800/30 rounded-xl p-5 border border-slate-200/50 dark:border-slate-700/50 space-y-4">
+                                  <div className="bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl p-5 border border-border/40 space-y-4">
                                     {/* Justification */}
                                     <div>
                                       <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
@@ -595,10 +595,10 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                           onChange={(e) => handleUpdateTreatment(opScenario.id, { strategyJustification: e.target.value })}
                                           placeholder={t('ebios.workshop5.justificationPlaceholder')}
                                           rows={2}
-                                          className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none"
+                                          className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none"
                                         />
                                       ) : (
-                                        <p className="text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 italic">
+                                        <p className="text-sm text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-900 p-3 rounded-2xl border border-border/40 italic">
                                           {treatment.strategyJustification || '-'}
                                         </p>
                                       )}
@@ -618,7 +618,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               value={treatment.responsibleId || ''}
                                               onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
                                               placeholder={t('ebios.workshop5.responsiblePlaceholder')}
-                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
+                                              className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
                                             />
                                           ) : (
                                             <p className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
@@ -636,7 +636,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               type="date"
                                               value={treatment.deadline || ''}
                                               onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
-                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
+                                              className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
                                             />
                                           ) : (
                                             <p className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
@@ -649,7 +649,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
 
                                     {/* Controls Selection */}
                                     {(treatment.strategy === 'mitigate' || treatment.strategy === 'transfer') && (
-                                      <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                                      <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700/50">
                                         <div className="flex items-center justify-between mb-3">
                                           <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center gap-2">
                                             <Shield className="w-3.5 h-3.5 text-info" />
@@ -682,7 +682,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                             {treatment.selectedControlIds.map((code) => (
                                               <div
                                                 key={code}
-                                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
+                                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm"
                                               >
                                                 <div className="flex items-center gap-3">
                                                   <div className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-mono font-bold">
@@ -702,7 +702,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                             ))}
                                           </div>
                                         ) : (
-                                          <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-muted/30/50 dark:bg-slate-800/50">
+                                          <div className="text-center py-6 border-2 border-dashed border-border/40 dark:border-slate-700 rounded-3xl bg-muted/30/50 dark:bg-slate-800/50">
                                             <p className="text-sm text-muted-foreground dark:text-slate-400 italic">
                                               {t('ebios.workshop5.noControlsSelected')}
                                             </p>
@@ -724,7 +724,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                                 "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border",
                                                 treatment.status === status.value
                                                   ? `bg-${status.color}-500 text-white border-${status.color}-500 shadow-sm`
-                                                  : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-muted/30 dark:hover:bg-slate-800"
+                                                  : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 border-border/40 dark:border-slate-700 hover:bg-muted/30 dark:hover:bg-slate-800"
                                               )}
                                             >
                                               {status.label[locale]}
@@ -755,9 +755,9 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   {t('ebios.workshop5.residualRiskAssessment')}
                                 </h5>
 
-                                <div className="flex-1 p-6 bg-muted/30 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col gap-6">
+                                <div className="flex-1 p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-3xl border border-border/40 flex flex-col gap-6">
                                   {/* Risk Comparison Visualization */}
-                                  <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                  <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm">
                                     <div className="text-center">
                                       <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest mb-1">{t('ebios.workshop5.initialRisk')}</span>
                                       <span className={cn(
@@ -835,14 +835,14 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   </div>
 
                                   {/* Acceptance Status */}
-                                  <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
+                                  <div className="pt-6 border-t border-border/40 dark:border-slate-700">
                                     <h6 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-3 flex items-center gap-2">
                                       <ClipboardCheck className="w-3.5 h-3.5" />
                                       {t('ebios.workshop5.riskAcceptance')}
                                     </h6>
 
                                     {residualRisk?.acceptedBy ? (
-                                      <div className="p-4 bg-success-bg rounded-xl border border-success-border">
+                                      <div className="p-4 bg-success-bg rounded-3xl border border-success-border">
                                         <div className="flex items-start gap-3">
                                           <div className="p-1 rounded-full bg-success-bg text-success mt-0.5">
                                             <CheckCircle className="w-5 h-5" />
@@ -863,7 +863,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="p-4 bg-warning-bg rounded-xl border border-warning-border">
+                                      <div className="p-4 bg-warning-bg rounded-3xl border border-warning-border">
                                         <div className="flex flex-col gap-3">
                                           <div className="flex items-center gap-2 text-warning-text">
                                             <AlertTriangle className="w-5 h-5" />
@@ -960,7 +960,7 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
             {t('ebios.workshop5.acceptRiskDescription')}
           </p>
 
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl">
             <p className="text-sm font-medium text-slate-900 dark:text-white">{scenarioName}</p>
             <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
               {t('ebios.workshop5.residualRisk')}: <span className="font-bold">R{residualRisk}</span>
@@ -976,7 +976,7 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
               onChange={(e) => setJustification(e.target.value)}
               placeholder={t('ebios.workshop5.acceptanceJustificationPlaceholder')}
               rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm resize-none"
             />
           </div>
         </div>
@@ -984,7 +984,7 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="px-4 py-2 rounded-lg border border-border/40 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             {t('common.cancel')}
           </button>

@@ -119,7 +119,7 @@ const MetricBaselineCard: React.FC<{
     const normalHigh = baseline.mean + baseline.stdDev;
 
     return (
-        <div className="bg-accent/30 rounded-xl p-4">
+        <div className="bg-accent/30 rounded-3xl p-4">
             <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 rounded-lg bg-primary/10">
                     <Icon className="h-4 w-4 text-primary" />
@@ -202,7 +202,7 @@ const HourlyPatternChart: React.FC<{
     const maxValue = Math.max(...pattern.hourlyMeans);
 
     return (
-        <div className="bg-accent/30 rounded-xl p-4">
+        <div className="bg-accent/30 rounded-3xl p-4">
             <div className="flex items-center justify-between mb-3">
                 <div className="font-medium">{label} - Pattern Horaire</div>
                 {pattern.isSignificant && (
@@ -277,7 +277,7 @@ const WeeklyPatternChart: React.FC<{
     const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
     return (
-        <div className="bg-accent/30 rounded-xl p-4">
+        <div className="bg-accent/30 rounded-3xl p-4">
             <div className="flex items-center justify-between mb-3">
                 <div className="font-medium">{label} - Pattern Hebdo</div>
                 {pattern.isSignificant && (
@@ -332,7 +332,7 @@ const KnownProcessesList: React.FC<{
     const displayProcesses = showAll ? processes : processes.slice(0, 5);
 
     return (
-        <div className="bg-accent/30 rounded-xl p-4">
+        <div className="bg-accent/30 rounded-3xl p-4">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <Terminal className="h-4 w-4 text-primary" />
@@ -391,7 +391,7 @@ const KnownConnectionsList: React.FC<{
     const displayConnections = showAll ? connections : connections.slice(0, 5);
 
     return (
-        <div className="bg-accent/30 rounded-xl p-4">
+        <div className="bg-accent/30 rounded-3xl p-4">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <Network className="h-4 w-4 text-primary" />
@@ -697,7 +697,7 @@ export const BehavioralBaseline: React.FC<BehavioralBaselineProps> = ({
             {showAllAgents && (
                 <motion.div variants={slideUpVariants} className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-xl bg-primary/10">
+                        <div className="p-2 rounded-3xl bg-primary/10">
                             <TrendingUp className="h-5 w-5 text-primary" />
                         </div>
                         <div>

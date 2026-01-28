@@ -60,7 +60,7 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
 
   if (isLoading) {
     return (
-      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-border/40 h-[400px]">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -77,9 +77,9 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-border/40 h-[400px]">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-xl bg-primary/10">
+          <div className="p-2.5 rounded-3xl bg-primary/10">
             <Building2 className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -107,12 +107,12 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
   const displayData = data.slice(0, 8);
 
   return (
-    <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px] relative overflow-hidden group/chart hover:shadow-apple-lg transition-all duration-300">
+    <div className="glass-premium p-6 rounded-3xl border border-border/40 h-[400px] relative overflow-hidden group/chart hover:shadow-apple-lg transition-all duration-300">
       {/* Dynamic Background Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
 
       <div className="flex items-center gap-4 mb-6 relative z-10">
-        <div className="p-2.5 rounded-xl bg-primary/10 transition-transform group-hover/chart:scale-110 duration-300">
+        <div className="p-2.5 rounded-3xl bg-primary/10 transition-transform group-hover/chart:scale-110 duration-300">
           <Building2 className="w-5 h-5 text-primary" />
         </div>
         <div>

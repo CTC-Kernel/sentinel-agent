@@ -97,11 +97,11 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                         <div><div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Date d'achat</div><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}</div></div>
                         <div><div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Fin de garantie</div><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}</div></div>
                         <div><div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Prix d'achat (€)</div><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}</div></div>
-                        <div><div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Coût Maintenance (€)</div><div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
+                        <div><div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">Coût Maintenance (€)</div><div className="px-4 py-3 rounded-3xl bg-slate-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
                     </div>
 
                     {selectedAsset?.purchasePrice && (
-                        <div className="mt-6 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
+                        <div className="mt-6 pt-6 border-t border-dashed border-border/40 dark:border-border/40">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                                 <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
                                     <p className="text-[11px] font-bold uppercase text-emerald-600 mb-1">Valeur Actuelle (Net)</p>
@@ -193,18 +193,18 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                             onClick={handleAddMaintenance}
                             disabled={isAddingMaintenance}
                             aria-label="Ajouter une intervention de maintenance"
-                            className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             {isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention
                         </button>
                     </div>
                 )}
                 <div className="space-y-3">
-                    {maintenanceRecords.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-300 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (
-                        <div key={rec.id} className="flex items-start p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                    {maintenanceRecords.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-300 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (
+                        <div key={rec.id} className="flex items-start p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl shadow-sm hover:shadow-md transition-all">
                             <div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div>
                             <div className="flex-1">
-                                <div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[11px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-xl text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div>
+                                <div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[11px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-3xl text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p>
                                 <div className="flex justify-between mt-2"><span className="text-[11px] text-slate-500 dark:text-slate-300 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[11px] font-bold text-slate-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div>
                             </div>

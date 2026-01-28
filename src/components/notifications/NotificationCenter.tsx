@@ -52,10 +52,10 @@ export const NotificationCenter: React.FC = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
                         transition={{ duration: 0.1 }}
-                        className="absolute right-0 mt-2 w-[90vw] sm:w-96 max-w-[384px] max-h-[80vh] bg-white dark:bg-slate-950 rounded-xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-white/20 dark:border-white/10 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-white/20 dark:ring-white/5"
+                        className="absolute right-0 mt-2 w-[90vw] sm:w-96 max-w-[384px] max-h-[80vh] bg-white dark:bg-slate-950 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-white/20 dark:border-border/40 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-white/20 dark:ring-white/5"
                     >
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-200/50 dark:border-white/10 flex items-center justify-between bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 shrink-0">
+                        <div className="p-4 border-b border-border/40 dark:border-border/40 flex items-center justify-between bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 shrink-0">
                             <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
                             <div className="flex gap-2">
                                 <Tooltip content={filter === 'unread' ? 'Afficher tout' : 'Filtrer les non-lus'}>
@@ -115,7 +115,7 @@ export const NotificationCenter: React.FC = () => {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-2 border-t border-slate-200/50 dark:border-white/10 bg-gradient-to-br from-slate-50/30 to-white/20 dark:from-slate-800/20 dark:to-slate-900/10 shrink-0 text-center">
+                        <div className="p-2 border-t border-border/40 dark:border-border/40 bg-gradient-to-br from-slate-50/30 to-white/20 dark:from-slate-800/20 dark:to-slate-900/10 shrink-0 text-center">
                             <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-muted-foreground hover:text-foreground dark:hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                                 Gérer les préférences
                             </Link>

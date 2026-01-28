@@ -34,7 +34,7 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
         icon: Star,
         gradient: 'from-slate-400 to-slate-500',
         bgGradient: 'from-white/80 to-slate-50/80 dark:from-slate-800/60 dark:to-slate-900/60',
-        borderColor: 'border-slate-200 dark:border-slate-700',
+        borderColor: 'border-border/40 dark:border-slate-700',
         textColor: 'text-slate-700 dark:text-slate-200',
         glowColor: 'shadow-slate-200/40 dark:shadow-slate-900/40',
         iconBg: 'bg-gradient-to-br from-slate-400 to-slate-500',
@@ -70,7 +70,7 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
         icon: Star,
         gradient: 'from-slate-400 to-slate-500',
         bgGradient: 'from-white/80 to-slate-50/80 dark:from-slate-800/60 dark:to-slate-900/60',
-        borderColor: 'border-slate-200 dark:border-slate-700',
+        borderColor: 'border-border/40 dark:border-slate-700',
         textColor: 'text-slate-700 dark:text-slate-200',
         glowColor: 'shadow-slate-200/40 dark:shadow-slate-900/40',
         iconBg: 'bg-gradient-to-br from-slate-400 to-slate-500',
@@ -134,7 +134,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
             {/* Main Badge */}
             <motion.div
                 className={`
-                    relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl
+                    relative flex items-center gap-2.5 px-3 py-1.5 rounded-3xl
                     bg-gradient-to-br ${config.bgGradient}
                     backdrop-blur-sm
                     border ${config.borderColor}
@@ -149,7 +149,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                 {/* Animated shimmer for premium plans */}
                 {(plan === 'professional' || plan === 'enterprise') && (
                     <motion.div
-                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${config.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
+                        className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${config.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
                     />
                 )}
 
@@ -217,12 +217,12 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                             w-64 p-4 rounded-2xl
                             bg-white/95 dark:bg-slate-900/95
                             backdrop-blur-xl
-                            border border-slate-200/50 dark:border-white/10
+                            border border-border/40 dark:border-border/40
                             shadow-xl shadow-slate-200/30 dark:shadow-black/30
                         ">
                             {/* Header */}
-                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100 dark:border-white/10">
-                                <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${config.iconBg} shadow-md`}>
+                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-border/40 dark:border-border/40">
+                                <div className={`flex items-center justify-center w-10 h-10 rounded-3xl ${config.iconBg} shadow-md`}>
                                     <Icon className="w-5 h-5 text-white" strokeWidth={2} />
                                 </div>
                                 <div>
@@ -240,7 +240,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
 
                             {/* Renewal info */}
                             {daysUntilRenewal !== null && status === 'active' && (
-                                <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 mb-2.5">
+                                <div className="flex items-center gap-2.5 p-2.5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 mb-2.5">
                                     <div className="p-1.5 rounded-lg bg-slate-200/50 dark:bg-slate-700/50">
                                         <Calendar className="w-4 h-4 text-slate-500" />
                                     </div>
@@ -252,7 +252,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
 
                             {/* Trial info */}
                             {isTrialing && daysUntilRenewal !== null && (
-                                <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 mb-2.5">
+                                <div className="flex items-center gap-2.5 p-2.5 rounded-3xl bg-amber-50 dark:bg-amber-900/20 mb-2.5">
                                     <div className="p-1.5 rounded-lg bg-amber-200/50 dark:bg-amber-500">
                                         <Zap className="w-4 h-4 text-amber-500" />
                                     </div>
@@ -264,7 +264,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
 
                             {/* Upgrade CTA */}
                             {showUpgradeHint && (
-                                <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 border border-slate-200 dark:border-slate-600/30">
+                                <div className="flex items-center justify-between p-3 rounded-3xl bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 border border-border/40 dark:border-slate-600/30">
                                     <div>
                                         <span className="text-xs font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100">
                                             Passez à Pro

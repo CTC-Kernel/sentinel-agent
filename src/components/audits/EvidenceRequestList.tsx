@@ -222,7 +222,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                     {requests.length > 0 && (
                         <button
                             onClick={handleExport}
-                            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            className="p-2 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                             aria-label="Exporter les preuves (ZIP)"
                             title="Exporter les preuves (ZIP)"
                         >
@@ -232,7 +232,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                     {canEdit && (
                         <button
                             onClick={() => setIsCreating(!isCreating)}
-                            className={`p-2 rounded-xl transition-colors ${isCreating
+                            className={`p-2 rounded-3xl transition-colors ${isCreating
                                 ? 'bg-red-50 text-red-600 dark:text-red-400 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400'
                                 : 'bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-brand-800 dark:text-brand-400'
                                 }`}
@@ -246,7 +246,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
             {
                 isCreating && (
-                    <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4 animate-fade-in mb-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-border/40 dark:border-border/40 space-y-4 animate-fade-in mb-6">
                         <FloatingLabelInput
                             label="Titre de la demande"
                             {...register('title')}
@@ -284,7 +284,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                 type="submit"
                                 disabled={isSubmitting}
                                 aria-label="Soumettre la demande"
-                                className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                                className="px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                             >
                                 {isSubmitting ? 'Création...' : 'Créer la demande'}
                             </button>

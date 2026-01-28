@@ -246,16 +246,16 @@ export const CalendarDashboard: React.FC = () => {
         return (
             <div className="flex flex-col xl:flex-row items-center justify-between mb-6 gap-4 animate-fade-in">
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
-                    <div className="flex bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/10 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
-                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="h-5 w-5" /></button>
-                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
-                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="h-5 w-5" /></button>
+                    <div className="flex bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-border/40 dark:border-border/40 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
+                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="h-5 w-5" /></button>
+                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
+                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="h-5 w-5" /></button>
                     </div>
                     {label()}
                 </div>
 
                 <div className="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto">
-                    <div className="flex items-center gap-1 bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl p-1 border border-slate-200/60 dark:border-white/10 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar justify-center">
+                    <div className="flex items-center gap-1 bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl p-1 border border-border/40 dark:border-border/40 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar justify-center">
                         {[
                             { v: Views.MONTH, l: 'Mois' },
                             { v: Views.WEEK, l: 'Semaine' },
@@ -266,7 +266,7 @@ export const CalendarDashboard: React.FC = () => {
                                 aria-label={`Vue ${opt.l}`}
                                 aria-pressed={view === opt.v}
                                 onClick={() => { setView(opt.v); toolbar.onView(opt.v); }}
-                                className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                                className={`px-4 md:px-5 py-2 rounded-3xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
                             >
                                 {opt.l}
                             </button>
@@ -277,12 +277,12 @@ export const CalendarDashboard: React.FC = () => {
                         <button
                             onClick={handleExport}
                             disabled={isExporting}
-                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-border/40 dark:border-border/40 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                             title="Exporter le calendrier"
                             aria-label="Exporter le calendrier"
                         >
                             {isExporting ? (
-                                <div className="h-5 w-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                                <div className="h-5 w-5 border-2 border-border/40 border-t-slate-600 rounded-full animate-spin" />
                             ) : (
                                 <Download className="h-5 w-5" />
                             )}
@@ -318,15 +318,15 @@ export const CalendarDashboard: React.FC = () => {
                         aria-pressed={filters[key as keyof typeof filters]}
                         onClick={() => setFilters(prev => ({ ...prev, [key]: !prev[key as keyof typeof filters] }))}
                         className={`
-                            px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+                            px-4 py-2 rounded-3xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                             ${filters[key as keyof typeof filters]
                                 ? key === 'audit' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20 shadow-purple-500/10'
                                     : key === 'project' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500/20 shadow-blue-500/10'
                                         : key === 'maintenance' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 shadow-emerald-500/10'
                                             : key === 'incident' ? 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-50 dark:text-red-300 dark:border-red-500/20 shadow-red-500/10'
                                                 : key === 'drill' ? 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20 shadow-orange-500/10'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                                : 'bg-transparent text-slate-500 dark:text-slate-300 border-slate-200 dark:text-slate-300 dark:border-white/5 grayscale opacity-60 hover:opacity-70 hover:grayscale-0'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-border/40 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                : 'bg-transparent text-slate-500 dark:text-slate-300 border-border/40 dark:text-slate-300 dark:border-white/5 grayscale opacity-60 hover:opacity-70 hover:grayscale-0'
                             }
                         `}
                     >
@@ -398,7 +398,7 @@ export const CalendarDashboard: React.FC = () => {
                                     selectedEvent.type === 'project' ? 'bg-blue-50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500/20' :
                                         selectedEvent.type === 'maintenance' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20' :
                                             selectedEvent.type === 'incident' ? 'bg-red-50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-50 dark:text-red-300 dark:border-red-500/20' :
-                                                'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                                'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-border/40 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                                     }`}>
                                     {selectedEvent.type}
                                 </span>
@@ -416,7 +416,7 @@ export const CalendarDashboard: React.FC = () => {
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white font-display leading-tight">{selectedEvent.title}</h3>
                         </div>
 
-                        <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5">
+                        <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-4 rounded-3xl border border-border/40 dark:border-white/5">
                             <Clock className="h-5 w-5 text-indigo-500" />
                             <div className="flex flex-col">
                                 <span className="text-slate-900 dark:text-white font-bold">{format(selectedEvent.start, 'd MMMM yyyy', { locale: fr })}</span>
@@ -447,7 +447,7 @@ export const CalendarDashboard: React.FC = () => {
                         )}
 
                         {selectedEvent.status && (
-                            <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                            <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-muted-foreground">
                                     <div className={`w-2 h-2 rounded-full ${selectedEvent.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`} />
                                     {selectedEvent.status}

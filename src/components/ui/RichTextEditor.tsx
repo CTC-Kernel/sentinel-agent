@@ -26,7 +26,7 @@ const ToolbarButton = ({ onClick, isActive, disabled, children, title }: { onCli
         className={`p-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isActive
             ? 'bg-brand-500 text-white'
             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-            } disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600`}
+            } disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600`}
     >
         {children}
     </button>
@@ -38,7 +38,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     }
 
     return (
-        <div className="flex flex-wrap gap-1 p-2 border-b border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 rounded-t-xl">
+        <div className="flex flex-wrap gap-1 p-2 border-b border-border/40 dark:border-border/40 bg-slate-50/50 dark:bg-white/5 rounded-t-xl">
             <ToolbarButton
                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                 isActive={editor.isActive('heading', { level: 1 })}
@@ -195,10 +195,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <div className={`flex flex-col gap-2 ${className}`}>
             {label && <label className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{label}</label>}
             <div className={`
-                border rounded-xl bg-white dark:bg-slate-800 transition-all overflow-hidden
+                border rounded-3xl bg-white dark:bg-slate-800 transition-all overflow-hidden
                 ${error
                     ? 'border-error-500 ring-1 ring-error-500/20'
-                    : 'border-slate-200 dark:border-white/10 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300'
+                    : 'border-border/40 dark:border-border/40 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300'
                 }
             `}>
                 {isEditable && <MenuBar editor={editor} />}

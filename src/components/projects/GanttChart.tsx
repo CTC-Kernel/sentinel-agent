@@ -169,7 +169,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         const assignee = originalTask?.assignee;
 
         return (
-            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-4 min-w-[280px] transform transition-all duration-200 z-50 animate-scale-in">
+            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-border/40 dark:border-slate-700/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-4 min-w-[280px] transform transition-all duration-200 z-50 animate-scale-in">
                 <div className="flex items-center justify-between mb-3">
                     <div className="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100 text-sm truncate pr-4 flex-1">
                         {task.name}
@@ -183,7 +183,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                 </div>
 
                 {assignee && (
-                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-slate-100 dark:border-slate-800/50">
+                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border/40 dark:border-slate-800/50">
                         {getUserAvatar(assignee)}
                         <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{assignee}</span>
                     </div>
@@ -216,7 +216,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         return (
             <div
                 style={{ height: headerHeight }}
-                className="flex items-center px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10"
+                className="flex items-center px-4 border-b border-border/40 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10"
             >
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex-1">
                     Tâche
@@ -230,14 +230,14 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
     const TaskListTable = ({ rowHeight, tasks }: { rowHeight: number; tasks: Task[] }) => {
         return (
-            <div className="border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30 h-full backdrop-blur-sm">
+            <div className="border-r border-border/40 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30 h-full backdrop-blur-sm">
                 {tasks.map((t: Task) => {
                     const originalTask = (t as unknown as { projectTask: ProjectTask }).projectTask;
                     return (
                         <div
                             key={t.id}
                             style={{ height: rowHeight }}
-                            className="flex items-center px-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-blue-500 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                            className="flex items-center px-4 border-b border-border/40 dark:border-slate-800/50 hover:bg-blue-500 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
                             onClick={() => handleTaskClick(t)}
                             role="button"
                             tabIndex={0}
@@ -246,7 +246,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                             <div className="flex items-center gap-3 w-full overflow-hidden">
                                 <div className="flex-shrink-0">
                                     {originalTask?.assignee ? getUserAvatar(originalTask.assignee) : (
-                                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-border/40 dark:border-slate-700">
                                             <User className="w-3 h-3 text-slate-500" />
                                         </div>
                                     )}
@@ -273,9 +273,9 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
     return (
         <div className="flex flex-col space-y-4 animate-slide-up">
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-2 rounded-2xl border border-border/40 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-3 px-2">
-                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl text-white shadow-lg shadow-blue-500/20">
+                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl text-white shadow-lg shadow-blue-500/20">
                         <CalendarDays className="w-4 h-4" />
                     </div>
                     <div>
@@ -287,8 +287,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                     <button
                         onClick={() => setShowList(!showList)}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${showList
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700'
+                        className={`px-3 py-1.5 text-xs font-bold rounded-3xl transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${showList
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-border/40 dark:border-slate-700'
                             : 'bg-transparent text-slate-600 dark:text-slate-300 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50'
                             }`}
                     >
@@ -299,7 +299,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                     <button
                         onClick={scrollToToday}
-                        className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl transition-colors flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                         Aujourd'hui
@@ -307,7 +307,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
 
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-3xl">
                         {(['Day', 'Week', 'Month'] as const).map(mode => (
                             <button
                                 key={mode}

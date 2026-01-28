@@ -50,7 +50,7 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ label, value, percent, icon, color }) => (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
+    <div className="flex items-center gap-3 p-3 rounded-3xl bg-muted/30 border border-border/30">
         <div
             className="w-10 h-10 rounded-lg flex items-center justify-center"
             style={{ backgroundColor: `${color}15` }}
@@ -127,7 +127,7 @@ export const AgentMetricsChart: React.FC<AgentMetricsChartProps> = ({
             <div className={cn('space-y-4 animate-pulse', className)}>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-20 bg-muted/50 rounded-xl" />
+                        <div key={i} className="h-20 bg-muted/50 rounded-3xl" />
                     ))}
                 </div>
                 <div className="h-64 bg-muted/50 rounded-2xl" />

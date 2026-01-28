@@ -144,7 +144,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-success-bg">
+          <div className="p-3 rounded-3xl bg-success-bg">
             <Award className="w-6 h-6 text-success-text" />
           </div>
           <div>
@@ -189,7 +189,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
       {state === 'ready' && (
         <div className="space-y-4">
           {/* Completion info */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-white/5">
+          <div className="flex items-center justify-between p-3 rounded-3xl bg-muted/30 border border-white/5">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-success-text" />
               <span className="text-sm text-foreground">
@@ -207,7 +207,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
 
           {/* Verification hash */}
           {verificationHash && (
-            <div className="p-3 rounded-xl bg-muted/30 border border-white/5">
+            <div className="p-3 rounded-3xl bg-muted/30 border border-white/5">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 text-primary" />
                 <span className="text-xs font-medium text-muted-foreground">
@@ -259,7 +259,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
 
       {state === 'error' && (
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-error-bg/50 border border-error-text/20">
+          <div className="p-4 rounded-3xl bg-error-bg/50 border border-error-text/20">
             <p className="text-sm text-error-text">
               {t('training.certificate.errorMessage')}
             </p>

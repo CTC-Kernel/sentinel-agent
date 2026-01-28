@@ -62,7 +62,7 @@ export const EbiosStatsWidget: React.FC<EbiosStatsWidgetProps> = ({ analyses }) 
                             {stat.value}
                         </p>
                     </div>
-                    <div className={`p-3 rounded-xl ${stat.bg}`}>
+                    <div className={`p-3 rounded-3xl ${stat.bg}`}>
                         <stat.icon className={`w-6 h-6 ${stat.color}`} />
                     </div>
                 </PremiumCard>

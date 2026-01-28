@@ -81,7 +81,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                         <div className="relative">
                             <select
                                 onChange={handleAssetChange}
-                                className="pl-3 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus-visible:ring-brand-500 appearance-none cursor-pointer"
+                                className="pl-3 pr-8 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus-visible:ring-brand-500 appearance-none cursor-pointer"
                                 defaultValue=""
                             >
                                 <option value="" disabled>Lier un actif...</option>
@@ -97,7 +97,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                 {linkedAssets.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {linkedAssets.map(asset => (
-                            <div key={asset.id} className="group p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-brand-300 transition-colors">
+                            <div key={asset.id} className="group p-4 bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-3xl hover:border-brand-300 transition-colors">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-brand-50 rounded-lg flex items-center justify-center text-brand-600">
@@ -122,7 +122,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-slate-50 dark:bg-slate-800/30 rounded-xl p-8 text-center border border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-800/30 rounded-3xl p-8 text-center border border-dashed border-border/40 dark:border-slate-700">
                         <p className="text-slate-500 text-sm">Aucun actif lié à ce traitement.</p>
                     </div>
                 )}
@@ -139,7 +139,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                         <div className="relative">
                             <select
                                 onChange={handleRiskChange}
-                                className="pl-3 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus-visible:ring-brand-500 appearance-none cursor-pointer"
+                                className="pl-3 pr-8 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus-visible:ring-brand-500 appearance-none cursor-pointer"
                                 defaultValue=""
                             >
                                 <option value="" disabled>Lier un risque...</option>
@@ -155,7 +155,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                 {linkedRisks.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {linkedRisks.map(risk => (
-                            <div key={risk.id} className="group p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-orange-300 transition-colors">
+                            <div key={risk.id} className="group p-4 bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-3xl hover:border-orange-300 transition-colors">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600">
@@ -184,7 +184,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-slate-50 dark:bg-slate-800/30 rounded-xl p-8 text-center border border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-800/30 rounded-3xl p-8 text-center border border-dashed border-border/40 dark:border-slate-700">
                         <p className="text-slate-500 text-sm">Aucun risque identifié pour ce traitement.</p>
                     </div>
                 )}

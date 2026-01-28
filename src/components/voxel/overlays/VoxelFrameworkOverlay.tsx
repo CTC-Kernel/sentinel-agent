@@ -329,7 +329,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
   return (
     <div className={`fixed top-20 right-4 z-40 ${className}`}>
       <div
-        className="rounded-xl overflow-hidden transition-all duration-300"
+        className="rounded-3xl overflow-hidden transition-all duration-300"
         style={{
           width: isMinimized ? '56px' : '280px',
           background: 'rgba(15, 23, 42, 0.95)',

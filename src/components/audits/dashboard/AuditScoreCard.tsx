@@ -67,14 +67,14 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
             </div>
 
             {/* Key Metrics Breakdown */}
-            <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/5 px-6 mx-2 relative z-10">
+            <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 dark:border-white/5 px-6 mx-2 relative z-10">
                 <div
                     onClick={() => onFilterChange?.(null)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFilterChange?.(null); } }}
                     role="button"
                     tabIndex={0}
                     aria-label="Afficher tous les audits"
-                    className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors p-2"
+                    className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-white/5 rounded-3xl transition-colors p-2"
                 >
                     <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 mb-2 tracking-widest group-hover/item:text-brand-500 transition-colors">Total Audits</div>
                     <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{totalAudits}</div>

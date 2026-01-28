@@ -30,14 +30,14 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
                 {canEdit && (
                     <button
                         onClick={onOpenShareModal}
-                        className="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 flex items-center gap-2 transition-all hover:-translate-y-0.5"
+                        className="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-semibold rounded-3xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 flex items-center gap-2 transition-all hover:-translate-y-0.5"
                     >
                         <LinkIcon className="w-4 h-4" />
                         Générer un lien d'accès
                     </button>
                 )}
 
-                <div className="mt-8 border-t border-slate-200/50 dark:border-white/5 pt-6">
+                <div className="mt-8 border-t border-border/40 dark:border-white/5 pt-6">
                     <div className="flex justify-between items-center mb-4">
                         <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Partenaires Assignés</h4>
                         {canEdit && (

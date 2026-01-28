@@ -65,7 +65,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                         <Shield className="h-4 w-4 text-purple-500" data-testid="shield-icon" />
                         Analyse d'Impact (DPIA)
                     </h4>
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-border/40 dark:border-slate-700">
                         <CustomSelect
                             label="DPIA Requis ?"
                             value={watchedHasDPIA ? 'Oui' : 'Non'}
@@ -121,7 +121,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
 
                 <div>
                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Conservation</h4>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-3 rounded-lg border border-slate-100 dark:border-white/5">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-3 rounded-lg border border-border/40 dark:border-white/5">
                         {activity.retentionPeriod || "Non spécifié"}
                     </p>
                 </div>
@@ -130,7 +130,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
             <div className="bg-purple-50 dark:bg-purple-900/10 rounded-2xl p-6 border border-purple-100 dark:border-purple-800/30">
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl text-purple-600">
+                        <div className="p-3 bg-white dark:bg-slate-800 rounded-3xl text-purple-600">
                             <Shield className="h-6 w-6" data-testid="shield-icon" />
                         </div>
                         <div>

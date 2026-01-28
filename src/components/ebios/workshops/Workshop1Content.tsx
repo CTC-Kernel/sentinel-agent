@@ -193,7 +193,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
     <div className="space-y-6">
       {/* Missions Section */}
       <div className="animate-fade-in-up delay-100">
-        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-200">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 border-border/40 rounded-3xl">
           <button
             onClick={() => toggleSection('missions')}
             aria-expanded={expandedSections.has('missions')}
@@ -286,7 +286,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Essential Assets Section */}
       <div className="animate-fade-in-up delay-200">
-        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5 hover:border-violet-500/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5 border-border/40 rounded-3xl">
           <button
             onClick={() => toggleSection('essentialAssets')}
             aria-expanded={expandedSections.has('essentialAssets')}
@@ -343,7 +343,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                           {asset.name}
                         </h4>
-                        <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        <span className="px-2 py-0.5 rounded-lg text-[11px] uppercase font-bold bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-300 border border-border/40">
                           {t(`ebios.assetTypes.${asset.type}`)}
                         </span>
                       </div>
@@ -388,7 +388,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Supporting Assets Section */}
       <div className="animate-fade-in-up delay-300">
-        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/5 hover:border-slate-500/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/5 border-border/40 rounded-3xl">
           <button
             onClick={() => toggleSection('supportingAssets')}
             aria-expanded={expandedSections.has('supportingAssets')}
@@ -433,7 +433,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   className={cn(
                     "w-full text-left group p-4 rounded-3xl border transition-all duration-300",
                     "bg-slate-50/50 dark:bg-slate-800/30 border-border/40",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-slate-300/50 hover:shadow-apple-md hover:-translate-y-0.5",
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-border/40/50 hover:shadow-apple-md hover:-translate-y-0.5",
                     readOnly && "cursor-default"
                   )}
                 >
@@ -444,7 +444,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                         {asset.name}
                       </h4>
-                      <span className="px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      <span className="px-2 py-0.5 rounded-lg text-[11px] uppercase font-bold bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-300 border border-border/40">
                         {t(`ebios.supportingAssetTypes.${asset.type}`)}
                       </span>
                       {asset.linkedAssetId && (
@@ -475,7 +475,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleAddSupportingAsset}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-400/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-slate-700 font-medium group"
+                    className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-slate-400/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-slate-700 font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 transition-colors">
                       <Plus className="w-4 h-4" />
@@ -500,7 +500,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Feared Events Section */}
       <div className="animate-fade-in-up delay-400">
-        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 hover:border-error/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 border-border/40 rounded-3xl">
           <button
             onClick={() => toggleSection('fearedEvents')}
             aria-expanded={expandedSections.has('fearedEvents')}
@@ -614,7 +614,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Security Baseline Section */}
       <div className="animate-fade-in-up delay-500">
-        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-success/5 hover:border-success/20">
+        <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-success/5 border-border/40 rounded-3xl">
           <button
             onClick={() => toggleSection('securityBaseline')}
             aria-expanded={expandedSections.has('securityBaseline')}

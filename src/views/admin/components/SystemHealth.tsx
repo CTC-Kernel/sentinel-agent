@@ -19,9 +19,9 @@ const ServiceStatus: React.FC<{
     const StatusIcon = statusConfig.icon;
 
     return (
-        <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-border hover:bg-card/80 transition-colors">
+        <div className="flex items-center justify-between p-4 bg-card/50 rounded-2xl border border-border/40 hover:bg-card/80 transition-all duration-300">
             <div className="flex items-center">
-                <div className={`p-2.5 rounded-lg bg-muted mr-4 border border-border`}>
+                <div className={`p-2.5 rounded-xl bg-muted mr-4 border border-border/40 shadow-inner`}>
                     <Icon className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
@@ -95,7 +95,7 @@ export const SystemHealth: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            <div className="bg-card/50 border border-border rounded-2xl p-6 h-full">
+            <div className="bg-card/50 border border-border/40 rounded-3xl p-6 h-full shadow-apple">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                         <h3 className="text-lg font-semibold text-foreground mr-3">System Status</h3>

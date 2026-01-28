@@ -81,7 +81,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                 const isActive = !link.revoked && !isExpired;
 
                 return (
-                    <div key={link.id} className={`flex items-center justify-between p-3 rounded-lg border ${isActive ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-white/5 opacity-75'}`}>
+                    <div key={link.id} className={`flex items-center justify-between p-3 rounded-lg border ${isActive ? 'bg-white dark:bg-slate-800 border-border/40 dark:border-border/40' : 'bg-slate-50 dark:bg-slate-900 border-border/40 dark:border-white/5 opacity-75'}`}>
                         <div className="flex items-center gap-3">
                             <div className={`p-2 rounded-full ${isActive ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
                                 {link.revoked ? <ShieldAlert className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}

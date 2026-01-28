@@ -196,7 +196,7 @@ const KPICard: React.FC<KPICardProps> = ({ kpi }) => {
 
   return (
     <div
-      className="p-4 rounded-xl"
+      className="p-4 rounded-3xl"
       style={{
         background: 'rgba(30, 41, 59, 0.6)',
         border: '1px solid rgba(148, 163, 184, 0.1)',
@@ -368,7 +368,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <Activity className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -397,7 +397,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
         <div className="grid grid-cols-12 gap-4">
           {/* Score gauges */}
           <div
-            className="col-span-3 p-4 rounded-xl flex items-center justify-around"
+            className="col-span-3 p-4 rounded-3xl flex items-center justify-around"
             style={{
               background: 'rgba(30, 41, 59, 0.6)',
               border: '1px solid rgba(148, 163, 184, 0.1)',
@@ -417,7 +417,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
 
           {/* Critical items */}
           <div
-            className="col-span-3 rounded-xl overflow-hidden"
+            className="col-span-3 rounded-3xl overflow-hidden"
             style={{
               background: 'rgba(30, 41, 59, 0.6)',
               border: '1px solid rgba(148, 163, 184, 0.1)',

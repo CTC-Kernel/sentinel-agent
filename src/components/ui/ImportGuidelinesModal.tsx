@@ -123,7 +123,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                                         </span>
                                         <div className="flex flex-wrap gap-2">
                                             {guidelines.optional.map(col => (
-                                                <span key={col} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                                <span key={col} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-border/40 dark:border-slate-700">
                                                     {col}
                                                 </span>
                                             ))}
@@ -140,9 +140,9 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                     {/* Template Download */}
                     <button
                         onClick={onDownloadTemplate}
-                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border/40 dark:border-slate-800 rounded-2xl hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
-                        <div className="w-12 h-12 bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                        <div className="w-12 h-12 bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400 rounded-3xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
                             <FileSpreadsheet className="w-6 h-6" />
                         </div>
                         <span className="font-bold text-slate-900 dark:text-white mb-1">
@@ -171,7 +171,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                             onClick={() => fileInputRef.current?.click()}
                             className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-2xl transition-all cursor-pointer group ${isDragging
                                 ? 'border-brand-500 bg-brand-50 dark:bg-brand-800 scale-[1.02]'
-                                : 'border-slate-200 dark:border-slate-800 hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900'
+                                : 'border-border/40 dark:border-slate-800 hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900'
                                 }`}
                         >
                             <input
@@ -181,7 +181,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                                 accept=".csv"
                                 onChange={handleFileSelect}
                             />
-                            <div className="w-12 h-12 bg-info-100 dark:bg-info-900/30 text-info-600 dark:text-info-400 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                            <div className="w-12 h-12 bg-info-100 dark:bg-info-900/30 text-info-600 dark:text-info-400 rounded-3xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
                                 <Upload className="w-6 h-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white mb-1">
@@ -199,7 +199,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                             >
                                 <AlertCircle className="w-4 h-4" />
                             </button>
-                            <div className="w-12 h-12 bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400 rounded-xl flex items-center justify-center mb-3 shadow-sm">
+                            <div className="w-12 h-12 bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400 rounded-3xl flex items-center justify-center mb-3 shadow-sm">
                                 <FileText className="w-6 h-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white mb-1 truncate max-w-[200px]">
@@ -219,7 +219,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                     )}
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-white/5">
+                <div className="flex justify-end pt-4 border-t border-border/40 dark:border-white/5">
                     <Button variant="ghost" onClick={onClose}>
                         {t('common.cancel')}
                     </Button>

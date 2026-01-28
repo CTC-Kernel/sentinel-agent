@@ -51,7 +51,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                     </p>
 
                     {/* View Mode Toggle */}
-                    <div className="flex items-center gap-2 mt-4 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+                    <div className="flex items-center gap-2 mt-4 bg-slate-100 dark:bg-slate-800 p-1 rounded-3xl w-fit">
                         <button
                             onClick={() => setViewMode('inherent')}
                             className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'inherent'
@@ -73,29 +73,29 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3 bg-white dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm backdrop-blur-sm">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                <div className="flex flex-wrap gap-3 bg-white dark:bg-slate-900/50 p-3 rounded-2xl border border-border/40 dark:border-border/40 shadow-sm backdrop-blur-sm">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-success-text shadow-glow shadow-success-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Faible</span>
                             <span className="text-[11px] text-muted-foreground">Score 1-4</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-info-text shadow-glow shadow-info-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Moyen</span>
                             <span className="text-[11px] text-muted-foreground">Score 5-9</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-warning-text shadow-glow shadow-warning-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Élevé</span>
                             <span className="text-[11px] text-muted-foreground">Score 10-14</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-error-text shadow-glow shadow-error-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Critique</span>
@@ -106,7 +106,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             </div>
 
             {/* Matrix Container */}
-            <div className="relative p-8 bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-black/20 overflow-hidden">
+            <div className="relative p-8 bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-border/40 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-black/20 overflow-hidden">
 
                 {/* Background Decoration */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -144,7 +144,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                     const score = probObj.val * impactObj.val;
 
                                     // Determine Cell Styling
-                                    let cellStyle = "bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5"; // Default empty
+                                    let cellStyle = "bg-slate-50 dark:bg-white/[0.02] border-border/40 dark:border-white/5"; // Default empty
                                     let textStyle = "text-slate-300 dark:text-slate-300";
                                     let ringColor = "";
 
@@ -246,7 +246,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             </div>
 
             {/* Info Footer */}
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900 border border-blue-100 dark:border-blue-900/20 text-sm text-blue-700 dark:text-blue-300">
+            <div className="flex items-start gap-3 p-4 rounded-3xl bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900 border border-blue-100 dark:border-blue-900/20 text-sm text-blue-700 dark:text-blue-300">
                 <Info className="h-5 w-5 shrink-0 mt-0.5" />
                 <p>
                     La matrice des risques permet de visualiser la répartition de vos risques selon leur criticité.

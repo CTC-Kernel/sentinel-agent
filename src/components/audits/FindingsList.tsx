@@ -49,7 +49,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
             case 'Mineure': return 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
             case 'Observation': return 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
             case 'Opportunité': return 'bg-green-100 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
-            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-border/40 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
         }
     };
 
@@ -85,7 +85,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                 onClick={() => setTypeFilter(typeFilter === type ? null : type)}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${typeFilter === type
                                     ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-800 dark:border-brand-800 dark:text-brand-300'
-                                    : 'bg-white border-slate-200 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10'
+                                    : 'bg-white border-border/40 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-white/5 dark:border-border/40 dark:text-slate-300 dark:hover:bg-white/10'
                                     }`}
                             >
                                 {type}
@@ -99,7 +99,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+                            <tr className="bg-slate-50/50 dark:bg-white/5 border-b border-border/40 dark:border-white/5">
                                 <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Statut</th>
                                 <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Description</th>
                                 <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Type</th>

@@ -64,7 +64,7 @@ const STATUS_CONFIG: Record<
   HomologationStatus,
   { color: string; bgColor: string; borderColor: string; icon: LucideIcon }
 > = {
-  draft: { color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-300', icon: FileText },
+  draft: { color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-border/40', icon: FileText },
   in_progress: { color: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'border-blue-300', icon: Clock },
   pending_decision: {
     color: 'text-amber-600',
@@ -329,7 +329,7 @@ export const HomologationDossierDetail: React.FC = () => {
             <h3 className="font-medium mb-3">{t('homologation.level', 'Niveau')}</h3>
             <div className="flex items-center gap-3">
               <div
-                className="p-3 rounded-xl"
+                className="p-3 rounded-3xl"
                 style={{ backgroundColor: `${levelInfo.color}20`, color: levelInfo.color }}
               >
                 <LevelIcon className="h-6 w-6" />

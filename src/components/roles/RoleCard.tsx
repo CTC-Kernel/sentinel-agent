@@ -8,7 +8,11 @@ interface RoleCardProps {
 
 export const RoleCard: React.FC<RoleCardProps> = ({ role, count }) => {
     return (
-        <div className="glass-premium p-4 rounded-2xl border border-border/40">
+        <div 
+            className="glass-premium p-4 rounded-2xl border border-border/40"
+            role="article"
+            aria-label={`Rôle: ${getRoleName(role)}`}
+        >
             <div className="flex items-start justify-between mb-2">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     {getRoleName(role)}

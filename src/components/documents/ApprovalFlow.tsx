@@ -49,7 +49,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
     return (
         <div className="space-y-6">
             {/* Header / Actions Area */}
-            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-3xl border border-border/40 dark:border-slate-800">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-brand-500" />
                     Flux de Validation
@@ -108,13 +108,13 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
 
                 {/* INTERACTIVE FORMS */}
                 {actionView === 'submit' && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-border/40 dark:border-slate-700">
                         <div>
                             <div className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">Sélectionner les réviseurs</div>
                             <select
                                 aria-label="Sélectionner les réviseurs"
                                 multiple
-                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 onChange={(e) => setSelectedReviewers(Array.from(e.target.selectedOptions, option => option.value))}
                             >
                                 {safeUsers.filter(u => u.uid !== user?.uid).map(u => (
@@ -127,7 +127,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             aria-label="Message pour les réviseurs"
                             type="text"
                             placeholder="Message pour les réviseurs..."
-                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         />
                         <div className="flex justify-end gap-2">
                             <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>
@@ -141,7 +141,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         <textarea
                             aria-label="Raison du rejet"
                             placeholder="Raison du rejet (obligatoire)..."
-                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         />
@@ -154,7 +154,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
             </div>
 
             {/* TIMELINE */}
-            <div className="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800 space-y-6">
+            <div className="relative pl-6 border-l-2 border-border/40 dark:border-slate-800 space-y-6">
                 {history.length === 0 && (
                     <div className="text-sm text-slate-500 dark:text-slate-300 italic pl-2">Aucun historique de workflow.</div>
                 )}

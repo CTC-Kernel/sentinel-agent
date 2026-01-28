@@ -20,7 +20,7 @@ const getProjectCategoryStyles = (category: string) => {
     if (cat.includes('déploiement') || cat.includes('technique')) return { icon: Rocket, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/50', progress: 'bg-emerald-500' };
     if (cat.includes('gouvernance')) return { icon: Building2, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/50', progress: 'bg-indigo-500' };
     if (cat.includes('crise')) return { icon: Siren, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-800', progress: 'bg-red-500' };
-    return { icon: Target, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10', progress: 'bg-brand-500' };
+    return { icon: Target, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-border/40 dark:border-border/40', progress: 'bg-brand-500' };
 };
 
 import { useStore } from '../../store';
@@ -99,15 +99,13 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 const managerUser = usersList.find(u => u.uid === row.original.managerId);
                 return (
                     <div className="flex items-center gap-2">
-                        <img
-                            src={getUserAvatarUrl(managerUser?.photoURL, managerUser?.role)}
-                            alt={row.original.manager}
-                            className="w-6 h-6 rounded-full border border-brand-200 dark:border-brand-800 object-cover"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = getUserAvatarUrl(null, managerUser?.role);
-                            }}
-                        />
+                        <div className="relative">
+                            <img
+                                src={getUserAvatarUrl(managerUser?.photoURL, managerUser?.role)}
+                                alt={row.original.manager}
+                                className="w-6 h-6 rounded-full border border-brand-200 dark:border-brand-800 object-cover"
+                            />
+                        </div>
                         <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{row.original.manager}</span>
                     </div>
                 );
@@ -127,15 +125,13 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     <div className="flex -space-x-2">
                         {displayMembers.map(m => (
                             <CustomTooltip key={m.uid} content={m.displayName || m.email}>
-                                <img
-                                    src={getUserAvatarUrl(m.photoURL, m.role)}
-                                    alt={m.displayName || 'Membre'}
-                                    className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 object-cover bg-slate-100 dark:bg-slate-800"
-                                    onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.src = getUserAvatarUrl(null, m.role);
-                                    }}
-                                />
+                                <div className="relative">
+                                    <img
+                                        src={getUserAvatarUrl(m.photoURL, m.role)}
+                                        alt={m.displayName || 'Membre'}
+                                        className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 object-cover bg-slate-100 dark:bg-slate-800"
+                                    />
+                                </div>
                             </CustomTooltip>
                         ))}
                         {remaining > 0 && (

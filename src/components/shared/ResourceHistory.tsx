@@ -24,7 +24,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
     if (!loading && logs.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-8 text-slate-400 border border-dashed border-slate-200 dark:border-white/10 rounded-xl">
+            <div className="flex flex-col items-center justify-center py-8 text-slate-400 border border-dashed border-border/40 dark:border-border/40 rounded-3xl">
                 <History className="h-8 w-8 mb-2 opacity-60" />
                 <p className="text-sm">Aucun historique disponible pour cet élément.</p>
             </div>
@@ -37,7 +37,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                 <History className="h-5 w-5 text-brand-500" /> Historique des Modifications
             </h3>
 
-            <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 space-y-8 pb-4">
+            <div className="relative border-l-2 border-border/40 dark:border-slate-700 ml-3 space-y-8 pb-4">
                 {logs.map((log) => {
                     let date: Date;
                     try {
@@ -80,7 +80,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
                                     {/* Granular Changes if available */}
                                     {log.changes && log.changes.length > 0 && (
-                                        <div className="mt-2 text-xs bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-slate-100 dark:border-white/5">
+                                        <div className="mt-2 text-xs bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/40 dark:border-white/5">
                                             {log.changes.map((change, idx) => (
                                                 <div key={`${idx}-${change.field}`} className="flex gap-2 font-mono">
                                                     <span className="text-slate-500 dark:text-slate-400">{change.field}:</span>
@@ -107,7 +107,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                 <button
                     onClick={loadMore}
                     disabled={loading}
-                    className="w-full py-2 text-sm text-brand-600 hover:text-brand-700 font-medium text-center border-t border-slate-100 dark:border-white/5 pt-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="w-full py-2 text-sm text-brand-600 hover:text-brand-700 font-medium text-center border-t border-border/40 dark:border-white/5 pt-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     {loading ? 'Chargement...' : 'Voir plus d\'historique'}
                 </button>

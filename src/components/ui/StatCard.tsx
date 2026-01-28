@@ -81,7 +81,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                 {/* Header with icon and trend */}
                 <div className="flex justify-between items-start mb-6">
                     <div className={cn(
-                        "p-4 rounded-2xl bg-opacity-30 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm transition-transform duration-500 group-hover:scale-110",
+                        "p-4 rounded-3xl bg-opacity-30 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm transition-transform duration-500 group-hover:scale-110",
                         colorClass
                     )}>
                         <Icon className={cn("h-6 w-6", colorClass.replace('bg-', 'text-'))} strokeWidth={2} />
@@ -98,7 +98,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                 {/* Value and title */}
                 <div>
                     {loading ? (
-                        <div className="h-10 w-24 bg-slate-200/50 dark:bg-white/5 rounded-xl animate-pulse mb-2"></div>
+                        <div className="h-10 w-24 bg-slate-200/50 dark:bg-white/5 rounded-3xl animate-pulse mb-2"></div>
                     ) : (
                         <h3 className="text-3xl font-bold tracking-tight text-foreground font-display">
                             {value}

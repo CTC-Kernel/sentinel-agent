@@ -211,9 +211,9 @@ const ActionCard: React.FC<{
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
       className={cn(
-        'w-full flex items-center gap-4 p-4 rounded-xl border transition-all',
+        'w-full flex items-center gap-4 p-4 rounded-3xl border transition-all',
         'bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10',
-        'border-white/60 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-700',
+        'border-border/40 dark:border-border/40 hover:border-brand-300 dark:hover:border-brand-700',
         'group cursor-pointer text-left'
       )}
     >
@@ -329,7 +329,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-3xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
             <Shield className="w-5 h-5 text-brand-600 dark:text-brand-400" />
           </div>
           <div>

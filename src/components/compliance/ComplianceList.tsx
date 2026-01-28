@@ -208,14 +208,14 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                         <div className={`h-full rounded-full transition-all duration-700 ease-in-out ${stats.progress === 100 ? 'bg-success-text shadow-glow shadow-success-text/20' : `${fwStyles.progress} shadow-glow`}`} style={{ width: `${stats.progress}%` }}></div>
                                     </div>
                                 </div>
-                                <div className={`p-2 rounded-xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-slate-900 dark:text-white ring-1 ring-black/5' : 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100 dark:hover:bg-slate-800 dark:group-hover:bg-white/5'}`}>
+                                <div className={`p-2 rounded-3xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-slate-900 dark:text-white ring-1 ring-black/5' : 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100 dark:hover:bg-slate-800 dark:group-hover:bg-white/5'}`}>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
                             </div>
                         </div>
 
                         {isExpanded && (
-                            <div className="p-4 bg-slate-50/50 dark:bg-black/20 backdrop-blur-sm border-t border-slate-100 dark:border-white/5 relative z-10">
+                            <div className="p-4 bg-slate-50/50 dark:bg-black/20 backdrop-blur-sm border-t border-border/40 dark:border-white/5 relative z-10">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {domainControls.map(control => {
                                         const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
@@ -254,10 +254,10 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                             <p className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
                                                         </div>
                                                     </div>
-                                                    <div className={`shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-success-text bg-success-bg border-success-border/50' :
+                                                    <div className={`shrink-0 px-2.5 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-success-text bg-success-bg border-success-border/50' :
                                                         control.status === 'Partiel' ? 'text-warning-text bg-warning-bg border-warning-border/50' :
-                                                            control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700' :
-                                                                'text-slate-600 bg-white border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                                            control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-border/40 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700' :
+                                                                'text-slate-600 bg-white border-border/40 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                                                         }`}>
                                                         {control.status}
                                                     </div>

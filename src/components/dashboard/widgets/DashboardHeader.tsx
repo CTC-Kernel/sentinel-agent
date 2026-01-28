@@ -293,7 +293,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/30 via-info-500/30 to-brand-500/30 rounded-[2.5rem] blur-2xl opacity-0 group-hover/orb:opacity-70 transition-all duration-700 animate-pulse-slow" />
 
                                     {/* Main Logo Container */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-[1.5rem] bg-background/60 dark:bg-slate-900/40 backdrop-blur-xl shadow-xl overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--brand-500-rgb),0.15)] ring-1 ring-border/40">
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl shadow-xl overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--brand-500-rgb),0.15)] border border-border/40">
 
                                         {/* Inner Gradient Overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-info-500/10 opacity-0 group-hover/orb:opacity-70 transition-opacity duration-700" />
@@ -323,9 +323,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         </div>
 
                                         {/* Premium Holographic Rings */}
-                                        <div className="absolute inset-2 border-2 border-brand-200 rounded-[1.25rem] animate-spin-slow" />
-                                        <div className="absolute inset-4 border border-info-500/15 rounded-[1rem] animate-spin-slow-reverse" />
-                                        <div className="absolute inset-0 border border-white/40 dark:border-white/10 rounded-[1.5rem]" />
+                                        <div className="absolute inset-2 border-2 border-brand-200/20 rounded-2xl animate-spin-slow" />
+                                        <div className="absolute inset-4 border border-info-500/10 rounded-xl animate-spin-slow-reverse" />
                                     </div>
 
                                     {/* Status Indicator - Premium */}
@@ -338,14 +337,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             </div>
 
                             {/* Center: Organization Info */}
-                            <div className="flex flex-col gap-3 text-center xl:text-left p-4 rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border border-white/50 dark:border-slate-700/50 shadow-sm">
+                            <div className="flex flex-col gap-3 text-center xl:text-left p-4 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-border/40 shadow-sm">
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex items-center gap-3 justify-center xl:justify-start"
                                 >
-                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600">
+                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-border/40">
                                         {t('common.pilotage')}
                                     </span>
                                     <div className="hidden sm:block h-[2px] w-10 bg-gradient-to-r from-slate-400 to-transparent rounded-full" />
@@ -405,12 +404,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             {/* Right: Actions - Premium Buttons */}
                             <div className="flex items-center gap-2 justify-center xl:justify-end flex-wrap">
                                 {/* Quick Actions Group */}
-                                <div className="flex items-center gap-1 p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/50 shadow-sm backdrop-blur-sm">
+                                <div className="flex items-center gap-1 p-1 bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-border/40 shadow-sm backdrop-blur-xl">
                                     {onToggleEdit && (
                                         <Tooltip content={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')} position="bottom">
                                             <button
                                                 onClick={onToggleEdit}
-                                                className={`p-2.5 rounded-xl transition-all duration-300 ${isEditing
+                                                className={`p-2.5 rounded-3xl transition-all duration-300 ${isEditing
                                                     ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30'
                                                     : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                                     }`}
@@ -425,7 +424,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <button
                                             onClick={generateExecutiveReport}
                                             disabled={isGeneratingReport}
-                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                            className="p-2.5 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                                             aria-label={t('dashboard.executiveReport')}
                                         >
                                             {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
@@ -435,7 +434,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.exportIcal')} position="bottom">
                                         <button
                                             onClick={generateICal}
-                                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300"
+                                            className="p-2.5 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300"
                                             aria-label={t('dashboard.exportIcal')}
                                         >
                                             <CalendarDays className="h-4 w-4" />
@@ -446,7 +445,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <Tooltip content={t('dashboard.showGettingStarted')} position="bottom">
                                             <button
                                                 onClick={onShowGettingStarted}
-                                                className="p-2.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300"
+                                                className="p-2.5 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300"
                                                 aria-label={t('dashboard.showGettingStarted')}
                                             >
                                                 <Rocket className="h-4 w-4" />
@@ -459,7 +458,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <Tooltip content="Télécharger les agents" position="bottom">
                                     <button
                                         onClick={() => navigate('/settings?tab=agents')}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800 text-white dark:text-slate-900 text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white dark:text-slate-100 text-xs font-bold rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 border border-border/40"
                                         aria-label="Télécharger les agents"
                                     >
                                         <Bot className="h-4 w-4" />
@@ -473,7 +472,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
                                         <button
                                             onClick={() => navigate('/team')}
-                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300"
+                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white/40 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-3xl border border-border/40 transition-all duration-300 backdrop-blur-md"
                                             aria-label={t('dashboard.inviteMember')}
                                         >
                                             <Users className="h-4 w-4" />
@@ -491,10 +490,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 initial={{ opacity: 0, y: 15 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/50 backdrop-blur-sm"
+                                className="p-4 rounded-3xl bg-slate-50/80 dark:bg-slate-800/50 border border-border/40 backdrop-blur-sm"
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-700/50 shrink-0">
+                                    <div className="p-2 rounded-3xl bg-slate-100 dark:bg-slate-700/50 shrink-0">
                                         <Lightbulb className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -516,31 +515,31 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 initial={{ opacity: 0, y: 15 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                                className={`p-4 rounded-2xl backdrop-blur-sm cursor-pointer group/deadline transition-all duration-300 bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600`}
+                                className={`rounded-3xl cursor-pointer group/deadline transition-all duration-300 bg-slate-50/40 dark:bg-slate-800/40 border border-border/40 hover:border-brand-500/50 dark:hover:border-brand-400/50 hover:bg-white/60 dark:hover:bg-slate-800/60 shadow-sm backdrop-blur-xl`}
                                 onClick={() => nextDeadline?.link && navigate(nextDeadline.link)}
                             >
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-xl shrink-0 bg-slate-100 dark:bg-slate-700/50">
+                                <div className="flex items-start gap-4 p-4">
+                                    <div className="p-2.5 rounded-2xl shrink-0 bg-white/60 dark:bg-slate-700/50 border border-border/20 shadow-sm group-hover/deadline:scale-110 transition-transform">
                                         {nextDeadline ? (
-                                            <Target className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                                            <Target className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                                         ) : (
-                                            <Check className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                                            <Check className="h-5 w-5 text-success" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                                 Prochaine échéance
                                             </span>
                                         </div>
                                         {nextDeadline ? (
-                                            <div className="flex items-center justify-between gap-2">
-                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                                                     {nextDeadline.title}
                                                 </p>
-                                                <div className="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded-full bg-slate-200/80 dark:bg-slate-700/80">
-                                                    <Calendar className="h-3 w-3 text-slate-500 dark:text-slate-300" />
-                                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-100/50 dark:border-brand-800/50">
+                                                    <Calendar className="h-3 w-3 text-brand-600 dark:text-brand-400" />
+                                                    <span className="text-[11px] font-black text-brand-700 dark:text-brand-300">
                                                         {nextDeadline.date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                                     </span>
                                                 </div>
@@ -552,7 +551,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         )}
                                     </div>
                                     {nextDeadline && (
-                                        <ArrowRight className="h-4 w-4 text-slate-400 opacity-0 group-hover/deadline:opacity-70 transition-opacity shrink-0" />
+                                        <ArrowRight className="h-4 w-4 text-slate-400 opacity-0 group-hover/deadline:opacity-70 transition-opacity shrink-0 translate-x-1 group-hover/deadline:translate-x-0 transition-transform" />
                                     )}
                                 </div>
                             </motion.div>
@@ -565,27 +564,25 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                className="relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-slate-50/60 dark:from-slate-800/60 dark:via-slate-900/40 dark:to-slate-950/60 border border-white/30 dark:border-slate-700/30 backdrop-blur-xl shadow-sm min-w-[200px] group/incidents hover:border-brand-300 hover:shadow-md transition-all duration-500 overflow-hidden"
+                                className="relative flex flex-col p-5 rounded-3xl bg-white/40 dark:bg-slate-900/40 border border-border/40 backdrop-blur-xl shadow-sm min-w-[200px] group/incidents hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10 transition-all duration-500 overflow-hidden"
                             >
-                                <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-brand-500/15 to-info-500/10 rounded-full blur-2xl opacity-0 group-hover/incidents:opacity-70 transition-opacity duration-500" />
+                                <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-brand-500/20 to-info-500/10 rounded-full blur-2xl opacity-0 group-hover/incidents:opacity-100 transition-opacity duration-700" />
 
                                 <div className="relative flex items-center justify-between mb-2">
-                                    <span className="text-[11px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-[0.2em]">
+                                    <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
                                         {t('dashboard.incidents')} Actifs
                                     </span>
-                                    <div className="relative">
-                                        <div className={`w-2.5 h-2.5 rounded-full ${activeIncidentsCount > 0 ? 'bg-destructive animate-pulse' : 'bg-success'} transition-colors duration-500`} />
-                                        {activeIncidentsCount > 0 && (
-                                            <div className="absolute inset-0 rounded-full bg-destructive animate-ping opacity-30" />
-                                        )}
+                                    <div className="relative flex h-3 w-3">
+                                        <div className={`absolute inset-0 rounded-full ${activeIncidentsCount > 0 ? 'bg-destructive animate-ping opacity-60' : 'bg-success opacity-20'}`} />
+                                        <div className={`relative rounded-full h-3 w-3 ${activeIncidentsCount > 0 ? 'bg-destructive' : 'bg-success'} shadow-[0_0_10px_rgba(var(--destructive-rgb),0.5)] transition-colors duration-500`} />
                                     </div>
                                 </div>
                                 <div className="relative flex items-end gap-3">
-                                    <span className="text-4xl font-black text-foreground leading-none tracking-tighter">
+                                    <span className="text-5xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">
                                         {activeIncidentsCount}
                                     </span>
                                     <div className="flex flex-col -mb-0.5">
-                                        <span className="text-[11px] font-bold text-muted-foreground leading-tight">
+                                        <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 leading-tight uppercase tracking-widest">
                                             En cours
                                         </span>
                                     </div>
@@ -601,27 +598,27 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     onClick={() => {
                                         if (insight.link && insight.link.startsWith('/')) navigate(insight.link);
                                     }}
-                                    className={`relative flex-1 flex text-left items-center gap-4 p-5 rounded-2xl border transition-all duration-500 cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 backdrop-blur-xl overflow-hidden
+                                    className={`relative flex-1 flex text-left items-center gap-4 p-5 rounded-3xl border transition-all duration-500 cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 backdrop-blur-xl overflow-hidden shadow-sm
                                         ${insight.type === 'danger'
-                                            ? 'bg-error-bg border-error-500/20 hover:bg-error-500/10 hover:border-error-500/40'
+                                            ? 'bg-red-50/40 dark:bg-red-900/10 border-red-500/30 hover:bg-red-50/60 dark:hover:bg-red-900/20 hover:border-red-500/50'
                                             : insight.type === 'warning'
-                                                ? 'bg-warning-bg border-warning-500/20 hover:bg-warning-bg hover:border-warning-500/40'
-                                                : 'bg-success-bg border-success-500/20 hover:bg-success-bg hover:border-success-500/40'
+                                                ? 'bg-amber-50/40 dark:bg-amber-900/10 border-amber-500/30 hover:bg-amber-50/60 dark:hover:bg-amber-900/20 hover:border-amber-500/50'
+                                                : 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-500/30 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20 hover:border-emerald-500/50'
                                         }`}
                                 >
-                                    <div className={`p-2 rounded-xl shrink-0 transition-transform duration-500 group-hover/insight:scale-110
-                                        ${insight.type === 'danger' ? 'bg-destructive/10' : 'bg-success/10'}`}>
+                                    <div className={`p-3 rounded-2xl shrink-0 transition-all duration-500 group-hover/insight:scale-110 shadow-sm
+                                        ${insight.type === 'danger' ? 'bg-red-100 dark:bg-red-900/20' : 'bg-emerald-100 dark:bg-emerald-900/20'}`}>
                                         {insight.type === 'danger' ? (
-                                            <AlertTriangle className="h-6 w-6 text-destructive animate-pulse-subtle" />
+                                            <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400 animate-pulse-subtle" />
                                         ) : (
-                                            <ShieldCheck className="h-6 w-6 text-success" />
+                                            <ShieldCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-bold text-foreground truncate pr-2 tracking-tight mb-0.5">{insight.text}</p>
-                                        <p className="text-xs text-muted-foreground truncate">{insight.details}</p>
+                                        <p className="text-sm font-black text-slate-900 dark:text-white truncate pr-2 tracking-tight mb-0.5">{insight.text}</p>
+                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{insight.details}</p>
                                     </div>
-                                    <div className="p-2 rounded-lg bg-background/50 opacity-0 group-hover/insight:opacity-70 transition-all duration-300">
+                                    <div className="p-2 rounded-xl bg-white/60 dark:bg-slate-800/60 opacity-0 group-hover/insight:opacity-100 transition-all duration-300 translate-x-1 group-hover/insight:translate-x-0">
                                         <ArrowRight className="h-4 w-4 text-brand-500" />
                                     </div>
                                 </motion.button>
@@ -630,17 +627,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                                    className="flex-1 flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-slate-50/60 dark:from-slate-800/60 dark:via-slate-900/40 dark:to-slate-950/60 border border-white/30 dark:border-slate-700/30 backdrop-blur-xl shadow-sm"
+                                    className="flex-1 flex items-center gap-5 p-5 rounded-3xl bg-white/40 dark:bg-slate-900/40 border border-border/40 backdrop-blur-xl shadow-sm group/healthy hover:border-brand-500/30 transition-all duration-500"
                                 >
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50/50 dark:bg-brand-900/20 ring-1 ring-inset ring-brand-200/50 dark:ring-brand-500/20 shadow-sm relative overflow-hidden group">
-                                        <div className="absolute inset-0 bg-brand-50 dark:bg-brand-900/10 animate-pulse group-hover:bg-brand-50 transition-colors" />
-                                        <Activity className="w-7 h-7 text-brand-600 dark:text-brand-400 relative z-10 filter drop-shadow-sm group-hover:scale-110 transition-transform duration-500" />
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 ring-1 ring-emerald-200/50 dark:ring-emerald-500/20 shadow-sm relative overflow-hidden shrink-0 group-hover/healthy:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-emerald-400/10 animate-pulse" />
+                                        <Activity className="w-7 h-7 text-emerald-600 dark:text-emerald-400 relative z-10 filter drop-shadow-sm" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-foreground tracking-tight leading-none mb-1">{t('dashboard.allSystemsOperational')}</p>
-                                        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                                            Surveillance active
+                                        <p className="font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1.5 uppercase text-xs tracking-widest">{t('dashboard.allSystemsOperational')}</p>
+                                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2 uppercase tracking-wider">
+                                            <span className="flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            </span>
+                                            Protection active
                                         </p>
                                     </div>
                                 </motion.div>

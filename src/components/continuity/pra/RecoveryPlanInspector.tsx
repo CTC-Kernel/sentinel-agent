@@ -117,7 +117,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
             }
         >
             <div className="space-y-6">
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-white/10 mb-6">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-border/40 dark:border-border/40 mb-6">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
                             <FileText className="w-5 h-5" />
@@ -182,8 +182,8 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
-                    <div className="col-span-full pb-2 border-b border-slate-200 dark:border-white/10 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-3xl border border-border/40 dark:border-border/40">
+                    <div className="col-span-full pb-2 border-b border-border/40 dark:border-border/40 mb-2">
                         <h4 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                             <Clock className="w-4 h-4 text-brand-500" />
                             Objectifs de Performance (SLA)
@@ -245,7 +245,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                         error={errors.description?.message}
                     />
 
-                    <div className="border-t border-slate-200 dark:border-white/10 pt-6 mt-6">
+                    <div className="border-t border-border/40 dark:border-border/40 pt-6 mt-6">
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">Procédures de Reprise (Playbook)</h4>
@@ -270,19 +270,19 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
 
                         <div className="space-y-3">
                             {fields.map((field, index) => (
-                                <div key={field.id} className="group relative bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-300">
+                                <div key={field.id} className="group relative bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-300">
                                     <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-70 transition-opacity">
                                         <button
                                             type="button"
                                             onClick={() => remove(index)}
-                                            className="text-muted-foreground hover:text-red-500 transition-colors bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full p-1 shadow-sm border border-slate-100 dark:border-white/5"
+                                            className="text-muted-foreground hover:text-red-500 transition-colors bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/40 dark:border-white/5"
                                         >
                                             <Trash2 className="w-3 h-3" />
                                         </button>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <div className="flex-none flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/10 mt-1">
+                                        <div className="flex-none flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 border border-border/40 dark:border-border/40 mt-1">
                                             {index + 1}
                                         </div>
 
@@ -317,7 +317,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                                     <input
                                                         type="checkbox"
                                                         {...register(`steps.${index}.isCritical` as const)}
-                                                        className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500 w-3 h-3"
+                                                        className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 w-3 h-3"
                                                     />
                                                     <span className="text-xs text-slate-500">Étape Critique (Bloquante)</span>
                                                 </label>
@@ -328,7 +328,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                             ))}
 
                             {fields.length === 0 && (
-                                <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50/50 dark:bg-white/5 flex flex-col items-center">
+                                <div className="text-center py-8 border-2 border-dashed border-border/40 dark:border-border/40 rounded-3xl bg-slate-50/50 dark:bg-white/5 flex flex-col items-center">
                                     <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full mb-3 text-muted-foreground">
                                         <AlertTriangle className="w-6 h-6" />
                                     </div>

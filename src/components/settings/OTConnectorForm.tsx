@@ -342,10 +342,10 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                 onClick={() => !isDisabled && updateField('type', type)}
                 disabled={isDisabled}
                 className={cn(
-                  'p-4 rounded-xl border-2 text-left transition-all',
+                  'p-4 rounded-3xl border-2 text-left transition-all',
                   isSelected && 'border-blue-500 bg-blue-50',
-                  !isSelected && !isDisabled && 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600',
-                  isDisabled && 'opacity-70 cursor-not-allowed border-slate-200 dark:border-slate-700'
+                  !isSelected && !isDisabled && 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600',
+                  isDisabled && 'opacity-70 cursor-not-allowed border-border/40 dark:border-slate-700'
                 )}
               >
                 <div className="flex items-center gap-3 mb-2">
@@ -431,7 +431,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             id="archiveProcessed"
             checked={config.archiveProcessed ?? true}
             onChange={e => updateConfig('archiveProcessed', e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
+            className="h-4 w-4 rounded border-border/40 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
           />
           <label htmlFor="archiveProcessed" className="text-sm">
             {t('otConnector.csv.archiveProcessed', 'Archive processed files')}
@@ -490,7 +490,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                 'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors',
                 formData.schedule.type === type
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600'
               )}
             >
               <input
@@ -564,7 +564,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           id="enabled"
           checked={formData.enabled}
           onChange={e => updateField('enabled', e.target.checked)}
-          className="h-4 w-4 rounded border-slate-300 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
+          className="h-4 w-4 rounded border-border/40 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
         />
         <label htmlFor="enabled" className="text-sm">
           {t('otConnector.enabled', 'Enable connector immediately after creation')}

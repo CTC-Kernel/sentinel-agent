@@ -198,7 +198,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     'transition-colors duration-200',
                                     error
                                         ? 'border-error-500 focus-visible:ring-error-500/50'
-                                        : 'border-slate-300 dark:border-slate-600',
+                                        : 'border-border/40 dark:border-slate-600',
                                     multiline && 'min-h-[80px] resize-y',
                                     inputClassName
                                 )}

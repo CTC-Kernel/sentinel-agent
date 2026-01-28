@@ -17,7 +17,7 @@ export const DocumentSignature: React.FC<DocumentSignatureProps> = ({ isOpen, on
                 <p className="text-sm text-slate-600 dark:text-muted-foreground">
                     Veuillez signer dans le cadre ci-dessous pour valider ce document. Cette signature sera apposée sur le certificat d'intégrité.
                 </p>
-                <div className="border-2 border-slate-200 dark:border-white/10 rounded-xl overflow-hidden bg-white">
+                <div className="border-2 border-border/40 dark:border-border/40 rounded-3xl overflow-hidden bg-white">
                     <SignatureCanvas
                         ref={signaturePadRef}
                         canvasProps={{

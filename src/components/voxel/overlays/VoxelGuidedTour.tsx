@@ -329,7 +329,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
   return (
     <div className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 ${className}`}>
       <div
-        className="w-96 rounded-xl overflow-hidden"
+        className="w-96 rounded-3xl overflow-hidden"
         style={{
           background: 'rgba(15, 23, 42, 0.95)',
           backdropFilter: 'blur(20px)',

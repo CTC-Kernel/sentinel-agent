@@ -102,7 +102,7 @@ export function RowActionsMenu({
           <>
             <Menu.Button
               className={cn(
-                'p-2 rounded-xl transition-all duration-150',
+                'p-2 rounded-3xl transition-all duration-150',
                 'hover:bg-slate-100 dark:hover:bg-slate-800',
                 'focus:outline-none focus:ring-2 focus-visible:ring-brand-300 focus:ring-offset-0',
                 open && 'bg-slate-100 dark:bg-slate-800'
@@ -125,7 +125,7 @@ export function RowActionsMenu({
               <Menu.Items
                 className={cn(
                   'absolute right-0 mt-2 w-48 origin-top-right',
-                  'rounded-xl overflow-hidden',
+                  'rounded-3xl overflow-hidden',
                   'bg-white dark:bg-slate-900',
                   'shadow-lg ring-1 ring-black/5 dark:ring-white/10',
                   'focus:outline-none z-50',

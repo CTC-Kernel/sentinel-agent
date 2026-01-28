@@ -79,7 +79,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                             placeholder="Rechercher un plan..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500 transition-all placeholder:text-muted-foreground dark:text-white"
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500 transition-all placeholder:text-muted-foreground dark:text-white"
                         />
                     </div>
                     <Button onClick={() => { setEditingPlan(undefined); setIsInspectorOpen(true); }} className="gap-2 shrink-0">
@@ -107,16 +107,16 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                     {filteredPlans.map(plan => (
                         <div key={plan.id} className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 relative group hover:border-brand-300 transition-all flex flex-col h-full">
                             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity z-10">
-                                <button onClick={() => handleEdit(plan)} className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
+                                <button onClick={() => handleEdit(plan)} className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-border/40 dark:border-border/40">
                                     <Edit2 className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
+                                <button onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-border/40 dark:border-border/40">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
 
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 shrink-0">
+                                <div className="p-3 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 shrink-0">
                                     <FileText className="w-6 h-6" />
                                 </div>
                                 <div className="min-w-0">
@@ -144,7 +144,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5 mt-4">
+                            <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-white/5 mt-4">
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
                                     <span className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
                                         <UserIcon className="w-3 h-3" />

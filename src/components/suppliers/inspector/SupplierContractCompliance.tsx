@@ -130,14 +130,15 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
                     const Icon = req.icon;
 
                     return (
-                        <div
+                        <button
                             key={req.key}
+                            type="button"
                             onClick={() => handleToggle(req.key as keyof typeof clauses)}
                             className={`
-                                group relative p-4 rounded-xl border transition-all cursor-pointer select-none
+                                w-full text-left group relative p-4 rounded-3xl border transition-all cursor-pointer select-none
                                 ${isChecked
                                     ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800'
-                                    : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700'
+                                    : 'bg-white dark:bg-slate-800/50 border-border/40 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700'
                                 }
                             `}
                         >
@@ -146,7 +147,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
                                     flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
                                     ${isChecked
                                         ? 'bg-emerald-500 border-emerald-500 text-white'
-                                        : 'border-slate-300 dark:border-slate-600 group-hover:border-indigo-400'
+                                        : 'border-border/40 dark:border-slate-600 group-hover:border-indigo-400'
                                     }
                                 `}>
                                     {isChecked && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
@@ -163,7 +164,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
 
                                 <Icon className={`w-5 h-5 opacity-20 group-hover:opacity-40 transition-opacity ${isChecked ? 'text-emerald-600' : 'text-slate-400'}`} />
                             </div>
-                        </div>
+                        </button>
                     );
                 })}
             </div>

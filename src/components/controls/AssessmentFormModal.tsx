@@ -102,7 +102,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                 <PremiumCard glass className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                                 <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                             </div>
                             <div>
@@ -115,7 +115,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                         <button
                             onClick={onClose}
                             aria-label="Fermer le formulaire d'évaluation"
-                            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
                             <X className="w-5 h-5 text-slate-500" aria-hidden="true" />
                         </button>
@@ -131,7 +131,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 id="control-code"
                                 value={formData.controlCode}
                                 onChange={(e) => setFormData(prev => ({ ...prev, controlCode: e.target.value }))}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 required
                             >
                                 <option value="">Sélectionner un contrôle...</option>
@@ -182,7 +182,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 id="assessment-method"
                                 value={formData.assessmentMethod}
                                 onChange={(e) => setFormData(prev => ({ ...prev, assessmentMethod: e.target.value }))}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                             >
                                 {ASSESSMENT_METHODS.map(m => (
                                     <option key={m.value} value={m.value}>{m.label}</option>
@@ -200,7 +200,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 value={formData.notes}
                                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+                                className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
                                 placeholder="Observations et constats de l'évaluation..."
                             />
                         </div>
@@ -217,13 +217,13 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                     type="date"
                                     value={formData.nextAssessmentDate}
                                     onChange={(e) => setFormData(prev => ({ ...prev, nextAssessmentDate: e.target.value }))}
-                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 />
                             </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-border/40 dark:border-slate-700/50">
                             <Button type="button" variant="outline" onClick={onClose}>
                                 Annuler
                             </Button>

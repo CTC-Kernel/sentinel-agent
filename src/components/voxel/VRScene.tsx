@@ -153,7 +153,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
       position={[node.position.x, node.position.y + 2, node.position.z]}
       style={{ pointerEvents: 'auto' }}
     >
-      <div className="bg-slate-900/95 backdrop-blur-md border border-white/20 rounded-xl p-4 min-w-[250px] max-w-[350px] shadow-2xl">
+      <div className="bg-slate-900/95 backdrop-blur-md border border-white/20 rounded-3xl p-4 min-w-[250px] max-w-[350px] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
 
 const LoadingFallback: React.FC = () => (
   <Html center>
-    <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-lg px-4 py-3">
+    <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-md border border-border/40 rounded-lg px-4 py-3">
       <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       <span className="text-white text-sm">Loading VR Scene...</span>
     </div>
@@ -298,7 +298,7 @@ export const VRScene: React.FC<VRSceneProps> = ({
     <div className="relative w-full h-full">
       {/* VR Entry Button */}
       <VRButton
-        className="absolute bottom-4 right-4 z-10 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg transition-colors"
+        className="absolute bottom-4 right-4 z-10 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-3xl shadow-lg transition-colors"
         enterOnly={false}
         exitOnly={false}
       />

@@ -31,7 +31,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">
-            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="font-bold text-slate-900 dark:text-white">Preuves documentaires</h3>
                     {canEdit && (
@@ -50,7 +50,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                         const doc = safeDocuments.find(d => d.id === docId);
                         if (!doc) return null;
                         return (
-                            <div key={docId} className="flex items-center p-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:shadow-md transition-all">
+                            <div key={docId} className="flex items-center p-3 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl hover:shadow-md transition-all">
                                 <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg mr-3">
                                     <FileText className="h-5 w-5" />
                                 </div>
@@ -77,7 +77,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                 </div>
 
                 {canEdit && (
-                    <div className="mt-6 pt-6 border-t border-slate-100 dark:border-white/5">
+                    <div className="mt-6 pt-6 border-t border-border/40 dark:border-white/5">
                         <CustomSelect
                             label="Ajouter une preuve existante"
                             value=""

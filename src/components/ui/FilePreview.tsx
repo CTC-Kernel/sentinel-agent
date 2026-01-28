@@ -32,7 +32,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
         <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div className="relative w-full max-w-5xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between p-4 border-b border-border/40 dark:border-slate-700">
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
                         {getFileIcon()}
                         <div className="flex-1 min-w-0">
@@ -84,7 +84,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             />
                             {loading && (
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-300 border-t-brand-600" />
+                                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-border/40 border-t-brand-600" />
                                 </div>
                             )}
                         </div>

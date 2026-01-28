@@ -121,7 +121,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                             <input {...register('isSignificant')}
                                 id="is-significant"
                                 type="checkbox"
-                                className="h-5 w-5 rounded text-red-600 dark:text-red-400 focus:ring-red-500 border-slate-300"
+                                className="h-5 w-5 rounded text-red-600 dark:text-red-400 focus:ring-red-500 border-border/40"
                             />
                             <label htmlFor="is-significant" className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
                                 <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
@@ -131,7 +131,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
 
                         {isSignificant && (
                             <div className="animate-fade-in pl-8 space-y-4 mt-4">
-                                <div className="bg-white/40 dark:bg-white/5 p-4 rounded-xl">
+                                <div className="bg-white/40 dark:bg-white/5 p-4 rounded-3xl">
                                     <NIS2DeadlineTimer
                                         incident={{
                                             ...initialData,
@@ -313,14 +313,14 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     onClick={onCancel}
                     variant="ghost"
                     disabled={isLoading}
-                    className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors"
                 >
                     Annuler
                 </Button>
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all"
+                    className="px-8 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-3xl font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all"
                 >
                     Enregistrer
                 </Button>

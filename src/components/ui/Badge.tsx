@@ -29,7 +29,7 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
     // Also ensured minimum touch target height of 24px
     const sizeStyles = {
         sm: "px-2.5 py-1 text-[11px] min-h-[24px] rounded-lg gap-1.5 uppercase tracking-wider",
-        md: "px-3 py-1.5 text-[13px] min-h-[28px] rounded-xl gap-2 uppercase tracking-wide"
+        md: "px-3 py-1.5 text-[13px] min-h-[28px] rounded-3xl gap-2 uppercase tracking-wide"
     };
 
     // Status & Variant styles
@@ -67,9 +67,9 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
 
             case 'neutral':
             default:
-                if (variant === 'outline') return "border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300";
+                if (variant === 'outline') return "border border-border/40 dark:border-slate-600 text-slate-700 dark:text-slate-300";
                 if (variant === 'glass') return "bg-slate-500/30 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-slate-500/30 shadow-sm";
-                if (variant === 'soft') return "bg-slate-500/10 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10";
+                if (variant === 'soft') return "bg-slate-500/10 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-border/40 dark:border-border/40";
                 return "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm";
         }
     };

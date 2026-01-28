@@ -285,7 +285,7 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-3 p-4 bg-brand-50 dark:bg-brand-800 rounded-xl border border-brand-200 dark:border-brand-800"
+        className="flex items-center gap-3 p-4 bg-brand-50 dark:bg-brand-800 rounded-3xl border border-brand-200 dark:border-brand-800"
       >
         <motion.div
           animate={{
@@ -349,7 +349,7 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: (maxDepth * 0.2 + affectedNodes.length * 0.05) / speed + 0.5 }}
-          className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 dark:border-amber-800"
+          className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-200 dark:border-amber-800 dark:border-amber-800"
         >
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
@@ -448,7 +448,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.8, type: 'spring', stiffness: 200 }}
         className={cn(
-          'flex items-center justify-center gap-3 p-4 rounded-xl',
+          'flex items-center justify-center gap-3 p-4 rounded-3xl',
           isImprovement
             ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800'
             : 'bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800'
@@ -514,7 +514,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.5, type: 'spring' }}
-          className="flex items-center gap-3 p-4 bg-gradient-to-r from-success-500 to-success-600 rounded-xl text-white"
+          className="flex items-center gap-3 p-4 bg-gradient-to-r from-success-500 to-success-600 rounded-3xl text-white"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -559,7 +559,7 @@ export const AnimatedStatsCard: React.FC<{
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.4, ease: appleEasing }}
       className={cn(
-        'flex items-center gap-3 p-3 rounded-xl',
+        'flex items-center gap-3 p-3 rounded-3xl',
         colorClasses[color]
       )}
     >

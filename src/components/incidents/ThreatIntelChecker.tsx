@@ -35,7 +35,7 @@ export const ThreatIntelChecker: React.FC = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-border/40 dark:border-border/40 shadow-sm">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
                 <ShieldAlert className="h-4 w-4" />
                 Threat Intel
@@ -58,7 +58,7 @@ export const ThreatIntelChecker: React.FC = () => {
                 </Button>
 
                 {urlReputationResult && (
-                    <div className={`p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${urlReputationResult.safe ? 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/20 dark:text-red-400'}`}>
+                    <div className={`p-3 rounded-3xl text-sm font-medium flex items-center gap-2 ${urlReputationResult.safe ? 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-900/20 dark:text-red-400'}`}>
                         {urlReputationResult.safe ? (
                             <>
                                 <ShieldAlert className="h-4 w-4" />

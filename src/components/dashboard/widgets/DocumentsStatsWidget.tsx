@@ -54,7 +54,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                 hover={true}
                 gradientOverlay={true}
             >
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                         <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
                             <FileText className="w-4 h-4" />
@@ -84,7 +84,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
             hover={true}
             gradientOverlay={true}
         >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
                         <FileText className="w-4 h-4" />
@@ -169,14 +169,14 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
             </div>
 
             <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
-                <div className="bg-white/50 dark:bg-white/5 rounded-xl p-2.5 flex items-center gap-3 border border-white/60 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
+                <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
                     <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                     <div className="flex flex-col min-w-0">
                         <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider truncate">Publiés</span>
                         <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.publishedDocs}</span>
                     </div>
                 </div>
-                <div className="bg-white/50 dark:bg-white/5 rounded-xl p-2.5 flex items-center gap-3 border border-white/60 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
+                <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
                     <Edit className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     <div className="flex flex-col min-w-0">
                         <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider truncate">Brouillons</span>

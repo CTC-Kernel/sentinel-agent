@@ -15,7 +15,7 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
     criticalIncidents
 }) => {
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-3xl border border-white/60 dark:border-white/5 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+        <div className="glass-premium p-6 md:p-8 rounded-3xl border border-border/40 dark:border-white/5 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
             {/* Tech Corners Generic */}
             <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -71,7 +71,7 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
             </div>
 
             {/* Key Metrics Breakdown */}
-            <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2 relative z-decorator">
+            <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 dark:border-border/40 px-6 mx-2 relative z-decorator">
                 <div>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-muted-foreground mb-1">Total</div>
                     <div className="text-2xl font-black text-slate-900 dark:text-white">{totalIncidents}</div>
@@ -93,19 +93,19 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
             {/* Alerts/Status */}
             <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-decorator">
                 {criticalIncidents > 0 && (
-                    <div className="flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-800/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-4 py-2.5 rounded-3xl border border-red-200 dark:border-red-800/50 backdrop-blur-sm">
                         <ShieldAlert className="h-4 w-4 shrink-0" />
                         <span>{criticalIncidents} critiques ouverts</span>
                     </div>
                 )}
                 {openIncidents > 0 && criticalIncidents === 0 && (
-                    <div className="flex items-center gap-3 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-4 py-2.5 rounded-xl border border-orange-200 dark:border-orange-800/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-4 py-2.5 rounded-3xl border border-orange-200 dark:border-orange-800/50 backdrop-blur-sm">
                         <Siren className="h-4 w-4 shrink-0" />
                         <span>{openIncidents} incidents actifs</span>
                     </div>
                 )}
                 {openIncidents === 0 && (
-                    <div className="flex items-center gap-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2.5 rounded-3xl border border-emerald-200 dark:border-emerald-800/50 backdrop-blur-sm">
                         <CheckCircle2 className="h-4 w-4 shrink-0" />
                         <span>Aucun incident actif</span>
                     </div>

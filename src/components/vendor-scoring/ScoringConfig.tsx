@@ -127,7 +127,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-3xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
             <Sliders className="w-5 h-5 text-brand-600 dark:text-brand-400" />
           </div>
           <div>
@@ -170,7 +170,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
         {sectionWeights.map((section) => (
           <div
             key={section.sectionId}
-            className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
+            className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl"
           >
             <div className="flex-1">
               <p className="font-medium text-slate-900 dark:text-white">
@@ -197,7 +197,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
                   max="100"
                   value={section.weight}
                   onChange={(e) => handleWeightChange(section.sectionId, parseInt(e.target.value) || 0)}
-                  className="w-12 px-2 py-1 text-center text-sm border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800"
+                  className="w-12 px-2 py-1 text-center text-sm border border-border/40 dark:border-slate-700 rounded bg-white dark:bg-slate-800"
                 />
                 <span className="text-sm text-slate-500 dark:text-slate-300 ml-1">%</span>
               </div>
@@ -206,7 +206,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
         ))}
 
         {/* Total */}
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40 dark:border-border/40">
           <span className="text-sm text-slate-500 dark:text-muted-foreground">
             {t('vendorScoring.total', 'Total')}:
           </span>
@@ -220,7 +220,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
       </div>
 
       {/* Risk thresholds info */}
-      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl">
         <h4 className="font-medium text-slate-900 dark:text-white mb-3">
           {t('vendorScoring.riskThresholds', 'Risk Thresholds')}
         </h4>
@@ -240,7 +240,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/40 dark:border-border/40">
         <Button variant="ghost" onClick={onCancel}>
           {t('common.cancel', 'Cancel')}
         </Button>

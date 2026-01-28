@@ -252,7 +252,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
     >
       {/* Panel Container */}
       <div
-        className="rounded-xl overflow-hidden"
+        className="rounded-3xl overflow-hidden"
         style={{
           background: 'rgba(15, 23, 42, 0.95)',
           backdropFilter: 'blur(20px)',

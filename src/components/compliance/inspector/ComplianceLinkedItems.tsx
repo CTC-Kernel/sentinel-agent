@@ -50,13 +50,13 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
             {/* Use 2 columns grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Assets */}
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                     <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Actifs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedAssetIds) ? control.relatedAssetIds : []).map(assetId => {
                             const asset = safeAssets.find(a => a.id === assetId);
                             return asset ? (
-                                <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
+                                <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-border/40 shadow-sm">
                                     <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
                                     {canEdit && <Button variant="ghost" size="icon" aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                 </div>
@@ -77,13 +77,13 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                 </div>
 
                 {/* Suppliers */}
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                     <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Fournisseurs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedSupplierIds) ? control.relatedSupplierIds : []).map(supplierId => {
                             const supplier = safeSuppliers.find(s => s.id === supplierId);
                             return supplier ? (
-                                <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
+                                <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-border/40 shadow-sm">
                                     <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
                                     {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="h-6 w-6 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                 </div>
@@ -105,13 +105,13 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
             </div>
 
             {/* Projects (Full Width) */}
-            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                 <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Projets Liés</h3>
                 <div className="space-y-2 mb-4">
                     {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).map(pid => {
                         const project = safeProjects.find(p => p.id === pid);
                         return project ? (
-                            <div key={pid} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
+                            <div key={pid} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-border/40 shadow-sm">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
                                         <FolderKanban className="h-4 w-4" />
@@ -141,7 +141,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 
             {/* Risks & Findings Display (Read Only) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 bg-red-50/30 dark:bg-red-50 dark:bg-red-900">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 bg-red-50/30 dark:bg-red-50 dark:bg-red-900">
                     <div className="flex items-center gap-3 mb-4">
                         <ShieldAlert className="h-5 w-5 text-red-500" />
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Risques ({riskCount})</h3>
@@ -156,7 +156,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         {riskCount === 0 && <p className="text-xs text-slate-500">Aucun risque atténué par ce contrôle.</p>}
                     </div>
                 </div>
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 bg-yellow-50/30 dark:bg-yellow-900/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 bg-yellow-50/30 dark:bg-yellow-900/10">
                     <div className="flex items-center gap-3 mb-4">
                         <AlertOctagon className="h-5 w-5 text-yellow-500" />
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Non-conformités ({findingsCount})</h3>

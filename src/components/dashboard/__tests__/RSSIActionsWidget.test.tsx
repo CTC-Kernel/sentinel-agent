@@ -13,7 +13,7 @@ vi.mock('../../../hooks/useAssignedActions', () => ({
   DUE_STATUS_COLOR_CLASSES: {
     danger: { bg: 'bg-red-100', text: 'text-red-600', border: 'border-red-200', badge: 'bg-red-500' },
     warning: { bg: 'bg-orange-100', text: 'text-orange-600', border: 'border-orange-200', badge: 'bg-orange-500' },
-    neutral: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', badge: 'bg-slate-500' },
+    neutral: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-border/40', badge: 'bg-slate-500' },
   },
 }));
 

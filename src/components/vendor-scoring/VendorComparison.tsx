@@ -52,7 +52,7 @@ const RiskMatrixCell: React.FC<{
 
   if (vendors.length === 0) {
     return (
-      <div className="h-24 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center">
+      <div className="h-24 rounded-lg border-2 border-dashed border-border/40 dark:border-slate-700 flex items-center justify-center">
         <span className="text-xs text-muted-foreground">-</span>
       </div>
     );
@@ -177,11 +177,11 @@ const VendorListItem: React.FC<{
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left"
+      className="w-full flex items-center gap-4 p-4 rounded-3xl border border-border/40 dark:border-border/40 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left"
     >
       {/* Score */}
       <div
-        className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center ${getScoreBgColor(displayScore)}`}
+        className={`w-14 h-14 rounded-3xl flex flex-col items-center justify-center ${getScoreBgColor(displayScore)}`}
       >
         <span className={`font-bold text-lg ${getScoreColor(displayScore)}`}>
           {formatScore(displayScore)}
@@ -249,7 +249,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-border/40 dark:border-border/40">
         <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.averageScore', 'Average Score')}
         </div>
@@ -258,7 +258,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-border/40 dark:border-border/40">
         <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.vendorsAssessed', 'Vendors Assessed')}
         </div>
@@ -267,7 +267,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-border/40 dark:border-border/40">
         <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.highRisk', 'High/Critical Risk')}
         </div>
@@ -276,7 +276,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-border/40 dark:border-border/40">
         <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.lowRisk', 'Low Risk')}
         </div>
@@ -383,7 +383,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
             <select
               value={filterRisk}
               onChange={(e) => setFilterRisk(e.target.value as RiskLevel | 'all')}
-              className="appearance-none pl-8 pr-8 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
+              className="appearance-none pl-8 pr-8 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
             >
               <option value="all">{t('vendorScoring.allRisks', 'All Risks')}</option>
               <option value="Critical">{t('vendorScoring.risk.critical', 'Critical')}</option>

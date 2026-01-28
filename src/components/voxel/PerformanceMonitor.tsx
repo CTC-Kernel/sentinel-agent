@@ -174,7 +174,7 @@ const MetricRow: React.FC<{
 // ============================================================================
 
 const SectionHeader: React.FC<{ title: string; icon: string }> = ({ title, icon }) => (
-  <div className="flex items-center gap-1.5 mb-1.5 pb-1 border-b border-white/10">
+  <div className="flex items-center gap-1.5 mb-1.5 pb-1 border-b border-border/40">
     <span className="text-xs">{icon}</span>
     <span className="text-xs font-medium text-slate-200">{title}</span>
   </div>
@@ -257,7 +257,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
     >
       <div
         className={`
-          bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-lg shadow-xl
+          bg-slate-900/95 backdrop-blur-md border border-border/40 rounded-lg shadow-xl
           font-sans text-white select-none transition-all duration-200
           ${collapsed ? 'w-auto' : 'w-64'}
         `}
@@ -373,7 +373,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             )}
 
             {/* Actions */}
-            <div className="flex gap-2 pt-2 border-t border-white/10">
+            <div className="flex gap-2 pt-2 border-t border-border/40">
               <button
                 onClick={() => memory.requestGC()}
                 className="flex-1 px-2 py-1 text-xs bg-white/5 hover:bg-white/10 rounded transition-colors"
@@ -444,7 +444,7 @@ export const PerformanceBadge: React.FC<PerformanceBadgeProps> = ({ nodeCount = 
     <Html>
       <button
         onClick={onClick}
-        className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-full text-white text-sm hover:bg-slate-800/90 transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-sm border border-border/40 rounded-full text-white text-sm hover:bg-slate-800/90 transition-colors"
       >
         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
         <span className="font-mono">{fpsData.current.toFixed(0)} fps</span>

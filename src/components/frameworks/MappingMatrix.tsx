@@ -278,7 +278,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('mapping.searchPlaceholder')}
-            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
+            className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
           />
         </div>
 
@@ -286,7 +286,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
         <select
           value={filterCoverage}
           onChange={(e) => setFilterCoverage(e.target.value as FilterCoverage)}
-          className="px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
+          className="px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
         >
           <option value="all">{t('mapping.filterAll')}</option>
           <option value="full">{t('mapping.filterFull')}</option>
@@ -327,10 +327,10 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
 
       {/* Matrix View */}
       {!isLoading && filteredControls.length > 0 && viewMode === 'matrix' && (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+        <div className="overflow-x-auto rounded-3xl border border-border/40 dark:border-border/40 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
           <table className="w-full min-w-max">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-white/10">
+              <tr className="border-b border-border/40 dark:border-border/40">
                 <th className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300 min-w-[200px]">
                   {t('mapping.control')}
                 </th>
@@ -357,7 +357,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.02 }}
                   className={cn(
-                    'border-b border-slate-100 dark:border-white/5 transition-colors',
+                    'border-b border-border/40 dark:border-white/5 transition-colors',
                     selectedControlId === control.controlId && 'bg-brand-50 dark:bg-brand-900'
                   )}
                 >

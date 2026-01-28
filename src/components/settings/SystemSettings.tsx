@@ -93,7 +93,7 @@ export const SystemSettings: React.FC = () => {
             accessorKey: 'action',
             header: t('common.action'),
             cell: ({ getValue }) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-border/40 dark:border-slate-700">
                     {getValue() as string}
                 </span>
             )
@@ -165,11 +165,11 @@ export const SystemSettings: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 animate-slide-in-left">{t('settings.system')}</h2>
 
             {hasPermission(user, 'Settings', 'read') && (
-                <PremiumCard glass className="p-0 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+                <PremiumCard glass className="p-0 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-info-bg dark:bg-info-500/20 rounded-xl text-info-600 dark:text-info-400 backdrop-blur-md shadow-sm">
+                            <div className="p-2.5 bg-info-bg dark:bg-info-500/20 rounded-3xl text-info-600 dark:text-info-400 backdrop-blur-md shadow-sm">
                                 <Activity className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.activityHistory')}</h3>
@@ -187,11 +187,11 @@ export const SystemSettings: React.FC = () => {
             )}
 
             {/* Data Export */}
-            <PremiumCard glass className="p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group">
+            <PremiumCard glass className="p-8 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-brand-50 dark:bg-brand-900 rounded-2xl text-brand-600 dark:text-brand-400 shrink-0 backdrop-blur-md">
+                        <div className="p-3 bg-brand-50 dark:bg-brand-900 rounded-3xl text-brand-600 dark:text-brand-400 shrink-0 backdrop-blur-md border border-brand-100 dark:border-brand-500/20 shadow-inner">
                             <Download className="h-6 w-6" />
                         </div>
                         <div>
@@ -229,7 +229,7 @@ export const SystemSettings: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-success-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-success-bg dark:bg-success-500/20 rounded-2xl text-success-600 dark:text-success-400 shrink-0 backdrop-blur-md">
+                        <div className="p-3 bg-success-bg dark:bg-success-500/20 rounded-3xl text-success-600 dark:text-success-400 shrink-0 backdrop-blur-md border border-success-500/20 shadow-inner">
                             <Shield className="h-6 w-6" />
                         </div>
                         <div>
@@ -271,7 +271,7 @@ export const SystemSettings: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                     <div className="relative z-10">
                         <div className="flex items-start gap-4">
-                            <div className="p-3 bg-violet-500/10 dark:bg-violet-500/20 rounded-2xl text-violet-600 dark:text-violet-400 shrink-0 backdrop-blur-md">
+                            <div className="p-3 bg-violet-500/10 dark:bg-violet-500/20 rounded-3xl text-violet-600 dark:text-violet-400 shrink-0 backdrop-blur-md border border-violet-500/20 shadow-inner">
                                 <Activity className="h-6 w-6" />
                             </div>
                             <div className="w-full">
@@ -297,7 +297,7 @@ export const SystemSettings: React.FC = () => {
                                         }
                                     }}
                                     disabled={exporting}
-                                    className="w-full sm:w-auto shadow-lg shadow-violet-500/20 rounded-xl border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30"
+                                    className="w-full sm:w-auto shadow-lg shadow-violet-500/20 rounded-3xl border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30"
                                 >
                                     {exporting ? (
                                         <>
@@ -322,7 +322,7 @@ export const SystemSettings: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-2xl text-red-600 dark:text-red-400 shrink-0 backdrop-blur-md">
+                        <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-3xl text-red-600 dark:text-red-400 shrink-0 backdrop-blur-md border border-red-500/20 shadow-inner">
                             <AlertTriangle className="h-6 w-6" />
                         </div>
                         <div>
@@ -336,7 +336,7 @@ export const SystemSettings: React.FC = () => {
                                 variant="destructive"
                                 isLoading={isDeleting}
                                 onClick={() => setIsDeleteModalOpen(true)}
-                                className="w-full sm:w-auto shadow-lg shadow-red-500/20 rounded-xl"
+                                className="w-full sm:w-auto shadow-lg shadow-red-500/20 rounded-3xl"
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 {t('settings.deleteAccount')}

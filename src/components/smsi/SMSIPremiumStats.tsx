@@ -93,7 +93,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden mb-6"
+            className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden mb-6"
         >
             <TechCorners />
 
@@ -164,10 +164,10 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                     {/* Current Phase */}
                     <div className={cn(
                         "p-4 rounded-2xl border group hover:scale-[1.02] transition-transform",
-                        "bg-white/50 dark:bg-white/5 border-white/60 dark:border-white/10"
+                        "bg-white/50 dark:bg-white/5 border-border/40 dark:border-border/40"
                     )}>
                         <div className="flex items-center justify-between mb-2">
-                            <div className={cn("p-2 rounded-xl", phaseColors.bg)}>
+                            <div className={cn("p-2 rounded-3xl", phaseColors.bg)}>
                                 <PhaseIcon className={cn("w-4 h-4", phaseColors.text)} />
                             </div>
                             <Badge className={cn(
@@ -207,10 +207,10 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                     </div>
 
                     {/* Overdue Milestones */}
-                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
-                                "p-2 rounded-xl",
+                                "p-2 rounded-3xl",
                                 overdueCount > 0 ? "bg-red-50 dark:bg-red-900/30" : "bg-success-bg"
                             )}>
                                 {overdueCount > 0 ? (
@@ -249,10 +249,10 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                     </div>
 
                     {/* Certification Countdown */}
-                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform sm:col-span-2">
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 group hover:scale-[1.02] transition-transform sm:col-span-2">
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
-                                "p-2 rounded-xl",
+                                "p-2 rounded-3xl",
                                 certOverdue ? "bg-red-50 dark:bg-red-900/30" : "bg-indigo-500/10 dark:bg-indigo-900/30"
                             )}>
                                 <Calendar className={cn(
@@ -301,7 +301,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
             </div>
 
             {/* Bottom PDCA Progress */}
-            <div className="mt-4 pt-4 border-t border-white/60 dark:border-white/5 flex items-center justify-between">
+            <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Activity className="w-3.5 h-3.5" />
                     <span>Cycle PDCA • Phase {currentPhaseIndex + 1}/4</span>

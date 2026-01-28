@@ -176,8 +176,8 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                             <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-60 z-decorator mix-blend-overlay" />
 
                             {/* Left Panel: Context & Docs */}
-                            <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 bg-black/20 flex flex-col">
-                                <div className="p-6 border-b border-white/10 bg-red-950/20">
+                            <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-border/40 bg-black/20 flex flex-col">
+                                <div className="p-6 border-b border-border/40 bg-red-950/20">
                                     <div className="flex items-center gap-3 text-red-500 mb-2">
                                         <Lock className="w-5 h-5 animate-pulse" />
                                         <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase">Top Secret // Eyes Only</span>
@@ -198,7 +198,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                 <button
                                                     key={doc.id}
                                                     onClick={() => openDocument(doc)}
-                                                    className="group w-full flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all text-left"
+                                                    className="group w-full flex items-center justify-between p-3 rounded-3xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all text-left"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className="p-2 rounded-lg bg-slate-800 text-slate-400 group-hover:text-white transition-colors">
@@ -229,14 +229,14 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <div className="space-y-2">
                                             <button
                                                 onClick={() => navigate(`/incidents/${incidentId}`)}
-                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-500/20 hover:bg-red-500/20 transition-all text-left"
+                                                className="w-full flex items-center gap-3 p-3 rounded-3xl bg-red-50 dark:bg-red-900/30 border border-red-500/20 hover:bg-red-500/20 transition-all text-left"
                                             >
                                                 <AlertTriangle className="w-4 h-4 text-red-500" />
                                                 <span className="text-sm font-medium text-red-400">Voir l'incident</span>
                                             </button>
                                             <button
                                                 onClick={() => navigate('/incidents?action=escalate')}
-                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 transition-all text-left"
+                                                className="w-full flex items-center gap-3 p-3 rounded-3xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 transition-all text-left"
                                             >
                                                 <Upload className="w-4 h-4 text-orange-500" />
                                                 <span className="text-sm font-medium text-orange-400">Escalader</span>
@@ -287,7 +287,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                             {/* Right Panel: Chat */}
                             <div className="flex-1 flex flex-col bg-slate-900/50">
                                 {/* Chat Header */}
-                                <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                                <div className="p-4 border-b border-border/40 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                         <span className="text-xs font-mono text-emerald-500 uppercase">Canal Sécurisé actif</span>
@@ -320,7 +320,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                             ) : (
                                                 <div className={`max-w-[80%] p-4 rounded-2xl border ${msg.senderId === user?.uid
                                                     ? 'bg-blue-600/20 border-blue-500/30 text-blue-100 rounded-tr-none'
-                                                    : 'bg-slate-800 border-white/10 text-slate-300 rounded-tl-none'
+                                                    : 'bg-slate-800 border-border/40 text-slate-300 rounded-tl-none'
                                                     }`}>
                                                     <div className="flex items-center gap-2 mb-1 opacity-60 text-xs">
                                                         <span className="font-bold">{msg.sender}</span>
@@ -356,7 +356,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                 </div>
 
                                 {/* Input Area */}
-                                <div className="p-4 border-t border-white/10 bg-black/20">
+                                <div className="p-4 border-t border-border/40 bg-black/20">
                                     {/* Pending Attachments Preview */}
                                     {pendingAttachments.length > 0 && (
                                         <div className="mb-3 flex flex-wrap gap-2">

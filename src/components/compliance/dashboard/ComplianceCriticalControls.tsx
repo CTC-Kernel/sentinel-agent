@@ -25,12 +25,12 @@ export const ComplianceCriticalControls: React.FC<ComplianceCriticalControlsProp
             </h4>
             <div className="space-y-3 relative z-10">
                 {criticalControls.slice(0, 5).map((control, index) => (
-                    <div key={`task-${index}`} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 hover:bg-white/70 dark:hover:bg-white/10 transition-colors shadow-sm shadow-black/5">
+                    <div key={`task-${index}`} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 hover:bg-white/70 dark:hover:bg-white/10 transition-colors shadow-sm shadow-black/5">
                         <div className="flex-1">
                             <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>
                         </div>
-                        <div className={`shrink-0 px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider border shadow-sm ${control.status === 'Partiel' ? 'bg-warning-bg text-warning-text border-warning-border/50' :
+                        <div className={`shrink-0 px-3 py-1 rounded-3xl text-[11px] font-black uppercase tracking-wider border shadow-sm ${control.status === 'Partiel' ? 'bg-warning-bg text-warning-text border-warning-border/50' :
                             'bg-error-bg text-error-text border-error-border/50'
                             }`}>
                             {control.status}

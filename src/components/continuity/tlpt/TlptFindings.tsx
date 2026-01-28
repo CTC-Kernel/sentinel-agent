@@ -75,7 +75,7 @@ export const TlptFindings: React.FC<TlptFindingsProps> = ({ campaign }) => {
                 <div className="grid gap-3">
                     {findings.map(vuln => (
                         <div key={vuln.id}
-                            className="p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-brand-500 transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="p-4 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-white/5 hover:border-brand-500 transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             onClick={() => openEdit(vuln)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {

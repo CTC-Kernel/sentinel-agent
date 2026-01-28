@@ -74,17 +74,17 @@ function WidgetCard({
         }
       }}
       className={cn(
-        'p-4 rounded-xl border transition-all text-left w-full',
+        'p-4 rounded-3xl border transition-all text-left w-full',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
         isDisabled
           ? [
               'opacity-70 cursor-not-allowed',
               'bg-slate-50/50 dark:bg-slate-800/50',
-              'border-slate-200 dark:border-slate-700',
+              'border-border/40 dark:border-slate-700',
             ]
           : [
               'cursor-pointer group',
-              'border-slate-200 dark:border-slate-700',
+              'border-border/40 dark:border-slate-700',
               'hover:border-brand-500 dark:hover:border-brand-400',
               'bg-slate-50/50 dark:bg-slate-800/50',
               'hover:bg-brand-50 dark:hover:bg-brand-900/30',
@@ -96,7 +96,7 @@ function WidgetCard({
       <div className="flex items-start gap-3">
         <div
           className={cn(
-            'p-2.5 rounded-xl transition-colors',
+            'p-2.5 rounded-3xl transition-colors',
             isDisabled
               ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
               : [
@@ -264,14 +264,14 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-            className="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[85vh] flex flex-col"
+            className="relative z-10 bg-white dark:bg-slate-900 border border-border/40 dark:border-border/40 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[85vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-widget-title"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5 shrink-0">
+            <div className="flex items-center justify-between p-6 border-b border-border/40 dark:border-white/5 shrink-0">
               <div>
                 <h2
                   id="add-widget-title"
@@ -293,7 +293,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
             </div>
 
             {/* Search and filters */}
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 shrink-0 space-y-4">
+            <div className="px-6 py-4 border-b border-border/40 dark:border-white/5 shrink-0 space-y-4">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -305,7 +305,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                   className={cn(
                     'w-full pl-10 pr-4 py-2.5 rounded-lg',
                     'bg-slate-50 dark:bg-slate-800',
-                    'border border-slate-200 dark:border-slate-700',
+                    'border border-border/40 dark:border-slate-700',
                     'text-slate-900 dark:text-white placeholder-slate-400',
                     'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent'
                   )}

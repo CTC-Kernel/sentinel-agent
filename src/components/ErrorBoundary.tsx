@@ -58,7 +58,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         <div className="flex flex-col gap-4">
                             <Button
                                 onClick={() => window.location.reload()}
-                                className="w-full text-base py-6 rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all duration-300"
+                                className="w-full text-base py-6 rounded-3xl font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all duration-300"
                             >
                                 <RefreshCw className="mr-2 h-5 w-5" />
                                 Recharger la page
@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             <Button
                                 variant="ghost"
                                 onClick={() => window.location.href = '/'} // Intentional: full reload to recover from error state
-                                className="w-full text-base py-6 rounded-xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                                className="w-full text-base py-6 rounded-3xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                             >
                                 <Home className="mr-2 h-5 w-5" />
                                 Retour au tableau de bord
@@ -75,7 +75,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         </div>
 
                         {!isPermissionError && process.env.NODE_ENV === 'development' && (
-                            <div className="mt-8 p-4 bg-black/40 rounded-xl text-left overflow-auto max-h-40 border border-white/5 custom-scrollbar">
+                            <div className="mt-8 p-4 bg-black/40 rounded-3xl text-left overflow-auto max-h-40 border border-white/5 custom-scrollbar">
                                 <p className="text-xs font-mono text-red-400 break-all">
                                     {this.state.error?.toString()}
                                 </p>

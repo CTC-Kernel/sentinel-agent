@@ -39,8 +39,8 @@ export const SuperAdminMFAModal: React.FC<SuperAdminMFAModalProps> = ({
     >
       <div className="space-y-6">
         {/* Security Warning */}
-        <div className="flex items-start gap-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 dark:border-amber-800/30">
-          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400 flex-shrink-0">
+        <div className="flex items-start gap-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-200 dark:border-amber-800 dark:border-amber-800/30">
+          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-2xl text-amber-600 dark:text-amber-400 flex-shrink-0 border border-amber-200/50 dark:border-amber-500/20 shadow-inner">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
@@ -93,7 +93,7 @@ export const SuperAdminMFAModal: React.FC<SuperAdminMFAModalProps> = ({
             onClick={onVerify}
             disabled={mfaCode.length !== 6 || isVerifying}
             isLoading={isVerifying}
-            className="flex-1 bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/20 border-none"
+            className="flex-1 bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/20 border-none rounded-3xl"
           >
             Confirmer
           </Button>

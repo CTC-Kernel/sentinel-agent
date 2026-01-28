@@ -80,9 +80,9 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                             leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-slate-200 dark:border-white/10 text-left align-middle transition-all transform">
+                            <Dialog.Panel className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-border/40 dark:border-border/40 text-left align-middle transition-all transform">
                                 {/* Header */}
-                                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
+                                <div className="flex items-center justify-between p-6 border-b border-border/40 dark:border-border/40">
                                     <div>
                                         <Dialog.Title as="h2" className="text-2xl font-bold text-slate-900 dark:text-white">
                                             Importer des Risques depuis un Template
@@ -93,7 +93,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                     </div>
                                     <button
                                         onClick={onClose}
-                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <X className="h-5 w-5" />
                                     </button>
@@ -108,10 +108,10 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                     <button
                                                         key={template.id}
                                                         onClick={() => setSelectedTemplate(template)}
-                                                        className="text-left p-6 rounded-xl border-2 border-slate-200 dark:border-white/10 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 w-full"
+                                                        className="text-left p-6 rounded-3xl border-2 border-border/40 dark:border-border/40 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 w-full"
                                                     >
                                                         <div className="flex items-start gap-4">
-                                                            <div className={`text-5xl p-3 rounded-xl bg-gradient-to-br ${getCategoryColor(template.category)} bg-opacity-30`}>
+                                                            <div className={`text-5xl p-3 rounded-3xl bg-gradient-to-br ${getCategoryColor(template.category)} bg-opacity-30`}>
                                                                 {template.icon}
                                                             </div>
                                                             <div className="flex-1">
@@ -145,7 +145,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                     ) : (
                                         /* Template Configuration */
                                         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-                                            <div className={`bg-gradient-to-r ${getCategoryColor(selectedTemplate.category)} p-6 rounded-xl text-white`}>
+                                            <div className={`bg-gradient-to-r ${getCategoryColor(selectedTemplate.category)} p-6 rounded-3xl text-white`}>
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <span className="text-4xl">{selectedTemplate.icon}</span>
                                                     <div>
@@ -181,13 +181,13 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                 />
                                             </div>
 
-                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl">
                                                 <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
                                                     Aperçu des Risques:
                                                 </h4>
                                                 <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                                                     {selectedTemplate.risks.map((risk) => (
-                                                        <div key={risk.threat} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 rounded-lg text-xs border border-slate-100 dark:border-white/5">
+                                                        <div key={risk.threat} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 rounded-lg text-xs border border-border/40 dark:border-white/5">
                                                             <span className="font-medium text-slate-700 dark:text-slate-300 flex-1 truncate">
                                                                 {risk.threat}
                                                             </span>
@@ -206,7 +206,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                 </div>
                                             </div>
 
-                                            <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                                            <div className="flex gap-3 pt-4 border-t border-border/40 dark:border-border/40">
                                                 <Button
                                                     type="button"
                                                     onClick={() => setSelectedTemplate(null)}

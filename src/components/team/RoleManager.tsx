@@ -195,7 +195,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                         />
                     </div>
 
-                    <div className="border-t border-slate-200 dark:border-white/10 pt-6">
+                    <div className="border-t border-border/40 dark:border-border/40 pt-6">
                         <h4 className="font-bold text-slate-900 dark:text-white mb-4">Matrice des Permissions</h4>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
@@ -227,7 +227,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+                    <div className="flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40">
                         <Button type="button" variant="ghost" onClick={handleCloseDrawer}>Annuler</Button>
                         <Button type="submit" disabled={isSubmitting} className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">
                             {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}

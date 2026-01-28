@@ -58,7 +58,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
             }
         >
             <div className="space-y-6">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-3xl border border-blue-100 dark:border-blue-800">
                     <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         Planification de l'exercice

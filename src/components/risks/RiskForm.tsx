@@ -317,7 +317,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     return (
         <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="flex flex-col h-full bg-transparent">
             {/* Header Tabs */}
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 pt-4">
+            <div className="flex items-center justify-between border-b border-border/40 dark:border-border/40 bg-white dark:bg-transparent px-6 pt-4">
                 <div className="flex overflow-x-auto scrollbar-hide pb-1 -mb-1">
                     {TABS.map((tab) => {
                         const Icon = tab.icon;
@@ -339,7 +339,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Draft Recovery Banner */}
                 {showDraftRecoveryBanner && (
-                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-xl flex items-center justify-between animate-fade-in">
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-3xl flex items-center justify-between animate-fade-in">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-500 rounded-full"><History className="h-5 w-5 text-amber-600 dark:text-amber-400" /></div>
                             <div><p className="font-medium text-amber-800 dark:text-amber-200">Brouillon non enregistré détecté</p><p className="text-sm text-amber-600 dark:text-amber-400">Un brouillon de ce formulaire a été trouvé. Voulez-vous le restaurer ?</p></div>
@@ -367,7 +367,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
             {/* Footer Buttons */}
             {!readOnly && (
-                <div className="border-t border-slate-200 dark:border-white/10 p-6 bg-white dark:bg-black/40 backdrop-blur-md flex justify-between items-center">
+                <div className="border-t border-border/40 dark:border-border/40 p-6 bg-white dark:bg-black/40 backdrop-blur-md flex justify-between items-center">
                     <Button type="button" onClick={onCancel} variant="ghost">Annuler</Button>
                     <div className="flex gap-3">
                         {activeTab !== 'context' && <Button type="button" variant="secondary" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx > 0) setActiveTab(TABS[idx - 1].id); }}>Précédent</Button>}
@@ -375,9 +375,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             <Button type="button" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id); }}>Suivant</Button>
                         ) : (
                             <div className="flex gap-2">
-                                {onSaveDraft && (!isEditing || isDraft) && <Button type="button" variant="secondary" onClick={handleSaveAsDraft} isLoading={isSavingDraft} disabled={isSavingDraft || isLoading} className="px-6 py-3 border border-amber-300 dark:border-amber-700 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:hover:bg-amber-900/20 rounded-xl font-medium text-sm">Enregistrer brouillon</Button>}
-                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-gradient-to-r from-success-text to-success-text/90 hover:from-success-text/90 hover:to-success-text/80 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-success-text/20 font-bold text-sm">Publier le Risque</Button>}
-                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-700 hover:to-violet-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm">{isEditing ? 'Sauvegarder' : 'Créer le Risque'}</Button>}
+                                {onSaveDraft && (!isEditing || isDraft) && <Button type="button" variant="secondary" onClick={handleSaveAsDraft} isLoading={isSavingDraft} disabled={isSavingDraft || isLoading} className="px-6 py-3 border border-amber-300 dark:border-amber-700 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:hover:bg-amber-900/20 rounded-3xl font-medium text-sm">Enregistrer brouillon</Button>}
+                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-gradient-to-r from-success-text to-success-text/90 hover:from-success-text/90 hover:to-success-text/80 text-white rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-success-text/20 font-bold text-sm">Publier le Risque</Button>}
+                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-700 hover:to-violet-700 text-white rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm">{isEditing ? 'Sauvegarder' : 'Créer le Risque'}</Button>}
                             </div>
                         )}
                     </div>
@@ -390,7 +390,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     <div className="relative mb-4"><FloatingLabelInput label="Rechercher une menace..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={Search} /></div>
                     <div className="max-h-[60vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
                         {filteredLibraryThreats.map((t) => (
-                            <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(t)} role="button" tabIndex={0} aria-label={`Sélectionner la menace ${t.name}`} className="border border-slate-200 dark:border-white/10 p-4 rounded-xl hover:border-brand-500 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(t)} role="button" tabIndex={0} aria-label={`Sélectionner la menace ${t.name}`} className="border border-border/40 dark:border-border/40 p-4 rounded-3xl hover:border-brand-500 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-brand-500" /><span className="font-bold text-slate-900 dark:text-white line-clamp-1">{t.name}</span></div>
                                     <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 border px-1.5 py-0.5 rounded">{t.framework}</span>

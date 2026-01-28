@@ -234,7 +234,7 @@ const AnomalyCard: React.FC<{
                 layout
                 variants={slideUpVariants}
                 className={cn(
-                    'glass-premium rounded-xl overflow-hidden transition-all border border-border/40',
+                    'glass-premium rounded-3xl overflow-hidden transition-all border border-border/40',
                     anomaly.severity === 'critical' && 'ring-2 ring-destructive/50',
                     anomaly.severity === 'high' && 'ring-1 ring-orange-500/30',
                     selected && 'ring-2 ring-primary'
@@ -697,7 +697,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="glass-premium rounded-xl p-4 space-y-4 overflow-hidden border border-border/40"
+                        className="glass-premium rounded-3xl p-4 space-y-4 overflow-hidden border border-border/40"
                     >
                         {/* Status Filter */}
                         <div>

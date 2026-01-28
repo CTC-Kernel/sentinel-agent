@@ -218,7 +218,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             icon={selectedAsset ? Server : Plus}
             statusBadge={selectedAsset ? (
                 <div className="flex gap-2 items-center">
-                    <span className={`px-2 py-0.5 rounded-xl text-xs font-bold uppercase tracking-wider ${selectedAsset.lifecycleStatus === 'En service' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
+                    <span className={`px-2 py-0.5 rounded-3xl text-xs font-bold uppercase tracking-wider ${selectedAsset.lifecycleStatus === 'En service' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
                         {selectedAsset.lifecycleStatus || 'Neuf'}
                     </span>
                     {canDelete && selectedAsset && (

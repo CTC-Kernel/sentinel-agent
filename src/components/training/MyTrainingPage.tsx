@@ -64,10 +64,10 @@ const TrainingCardSkeleton: React.FC = () => (
     </div>
     <Skeleton className="h-4 w-full rounded-md mb-2" />
     <Skeleton className="h-4 w-3/4 rounded-md mb-4" />
-    <Skeleton className="h-12 w-full rounded-xl mb-4" />
+    <Skeleton className="h-12 w-full rounded-3xl mb-4" />
     <div className="flex gap-2 pt-4 border-t border-white/5">
-      <Skeleton className="h-9 flex-1 rounded-xl" />
-      <Skeleton className="h-9 flex-1 rounded-xl" />
+      <Skeleton className="h-9 flex-1 rounded-3xl" />
+      <Skeleton className="h-9 flex-1 rounded-3xl" />
     </div>
   </div>
 );
@@ -248,7 +248,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
+            <div className="p-2 rounded-3xl bg-primary/10">
               <Target className="w-5 h-5 text-primary" />
             </div>
             <div>
@@ -267,7 +267,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-success-bg">
+            <div className="p-2 rounded-3xl bg-success-bg">
               <CheckCircle className="w-5 h-5 text-success-text" />
             </div>
             <div>
@@ -286,7 +286,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-error-bg">
+            <div className="p-2 rounded-3xl bg-error-bg">
               <AlertTriangle className="w-5 h-5 text-error-text" />
             </div>
             <div>
@@ -305,7 +305,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-warning-bg">
+            <div className="p-2 rounded-3xl bg-warning-bg">
               <Award className="w-5 h-5 text-warning-text" />
             </div>
             <div>
@@ -327,7 +327,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
             <button
               key={btn.value}
               onClick={() => setFilter(btn.value)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${isActive
+              className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium transition-all ${isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-muted'
                 }`}

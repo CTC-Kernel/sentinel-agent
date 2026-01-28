@@ -85,7 +85,7 @@ describe('RowActionsMenu', () => {
 
       await waitFor(() => {
         const menuItems = screen.getByRole('menu');
-        expect(menuItems).toHaveClass('rounded-xl');
+        expect(menuItems).toHaveClass('rounded-3xl');
         expect(menuItems).toHaveClass('shadow-lg');
       });
     });

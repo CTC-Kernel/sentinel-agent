@@ -81,7 +81,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
 
     if (loading) {
         return (
-            <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 animate-pulse">
+            <div className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 animate-pulse">
                 <div className="flex items-center gap-6">
                     <div className="w-32 h-32 rounded-full bg-slate-200 dark:bg-slate-700" />
                     <div className="flex-1 space-y-4">
@@ -89,7 +89,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-64" />
                         <div className="grid grid-cols-3 gap-4">
                             {[...Array(3)].map((_, i) => (
-                                <div key={i} className="h-20 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+                                <div key={i} className="h-20 bg-slate-200 dark:bg-slate-700 rounded-3xl" />
                             ))}
                         </div>
                     </div>
@@ -102,7 +102,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+            className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden"
         >
             <TechCorners />
 
@@ -127,7 +127,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 shadow-lg shadow-brand-500/20">
+                        <div className="p-2.5 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 shadow-lg shadow-brand-500/20">
                             <Activity className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -210,11 +210,11 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                         {/* Risks Card */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 cursor-pointer group"
+                            className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 cursor-pointer group"
                             onClick={() => navigate('/risks')}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <div className="p-2 bg-warning-bg rounded-xl">
+                                <div className="p-2 bg-warning-bg rounded-3xl">
                                     <AlertTriangle className="w-4 h-4 text-warning-500" />
                                 </div>
                                 <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-70 transition-opacity" />
@@ -249,12 +249,12 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                         {/* Incidents Card */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 cursor-pointer group"
+                            className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 cursor-pointer group"
                             onClick={() => navigate('/incidents')}
                         >
                             <div className="flex items-center justify-between mb-3">
                                 <div className={cn(
-                                    "p-2 rounded-xl",
+                                    "p-2 rounded-3xl",
                                     activeIncidentsCount > 0 ? "bg-red-50" : "bg-success-bg"
                                 )}>
                                     <Zap className={cn(
@@ -297,11 +297,11 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                         {/* Financial Exposure Card */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 cursor-pointer group"
+                            className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 cursor-pointer group"
                             onClick={() => navigate('/risks')}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <div className="p-2 bg-info-bg rounded-xl">
+                                <div className="p-2 bg-info-bg rounded-3xl">
                                     <ShieldCheck className="w-4 h-4 text-info-500" />
                                 </div>
                                 <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-70 transition-opacity" />
@@ -329,7 +329,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
 
                 {/* Bottom Risk Distribution */}
                 {riskDistribution.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-white/60 dark:border-white/5">
+                    <div className="mt-6 pt-4 border-t border-border/40 dark:border-white/5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <span className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider">

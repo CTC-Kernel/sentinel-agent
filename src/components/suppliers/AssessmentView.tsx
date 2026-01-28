@@ -132,8 +132,8 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
     return (
         <div className="flex h-full bg-slate-50 dark:bg-slate-900">
             {/* Sidebar Navigation */}
-            <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col hidden lg:flex">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <aside className="w-64 bg-white dark:bg-slate-800 border-r border-border/40 dark:border-slate-700 flex flex-col hidden lg:flex">
+                <div className="p-6 border-b border-border/40 dark:border-slate-700">
                     <h3 className="font-bold text-slate-800 dark:text-slate-200 dark:text-white truncate" title={template.title}>{template.title}</h3>
                     <div className="mt-4">
                         <div className="flex justify-between text-xs text-slate-500 dark:text-slate-300 mb-1">
@@ -153,7 +153,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                         <button
                             key={section.id || idx}
                             onClick={() => setCurrentSectionIndex(idx)}
-                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${currentSectionIndex === idx
+                            className={`w-full text-left px-4 py-3 rounded-3xl text-sm font-medium transition-colors ${currentSectionIndex === idx
                                 ? 'bg-brand-50 dark:bg-brand-800 text-brand-700 dark:text-brand-300'
                                 : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                                 }`}
@@ -173,7 +173,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
-                <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4 flex justify-between items-center shadow-sm z-10">
+                <header className="bg-white dark:bg-slate-800 border-b border-border/40 dark:border-slate-700 p-4 flex justify-between items-center shadow-sm z-10">
                     <div className="flex items-center lg:hidden">
                         <span className="font-bold text-slate-900 dark:text-white truncate max-w-[150px]">{currentSection?.title}</span>
                     </div>
@@ -213,7 +213,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
 
                                 <div className="space-y-6">
                                     {currentSection?.questions.map((question) => (
-                                        <div key={question.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                        <div key={question.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-slate-700 shadow-sm">
                                             <label className="block text-base font-semibold text-slate-800 dark:text-slate-200 mb-2">
                                                 {question.text}
                                                 {question.required && <span className="text-red-500 ml-1">*</span>}
@@ -225,7 +225,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                             {/* Input Types */}
                                             {question.type === 'text' ? (
                                                 <textarea
-                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all min-h-[120px]"
+                                                    className="w-full p-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all min-h-[120px]"
                                                     placeholder="Votre réponse..."
                                                     value={(localAnswers[question.id]?.value as string) || ''}
                                                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
@@ -237,7 +237,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                                         onClick={() => handleAnswerChange(question.id, 'Yes')}
                                                         className={`px-4 py-2 rounded-lg border flex-1 transition-colors ${localAnswers[question.id]?.value === 'Yes'
                                                             ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 font-medium'
-                                                            : 'border-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-900 text-slate-600'
+                                                            : 'border-border/40 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-900 text-slate-600'
                                                             }`}
                                                     >
                                                         Oui
@@ -247,7 +247,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                                         onClick={() => handleAnswerChange(question.id, 'No')}
                                                         className={`px-4 py-2 rounded-lg border flex-1 transition-colors ${localAnswers[question.id]?.value === 'No'
                                                             ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 font-medium'
-                                                            : 'border-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-900 text-slate-600'
+                                                            : 'border-border/40 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-900 text-slate-600'
                                                             }`}
                                                     >
                                                         Non
@@ -256,7 +256,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                             ) : (
                                                 <input
                                                     type={question.type === 'rating' ? 'number' : 'text'}
-                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
+                                                    className="w-full p-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
                                                     placeholder="Votre réponse..."
                                                     value={(localAnswers[question.id]?.value as string) || ''}
                                                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
@@ -265,7 +265,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                         </div>
                                     ))}
                                     {(!currentSection?.questions || currentSection.questions.length === 0) && (
-                                        <div className="text-center p-8 text-muted-foreground italic bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                                        <div className="text-center p-8 text-muted-foreground italic bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-border/40 dark:border-slate-700">
                                             Aucune question dans cette section.
                                         </div>
                                     )}
@@ -276,7 +276,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                 </div>
 
                 {/* Footer Navigation */}
-                <div className="bg-white dark:bg-slate-800 p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center z-10">
+                <div className="bg-white dark:bg-slate-800 p-4 border-t border-border/40 dark:border-slate-700 flex justify-between items-center z-10">
                     <Button
                         variant="ghost"
                         onClick={() => setCurrentSectionIndex(prev => Math.max(0, prev - 1))}

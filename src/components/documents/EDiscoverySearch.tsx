@@ -294,9 +294,9 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
   const allActions = VaultAuditService.getAllActions();
 
   return (
-    <div className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 ${className}`}>
+    <div className={`bg-white dark:bg-slate-900 rounded-3xl border border-border/40 dark:border-slate-700 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex items-center justify-between p-4 border-b border-border/40 dark:border-slate-700">
         <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
           <Search className="h-5 w-5 text-brand-600" />
           Recherche eDiscovery
@@ -326,7 +326,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
       {/* Saved Searches Panel */}
       {showSavedSearches && savedSearches.length > 0 && (
-        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-border/40 dark:border-slate-700">
           <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
             Recherches sauvegardees ({savedSearches.length})
           </h4>
@@ -334,7 +334,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
             {savedSearches.map(search => (
               <div
                 key={search.id}
-                className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-300 transition-colors"
+                className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-border/40 dark:border-slate-700 hover:border-brand-300 transition-colors"
               >
                 <div
                   className="flex-1 min-w-0 cursor-pointer"
@@ -403,7 +403,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
                 placeholder="Rechercher dans les details..."
                 aria-label="Mots-clés de recherche"
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
+                className="w-full pl-10 pr-4 py-2 border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
               />
             </div>
 
@@ -411,7 +411,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
               value={booleanOperator}
               onChange={(e) => setBooleanOperator(e.target.value as BooleanOperator)}
               aria-label="Opérateur booléen"
-              className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+              className="px-3 py-2 border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
             >
               <option value="AND">ET</option>
               <option value="OR">OU</option>
@@ -441,7 +441,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   }}
                   className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
                     ? `${colors.bg} ${colors.text} ${colors.border}`
-                    : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
+                    : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-border/40 dark:border-slate-600 hover:border-brand-300'
                     }`}
                 >
                   {label}
@@ -478,7 +478,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   value={dateRange.start}
                   onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                   aria-label="Date de début"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 text-sm border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -493,7 +493,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   value={dateRange.end}
                   onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                   aria-label="Date de fin"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 text-sm border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -512,7 +512,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 onChange={(e) => setUserFilter(e.target.value)}
                 placeholder="ID de l'utilisateur"
                 aria-label="Filtrer par ID utilisateur"
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 text-sm border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -530,7 +530,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 onChange={(e) => setDocumentIds(e.target.value)}
                 placeholder="doc1, doc2, doc3"
                 aria-label="IDs des documents"
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 text-sm border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -572,7 +572,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
       {/* Results */}
       {results && (
-        <div className="border-t border-slate-200 dark:border-slate-700">
+        <div className="border-t border-border/40 dark:border-slate-700">
           {/* Results Header */}
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50">
             <div className="text-sm text-slate-600 dark:text-muted-foreground">
@@ -686,7 +686,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
       {/* Save Search Dialog */}
       {saveDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl w-full max-w-md p-6">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
               Sauvegarder la recherche
             </h3>
@@ -702,7 +702,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   value={searchName}
                   onChange={(e) => setSearchName(e.target.value)}
                   placeholder="Ma recherche"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -717,7 +717,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   onChange={(e) => setSearchDescription(e.target.value)}
                   placeholder="Description optionnelle..."
                   rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+                  className="w-full px-3 py-2 border border-border/40 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
                 />
               </div>
 
@@ -727,7 +727,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   type="checkbox"
                   checked={searchIsPublic}
                   onChange={(e) => setSearchIsPublic(e.target.checked)}
-                  className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500"
+                  className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500"
                 />
                 Partager avec l'équipe
               </label>

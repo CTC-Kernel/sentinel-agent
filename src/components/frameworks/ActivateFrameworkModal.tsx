@@ -86,7 +86,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
               leaveFrom="opacity-70 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-border/40 dark:border-white/5">
                 <div className="p-6">
                   {/* Icon */}
                   <motion.div
@@ -143,7 +143,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                         id="targetDate"
                         value={targetDate}
                         onChange={(e) => setTargetDate(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus:border-transparent transition-all"
                       />
                     </div>
 
@@ -168,14 +168,14 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                           'frameworks.notesPlaceholder',
                           'Ajoutez des notes sur cette activation...'
                         )}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus:border-transparent transition-all resize-none"
+                        className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus:border-transparent transition-all resize-none"
                       />
                     </div>
                   </motion.div>
 
                   {/* Info Box */}
                   <motion.div
-                    className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/30"
+                    className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-3xl border border-blue-100 dark:border-blue-800/30"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
@@ -190,7 +190,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex border-t border-slate-200 dark:border-white/5">
+                <div className="flex border-t border-border/40 dark:border-white/5">
                   <Button
                     type="button"
                     variant="ghost"

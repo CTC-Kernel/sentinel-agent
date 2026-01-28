@@ -71,7 +71,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         "w-36 min-h-[140px]",
                                         isCurrentPhase
                                             ? `${styles.borderActive} ${styles.bgActive}`
-                                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300",
+                                            : "border-border/40 dark:border-slate-700 hover:border-border/40",
                                         selectedPhase === phase && "ring-2 ring-offset-2 ring-blue-500"
                                     )}
                                     whileHover={{ scale: 1.02 }}
@@ -84,7 +84,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                     )}
 
                                     <div className={cn(
-                                        "w-12 h-12 rounded-xl flex items-center justify-center mb-3",
+                                        "w-12 h-12 rounded-3xl flex items-center justify-center mb-3",
                                         styles.iconBg
                                     )}>
                                         <Icon className={`w-6 h-6 ${styles.iconText}`} />
@@ -180,15 +180,15 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
                     <p className="text-slate-600 dark:text-muted-foreground mb-4">{config.description}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="glass-premium p-4 rounded-xl border border-border/40">
+                        <div className="glass-premium p-4 rounded-3xl border border-border/40">
                             <div className="text-2xl font-bold text-slate-900 dark:text-white">{phaseData.progress}%</div>
                             <div className="text-sm text-muted-foreground">Progression</div>
                         </div>
-                        <div className="glass-premium p-4 rounded-xl border border-border/40">
+                        <div className="glass-premium p-4 rounded-3xl border border-border/40">
                             <div className="text-2xl font-bold text-slate-900 dark:text-white">{completedMilestones}/{milestones.length}</div>
                             <div className="text-sm text-muted-foreground">Jalons</div>
                         </div>
-                        <div className="glass-premium p-4 rounded-xl border border-border/40">
+                        <div className="glass-premium p-4 rounded-3xl border border-border/40">
                             <div className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                                 {phaseData.responsibleId ? (
                                     <Users className="w-5 h-5 text-brand-500" />

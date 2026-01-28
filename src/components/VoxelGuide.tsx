@@ -19,14 +19,14 @@ const GUIDE_SECTIONS = [
                     CTC Engine est votre centre de commandement pour visualiser et analyser l'ensemble de votre écosystème de sécurité en 3D.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-500/20">
+                    <div className="p-3 rounded-3xl bg-blue-50 dark:bg-blue-900/30 border border-blue-500/20">
                         <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mb-2">
                             <Network className="w-4 h-4 text-blue-400" />
                         </div>
                         <h4 className="text-sm font-medium text-white mb-1">Vue Unifiée</h4>
                         <p className="text-xs text-muted-foreground">Tous vos actifs, risques, projets et contrôles dans une seule vue</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                    <div className="p-3 rounded-3xl bg-purple-500/10 border border-purple-500/20">
                         <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center mb-2">
                             <Activity className="w-4 h-4 text-purple-400" />
                         </div>
@@ -45,7 +45,7 @@ const GUIDE_SECTIONS = [
         content: (
             <div className="space-y-4">
                 <div className="grid gap-3">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-border/40">
+                    <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
                             <MousePointer className="w-5 h-5 text-muted-foreground" />
                         </div>
@@ -54,7 +54,7 @@ const GUIDE_SECTIONS = [
                             <p className="text-xs text-muted-foreground">Rotation de la vue (orbite)</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-border/40">
+                    <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
                             Scroll
                         </div>
@@ -63,7 +63,7 @@ const GUIDE_SECTIONS = [
                             <p className="text-xs text-muted-foreground">Zoom avant/arrière</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-border/40">
+                    <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
                             Clic
                         </div>
@@ -120,21 +120,21 @@ const GUIDE_SECTIONS = [
             <div className="space-y-4">
                 <p className="text-xs text-muted-foreground">La taille et la couleur indiquent la criticité :</p>
                 <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-500/20">
+                    <div className="flex items-center gap-3 p-3 rounded-3xl bg-red-50 dark:bg-red-900/30 border border-red-500/20">
                         <span className="w-4 h-4 rounded-full bg-red-500 animate-pulse" />
                         <div>
                             <h4 className="text-sm font-medium text-red-400">Critique</h4>
                             <p className="text-xs text-muted-foreground">Risque score ≥15, Incident critique, Asset C/I/A critique</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-500/20">
+                    <div className="flex items-center gap-3 p-3 rounded-3xl bg-amber-50 dark:bg-amber-900/30 border border-amber-500/20">
                         <span className="w-4 h-4 rounded-full bg-amber-500" />
                         <div>
                             <h4 className="text-sm font-medium text-amber-400">Alerte</h4>
                             <p className="text-xs text-muted-foreground">Risque score ≥10, Incident élevé, Projet en retard</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex items-center gap-3 p-3 rounded-3xl bg-emerald-500/10 border border-emerald-500/20">
                         <span className="w-4 h-4 rounded-full bg-emerald-500" />
                         <div>
                             <h4 className="text-sm font-medium text-emerald-400">Normal</h4>
@@ -183,7 +183,7 @@ const GUIDE_SECTIONS = [
         icon: Zap,
         content: (
             <div className="space-y-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20">
+                <div className="p-3 rounded-3xl bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20">
                     <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="w-5 h-5 text-orange-400" />
                         <h4 className="text-sm font-semibold text-white">Panneau Anomalies</h4>
@@ -192,7 +192,7 @@ const GUIDE_SECTIONS = [
                         Détecte automatiquement les configurations anormales : actifs sans contrôles, risques non traités, fournisseurs sans évaluation...
                     </p>
                 </div>
-                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                <div className="p-3 rounded-3xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
                     <div className="flex items-center gap-2 mb-2">
                         <Zap className="w-5 h-5 text-purple-400" />
                         <h4 className="text-sm font-semibold text-white">Blast Radius</h4>
@@ -201,7 +201,7 @@ const GUIDE_SECTIONS = [
                         Simulez l'impact d'une défaillance. Sélectionnez un nœud et visualisez tous les éléments qui seraient affectés par effet de cascade.
                     </p>
                 </div>
-                <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
+                <div className="p-3 rounded-3xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
                     <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-5 h-5 text-cyan-400" />
                         <h4 className="text-sm font-semibold text-white">Time Machine</h4>
@@ -244,7 +244,7 @@ const GUIDE_SECTIONS = [
         icon: Search,
         content: (
             <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-slate-800/50 border border-border/40">
+                <div className="p-4 rounded-3xl bg-slate-800/50 border border-border/40">
                     <div className="flex items-center gap-3 mb-3">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">Rechercher un nœud...</span>
@@ -318,7 +318,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                         <div className="p-5 border-b border-border/40">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                                         <Icon className="w-5 h-5 text-white" />
                                     </div>
                                     <div>

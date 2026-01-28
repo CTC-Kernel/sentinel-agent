@@ -237,7 +237,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                 <div className="grid grid-cols-2 gap-4 mb-6">
                                     <button
                                         type="button"
-                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider === 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-800' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
+                                        className={`cursor-pointer p-4 rounded-3xl border-2 transition-all w-full text-left ${storageProvider === 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-800' : 'border-border/40 dark:border-border/40 hover:border-brand-200'}`}
                                         onClick={() => setValue('storageProvider', 'firebase')}
                                     >
                                         <UploadCloud className={`w-6 h-6 mb-2 ${storageProvider === 'firebase' ? 'text-brand-600' : 'text-slate-400'}`} />
@@ -245,7 +245,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     </button>
                                     <button
                                         type="button"
-                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider !== 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-800' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
+                                        className={`cursor-pointer p-4 rounded-3xl border-2 transition-all w-full text-left ${storageProvider !== 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-800' : 'border-border/40 dark:border-border/40 hover:border-brand-200'}`}
                                         onClick={() => setValue('storageProvider', 'google_drive')} // Defaulting to one external
                                     >
                                         <Link className={`w-6 h-6 mb-2 ${storageProvider !== 'firebase' ? 'text-brand-600' : 'text-slate-400'}`} />
@@ -264,7 +264,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                             initialFile={initialFile}
                                         />
                                         {uploadedFileUrl && (
-                                            <div className="mt-4 flex items-center justify-between p-3 bg-success-50 dark:bg-success-900/20 rounded-xl border border-success-100 dark:border-success-800">
+                                            <div className="mt-4 flex items-center justify-between p-3 bg-success-50 dark:bg-success-900/20 rounded-3xl border border-success-100 dark:border-success-800">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-success-100 dark:bg-success-900/40 rounded-lg text-success-600">
                                                         <FileText className="w-5 h-5" />
@@ -353,7 +353,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     />
                                     <div className="space-y-1">
                                         <label htmlFor="status" className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 ml-1">Statut</label>
-                                        <div className="flex p-1 bg-slate-100 dark:bg-black/20 rounded-xl" role="radiogroup" aria-labelledby="status">
+                                        <div className="flex p-1 bg-slate-100 dark:bg-black/20 rounded-3xl" role="radiogroup" aria-labelledby="status">
                                             {['Brouillon', 'Publié'].map((s) => (
                                                 <button
                                                     key={s}
@@ -487,7 +487,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     <p className="text-sm text-slate-500">Vérifiez les informations ci-dessous</p>
                                 </div>
 
-                                <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/5 space-y-4">
+                                <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-6 border border-border/40 dark:border-white/5 space-y-4">
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-sm font-bold text-slate-900 dark:text-white">{getValues('title')}</p>

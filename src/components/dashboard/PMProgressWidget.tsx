@@ -415,7 +415,7 @@ export function PMProgressWidget({
       </div>
 
       {/* Summary footer */}
-      <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700">
+      <div className="mt-4 pt-3 border-t border-border/40 dark:border-slate-700">
         <p className="text-xs text-muted-foreground text-center">
           {progress.milestones.completed}/{progress.milestones.total} jalons atteints
         </p>

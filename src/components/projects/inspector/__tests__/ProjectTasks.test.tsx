@@ -362,7 +362,7 @@ describe('ProjectTasks', () => {
         it('has proper view toggle styling', () => {
             const { container } = render(<ProjectTasks {...defaultProps} />);
 
-            expect(container.querySelector('.rounded-xl')).toBeInTheDocument();
+            expect(container.querySelector('.rounded-3xl')).toBeInTheDocument();
         });
     });
 });

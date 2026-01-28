@@ -237,7 +237,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       key={playbook.id}
                       className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPlaybook?.id === playbook.id
                         ? 'border-blue-500 bg-blue-50'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                        : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600'
                         }`}
                       onClick={() => setSelectedPlaybook(playbook)}
                       role="button"
@@ -336,11 +336,11 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               {selectedPlaybook?.steps.map((step, index) => (
                 <div
                   key={step.id}
-                  className={`border rounded-xl p-3 mb-3 transition-colors ${index === currentStep
+                  className={`border rounded-3xl p-3 mb-3 transition-colors ${index === currentStep
                     ? 'border-blue-500/30 bg-blue-500'
                     : index < currentStep
                       ? 'border-green-500/30 bg-green-500'
-                      : 'border-slate-200 bg-slate-50/30'
+                      : 'border-border/40 bg-slate-50/30'
                     }`}
                 >
                   <div className="flex items-start justify-between">
@@ -380,7 +380,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                             </label>
                             <textarea
                               id={`evidence-${step.id}`}
-                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
+                              className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Décrire l'evidence collectée..."
                               value={evidence[step.id] || ''}
@@ -401,7 +401,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                             </label>
                             <textarea
                               id={`notes-${step.id}`}
-                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
+                              className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Notes sur cette étape..."
                               value={notes}
@@ -426,9 +426,9 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               ))}
 
               {/* Timeline */}
-              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <div className="mt-8 pt-6 border-t border-border/40 dark:border-slate-800">
                 <h4 className="font-bold text-sm uppercase tracking-wide text-slate-500 dark:text-slate-300 mb-4">Timeline de réponse</h4>
-                <div className="relative pl-4 border-l-2 border-slate-100 space-y-4">
+                <div className="relative pl-4 border-l-2 border-border/40 space-y-4">
                   {response.timeline.map((event) => (
                     <div key={event.id} className="relative pl-4">
                       <div className="absolute -left-[21px] top-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full"></div>

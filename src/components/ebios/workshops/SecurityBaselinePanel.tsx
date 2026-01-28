@@ -122,7 +122,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+        <div className="text-center p-4 rounded-3xl bg-white/50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700/50">
           <ProgressRing
             progress={baseline.maturityScore}
             size={80}
@@ -132,7 +132,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
           <p className="text-sm text-slate-500 dark:text-slate-300 mt-2">{t('ebios.workshop1.maturityScore')}</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-700/50">
+        <div className="p-4 rounded-3xl bg-green-50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-700/50">
           <div className="flex items-center justify-center gap-2">
             <CheckCircle className="w-5 h-5 text-green-500" />
             <span className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -144,7 +144,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
           </p>
         </div>
 
-        <div className="p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200/50 dark:border-yellow-700/50">
+        <div className="p-4 rounded-3xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200/50 dark:border-yellow-700/50">
           <div className="flex items-center justify-center gap-2">
             <AlertCircle className="w-5 h-5 text-yellow-500" />
             <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
@@ -156,7 +156,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
           </p>
         </div>
 
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50">
+        <div className="p-4 rounded-3xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50">
           <div className="flex items-center justify-center gap-2">
             <MinusCircle className="w-5 h-5 text-red-500" />
             <span className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -178,7 +178,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('ebios.workshop1.searchMeasures')}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+            className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
           />
         </div>
 
@@ -187,7 +187,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+            className="px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
           >
             <option value="all">{t('ebios.workshop1.allMeasures')}</option>
             <option value="implemented">{t('ebios.workshop1.implemented')}</option>
@@ -202,7 +202,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
         {Object.entries(filteredByCategory).map(([category, measures]) => (
           <div
             key={category}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+            className="rounded-3xl border border-border/40 dark:border-slate-700 overflow-hidden"
           >
             <button
               onClick={() => toggleCategory(category)}

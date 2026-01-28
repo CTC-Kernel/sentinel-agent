@@ -136,10 +136,10 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                                         key={template.id}
                                         onClick={() => setValue('template', template.id)}
                                         className={cn(
-                                            "relative flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                                            "relative flex items-start gap-3 p-3 rounded-3xl border cursor-pointer transition-all",
                                             selectedTemplate === template.id
                                                 ? "border-brand-500 bg-brand-50 dark:bg-brand-800 ring-1 ring-brand-500"
-                                                : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-white dark:bg-slate-900"
+                                                : "border-border/40 dark:border-border/40 hover:border-border/40 dark:hover:border-white/20 bg-white dark:bg-slate-900"
                                         )}
                                     >
                                         <div className={cn(
@@ -171,7 +171,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                     )}
                 </div>
 
-                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40">
                     <Button
                         type="button"
                         variant="ghost"

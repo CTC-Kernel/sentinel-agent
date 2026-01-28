@@ -207,7 +207,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
 
       {/* Risk Matrix Mini */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-slate-700/30 rounded-xl p-3">
+        <div className="bg-slate-700/30 rounded-3xl p-3">
           <div className="text-xs text-slate-500 dark:text-slate-300 mb-2">Probabilité</div>
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -222,7 +222,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
           </div>
           <div className="text-right text-xs text-muted-foreground mt-1">{probability}/5</div>
         </div>
-        <div className="bg-slate-700/30 rounded-xl p-3">
+        <div className="bg-slate-700/30 rounded-3xl p-3">
           <div className="text-xs text-slate-500 dark:text-slate-300 mb-2">Impact</div>
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -254,12 +254,12 @@ const LinkedEntityItem: React.FC<LinkedEntityItemProps> = ({ node, onClick }) =>
   return (
     <motion.button
       onClick={onClick}
-      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group"
+      className="w-full flex items-center gap-3 p-3 rounded-3xl hover:bg-white/5 transition-all group"
       whileHover={{ x: 4 }}
       whileTap={{ scale: 0.98 }}
     >
       <div
-        className="p-2 rounded-xl transition-transform group-hover:scale-110"
+        className="p-2 rounded-3xl transition-transform group-hover:scale-110"
         style={{ backgroundColor: `${typeConfig.color}15`, color: typeConfig.color }}
       >
         {typeConfig.icon}
@@ -337,21 +337,21 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
           </h3>
           <div className="grid grid-cols-3 gap-2">
             {confidentiality && (
-              <div className="text-center p-3 rounded-xl bg-slate-700/30">
+              <div className="text-center p-3 rounded-3xl bg-slate-700/30">
                 <Lock className="w-4 h-4 mx-auto mb-1 text-blue-400" />
                 <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Conf.</div>
                 <div className="text-xs font-medium text-slate-200 mt-0.5">{confidentiality}</div>
               </div>
             )}
             {integrity && (
-              <div className="text-center p-3 rounded-xl bg-slate-700/30">
+              <div className="text-center p-3 rounded-3xl bg-slate-700/30">
                 <CheckCircle2 className="w-4 h-4 mx-auto mb-1 text-green-400" />
                 <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Intég.</div>
                 <div className="text-xs font-medium text-slate-200 mt-0.5">{integrity}</div>
               </div>
             )}
             {availability && (
-              <div className="text-center p-3 rounded-xl bg-slate-700/30">
+              <div className="text-center p-3 rounded-3xl bg-slate-700/30">
                 <Wifi className="w-4 h-4 mx-auto mb-1 text-amber-400" />
                 <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase">Disp.</div>
                 <div className="text-xs font-medium text-slate-200 mt-0.5">{availability}</div>
@@ -734,7 +734,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className="p-2.5 rounded-xl shrink-0"
+                      className="p-2.5 rounded-3xl shrink-0"
                       style={{ backgroundColor: `${typeConfig.color}20`, color: typeConfig.color }}
                     >
                       {typeConfig.icon}
@@ -748,7 +748,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
                   </div>
                   <motion.button
                     onClick={onClose}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-muted-foreground hover:text-white shrink-0"
+                    className="p-2 rounded-3xl bg-white/5 hover:bg-white/10 transition-colors text-muted-foreground hover:text-white shrink-0"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Fermer"
@@ -845,7 +845,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
               <div className="p-5 border-t border-white/5 bg-slate-900/50">
                 <motion.button
                   onClick={handleNavigate}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-3xl text-sm font-semibold transition-all"
                   style={{
                     background: `linear-gradient(135deg, ${typeConfig.color}, ${typeConfig.color}CC)`,
                     boxShadow: `0 4px 14px ${typeConfig.color}40`,

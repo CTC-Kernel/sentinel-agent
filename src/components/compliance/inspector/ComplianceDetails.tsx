@@ -70,7 +70,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
 
             {/* Status & Assignment */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
                     <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Statut d'implémentation</h3>
                     {canEdit ? (
                         <div className="grid grid-cols-2 gap-2">
@@ -90,11 +90,11 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                             ))}
                         </div>
                     ) : (
-                        <span className={`px-4 py-2 rounded-xl text-sm font-bold border uppercase tracking-wide inline-block`}>{control.status}</span>
+                        <span className={`px-4 py-2 rounded-3xl text-sm font-bold border uppercase tracking-wide inline-block`}>{control.status}</span>
                     )}
                 </div>
 
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
                     <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Responsable</h3>
                     {canEdit ? (
                         <CustomSelect
@@ -106,7 +106,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                             disabled={updating}
                         />
                     ) : (
-                        <div className="flex items-center p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                        <div className="flex items-center p-3 bg-slate-50 dark:bg-black/20 rounded-3xl">
                             <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 mr-3">
                                 <User className="h-4 w-4" />
                             </div>
@@ -119,7 +119,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             </div>
 
             {/* Framework Mapping Section */}
-            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4 text-slate-500" />
@@ -144,7 +144,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                     {control.mappedFrameworks?.map(fw => (
                         <span
                             key={fw}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-border/40 dark:border-slate-700"
                         >
                             {getFrameworkLabel(fw)}
                             {canEdit && handleUnmapFramework && (
@@ -163,7 +163,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
 
                 {/* Add Framework Mapping */}
                 {canEdit && handleMapFramework && availableFrameworks.length > 0 && (
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/40 dark:border-slate-800">
                         <Plus className="h-4 w-4 text-slate-400" />
                         <CustomSelect
                             label=""
@@ -186,12 +186,12 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             </div>
 
             {/* Justification Area */}
-            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                 <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Justification / Politique</h3>
                 {canEdit ? (
                     <>
                         <textarea
-                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-y disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-border/40 dark:border-border/40 rounded-3xl p-4 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-y disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                             placeholder="Décrivez comment ce contrôle est implémenté..."
                             value={justification}
                             onChange={(e) => setJustification(e.target.value)}

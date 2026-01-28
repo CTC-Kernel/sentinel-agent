@@ -94,7 +94,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
         className="w-full flex items-center justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
+          <div className="p-2 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-500">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
@@ -141,7 +141,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                 {pendingSourceRecommendations.map((source) => (
                   <div
                     key={source.code}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-red-600 dark:text-red-400">{source.code}</span>
                     <span className="text-slate-500 dark:text-muted-foreground">-</span>
@@ -194,7 +194,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                 {pendingObjectiveRecommendations.map((obj) => (
                   <div
                     key={obj.code}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-amber-600 dark:text-amber-400">{obj.code}</span>
                     <span className="text-slate-500 dark:text-muted-foreground">-</span>

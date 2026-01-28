@@ -48,7 +48,7 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
                     ? 'border-red-500/60 bg-red-50 dark:bg-red-50'
                     : isFocused
                         ? 'border-brand-500 ring-2 ring-brand-300 bg-white/80 dark:bg-white/5 shadow-glow'
-                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-300 dark:hover:border-white/20'
+                        : 'border-border/40 dark:border-border/40 bg-white/50 dark:bg-white/5 hover:border-brand-300 dark:hover:border-white/20'
                 }
             `}>
                 <textarea

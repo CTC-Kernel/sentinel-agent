@@ -91,7 +91,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend
                     )}
                 </div>
                 <div className={cn(
-                    'flex items-center justify-center w-12 h-12 rounded-xl',
+                    'flex items-center justify-center w-12 h-12 rounded-3xl',
                     variantIcon[variant]
                 )}>
                     {icon}

@@ -24,13 +24,13 @@ export const RiskMitreThreats: React.FC<RiskMitreThreatsProps> = ({
                 <h3 className="text-lg font-bold">MITRE ATT&CK</h3>
                 <div className="flex gap-2">
                     <input value={mitreQuery} onChange={onMitreQueryChange}
-                        className="flex-1 px-4 py-2 border rounded-xl"
+                        className="flex-1 px-4 py-2 border rounded-3xl"
                         placeholder="Rechercher une technique..."
                         aria-label="Rechercher une technique MITRE ATT&CK"
                     />
                     <button
                         aria-label="Rechercher"
-                        className="px-4 py-2 bg-slate-900 text-white rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-4 py-2 bg-slate-900 text-white rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         onClick={onMitreSearch}
                     >
                         Chercher

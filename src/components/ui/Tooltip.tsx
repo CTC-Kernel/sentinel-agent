@@ -155,7 +155,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
                             animate={variants.animate}
                             exit={variants.exit}
                             transition={{ duration: 0.2, ease: appleEasing }}
-                            className="fixed z-[9999] px-3 py-2 text-sm font-medium text-white bg-slate-900/95 dark:bg-white/95 dark:text-slate-900 backdrop-blur-md border border-white/10 dark:border-slate-900/10 rounded-xl shadow-xl shadow-black/20 whitespace-normal max-w-[280px] pointer-events-none leading-relaxed"
+                            className="fixed z-[9999] px-3 py-2 text-sm font-medium text-white bg-slate-900/95 dark:bg-white/95 dark:text-slate-900 backdrop-blur-md border border-border/40 dark:border-slate-900/10 rounded-3xl shadow-xl shadow-black/20 whitespace-normal max-w-[280px] pointer-events-none leading-relaxed"
                             style={{
                                 top: coords.top,
                                 left: coords.left,
@@ -164,7 +164,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
                             {content}
                             {/* Arrow */}
                             <div
-                                className={`absolute w-2 h-2 bg-slate-900/90 dark:bg-white/95 rotate-45 border border-white/10 dark:border-slate-900/10
+                                className={`absolute w-2 h-2 bg-slate-900/90 dark:bg-white/95 rotate-45 border border-border/40 dark:border-slate-900/10
                                     ${position === 'top' ? 'bottom-[-4px] left-1/2 -translate-x-1/2 border-t-0 border-l-0' : ''}
                                     ${position === 'bottom' ? 'top-[-4px] left-1/2 -translate-x-1/2 border-b-0 border-r-0' : ''}
                                     ${position === 'left' ? 'right-[-4px] top-1/2 -translate-y-1/2 border-b-0 border-l-0' : ''}

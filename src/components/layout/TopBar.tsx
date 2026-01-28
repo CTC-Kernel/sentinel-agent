@@ -103,11 +103,11 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         aria-label="Rechercher (Cmd+K)"
                         data-tour="command-palette"
                         onClick={openCommandPalette}
-                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-600 dark:text-slate-300 transition-all duration-200 group w-full max-w-sm shadow-sm hover:shadow-md"
+                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-border/40 dark:border-border/40 rounded-3xl text-sm text-slate-600 dark:text-slate-300 transition-all duration-200 group w-full max-w-sm shadow-sm hover:shadow-md"
                     >
                         <Search className="h-4 w-4 text-slate-500 dark:text-slate-300 group-hover:text-brand-500 transition-colors" />
                         <span className="flex-1 text-left font-medium text-xs uppercase tracking-wide">{t('common.search')}</span>
-                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[11px] font-bold text-slate-500 dark:text-slate-300 shadow-sm">
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-border/40 dark:border-white/5 text-[11px] font-bold text-slate-500 dark:text-slate-300 shadow-sm">
                             <Command className="h-3 w-3" />
                             <span>K</span>
                         </div>
@@ -168,21 +168,19 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
                                 <span className="text-[11px] font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
                             </div>
-                            <img
-                                alt="Profile"
-                                src={getDefaultAvatarUrl(user?.role)}
-                                className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = getDefaultAvatarUrl(user?.role);
-                                }}
-                            />
+                            <div className="relative">
+                                <img
+                                    alt="Profile"
+                                    src={getDefaultAvatarUrl(user?.role)}
+                                    className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
+                                />
+                            </div>
                         </button>
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-64 max-w-[256px] bg-white dark:bg-slate-950 border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/20 dark:ring-white/5">
-                                <div className="p-4 bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 border-b border-slate-200/50 dark:border-white/10">
+                            <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-64 max-w-[256px] bg-white dark:bg-slate-950 border border-white/20 dark:border-border/40 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/20 dark:ring-white/5">
+                                <div className="p-4 bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 border-b border-border/40 dark:border-border/40">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-300 truncate mt-0.5">{user?.email}</p>
                                 </div>
@@ -192,7 +190,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                             setLanguage(language === 'fr' ? 'en' : 'fr');
                                             setShowUserMenu(false);
                                         }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-3xl transition-colors"
                                     >
                                         <Globe className="h-4 w-4 mr-3 text-slate-500" />
                                         {language === 'fr' ? 'Switch to English' : 'Passer en Français'}
@@ -200,7 +198,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-3xl transition-colors"
                                     >
                                         <User className="h-4 w-4 mr-3 text-slate-500" />
                                         {t('settings.myProfile')}
@@ -208,7 +206,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-3xl transition-colors"
                                     >
                                         <SettingsIcon className="h-4 w-4 mr-3 text-slate-500" />
                                         {t('common.settings.title')}
@@ -216,7 +214,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/pricing"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-3xl transition-colors"
                                     >
                                         <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[11px]">€</span>
                                         {t('settings.plansAndBilling')}
@@ -224,7 +222,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <button
                                         aria-label="Donner un avis"
                                         onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-3xl transition-colors"
                                     >
                                         <MessageSquare className="h-4 w-4 mr-3 text-slate-500" />
                                         Donner un avis
@@ -235,7 +233,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <button
                                         aria-label="Se déconnecter"
                                         onClick={() => { handleLogout(); setShowUserMenu(false); }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500 dark:hover:bg-red-900/20 rounded-3xl transition-colors"
                                     >
                                         <LogOut className="h-4 w-4 mr-3" />
                                         {t('common.logout')}

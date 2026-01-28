@@ -222,7 +222,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
   return (
     <div
-      className={`border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden border-l-4 ${borderColor}`}
+      className={`border border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden border-l-4 ${borderColor}`}
     >
       <button
         onClick={() => setExpanded(!expanded)}
@@ -260,7 +260,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-200 dark:border-slate-700 p-4 space-y-4">
+        <div className="border-t border-border/40 dark:border-slate-700 p-4 space-y-4">
           {/* Current vs Target State */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
@@ -358,7 +358,7 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
   return (
     <div className="space-y-4">
       {/* Summary */}
-      <div className="flex items-center gap-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+      <div className="flex items-center gap-6 p-4 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
         <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30">
           <Lightbulb className="h-6 w-6 text-amber-600" />
         </div>

@@ -91,7 +91,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
     return (
         <div className="glass-premium p-5 rounded-2xl border border-border/40">
             <div className="flex items-start justify-between">
-                <div className={`p-2.5 rounded-xl ${colorClasses[color]}`}>
+                <div className={`p-2.5 rounded-3xl ${colorClasses[color]}`}>
                     <Icon className="h-5 w-5" />
                 </div>
                 {trend && (
@@ -246,7 +246,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                 <button
                     onClick={() => loadData(true)}
                     disabled={isRefreshing}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                    className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
                 >
                     <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                     {t('common.refresh')}

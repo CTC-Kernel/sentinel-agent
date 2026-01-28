@@ -71,13 +71,13 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="h-full flex flex-col p-5 glass-premium rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden"
+                className="h-full flex flex-col p-5 glass-premium rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-success-500 to-emerald-600 shadow-sm shadow-success-500/20">
+                        <div className="p-2 rounded-3xl bg-gradient-to-br from-success-500 to-emerald-600 shadow-sm shadow-success-500/20">
                             <ShieldCheck className="w-4 h-4 text-white" />
                         </div>
                         Conformité
@@ -103,7 +103,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="h-full flex flex-col p-5 glass-premium rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300"
+            className="h-full flex flex-col p-5 glass-premium rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300"
         >
             {/* SVG Definitions */}
             <svg width="0" height="0" className="absolute">
@@ -123,16 +123,16 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-success-bg rounded-full blur-2xl pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-success-500 to-emerald-600 shadow-sm shadow-success-500/20">
+                    <div className="p-2 rounded-3xl bg-gradient-to-br from-success-500 to-emerald-600 shadow-sm shadow-success-500/20">
                         <ShieldCheck className="w-4 h-4 text-white" />
                     </div>
                     Conformité
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/compliance')}
-                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group/btn"
+                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-3xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group/btn"
                 >
                     Voir tout
                     <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-70 group-hover/btn:translate-x-0 transition-all" />
@@ -214,7 +214,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
 
             {/* Distribution Mini Stats */}
             <div className="grid grid-cols-3 gap-2 mt-auto relative z-10">
-                <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
+                <div className="p-2 rounded-3xl bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <CheckCircle2 className="w-3 h-3 text-success-500" />
                         <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Impl.</span>
@@ -223,7 +223,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                         {stats.implementedControls}
                     </div>
                 </div>
-                <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
+                <div className="p-2 rounded-3xl bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <Clock className="w-3 h-3 text-warning-500" />
                         <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Partiels</span>
@@ -232,7 +232,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                         {stats.inProgressControls}
                     </div>
                 </div>
-                <div className="p-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10">
+                <div className="p-2 rounded-3xl bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <AlertTriangle className="w-3 h-3 text-slate-400" />
                         <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Non impl.</span>

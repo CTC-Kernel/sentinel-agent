@@ -91,13 +91,13 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-premium h-full flex flex-col p-5 border border-white/60 dark:border-white/10 rounded-3xl shadow-sm relative overflow-hidden"
+                className="glass-premium h-full flex flex-col p-5 border border-border/40 dark:border-border/40 rounded-3xl shadow-sm relative overflow-hidden"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-warning-500 to-orange-600 shadow-sm shadow-warning-500/20">
+                        <div className="p-2 rounded-3xl bg-gradient-to-br from-warning-500 to-orange-600 shadow-sm shadow-warning-500/20">
                             <Target className="w-4 h-4 text-white" />
                         </div>
                         {t('dashboard.riskHeatmap')}
@@ -123,23 +123,23 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-premium h-full flex flex-col p-5 border border-white/60 dark:border-white/10 rounded-3xl shadow-sm relative overflow-hidden"
+            className="glass-premium h-full flex flex-col p-5 border border-border/40 dark:border-border/40 rounded-3xl shadow-sm relative overflow-hidden"
         >
             {/* Background effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-warning-bg rounded-full blur-2xl pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-warning-500 to-orange-600 shadow-sm shadow-warning-500/20">
+                    <div className="p-2 rounded-3xl bg-gradient-to-br from-warning-500 to-orange-600 shadow-sm shadow-warning-500/20">
                         <Target className="w-4 h-4 text-white" />
                     </div>
                     {t('dashboard.riskHeatmap')}
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/risks')}
-                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group/btn"
+                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-3xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group/btn"
                 >
                     Voir tout
                     <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-70 group-hover/btn:translate-x-0 transition-all" />
@@ -252,9 +252,9 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-auto pt-3 border-t border-slate-100 dark:border-white/5 relative z-10"
+                    className="mt-auto pt-3 border-t border-border/40 dark:border-white/5 relative z-10"
                 >
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
+                    <div className="flex items-center gap-3 p-2.5 rounded-3xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
                         <div className="p-1.5 rounded-lg bg-red-50">
                             <AlertTriangle className="w-4 h-4 text-red-500" />
                         </div>

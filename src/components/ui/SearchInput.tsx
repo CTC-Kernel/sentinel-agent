@@ -89,8 +89,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                 className={cn(
                     'block w-full pl-10 pr-10 py-2.5',
                     'bg-white dark:bg-slate-800',
-                    'border border-slate-200 dark:border-slate-700',
-                    'rounded-xl',
+                    'border border-border/40 dark:border-slate-700',
+                    'rounded-3xl',
                     'text-sm text-slate-900 dark:text-white',
                     'placeholder:text-muted-foreground',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:border-brand-500',

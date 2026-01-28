@@ -201,7 +201,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
             <div className="flex items-center justify-between p-4 border-b border-border/50 bg-muted/20">
                 <div className="flex items-center gap-4">
                     <div className="relative">
-                        <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-3xl bg-muted/50 flex items-center justify-center">
                             <OSIcon os={agent.os} className="w-6 h-6 text-foreground" />
                         </div>
                         <div className={cn(
@@ -262,7 +262,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
             <div className="flex-1 overflow-hidden">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
                     <div className="px-4 pt-4">
-                        <TabsList className="w-full justify-start bg-muted/30 p-1 rounded-xl">
+                        <TabsList className="w-full justify-start bg-muted/30 p-1 rounded-3xl">
                             <TabsTrigger
                                 value="metrics"
                                 className="gap-2 data-[state=active]:bg-background rounded-lg"

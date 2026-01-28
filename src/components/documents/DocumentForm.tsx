@@ -400,7 +400,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-primary/20 font-bold"
+                    className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-primary/20 font-bold"
                 >
                     {initialData ? 'Enregistrer' : 'Créer'}
                 </Button>

@@ -179,10 +179,10 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     };
 
     return createPortal(
-        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-gradient-to-r from-brand-50 to-brand-100 dark:bg-slate-950/95 dark:from-transparent dark:to-transparent backdrop-blur-xl p-6 rounded-t-2xl rounded-b-none border border-slate-200 dark:border-slate-800 border-b-0 shadow-[0_-10px_40px_-15px_rgba(59,130,246,0.15)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-gradient-to-r from-brand-50 to-brand-100 dark:bg-slate-950/95 dark:from-transparent dark:to-transparent backdrop-blur-xl p-6 rounded-t-2xl rounded-b-none border border-border/40 dark:border-slate-800 border-b-0 shadow-[0_-10px_40px_-15px_rgba(59,130,246,0.15)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300 shadow-lg border border-slate-200/50 dark:border-slate-700/50">
+                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-3xl text-slate-600 dark:text-slate-300 shadow-lg border border-border/40 dark:border-slate-700/50">
                         <Rocket className="h-5 w-5" />
                     </div>
                     <div>
@@ -195,14 +195,14 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                         onClick={handleToggleExpand}
                         aria-label={isExpanded ? 'Réduire le guide de démarrage' : 'Développer le guide de démarrage'}
                         aria-expanded={isExpanded}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-muted-foreground hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-300"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl transition-all duration-200 text-muted-foreground hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-300"
                     >
                         <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                     </button>
                     <button
                         onClick={handleClose}
                         aria-label="Fermer le guide de démarrage"
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-muted-foreground hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-300"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl transition-all duration-200 text-muted-foreground hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-300"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -234,7 +234,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                         <div className="flex items-center gap-3">
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${step.isCompleted
                                 ? 'bg-success border-success text-white'
-                                : 'border-slate-300 dark:border-slate-600'
+                                : 'border-border/40 dark:border-slate-600'
                                 }`}>
                                 {step.isCompleted ? <Check className="h-3 w-3" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />}
                             </div>
@@ -253,7 +253,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 ))}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-800">
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Info className="h-3.5 w-3.5" />
                     <span>{t('dashboard.gettingStartedTip')}</span>

@@ -161,7 +161,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                 leaveFrom="opacity-70 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="relative transform overflow-hidden rounded-2xl glass-premium p-6 text-left shadow-xl transition-all sm:max-w-md w-full">
+                                <Dialog.Panel className="relative transform overflow-hidden rounded-3xl glass-premium p-6 text-left shadow-xl transition-all sm:max-w-md w-full border border-border/40">
                                     <div className="flex items-start gap-4">
                                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-warning-bg flex items-center justify-center">
                                             <AlertTriangle className="h-5 w-5 text-warning-text" />

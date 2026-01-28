@@ -228,7 +228,7 @@ const AnnotationTooltip: React.FC<{
       distanceFactor={15}
       style={{ pointerEvents: 'none' }}
     >
-      <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl px-4 py-3 shadow-xl border border-slate-700/50 max-w-[240px]">
+      <div className="bg-slate-900/95 backdrop-blur-xl rounded-3xl px-4 py-3 shadow-xl border border-slate-700/50 max-w-[240px]">
         <div className="flex items-center gap-2 mb-2">
           <span
             className="w-2.5 h-2.5 rounded-full"

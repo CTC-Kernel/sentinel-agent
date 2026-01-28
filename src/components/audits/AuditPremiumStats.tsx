@@ -65,7 +65,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden mb-6"
+            className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden mb-6"
         >
             <TechCorners />
 
@@ -134,9 +134,9 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                 {/* Stats Grid */}
                 <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {/* Total Audits */}
-                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-brand-50 rounded-xl">
+                            <div className="p-2 bg-brand-50 rounded-3xl">
                                 <Target className="w-4 h-4 text-brand-500" />
                             </div>
                         </div>
@@ -157,9 +157,9 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     </div>
 
                     {/* Completed */}
-                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-success-bg rounded-xl">
+                            <div className="p-2 bg-success-bg rounded-3xl">
                                 <ClipboardCheck className="w-4 h-4 text-success-500" />
                             </div>
                         </div>
@@ -180,9 +180,9 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     </div>
 
                     {/* Upcoming 30 days */}
-                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-info-bg rounded-xl">
+                            <div className="p-2 bg-info-bg rounded-3xl">
                                 <Calendar className="w-4 h-4 text-info-500" />
                             </div>
                         </div>
@@ -203,10 +203,10 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     </div>
 
                     {/* Findings */}
-                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 group hover:scale-[1.02] transition-transform">
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 group hover:scale-[1.02] transition-transform">
                         <div className="flex items-center justify-between mb-2">
                             <div className={cn(
-                                "p-2 rounded-xl",
+                                "p-2 rounded-3xl",
                                 findingsCount > 0 ? "bg-red-50" : "bg-success-bg"
                             )}>
                                 <AlertOctagon className={cn(
@@ -246,7 +246,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
             </div>
 
             {/* Bottom activity indicator */}
-            <div className="mt-4 pt-4 border-t border-white/60 dark:border-white/5 flex items-center justify-between">
+            <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Activity className="w-3.5 h-3.5" />
                     <span>{stats.inProgress} en cours • {stats.planned} planifiés</span>

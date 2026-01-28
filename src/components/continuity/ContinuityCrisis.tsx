@@ -82,7 +82,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                                     <select
                                         value={selectedScenario}
                                         onChange={(e) => setSelectedScenario(e.target.value as 'cyber' | 'fire' | 'supply' | 'staff')}
-                                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 focus-visible:ring-2 focus-visible:ring-red-500"
+                                        className="bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-border/40 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 focus-visible:ring-2 focus-visible:ring-red-500"
                                     >
                                         <option value="cyber">Cyberattaque (Ransomware/DDoS)</option>
                                         <option value="fire">Incendie / Sinistre Physique</option>
@@ -127,7 +127,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {crisisTeam.map(member => (
-                            <div key={member.uid} className="flex items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                            <div key={member.uid} className="flex items-center p-4 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
                                 <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 mr-3">
                                     <User className="w-5 h-5" />
                                 </div>

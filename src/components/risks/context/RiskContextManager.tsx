@@ -106,7 +106,7 @@ export const RiskContextManager: React.FC = () => {
     <div className="space-y-6">
       {/* Error Banner */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-900 flex items-center gap-3">
+        <div className="p-4 rounded-3xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-900 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500" />
           <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
@@ -200,7 +200,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
     <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
             <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
@@ -225,7 +225,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
             value={formData.description || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={3}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+            className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
             placeholder="Décrivez le contexte business de votre organisation..."
           />
         </div>
@@ -242,7 +242,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
               value={newActivity}
               onChange={(e) => setNewActivity(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addItem('activities', newActivity, setNewActivity)}
-              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              className="flex-1 px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               placeholder="Ajouter une activité..."
             />
             <Button variant="outline" onClick={() => addItem('activities', newActivity, setNewActivity)} aria-label="Ajouter l'activité">
@@ -277,7 +277,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
               value={newObjective}
               onChange={(e) => setNewObjective(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addItem('objectives', newObjective, setNewObjective)}
-              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              className="flex-1 px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               placeholder="Ajouter un objectif..."
             />
             <Button variant="outline" onClick={() => addItem('objectives', newObjective, setNewObjective)} aria-label="Ajouter l'objectif">
@@ -312,7 +312,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
               value={newProcess}
               onChange={(e) => setNewProcess(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addItem('criticalProcesses', newProcess, setNewProcess)}
-              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              className="flex-1 px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               placeholder="Ajouter un processus critique..."
             />
             <Button variant="outline" onClick={() => addItem('criticalProcesses', newProcess, setNewProcess)} aria-label="Ajouter le processus critique">
@@ -380,7 +380,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
     <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-3xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
             <Scale className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           </div>
           <div>
@@ -411,7 +411,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+            className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
             placeholder="Décrivez le contexte réglementaire..."
           />
         </div>
@@ -422,7 +422,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+            className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700"
           >
             <h4 className="font-medium text-slate-900 dark:text-white mb-4">Nouvelle réglementation</h4>
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -433,7 +433,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                   type="text"
                   value={newRegulation.name}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   placeholder="ex: Directive NIS2"
                 />
               </div>
@@ -443,7 +443,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                   id="reg-framework"
                   value={newRegulation.framework}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, framework: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
                   <option value="">Sélectionner...</option>
                   {FRAMEWORKS.map(fw => (
@@ -458,7 +458,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                   type="text"
                   value={newRegulation.obligations}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, obligations: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   placeholder="ex: Notification incidents 24h"
                 />
               </div>
@@ -469,7 +469,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                   type="date"
                   value={newRegulation.deadline}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, deadline: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -491,7 +491,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
             data.applicableRegulations.map((reg) => (
               <div
                 key={reg.id}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+                className="flex items-center gap-4 p-4 rounded-3xl bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700"
               >
                 <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
                   <FileText className="w-5 h-5 text-slate-600 dark:text-slate-300" />
@@ -607,7 +607,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
     <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-success-bg dark:bg-success-bg/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-3xl bg-success-bg dark:bg-success-bg/30 flex items-center justify-center">
             <Target className="w-5 h-5 text-success-text dark:text-success-text" />
           </div>
           <div>
@@ -632,7 +632,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
             value={formData.description || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={2}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+            className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
             placeholder="Décrivez la politique d'appétit au risque de votre organisation..."
           />
         </div>
@@ -647,7 +647,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
             {(Object.entries(LEVEL_CONFIG) as [keyof typeof LEVEL_CONFIG, typeof LEVEL_CONFIG.low][]).map(([level, config]) => {
               const styles = LEVEL_STYLES[config.color] || LEVEL_STYLES.emerald;
               return (
-                <div key={level} className={`p-4 rounded-xl border-2 ${styles.border} ${styles.bg}`}>
+                <div key={level} className={`p-4 rounded-3xl border-2 ${styles.border} ${styles.bg}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-3 h-3 rounded-full ${styles.dot}`} />
                     <label htmlFor={`threshold-${level}`} className={`font-medium ${styles.text} cursor-pointer`}>{config.label}</label>
@@ -659,7 +659,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                     max="25"
                     value={formData.acceptableRiskLevels[level]}
                     onChange={(e) => updateLevel(level, parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
+                    className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">{config.description}</p>
                 </div>
@@ -676,7 +676,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
           <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">Score de risque déclenchant une escalade automatique</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700">
               <div className="flex items-center gap-2 mb-2">
                 <ChevronRight className="w-4 h-4 text-blue-500" />
                 <label htmlFor="escalation-automatic" className="font-medium text-slate-900 dark:text-white cursor-pointer">Escalade automatique</label>
@@ -688,13 +688,13 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 max="25"
                 value={formData.escalationThresholds.automatic}
                 onChange={(e) => updateThreshold('automatic', parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
+                className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
               <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification automatique au responsable</p>
             </div>
 
 
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700">
               <div className="flex items-center gap-2 mb-2">
                 <ChevronRight className="w-4 h-4 text-amber-500" />
                 <ChevronRight className="-ml-3 w-4 h-4 text-amber-500" />
@@ -707,13 +707,13 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 max="25"
                 value={formData.escalationThresholds.management}
                 onChange={(e) => updateThreshold('management', parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
+                className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
               <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Escalade à la direction générale</p>
             </div>
 
 
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700">
               <div className="flex items-center gap-2 mb-2">
                 <ChevronRight className="w-4 h-4 text-red-500" />
                 <ChevronRight className="-ml-3 w-4 h-4 text-red-500" />
@@ -727,7 +727,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 max="25"
                 value={formData.escalationThresholds.board}
                 onChange={(e) => updateThreshold('board', parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
+                className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
               <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification au conseil d'administration</p>
             </div>
@@ -768,7 +768,7 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
       {items.map((item, index) => (
         <div
           key={item.level}
-          className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+          className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700"
         >
           <div className="flex items-center gap-4 mb-3">
             <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-bold">
@@ -780,7 +780,7 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
               type="text"
               value={item.name}
               onChange={(e) => onUpdate(type, index, 'name', e.target.value)}
-              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+              className="flex-1 px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
               placeholder="Nom du niveau"
             />
           </div>
@@ -790,7 +790,7 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
             value={item.description}
             onChange={(e) => onUpdate(type, index, 'description', e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none"
+            className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none"
             placeholder="Description du niveau..."
           />
 
@@ -828,7 +828,7 @@ const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onS
     <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-warning-bg dark:bg-warning-bg/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-3xl bg-warning-bg dark:bg-warning-bg/30 flex items-center justify-center">
             <BarChart3 className="w-5 h-5 text-warning-text dark:text-warning-text" />
           </div>
           <div>

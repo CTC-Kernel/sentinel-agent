@@ -71,7 +71,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                        className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl transition-colors"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -87,7 +87,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                         key={template.id}
                                         aria-label={`Sélectionner le modèle ${template.name}`}
                                         onClick={() => setSelectedTemplate(template)}
-                                        className="text-left p-6 rounded-xl border-2 border-slate-200 dark:border-white/10 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group"
+                                        className="text-left p-6 rounded-3xl border-2 border-border/40 dark:border-border/40 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group"
                                     >
                                         <div className="flex items-start gap-4">
                                             <div className="text-4xl">{template.icon}</div>
@@ -122,7 +122,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     ) : (
                         /* Template Configuration */
                         <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-6">
-                            <div className="glass-premium p-4 rounded-xl border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900">
+                            <div className="glass-premium p-4 rounded-3xl border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900">
                                 <div className="flex items-center gap-3">
                                     <span className="text-3xl">{selectedTemplate.icon}</span>
                                     <div>
@@ -152,7 +152,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                     {...register('projectName')}
                                     type="text"
                                     placeholder="Ex: Certification ISO 27001 2025"
-                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                 />
                                 {errors.projectName && <p className="text-red-500 text-xs mt-1">{errors.projectName.message}</p>}
                             </div>
@@ -165,7 +165,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                     id="start-date"
                                     {...register('startDate')}
                                     type="date"
-                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                 />
                                 {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate.message}</p>}
                             </div>
@@ -193,7 +193,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 {errors.managerId && <p className="text-red-500 text-xs mt-1">{errors.managerId.message}</p>}
                             </div>
 
-                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl">
                                 <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Ce qui sera créé:
                                 </h4>
@@ -210,14 +210,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                     type="button"
                                     aria-label="Retour à la sélection de modèle"
                                     onClick={() => setSelectedTemplate(null)}
-                                    className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                    className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-3xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                                 >
                                     Retour
                                 </button>
                                 <button
                                     type="submit"
                                     aria-label="Créer le projet"
-                                    className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
+                                    className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
                                 >
                                     Créer le Projet
                                 </button>

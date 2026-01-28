@@ -176,7 +176,7 @@ export const ThreatToRiskDrawer: React.FC<ThreatToRiskDrawerProps> = ({ isOpen, 
                     />
                 </div>
 
-                <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 shrink-0 flex justify-end gap-3 bg-white dark:bg-slate-900 z-10">
+                <div className="px-6 py-4 border-t border-border/40 dark:border-border/40 shrink-0 flex justify-end gap-3 bg-white dark:bg-slate-900 z-10">
                     <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
                         Annuler
                     </Button>

@@ -69,7 +69,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
                 transition={{ duration: 0.4, ease: appleEasing }}
             >
                 <motion.div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
+                    className={`w-10 h-10 rounded-3xl flex items-center justify-center mb-3 shadow-sm border border-border/40 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
                     animate={floatingAnimation}
                 >
                     <Icon className="w-5 h-5" />
@@ -91,7 +91,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
             }}
         >
             <motion.div
-                className={`w-20 h-20 rounded-4xl flex items-center justify-center mb-6 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
+                className={`w-20 h-20 rounded-4xl flex items-center justify-center mb-6 shadow-sm border border-border/40 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
                 variants={{
                     hidden: { scale: 0, rotate: -180 },
                     visible: { scale: 1, rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 15 } }
@@ -166,7 +166,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
                     <motion.button
                         onClick={onSecondaryAction}
                         aria-label={secondaryActionLabel}
-                        className="px-6 py-3 text-muted-foreground hover:text-foreground rounded-xl font-medium text-sm transition-colors duration-normal"
+                        className="px-6 py-3 text-muted-foreground hover:text-foreground rounded-3xl font-medium text-sm transition-colors duration-normal"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                     >
@@ -178,7 +178,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
             {/* Contextual tip */}
             {tip && (
                 <motion.div
-                    className="mt-8 flex items-start gap-2 max-w-sm p-4 rounded-xl bg-info-bg/50 border border-info-border/30"
+                    className="mt-8 flex items-start gap-2 max-w-sm p-4 rounded-3xl bg-info-bg/50 border border-info-border/30"
                     variants={{
                         hidden: { opacity: 0, y: 20 },
                         visible: { opacity: 1, y: 0, transition: { ease: appleEasing, delay: 0.2 } }

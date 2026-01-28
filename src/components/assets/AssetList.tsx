@@ -134,10 +134,10 @@ export const AssetList = React.memo<AssetListProps>(({
                 const TypeIcon = styles.icon;
                 return (
                     <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-xl ${styles.bg} ${styles.color} border ${styles.border}`}>
+                        <div className={`p-1.5 rounded-3xl ${styles.bg} ${styles.color} border ${styles.border}`}>
                             <TypeIcon className="h-3.5 w-3.5" />
                         </div>
-                        <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold border shadow-sm ${styles.badge}`}>
+                        <span className={`px-2 py-0.5 rounded-3xl text-[11px] font-bold border shadow-sm ${styles.badge}`}>
                             {row.original.type}
                         </span>
                     </div>
@@ -147,7 +147,7 @@ export const AssetList = React.memo<AssetListProps>(({
         {
             header: t('common.criticality'),
             accessorKey: 'confidentiality',
-            cell: ({ row }) => <span className={`px-2 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
+            cell: ({ row }) => <span className={`px-2 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
         },
         {
             header: t('common.owner'),
@@ -309,7 +309,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                         <Tooltip content={t('assets.printLabel')}>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
-                                                className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 dark:text-slate-300 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="p-2 bg-white/90 dark:bg-white/10 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                                 disabled={isGeneratingLabels}
                                             >
                                                 <Tag className="h-4 w-4" />
@@ -319,7 +319,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             <Tooltip content={t('assets.editAsset')}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onEdit(asset); }}
-                                                    className="p-2 bg-background/90 dark:bg-muted/10 rounded-xl text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                                                    className="p-2 bg-background/90 dark:bg-muted/10 rounded-3xl text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>
@@ -329,7 +329,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             <Tooltip content={t('assets.deleteAssetTooltip')}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onDelete(asset.id, asset.name); }}
-                                                    className="p-2 bg-background/90 dark:bg-muted/10 rounded-xl text-muted-foreground hover:text-destructive shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                                                    className="p-2 bg-background/90 dark:bg-muted/10 rounded-3xl text-muted-foreground hover:text-destructive shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
@@ -342,18 +342,18 @@ export const AssetList = React.memo<AssetListProps>(({
                                         {React.createElement(getTypeStyles(asset.type).icon, { className: "h-6 w-6" })}
                                     </div>
                                     <div className="flex gap-2">
-                                        <span className={`px-2 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
+                                        <span className={`px-2 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
                                 <div className="flex items-center gap-2 mb-4">
-                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-xl border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
+                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-3xl border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
                                     <span className="text-muted-foreground/50">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <img
                                             src={getUserAvatarUrl(users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.photoURL, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role)}
                                             alt={`${asset.owner} avatar`}
-                                            className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                            className="w-4 h-4 rounded-full object-cover border border-border/40 bg-slate-100 dark:bg-slate-800"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role);
@@ -376,7 +376,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             })()}
                                         </span>
                                     </div>
-                                    {warrantyExpired && <span className="text-[11px] font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-xl shadow-sm">{t('assets.warrantyExp')}</span>}
+                                    {warrantyExpired && <span className="text-[11px] font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-3xl shadow-sm">{t('assets.warrantyExp')}</span>}
                                 </div>
                             </div>
                         </div>

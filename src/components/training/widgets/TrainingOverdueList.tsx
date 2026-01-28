@@ -45,8 +45,8 @@ const getDaysOverdue = (dueDate: Date): number => {
 };
 
 const OverdueItemSkeleton: React.FC = () => (
-  <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-muted">
-    <Skeleton className="w-10 h-10 rounded-xl" />
+  <div className="flex items-center gap-4 p-4 rounded-3xl bg-muted/30 border border-muted">
+    <Skeleton className="w-10 h-10 rounded-3xl" />
     <div className="flex-1">
       <Skeleton className="h-4 w-48 rounded-md mb-2" />
       <Skeleton className="h-3 w-32 rounded-md" />
@@ -88,7 +88,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
 
   if (isLoading) {
     return (
-      <div className="glass-premium p-6 rounded-3xl border border-white/10">
+      <div className="glass-premium p-6 rounded-3xl border border-border/40">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -112,13 +112,13 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
   const hasMore = assignments.length > maxItems;
 
   return (
-    <div className="glass-premium p-6 rounded-3xl border border-white/10 h-full relative overflow-hidden">
+    <div className="glass-premium p-6 rounded-3xl border border-border/40 h-full relative overflow-hidden">
       {/* Background Decorator */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
 
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="p-2.5 rounded-xl bg-red-50">
+          <div className="p-2.5 rounded-3xl bg-red-50">
             <AlertTriangle className="w-5 h-5 text-red-500" />
           </div>
           <div>
@@ -167,10 +167,10 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group flex items-center gap-4 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30 border border-slate-100 dark:border-white/5 hover:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all duration-300"
+                  className="group flex items-center gap-4 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30 border border-border/40 dark:border-white/5 hover:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all duration-300"
                 >
                   {/* User Avatar Placeholder */}
-                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center border border-slate-100 dark:border-white/5 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-10 h-10 rounded-3xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center border border-border/40 dark:border-white/5 group-hover:scale-110 transition-transform duration-300">
                     <User className="w-5 h-5 text-slate-400 group-hover:text-red-500 transition-colors" />
                   </div>
 
@@ -195,7 +195,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => handleSendReminder(assignment.id)}
-                    className="shrink-0 opacity-0 group-hover:opacity-70 transition-all transform translate-x-2 group-hover:translate-x-0 bg-white dark:bg-slate-800 shadow-sm border-slate-200 dark:border-white/10 hover:border-red-2000 hover:text-red-600 dark:hover:text-red-400"
+                    className="shrink-0 opacity-0 group-hover:opacity-70 transition-all transform translate-x-2 group-hover:translate-x-0 bg-white dark:bg-slate-800 shadow-sm border-border/40 dark:border-border/40 hover:border-red-2000 hover:text-red-600 dark:hover:text-red-400"
                   >
                     <Mail className="w-4 h-4" />
                   </Button>

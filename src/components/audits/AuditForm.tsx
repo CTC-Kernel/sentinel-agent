@@ -208,7 +208,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     description={t('audits.form.auditAssistant.desc')}
                 />
             )}
-            <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+            <div className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 space-y-6">
                     <FloatingLabelInput
@@ -225,7 +225,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                             {...register('description')}
                             rows={3}
                             disabled={readOnly}
-                            className="w-full px-4 py-3.5 glass-input border border-white/60 dark:border-white/10 rounded-2xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-brand-400 outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm"
+                            className="w-full px-4 py-3.5 glass-input border border-border/40 dark:border-border/40 rounded-2xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-brand-400 outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm"
                             placeholder={t('audits.form.descriptionPlaceholder')}
                         />
                         {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
@@ -392,20 +392,20 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             </div>
 
             {!readOnly && (
-                <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100 dark:border-white/5">
+                <div className="flex justify-end space-x-4 pt-6 border-t border-border/40 dark:border-white/5">
                     <Button
                         type="button"
                         onClick={onCancel}
                         variant="ghost"
                         disabled={isLoading}
-                        className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                        className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors"
                     >
                         {t('audits.form.cancel')}
                     </Button>
                     <Button
                         type="submit"
                         isLoading={isLoading}
-                        className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
+                        className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
                     >
                         {existingAudit ? t('audits.form.save') : t('audits.form.plan')}
                     </Button>

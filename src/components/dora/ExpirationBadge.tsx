@@ -109,7 +109,7 @@ export const ExpirationCountBadge: React.FC<ExpirationCountBadgeProps> = ({
         <button
             onClick={onClick}
             className={cn(
-                'inline-flex items-center gap-2 px-3 py-2 rounded-xl border transition-all',
+                'inline-flex items-center gap-2 px-3 py-2 rounded-3xl border transition-all',
                 colors.bg,
                 colors.text,
                 colors.border,
@@ -149,7 +149,7 @@ export const ExpirationAlertBanner: React.FC<ExpirationAlertBannerProps> = ({
     return (
         <div
             className={cn(
-                'flex items-center justify-between p-4 rounded-xl border',
+                'flex items-center justify-between p-4 rounded-3xl border',
                 isUrgent
                     ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 dark:border-red-800'
                     : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 dark:border-amber-800',

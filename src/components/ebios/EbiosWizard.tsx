@@ -102,14 +102,14 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
     <div className="min-h-screen relative flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
       <MasterpieceBackground />
       {/* Header */}
-      <header className="sticky top-0 z-50 glass-premium border-b border-white/10 shadow-sm backdrop-blur-xl">
+      <header className="sticky top-0 z-50 glass-premium border-b border-border/40 shadow-sm backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Left: Back Button & Title */}
             <div className="flex items-center gap-5">
               <button
                 onClick={handleExit}
-                className="p-2.5 -ml-2 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                className="p-2.5 -ml-2 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                 title={t('common.exit')}
               >
                 <X className="w-5 h-5" />
@@ -179,7 +179,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
         {/* Full Stepper (Mobile/Tablet) */}
         <div className="lg:hidden mb-8">
-          <PremiumCard glass className="p-4">
+          <PremiumCard glass className="p-4 rounded-3xl border-border/40">
             <EbiosWorkshopStepper
               workshops={analysis.workshops}
               currentWorkshop={currentWorkshop}
@@ -190,7 +190,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
         {/* Workshop Header & Description */}
         <div className="mb-8 animate-fade-in-up">
-          <PremiumCard glass className="relative overflow-hidden group">
+          <PremiumCard glass className="relative overflow-hidden group rounded-4xl border-border/40">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 dark:bg-blue-400/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
             <div className="relative flex flex-col md:flex-row md:items-start justify-between gap-6">
@@ -211,7 +211,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                   {workshopInfo.objectives[locale].map((objective, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-sm text-slate-600 dark:text-slate-300"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-100/50 dark:bg-slate-800/50 border border-border/40 text-sm text-slate-600 dark:text-slate-300"
                     >
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                       {objective}
@@ -249,7 +249,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
         </div>
 
         {/* Navigation Footer */}
-        <div className="mt-12 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 pb-20">
+        <div className="mt-12 pt-6 border-t border-border/40 pb-20">
           <div className="flex items-center justify-between">
             <button
               onClick={handlePrevious}
@@ -257,7 +257,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
               className={cn(
                 "group flex items-center gap-3 px-6 py-3 rounded-2xl font-medium transition-all duration-300",
                 canGoBack
-                  ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm hover:translate-x-1"
+                  ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 border border-border/40 shadow-sm hover:translate-x-1"
                   : "opacity-70 cursor-not-allowed text-slate-400 dark:text-slate-300"
               )}
             >
@@ -276,7 +276,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                   className={cn(
                     "px-6 py-3 rounded-2xl font-medium transition-all duration-300 border",
                     hasUnsavedChanges && !isSaving
-                      ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                      ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-border/40 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
                       : "bg-transparent border-transparent text-slate-400 dark:text-slate-300 cursor-not-allowed"
                   )}
                 >
@@ -322,7 +322,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
       {/* Exit Confirmation Modal */}
       {showExitConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <PremiumCard glass className="max-w-md w-full p-6 shadow-2xl border-white/20">
+          <PremiumCard glass className="max-w-md w-full p-6 shadow-2xl border-border/40 rounded-3xl">
             <div className="flex items-center gap-3 mb-4 text-amber-500">
               <div className="p-2 bg-amber-50 rounded-lg">
                 <div className="w-6 h-6 rounded-full border-2 border-amber-500 flex items-center justify-center">?</div>
@@ -339,19 +339,19 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowExitConfirm(false)}
-                className="px-5 py-2.5 rounded-xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-5 py-2.5 rounded-3xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={() => navigate(-1)}
-                className="px-5 py-2.5 rounded-xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors"
+                className="px-5 py-2.5 rounded-3xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors"
               >
                 {t('common.discardChanges')}
               </button>
               <button
                 onClick={confirmExit}
-                className="px-6 py-2.5 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
+                className="px-6 py-2.5 rounded-3xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
               >
                 {t('common.saveAndExit')}
               </button>

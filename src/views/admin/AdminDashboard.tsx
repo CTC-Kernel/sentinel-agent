@@ -22,16 +22,16 @@ const AdminDashboard: React.FC = () => {
             </header>
 
             {/* Navigation Tabs */}
-            <div className="flex space-x-4 border-b border-border pb-4 overflow-x-auto">
+            <div className="flex space-x-2 border-b border-border/40 pb-4 overflow-x-auto no-scrollbar">
                 {(['overview', 'tenants', 'users', 'system', 'audit'] as const).map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={cn(
-                            "px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
+                            "px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all whitespace-nowrap",
                             activeTab === tab
-                                ? "bg-primary/10 text-primary border border-primary/20"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                ? "bg-brand-500 text-white shadow-lg shadow-brand-500/20 border-transparent"
+                                : "text-slate-500 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
                         )}
                     >
                         {tab.charAt(0).toUpperCase() + tab.slice(1)}

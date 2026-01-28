@@ -42,7 +42,7 @@ export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = React.mem
                             className="p-4 rounded-2xl bg-card/80 border border-border hover:bg-card transition-all group flex items-center justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
                         >
                             <div className="flex items-center">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-error-bg to-warning-bg dark:from-error/10 dark:to-warning/10 border border-error-border dark:border-destructive/20 flex items-center justify-center mr-4 text-error-text dark:text-error font-black text-lg shadow-inner">{risk.score}</div>
+                                <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-error-bg to-warning-bg dark:from-error/10 dark:to-warning/10 border border-error-border dark:border-destructive/20 flex items-center justify-center mr-4 text-error-text dark:text-error font-black text-lg shadow-inner">{risk.score}</div>
                                 <div>
                                     <h4 className="text-sm font-bold text-foreground leading-tight">{risk.threat}</h4>
                                     <p className="text-xs text-muted-foreground font-medium mt-1">{risk.vulnerability}</p>

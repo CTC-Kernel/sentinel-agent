@@ -254,7 +254,7 @@ export const SecurityDashboard: React.FC = () => {
             {metrics.anomalies.recent.map((anomaly, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg"
+                className="flex items-start gap-3 p-3 border border-border/40 dark:border-slate-700 rounded-lg"
               >
                 <span className={`px-2 py-1 rounded text-xs font-medium ${getSeverityColor(anomaly.severity)}`}>
                   {anomaly.severity}

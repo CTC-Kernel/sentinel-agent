@@ -48,9 +48,9 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
     };
 
     return (
-        <div key={req.id} className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-600 group">
+        <div key={req.id} className="bg-white dark:bg-slate-800 border border-border/40 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-600 group">
             <div
-                className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl"
+                className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-3xl"
                 onClick={() => onExpand(isExpanded ? null : req.id)}
                 role="button"
                 tabIndex={0}
@@ -90,10 +90,10 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
             </div>
 
             {isExpanded && (
-                <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
+                <div className="p-6 border-t border-border/40 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
                     <div className="mb-6">
                         <h5 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-wider mb-2">Description</h5>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-white/5">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-3xl border border-border/40 dark:border-white/5">
                             {req.description}
                         </p>
                     </div>
@@ -107,7 +107,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                     const docObj = documents.find(d => d.id === docId);
                                     if (!docObj) return null;
                                     return (
-                                        <div key={docId} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10 text-sm hover:border-brand-300 transition-colors group">
+                                        <div key={docId} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40 text-sm hover:border-brand-300 transition-colors group">
                                             <div className="flex items-center overflow-hidden">
                                                 <FileText className="w-4 h-4 text-brand-500 mr-2 flex-shrink-0" />
                                                 <span className="truncate font-medium text-slate-700 dark:text-slate-200">{docObj.title}</span>
@@ -120,14 +120,14 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                 })}
                             </div>
                         ) : (
-                            <div className="text-center py-6 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
+                            <div className="text-center py-6 bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-border/40 dark:border-border/40">
                                 <p className="text-xs text-slate-500 dark:text-slate-300 italic">Aucun document fourni pour le moment.</p>
                             </div>
                         )}
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-slate-200 dark:border-white/10">
+                    <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-border/40 dark:border-border/40">
                         <div className="flex-1">
                             <h5 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-wider mb-2">Ajouter une preuve</h5>
                             <FileUploader
@@ -146,7 +146,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                         onClick={() => handleAction('accept', () => onStatusChange(req, 'Accepted'))}
                                         disabled={!!processingAction}
                                         aria-label="Accepter la demande"
-                                        className="w-full px-3 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                                        className="w-full px-3 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                                     >
                                         {processingAction === 'accept' ? <span className="animate-spin mr-2">⌛</span> : <ShieldCheck className="w-4 h-4 mr-2" />}
                                         Accepter
@@ -158,7 +158,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                         onClick={() => handleAction('reject', () => onStatusChange(req, 'Rejected'))}
                                         disabled={!!processingAction}
                                         aria-label="Rejeter la demande"
-                                        className="w-full px-3 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-600 dark:hover:bg-red-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                                        className="w-full px-3 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-600 dark:hover:bg-red-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                                     >
                                         {processingAction === 'reject' ? <span className="animate-spin mr-2">⌛</span> : <X className="w-4 h-4 mr-2" />}
                                         Rejeter
@@ -169,7 +169,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                     onClick={() => handleAction('delete', () => onDelete(req.id))}
                                     disabled={!!processingAction}
                                     aria-label="Supprimer la demande"
-                                    className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                                    className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                                 >
                                     {processingAction === 'delete' ? <span className="animate-spin mr-2">⌛</span> : <Trash2 className="w-4 h-4 mr-2" />}
                                     Supprimer

@@ -36,7 +36,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
                         {linkedControls.map(ctrl => (
                             <div
                                 key={ctrl.id}
-                                className="p-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-between group hover:border-brand-200 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                                className="p-3 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl flex items-center justify-between group hover:border-brand-200 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                                 role="button"
                                 tabIndex={0}
                             >
@@ -57,7 +57,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
 
             {/* External Links */}
             {selectedDocument.storageProvider !== 'firebase' && selectedDocument.externalUrl && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl flex items-center gap-3">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-3xl flex items-center gap-3">
                     <LinkIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <div className="flex-1">
                         <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Lien Externe</p>
@@ -78,7 +78,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
             {selectedDocument.url && (
                 <div>
                     <h3 className="text-sm font-bold bg-slate-100 dark:bg-slate-800 p-2 rounded-lg inline-block text-slate-700 dark:text-slate-300 mb-4">Fichier</h3>
-                    <div className="flex items-center gap-4 p-4 border rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                    <div className="flex items-center gap-4 p-4 border rounded-3xl bg-slate-50 dark:bg-slate-800/50">
                         <div className="h-12 w-12 bg-white dark:bg-slate-700 rounded-lg flex items-center justify-center shadow-sm">
                             <FileIcon className="h-6 w-6 text-brand-500" />
                         </div>

@@ -122,7 +122,7 @@ interface FAQItemProps {
 }
 
 const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle }) => (
-    <div className="border-b border-slate-100 dark:border-white/5 last:border-b-0">
+    <div className="border-b border-border/40 dark:border-white/5 last:border-b-0">
         <button
             onClick={onToggle}
             className="w-full flex items-center justify-between py-3 text-left group"
@@ -611,7 +611,7 @@ export const AgentManagement: React.FC = () => {
                     <Button
                         onClick={handleGenerateToken}
                         disabled={generatingToken}
-                        className="rounded-xl bg-brand-500 dark:bg-brand-600 shadow-lg shadow-brand-500/20"
+                        className="rounded-3xl bg-brand-500 dark:bg-brand-600 shadow-lg shadow-brand-500/20"
                     >
                         {generatingToken ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                         {generatingToken ? 'Génération...' : 'Enrôler un Agent'}
@@ -625,7 +625,7 @@ export const AgentManagement: React.FC = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-2">
@@ -668,7 +668,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="glass-premium p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-border/40 dark:border-border/40 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-success-bg rounded-2xl">
@@ -698,7 +698,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-premium p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-border/40 dark:border-border/40 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-slate-500/10 rounded-2xl">
@@ -728,7 +728,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="glass-premium p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-border/40 dark:border-border/40 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-red-50 rounded-2xl">
@@ -764,7 +764,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">
@@ -813,7 +813,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">
@@ -862,7 +862,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 dark:border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">
@@ -943,9 +943,9 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.35 }}
-                        className="bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-white/60 dark:border-white/10 overflow-hidden backdrop-blur-sm"
+                        className="bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-border/40 dark:border-border/40 overflow-hidden backdrop-blur-sm"
                     >
-                        <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                        <div className="px-6 py-4 border-b border-border/40 dark:border-white/5 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Server className="w-4 h-4 text-brand-500" />
                                 Liste des Agents ({agentStats.total})
@@ -957,7 +957,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
-                                    <tr className="border-b border-slate-200 dark:border-white/10">
+                                    <tr className="border-b border-border/40 dark:border-border/40">
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Agent</th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Système</th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">État</th>
@@ -988,7 +988,7 @@ export const AgentManagement: React.FC = () => {
                                                     <Button
                                                         onClick={handleGenerateToken}
                                                         size="sm"
-                                                        className="mt-2 rounded-xl bg-brand-500"
+                                                        className="mt-2 rounded-3xl bg-brand-500"
                                                     >
                                                         <ShieldCheck className="w-4 h-4 mr-2" />
                                                         Enrôler maintenant
@@ -1040,7 +1040,7 @@ export const AgentManagement: React.FC = () => {
                                                                 handleDelete(agent.id);
                                                             }}
                                                             aria-label="Supprimer"
-                                                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-all opacity-0 group-hover:opacity-70"
+                                                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 rounded-3xl transition-all opacity-0 group-hover:opacity-70"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -1062,10 +1062,10 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-4"
+                        className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-border/40 space-y-4"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-success-bg rounded-xl text-success-600 dark:text-success-400">
+                            <div className="p-2.5 bg-success-bg rounded-3xl text-success-600 dark:text-success-400">
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Qu'est-ce que l'Agent ?</h3>
@@ -1100,7 +1100,7 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.45 }}
-                        className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-6"
+                        className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 dark:border-border/40 space-y-6"
                     >
                         {/* Tab Navigation */}
                         <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl">
@@ -1114,7 +1114,7 @@ export const AgentManagement: React.FC = () => {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={cn(
-                                        "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all",
+                                        "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-3xl text-xs font-medium transition-all",
                                         activeTab === tab.id
                                             ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
                                             : "text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300"
@@ -1212,7 +1212,7 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     {/* Mobile Apps */}
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Applications Mobiles</h4>
                                         <div className="grid grid-cols-2 gap-3">
                                             <a
@@ -1249,7 +1249,7 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     {/* Quick Install */}
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Installation rapide</h4>
                                         <ol className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                                             <li className="flex gap-2">
@@ -1293,7 +1293,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/quickstart"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-3xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Zap className="w-4 h-4 text-amber-500" />
@@ -1308,7 +1308,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/configuration"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-3xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Settings className="w-4 h-4 text-slate-500" />
@@ -1323,7 +1323,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/security"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-3xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Shield className="w-4 h-4 text-success-500" />
@@ -1338,7 +1338,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/troubleshooting"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-3xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -1353,7 +1353,7 @@ export const AgentManagement: React.FC = () => {
                                             href="https://docs.sentinel-grc.com/agent/api"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-3xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Network className="w-4 h-4 text-brand-500" />
@@ -1367,14 +1367,14 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     {/* System Requirements */}
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
                                             <HardDrive className="w-3.5 h-3.5" />
                                             Configuration requise
                                         </h4>
                                         <div className="space-y-3">
                                             {Object.entries(systemRequirements).map(([os, req]) => (
-                                                <div key={os} className="p-3 rounded-xl bg-slate-50 dark:bg-white/5">
+                                                <div key={os} className="p-3 rounded-3xl bg-slate-50 dark:bg-white/5">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         {os === 'windows' && <Monitor className="w-4 h-4 text-blue-500" />}
                                                         {os === 'macos' && <Cpu className="w-4 h-4 text-slate-600" />}
@@ -1405,12 +1405,12 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     {/* GitHub */}
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                         <a
                                             href="https://github.com/sentinel/agent/releases"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-900 dark:bg-black/50 hover:bg-slate-800 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-3xl bg-slate-900 dark:bg-black/50 hover:bg-slate-800 transition-all group"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Package className="w-4 h-4 text-white" />
@@ -1448,7 +1448,7 @@ export const AgentManagement: React.FC = () => {
                                         ))}
                                     </div>
 
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                         <div className="p-4 rounded-2xl bg-brand-50 dark:bg-brand-900 border border-brand-200 dark:border-brand-700">
                                             <div className="flex items-start gap-3">
                                                 <HelpCircle className="w-5 h-5 text-brand-500 mt-0.5" />
@@ -1507,7 +1507,7 @@ export const AgentManagement: React.FC = () => {
                                             className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-brand-50 rounded-xl">
+                                                <div className="p-2.5 bg-brand-50 rounded-3xl">
                                                     <Headset className="w-5 h-5 text-brand-500" />
                                                 </div>
                                                 <div>
@@ -1525,7 +1525,7 @@ export const AgentManagement: React.FC = () => {
                                             className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-red-50 rounded-xl">
+                                                <div className="p-2.5 bg-red-50 rounded-3xl">
                                                     <Bug className="w-5 h-5 text-red-500" />
                                                 </div>
                                                 <div>
@@ -1543,7 +1543,7 @@ export const AgentManagement: React.FC = () => {
                                             className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-purple-500/10 rounded-xl">
+                                                <div className="p-2.5 bg-purple-500/10 rounded-3xl">
                                                     <Activity className="w-5 h-5 text-purple-500" />
                                                 </div>
                                                 <div>
@@ -1556,7 +1556,7 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     {/* Agent Status Check */}
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                                             Diagnostic rapide
                                         </h4>
@@ -1565,7 +1565,7 @@ export const AgentManagement: React.FC = () => {
                                                 Exécutez cette commande pour vérifier l'état de l'agent :
                                             </p>
                                             <div className="relative">
-                                                <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-xl text-[11px] text-success-400 overflow-x-auto">
+                                                <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-3xl text-[11px] text-success-400 overflow-x-auto">
                                                     <code>sentinel-agent status --verbose</code>
                                                 </pre>
                                                 <button
@@ -1581,7 +1581,7 @@ export const AgentManagement: React.FC = () => {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="w-full rounded-xl text-xs"
+                                                className="w-full rounded-3xl text-xs"
                                                 onClick={() => {
                                                     toast.info("Vérification des agents en cours...");
                                                 }}
@@ -1593,7 +1593,7 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     {/* Response Times */}
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="pt-4 border-t border-border/40 dark:border-white/5">
                                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
                                             Temps de réponse
                                         </h4>

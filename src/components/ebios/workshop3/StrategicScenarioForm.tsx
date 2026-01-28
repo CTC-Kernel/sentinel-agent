@@ -169,9 +169,9 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <PremiumCard glass className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-100 dark:bg-amber-900/30">
+            <div className="p-2 rounded-3xl bg-red-100 dark:bg-amber-900/30">
               <Map className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
@@ -187,7 +187,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -206,10 +206,10 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
               type="text"
               placeholder={t('ebios.workshop3.scenarioNamePlaceholder', 'Ex: Exfiltration de données via fournisseur')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                 errors.name
                   ? "border-red-500"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
             />
             {errors.name && (
@@ -226,10 +226,10 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
               {...register('srOvPairId')}
               id="srOvPairId"
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                 errors.srOvPairId
                   ? "border-red-500"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
             >
               <option value="">{t('ebios.workshop3.selectPair', 'Sélectionner un couple SR/OV...')}</option>
@@ -266,7 +266,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                         "px-3 py-1.5 rounded-lg border text-sm transition-all",
                         isSelected
                           ? "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                          : "border-border/40 dark:border-slate-700 hover:border-border/40"
                       )}
                     >
                       {event.name}
@@ -301,7 +301,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                         "px-3 py-1.5 rounded-lg border text-sm transition-all",
                         isSelected
                           ? "border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                          : "border-border/40 dark:border-slate-700 hover:border-border/40"
                       )}
                     >
                       {path.name}
@@ -322,12 +322,12 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
               id="description"
               rows={3}
               placeholder={t('ebios.workshop3.narrativePlaceholder', 'Décrivez comment l\'attaquant pourrait exploiter ce scénario...')}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
+              className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
             />
           </div>
 
           {/* Gravity Evaluation - Story 17.4 */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 dark:border-red-800">
+          <div className="p-4 rounded-3xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 dark:border-red-800">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -353,10 +353,10 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                   type="button"
                   onClick={() => setValue('gravity', g.level)}
                   className={cn(
-                    "p-3 rounded-xl border-2 transition-all text-center",
+                    "p-3 rounded-3xl border-2 transition-all text-center",
                     watchedGravity === g.level
                       ? `border-${g.color}-500 bg-${g.color}-100 dark:bg-${g.color}-900/30`
-                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                      : "border-border/40 dark:border-slate-700 hover:border-border/40"
                   )}
                 >
                   <span className={cn(
@@ -386,10 +386,10 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                   rows={2}
                   placeholder={t('ebios.workshop3.gravityJustificationPlaceholder', 'Expliquez pourquoi cette gravité a été attribuée...')}
                   className={cn(
-                    "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 resize-none",
+                    "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800 resize-none",
                     errors.gravityJustification
                       ? "border-red-500"
-                      : "border-slate-200 dark:border-slate-700"
+                      : "border-border/40 dark:border-slate-700"
                   )}
                 />
                 {errors.gravityJustification && (
@@ -400,7 +400,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-slate-700/50">
             <div>
               {isEditing && onDelete && (
                 <Button

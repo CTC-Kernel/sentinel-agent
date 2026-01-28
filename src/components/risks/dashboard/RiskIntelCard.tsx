@@ -58,14 +58,14 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
 
     // --- 3. Render "The Command Center" ---
     return (
-        <PremiumCard glass className="mb-8 overflow-hidden relative border-t border-white/20 dark:border-white/10" hover={false}>
+        <PremiumCard glass className="mb-8 overflow-hidden relative border-t border-white/20 dark:border-border/40" hover={false}>
             {/* Ambient Background Gradient for "Hero" feel */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-500/5 to-transparent pointer-events-none" />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6 lg:p-8 relative z-10">
 
                 {/* LEFT: Vital Signs (Vertical Stack) */}
-                <div className="lg:col-span-4 flex flex-col justify-between gap-6 border-r border-slate-200/50 dark:border-white/5 pr-0 lg:pr-8">
+                <div className="lg:col-span-4 flex flex-col justify-between gap-6 border-r border-border/40 dark:border-white/5 pr-0 lg:pr-8">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                             <Activity className="text-brand-500 w-6 h-6" />
@@ -112,7 +112,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                         </motion.div>
                     </div>
 
-                    <div className="flex items-center gap-3 text-sm p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-3 text-sm p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
                         <AlertTriangle className={cn("w-5 h-5", metrics.aboveAppetite > 0 ? "text-warning-text" : "text-slate-400")} />
                         <span className="text-slate-600 dark:text-slate-300">
                             <strong>{metrics.aboveAppetite}</strong> risques hors appétence (&gt; {RISK_ACCEPTANCE_THRESHOLD})

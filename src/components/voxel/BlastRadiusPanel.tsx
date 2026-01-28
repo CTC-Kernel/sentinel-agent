@@ -159,7 +159,7 @@ const StatsCard: React.FC<{
     initial={{ opacity: 0, y: 20, scale: 0.9 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ delay, duration: 0.4, ease: appleEasing }}
-    className="bg-white/5 rounded-xl p-3 border border-white/10"
+    className="bg-white/5 rounded-3xl p-3 border border-border/40"
   >
     <div className="flex items-center gap-2 mb-1">
       <motion.div
@@ -213,9 +213,9 @@ const AffectedNodeItem: React.FC<{
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -10 }}
       className={`
-        p-3 rounded-xl border cursor-pointer transition-all
+        p-3 rounded-3xl border cursor-pointer transition-all
         ${isSelected ? 'ring-2 ring-brand-500 bg-brand-50' : 'bg-white/5 hover:bg-white/10'}
-        border-white/10 hover:border-white/20
+        border-border/40 hover:border-white/20
       `}
       onClick={onSelect}
     >
@@ -280,14 +280,14 @@ const WhatIfBuilder: React.FC<{
   };
 
   return (
-    <div className="space-y-3 p-3 bg-white/5 rounded-xl border border-white/10">
+    <div className="space-y-3 p-3 bg-white/5 rounded-3xl border border-border/40">
       <div className="text-xs text-white/70 font-medium">Scenario What-If</div>
 
       <div className="space-y-2">
         <select
           value={scenarioType}
           onChange={(e) => setScenarioType(e.target.value as WhatIfScenario['type'])}
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
+          className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
         >
           <option value="remove_node">Supprimer un controle</option>
           <option value="add_node">Ajouter un controle</option>
@@ -298,7 +298,7 @@ const WhatIfBuilder: React.FC<{
           <select
             value={selectedNodeId}
             onChange={(e) => setSelectedNodeId(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
+            className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
           >
             <option value="">Sélectionner un contrôle...</option>
             {controlNodes.map((node) => (
@@ -328,7 +328,7 @@ const ConfigPanel: React.FC<{
   config: ExtendedBlastRadiusConfig;
   onSetConfig: (config: Partial<ExtendedBlastRadiusConfig>) => void;
 }> = ({ config, onSetConfig }) => (
-  <div className="space-y-3 p-3 bg-white/5 rounded-xl border border-white/10">
+  <div className="space-y-3 p-3 bg-white/5 rounded-3xl border border-border/40">
     <div className="text-xs text-white/70 font-medium flex items-center gap-2">
       <Sliders className="h-4 w-4" />
       Configuration
@@ -386,7 +386,7 @@ const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     initial={{ opacity: 0, height: 0 }}
     animate={{ opacity: 1, height: 'auto' }}
     exit={{ opacity: 0, height: 0 }}
-    className="px-5 py-4 bg-gradient-to-r from-purple-500/10 to-brand-500/10 border-b border-white/10"
+    className="px-5 py-4 bg-gradient-to-r from-purple-500/10 to-brand-500/10 border-b border-border/40"
   >
     <div className="flex items-start justify-between mb-3">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -526,10 +526,10 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             }}
           >
       {/* Header */}
-      <div className="p-5 border-b border-white/10 shrink-0">
+      <div className="p-5 border-b border-border/40 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-brand-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-purple-500 to-brand-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
               <Activity className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -549,7 +549,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
 
         {/* Source node info */}
         {sourceNode && (
-          <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10">
+          <div className="mt-4 p-3 bg-white/5 rounded-3xl border border-border/40">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-purple-400" />
               <span className="text-xs text-white/50">Noeud source</span>
@@ -566,7 +566,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
 
       {/* Stats Grid */}
       {affectedNodes.length > 0 && (
-        <div className="p-5 border-b border-white/10 shrink-0">
+        <div className="p-5 border-b border-border/40 shrink-0">
           <div className="grid grid-cols-2 gap-3">
             <StatsCard
               label="Noeuds impactes"
@@ -591,7 +591,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               color="text-info"
               delay={0.2}
             />
-            <div className={`rounded-xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
+            <div className={`rounded-3xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
               <div className="flex items-center gap-2 mb-1">
                 <BarChart3 className={`h-4 w-4 ${businessImpactColors.text}`} />
                 <span className="text-xs text-white/50">Impact metier</span>
@@ -644,7 +644,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
       )}
 
       {/* Toolbar */}
-      <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2 shrink-0">
+      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2 shrink-0">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
@@ -653,7 +653,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher..."
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
+            className="w-full bg-white/5 border border-border/40 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
           />
         </div>
 
@@ -661,7 +661,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
+          className="bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
         >
           <option value="impact">Impact</option>
           <option value="depth">Profondeur</option>
@@ -698,7 +698,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="px-5 py-3 border-b border-white/10 overflow-hidden"
+            className="px-5 py-3 border-b border-border/40 overflow-hidden"
           >
             <ConfigPanel config={config} onSetConfig={onSetConfig} />
           </motion.div>
@@ -706,7 +706,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
       </AnimatePresence>
 
       {/* What-If Toggle */}
-      <div className="px-5 py-3 border-b border-white/10 shrink-0">
+      <div className="px-5 py-3 border-b border-border/40 shrink-0">
         <button
           onClick={() => setShowWhatIf(!showWhatIf)}
           className={`
@@ -779,14 +779,14 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
       </div>
 
       {/* Footer Actions */}
-      <div className="p-5 border-t border-white/10 shrink-0 space-y-3">
+      <div className="p-5 border-t border-border/40 shrink-0 space-y-3">
         {/* What-If comparison summary with animations */}
         {whatIfResult && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className={`p-4 rounded-xl border ${whatIfResult.impactDelta < 0
+            className={`p-4 rounded-3xl border ${whatIfResult.impactDelta < 0
                 ? 'bg-green-50 dark:bg-green-900/30 border-green-500/30'
                 : 'bg-brand-50 border-brand-300'
               }`}
@@ -903,7 +903,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             <button
               onClick={onExportPdf}
               disabled={affectedNodes.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-500 hover:bg-brand-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-xl transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-500 hover:bg-brand-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors"
             >
               <FileText className="h-4 w-4" />
               Export PDF
@@ -913,7 +913,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             <button
               onClick={onExportCsv}
               disabled={affectedNodes.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-xl transition-colors border border-white/10"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors border border-border/40"
             >
               <Download className="h-4 w-4" />
               Export CSV
@@ -924,7 +924,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
         {/* Clear button */}
         <button
           onClick={onClearResults}
-          className="w-full px-4 py-2 text-sm text-white/50 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+          className="w-full px-4 py-2 text-sm text-white/50 hover:text-white hover:bg-white/5 rounded-3xl transition-colors"
         >
           Effacer les resultats
         </button>

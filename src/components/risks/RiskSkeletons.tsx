@@ -53,7 +53,7 @@ export const RiskMatrixSkeleton: React.FC = () => {
                 {/* Matrix Grid Simulation */}
                 <div className="grid grid-cols-5 gap-4 h-full">
                     {Array.from({ length: 25 }).map((_, i) => (
-                        <Skeleton key={i} className="h-full w-full rounded-xl opacity-60" />
+                        <Skeleton key={i} className="h-full w-full rounded-3xl opacity-60" />
                     ))}
                 </div>
             </div>
@@ -85,7 +85,7 @@ export const RiskListSkeleton: React.FC = () => {
  */
 export const RiskContextSkeleton: React.FC = () => {
     return (
-        <div className="glass-premium p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-apple-sm space-y-8 animate-fade-in">
+        <div className="glass-premium p-8 rounded-3xl border border-border/40 dark:border-border/40 shadow-apple-sm space-y-8 animate-fade-in">
             <div className="flex justify-between items-center">
                 <Skeleton className="h-8 w-64" variant="text" />
                 <Skeleton className="h-10 w-32" />

@@ -121,9 +121,9 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-100 dark:bg-amber-900/30">
+            <div className="p-2 rounded-3xl bg-red-100 dark:bg-amber-900/30">
               <Users className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
@@ -139,7 +139,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -157,10 +157,10 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
               type="text"
               placeholder="SR-XX"
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                 errors.code
                   ? "border-red-500"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
             />
             {errors.code && (
@@ -178,10 +178,10 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
               type="text"
               placeholder={t('ebios.workshop2.sourceNamePlaceholder', 'Ex: Concurrent local')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                 errors.name
                   ? "border-red-500"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
             />
             {errors.name && (
@@ -197,10 +197,10 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
             <select
               {...register('category')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                 errors.category
                   ? "border-red-500"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
             >
               {RISK_SOURCE_CATEGORIES.map((cat) => (
@@ -224,10 +224,10 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
               rows={3}
               placeholder={t('ebios.workshop2.sourceDescriptionPlaceholder', 'Décrivez cette source de risque...')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 resize-none",
+                "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800 resize-none",
                 errors.description
                   ? "border-red-500"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
             />
             {errors.description && (
@@ -244,7 +244,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
               {...register('motivation')}
               rows={2}
               placeholder={t('ebios.workshop2.sourceMotivationPlaceholder', 'Quelles sont les motivations de cette source ?')}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
+              className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
             />
           </div>
 
@@ -257,12 +257,12 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
               {...register('resources')}
               type="text"
               placeholder={t('ebios.workshop2.sourceResourcesPlaceholder', 'Ex: Moyennes, outils standards')}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+              className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800"
             />
           </div>
 
           {/* Badge indicator */}
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+          <div className="flex items-center gap-2 p-3 rounded-3xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
             <span className="px-2 py-0.5 rounded text-xs font-medium bg-purple-500 text-white">
               Custom
             </span>
@@ -272,7 +272,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-slate-700/50">
             <div>
               {isEditing && onDelete && (
                 <Button

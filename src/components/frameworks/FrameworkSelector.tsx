@@ -129,13 +129,13 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
     <div className={cn('space-y-6', className)}>
       {/* Header Stats */}
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-3xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30">
           <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
             {activeFrameworks.length} {t('frameworks.activated', 'activés')}
           </span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-white/5">
           <Shield className="w-4 h-4 text-slate-500 dark:text-slate-300" />
           <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
             {frameworks.length} {t('frameworks.available', 'disponibles')}
@@ -153,12 +153,12 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('frameworks.searchPlaceholder', 'Rechercher un framework...')}
-            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
+            className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
           />
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/50">
+        <div className="flex items-center gap-1 p-1 rounded-3xl bg-slate-100 dark:bg-slate-800/50">
           {(['all', 'active', 'inactive'] as FilterMode[]).map((mode) => (
             <button
               key={mode}

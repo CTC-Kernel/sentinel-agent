@@ -138,7 +138,7 @@ echo "Asset Enrolled Successfully!"
                                         <Button
                                             type="button"
                                             onClick={handleDownload}
-                                            className="w-full py-3 h-auto text-base rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold transform transition-all hover:-translate-y-0.5"
+                                            className="w-full py-3 h-auto text-base rounded-3xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold transform transition-all hover:-translate-y-0.5"
                                         >
                                             <Download className="h-5 w-5 mr-2" />
                                             Télécharger l'Agent

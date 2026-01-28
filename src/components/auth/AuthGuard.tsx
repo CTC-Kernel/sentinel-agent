@@ -54,7 +54,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
                 </p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-3xl hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     {t('common.retry')}
                 </button>

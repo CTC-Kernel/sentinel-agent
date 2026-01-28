@@ -112,7 +112,7 @@ export const ROICalculator: React.FC<ROICalculatorProps> = ({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+        <div className="p-2 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
           <Calculator className="h-6 w-6" />
         </div>
         <div>

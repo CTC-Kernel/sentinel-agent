@@ -83,7 +83,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                 {canEdit && (
                     <button
                         onClick={() => setMode('edit')}
-                        className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Nouveau Questionnaire
@@ -93,14 +93,14 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {questionnaires.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-300 italic bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+                    <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-300 italic bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-border/40 dark:border-border/40">
                         Aucun questionnaire créé pour cet audit.
                     </div>
                 )}
                 {questionnaires.map(q => (
-                    <div key={q.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
+                    <div key={q.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-xl">
+                            <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-3xl">
                                 <FileText className="w-6 h-6" />
                             </div>
                             <div className="flex gap-2">
@@ -115,7 +115,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                             {q.description || "Pas de description"}
                         </p>
 
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
+                        <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-white/5">
                             <div className="text-xs font-bold text-slate-500">
                                 {q.questions.length} questions
                             </div>

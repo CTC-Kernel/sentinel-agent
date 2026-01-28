@@ -80,7 +80,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
         >
             <div className="flex flex-col h-full">
                 {initialData && (
-                    <div className="px-6 border-b border-slate-200 dark:border-white/10 shrink-0">
+                    <div className="px-6 border-b border-border/40 dark:border-border/40 shrink-0">
                         <div className="flex space-x-6">
                             <button
                                 onClick={() => setActiveTab('details')}
@@ -235,7 +235,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                 </div>
 
                 {activeTab === 'details' && (
-                    <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 shrink-0 flex justify-end gap-3">
+                    <div className="px-6 py-4 border-t border-border/40 dark:border-border/40 shrink-0 flex justify-end gap-3">
                         {onDelete && initialData && (
                             <Button
                                 type="button"

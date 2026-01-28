@@ -86,7 +86,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                         <Button
                             onClick={resetLayout}
                             variant="glass"
-                            className="px-4 py-2 rounded-2xl font-bold transition-all text-sm"
+                            className="px-4 py-2 rounded-3xl font-bold transition-all text-sm"
                         >
                             {props.t('common.reset')}
                         </Button>
@@ -98,7 +98,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                             <Button
                                 onClick={() => setIsAddWidgetModalOpen(true)}
                                 variant="premium"
-                                className="px-4 py-2 rounded-2xl font-black uppercase tracking-wider flex items-center gap-2 text-sm"
+                                className="px-4 py-2 rounded-3xl font-black uppercase tracking-wider flex items-center gap-2 text-sm"
                             >
                                 <Plus className="w-4 h-4" /> <span>{props.t('dashboard.addWidget')}</span>
                             </Button>

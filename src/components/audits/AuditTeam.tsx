@@ -130,8 +130,8 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                 placeholder="Sélectionner un membre..."
                             />
                         </div>
-                        <button onClick={handleAddInternal} aria-label="Confirmer l'ajout" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">OK</button>
-                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
+                        <button onClick={handleAddInternal} aria-label="Confirmer l'ajout" className="px-3 bg-brand-600 text-white rounded-3xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">OK</button>
+                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-3xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 
@@ -140,7 +140,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                         audit.collaborators.map(userId => {
                             const userObj = safeUsers.find(u => u.uid === userId);
                             return (
-                                <div key={userId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-xl">
+                                <div key={userId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-3xl">
                                     <div className="flex items-center">
                                         <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 mr-3">
                                             <User className="h-4 w-4" />
@@ -187,15 +187,15 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                 type="email"
                             />
                         </div>
-                        <button onClick={handleAddExternal} aria-label="Envoyer l'invitation" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Inviter</button>
-                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
+                        <button onClick={handleAddExternal} aria-label="Envoyer l'invitation" className="px-3 bg-brand-600 text-white rounded-3xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Inviter</button>
+                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-3xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 
                 <div className="space-y-2">
                     {audit.externalAuditors && audit.externalAuditors.length > 0 ? (
                         audit.externalAuditors.map(email => (
-                            <div key={email} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-xl">
+                            <div key={email} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-3xl">
                                 <div className="flex items-center">
                                     <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mr-3">
                                         <Mail className="h-4 w-4" />

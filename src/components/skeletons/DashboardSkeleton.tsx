@@ -29,7 +29,7 @@ export const DashboardSkeleton: React.FC = () => {
             {/* Quick Actions */}
             <div className="glass-premium h-24 rounded-2xl p-4 flex gap-4 overflow-hidden border border-border/40">
                 {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={`tab-skel-${i}`} className="h-full w-24 rounded-xl flex-shrink-0" />
+                    <Skeleton key={`tab-skel-${i}`} className="h-full w-24 rounded-3xl flex-shrink-0" />
                 ))}
             </div>
 

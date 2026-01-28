@@ -7,7 +7,7 @@ export const ContentBlockerError: React.FC = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
-            <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
+            <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-border/40 dark:border-slate-700 overflow-hidden animate-fade-in">
                 <div className="p-8 text-center">
                     <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                         <ShieldAlert className="w-10 h-10 text-red-600 dark:text-red-400" />
@@ -21,7 +21,7 @@ export const ContentBlockerError: React.FC = () => {
                         Nous avons détecté que certains services de sécurité (Google reCAPTCHA) sont bloqués ou inaccessibles.
                     </p>
 
-                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-8 text-left border border-slate-100 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-3xl p-4 mb-8 text-left border border-border/40 dark:border-slate-700">
                         {/* Heading hierarchy: h2 for solutions section (follows h1) */}
                         <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-2 flex items-center">
                             <span className="w-1.5 h-1.5 rounded-full bg-brand-500 mr-2"></span>
@@ -37,7 +37,7 @@ export const ContentBlockerError: React.FC = () => {
                     <div className="space-y-3">
                         <button
                             onClick={() => window.location.reload()}
-                            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             <RefreshCw className="w-4 h-4" />
                             Recharger la page
@@ -45,7 +45,7 @@ export const ContentBlockerError: React.FC = () => {
 
                         <button
                             onClick={dismissBlockerError}
-                            className="w-full py-3 px-4 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            className="w-full py-3 px-4 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                         >
                             <AlertTriangle className="w-4 h-4" />
                             Ignorer et continuer (Risqué)

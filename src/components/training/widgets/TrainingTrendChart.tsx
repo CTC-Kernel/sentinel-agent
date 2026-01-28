@@ -94,7 +94,7 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
 
   if (isLoading) {
     return (
-      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-border/40 h-[400px]">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -113,9 +113,9 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
 
   if (!hasData) {
     return (
-      <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px]">
+      <div className="glass-premium p-6 rounded-3xl border border-border/40 h-[400px]">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-xl bg-success-bg/20">
+          <div className="p-2.5 rounded-3xl bg-success-bg/20">
             <TrendingUp className="w-5 h-5 text-success-text" />
           </div>
           <div>
@@ -140,13 +140,13 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
   }
 
   return (
-    <div className="glass-premium p-6 rounded-3xl border border-white/10 h-[400px] relative overflow-hidden group/chart hover:shadow-apple-lg transition-all duration-300">
+    <div className="glass-premium p-6 rounded-3xl border border-border/40 h-[400px] relative overflow-hidden group/chart hover:shadow-apple-lg transition-all duration-300">
       {/* Dynamic Background Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
 
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="p-2.5 rounded-xl bg-success-bg/20">
+          <div className="p-2.5 rounded-3xl bg-success-bg/20">
             <TrendingUp className="w-5 h-5 text-success-text" />
           </div>
           <div>

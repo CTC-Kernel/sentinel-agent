@@ -173,7 +173,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <Star className="h-4 w-4 text-brand-500" />
                         </div>
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Score Moyen</span>
@@ -196,7 +196,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-emerald-500/10 rounded-xl">
+                        <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                         </div>
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Conformité</span>
@@ -223,19 +223,21 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         { label: 'Expirés', value: metrics.expiredContracts, icon: FileText, color: 'red', gradient: 'from-red-500 to-red-400', onClick: () => onFilterChange?.({ type: 'contract', value: 'expired' }) },
                         { label: 'Conformes', value: metrics.compliant, icon: CheckCircle2, color: 'emerald', gradient: 'from-emerald-500 to-emerald-400' }
                     ].map((item, idx) => (
-                        <div
+                        <button
                             key={idx}
+                            type="button"
                             onClick={item.onClick}
                             className={`glass-premium p-4 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group ${item.onClick ? 'cursor-pointer' : ''}`}
+                            disabled={!item.onClick}
                         >
-                            <div className={`p-2.5 bg-${item.color}-500/10 rounded-xl mb-3 group-hover:scale-110 transition-transform`}>
+                            <div className={`p-2.5 bg-${item.color}-500/10 rounded-3xl mb-3 group-hover:scale-110 transition-transform`}>
                                 <item.icon className={`h-4 w-4 text-${item.color}-500`} />
                             </div>
                             <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
                                 {item.value}
                             </span>
                             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
-                        </div>
+                        </button>
                     ))}
                 </motion.div>
             </div>
@@ -246,7 +248,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-orange-500/10 rounded-xl">
+                        <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
                         </div>
                         Distribution par Criticité
@@ -301,7 +303,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <Building className="w-4 h-4 text-brand-500" />
                         </div>
                         Top Catégories
@@ -341,7 +343,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-emerald-500/10 rounded-xl">
+                        <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <TrendingUp className="w-4 h-4 text-emerald-500" />
                         </div>
                         Distribution des Scores
@@ -367,7 +369,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-amber-50 rounded-xl">
+                        <div className="p-2 bg-amber-50 rounded-3xl">
                             <Star className="w-4 h-4 text-amber-500" />
                         </div>
                         Top 5 Fournisseurs
@@ -386,7 +388,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                     transition={{ delay: index * 0.1 }}
                                     className="flex items-center gap-4 p-3 bg-white/50 dark:bg-white/5 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 transition-all group cursor-pointer"
                                 >
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black text-white ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
+                                    <div className={`w-8 h-8 rounded-3xl flex items-center justify-center text-xs font-black text-white ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
                                         index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' :
                                             index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
                                                 'bg-gradient-to-br from-brand-400 to-brand-600'

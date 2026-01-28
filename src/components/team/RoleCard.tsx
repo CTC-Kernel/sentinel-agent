@@ -14,7 +14,7 @@ export const RoleCard = memo(({ role, onEdit, onDelete }: RoleCardProps) => {
 
     return (
         <>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
+        <div className="bg-white dark:bg-slate-800 border border-border/40 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                 <button
                     onClick={() => onEdit(role)}
@@ -32,7 +32,7 @@ export const RoleCard = memo(({ role, onEdit, onDelete }: RoleCardProps) => {
                 </button>
             </div>
             <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-xl text-brand-600 dark:text-brand-400">
+                <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-3xl text-brand-600 dark:text-brand-400">
                     <Shield className="h-6 w-6" />
                 </div>
                 <div>

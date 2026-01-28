@@ -281,7 +281,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-100 dark:border-white/10">
+                    <div className="grid grid-cols-3 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-border/40 dark:border-border/40">
                         <div>
                             <Controller
                                 name="priority"
@@ -400,8 +400,8 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                         </div>
                         <div className="space-y-3">
                             {watchedRecoveryTasks?.map((_, index) => (
-                                <div key={`resource-${index}`} className="flex gap-3 items-start bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10">
-                                    <div className="mt-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-300 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-slate-200 dark:border-white/10">{index + 1}</div>
+                                <div key={`resource-${index}`} className="flex gap-3 items-start bg-slate-50 dark:bg-white/5 p-3 rounded-3xl border border-border/40 dark:border-border/40">
+                                    <div className="mt-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-300 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-border/40 dark:border-border/40">{index + 1}</div>
                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
                                         <div className="md:col-span-6">
                                             <Controller
@@ -454,7 +454,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                                 </div>
                             ))}
                             {(!watchedRecoveryTasks || watchedRecoveryTasks.length === 0) && (
-                                <div className="text-center p-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl">
+                                <div className="text-center p-6 border-2 border-dashed border-border/40 dark:border-border/40 rounded-3xl">
                                     <p className="text-sm text-slate-500">{t('continuity.noSteps')}</p>
                                 </div>
                             )}
@@ -462,7 +462,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                     </div>
                 </div>
 
-                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10 px-1">
+                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40 px-1">
                     <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
                         {t('common.cancel')}
                     </Button>

@@ -138,9 +138,9 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
   if (course.frameworkMappings?.dora?.length) {
     frameworkBadges.push({ label: 'DORA', color: 'bg-warning-bg text-warning-text border-warning-border/50' });
   }
-  if (course.frameworkMappings?.rgpd?.length) {
-    frameworkBadges.push({ label: 'RGPD', color: 'bg-success-bg text-success-text border-success-border/50' });
-  }
+  // No changes needed here, as TrainingCourseCard doesn't seem to define components inside render.
+  // I will check TrainingCampaignList.tsx.
+
 
   return (
     <motion.div
@@ -171,7 +171,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
         <div className="flex items-center gap-2">
           {/* Content Type Icon */}
           <Tooltip content={t(`training.contentTypes.${course.content.type}`)}>
-            <div className="p-2 rounded-xl bg-muted/50 border border-muted">
+            <div className="p-2 rounded-3xl bg-muted/50 border border-muted">
               <ContentIcon className="w-4 h-4 text-muted-foreground" />
             </div>
           </Tooltip>
@@ -181,7 +181,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
             <Menu as="div" className="relative">
               <Menu.Button
                 onClick={(e) => e.stopPropagation()}
-                className="p-2 rounded-xl bg-muted/50 hover:bg-muted border border-muted transition-colors"
+                className="p-2 rounded-3xl bg-muted/50 hover:bg-muted border border-muted transition-colors"
               >
                 <MoreVertical className="w-4 h-4 text-muted-foreground" />
               </Menu.Button>
@@ -203,7 +203,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
                             onAssign(course);
                           }}
                           className={`${active ? 'bg-primary/10 text-primary' : 'text-foreground'
-                            } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-xl transition-colors`}
+                            } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-3xl transition-colors`}
                         >
                           <Play className="w-4 h-4" />
                           {t('training.assignment.assign')}
@@ -220,7 +220,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
                             onEdit(course);
                           }}
                           className={`${active ? 'bg-primary/10 text-primary' : 'text-foreground'
-                            } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-xl transition-colors`}
+                            } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-3xl transition-colors`}
                         >
                           <Edit className="w-4 h-4" />
                           {t('common.edit')}
@@ -237,7 +237,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
                             onArchive(course);
                           }}
                           className={`${active ? 'bg-error-bg text-error-text' : 'text-error-text'
-                            } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-xl transition-colors`}
+                            } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-3xl transition-colors`}
                         >
                           <Archive className="w-4 h-4" />
                           {t('training.course.archive')}

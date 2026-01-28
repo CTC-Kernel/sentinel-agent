@@ -18,7 +18,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
 }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -30,7 +30,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                             {(() => {
                                 const asset = assets.find(a => a.id === incident.affectedAssetId);
                                 return asset ? (
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border/40">
                                         <span className="font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
                                         <Badge status="neutral" size="sm">{asset.type}</Badge>
                                     </div>
@@ -43,7 +43,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -55,7 +55,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                             {(() => {
                                 const proc = processes.find(p => p.id === incident.affectedProcessId);
                                 return proc ? (
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border/40">
                                         <span className="font-medium text-slate-700 dark:text-slate-200">{proc.name}</span>
                                     </div>
                                 ) : <p className="text-sm text-slate-600 dark:text-slate-300 italic">Processus introuvable</p>;
@@ -67,7 +67,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden md:col-span-2">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm relative overflow-hidden md:col-span-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -79,7 +79,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                             {(() => {
                                 const risk = risks.find(r => r.id === incident.relatedRiskId);
                                 return risk ? (
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border/40">
                                         <div className="flex flex-col">
                                             <span className="font-medium text-slate-700 dark:text-slate-200">{risk.threat}</span>
                                             <span className="text-xs text-slate-500">{risk.scenario}</span>

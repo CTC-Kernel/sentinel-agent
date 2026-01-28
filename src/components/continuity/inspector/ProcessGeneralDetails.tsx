@@ -15,7 +15,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
         <div className="space-y-6 sm:space-y-8">
             {/* Metrics Cards */}
             <div className="grid grid-cols-2 gap-4">
-                <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-slate-100 dark:border-white/10 shadow-sm relative overflow-hidden group">
+                <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-20 transition-opacity">
                         <Clock className="w-16 h-16" />
                     </div>
@@ -25,7 +25,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                     </div>
                     <span className="text-3xl font-black text-slate-900 dark:text-white">{process.rto}</span>
                 </div>
-                <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-slate-100 dark:border-white/10 shadow-sm relative overflow-hidden group">
+                <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-20 transition-opacity">
                         <Activity className="w-16 h-16" />
                     </div>
@@ -48,16 +48,16 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('continuity.recoveryPlan')}</h3>
                 <div className="space-y-3">
                     {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (
-                        <div key={`dep-${i}`} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
+                        <div key={`dep-${i}`} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-3xl border border-border/40 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
                             <div className="flex-none">
-                                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/10 shadow-sm">
+                                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-300 border border-border/40 dark:border-border/40 shadow-sm">
                                     {i + 1}
                                 </div>
                             </div>
                             <div className="flex-1">
                                 <p className="text-sm font-bold text-slate-800 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{task.title}</p>
                                 <div className="flex items-center gap-4">
-                                    <Badge variant="soft" size="sm" className="bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10">
+                                    <Badge variant="soft" size="sm" className="bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border-border/40 dark:border-border/40">
                                         Resp: {task.owner}
                                     </Badge>
                                     <span className="text-xs text-muted-foreground flex items-center gap-1">

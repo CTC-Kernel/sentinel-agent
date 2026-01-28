@@ -79,7 +79,7 @@ export const SystemEntrance: React.FC = () => {
 
                 {/* Brand Identity / Status */}
                 <div className={`mb-12 transition-all duration-700 ${isScanning ? 'scale-90 opacity-60' : 'scale-100 opacity-70'}`}>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 mb-6 backdrop-blur-md shadow-sm">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 dark:bg-white/5 border border-border/40 dark:border-border/40 mb-6 backdrop-blur-md shadow-sm">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                         <span className="text-[11px] font-mono uppercase tracking-widest text-slate-500 dark:text-muted-foreground font-bold">Système Sécurisé • Niveau 4</span>
                     </div>
@@ -93,7 +93,7 @@ export const SystemEntrance: React.FC = () => {
 
                 {/* Interaction Module */}
                 <div className={cn(
-                    "relative w-full backdrop-blur-xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-3xl p-8 transition-all duration-500 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none",
+                    "relative w-full backdrop-blur-xl bg-white/40 dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl p-8 transition-all duration-500 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none",
                     isScanning ? "border-brand-400 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)]" : "hover:border-white/80 dark:hover:border-white/20 hover:bg-white/60 dark:hover:bg-white/10"
                 )}>
 
@@ -126,7 +126,7 @@ export const SystemEntrance: React.FC = () => {
                             <Button
                                 onClick={handleInitialize}
                                 size="lg"
-                                className="w-full h-14 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700 font-bold tracking-tight text-lg rounded-xl shadow-none hover:scale-[1.01] transition-all group border border-transparent dark:border-white/5 relative z-30"
+                                className="w-full h-14 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700 font-bold tracking-tight text-lg rounded-3xl shadow-none hover:scale-[1.01] transition-all group border border-transparent dark:border-white/5 relative z-30"
                             >
                                 ACCÈS À L'AUTHENTIFICATION
                                 <ChevronRight className="ml-2 h-5 w-5 opacity-60 group-hover:opacity-70 group-hover:translate-x-1 transition-all" />

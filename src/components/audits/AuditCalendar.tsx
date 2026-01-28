@@ -62,7 +62,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
             </div>
 
             {/* Grid */}
-            <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
+            <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-white/10 border border-border/40 dark:border-border/40 rounded-3xl overflow-hidden">
                 {/* Weekdays */}
                 {[0, 1, 2, 3, 4, 5, 6].map(d => (
                     <div key={d} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">

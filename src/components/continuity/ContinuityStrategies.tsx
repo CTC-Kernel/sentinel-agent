@@ -81,7 +81,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                             </Button>
                         )}
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
+                            <div className="p-3 rounded-3xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
                                 <Shield className="w-6 h-6" />
                             </div>
                             <div>
@@ -101,7 +101,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                             </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                        <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5">
                             <p className="text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase">Actifs Couverts</p>
                             <div className="flex flex-wrap gap-2">
                                 {strategy.linkedAssets?.map((assetId: string) => {

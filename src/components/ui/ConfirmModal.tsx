@@ -85,7 +85,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               <Dialog.Panel className="relative transform overflow-hidden rounded-4xl glass-premium text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-border/40">
                 <div className="p-6 text-center">
                   <motion.div
-                    className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 ${colorClass}`}
+                    className={`mx-auto flex h-16 w-16 items-center justify-center rounded-3xl mb-4 ${colorClass}`}
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
@@ -118,7 +118,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     </p>
                     {details && (
                       <motion.div
-                        className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 text-left"
+                        className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border/40 dark:border-white/5 text-left"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
@@ -130,7 +130,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     {/* Affected Items List */}
                     {affectedItems && affectedItems.length > 0 && (
                       <motion.div
-                        className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 text-left"
+                        className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border/40 dark:border-white/5 text-left"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3, duration: 0.3, ease: appleEasing }}

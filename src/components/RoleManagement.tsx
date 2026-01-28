@@ -107,7 +107,7 @@ export const RoleManagement: React.FC = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-muted/30 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/10">
+                            <thead className="bg-muted/30 dark:bg-slate-800/50 border-b border-border/40 dark:border-border/40">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                         {t('roleManagement.columns.user')}

@@ -10,7 +10,7 @@ interface IncidentTimelineProps {
 export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedIncident, getTimeToResolve }) => {
     if (!selectedIncident) {
         return (
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm h-full flex flex-col justify-center items-center text-center">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 shadow-sm h-full flex flex-col justify-center items-center text-center">
                 <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
                     <Clock className="h-8 w-8 text-slate-500" />
                 </div>
@@ -57,7 +57,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
     ];
 
     return (
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm h-full">
+        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm h-full">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">Chronologie</h3>
                 {selectedIncident.dateResolved && (
@@ -68,7 +68,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
                 )}
             </div>
 
-            <div className="relative pl-4 border-l-2 border-slate-100 dark:border-slate-700 space-y-8 my-4">
+            <div className="relative pl-4 border-l-2 border-border/40 space-y-8 my-4">
                 {steps.map((step) => {
                     const isCompleted = step.status === 'completed';
                     const isCurrent = step.status === 'current';
@@ -78,7 +78,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
                             {/* Dot */}
                             <div className={`absolute -left-[21px] top-1 h-3 w-3 rounded-full border-2 ${isCompleted ? 'bg-brand-500 border-brand-500' :
                                 isCurrent ? 'bg-white border-brand-500 animate-pulse' :
-                                    'bg-slate-200 border-slate-200 dark:bg-slate-700 dark:border-slate-700'
+                                    'bg-slate-200 border-border/40 dark:bg-slate-700 dark:border-slate-700'
                                 }`} />
 
                             <div className={`flex flex-col ${isCompleted || isCurrent ? 'opacity-70' : 'opacity-60'}`}>

@@ -43,7 +43,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
                             leaveFrom="transform opacity-70 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                         >
-                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
+                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-3xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                 <div className="p-1">
                                     <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         Outils
@@ -81,7 +81,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
                         <CustomTooltip content="Créer un nouvel actif">
                             <Button
                                 onClick={onNewAsset}
-                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-3xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                             >
                                 <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
                             </Button>

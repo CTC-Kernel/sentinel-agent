@@ -74,7 +74,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
               leaveFrom="opacity-70 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-border/40 dark:border-white/5">
                 <div className="p-6 text-center">
                   {/* Warning Icon */}
                   <motion.div
@@ -125,7 +125,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
 
                   {/* Warning Details */}
                   <motion.div
-                    className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30 text-left"
+                    className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-100 dark:border-amber-800/30 text-left"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
@@ -160,7 +160,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                 </div>
 
                 {/* Actions */}
-                <div className="flex border-t border-slate-200 dark:border-white/5">
+                <div className="flex border-t border-border/40 dark:border-white/5">
                   <Button
                     type="button"
                     variant="ghost"

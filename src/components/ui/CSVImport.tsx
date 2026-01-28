@@ -157,9 +157,9 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
     return (
         <div className="fixed inset-0 z-modal flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
             <div className="bg-white dark:bg-slate-900 rounded-4xl shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
-                <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-brand-50 dark:bg-brand-900 flex justify-between items-center">
+                <div className="p-6 border-b border-border/40 dark:border-white/5 bg-brand-50 dark:bg-brand-900 flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-brand-900 dark:text-brand-100 tracking-tight">{title}</h2>
-                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -176,7 +176,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             </div>
 
                             <div
-                                className="border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl p-8 text-center hover:border-brand-500 dark:hover:border-brand-500 transition-colors focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900"
+                                className="border-2 border-dashed border-border/40 dark:border-border/40 rounded-2xl p-8 text-center hover:border-brand-500 dark:hover:border-brand-500 transition-colors focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900"
                             >
                                 <input type="file"
                                     accept=".csv"
@@ -197,7 +197,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                            <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl">
                                 <p className="text-sm text-slate-600 dark:text-muted-foreground">Besoin d'un modèle ?</p>
                                 <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">
                                     Télécharger le modèle CSV
@@ -218,14 +218,14 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     )}
                                 </div>
                                 <div className="flex gap-2">
-                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
+                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
                                         Annuler
                                     </button>
                                     <button
                                         aria-label={`Importer ${parsedData.length} éléments`}
                                         onClick={handleImport}
                                         disabled={errors.length > 0}
-                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-3xl hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                                     >
                                         Importer {parsedData.length} élément{parsedData.length > 1 ? 's' : ''}
                                     </button>
@@ -233,7 +233,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             </div>
 
                             {errors.length > 0 && (
-                                <div className="bg-red-50 dark:bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 dark:border-red-900/30 rounded-xl p-4 space-y-2">
+                                <div className="bg-red-50 dark:bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 dark:border-red-900/30 rounded-3xl p-4 space-y-2">
                                     <div className="flex items-center gap-2 mb-2">
                                         <AlertTriangle className="h-5 w-5 text-red-600" />
                                         <h4 className="font-bold text-red-900 dark:text-red-100">Erreurs de validation</h4>
@@ -253,7 +253,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 </div>
                             )}
 
-                            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-white/10">
+                            <div className="overflow-x-auto rounded-3xl border border-border/40 dark:border-border/40">
                                 <table className="w-full text-sm">
                                     <thead className="bg-slate-50 dark:bg-slate-800/50">
                                         <tr>
@@ -266,7 +266,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     </thead>
                                     <tbody>
                                         {parsedData.slice(0, 5).map((row, i) => (
-                                            <tr key={`row-${i}`} className="border-t border-slate-200 dark:border-white/5">
+                                            <tr key={`row-${i}`} className="border-t border-border/40 dark:border-white/5">
                                                 {fields.map(field => (
                                                     <td key={field.key} className="px-4 py-3 text-slate-600 dark:text-muted-foreground">
                                                         {String(row[field.key] || '-')}
@@ -300,7 +300,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importation réussie !</h3>
                             <p className="text-sm text-slate-600 dark:text-slate-300 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
-                            <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                            <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-3xl font-bold hover:bg-green-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
                                 Terminer
                             </button>
                         </div>

@@ -294,7 +294,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                             tabIndex={0}
                         >
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <div className="p-2 bg-brand-50 rounded-xl group-hover/metric:scale-110 transition-transform">
+                                <div className="p-2 bg-brand-50 rounded-3xl group-hover/metric:scale-110 transition-transform">
                                     <Server className="h-4 w-4 text-brand-500" />
                                 </div>
                             </div>
@@ -314,7 +314,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                             tabIndex={0}
                         >
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <div className="p-2 bg-red-50 rounded-xl group-hover/metric:scale-110 transition-transform">
+                                <div className="p-2 bg-red-50 rounded-3xl group-hover/metric:scale-110 transition-transform">
                                     <ShieldAlert className="h-4 w-4 text-red-500" />
                                 </div>
                             </div>
@@ -323,7 +323,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         </div>
                         <div className="text-center group/metric">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <div className="p-2 bg-emerald-500/10 rounded-xl group-hover/metric:scale-110 transition-transform">
+                                <div className="p-2 bg-emerald-500/10 rounded-3xl group-hover/metric:scale-110 transition-transform">
                                     <Euro className="h-4 w-4 text-emerald-500" />
                                 </div>
                             </div>
@@ -336,7 +336,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px]">
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-50 dark:bg-amber-900 rounded-xl border border-amber-100 dark:border-amber-500/20"
+                            className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-50 dark:bg-amber-900 rounded-3xl border border-amber-100 dark:border-amber-500/20"
                         >
                             <div className="flex items-center gap-2">
                                 <div className="p-1.5 bg-amber-500/20 rounded-lg">
@@ -348,7 +348,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         </motion.div>
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900 rounded-xl border border-blue-100 dark:border-blue-500/20"
+                            className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900 rounded-3xl border border-blue-100 dark:border-blue-500/20"
                         >
                             <div className="flex items-center gap-2">
                                 <div className="p-1.5 bg-blue-500/20 rounded-lg">
@@ -373,7 +373,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-orange-500/10 rounded-xl">
+                        <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <ShieldAlert className="w-4 h-4 text-orange-500" />
                         </div>
                         Distribution par Criticité
@@ -433,7 +433,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <Layers className="w-4 h-4 text-brand-500" />
                         </div>
                         Top Types d'Actifs
@@ -478,7 +478,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-violet-500/10 rounded-xl">
+                        <div className="p-2 bg-violet-500/10 rounded-3xl">
                             <Box className="w-4 h-4 text-violet-500" />
                         </div>
                         Distribution par Périmètre
@@ -538,7 +538,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-emerald-500/10 rounded-xl">
+                        <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <TrendingUp className="w-4 h-4 text-emerald-500" />
                         </div>
                         Acquisitions (12 derniers mois)

@@ -88,7 +88,7 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+      <div className="p-4 rounded-3xl bg-slate-800/50 border border-slate-700/50">
         <Skeleton className="h-4 w-20 mb-2" />
         <Skeleton className="h-8 w-16 mb-1" />
         <Skeleton className="h-3 w-24" />
@@ -101,7 +101,7 @@ const StatCard: React.FC<StatCardProps> = ({
       onClick={onClick}
       disabled={!onClick}
       className={cn(
-        'p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 text-left w-full',
+        'p-4 rounded-3xl bg-slate-800/50 border border-slate-700/50 text-left w-full',
         'transition-all duration-200',
         onClick && 'hover:bg-slate-800 hover:border-slate-600 cursor-pointer'
       )}
@@ -430,7 +430,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
   // Compact version
   if (size === 'compact') {
     return (
-      <div className={cn('p-4 rounded-xl bg-slate-900/50 border border-slate-800', className)}>
+      <div className={cn('p-4 rounded-3xl bg-slate-900/50 border border-slate-800', className)}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Server className="h-5 w-5 text-orange-400" />
@@ -474,7 +474,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-orange-500/10">
+          <div className="p-2 rounded-3xl bg-orange-500/10">
             <Server className="h-6 w-6 text-orange-400" />
           </div>
           <div>

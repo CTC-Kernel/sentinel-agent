@@ -24,7 +24,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
         return (
             <div className="mb-4">
                 <div className="block text-sm font-medium mb-1 dark:text-muted-foreground">Fichier associé</div>
-                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700">
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="h-10 w-10 flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
                             {fileType?.includes('pdf') ? 'PDF' : fileType?.includes('image') ? 'IMG' : 'DOC'}

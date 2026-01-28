@@ -68,7 +68,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
 
             {/* 2. Justification (Conditional) */}
             {showJustification && (
-                <div className="space-y-2 animate-fade-in p-4 bg-warning-bg dark:bg-warning-bg/10 border border-warning-border dark:border-warning-border/30 rounded-xl">
+                <div className="space-y-2 animate-fade-in p-4 bg-warning-bg dark:bg-warning-bg/10 border border-warning-border dark:border-warning-border/30 rounded-3xl">
                     <label className="flex items-center gap-2 text-sm font-bold text-warning-text dark:text-warning-text">
                         <AlertTriangle className="h-4 w-4" />
                         {t('risks.validation_justification_required') || "Justification d'Acceptation du Risque (Obligatoire)"}
@@ -92,7 +92,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                 </div>
             )}
 
-            <div className="border-t border-slate-200 dark:border-white/10 pt-6"></div>
+            <div className="border-t border-border/40 dark:border-border/40 pt-6"></div>
 
             {/* 3. Existing Controls Link */}
             <div className="space-y-3">
@@ -109,11 +109,11 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                         placeholder={t('common.searchPlaceholder') || "Rechercher..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
                     />
                 </div>
 
-                <div className="border border-slate-200 dark:border-slate-700 rounded-xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
+                <div className="border border-border/40 dark:border-slate-700 rounded-3xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
                     {controls.length > 0 ? (
                         controls
                             .filter(c =>
@@ -133,10 +133,14 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                                 const isSuggested = suggestedControlIds.includes(ctrl.id);
                                 return (
                                     <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''} ${isSuggested ? 'bg-violet-50/50 dark:bg-violet-900/10' : ' '}`}>
-                                        <input checked={mitigationControlIds?.includes(ctrl.id) || false} onChange={() => toggleControlSelection(ctrl.id)}
+                                        <input 
+                                            id={`control-${ctrl.id}`}
+                                            checked={mitigationControlIds?.includes(ctrl.id) || false} 
+                                            onChange={() => toggleControlSelection(ctrl.id)}
                                             type="checkbox"
-                                            className="mt-1 rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500"
+                                            className="mt-1 rounded border-border/40 text-brand-600 focus-visible:ring-brand-500"
                                         />
+                                        <span className="sr-only">{ctrl.code}</span>
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">

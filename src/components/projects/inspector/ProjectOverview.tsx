@@ -20,7 +20,7 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => 
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-900/20 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-600/80 mb-4 flex items-center gap-2">
@@ -29,7 +29,7 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => 
                         <div className="text-4xl font-black text-slate-900 dark:text-white mb-2">{project.relatedAssetIds?.length || 0}</div>
                     </div>
                 </div>
-                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/20 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4 flex items-center gap-2">
@@ -38,7 +38,7 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => 
                         <div className="text-4xl font-black text-slate-900 dark:text-white mb-2">{project.relatedRiskIds?.length || 0}</div>
                     </div>
                 </div>
-                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/20 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4 flex items-center gap-2">

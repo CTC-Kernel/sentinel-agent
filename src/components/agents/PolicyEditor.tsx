@@ -379,7 +379,7 @@ const PolicyForm: React.FC<{
             )}
 
             {/* Basic Info */}
-            <div className="glass-premium rounded-xl p-4 space-y-4 border border-border/40">
+            <div className="glass-premium rounded-3xl p-4 space-y-4 border border-border/40">
                 <h4 className="font-medium">Informations générales</h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -477,7 +477,7 @@ const PolicyForm: React.FC<{
             </div>
 
             {/* Rules */}
-            <div className="glass-premium rounded-xl p-4 border border-border/40">
+            <div className="glass-premium rounded-3xl p-4 border border-border/40">
                 <h4 className="font-medium mb-4">Règles</h4>
 
                 {RULE_CATEGORIES.map(category => (
@@ -522,7 +522,7 @@ const PolicyCard: React.FC<{
         <motion.div
             variants={slideUpVariants}
             className={cn(
-                'glass-premium rounded-xl p-4 cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none border border-border/40',
+                'glass-premium rounded-3xl p-4 cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none border border-border/40',
                 isSelected && 'ring-2 ring-primary'
             )}
             onClick={onSelect}

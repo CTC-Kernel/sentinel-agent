@@ -16,7 +16,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
 
     return (
         <>
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
+            <div className="bg-white dark:bg-slate-800 border border-border/40 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                     <button
                         onClick={() => onEdit(group)}
@@ -34,7 +34,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                     </button>
                 </div>
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-3xl text-blue-600 dark:text-blue-400">
                         <Users className="h-6 w-6" />
                     </div>
                     <div>

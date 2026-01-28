@@ -72,7 +72,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
                 hover={true}
                 gradientOverlay={true}
             >
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                         <div className="p-1.5 rounded-lg bg-error-bg dark:bg-error/10 text-error-text dark:text-error">
                             <HeartPulse className="w-4 h-4" />
@@ -100,7 +100,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
         <div className="h-full flex flex-col p-5 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <div className="p-1.5 rounded-lg bg-error-bg dark:bg-error/10 text-error-text dark:text-error">
                         <HeartPulse className="w-4 h-4" />

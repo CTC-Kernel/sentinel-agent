@@ -275,7 +275,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
         return (
             <div className="space-y-4">
                 {[1, 2, 3].map(i => (
-                    <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />
+                    <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-3xl" />
                 ))}
             </div>
         );

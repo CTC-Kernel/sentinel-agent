@@ -70,7 +70,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
     <div className="space-y-6">
       {/* Error Banner */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-900 flex items-center gap-3">
+        <div className="p-4 rounded-3xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-900 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500" />
           <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
@@ -93,7 +93,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
                 "p-4 rounded-2xl border-2 text-left transition-all",
                 selectedDomain === domain.id
                   ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500/20"
-                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-slate-300"
+                  : "border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-border/40"
               )}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -192,7 +192,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
     <PremiumCard glass className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
             <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
@@ -212,10 +212,10 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
             <div
               key={control.code}
               className={cn(
-                "flex items-center gap-4 p-3 rounded-xl border transition-all",
+                "flex items-center gap-4 p-3 rounded-3xl border transition-all",
                 hasAssessment
-                  ? "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50"
-                  : "border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/30"
+                  ? "border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800/50"
+                  : "border-dashed border-border/40 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/30"
               )}
             >
               <div className="w-16 flex-shrink-0">

@@ -71,7 +71,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
 
         if (diffDays < 0) return { status: 'overdue', days: Math.abs(diffDays), label: `Retard ${Math.abs(diffDays)} j`, color: 'text-error-text bg-error-bg border-error-border/50' };
         if (diffDays <= 7) return { status: 'warning', days: diffDays, label: `J - ${diffDays} `, color: 'text-warning-text bg-warning-bg border-warning-border/50' };
-        return { status: 'ok', days: diffDays, label: `${diffDays} j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-300 dark:bg-slate-800 dark:border-white/10 shadow-sm shadow-black/5' };
+        return { status: 'ok', days: diffDays, label: `${diffDays} j`, color: 'text-slate-500 bg-slate-100 border-border/40 dark:text-slate-300 dark:bg-slate-800 dark:border-border/40 shadow-sm shadow-black/5' };
     };
 
     if (loading) return <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in"><div className="col-span-full"><CardSkeleton count={3} /></div></div>;
@@ -124,7 +124,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     <Button
                                         size="sm"
                                         variant="secondary"
-                                        className="h-8 w-8 p-0 bg-white/90 dark:bg-white/10 shadow-sm backdrop-blur-sm hover:text-brand-600 transition-all hover:scale-110 rounded-xl"
+                                        className="h-8 w-8 p-0 bg-white/90 dark:bg-white/10 shadow-sm backdrop-blur-sm hover:text-brand-600 transition-all hover:scale-110 rounded-3xl"
                                         onClick={(e) => { e.stopPropagation(); onEdit(risk); }}
                                     >
                                         <Edit className="h-4 w-4" />
@@ -136,7 +136,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     <Button
                                         size="sm"
                                         variant="secondary"
-                                        className="h-8 w-8 p-0 bg-white/90 dark:bg-white/10 shadow-sm backdrop-blur-sm hover:text-error-text transition-all hover:scale-110 rounded-xl"
+                                        className="h-8 w-8 p-0 bg-white/90 dark:bg-white/10 shadow-sm backdrop-blur-sm hover:text-error-text transition-all hover:scale-110 rounded-3xl"
                                         onClick={(e) => handleDelete(e, risk.id, risk.threat)}
                                         disabled={deletingIds.has(risk.id)}
                                     >
@@ -154,7 +154,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     </Badge>
                                     {trend === 'up' && <span className="text-error-text" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
                                     {trend === 'down' && <span className="text-success-text" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                    {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[11px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
+                                    {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[11px] font-bold rounded-full border border-border/40 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
                                 </div>
                             </div>
                             <div className="mb-4 flex-1">

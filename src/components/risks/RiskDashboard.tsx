@@ -144,7 +144,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <Shield className="h-4 w-4 text-brand-500" />
                         </div>
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux Traitement</span>
@@ -186,7 +186,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-emerald-500/10 rounded-xl">
+                        <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <TrendingUp className="h-4 w-4 text-emerald-500" />
                         </div>
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Réduction Risque</span>
@@ -236,7 +236,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             key={idx}
                             className="glass-premium p-4 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group"
                         >
-                            <div className={`p-2.5 bg-${item.color}-500/10 rounded-xl mb-3 group-hover:scale-110 transition-transform`}>
+                            <div className={`p-2.5 bg-${item.color}-500/10 rounded-3xl mb-3 group-hover:scale-110 transition-transform`}>
                                 <item.icon className={`h-4 w-4 text-${item.color}-500`} />
                             </div>
                             <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
@@ -260,7 +260,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <Activity className="w-4 h-4 text-brand-500" />
                         </div>
                         Cartographie des Risques
@@ -277,7 +277,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
-                        <div className="p-2 bg-orange-500/10 rounded-xl">
+                        <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
                         </div>
                         Distribution par Niveau
@@ -339,7 +339,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                 <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
-                    <div className="p-2 bg-success-bg rounded-xl">
+                    <div className="p-2 bg-success-bg rounded-3xl">
                         <Layers className="w-4 h-4 text-success-text" />
                     </div>
                     Avancement des Traitements
@@ -357,7 +357,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
                 <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div className="p-2 bg-brand-50 rounded-xl">
+                    <div className="p-2 bg-brand-50 rounded-3xl">
                         <TrendingUp className="h-5 w-5 text-brand-500" />
                     </div>
                     <div>
@@ -428,7 +428,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
                 <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div className="p-2 bg-brand-50 rounded-xl">
+                    <div className="p-2 bg-brand-50 rounded-3xl">
                         <TrendingUp className="h-5 w-5 text-brand-500" />
                     </div>
                     <div>
@@ -451,7 +451,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     className="glass-premium p-8 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-error-bg rounded-xl">
+                        <div className="p-2 bg-error-bg rounded-3xl">
                             <AlertTriangle className="h-5 w-5 text-error-text" />
                         </div>
                         <div>

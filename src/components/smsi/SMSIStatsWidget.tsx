@@ -101,7 +101,7 @@ export const SMSIStatsWidget: React.FC<SMSIStatsWidgetProps> = ({ program, overd
                             </p>
                         )}
                     </div>
-                    <div className={cn("p-3 rounded-xl", stat.className)}>
+                    <div className={cn("p-3 rounded-3xl", stat.className)}>
                         <stat.icon className="w-6 h-6" />
                     </div>
                 </PremiumCard>

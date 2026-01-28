@@ -207,7 +207,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                     />
                 ) : (
                     milestones.map((milestone, index) => (
-                        <div key={milestone.id} className="flex items-center p-4 glass-premium rounded-xl border border-border/40 hover:border-brand-300 group hover:shadow-md transition-all">
+                        <div key={milestone.id} className="flex items-center p-4 glass-premium rounded-3xl border border-border/40 hover:border-brand-300 group hover:shadow-md transition-all">
                             <div className="flex-shrink-0 mr-4">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${milestone.status === 'achieved' ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400' :
                                     milestone.status === 'missed' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :

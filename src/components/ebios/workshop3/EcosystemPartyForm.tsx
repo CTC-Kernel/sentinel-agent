@@ -197,9 +197,9 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-amber-900/30">
+            <div className="p-2 rounded-3xl bg-indigo-100 dark:bg-amber-900/30">
               <Icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
@@ -215,7 +215,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -233,10 +233,10 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               type="text"
               placeholder={t('ebios.workshop3.partyNamePlaceholder', 'Ex: AWS, Salesforce, ANSSI...')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                 errors.name
                   ? "border-red-500"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
             />
             {errors.name && (
@@ -253,10 +253,10 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               <select
                 {...register('type')}
                 className={cn(
-                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                  "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                   errors.type
                     ? "border-red-500"
-                    : "border-slate-200 dark:border-slate-700"
+                    : "border-border/40 dark:border-slate-700"
                 )}
               >
                 {PARTY_TYPES.map((type) => (
@@ -277,10 +277,10 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               <select
                 {...register('category')}
                 className={cn(
-                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
+                  "w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800",
                   errors.category
                     ? "border-red-500"
-                    : "border-slate-200 dark:border-slate-700"
+                    : "border-border/40 dark:border-slate-700"
                 )}
               >
                 <option value="external">{t('ebios.workshop3.external', 'Externe')}</option>
@@ -301,7 +301,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               {...register('description')}
               rows={2}
               placeholder={t('ebios.workshop3.partyDescriptionPlaceholder', 'Description de cette partie prenante...')}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
+              className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
             />
           </div>
 
@@ -349,7 +349,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-slate-700/50">
             <div>
               {isEditing && onDelete && (
                 <Button

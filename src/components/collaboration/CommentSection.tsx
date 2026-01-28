@@ -100,7 +100,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                     </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700/50">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl px-4 py-3 border border-border/40 dark:border-slate-700/50">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                 {comment.userName}
@@ -151,7 +151,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                 )}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700">
                 {replyTo && (
                     <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-2 rounded-lg mb-2 text-xs">
                         <span className="text-slate-600 dark:text-muted-foreground">
@@ -168,7 +168,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         aria-label={replyTo ? "Votre réponse" : "Ajouter un commentaire"}
                         type="text"
                         placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire..."}
-                        className={cn("w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm", errors.content && "border-red-500 focus:border-red-500")}
+                        className={cn("w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-3xl focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm", errors.content && "border-red-500 focus:border-red-500")}
                     />
                     <button
                         type="submit"

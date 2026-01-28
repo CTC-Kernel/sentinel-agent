@@ -89,7 +89,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-slate-700 shadow-sm">
                 <div className="grid grid-cols-1 gap-4">
                     <div>
                         <label htmlFor="questionnaire-title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -98,7 +98,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                         <input
                             id="questionnaire-title"
                             {...register('title', { required: true })}
-                            className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-transparent focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow outline-none dark:text-white"
+                            className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-600 bg-transparent focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow outline-none dark:text-white"
                             placeholder="Ex: Évaluation ISO 27001 - Fournisseurs SaaS"
                         />
                     </div>
@@ -107,7 +107,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                         <textarea
                             id="questionnaire-desc"
                             {...register('description')}
-                            className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-transparent focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow outline-none min-h-[80px] dark:text-white"
+                            className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-600 bg-transparent focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow outline-none min-h-[80px] dark:text-white"
                             placeholder="Description de l'usage de ce modèle..."
                         />
                     </div>

@@ -100,7 +100,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                     <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="p-2 bg-brand-50 rounded-xl">
+                            <div className="p-2 bg-brand-50 rounded-3xl">
                                 <TrendingUp className="h-4 w-4 text-brand-500" />
                             </div>
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux de Complétion</span>
@@ -126,7 +126,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                     <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="p-2 bg-emerald-500/10 rounded-xl">
+                            <div className="p-2 bg-emerald-500/10 rounded-3xl">
                                 <AlertTriangle className="h-4 w-4 text-emerald-500" />
                             </div>
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux de Conformité</span>
@@ -159,7 +159,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                         </div>
                         Statut des Audits
@@ -220,7 +220,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
-                        <div className="p-2 bg-orange-500/10 rounded-xl">
+                        <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <BarChartIcon className="w-4 h-4 text-orange-500" />
                         </div>
                         Constats par Type

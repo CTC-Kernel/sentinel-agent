@@ -115,9 +115,9 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <PremiumCard glass className="max-w-2xl w-full max-h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/30">
+            <div className="p-2 rounded-3xl bg-blue-100 dark:bg-blue-900/30">
               <Link2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
@@ -131,7 +131,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -147,7 +147,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('ebios.workshop1.searchAssets', 'Rechercher des actifs...')}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
             />
           </div>
 
@@ -229,10 +229,10 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                     <label
                       key={asset.id}
                       className={cn(
-                        'flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all',
+                        'flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-all',
                         selectedAssetIds.has(asset.id)
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                          : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600'
                       )}
                     >
                       <div
@@ -240,7 +240,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                           'w-5 h-5 rounded flex items-center justify-center border-2 transition-colors',
                           selectedAssetIds.has(asset.id)
                             ? 'border-blue-500 bg-blue-500'
-                            : 'border-slate-300 dark:border-slate-600'
+                            : 'border-border/40 dark:border-slate-600'
                         )}
                       >
                         {selectedAssetIds.has(asset.id) && (
@@ -276,7 +276,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
         </div>
 
         {/* Footer */}
-        <div className="pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
+        <div className="pt-4 border-t border-border/40 dark:border-slate-700/50 flex items-center justify-between">
           <div className="text-sm text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4" />
             {t('ebios.workshop1.importNote', 'Les actifs importés seront liés à l\'inventaire')}
@@ -284,7 +284,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="px-4 py-2 rounded-3xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               {t('common.cancel', 'Annuler')}
             </button>
@@ -292,7 +292,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
               onClick={handleImport}
               disabled={selectedAssetIds.size === 0}
               className={cn(
-                'px-5 py-2 rounded-xl font-medium transition-colors',
+                'px-5 py-2 rounded-3xl font-medium transition-colors',
                 selectedAssetIds.size > 0
                   ? 'bg-blue-500 hover:bg-blue-600 text-white'
                   : 'bg-slate-100 dark:bg-slate-800 text-muted-foreground cursor-not-allowed'

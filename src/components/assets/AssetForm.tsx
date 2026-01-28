@@ -587,7 +587,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     <input {...register('dataDetails.isEncrypted')}
                                         type="checkbox"
                                         id="isEncrypted"
-                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-slate-300 focus-visible:ring-brand-500 transition-all duration-200"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-border/40 focus-visible:ring-brand-500 transition-all duration-200"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                                 </label>
@@ -595,7 +595,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     <input {...register('dataDetails.hasWorm')}
                                         type="checkbox"
                                         id="hasWorm"
-                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-slate-300 focus-visible:ring-brand-500 transition-all duration-200"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-border/40 focus-visible:ring-brand-500 transition-all duration-200"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Stockage Immuable (WORM)</span>
                                 </label>
@@ -645,10 +645,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             <label
                                 key={scope}
                                 htmlFor={`scope-${scope}`}
-                                className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
-                                    ? 'bg-brand-50 dark:bg-brand-900 border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-300 font-bold'
-                                    : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'
-                                    }`}
+                                className={`cursor-pointer px-4 py-2 rounded-3xl border transition-all ${(watch('scope') || []).includes(scope)
+                                    ? 'bg-brand-50/50 dark:bg-brand-900/20 border-brand-500/50 text-brand-700 dark:text-brand-300 font-bold shadow-sm'
+                                    : 'border-border/40 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'
+                                    } shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl`}
                             >
                                 <input
                                     id={`scope-${scope}`}

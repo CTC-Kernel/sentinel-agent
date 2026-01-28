@@ -234,7 +234,7 @@ const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS 
       distanceFactor={10}
       style={{ pointerEvents: 'none' }}
     >
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-lg p-3 min-w-[200px] text-white font-mono text-xs">
+      <div className="bg-slate-900/90 backdrop-blur-sm border border-border/40 rounded-lg p-3 min-w-[200px] text-white font-mono text-xs">
         {/* FPS Display */}
         <div className="flex items-center justify-between mb-2">
           <span className="text-muted-foreground">FPS</span>
@@ -282,7 +282,7 @@ const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS 
         {/* VR Ready Status */}
         <div
           className={`
-            mt-2 pt-2 border-t border-white/10 text-center text-xs
+            mt-2 pt-2 border-t border-border/40 text-center text-xs
             ${isVRReady ? 'text-green-400' : 'text-red-400'}
           `}
         >
@@ -310,7 +310,7 @@ const VRQualityControl: React.FC<VRQualityControlProps> = ({
 
   return (
     <Html position={[-2, 1, -2]} center distanceFactor={8}>
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-lg p-3">
+      <div className="bg-slate-900/90 backdrop-blur-sm border border-border/40 rounded-lg p-3">
         <div className="text-white text-xs font-medium mb-2">Quality</div>
         <div className="flex flex-col gap-1">
           {levels.map((level) => (
@@ -575,10 +575,10 @@ export const VROptimizedScene: React.FC<VROptimizedSceneProps> = ({
   return (
     <div className="relative w-full h-full">
       {/* VR Button */}
-      <VRButton className="absolute bottom-4 right-4 z-10 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg transition-colors" />
+      <VRButton className="absolute bottom-4 right-4 z-10 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-3xl shadow-lg transition-colors" />
 
       {/* Quality indicator (non-VR) */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-1.5">
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-900/80 backdrop-blur-sm border border-border/40 rounded-lg px-3 py-1.5">
         <span className="text-xs text-muted-foreground">Quality:</span>
         <select
           value={qualityLevel}

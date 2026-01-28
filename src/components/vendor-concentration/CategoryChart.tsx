@@ -81,7 +81,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
   const data = payload[0].payload;
 
   return (
-    <div className="glass-premium p-3 rounded-xl shadow-apple-md min-w-[200px] border border-border/40">
+    <div className="glass-premium p-3 rounded-3xl shadow-apple-md min-w-[200px] border border-border/40">
       <div className="flex items-center gap-2 mb-2">
         <span className="font-medium text-slate-900 dark:text-white">
           {data.name}

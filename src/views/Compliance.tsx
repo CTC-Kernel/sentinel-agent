@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
@@ -354,204 +356,205 @@ export const Compliance: React.FC = () => {
     };
 
     return (
-        <>
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
+        >
             <MasterpieceBackground />
             <SEO title={`${t('compliance.title')} ${currentFrameworkId || ''}- Sentinel GRC`} description={t('compliance.subtitle')} />
 
-            <div className="relative z-10 p-4 md:p-6 flex flex-col gap-6 sm:gap-8 lg:gap-10 w-full max-w-full overflow-x-hidden pb-24">
-                <div className="max-w-[1920px] mx-auto flex flex-col gap-6 sm:gap-8 lg:gap-10">
+            <div className="max-w-[1920px] mx-auto w-full flex flex-col gap-6 sm:gap-8 lg:gap-10">
+                <PageHeader
+                    title={t('compliance.title')}
+                    subtitle={t('compliance.subtitle')}
+                    icon={
+                        <img
+                            src="/images/pilotage.png"
+                            alt="CONFORMITÉ"
+                            className="w-full h-full object-contain"
+                        />
+                    }
+                    actions={undefined}
+                />
 
+                {/* Stats Widget */}
+                <div className="mt-6">
+                    <ComplianceStatsWidget controls={filteredControls} currentFramework={currentFrameworkId} />
+                </div>
 
-                    <PageHeader
-                        title={t('compliance.title')}
-                        subtitle={t('compliance.subtitle')}
-                        icon={
-                            <img
-                                src="/images/pilotage.png"
-                                alt="CONFORMITÉ"
-                                className="w-full h-full object-contain"
-                            />
-                        }
-                        actions={undefined}
-                    />
+                {/* Framework Selector (Top Level) - filtered by enabled frameworks */}
+                <ScrollableTabs
+                    tabs={enabledComplianceFrameworks.map((f) => ({
+                        id: f.id,
+                        label: t(`frameworks.${f.id}`),
+                    }))}
+                    activeTab={currentFrameworkId}
+                    onTabChange={(id) => setActiveFramework(id as Framework)}
+                />
 
-                    {/* Stats Widget */}
-                    <div className="mt-6">
-                        <ComplianceStatsWidget controls={filteredControls} currentFramework={currentFrameworkId} />
-                    </div>
-
-                    {/* Framework Selector (Top Level) - filtered by enabled frameworks */}
+                {/* Main Navigation Tabs (Feature Level) */}
+                <div className="mt-2">
                     <ScrollableTabs
-                        tabs={enabledComplianceFrameworks.map((f) => ({
-                            id: f.id,
-                            label: t(`frameworks.${f.id}`),
-                        }))}
-                        activeTab={currentFrameworkId}
-                        onTabChange={(id) => setActiveFramework(id as Framework)}
+                        tabs={[
+                            { id: 'overview', label: t('compliance.overview'), icon: LayoutDashboard },
+                            { id: 'controls', label: t('compliance.controls'), icon: ListChecks },
+                            { id: 'efficiency', label: t('compliance.efficiency') || 'Efficacité', icon: BarChart3 },
+                            { id: 'homologation', label: t('compliance.homologation') || 'Homologation', icon: Award },
+                            { id: 'mapping', label: t('compliance.mapping') || 'Mapping', icon: Layers },
+                            { id: 'shared', label: t('compliance.shared') || 'Partagées', icon: Link },
+                            { id: 'soa', label: t('compliance.soa'), icon: FileText }
+                        ]}
+                        activeTab={activeTab}
+                        onTabChange={handleTabChange}
                     />
+                </div>
 
-                    {/* Main Navigation Tabs (Feature Level) */}
-                    <div className="mt-2">
-                        <ScrollableTabs
-                            tabs={[
-                                { id: 'overview', label: t('compliance.overview'), icon: LayoutDashboard },
-                                { id: 'controls', label: t('compliance.controls'), icon: ListChecks },
-                                { id: 'efficiency', label: t('compliance.efficiency') || 'Efficacité', icon: BarChart3 },
-                                { id: 'homologation', label: t('compliance.homologation') || 'Homologation', icon: Award },
-                                { id: 'mapping', label: t('compliance.mapping') || 'Mapping', icon: Layers },
-                                { id: 'shared', label: t('compliance.shared') || 'Partagées', icon: Link },
-                                { id: 'soa', label: t('compliance.soa'), icon: FileText }
-                            ]}
-                            activeTab={activeTab}
-                            onTabChange={handleTabChange}
+                {/* Tab Content */}
+                {activeTab === 'overview' && (
+                    <div className="animate-fade-in space-y-6">
+                        <ComplianceDashboard
+                            controls={filteredControls}
+                            currentFramework={currentFrameworkId}
+                            onSeedData={() => seedControls(currentFrameworkId)}
+                            loading={loading}
                         />
                     </div>
+                )}
 
-                    {/* Tab Content */}
-                    {activeTab === 'overview' && (
-                        <div className="animate-fade-in space-y-6">
-                            <ComplianceDashboard
-                                controls={filteredControls}
-                                currentFramework={currentFrameworkId}
-                                onSeedData={() => seedControls(currentFrameworkId)}
-                                loading={loading}
-                            />
-                        </div>
-                    )}
-
-                    {activeTab === 'controls' && (
-                        <div className="animate-fade-in space-y-6">
-                            <PremiumPageControl
-                                searchQuery={filter}
-                                onSearchChange={setFilter}
-                                searchPlaceholder="Rechercher un contrôle (code, nom...)"
-                                actions={
-                                    canEdit && (
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="secondary"
-                                                onClick={handleGenerateEvidenceDossier}
-                                                disabled={generatingDossier || filteredControls.length === 0}
-                                            >
-                                                <Archive className="h-4 w-4 mr-2" />
-                                                {generatingDossier ? 'Génération...' : (t('compliance.generateDossier') || 'Dossier Preuves')}
-                                            </Button>
-                                            <Button
-                                                variant="secondary"
-                                                onClick={() => toast.info(t('compliance.exportInfo'))}
-                                            >
-                                                <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
-                                            </Button>
-                                            <Button
-                                                className="shadow-lg shadow-brand-600/10"
-                                                onClick={() => handleCreateClick('risk')}
-                                            >
-                                                <ShieldCheck className="h-4 w-4 mr-2" />
-                                                {t('compliance.newRisk')}
-                                            </Button>
-                                        </div>
-                                    )
-                                }
-                            >
-                                <div className="flex gap-3 items-center">
-                                    <div className="w-48">
-                                        <CustomSelect
-                                            label=""
-                                            value={statusFilter || 'all'}
-                                            onChange={(val) => setStatusFilter(val === 'all' ? null : val as string)}
-                                            options={[
-                                                { value: 'all', label: 'Tous les statuts' },
-                                                { value: 'Non commencé', label: 'Non commencé' },
-                                                { value: 'En cours', label: 'En cours' },
-                                                { value: 'Partiel', label: 'Partiel' },
-                                                { value: 'Implémenté', label: 'Implémenté' },
-                                                { value: 'Non applicable', label: 'Non applicable' }
-                                            ]}
-                                            placeholder="Filtrer par statut"
-                                            className="rounded-xl"
-                                        />
+                {activeTab === 'controls' && (
+                    <div className="animate-fade-in space-y-6">
+                        <PremiumPageControl
+                            searchQuery={filter}
+                            onSearchChange={setFilter}
+                            searchPlaceholder="Rechercher un contrôle (code, nom...)"
+                            actions={
+                                canEdit && (
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="secondary"
+                                            onClick={handleGenerateEvidenceDossier}
+                                            disabled={generatingDossier || filteredControls.length === 0}
+                                        >
+                                            <Archive className="h-4 w-4 mr-2" />
+                                            {generatingDossier ? 'Génération...' : (t('compliance.generateDossier') || 'Dossier Preuves')}
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => toast.info(t('compliance.exportInfo'))}
+                                        >
+                                            <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
+                                        </Button>
+                                        <Button
+                                            className="shadow-lg shadow-brand-600/10"
+                                            onClick={() => handleCreateClick('risk')}
+                                        >
+                                            <ShieldCheck className="h-4 w-4 mr-2" />
+                                            {t('compliance.newRisk')}
+                                        </Button>
                                     </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setShowMissingEvidence(!showMissingEvidence)}
-                                        className={`transition-all ${showMissingEvidence
-                                            ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'
-                                            : ''
-                                            }`}
-                                    >
-                                        <AlertTriangle className="h-4 w-4 mr-2" />
-                                        <span>Preuves manquantes</span>
-                                    </Button>
+                                )
+                            }
+                        >
+                            <div className="flex gap-3 items-center">
+                                <div className="w-48">
+                                    <CustomSelect
+                                        label=""
+                                        value={statusFilter || 'all'}
+                                        onChange={(val) => setStatusFilter(val === 'all' ? null : val as string)}
+                                        options={[
+                                            { value: 'all', label: 'Tous les statuts' },
+                                            { value: 'Non commencé', label: 'Non commencé' },
+                                            { value: 'En cours', label: 'En cours' },
+                                            { value: 'Partiel', label: 'Partiel' },
+                                            { value: 'Implémenté', label: 'Implémenté' },
+                                            { value: 'Non applicable', label: 'Non applicable' }
+                                        ]}
+                                        placeholder="Filtrer par statut"
+                                        className="rounded-xl"
+                                    />
                                 </div>
-                            </PremiumPageControl>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowMissingEvidence(!showMissingEvidence)}
+                                    className={`transition-all ${showMissingEvidence
+                                        ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'
+                                        : ''
+                                        }`}
+                                >
+                                    <AlertTriangle className="h-4 w-4 mr-2" />
+                                    <span>Preuves manquantes</span>
+                                </Button>
+                            </div>
+                        </PremiumPageControl>
 
-                            <ComplianceList
-                                controls={filteredControls}
-                                risks={risks}
-                                findings={[]}
-                                loading={loading}
-                                currentFramework={currentFrameworkId}
-                                selectedControlId={selectedControlId || undefined}
-                                onSelectControl={handleSelectControl}
-                                filter={filter}
-                            />
-                        </div>
-                    )}
+                        <ComplianceList
+                            controls={filteredControls}
+                            risks={risks}
+                            findings={[]}
+                            loading={loading}
+                            currentFramework={currentFrameworkId}
+                            selectedControlId={selectedControlId || undefined}
+                            onSelectControl={handleSelectControl}
+                            filter={filter}
+                        />
+                    </div>
+                )}
 
-                    {activeTab === 'mapping' && (
-                        <div className="animate-fade-in space-y-6">
-                            <FrameworkMappingMatrix
-                                controls={filteredControls}
-                                enabledFrameworks={organization?.enabledFrameworks}
-                                onControlClick={handleSelectControl}
-                            />
-                        </div>
-                    )}
+                {activeTab === 'mapping' && (
+                    <div className="animate-fade-in space-y-6">
+                        <FrameworkMappingMatrix
+                            controls={filteredControls}
+                            enabledFrameworks={organization?.enabledFrameworks}
+                            onControlClick={handleSelectControl}
+                        />
+                    </div>
+                )}
 
-                    {activeTab === 'shared' && (
-                        <div className="animate-fade-in space-y-6">
-                            <SharedRequirementsView
-                                controls={filteredControls}
-                                enabledFrameworks={organization?.enabledFrameworks}
-                                onControlClick={handleSelectControl}
-                            />
-                        </div>
-                    )}
+                {activeTab === 'shared' && (
+                    <div className="animate-fade-in space-y-6">
+                        <SharedRequirementsView
+                            controls={filteredControls}
+                            enabledFrameworks={organization?.enabledFrameworks}
+                            onControlClick={handleSelectControl}
+                        />
+                    </div>
+                )}
 
-                    {activeTab === 'soa' && (
-                        <div className="animate-fade-in space-y-6">
-                            <SoAView
-                                controls={filteredControls}
-                                risks={risks}
-                                framework={currentFrameworkId}
-                                handlers={complianceActions}
-                                onSeed={() => seedControls(currentFrameworkId)}
-                            />
-                        </div>
-                    )}
+                {activeTab === 'soa' && (
+                    <div className="animate-fade-in space-y-6">
+                        <SoAView
+                            controls={filteredControls}
+                            risks={risks}
+                            framework={currentFrameworkId}
+                            handlers={complianceActions}
+                            onSeed={() => seedControls(currentFrameworkId)}
+                        />
+                    </div>
+                )}
 
-                    {activeTab === 'efficiency' && (
-                        <div className="animate-fade-in space-y-6 sm:space-y-8">
-                            <ControlEffectivenessDashboard
-                                onAssessClick={() => handleOpenAssessment(undefined)}
-                            />
-                            <ControlEffectivenessManager
-                                assessments={assessments}
-                                domainScores={domainScores}
-                                loading={effLoading}
-                                error={effError}
-                                onAssessControl={handleOpenAssessment}
-                            />
-                        </div>
-                    )}
+                {activeTab === 'efficiency' && (
+                    <div className="animate-fade-in space-y-6 sm:space-y-8">
+                        <ControlEffectivenessDashboard
+                            onAssessClick={() => handleOpenAssessment(undefined)}
+                        />
+                        <ControlEffectivenessManager
+                            assessments={assessments}
+                            domainScores={domainScores}
+                            loading={effLoading}
+                            error={effError}
+                            onAssessControl={handleOpenAssessment}
+                        />
+                    </div>
+                )}
 
-                    {activeTab === 'homologation' && (
-                        <div className="animate-fade-in">
-                            <Homologation hideHeader />
-                        </div>
-                    )}
-                </div>
+                {activeTab === 'homologation' && (
+                    <div className="animate-fade-in">
+                        <Homologation hideHeader />
+                    </div>
+                )}
             </div>
 
             <ComplianceDrawer
@@ -613,17 +616,19 @@ export const Compliance: React.FC = () => {
             />
 
             {/* Efficiency Assessment Modal */}
-            {showAssessmentForm && (
-                <AssessmentFormModal
-                    control={selectedEffControl}
-                    controls={ISO_SEED_CONTROLS}
-                    onClose={() => {
-                        setShowAssessmentForm(false);
-                        setSelectedEffControl(null);
-                    }}
-                    onSubmit={handleAssessmentSubmit}
-                />
-            )}
-        </>
+            {
+                showAssessmentForm && (
+                    <AssessmentFormModal
+                        control={selectedEffControl}
+                        controls={ISO_SEED_CONTROLS}
+                        onClose={() => {
+                            setShowAssessmentForm(false);
+                            setSelectedEffControl(null);
+                        }}
+                        onSubmit={handleAssessmentSubmit}
+                    />
+                )
+            }
+        </motion.div>
     );
 };

@@ -346,7 +346,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
           border: '1px solid rgba(148, 163, 184, 0.1)',
           boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
         }}
-        className="rounded-xl overflow-hidden"
+        className="rounded-3xl overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-700/50">

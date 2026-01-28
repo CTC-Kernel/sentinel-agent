@@ -90,7 +90,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                 <Skeleton className="h-4 w-32 rounded" />
                             </div>
                         </div>
-                        <div className="flex-1 grid grid-cols-3 gap-4 border-l border-slate-200 dark:border-white/10 px-6 mx-2">
+                        <div className="flex-1 grid grid-cols-3 gap-4 border-l border-border/40 dark:border-border/40 px-6 mx-2">
                             {[1, 2, 3].map(i => (
                                 <div key={i} className="space-y-2">
                                     <Skeleton className="h-4 w-16 rounded" />
@@ -122,7 +122,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
 
     if (projects.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
+            <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-border/40 dark:border-slate-700 min-h-[400px]">
                 <EmptyChartState
                     message="Aucun projet en cours"
                     description="Créez votre premier projet pour suivre son avancement et piloter votre portefeuille."
@@ -162,7 +162,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                         </div>
                     </div>
                     {/* Key Metrics */}
-                    <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 dark:border-border/40 px-6 mx-2">
                         <div>
                             <div className="text-sm text-slate-600 dark:text-muted-foreground mb-1">Total</div>
                             <div className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</div>

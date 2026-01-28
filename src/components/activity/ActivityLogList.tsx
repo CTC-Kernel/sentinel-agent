@@ -141,7 +141,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                                 <summary className="cursor-pointer text-xs text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1 font-medium select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-sm px-1 -ml-1">
                                     Voir {changes.length} modifications
                                 </summary>
-                                <div className="mt-2 text-xs bg-slate-50 dark:bg-white/5 p-2 rounded-lg border border-slate-100 dark:border-white/5 space-y-1 max-w-sm overflow-x-auto">
+                                <div className="mt-2 text-xs bg-slate-50 dark:bg-white/5 p-2 rounded-lg border border-border/40 dark:border-white/5 space-y-1 max-w-sm overflow-x-auto">
                                     {changes.map((change, i) => (
                                         <div key={`change-${i}`} className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center">
                                             <span className="font-semibold text-slate-700 dark:text-slate-300 truncate" title={change.field}>{change.field}</span>
@@ -184,7 +184,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                     <button
                         onClick={onLoadMore}
                         disabled={loading}
-                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {loading ? 'Chargement...' : 'Charger plus d\'activités'}
                     </button>

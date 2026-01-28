@@ -29,7 +29,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                                 <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     {ctrl.code}
                                 </span>
-                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-xl ${ctrl.status === 'Implémenté' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
+                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-3xl ${ctrl.status === 'Implémenté' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
                                     {ctrl.status}
                                 </span>
                             </div>
@@ -51,9 +51,9 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                     return supported.length > 0 ? (
                         <div className="space-y-2">
                             {supported.map(p => (
-                                <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
+                                <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5 flex justify-between items-center">
                                     <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
-                                    <span className={`text-[11px] px-2 py-0.5 rounded-xl font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
+                                    <span className={`text-[11px] px-2 py-0.5 rounded-3xl font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
                                 </div>
                             ))}
                         </div>

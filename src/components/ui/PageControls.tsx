@@ -43,7 +43,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
             {/* Left Section: Search & Count */}
             <div className="flex-1 w-full md:max-w-xl relative group z-20">
                 <div className="absolute inset-0 bg-brand-50 dark:bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
-                <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-300 focus-within:border-brand-300 transition-all duration-300">
+                <div className="relative bg-white dark:bg-slate-900 border border-border/40 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-300 focus-within:border-brand-300 transition-all duration-300">
                     <Search className="h-5 w-5 text-slate-500 dark:text-slate-300 group-focus-within:text-brand-500 transition-colors" />
 
                     <input aria-label={searchPlaceholder} value={searchQuery} onChange={e => onSearchChange(e.target.value)}
@@ -58,7 +58,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
                                 aria-label="Effacer la recherche"
                                 type="button"
                                 onClick={() => onSearchChange('')}
-                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-3xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -67,7 +67,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
 
                     {/* Count Badge */}
                     {totalItems !== undefined && (
-                        <div className="px-3 py-2 bg-slate-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-white/5">
+                        <div className="px-3 py-2 bg-slate-50 dark:bg-white/5 rounded-3xl text-xs font-bold text-slate-600 dark:text-slate-300 border border-border/40 dark:border-white/5">
                             {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : totalItems}
                         </div>
                     )}
@@ -78,7 +78,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
                             aria-label={activeFiltersCount && activeFiltersCount > 0 ? `Filtres actifs (${activeFiltersCount})` : "Afficher les filtres"}
                             onClick={onAdvancedSearch}
                             className={`
-                                flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200
+                                flex items-center gap-2 px-4 py-2 rounded-3xl text-xs font-bold transition-all duration-200
                                 ${activeFiltersCount && activeFiltersCount > 0
                                     ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600'
                                     : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'}
@@ -107,7 +107,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
 
                 {/* View Mode Toggle */}
                 {viewMode && onViewModeChange && (
-                    <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="flex bg-white dark:bg-slate-900 p-1 rounded-3xl border border-border/40 dark:border-slate-800 shadow-sm">
                         <Tooltip content="Vue Grille">
                             <button
                                 aria-label="Passer en vue grille"

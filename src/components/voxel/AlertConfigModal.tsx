@@ -137,9 +137,9 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
   return (
     <div
       className={`
-        p-4 rounded-xl border transition-all
+        p-4 rounded-3xl border transition-all
         ${threshold.enabled
-          ? 'bg-white/5 border-white/10'
+          ? 'bg-white/5 border-border/40'
           : 'bg-white/[0.02] border-white/5 opacity-60'}
       `}
     >
@@ -326,13 +326,13 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-slate-900 rounded-2xl border border-white/10 shadow-2xl z-50 flex flex-col overflow-hidden"
+            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-slate-900 rounded-2xl border border-border/40 shadow-2xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="p-6 border-b border-white/10 shrink-0">
+            <div className="p-6 border-b border-border/40 shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                  <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
                     <Bell className="h-5 w-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
@@ -367,7 +367,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                   <button
                     onClick={() => handleChannelToggle('inApp')}
                     className={`
-                      p-4 rounded-xl border transition-all text-left
+                      p-4 rounded-3xl border transition-all text-left
                       ${channels.inApp
                         ? 'bg-brand-50 border-brand-300'
                         : 'bg-white/[0.02] border-white/5'}
@@ -394,7 +394,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                   <button
                     onClick={() => handleChannelToggle('email')}
                     className={`
-                      p-4 rounded-xl border transition-all text-left
+                      p-4 rounded-3xl border transition-all text-left
                       ${channels.email
                         ? 'bg-brand-50 border-brand-300'
                         : 'bg-white/[0.02] border-white/5'}
@@ -424,7 +424,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                   Limitation des alertes
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="p-4 rounded-3xl bg-white/5 border border-border/40">
                     <label htmlFor="max-alerts" className="flex items-center gap-2 text-xs text-white/60 mb-2">
                       <Clock className="h-3 w-3" />
                       Max alertes / heure
@@ -439,10 +439,10 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                         setMaxAlertsPerHour(parseInt(e.target.value) || 10);
                         markChanged();
                       }}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500"
+                      className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500"
                     />
                   </div>
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="p-4 rounded-3xl bg-white/5 border border-border/40">
                     <label htmlFor="cooldown" className="flex items-center gap-2 text-xs text-white/60 mb-2">
                       <Clock className="h-3 w-3" />
                       Cooldown (minutes)
@@ -457,7 +457,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                         setCooldownMinutes(parseInt(e.target.value) || 30);
                         markChanged();
                       }}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500"
+                      className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500"
                     />
                   </div>
                 </div>
@@ -491,7 +491,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-white/10 shrink-0">
+            <div className="p-6 border-t border-border/40 shrink-0">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-white/40">
                   {hasChanges ? 'Modifications non sauvegardees' : 'Aucune modification'}
@@ -506,7 +506,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                   <button
                     onClick={handleSave}
                     disabled={!hasChanges || isSaving || isLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                   >
                     <Save className="h-4 w-4" />
                     {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}

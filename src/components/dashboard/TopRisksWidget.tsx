@@ -21,7 +21,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                     <h3 className="text-lg font-bold text-foreground">Risques Critiques</h3>
                     <p className="text-sm text-muted-foreground">Priorité d'action</p>
                 </div>
-                <button className="p-2 bg-destructive/10 text-destructive rounded-xl hover:bg-destructive/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50">
+                <button className="p-2 bg-destructive/10 text-destructive rounded-3xl hover:bg-destructive/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50">
                     <ShieldAlert className="h-5 w-5" />
                 </button>
             </div>

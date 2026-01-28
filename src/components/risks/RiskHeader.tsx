@@ -62,7 +62,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
             actions={
                 <>
                     <Menu as="div" className="relative inline-block text-left">
-                        <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm h-9 w-9">
+                        <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white rounded-3xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm h-9 w-9">
                             <MoreVertical className="h-5 w-5" />
                         </Menu.Button>
                         <Transition
@@ -74,7 +74,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                             leaveFrom="transform opacity-70 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                         >
-                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
+                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-3xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                 <div className="p-1">
                                     <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         Rapports & Exports
@@ -188,7 +188,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     aria-label="Lancer l'analyse IA"
                                     onClick={onAIAnalysis}
                                     disabled={isAnalyzing}
-                                    className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-violet-500 text-white rounded-xl hover:from-violet-700 hover:to-violet-600 shadow-lg shadow-violet-500/20 font-bold text-sm"
+                                    className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-violet-500 text-white rounded-3xl hover:from-violet-700 hover:to-violet-600 shadow-lg shadow-violet-500/20 font-bold text-sm"
                                 >
                                     {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
                                     <span className="hidden md:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
@@ -198,7 +198,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                 <Button
                                     aria-label="Créer un nouveau risque"
                                     onClick={onNewRisk}
-                                    className="flex items-center gap-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+                                    className="flex items-center gap-2 bg-brand-600 text-white text-sm font-bold rounded-3xl hover:bg-brand-700 shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4" />
                                     <span className="hidden sm:inline">Nouveau Risque</span>

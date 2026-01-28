@@ -45,7 +45,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
                 hover={true}
                 gradientOverlay={true}
             >
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                         <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
                             <Truck className="w-4 h-4" />
@@ -75,7 +75,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
             hover={true}
             gradientOverlay={true}
         >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
                         <Truck className="w-4 h-4" />
@@ -97,7 +97,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-error-bg/50 dark:bg-error/5 border border-error-border dark:border-error/10 flex flex-col">
+                    <div className="p-3 rounded-3xl bg-error-bg/50 dark:bg-error/5 border border-error-border dark:border-error/10 flex flex-col">
                         <div className="flex items-center gap-1.5 text-error-text dark:text-error mb-1">
                             <ShieldAlert className="w-3.5 h-3.5" />
                             <span className="text-[11px] uppercase font-bold tracking-wider">Critiques</span>
@@ -105,7 +105,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
                         <span className="text-xl font-bold text-error-text dark:text-error">{stats.critical}</span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-success-bg/50 dark:bg-success/5 border border-success-border dark:border-success/10 flex flex-col">
+                    <div className="p-3 rounded-3xl bg-success-bg/50 dark:bg-success/5 border border-success-border dark:border-success/10 flex flex-col">
                         <div className="flex items-center gap-1.5 text-success-text dark:text-success mb-1">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             <span className="text-[11px] uppercase font-bold tracking-wider">Actifs</span>

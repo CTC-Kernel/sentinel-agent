@@ -12,7 +12,18 @@ import { ProcessingActivity } from '../../../types';
 vi.mock('framer-motion', () => ({
     motion: {
         div: ({ children, onClick, className }: React.PropsWithChildren<{ onClick?: () => void; className?: string }>) => (
-            <div onClick={onClick} className={className}>{children}</div>
+            <div 
+                onClick={onClick} 
+                onKeyDown={(e) => {
+                    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        onClick();
+                    }
+                }}
+                className={className}
+                role="button"
+                tabIndex={0}
+            >{children}</div>
         )
     }
 }));

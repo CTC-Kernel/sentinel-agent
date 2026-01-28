@@ -16,7 +16,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
             <div className="bg-gradient-to-r from-brand-600 to-purple-600 rounded-2xl shadow-2xl p-6 text-white">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 dark:bg-white/10 rounded-xl">
+                        <div className="p-2 bg-white/20 dark:bg-white/10 rounded-3xl">
                             <HelpCircle className="h-6 w-6" />
                         </div>
                         <div>
@@ -35,14 +35,14 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
                 <div className="flex gap-3">
                     <button
                         onClick={onStart}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-600 rounded-xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-600 rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600"
                     >
                         <Zap className="h-4 w-4" />
                         {t('tour.banner.start')}
                     </button>
                     <button
                         onClick={onDismiss}
-                        className="px-4 py-2 bg-white/20 text-white rounded-xl text-sm font-bold hover:bg-white/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        className="px-4 py-2 bg-white/20 text-white rounded-3xl text-sm font-bold hover:bg-white/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
                         {t('tour.banner.dismiss')}
                     </button>

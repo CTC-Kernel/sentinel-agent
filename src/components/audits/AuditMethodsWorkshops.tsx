@@ -407,7 +407,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                 tabIndex={0}
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className={cn("p-3 rounded-xl text-white", typeColors[template.type])}>
+                  <div className={cn("p-3 rounded-3xl text-white", typeColors[template.type])}>
                     {typeIcons[template.type]}
                   </div>
                   {isActive && (
@@ -442,7 +442,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                 </div>
 
                 {isActive && (
-                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Progression</span>
                       <span className="text-xs font-bold text-slate-900 dark:text-white">{workshopProgress}%</span>
@@ -502,7 +502,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
 
               {/* Best Practices & Deliverables */}
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800">
+                <div className="p-4 rounded-3xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800">
                   <h4 className="flex items-center gap-2 text-sm font-bold text-indigo-700 dark:text-indigo-400 mb-3">
                     <Lightbulb className="w-4 h-4" />
                     Bonnes pratiques
@@ -517,7 +517,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                   </ul>
                 </div>
 
-                <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
+                <div className="p-4 rounded-3xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
                   <h4 className="flex items-center gap-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-3">
                     <FileText className="w-4 h-4" />
                     Livrables attendus
@@ -558,7 +558,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                     >
                       <div className="flex items-center gap-4">
                         <div className={cn(
-                          "w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold",
+                          "w-10 h-10 rounded-3xl flex items-center justify-center text-white font-bold",
                           phase.status === 'completed' ? 'bg-green-500' :
                             phase.status === 'in_progress' ? 'bg-blue-500' :
                               'bg-slate-400'
@@ -601,7 +601,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="border-t border-slate-200 dark:border-slate-700"
+                          className="border-t border-border/40 dark:border-slate-700"
                         >
                           <div className="p-4 space-y-3">
                             {phase.tasks.map((task) => {
@@ -611,17 +611,17 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                 <div
                                   key={task.id}
                                   className={cn(
-                                    "flex items-start gap-3 p-3 rounded-xl border transition-colors relative",
+                                    "flex items-start gap-3 p-3 rounded-3xl border transition-colors relative",
                                     task.isCompleted
                                       ? "bg-green-50 dark:bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-800 dark:border-green-800"
-                                      : "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700",
+                                      : "bg-white dark:bg-slate-800/50 border-border/40 dark:border-slate-700",
                                     isWorkshopActive && "hover:border-indigo-300 dark:hover:border-indigo-700"
                                   )}
                                 >
                                   {isWorkshopActive && (
                                     <button
                                       onClick={() => handleToggleTask(phase.id, task.id)}
-                                      className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl"
+                                      className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl"
                                       aria-label={`Toggle task: ${task.title}`}
                                     />
                                   )}
@@ -659,7 +659,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                             })}
 
                             {phase.deliverables && phase.deliverables.length > 0 && (
-                              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                              <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700">
                                 <h6 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
                                   Livrables de cette phase
                                 </h6>

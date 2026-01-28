@@ -304,7 +304,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl hover:bg-slate-700/50 transition-colors"
+              className="p-2 rounded-3xl hover:bg-slate-700/50 transition-colors"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -337,7 +337,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                     key={option.value}
                     onClick={() => setType(option.value)}
                     aria-pressed={type === option.value}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${type === option.value
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-3xl transition-all ${type === option.value
                       ? 'bg-brand-100 border-2 border-brand-500 text-brand-400'
                       : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
                       }`}
@@ -359,7 +359,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Écrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
                 rows={4}
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
               />
 
               <p className="text-xs text-slate-500">
@@ -397,7 +397,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                     key={option.value}
                     onClick={() => setVisibility(option.value)}
                     aria-pressed={visibility === option.value}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${visibility === option.value
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-3xl transition-all ${visibility === option.value
                       ? 'bg-brand-100 border-2 border-brand-500 text-brand-400'
                       : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
                       }`}
@@ -420,7 +420,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
                   placeholder="ID de l'équipe"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent text-sm"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent text-sm"
                 />
               </div>
             )}
@@ -428,7 +428,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
 
             {/* Error message */}
             {error && (
-              <div className="px-4 py-3 bg-red-50 dark:bg-red-900/30 border border-red-500/30 rounded-xl text-red-400 text-sm">
+              <div className="px-4 py-3 bg-red-50 dark:bg-red-900/30 border border-red-500/30 rounded-3xl text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -447,7 +447,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
             <div className="flex gap-2">
               <button
                 disabled
-                className="p-2 rounded-xl bg-slate-700/50 text-slate-500 dark:text-slate-300 cursor-not-allowed"
+                className="p-2 rounded-3xl bg-slate-700/50 text-slate-500 dark:text-slate-300 cursor-not-allowed"
                 title="Ajouter une piece jointe (bientot)"
               >
                 <Paperclip className="w-4 h-4" />
@@ -456,7 +456,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
               <button
                 onClick={handleSave}
                 disabled={isSaving || !content.trim()}
-                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${isSaving || !content.trim()
+                className={`flex items-center gap-2 px-5 py-2 rounded-3xl text-sm font-semibold transition-all ${isSaving || !content.trim()
                   ? 'bg-brand-100 text-brand-400 cursor-not-allowed'
                   : 'bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25'
                   }`}

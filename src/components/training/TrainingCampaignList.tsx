@@ -109,7 +109,7 @@ const CampaignCardSkeleton: React.FC = () => (
   <div className="glass-premium p-5 rounded-2xl border border-border/40">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
-        <Skeleton className="w-12 h-12 rounded-xl" />
+        <Skeleton className="w-12 h-12 rounded-3xl" />
         <div>
           <Skeleton className="h-5 w-48 rounded-md mb-2" />
           <Skeleton className="h-3 w-32 rounded-md" />
@@ -168,7 +168,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-xl ${statusConfig.bg}`}>
+          <div className={`p-3 rounded-3xl ${statusConfig.bg}`}>
             <Megaphone className={`w-6 h-6 ${statusConfig.color}`} />
           </div>
           <div>
@@ -389,9 +389,9 @@ export const TrainingCampaignList: React.FC<TrainingCampaignListProps> = ({
               <button
                 key={btn.value}
                 onClick={() => setStatusFilter(btn.value)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-muted'
+                className={`flex items-center gap-2 px-3 py-2 rounded-3xl text-sm font-medium transition-all ${isActive
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-muted'
                   }`}
               >
                 {t(btn.label)}

@@ -36,7 +36,7 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
     }, [processes, drills]);
 
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-3xl border border-white/60 dark:border-white/5 flex flex-col xl:flex-row gap-8 relative group overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+        <div className="glass-premium p-6 md:p-8 rounded-3xl border border-border/40 dark:border-white/5 flex flex-col xl:flex-row gap-8 relative group overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
             {/* Tech Corners Generic */}
             <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -121,7 +121,7 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
 
             {/* Drill Success Rate Mini-Card */}
             <div className="min-w-0 sm:min-w-[200px] flex flex-col justify-center relative z-10 pl-4">
-                <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors cursor-default mb-2">
+                <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors cursor-default mb-2">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                         <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide font-mono">Succès Drills</span>

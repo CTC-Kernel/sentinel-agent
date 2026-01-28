@@ -178,7 +178,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                         >
                             <Dialog.Panel className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
                                 {/* Header */}
-                                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                <div className="px-6 py-4 border-b border-border/40 dark:border-slate-800 flex items-center justify-between">
                                     <div>
                                         <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white">
                                             Planifier un rapport
@@ -208,7 +208,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="Ex: Rapport mensuel ISO 27001"
-                                            className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                         />
                                     </div>
 
@@ -273,7 +273,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                                 id="weekly-day"
                                                 value={dayOfWeek}
                                                 onChange={(e) => setDayOfWeek(Number(e.target.value))}
-                                                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
+                                                className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 {Object.entries(dayOfWeekLabels).map(([value, label]) => (
                                                     <option key={value} value={value}>{label}</option>
@@ -290,7 +290,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                                 id="monthly-day"
                                                 value={dayOfMonth}
                                                 onChange={(e) => setDayOfMonth(Number(e.target.value))}
-                                                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
+                                                className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
                                                     <option key={day} value={day}>
@@ -330,7 +330,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                                         onChange={(e) => handleRecipientChange(index, e.target.value)}
                                                         placeholder="email@example.com"
                                                         aria-label={`Email du destinataire ${index + 1}`}
-                                                        className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                                                        className="flex-1 px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                                     />
                                                     {recipients.length > 1 && (
                                                         <button
@@ -389,7 +389,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                 </div>
 
                                 {/* Footer */}
-                                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+                                <div className="px-6 py-4 border-t border-border/40 dark:border-slate-800 flex justify-end gap-3">
                                     <Button variant="outline" onClick={onClose}>
                                         Annuler
                                     </Button>

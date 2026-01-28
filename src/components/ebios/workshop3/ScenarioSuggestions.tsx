@@ -76,7 +76,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
         className="w-full flex items-center justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
+          <div className="p-2 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-500">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
@@ -108,7 +108,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
             return (
               <div
                 key={template.id}
-                className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-all"
+                className="p-4 rounded-3xl bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-all"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">

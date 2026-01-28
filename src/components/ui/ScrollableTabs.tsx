@@ -57,7 +57,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                         exit={{ opacity: 0, x: -10 }}
                         onClick={() => scroll('left')}
                         aria-label="Défiler vers la gauche"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-border/40 dark:border-border/40 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </motion.button>
@@ -67,7 +67,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
             <div
                 ref={scrollContainerRef}
                 onScroll={checkScroll}
-                className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1.5 bg-slate-100/50 dark:bg-slate-800/50 rounded-full border border-slate-200/50 dark:border-white/5 backdrop-blur-sm"
+                className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1.5 bg-slate-100/50 dark:bg-slate-800/50 rounded-full border border-border/40 dark:border-white/5 backdrop-blur-sm"
                 role="tablist"
                 aria-orientation="horizontal"
             >
@@ -90,7 +90,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                             {isActive && (
                                 <motion.div
                                     layoutId="activeTab"
-                                    className="absolute inset-0 bg-white dark:bg-slate-700 rounded-full shadow-sm border border-slate-200/50 dark:border-white/10 -z-10"
+                                    className="absolute inset-0 bg-white dark:bg-slate-700 rounded-full shadow-sm border border-border/40 dark:border-border/40 -z-10"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -125,7 +125,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                         exit={{ opacity: 0, x: 10 }}
                         onClick={() => scroll('right')}
                         aria-label="Défiler vers la droite"
-                        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg border border-border/40 dark:border-border/40 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </motion.button>

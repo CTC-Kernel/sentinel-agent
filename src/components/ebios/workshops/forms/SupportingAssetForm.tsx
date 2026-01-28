@@ -112,11 +112,11 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
               {...register('name')}
               id="name"
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border transition-colors",
+                "w-full px-4 py-2.5 rounded-3xl border transition-colors",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? "border-red-300 dark:border-red-700"
-                  : "border-slate-200 dark:border-slate-700"
+                  : "border-border/40 dark:border-slate-700"
               )}
               placeholder={t('ebios.workshop1.supportingAssetNamePlaceholder')}
             />
@@ -137,10 +137,10 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                   type="button"
                   onClick={() => setValue('type', type)}
                   className={cn(
-                    "p-2.5 rounded-xl border-2 transition-all text-center",
+                    "p-2.5 rounded-3xl border-2 transition-all text-center",
                     selectedType === type
                       ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20"
-                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                      : "border-border/40 dark:border-slate-700 hover:border-border/40"
                   )}
                 >
                   <span className={cn(
@@ -165,7 +165,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
               {...register('description')}
               id="description"
               rows={3}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+              className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
               placeholder={t('ebios.workshop1.supportingAssetDescriptionPlaceholder')}
             />
           </div>
@@ -186,10 +186,10 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                     key={essentialAsset.id}
                     htmlFor={`essential-asset-${essentialAsset.id}`}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                      "flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-colors",
                       linkedEssentialAssetIds?.includes(essentialAsset.id)
                         ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20"
-                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                        : "border-border/40 dark:border-slate-700 hover:border-border/40"
                     )}
                   >
                     <span className="sr-only">Sélectionner l'actif essentiel: {essentialAsset.name}</span>
@@ -198,7 +198,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                       id={`essential-asset-${essentialAsset.id}`}
                       checked={linkedEssentialAssetIds?.includes(essentialAsset.id) || false}
                       onChange={() => toggleEssentialAsset(essentialAsset.id)}
-                      className="w-4 h-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-500"
+                      className="w-4 h-4 rounded border-border/40 text-cyan-500 focus:ring-cyan-500"
                     />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-slate-700 dark:text-slate-300 block truncate">
@@ -218,7 +218,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-slate-700/50">
             {isEditing && onDelete ? (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">

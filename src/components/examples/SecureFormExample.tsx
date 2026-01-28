@@ -124,7 +124,7 @@ export const SecureFormExample: React.FC = () => {
             onBlur={form.handleBlur('name')}
             className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${form.errors.name && form.touched.name
                 ? 'border-red-500'
-                : 'border-slate-300 dark:border-slate-600'
+                : 'border-border/40 dark:border-slate-600'
               }`}
             placeholder="Entrez un nom"
           />
@@ -154,7 +154,7 @@ export const SecureFormExample: React.FC = () => {
             onBlur={form.handleBlur('email')}
             className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${form.errors.email && form.touched.email
                 ? 'border-red-500'
-                : 'border-slate-300 dark:border-slate-600'
+                : 'border-border/40 dark:border-slate-600'
               }`}
             placeholder="email@example.com"
           />
@@ -179,7 +179,7 @@ export const SecureFormExample: React.FC = () => {
             rows={4}
             className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${form.errors.description && form.touched.description
                 ? 'border-red-500'
-                : 'border-slate-300 dark:border-slate-600'
+                : 'border-border/40 dark:border-slate-600'
               }`}
             placeholder="Entrez une description..."
           />
@@ -201,7 +201,7 @@ export const SecureFormExample: React.FC = () => {
             type="url"
             value={form.values.url || ''}
             onChange={(e) => form.handleChange('url')(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+            className="w-full px-3 py-2 border border-border/40 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             placeholder="https://example.com"
           />
 
@@ -222,7 +222,7 @@ export const SecureFormExample: React.FC = () => {
             type="tel"
             value={form.values.phone || ''}
             onChange={(e) => form.handleChange('phone')(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+            className="w-full px-3 py-2 border border-border/40 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             placeholder="+33 6 12 34 56 78"
           />
 
@@ -242,7 +242,7 @@ export const SecureFormExample: React.FC = () => {
                 fileUpload.handleUpload(file);
               }
             }}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
+            className="w-full px-3 py-2 border border-border/40 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             accept=".png,.jpg,.jpeg,.pdf"
           />
 
@@ -277,7 +277,7 @@ export const SecureFormExample: React.FC = () => {
           <button
             type="button"
             onClick={form.resetForm}
-            className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+            className="px-4 py-2 border border-border/40 dark:border-slate-600 rounded-md font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
           >
             Réinitialiser
           </button>

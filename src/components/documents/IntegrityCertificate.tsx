@@ -484,7 +484,7 @@ export function IntegrityCertificate({
               <span>Hash SHA-256</span>
             </div>
             <div className="flex items-center gap-2">
-              <code className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg font-mono text-xs break-all border border-slate-200 dark:border-slate-700">
+              <code className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg font-mono text-xs break-all border border-border/40 dark:border-slate-700">
                 {integrity.hash}
               </code>
               <Tooltip content="Copier l'empreinte">

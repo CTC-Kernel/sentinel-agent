@@ -214,7 +214,7 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
                     <Button
                         type="submit"
                         disabled={isLoading}
-                        className="gap-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-brand-500/20 font-bold"
+                        className="gap-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-3xl shadow-lg shadow-brand-500/20 font-bold"
                     >
                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
                         {isEditing ? "Mettre à jour" : "Créer la campagne"}

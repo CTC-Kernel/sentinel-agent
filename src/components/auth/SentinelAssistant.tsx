@@ -32,7 +32,7 @@ export const SentinelAssistant: React.FC = () => {
                 {/* AI Avatar / Core */}
                 {/* AI Avatar / Core */}
                 <div
-                    className="flex items-center gap-4 mb-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl"
+                    className="flex items-center gap-4 mb-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-3xl"
                     onMouseEnter={() => setShowChat(true)}
                     onFocus={() => setShowChat(true)}
                     tabIndex={0}
@@ -84,7 +84,7 @@ export const SentinelAssistant: React.FC = () => {
 
                             <button
                                 onClick={() => setShowChat(true)}
-                                className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-brand-50 dark:hover:bg-brand-800 border border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800 transition-all w-full text-left"
+                                className="group flex items-center gap-3 px-6 py-3 rounded-3xl bg-slate-50 dark:bg-white/5 hover:bg-brand-50 dark:hover:bg-brand-800 border border-border/40 dark:border-border/40 hover:border-brand-200 dark:hover:border-brand-800 transition-all w-full text-left"
                             >
                                 <div className="p-2 bg-brand-100 dark:bg-brand-900 rounded-lg text-brand-700 dark:text-brand-300 group-hover:scale-110 transition-transform">
                                     <Bot size={20} />
@@ -103,7 +103,7 @@ export const SentinelAssistant: React.FC = () => {
                 </div>
 
                 {/* Footer / Certification Badges */}
-                <div className="mt-10 pt-6 border-t border-slate-200 dark:border-white/10 flex justify-between items-center opacity-70 hover:opacity-70 transition-opacity">
+                <div className="mt-10 pt-6 border-t border-border/40 dark:border-border/40 flex justify-between items-center opacity-70 hover:opacity-70 transition-opacity">
                     <div className="flex items-center gap-2" title="Hébergement certifié SecNumCloud">
                         <Globe className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                         <span className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-300 font-bold">SecNumCloud Ready</span>

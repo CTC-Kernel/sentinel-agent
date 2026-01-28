@@ -82,7 +82,7 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
             onClick={handleDownload}
             disabled={loading}
             className={cn(
-                "flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full border border-transparent hover:border-slate-200 dark:hover:border-white/10",
+                "flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full border border-transparent hover:border-border/40 dark:hover:border-border/40",
                 !available && !loading && "opacity-60",
                 loading && "opacity-60 cursor-wait"
             )}
@@ -116,7 +116,7 @@ interface FAQItemProps {
 }
 
 const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle }) => (
-    <div className="border-b border-slate-100 dark:border-white/5 last:border-b-0">
+    <div className="border-b border-border/40 dark:border-white/5 last:border-b-0">
         <button
             onClick={onToggle}
             className="w-full flex items-center justify-between py-3 text-left group"
@@ -199,7 +199,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                             <h4 className="text-base font-bold text-slate-900 dark:text-white">Token d'Installation</h4>
                         </div>
 
-                        <div className="p-4 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
+                        <div className="p-4 bg-white dark:bg-slate-950 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm">
                             <div className="font-mono text-xs text-brand-600 dark:text-brand-400 break-all select-all text-center mb-3">
                                 {enrollmentToken}
                             </div>
@@ -221,14 +221,14 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                     </div>
 
                     {/* Quick Install Guide */}
-                    <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-white/10">
+                    <div className="space-y-4 pt-4 border-t border-border/40 dark:border-border/40">
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <Terminal className="w-4 h-4 text-slate-500" />
                             Commande d'installation
                         </h4>
 
                         <div className="relative group">
-                            <pre className="p-4 bg-slate-900 dark:bg-black rounded-xl text-[11px] text-emerald-400 overflow-x-auto border border-slate-800 shadow-inner custom-scrollbar">
+                            <pre className="p-4 bg-slate-900 dark:bg-black rounded-3xl text-[11px] text-emerald-400 overflow-x-auto border border-slate-800 shadow-inner custom-scrollbar">
                                 <code>sentinel-agent enroll --token {enrollmentToken?.substring(0, 8)}...</code>
                             </pre>
                             <button
@@ -253,7 +253,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                 {/* RIGHT COLUMN: Resources (7 cols) */}
                 <div className="lg:col-span-7 p-6 flex flex-col h-full bg-white dark:bg-transparent">
                     {/* Tabs */}
-                    <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl mb-6">
+                    <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-3xl mb-6">
                         {[
                             { id: 'download', label: 'Télécharger', icon: Download },
                             { id: 'docs', label: 'Docs', icon: BookOpen },
@@ -362,7 +362,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                     </div>
 
                                     {/* System Requirements Mini Table */}
-                                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="mt-6 pt-4 border-t border-border/40 dark:border-white/5">
                                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Requis</h4>
                                         <div className="space-y-2 text-[11px]">
                                             {Object.entries(systemRequirements).map(([os, req]) => (

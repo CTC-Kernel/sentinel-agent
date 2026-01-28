@@ -103,7 +103,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
             {/* Middle: Frameworks Mini-Cards */}
             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0">
                 {(currentFramework === 'ISO27001' || isoScore > 0) && (
-                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-border/40 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
                         <div className="flex justify-between items-start mb-3">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">ISO 27001</span>
                             <span className="text-sm font-black text-blue-600 dark:text-blue-400">{Math.round(isoScore)}%</span>
@@ -114,7 +114,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     </div>
                 )}
                 {(currentFramework === 'GDPR' || rgpdScore > 0) && (
-                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-border/40 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
                         <div className="flex justify-between items-start mb-3">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">RGPD</span>
                             <span className="text-sm font-black text-purple-600 dark:text-purple-400">{Math.round(rgpdScore)}%</span>
@@ -125,7 +125,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     </div>
                 )}
                 {(currentFramework === 'DORA' || doraScore > 0) && (
-                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-border/40 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
                         <div className="flex justify-between items-start mb-3">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">DORA</span>
                             <span className="text-sm font-black text-green-600 dark:text-green-400">{Math.round(doraScore)}%</span>
@@ -138,7 +138,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
             </div>
 
             {/* Right: Quick Stats */}
-            <div className="flex xl:flex-col gap-3 min-w-[160px]">
+            <div className="flex flex-wrap md:flex-nowrap xl:flex-col gap-3 min-w-0">
                 {/* Agent Verified Controls */}
                 {agentVerifiedControls > 0 && (
                     <Tooltip content="Contrôles vérifiés automatiquement par les agents Sentinel" position="top">

@@ -108,7 +108,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       {/* Loading Indicator */}
       {!isLoaded && !isError && isInView && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-slate-300 dark:border-slate-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-border/40 dark:border-slate-600 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
     </div>

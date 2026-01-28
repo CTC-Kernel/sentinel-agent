@@ -198,7 +198,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="flex-1 grid grid-cols-2 gap-6 border-l border-r border-border/50 px-6 mx-2">
                         <div className="text-center">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <div className="p-2 bg-brand-50 rounded-xl">
+                                <div className="p-2 bg-brand-50 rounded-3xl">
                                     <TrendingUp className="h-4 w-4 text-brand-500" />
                                 </div>
                             </div>
@@ -213,7 +213,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                         </div>
                         <div className="text-center">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <div className="p-2 bg-violet-500/10 rounded-xl">
+                                <div className="p-2 bg-violet-500/10 rounded-3xl">
                                     <Target className="h-4 w-4 text-violet-500" />
                                 </div>
                             </div>
@@ -231,7 +231,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="flex flex-col gap-3 min-w-[180px]">
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className={`flex items-center gap-3 text-sm px-4 py-3 rounded-xl border ${projectHealth.onSchedule ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30'}`}
+                            className={`flex items-center gap-3 text-sm px-4 py-3 rounded-3xl border ${projectHealth.onSchedule ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30'}`}
                         >
                             {projectHealth.onSchedule ? <TrendingUp className="h-4 w-4 shrink-0" /> : <TrendingDown className="h-4 w-4 shrink-0" />}
                             <span className="font-bold">{projectHealth.onSchedule ? 'Planning OK' : 'Retard Planning'}</span>
@@ -240,7 +240,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                         {relatedRisks.filter(r => r.score >= 10).length > 0 && (
                             <motion.div
                                 whileHover={{ scale: 1.02 }}
-                                className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-xl border border-red-100 dark:border-red-800/30"
+                                className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-3xl border border-red-100 dark:border-red-800/30"
                             >
                                 <AlertTriangle className="h-4 w-4 shrink-0" />
                                 <span className="font-bold">{relatedRisks.filter(r => r.score >= 10).length} Risques Critiques</span>
@@ -261,7 +261,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-brand-50 rounded-xl">
+                        <div className="p-2 bg-brand-50 rounded-3xl">
                             <Layers className="w-4 h-4 text-brand-500" />
                         </div>
                         Distribution des Tâches
@@ -321,7 +321,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-2 bg-orange-500/10 rounded-xl">
+                        <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
                         </div>
                         Tâches par Priorité
@@ -357,7 +357,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
                 <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
-                    <div className="p-2 bg-emerald-500/10 rounded-xl">
+                    <div className="p-2 bg-emerald-500/10 rounded-3xl">
                         <TrendingDown className="w-4 h-4 text-emerald-500" />
                     </div>
                     Burndown Chart
@@ -387,7 +387,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
-                        <div className="p-2 bg-violet-500/10 rounded-xl">
+                        <div className="p-2 bg-violet-500/10 rounded-3xl">
                             <Calendar className="h-4 w-4 text-violet-500" />
                         </div>
                         Jalons du Projet
@@ -426,7 +426,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                         <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{milestone.description}</p>
                                     )}
                                 </div>
-                                <div className={`px-3 py-1.5 rounded-xl text-xs font-bold ${milestone.status === 'achieved'
+                                <div className={`px-3 py-1.5 rounded-3xl text-xs font-bold ${milestone.status === 'achieved'
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                     : milestone.status === 'missed'
                                         ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'

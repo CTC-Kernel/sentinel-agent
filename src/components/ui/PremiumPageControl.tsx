@@ -57,7 +57,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="relative z-30 flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
+        <div className="relative z-30 flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-3xl border border-border/40 shadow-xl backdrop-blur-xl">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0 group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
@@ -65,16 +65,16 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     ref={inputRef}
                     type="text"
                     placeholder={searchPlaceholder}
-                    className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-2xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
+                    className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-3xl focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
                 />
             </div>
 
             {/* Actions & Controls */}
-            <div className="flex flex-wrap md:flex-nowrap items-center justify-between md:justify-start gap-2 pt-2 md:pt-0 md:pl-2 border-t md:border-t-0 md:border-l border-slate-200/50 dark:border-white/5 w-full md:w-auto">
+            <div className="flex flex-wrap md:flex-nowrap items-center justify-between md:justify-start gap-2 pt-2 md:pt-0 md:pl-2 border-t md:border-t-0 md:border-l border-border/40 dark:border-white/5 w-full md:w-auto">
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
-                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
+                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-all"
                         title="Actualiser"
                     >
                         <RefreshCcw className="h-4 w-4" />
@@ -92,7 +92,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     {onToggleAdvancedSearch && (
                         <button
                             onClick={onToggleAdvancedSearch}
-                            className={`p-2 rounded-2xl transition-all duration-300 ${showAdvancedSearch
+                            className={`p-2 rounded-3xl transition-all duration-300 ${showAdvancedSearch
                                 ? 'bg-brand-500 text-white shadow-inner'
                                 : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-white/5'
                                 }`}
@@ -104,7 +104,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
 
                     {/* Custom View Options (Generic) */}
                     {viewOptions && activeView && onViewChange && (
-                        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
+                        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-3xl">
                             {viewOptions.map((option) => {
                                 const Icon = option.icon;
                                 return (
@@ -127,7 +127,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
 
                     {/* Legacy View Mode Toggles */}
                     {onViewModeChange && viewMode && !viewOptions && (
-                        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
+                        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-3xl">
                             <button
                                 onClick={() => onViewModeChange?.('list')}
                                 className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'
@@ -182,7 +182,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                         transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                         className="overflow-hidden"
                     >
-                        <div className="px-4 py-3 border-t border-slate-200/50 dark:border-white/5 mt-1.5 flex flex-wrap gap-2 items-center">
+                        <div className="px-4 py-3 border-t border-border/40 dark:border-white/5 mt-1.5 flex flex-wrap gap-2 items-center">
                             {bottomContent}
                         </div>
                     </motion.div>

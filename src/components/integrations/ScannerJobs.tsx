@@ -95,7 +95,7 @@ export const ScannerJobs: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-lg shadow-brand-500/20 transition-all font-medium text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-3xl shadow-lg shadow-brand-500/20 transition-all font-medium text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                     <Plus className="h-4 w-4" />
                     Nouveau Scan
@@ -107,7 +107,7 @@ export const ScannerJobs: React.FC = () => {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
                 </div>
             ) : jobs.length === 0 ? (
-                <div className="text-center py-12 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+                <div className="text-center py-12 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-border/40 dark:border-border/40">
                     <p className="text-slate-500 dark:text-muted-foreground">Aucune tâche de scan configurée.</p>
                 </div>
             ) : (
@@ -117,10 +117,10 @@ export const ScannerJobs: React.FC = () => {
                             key={job.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="group flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-300 transition-all shadow-sm hover:shadow-md"
+                            className="group flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-white dark:bg-slate-950 rounded-2xl border border-border/40 dark:border-white/5 hover:border-brand-300 transition-all shadow-sm hover:shadow-md"
                         >
                             <div className="flex items-center gap-4 mb-4 md:mb-0">
-                                <div className={`p-3 rounded-xl bg-slate-100 dark:bg-white/5 ${job.status === 'running' ? 'text-brand-500' : 'text-slate-500'}`}>
+                                <div className={`p-3 rounded-3xl bg-slate-100 dark:bg-white/5 ${job.status === 'running' ? 'text-brand-500' : 'text-slate-500'}`}>
                                     {getStatusIcon(job.status)}
                                 </div>
                                 <div>

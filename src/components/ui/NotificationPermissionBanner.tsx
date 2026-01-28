@@ -64,9 +64,9 @@ export const NotificationPermissionBanner: React.FC = () => {
 
     return (
         <div className="fixed bottom-6 right-6 z-50 max-w-md animate-slide-up">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border/40 dark:border-border/40 p-6">
                 <div className="flex items-start gap-4">
-                    <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-xl">
+                    <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-3xl">
                         <Bell className="h-6 w-6 text-brand-600 dark:text-brand-400" />
                     </div>
 
@@ -81,7 +81,7 @@ export const NotificationPermissionBanner: React.FC = () => {
                         <div className="flex gap-3">
                             <button
                                 onClick={handleEnable}
-                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-3xl text-sm font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                             >
                                 <Check className="h-4 w-4" />
                                 Activer
@@ -89,7 +89,7 @@ export const NotificationPermissionBanner: React.FC = () => {
 
                             <button
                                 onClick={handleDismiss}
-                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-3xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                             >
                                 Plus tard
                             </button>

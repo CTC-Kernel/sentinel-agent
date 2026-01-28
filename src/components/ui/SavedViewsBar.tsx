@@ -32,7 +32,7 @@ export const SavedViewsBar: React.FC<SavedViewsBarProps> = ({
                         <button
                             key={view.id}
                             onClick={() => onViewSelect(view)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 whitespace-nowrap ${isActive
+                            className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-xs font-bold transition-all duration-300 whitespace-nowrap ${isActive
                                 ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md ring-1 ring-black/5'
                                 : 'text-slate-500 hover:text-slate-900 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'
                                 }`}
@@ -49,7 +49,7 @@ export const SavedViewsBar: React.FC<SavedViewsBarProps> = ({
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     onClick={onSaveCurrentView}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-all whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-brand-500 text-white rounded-3xl text-xs font-bold shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-all whitespace-nowrap"
                 >
                     <Plus className="h-3.5 w-3.5" />
                     Enregistrer la vue

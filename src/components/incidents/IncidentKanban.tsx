@@ -81,7 +81,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                         {loading ? (
                             // Loading Skeletons
                             Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="bg-white dark:bg-white/5 p-4 rounded-xl border border-white/10 shadow-sm space-y-3">
+                                <div key={i} className="bg-white dark:bg-white/5 p-4 rounded-3xl border border-border/40 shadow-sm space-y-3">
                                     <div className="flex justify-between">
                                         <Skeleton className="h-4 w-16 rounded-full" />
                                         <Skeleton className="h-3 w-12 rounded" />
@@ -129,7 +129,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                         e.stopPropagation();
                                                         onEdit(incident);
                                                     }}
-                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-brand-600 rounded-lg shadow-sm border border-slate-200 dark:border-white/10"
+                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-brand-600 rounded-lg shadow-sm border border-border/40 dark:border-border/40"
                                                 >
                                                     <Edit className="h-3.5 w-3.5" />
                                                 </button>
@@ -143,7 +143,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                         e.stopPropagation();
                                                         onDelete(incident.id);
                                                     }}
-                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-red-600 rounded-lg shadow-sm border border-slate-200 dark:border-white/10"
+                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-red-600 rounded-lg shadow-sm border border-border/40 dark:border-border/40"
                                                 >
                                                     <Trash2 className="h-3.5 w-3.5" />
                                                 </button>

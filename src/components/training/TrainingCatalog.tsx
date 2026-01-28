@@ -89,7 +89,7 @@ const CourseCardSkeleton: React.FC = () => (
   <div className="glass-premium p-5 rounded-3xl border border-white/5">
     <div className="flex items-start justify-between mb-4">
       <Skeleton className="w-12 h-12 rounded-2xl" />
-      <Skeleton className="w-8 h-8 rounded-xl" />
+      <Skeleton className="w-8 h-8 rounded-3xl" />
     </div>
     <Skeleton className="h-5 w-3/4 rounded-md mb-2" />
     <Skeleton className="h-4 w-full rounded-md mb-1" />
@@ -188,7 +188,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
             placeholder={t('training.searchPlaceholder') || 'Rechercher une formation...'}
             value={filters.searchQuery}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-muted/50 border border-muted focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm text-foreground placeholder:text-muted-foreground transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-3xl bg-muted/50 border border-muted focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm text-foreground placeholder:text-muted-foreground transition-all"
           />
           {filters.searchQuery && (
             <button
@@ -203,7 +203,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
         {/* Actions */}
         <div className="flex items-center gap-3">
           {/* View mode toggle */}
-          <div className="flex items-center rounded-xl bg-muted/50 border border-muted p-1">
+          <div className="flex items-center rounded-3xl bg-muted/50 border border-muted p-1">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
@@ -265,7 +265,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
             transition={{ duration: 0.2, ease: appleEasing }}
             className="overflow-hidden"
           >
-            <div className="glass-premium p-6 rounded-3xl border border-white/10 space-y-4">
+            <div className="glass-premium p-6 rounded-3xl border border-border/40 space-y-4">
               {/* Category chips */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
@@ -279,7 +279,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
                       <button
                         key={option.value}
                         onClick={() => handleCategoryChange(option.value)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${isActive
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-3xl text-sm font-medium transition-all ${isActive
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-muted'
                           }`}
@@ -302,7 +302,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
                   <select
                     value={filters.source}
                     onChange={(e) => handleSourceChange(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-muted/50 border border-muted text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="px-3 py-2 rounded-3xl bg-muted/50 border border-muted text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   >
                     {sourceOptions.map((option) => (
                       <option key={option.value} value={option.value}>

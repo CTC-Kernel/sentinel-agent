@@ -132,7 +132,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
         'backdrop-blur-xl border',
         isActive
           ? 'bg-white/90 dark:bg-slate-900/90 border-emerald-500/50 shadow-lg shadow-emerald-500/10'
-          : 'bg-white/60 dark:bg-slate-900/60 border-slate-200/50 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20',
+          : 'bg-white/60 dark:bg-slate-900/60 border-border/40 dark:border-border/40 hover:border-border/40 dark:hover:border-white/20',
         isLoading && 'opacity-60 pointer-events-none'
       )}
       onClick={handleClick}
@@ -150,7 +150,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
             {/* Icon */}
             <div
               className={cn(
-                'w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br text-white shadow-lg',
+                'w-12 h-12 rounded-3xl flex items-center justify-center bg-gradient-to-br text-white shadow-lg',
                 gradientColor
               )}
             >
@@ -216,7 +216,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
 
         {/* Activated Info */}
         {isActive && activatedDate && (
-          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5">
+          <div className="mt-3 pt-3 border-t border-border/40 dark:border-white/5">
             <p className="text-xs text-slate-500 dark:text-muted-foreground">
               {t('frameworks.activatedOn', 'Activé le')} {activatedDate}
             </p>

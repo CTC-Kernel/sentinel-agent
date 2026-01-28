@@ -32,7 +32,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
 
     if (resourceLogs.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+            <div className="flex flex-col items-center justify-center p-12 text-slate-400 border border-dashed border-border/40 dark:border-slate-800 rounded-3xl">
                 <History className="h-10 w-10 mb-3 opacity-60" />
                 <p className="text-sm">Aucun historique disponible pour cet élément.</p>
             </div>
@@ -45,11 +45,11 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                 <History className="h-4 w-4 text-brand-500" /> Piste d'Audit ({resourceLogs.length})
             </h3>
 
-            <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-6 sm:space-y-8">
+            <div className="relative border-l-2 border-border/40 dark:border-slate-800 ml-3 space-y-6 sm:space-y-8">
                 {resourceLogs.map((log) => (
                     <div key={log.id} className="relative pl-6">
                         {/* Dot */}
-                        <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 shadow-sm" />
+                        <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full bg-white dark:bg-slate-900 border-2 border-border/40 dark:border-slate-600 shadow-sm" />
 
                         {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
@@ -81,12 +81,12 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                         </div>
 
                         {/* Content */}
-                        <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-lg p-3 text-sm">
+                        <div className="bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-lg p-3 text-sm">
                             <p className="text-slate-700 dark:text-slate-300 mb-2">{log.details}</p>
 
                             {/* Granular Changes (Diffs) */}
                             {log.changes && log.changes.length > 0 && (
-                                <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/10 mt-2">
+                                <div className="space-y-2 pt-2 border-t border-border/40 dark:border-border/40 mt-2">
                                     {log.changes.map((change, idx) => (
                                         <div key={`${idx}-${change.field}`} className="flex items-center gap-2 text-xs">
                                             <span className="font-mono text-slate-500 dark:text-slate-300 w-24 truncate text-right">{change.field}</span>

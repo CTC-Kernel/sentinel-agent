@@ -21,7 +21,7 @@ export const LandingDashboardMockup: React.FC = () => {
             {/* Sidebar Mockup */}
             <div className="w-16 sm:w-20 md:w-64 bg-slate-950/50 backdrop-blur-md flex flex-col border-r border-white/5 flex-shrink-0 relative">
                 <div className="p-4 md:p-6 flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/30 flex-shrink-0 ring-1 ring-white/20">
+                    <div className="w-8 h-8 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/30 flex-shrink-0 ring-1 ring-white/20">
                         <Lock className="h-4 w-4 text-white" />
                     </div>
                     <span className="font-bold text-lg hidden md:block tracking-tight">Sentinel</span>
@@ -38,7 +38,7 @@ export const LandingDashboardMockup: React.FC = () => {
                     ].map((item) => (
                         <div
                             key={item.label}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${item.active
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-3xl transition-all ${item.active
                                 ? 'bg-brand-600 text-white shadow-md shadow-brand-500/25'
                                 : 'hover:bg-white/5 hover:text-slate-200'
                                 }`}
@@ -51,7 +51,7 @@ export const LandingDashboardMockup: React.FC = () => {
 
                 {/* User Profile Snippet */}
                 <div className="p-4 border-t border-white/5 mt-auto">
-                    <div className="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/5">
+                    <div className="flex items-center gap-3 bg-white/5 p-2 rounded-3xl border border-white/5">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-400 to-purple-500 border-2 border-slate-800"></div>
                         <div className="hidden md:block overflow-hidden">
                             <div className="font-bold text-slate-200 truncate">Thibault L.</div>
@@ -71,12 +71,12 @@ export const LandingDashboardMockup: React.FC = () => {
                         <span className="font-bold text-slate-100">Vue d'ensemble</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10 text-slate-400 hover:bg-white/10 transition-colors">
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-border/40 text-slate-400 hover:bg-white/10 transition-colors">
                             <Search className="h-3.5 w-3.5" />
                             <span className="text-xs">Rechercher...</span>
-                            <span className="text-[11px] border border-white/10 px-1.5 py-0.5 rounded ml-4 text-slate-500">⌘K</span>
+                            <span className="text-[11px] border border-border/40 px-1.5 py-0.5 rounded ml-4 text-slate-500">⌘K</span>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 relative hover:text-white transition-colors hover:bg-white/10">
+                        <div className="w-8 h-8 rounded-full bg-white/5 border border-border/40 flex items-center justify-center text-slate-400 relative hover:text-white transition-colors hover:bg-white/10">
                             <Bell className="h-4 w-4" />
                             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900 shadow-sm"></span>
                         </div>
@@ -92,7 +92,7 @@ export const LandingDashboardMockup: React.FC = () => {
                             <p className="text-slate-500 font-normal">Vue synthétique de votre posture de sécurité.</p>
                         </div>
                         <div className="hidden sm:flex gap-3">
-                            <div className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-medium text-slate-300 shadow-sm transition-colors cursor-default">
+                            <div className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-border/40 rounded-lg text-xs font-medium text-slate-300 shadow-sm transition-colors cursor-default">
                                 30 derniers jours
                             </div>
                             <div className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-brand-500/25 transition-all cursor-default flex items-center gap-2">
@@ -105,7 +105,7 @@ export const LandingDashboardMockup: React.FC = () => {
                     {/* Widgets Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         {/* Widget 1 */}
-                        <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
+                        <div className="bg-white/5 p-5 rounded-2xl border border-border/40 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-green-50 rounded-lg text-green-400 ring-1 ring-green-500/20">
                                     <Shield className="h-5 w-5" />
@@ -120,7 +120,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         </div>
 
                         {/* Widget 2 */}
-                        <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
+                        <div className="bg-white/5 p-5 rounded-2xl border border-border/40 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-yellow-50 rounded-lg text-yellow-400 ring-1 ring-yellow-500/20">
                                     <AlertTriangle className="h-5 w-5" />
@@ -132,7 +132,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         </div>
 
                         {/* Widget 3 */}
-                        <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
+                        <div className="bg-white/5 p-5 rounded-2xl border border-border/40 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-blue-50 rounded-lg text-blue-400 ring-1 ring-blue-500/20">
                                     <Layers className="h-5 w-5" />
@@ -146,7 +146,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         </div>
 
                         {/* Widget 4 */}
-                        <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
+                        <div className="bg-white/5 p-5 rounded-2xl border border-border/40 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400 ring-1 ring-purple-500/20">
                                     <TrendingUp className="h-5 w-5" />
@@ -159,7 +159,7 @@ export const LandingDashboardMockup: React.FC = () => {
 
                     {/* Main Chart Area Mockup */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
-                        <div className="lg:col-span-2 bg-white/5 rounded-2xl border border-white/10 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
+                        <div className="lg:col-span-2 bg-white/5 rounded-2xl border border-border/40 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
                             {/* Grid lines background */}
                             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
 
@@ -188,7 +188,7 @@ export const LandingDashboardMockup: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="lg:col-span-1 bg-white/5 rounded-2xl border border-white/10 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
+                        <div className="lg:col-span-1 bg-white/5 rounded-2xl border border-border/40 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/25 dark:bg-brand-400/15 blur-[50px] rounded-full pointer-events-none"></div>
 
                             <h3 className="font-bold text-white mb-6 relative z-10">Répartition</h3>

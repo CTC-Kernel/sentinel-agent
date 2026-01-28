@@ -256,7 +256,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
       <div className="max-w-md mx-auto flex flex-col gap-3 pointer-events-auto">
         {/* Scale slider (only when placed) */}
         {isPlaced && (
-          <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-xl p-3">
+          <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-3xl p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-white text-sm font-medium">Scale</span>
               <span className="text-muted-foreground text-xs font-mono">
@@ -288,7 +288,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
               onClick={onPlace}
               disabled={!isValidSurface}
               className={`
-                flex-1 py-4 rounded-xl font-semibold text-lg
+                flex-1 py-4 rounded-3xl font-semibold text-lg
                 transition-all duration-200
                 ${isValidSurface
                   ? 'bg-green-500 text-white shadow-lg shadow-green-500/25 hover:bg-green-600 active:scale-95'
@@ -302,14 +302,14 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
             <>
               <button
                 onClick={onReset}
-                className="flex-1 py-4 bg-slate-700 text-white rounded-xl font-semibold text-lg
+                className="flex-1 py-4 bg-slate-700 text-white rounded-3xl font-semibold text-lg
                   shadow-lg hover:bg-slate-600 active:scale-95 transition-all"
               >
                 Reset Position
               </button>
               <button
                 onClick={onPlace}
-                className="py-4 px-6 bg-blue-500 text-white rounded-xl font-semibold text-lg
+                className="py-4 px-6 bg-blue-500 text-white rounded-3xl font-semibold text-lg
                   shadow-lg shadow-blue-500/25 hover:bg-blue-600 active:scale-95 transition-all"
               >
                 Done

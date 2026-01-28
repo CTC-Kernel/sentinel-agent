@@ -68,7 +68,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               onClick={() => handleClick(num)}
               disabled={locked}
               className={cn(
-                "relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300",
+                "relative flex items-center justify-center w-10 h-10 rounded-3xl transition-all duration-300",
                 "border font-medium text-sm backdrop-blur-md",
                 locked && "opacity-40 cursor-not-allowed border-transparent bg-slate-100 dark:bg-slate-800 text-slate-400",
                 !locked && "cursor-pointer hover:scale-105 hover:bg-white/10 dark:hover:bg-white/5",
@@ -199,7 +199,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               )}
             >
               <div className={cn(
-                "flex items-center justify-center w-10 h-10 rounded-xl font-bold shadow-sm transition-colors",
+                "flex items-center justify-center w-10 h-10 rounded-3xl font-bold shadow-sm transition-colors",
                 isActive ? "bg-brand-500 text-white shadow-brand" :
                   isDone ? "bg-success text-success-foreground shadow-success" :
                     locked ? "bg-slate-200 dark:bg-slate-800 text-slate-400" :

@@ -68,11 +68,11 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
       transition={{ duration: 0.2 }}
       onClick={() => onClick?.(control)}
       className={cn(
-        'group relative p-4 rounded-xl cursor-pointer transition-all duration-200',
+        'group relative p-4 rounded-3xl cursor-pointer transition-all duration-200',
         'border backdrop-blur-sm',
         isSelected
           ? 'bg-brand-50 dark:bg-brand-800 border-brand-300 dark:border-brand-700 shadow-md'
-          : 'bg-white/60 dark:bg-slate-900/60 border-slate-200/50 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-sm'
+          : 'bg-white/60 dark:bg-slate-900/60 border-border/40 dark:border-border/40 hover:border-border/40 dark:hover:border-white/20 hover:shadow-sm'
       )}
       whileHover={{ x: 2 }}
       whileTap={{ scale: 0.99 }}

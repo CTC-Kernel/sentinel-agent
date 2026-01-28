@@ -91,11 +91,11 @@ export const MissionForm: React.FC<MissionFormProps> = ({
               {...register('name')}
               id="name"
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border transition-colors",
+                "w-full px-4 py-2.5 rounded-3xl border transition-colors",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-slate-200 dark:border-slate-700 focus-visible:ring-brand-500"
+                  : "border-border/40 dark:border-slate-700 focus-visible:ring-brand-500"
               )}
               placeholder={t('ebios.workshop1.missionNamePlaceholder')}
             />
@@ -114,9 +114,9 @@ export const MissionForm: React.FC<MissionFormProps> = ({
               id="description"
               rows={3}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border transition-colors resize-none",
+                "w-full px-4 py-2.5 rounded-3xl border transition-colors resize-none",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
-                "border-slate-200 dark:border-slate-700 focus-visible:ring-brand-500"
+                "border-border/40 dark:border-slate-700 focus-visible:ring-brand-500"
               )}
               placeholder={t('ebios.workshop1.missionDescriptionPlaceholder')}
             />
@@ -134,10 +134,10 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                   type="button"
                   onClick={() => setValue('criticality', level.level as 1 | 2 | 3 | 4)}
                   className={cn(
-                    "p-3 rounded-xl border-2 transition-all text-center",
+                    "p-3 rounded-3xl border-2 transition-all text-center",
                     criticality === level.level
                       ? `border-${level.color}-500 bg-${level.color}-50 dark:bg-${level.color}-900/20`
-                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                      : "border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600"
                   )}
                 >
                   <span className={cn(
@@ -165,7 +165,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-slate-700/50">
             {isEditing && onDelete ? (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">

@@ -343,28 +343,28 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                             <div className="lg:col-span-2 space-y-6">
                                                 {/* Stats Grid */}
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
+                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-border/40 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <Activity className="h-4 w-4 text-brand-500" />
                                                             <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Contributions</div>
                                                         </div>
                                                         <div className="text-2xl font-black text-slate-900 dark:text-white">{hunterProfile?.stats?.totalContributions || 0}</div>
                                                     </div>
-                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
+                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-border/40 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <Shield className="h-4 w-4 text-emerald-500" />
                                                             <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Verifiées</div>
                                                         </div>
                                                         <div className="text-2xl font-black text-slate-900 dark:text-white">{hunterProfile?.stats?.verifiedThreats || 0}</div>
                                                     </div>
-                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
+                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-border/40 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <Zap className="h-4 w-4 text-yellow-500" />
                                                             <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Réponse</div>
                                                         </div>
                                                         <div className="text-2xl font-black text-slate-900 dark:text-white">{hunterProfile?.stats?.averageResponseTime || 0} min</div>
                                                     </div>
-                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
+                                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-border/40 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <TrendingUp className="h-4 w-4 text-purple-500" />
                                                             <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Ce mois</div>
@@ -396,7 +396,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                     </h3>
                                                     <div className="space-y-3">
                                                         {recentActivity.map((activity: RecentActivity, index: number) => (
-                                                            <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
+                                                            <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
                                                                 <div className={`p-2 rounded-lg ${
                                                                     activity.type === 'threat' ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/20' :
                                                                     activity.type === 'verification' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' :
@@ -445,7 +445,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                                                        <div className="pt-2 border-t border-border/40 dark:border-slate-700">
                                                             <div className="flex justify-between text-sm">
                                                                 <span className="text-slate-600 dark:text-muted-foreground">Collaborations</span>
                                                                 <span className="font-bold text-slate-900 dark:text-white">{stats.collaborations}</span>
@@ -463,7 +463,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                         </h3>
                                                         <div className="space-y-3">
                                                             {achievements.map((achievement: Achievement, index: number) => (
-                                                                <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
+                                                                <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
                                                                     <div className="p-2 rounded-lg bg-white dark:bg-slate-900">
                                                                         {achievement.icon}
                                                                     </div>
@@ -479,7 +479,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                 )}
 
                                                 {/* Member Since */}
-                                                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
+                                                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
                                                     <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">Membre depuis</div>
                                                     <div className="font-bold text-slate-900 dark:text-white">{new Date(hunterProfile?.user?.createdAt || '2023-01-01').toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })}</div>
                                                 </div>

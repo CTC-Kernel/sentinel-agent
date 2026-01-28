@@ -62,7 +62,7 @@ export const ThemeSelector: React.FC = () => {
                 "px-3 py-2 rounded-lg border transition-colors",
                 theme === t
                   ? "bg-brand-500 text-white border-brand-500"
-                  : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                  : "bg-white dark:bg-slate-800 border-border/40 dark:border-slate-700 text-slate-700 dark:text-slate-300"
               )}
             >
               {t === 'light' && '☀️ Clair'}
@@ -88,7 +88,7 @@ export const ThemeSelector: React.FC = () => {
                 "px-3 py-2 rounded-lg border transition-colors capitalize",
                 colorScheme === scheme
                   ? "bg-brand-500 text-white border-brand-500"
-                  : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                  : "bg-white dark:bg-slate-800 border-border/40 dark:border-slate-700 text-slate-700 dark:text-slate-300"
               )}
             >
               {scheme === 'default' && '🔵 Bleu'}

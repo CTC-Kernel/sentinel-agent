@@ -270,7 +270,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                     </div>
 
                     {/* Progress */}
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-border/40 dark:border-white/5">
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground mb-2 flex items-center gap-2">
                             <Target className="h-3.5 w-3.5" />
                             Progression ({progress}%)
@@ -306,7 +306,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10 shrink-0">
+                <div className="flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40 shrink-0">
                     <Button
                         type="button"
                         variant="ghost"

@@ -68,7 +68,7 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
                     icon: Clock,
                     color: 'text-slate-500 dark:text-slate-300',
                     bgColor: 'bg-slate-50 dark:bg-slate-800/50',
-                    borderColor: 'border-slate-200 dark:border-slate-700',
+                    borderColor: 'border-border/40 dark:border-slate-700',
                     label: 'N/A'
                 };
         }

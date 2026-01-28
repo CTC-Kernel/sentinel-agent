@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Check, RotateCcw, AlertTriangle } from '../ui/Icons';
+import { Pencil, Check, RotateCcw } from '../ui/Icons';
 
 export interface DashboardEditModeToggleProps {
   /** Current edit mode state */
@@ -47,60 +47,65 @@ function ResetConfirmDialog({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={onCancel}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onCancel();
-      }}
-      tabIndex={0}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="reset-confirm-title"
     >
+      <button
+        className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer"
+        onClick={onCancel}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onCancel();
+        }}
+        aria-label="Fermer la boîte de dialogue"
+      />
       <div
-        className="bg-background rounded-xl shadow-2xl p-6 max-w-sm mx-4 border border-muted"
-        onClick={(e) => e.stopPropagation()}
+        className="relative bg-background rounded-3xl shadow-2xl p-6 max-w-sm mx-4 border border-muted pointer-events-none"
       >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-warning/10 rounded-full">
-            <AlertTriangle className="w-5 h-5 text-warning" />
+        <div
+          className="pointer-events-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-confirm-title"
+        >
+          <div
+            className="flex items-center gap-3 mb-4"
+          >
+            <h3
+              id="reset-confirm-title"
+              className="text-lg font-semibold text-foreground"
+            >
+              {t('dashboard.resetToDefaults')}
+            </h3>
           </div>
-          <h3
-            id="reset-confirm-title"
-            className="text-lg font-semibold text-foreground"
-          >
-            {t('dashboard.resetToDefaults')}
-          </h3>
-        </div>
 
-        <p className="text-sm text-muted-foreground mb-6">
-          {t('dashboard.resetConfirm')}
-        </p>
+          <p className="text-sm text-muted-foreground mb-6">
+            {t('dashboard.resetConfirm')}
+          </p>
 
-        <div className="flex gap-3 justify-end">
-          <button
-            type="button"
-            onClick={onCancel}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium',
-              'text-foreground',
-              'bg-muted',
-              'hover:bg-muted/80',
-              'transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2'
-            )}
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium',
-              'text-white bg-warning hover:bg-warning/80',
-              'transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
-            )}
-          >
-            {t('dashboard.resetToDefaults')}
-          </button>
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={onCancel}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium',
+                'text-foreground',
+                'bg-muted',
+                'hover:bg-muted/80',
+                'transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2'
+              )}
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium',
+                'text-white bg-warning hover:bg-warning/80',
+                'transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
+              )}
+            >
+              {t('dashboard.resetToDefaults')}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -114,12 +119,12 @@ function ResetConfirmDialog({
  * ```tsx
  * <DashboardEditModeToggle
  *   isEditing={isEditing}
- *   onEditModeChange={setIsEditing}
- *   onReset={handleReset}
- *   isCustomized={isCustomized}
+      *   onEditModeChange={setIsEditing}
+      *   onReset={handleReset}
+      *   isCustomized={isCustomized}
  * />
- * ```
- */
+      * ```
+      */
 export function DashboardEditModeToggle({
   isEditing,
   onEditModeChange,

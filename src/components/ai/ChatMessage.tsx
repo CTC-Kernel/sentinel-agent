@@ -37,7 +37,7 @@ const markdownComponents: Components = {
 
     // Tables
     table: ({ children }) => (
-        <div className="overflow-x-auto my-4 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="overflow-x-auto my-4 rounded-lg border border-border/40 dark:border-slate-700">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
                 {children}
             </table>
@@ -66,7 +66,7 @@ const markdownComponents: Components = {
     ),
 
     // Horizontal Rule
-    hr: () => <hr className="my-6 border-slate-200 dark:border-slate-700/50" />,
+    hr: () => <hr className="my-6 border-border/40 dark:border-slate-700/50" />,
 
     // Code
     code: (props) => {
@@ -77,8 +77,8 @@ const markdownComponents: Components = {
 
         const match = /language-(\w+)/.exec(className || '');
         return !inline && match ? (
-            <div className="rounded-lg overflow-hidden my-3 shadow-md border border-slate-200 dark:border-slate-700/50 group/code">
-                <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50">
+            <div className="rounded-lg overflow-hidden my-3 shadow-md border border-border/40 dark:border-slate-700/50 group/code">
+                <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 dark:bg-slate-900 border-b border-border/40 dark:border-slate-700/50">
                     <span className="text-[11px] font-mono font-medium text-slate-500 dark:text-slate-300 uppercase tracking-widest">{match[1]}</span>
                     <button
                         type="button"
@@ -106,7 +106,7 @@ const markdownComponents: Components = {
         ) : (
             <code
                 className={cn(
-                    "px-1.5 py-0.5 mx-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/50 font-mono text-[11px] font-medium text-violet-600 dark:text-violet-400",
+                    "px-1.5 py-0.5 mx-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 border border-border/40 dark:border-slate-600/50 font-mono text-[11px] font-medium text-violet-600 dark:text-violet-400",
                     className
                 )}
             >
@@ -163,7 +163,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
             <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border",
                 message.role === 'user'
-                    ? "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                    ? "bg-white dark:bg-slate-800 border-border/40 dark:border-slate-700"
                     : "bg-brand-100 dark:bg-brand-900 border-brand-200 dark:border-brand-300"
             )}>
                 {message.role === 'user'
@@ -181,7 +181,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
                     "p-4 rounded-2xl text-sm leading-relaxed shadow-sm relative group-hover:shadow-md transition-shadow",
                     message.role === 'user'
                         ? "bg-slate-900 dark:bg-brand-600 text-white rounded-tr-none shadow-brand-500/25"
-                        : cn("bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-tl-none", message.isError && "border-error/30 bg-error/5 text-error dark:bg-error/10 dark:text-error dark:border-error/30")
+                        : cn("bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-tl-none", message.isError && "border-error/30 bg-error/5 text-error dark:bg-error/10 dark:text-error dark:border-error/30")
                 )}>
                     {message.role === 'assistant' ? (
                         <div className="text-sm">
@@ -206,7 +206,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
                             )}
 
                             {!message.isError && (
-                                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50 flex gap-2">
+                                <div className="mt-3 pt-3 border-t border-border/40 dark:border-slate-700/50 flex gap-2">
                                     <button
                                         type="button"
                                         onClick={() => onCopy(message.content, message.id)}

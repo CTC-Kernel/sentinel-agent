@@ -49,7 +49,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                         placeholder="Rechercher une demande (Nom, ID)..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
                         aria-label="Rechercher une demande"
                     />
                 </div>
@@ -57,7 +57,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium outline-none focus:ring-2 focus-visible:ring-brand-500"
+                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm font-medium outline-none focus:ring-2 focus-visible:ring-brand-500"
                     >
                         <option value="All">Tous les statuts</option>
                         <option value="New">Nouveaux</option>
@@ -82,12 +82,12 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                             key={req.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 cursor-pointer transition-all shadow-sm group"
+                            className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 cursor-pointer transition-all shadow-sm group"
                             onClick={() => onSelect?.(req)}
                         >
                             <div className="flex flex-col md:flex-row justify-between gap-4">
                                 <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-xl text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900 transition-colors">
+                                    <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-3xl text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900 transition-colors">
                                         <User className="h-6 w-6" />
                                     </div>
                                     <div>

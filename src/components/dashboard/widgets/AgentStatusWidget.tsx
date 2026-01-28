@@ -77,7 +77,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                         <Skeleton className="h-24 w-full rounded-2xl" />
                     </div>
                 ) : !hasAgents ? (
-                    <div className="flex flex-col items-center justify-center p-6 bg-slate-100/50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/50 dark:border-slate-700/30 backdrop-blur-sm">
+                    <div className="flex flex-col items-center justify-center p-6 bg-slate-100/50 dark:bg-slate-800/30 rounded-2xl border border-border/40 dark:border-slate-700/30 backdrop-blur-sm">
                         <Monitor className="h-10 w-10 text-slate-400 dark:text-slate-400 mb-3" />
                         <span className="text-sm font-bold text-slate-600 dark:text-slate-300 text-center">
                             {t('agents.widget.noAgentsInstalled')}
@@ -87,7 +87,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                         </span>
                         <button
                             onClick={handleManageClick}
-                            className="mt-4 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2"
+                            className="mt-4 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-3xl text-sm font-semibold transition-colors flex items-center gap-2"
                         >
                             <Settings className="w-4 h-4" />
                             {t('agents.widget.installNow')}
@@ -168,9 +168,9 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                                 <div
                                     key={agent.id}
                                     className={cn(
-                                        "flex items-center p-3 rounded-xl border transition-all hover:scale-[1.01]",
+                                        "flex items-center p-3 rounded-3xl border transition-all hover:scale-[1.01]",
                                         agent.status === 'active'
-                                            ? "bg-white/80 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-700/30"
+                                            ? "bg-white/80 dark:bg-slate-800/50 border-border/40 dark:border-slate-700/30"
                                             : agent.status === 'offline'
                                             ? "bg-warning-bg/50 dark:bg-warning/5 border-warning-border/50 dark:border-warning/20"
                                             : "bg-error-bg/50 dark:bg-error/5 border-error-border/50 dark:border-error/20"
@@ -235,7 +235,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                         {/* Manage Link */}
                         <button
                             onClick={handleManageClick}
-                            className="w-full flex items-center justify-center gap-2 p-3 text-sm font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-xl transition-colors"
+                            className="w-full flex items-center justify-center gap-2 p-3 text-sm font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-3xl transition-colors"
                         >
                             <Settings className="w-4 h-4" />
                             {t('agents.widget.manage')}

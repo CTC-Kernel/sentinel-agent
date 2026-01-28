@@ -56,7 +56,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
 
     if (status === 'error') {
         return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-500 dark:text-muted-foreground">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-800 rounded-lg text-xs text-slate-500 dark:text-muted-foreground">
                 {message}
             </motion.div>
         );
@@ -66,7 +66,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-3 mb-1 bg-white dark:bg-slate-950 border border-brand-100 dark:border-brand-800 rounded-xl overflow-hidden shadow-sm"
+            className="mt-3 mb-1 bg-white dark:bg-slate-950 border border-brand-100 dark:border-brand-800 rounded-3xl overflow-hidden shadow-sm"
         >
             {/* Header */}
             <div className="bg-brand-50 dark:bg-brand-800 px-3 py-2 border-b border-brand-100 dark:border-brand-800 flex items-center gap-2">
@@ -88,7 +88,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
                 )}
 
                 {/* Payload Preview */}
-                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2 mb-3 text-xs font-mono text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800">
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2 mb-3 text-xs font-mono text-slate-600 dark:text-slate-300 border border-border/40 dark:border-slate-800">
                     <pre className="whitespace-pre-wrap">
                         {JSON.stringify(payload, null, 2)}
                     </pre>

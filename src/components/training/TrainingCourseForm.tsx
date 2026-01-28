@@ -282,7 +282,7 @@ export const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({
           )}
         />
 
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-info-bg/50 border border-info-border/30">
+        <div className="flex items-start gap-2 p-3 rounded-3xl bg-info-bg/50 border border-info-border/30">
           <Info className="w-4 h-4 text-info-text mt-0.5 shrink-0" />
           <p className="text-xs text-info-text">
             {t('training.form.rolesHint')}

@@ -24,9 +24,9 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ 
 
             <div className="space-y-3">
                 {versions.map((version) => (
-                    <div key={version.id} className={`p-4 rounded-xl border flex items-center justify-between group transition-all ${version.id === currentVersionId
+                    <div key={version.id} className={`p-4 rounded-3xl border flex items-center justify-between group transition-all ${version.id === currentVersionId
                         ? 'bg-brand-50 border-brand-200 dark:bg-brand-800 dark:border-brand-800'
-                        : 'bg-white border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700'
+                        : 'bg-white border-border/40 dark:bg-slate-800/50 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700'
                         }`}>
                         <div className="flex items-center gap-4">
                             <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 font-mono font-bold text-sm">

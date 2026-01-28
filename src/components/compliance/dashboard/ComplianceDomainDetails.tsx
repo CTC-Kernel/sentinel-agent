@@ -33,7 +33,7 @@ export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = (
                 {Object.entries(domainData).map(([domain, data]) => {
                     const rate = (data.implemented / data.total * 100);
                     return (
-                        <div key={domain} className="p-4 bg-white/40 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 backdrop-blur-sm hover:scale-[1.02] transition-transform duration-200">
+                        <div key={domain} className="p-4 bg-white/40 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-border/40 backdrop-blur-sm hover:scale-[1.02] transition-transform duration-200">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="font-bold text-foreground text-sm">{domain}</span>
                                 <span className="text-xs font-bold text-muted-foreground">{data.implemented}/{data.total}</span>

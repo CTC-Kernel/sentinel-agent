@@ -184,7 +184,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
           </p>
         </div>
         {canEdit && (
-          <Button onClick={onStartAssessment} className="rounded-xl shadow-lg shadow-brand-500/20">
+          <Button onClick={onStartAssessment} className="rounded-3xl shadow-lg shadow-brand-500/20">
             <ClipboardList className="w-4 h-4 mr-2" />
             {t('vendorAssessment.newAssessment', 'New Assessment')}
           </Button>
@@ -248,7 +248,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
             return (
               <div
                 key={assessment.id}
-                className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-700 transition-colors group"
+                className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-border/40 dark:border-border/40 hover:border-brand-300 dark:hover:border-brand-700 transition-colors group"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -336,7 +336,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700 flex justify-end">
                   <Button
                     variant="ghost"
                     size="sm"

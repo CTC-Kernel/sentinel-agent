@@ -143,7 +143,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                             return (
                                 <div
                                     key={ctrl.id}
-                                    className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
+                                    className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className={color}>{icon}</div>
@@ -194,7 +194,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                         {linkedRisks.map(risk => (
                             <div
                                 key={risk.id}
-                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
+                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <ShieldAlert className="h-4 w-4 text-rose-500 shrink-0" />
@@ -246,7 +246,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                         {linkedAssets.map(asset => (
                             <div
                                 key={asset.id}
-                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
+                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <Server className="h-4 w-4 text-cyan-500 shrink-0" />
@@ -297,7 +297,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                         {linkedProjects.map(project => (
                             <div
                                 key={project.id}
-                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
+                                className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <FolderKanban className="h-4 w-4 text-indigo-500 shrink-0" />

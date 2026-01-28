@@ -238,13 +238,13 @@ const ReplyForm: React.FC<{
             onKeyDown={handleKeyDown}
             placeholder="Écrivez une réponse... (Cmd+Enter pour envoyer)"
             rows={2}
-            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
+            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
           />
         </div>
         <button
           onClick={handleSubmit}
           disabled={!content.trim() || isSubmitting}
-          className={`p-3 rounded-xl transition-all ${content.trim() && !isSubmitting
+          className={`p-3 rounded-3xl transition-all ${content.trim() && !isSubmitting
             ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25'
             : 'bg-slate-700/50 text-slate-500 dark:text-slate-300 cursor-not-allowed'
             }`}
@@ -406,7 +406,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
         <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-800/80 to-slate-900/80 border-b border-slate-700/50">
           <div className="flex items-center gap-3">
             <div
-              className="p-2 rounded-xl"
+              className="p-2 rounded-3xl"
               style={{ backgroundColor: `${annotation.color}20` }}
             >
               <span style={{ color: annotation.color }}>
@@ -436,13 +436,13 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowActions(!showActions)}
-                className="p-2 rounded-xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
+                className="p-2 rounded-3xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
 
               {showActions && (
-                <div className="absolute right-0 top-full mt-2 w-48 py-2 bg-slate-800 rounded-xl shadow-xl border border-slate-700/50 z-10">
+                <div className="absolute right-0 top-full mt-2 w-48 py-2 bg-slate-800 rounded-3xl shadow-xl border border-slate-700/50 z-10">
                   <button
                     onClick={handleTogglePin}
                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50"
@@ -482,7 +482,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
+              className="p-2 rounded-3xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -543,7 +543,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                   <button
                     onClick={handleResolve}
                     disabled={isResolving}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-400 rounded-xl text-sm font-medium hover:bg-green-500/30 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-400 rounded-3xl text-sm font-medium hover:bg-green-500/30 transition-colors"
                   >
                     {isResolving ? (
                       <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin" />
@@ -557,7 +557,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 {canReopen && (
                   <button
                     onClick={handleReopen}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 text-amber-400 rounded-xl text-sm font-medium hover:bg-amber-500/30 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 text-amber-400 rounded-3xl text-sm font-medium hover:bg-amber-500/30 transition-colors"
                   >
                     <XCircle className="w-4 h-4" />
                     Rouvrir
@@ -568,7 +568,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
             {/* Resolution info */}
             {annotation.resolvedBy && annotation.resolvedAt && (
-              <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-500/30 rounded-xl">
+              <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-500/30 rounded-3xl">
                 <div className="flex items-center gap-2 text-green-400 text-sm">
                   <Check className="w-4 h-4" />
                   <span>

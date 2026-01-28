@@ -284,7 +284,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
 
       {/* Countdown / Due Date */}
       {countdown && (
-        <div className={`flex items-center gap-2 mb-4 p-3 rounded-xl ${countdown.overdue
+        <div className={`flex items-center gap-2 mb-4 p-3 rounded-3xl ${countdown.overdue
           ? 'bg-error-bg/50 border border-error-border/30'
           : countdown.urgent
             ? 'bg-warning-bg/50 border border-warning-border/30'
@@ -314,7 +314,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
 
       {/* Completed info */}
       {assignment.status === 'completed' && assignment.completedAt && (
-        <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-success-bg/50 border border-success-border/30">
+        <div className="flex items-center gap-2 mb-4 p-3 rounded-3xl bg-success-bg/50 border border-success-border/30">
           <CheckCircle className="w-4 h-4 text-success-text" />
           <div className="flex-1">
             <div className="text-sm font-medium text-success-text">

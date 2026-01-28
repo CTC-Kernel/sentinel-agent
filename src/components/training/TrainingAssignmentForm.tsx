@@ -94,7 +94,8 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
 
   // Default due date (2 weeks from now)
   const defaultDueDate = useMemo(() => {
-    return new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    return new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
   }, []);
 
   const { control, handleSubmit, watch, formState: { errors, isValid } } = useZodForm({
@@ -187,13 +188,12 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
         {['select', 'preview', 'confirm'].map((s, i) => (
           <React.Fragment key={s}>
             <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-colors ${
-                step === s
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-colors ${step === s
                   ? 'bg-primary text-primary-foreground'
                   : i < ['select', 'preview', 'confirm'].indexOf(step)
-                  ? 'bg-success-bg text-success-text'
-                  : 'bg-muted text-muted-foreground'
-              }`}
+                    ? 'bg-success-bg text-success-text'
+                    : 'bg-muted text-muted-foreground'
+                }`}
             >
               {i < ['select', 'preview', 'confirm'].indexOf(step) ? (
                 <CheckCircle className="w-4 h-4" />
@@ -203,11 +203,10 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
             </div>
             {i < 2 && (
               <div
-                className={`w-12 h-0.5 transition-colors ${
-                  i < ['select', 'preview', 'confirm'].indexOf(step)
+                className={`w-12 h-0.5 transition-colors ${i < ['select', 'preview', 'confirm'].indexOf(step)
                     ? 'bg-success-bg'
                     : 'bg-muted'
-                }`}
+                  }`}
               />
             )}
           </React.Fragment>
@@ -255,7 +254,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
                   {(() => {
                     const CategoryIcon = getCategoryIcon(selectedCourse.category);
                     return (
-                      <div className="p-2 rounded-xl bg-primary/10">
+                      <div className="p-2 rounded-3xl bg-primary/10">
                         <CategoryIcon className="w-5 h-5 text-primary" />
                       </div>
                     );
@@ -418,7 +417,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
                 {preview.users.map((user) => (
                   <div
                     key={user.uid}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-muted"
+                    className="flex items-center gap-3 p-3 rounded-3xl bg-muted/30 border border-muted"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                       {(user.displayName || user.email || '?')[0].toUpperCase()}
@@ -440,7 +439,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
 
             {/* Warning for required training */}
             {preview.course.isRequired && (
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-warning-bg/50 border border-warning-border/30">
+              <div className="flex items-start gap-3 p-4 rounded-3xl bg-warning-bg/50 border border-warning-border/30">
                 <AlertCircle className="w-5 h-5 text-warning-text shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-warning-text">

@@ -120,13 +120,13 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     </div>
                 </div>
 
-                <div className="border-t border-slate-200 dark:border-white/10 pt-6">
+                <div className="border-t border-border/40 dark:border-border/40 pt-6">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questions</h3>
                         <button
                             aria-label="Ajouter une question"
                             onClick={addQuestion}
-                            className="flex items-center px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                            className="flex items-center px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-3xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Ajouter une question
@@ -135,7 +135,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
 
                     <div className="space-y-4">
                         {questions.map((q, index) => (
-                            <div key={q.id} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-white/10 relative group">
+                            <div key={q.id} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-border/40 relative group">
                                 <div className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-300 cursor-move opacity-0 group-hover:opacity-70 transition-opacity">
                                     <Move className="w-5 h-5" />
                                 </div>
@@ -190,7 +190,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                                 updateQuestion(q.id, { options: newOptions });
                                                             }}
                                                             type="text"
-                                                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm transition-colors focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 outline-none"
+                                                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-border/40 dark:border-border/40 rounded-lg text-sm transition-colors focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 outline-none"
                                                             placeholder={`Option ${optIndex + 1}`}
                                                         />
                                                         <button
@@ -221,7 +221,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                         <label className="flex items-center gap-2 cursor-pointer group">
                                             <input checked={q.required} onChange={(e) => updateQuestion(q.id, { required: e.target.checked })}
                                                 type="checkbox"
-                                                className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500 transition-colors"
+                                                className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 transition-colors"
                                             />
                                             <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Obligatoire</span>
                                         </label>
@@ -234,11 +234,11 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
             </div>
 
             {/* Footer */}
-            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border/40 dark:border-border/40">
                 <button
                     aria-label="Annuler les modifications"
                     onClick={onClose}
-                    className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors"
                 >
                     Annuler
                 </button>
@@ -246,7 +246,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     aria-label="Enregistrer le questionnaire"
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 shadow-lg shadow-brand-600/20"
+                    className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 shadow-lg shadow-brand-600/20"
                 >
                     <Save className="w-4 h-4 mr-2" />
                     {saving ? 'Enregistrement...' : 'Enregistrer le Questionnaire'}

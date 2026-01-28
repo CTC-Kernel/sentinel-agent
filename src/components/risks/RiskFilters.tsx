@@ -36,19 +36,19 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
     return (
         <div className="space-y-4 mb-8">
             {/* Main Filter Bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-white/5 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10 backdrop-blur-xl">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-white/5 p-4 rounded-2xl shadow-sm border border-border/40 dark:border-border/40 backdrop-blur-xl">
                 <div className="relative flex-1 w-full md:max-w-md group">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-hover:text-brand-500 transition-colors h-5 w-5" />
                     <input value={query} onChange={(e) => onQueryChange(e.target.value)}
                         type="text"
                         placeholder="Rechercher une menace, une vulnérabilité..."
-                        className="pl-10 pr-4 py-3 w-full bg-slate-50 dark:bg-black/20 border-transparent focus:bg-white dark:focus:bg-black/40 border-2 focus:border-brand-500 rounded-xl transition-all outline-none"
+                        className="pl-10 pr-4 py-3 w-full bg-slate-50 dark:bg-black/20 border-transparent focus:bg-white dark:focus:bg-black/40 border-2 focus:border-brand-500 rounded-3xl transition-all outline-none"
                         aria-label="Rechercher un risque"
                     />
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-3xl">
                         <button
                             onClick={() => onViewModeChange('cards')}
                             className={`p-2 rounded-lg transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
@@ -76,7 +76,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
 
                     <button
                         onClick={onToggleAdvancedSearch}
-                        className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 ${showAdvancedSearch || hasActiveFilters ? 'bg-brand-50 border-brand-200 text-brand-600 dark:bg-brand-800 dark:border-brand-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`p-2.5 rounded-3xl border transition-all flex items-center gap-2 ${showAdvancedSearch || hasActiveFilters ? 'bg-brand-50 border-brand-200 text-brand-600 dark:bg-brand-800 dark:border-brand-800' : 'bg-white dark:bg-white/5 border-border/40 dark:border-border/40 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         title="Filtres avancés"
                     >
                         <SlidersHorizontal className="h-5 w-5" />
@@ -93,7 +93,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                                 {onExportExcel && (
                                     <button
                                         onClick={onExportExcel}
-                                        className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:bg-success-bg hover:text-success-text hover:border-success-border transition-all"
+                                        className="p-2 rounded-3xl bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 text-slate-500 dark:text-slate-300 hover:bg-success-bg hover:text-success-text hover:border-success-border transition-all"
                                         title="Exporter en Excel"
                                     >
                                         <FileSpreadsheet className="h-5 w-5" />
@@ -102,7 +102,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                                 {onExportPdf && (
                                     <button
                                         onClick={onExportPdf}
-                                        className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:bg-error-bg hover:text-error-text hover:border-error-border transition-all"
+                                        className="p-2 rounded-3xl bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 text-slate-500 dark:text-slate-300 hover:bg-error-bg hover:text-error-text hover:border-error-border transition-all"
                                         title="Exporter en PDF"
                                     >
                                         <FileText className="h-5 w-5" />
@@ -122,10 +122,10 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
 
             {/* Advanced Filters Panel */}
             {showAdvancedSearch && (
-                <div className="flex flex-wrap gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="flex flex-wrap gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40">
                     {/* Framework Filter */}
                     <select
-                        className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                        className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                         value={frameworkFilter}
                         onChange={(e) => onFrameworkFilterChange(e.target.value)}
                         aria-label="Filtrer par référentiel"
@@ -140,7 +140,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     {/* Status Filter */}
                     {onStatusFilterChange && (
                         <select
-                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                            className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={statusFilter || ''}
                             onChange={(e) => onStatusFilterChange(e.target.value)}
                             aria-label="Filtrer par statut"
@@ -157,7 +157,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     {/* Criticality Filter */}
                     {onCriticalityFilterChange && (
                         <select
-                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                            className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={criticalityFilter || ''}
                             onChange={(e) => onCriticalityFilterChange(e.target.value)}
                             aria-label="Filtrer par criticité"
@@ -173,7 +173,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     {/* Category Filter */}
                     {onCategoryFilterChange && availableCategories.length > 0 && (
                         <select
-                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                            className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={categoryFilter || ''}
                             onChange={(e) => onCategoryFilterChange(e.target.value)}
                             aria-label="Filtrer par catégorie"

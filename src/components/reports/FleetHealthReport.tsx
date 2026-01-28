@@ -76,7 +76,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
     return (
         <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
             <div className="flex items-start justify-between mb-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${statusStyles[status]}`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-3xl ${statusStyles[status]}`}>
                     {icon}
                 </div>
                 {trend !== undefined && (
@@ -296,19 +296,19 @@ const AnomalySummary: React.FC<AnomalySummaryProps> = ({ data }) => {
 
     return (
         <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-muted/30 rounded-xl">
+            <div className="text-center p-4 bg-muted/30 rounded-3xl">
                 <p className="text-2xl font-bold text-foreground">{data.totalAnomalies}</p>
                 <p className="text-xs text-muted-foreground mt-1">Total anomalies</p>
             </div>
-            <div className="text-center p-4 bg-danger/10 rounded-xl">
+            <div className="text-center p-4 bg-danger/10 rounded-3xl">
                 <p className="text-2xl font-bold text-danger">{data.criticalAnomalies}</p>
                 <p className="text-xs text-muted-foreground mt-1">Critiques</p>
             </div>
-            <div className="text-center p-4 bg-success/10 rounded-xl">
+            <div className="text-center p-4 bg-success/10 rounded-3xl">
                 <p className="text-2xl font-bold text-success">{data.resolvedAnomalies}</p>
                 <p className="text-xs text-muted-foreground mt-1">Résolues</p>
             </div>
-            <div className="text-center p-4 bg-primary/10 rounded-xl">
+            <div className="text-center p-4 bg-primary/10 rounded-3xl">
                 <p className="text-2xl font-bold text-primary">{formatTime(data.avgResolutionTime)}</p>
                 <p className="text-xs text-muted-foreground mt-1">MTTR</p>
             </div>
@@ -539,7 +539,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-primary/10 text-primary">
                             <Server className="h-5 w-5" />
                         </div>
                         <div>
@@ -553,7 +553,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
 
                 <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-success/10 text-success">
                             <CheckCircle2 className="h-5 w-5" />
                         </div>
                         <div>
@@ -567,7 +567,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
 
                 <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-muted text-muted-foreground">
                             <XCircle className="h-5 w-5" />
                         </div>
                         <div>
@@ -581,7 +581,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
 
                 <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-success/10 text-success">
                             <Zap className="h-5 w-5" />
                         </div>
                         <div>

@@ -99,7 +99,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
     return (
         <div className="space-y-6 h-full flex flex-col">
             <div className="flex justify-between items-center">
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-3xl border border-border/40 dark:border-slate-700">
                     <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Liste</button>
                     <button onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Tableau</button>
                 </div>
@@ -113,11 +113,11 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
             {viewMode === 'list' ? (
                 <div className="space-y-2">
                     {project.tasks?.map(task => (
-                        <div key={task.id} className="flex items-center p-3 glass-premium rounded-xl border border-border/40 group hover:shadow-apple transition-all">
+                        <div key={task.id} className="flex items-center p-3 glass-premium rounded-3xl border border-border/40 group hover:shadow-apple transition-all">
                             <button
                                 onClick={() => toggleTaskStatus(task.id)}
                                 disabled={!canEdit}
-                                className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 hover:border-green-500'}`}
+                                className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-border/40 hover:border-green-500'}`}
                             >
                                 {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                             </button>

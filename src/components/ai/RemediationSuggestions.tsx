@@ -81,7 +81,7 @@ const ImpactSummaryCard: React.FC<{
             className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40"
         >
             <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-success/10">
+                <div className="p-2 rounded-3xl bg-success/10">
                     <TrendingUp className="h-5 w-5 text-success" />
                 </div>
                 <div>
@@ -93,25 +93,25 @@ const ImpactSummaryCard: React.FC<{
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="text-center p-3 rounded-xl bg-success/10">
+                <div className="text-center p-3 rounded-3xl bg-success/10">
                     <p className="text-2xl font-bold text-success">
                         +{summary.totalPotentialIncrease}
                     </p>
                     <p className="text-xs text-muted-foreground">Points total</p>
                 </div>
-                <div className="text-center p-3 rounded-xl bg-primary/10">
+                <div className="text-center p-3 rounded-3xl bg-primary/10">
                     <p className="text-2xl font-bold text-primary">
                         +{summary.quickWinIncrease}
                     </p>
                     <p className="text-xs text-muted-foreground">Quick wins</p>
                 </div>
-                <div className="text-center p-3 rounded-xl bg-muted">
+                <div className="text-center p-3 rounded-3xl bg-muted">
                     <p className="text-2xl font-bold">
                         {summary.quickWinCount}
                     </p>
                     <p className="text-xs text-muted-foreground">Actions rapides</p>
                 </div>
-                <div className="text-center p-3 rounded-xl bg-muted">
+                <div className="text-center p-3 rounded-3xl bg-muted">
                     <p className="text-2xl font-bold">
                         {summary.quickWinHours}h
                     </p>
@@ -156,7 +156,7 @@ const ActionCard: React.FC<{
         <motion.div
             variants={slideUpVariants}
             className={cn(
-                'glass-premium rounded-xl overflow-hidden border border-border/40',
+                'glass-premium rounded-3xl overflow-hidden border border-border/40',
                 action.isQuickWin && 'ring-2 ring-primary/30'
             )}
         >
@@ -539,9 +539,9 @@ export const RemediationSuggestions: React.FC<RemediationSuggestionsProps> = ({
         return (
             <div className={cn('animate-pulse space-y-4', className)}>
                 <div className="h-32 bg-muted/50 rounded-2xl" />
-                <div className="h-24 bg-muted/50 rounded-xl" />
-                <div className="h-24 bg-muted/50 rounded-xl" />
-                <div className="h-24 bg-muted/50 rounded-xl" />
+                <div className="h-24 bg-muted/50 rounded-3xl" />
+                <div className="h-24 bg-muted/50 rounded-3xl" />
+                <div className="h-24 bg-muted/50 rounded-3xl" />
             </div>
         );
     }
@@ -556,7 +556,7 @@ export const RemediationSuggestions: React.FC<RemediationSuggestionsProps> = ({
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
+                    <div className="p-2 rounded-3xl bg-primary/10">
                         <Zap className="h-5 w-5 text-primary" />
                     </div>
                     <div>

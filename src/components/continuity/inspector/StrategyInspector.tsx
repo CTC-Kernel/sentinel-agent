@@ -94,7 +94,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             }
         >
             <div className="space-y-6 sm:space-y-8">
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-3xl border border-emerald-100 dark:border-emerald-800">
                     <h3 className="font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
                         <Server className="w-4 h-4" />
                         Stratégie de Continuité
@@ -145,7 +145,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-3xl border border-border/40 dark:border-border/40">
                         <div className="col-span-full mb-2">
                             <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Objectifs de Reprise (SLA)</span>
                         </div>

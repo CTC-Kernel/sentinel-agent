@@ -67,7 +67,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                 hover={true}
                 gradientOverlay={true}
             >
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                         <span className="relative flex h-2.5 w-2.5">
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
@@ -97,7 +97,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
             hover={true}
             gradientOverlay={true}
         >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <span className="relative flex h-2.5 w-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive/60 opacity-75"></span>
@@ -135,7 +135,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                                 }
                             }
                         }}
-                        className="rounded-xl bg-gradient-to-br from-success-bg to-success-bg/50 dark:from-success/5 dark:to-success/10 border border-success-border/50 dark:border-success/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-success"
+                        className="rounded-3xl bg-gradient-to-br from-success-bg to-success-bg/50 dark:from-success/5 dark:to-success/10 border border-success-border/50 dark:border-success/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-success"
                         onClick={() => {
                             if (navigate) navigate('/incidents');
                         }}
@@ -163,7 +163,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                                 }
                             }
                         }}
-                        className="rounded-xl bg-gradient-to-br from-warning-bg to-warning-bg/50 dark:from-warning/5 dark:to-warning/10 border border-warning-border/50 dark:border-warning/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-warning"
+                        className="rounded-3xl bg-gradient-to-br from-warning-bg to-warning-bg/50 dark:from-warning/5 dark:to-warning/10 border border-warning-border/50 dark:border-warning/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-warning"
                         onClick={() => {
                             if (navigate) navigate('/incidents');
                         }}

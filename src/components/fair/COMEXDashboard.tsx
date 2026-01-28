@@ -304,7 +304,7 @@ export const COMEXDashboard: React.FC<COMEXDashboardProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white">
+          <div className="p-2 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-600 text-white">
             <BarChart3 className="h-6 w-6" />
           </div>
           <div>

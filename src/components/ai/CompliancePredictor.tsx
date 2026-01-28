@@ -151,7 +151,7 @@ const PredictionCard: React.FC<{
         <motion.div
             variants={slideUpVariants}
             className={cn(
-                'p-4 rounded-xl border transition-all',
+                'p-4 rounded-3xl border transition-all',
                 isPrimary ? 'border-primary/50 bg-primary/5' : 'border-border bg-muted/30',
                 prediction.isReached && 'border-success/50 bg-success/5',
                 prediction.isUnreachable && 'border-destructive/50 bg-destructive/5'
@@ -220,7 +220,7 @@ const TrendSummary: React.FC<{
     }
 
     return (
-        <div className="glass-premium rounded-xl p-4 border border-border/40">
+        <div className="glass-premium rounded-3xl p-4 border border-border/40">
             <div className="flex items-center justify-between mb-4">
                 <h4 className="text-sm font-medium text-muted-foreground">Tendance</h4>
                 <TrendIcon direction={trend.direction} className="h-5 w-5" />
@@ -332,8 +332,8 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
         return (
             <div className={cn('animate-pulse space-y-4', className)}>
                 <div className="h-8 bg-muted/50 rounded-lg w-1/3" />
-                <div className="h-32 bg-muted/50 rounded-xl" />
-                <div className="h-24 bg-muted/50 rounded-xl" />
+                <div className="h-32 bg-muted/50 rounded-3xl" />
+                <div className="h-24 bg-muted/50 rounded-3xl" />
             </div>
         );
     }
@@ -363,7 +363,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
         const primaryTarget = primaryPrediction?.predictions.find(p => !p.isReached);
 
         return (
-            <div className={cn('glass-premium rounded-xl p-4 border border-border/40', className)}>
+            <div className={cn('glass-premium rounded-3xl p-4 border border-border/40', className)}>
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-primary" />
@@ -400,7 +400,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
+                    <div className="p-2 rounded-3xl bg-primary/10">
                         <Sparkles className="h-5 w-5 text-primary" />
                     </div>
                     <div>

@@ -33,14 +33,14 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
         <div className={`relative ${className}`} ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center px-3 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="flex items-center px-3 py-2 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             >
                 <Calendar className="h-4 w-4 mr-2" data-testid="calendar-icon" />
                 Ajouter au calendrier
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 z-tooltip overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-border/40 dark:border-white/5 z-tooltip overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-1">
                         <a
                             href={CalendarService.google(event)}
