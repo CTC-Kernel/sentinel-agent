@@ -42,7 +42,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
     };
 
     return (
-        <div className="glass-panel rounded-2xl p-4 flex items-center gap-4">
+        <div className="glass-premium rounded-2xl p-4 flex items-center gap-4 border border-border/40 shadow-sm">
             <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${variantStyles[variant]}`}>
                 {icon}
             </div>
@@ -323,7 +323,7 @@ export const AgentPolicies: React.FC = () => {
                 {/* Policy Scope Distribution */}
                 <motion.div
                     variants={slideUpVariants}
-                    className="glass-panel rounded-2xl p-4"
+                    className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-semibold text-foreground">Distribution des politiques</h3>
@@ -416,7 +416,7 @@ export const AgentPolicies: React.FC = () => {
                 {/* Inheritance Model Info */}
                 <motion.div
                     variants={slideUpVariants}
-                    className="glass-panel rounded-2xl p-6"
+                    className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm"
                 >
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <Shield className="h-4 w-4 text-primary" />

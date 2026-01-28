@@ -298,6 +298,17 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
       `}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
+      onFocus={() => setShowTooltip(true)}
+      onBlur={() => setShowTooltip(false)}
+      tabIndex={0}
+      role="button"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setShowTooltip(!showTooltip);
+        }
+      }}
+      aria-label="XR Status Badge - Toggle details"
     >
       {/* Status indicator */}
       <div

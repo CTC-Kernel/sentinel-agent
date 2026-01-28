@@ -304,10 +304,10 @@ describe('ProjectDependencies', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel containers', () => {
+        it('has glass-premium containers', () => {
             const { container } = render(<ProjectDependencies {...defaultProps} />);
 
-            expect(container.querySelectorAll('.glass-panel').length).toBeGreaterThan(0);
+            expect(container.querySelectorAll('.glass-premium').length).toBeGreaterThan(0);
         });
 
         it('applies red color for high score risks', () => {

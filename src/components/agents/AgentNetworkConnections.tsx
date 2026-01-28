@@ -203,7 +203,7 @@ export const AgentNetworkConnections: React.FC<AgentNetworkConnectionsProps> = (
             </div>
 
             {/* Connections table */}
-            <div className="glass-panel rounded-2xl border border-border/50 overflow-hidden">
+            <div className="glass-premium rounded-2xl border border-border/50 overflow-hidden">
                 {/* Table header */}
                 <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-muted/30 border-b border-border/50">
                     <div className="col-span-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">

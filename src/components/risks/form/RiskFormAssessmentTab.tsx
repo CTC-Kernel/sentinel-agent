@@ -23,7 +23,7 @@ export const RiskFormAssessmentTab: React.FC<RiskFormAssessmentTabProps> = React
         (residualProbability * residualImpact > probability * impact);
 
     return (
-        <div className="space-y-8 glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+        <div className="space-y-8 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="h-5 w-5 text-brand-500" /> {t('risks.tabs.assessment')}
             </h3>

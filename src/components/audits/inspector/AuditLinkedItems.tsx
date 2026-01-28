@@ -109,7 +109,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
     if (hasNoLinkedItems) {
         return (
-            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                     <LinkIcon className="h-4 w-4 text-brand-500" />
                     Éléments Liés
@@ -129,7 +129,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
         <div className="space-y-6">
             {/* Linked Controls */}
             {linkedControls.length > 0 && (
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <Shield className="h-4 w-4 text-brand-500" />
                         Contrôles Audités ({linkedControls.length})
@@ -185,7 +185,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
             {/* Linked Risks */}
             {linkedRisks.length > 0 && (
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <ShieldAlert className="h-4 w-4 text-rose-500" />
                         Risques Associés ({linkedRisks.length})
@@ -237,7 +237,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
             {/* Linked Assets */}
             {linkedAssets.length > 0 && (
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <Server className="h-4 w-4 text-cyan-500" />
                         Actifs Concernés ({linkedAssets.length})
@@ -261,7 +261,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                             {asset.confidentiality && (
                                                 <Badge
                                                     status={asset.confidentiality === 'Critique' ? 'error' :
-                                                            asset.confidentiality === 'Élevée' ? 'warning' : 'info'}
+                                                        asset.confidentiality === 'Élevée' ? 'warning' : 'info'}
                                                     variant="soft"
                                                     size="sm"
                                                 >
@@ -288,7 +288,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
             {/* Linked Projects */}
             {linkedProjects.length > 0 && (
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <FolderKanban className="h-4 w-4 text-indigo-500" />
                         Projets Liés ({linkedProjects.length})
@@ -308,7 +308,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                             <Badge
                                                 status={project.status === 'Terminé' ? 'success' :
-                                                        project.status === 'En cours' ? 'warning' : 'info'}
+                                                    project.status === 'En cours' ? 'warning' : 'info'}
                                                 variant="soft"
                                                 size="sm"
                                             >

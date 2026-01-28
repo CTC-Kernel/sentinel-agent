@@ -69,7 +69,6 @@ export const SuperAdminMFAModal: React.FC<SuperAdminMFAModalProps> = ({
             onKeyDown={handleKeyDown}
             className="text-center tracking-[0.5em] font-mono text-lg"
             maxLength={6}
-            autoFocus
             placeholder="000000"
           />
 

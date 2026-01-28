@@ -182,10 +182,10 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
     if (loading) {
         return (
             <div className="space-y-6 animate-fade-in">
-                <div className="glass-premium p-6 md:p-8 rounded-3xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                <div className="glass-premium p-6 md:p-8 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 border border-border/40" />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {[...Array(4)].map((_, i) => (
-                        <div key={i} className="glass-premium p-4 sm:p-6 rounded-3xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                        <div key={i} className="glass-premium p-4 sm:p-6 rounded-4xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50 border border-border/40" />
                     ))}
                 </div>
             </div>
@@ -227,7 +227,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-premium p-6 md:p-8 rounded-3xl relative overflow-hidden"
+                className="glass-premium p-6 md:p-8 rounded-4xl relative overflow-hidden border border-border/40"
             >
                 {/* Tech Corners */}
                 <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -235,7 +235,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                <div className="absolute inset-0 overflow-hidden rounded-4xl pointer-events-none">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-32 -mt-32" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -ml-20 -mb-20" />
                 </div>
@@ -284,6 +284,12 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         <div
                             className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric"
                             onClick={() => onFilterChange?.(null)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onFilterChange?.(null);
+                                }
+                            }}
                             role="button"
                             tabIndex={0}
                         >
@@ -298,6 +304,12 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         <div
                             className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric"
                             onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onFilterChange?.({ type: 'criticality', value: 'Critique' });
+                                }
+                            }}
                             role="button"
                             tabIndex={0}
                         >
@@ -357,9 +369,9 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-orange-500/10 rounded-xl">
                             <ShieldAlert className="w-4 h-4 text-orange-500" />
@@ -417,9 +429,9 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-brand-50 rounded-xl">
                             <Layers className="w-4 h-4 text-brand-500" />
@@ -462,9 +474,9 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-violet-500/10 rounded-xl">
                             <Box className="w-4 h-4 text-violet-500" />
@@ -522,9 +534,9 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
+                    className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-emerald-500/10 rounded-xl">
                             <TrendingUp className="w-4 h-4 text-emerald-500" />

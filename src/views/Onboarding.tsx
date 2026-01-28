@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
-import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, BrainCircuit } from '../components/ui/Icons';
+import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, Activity } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { motion } from 'framer-motion';
 import { PLANS } from '../config/plans';
@@ -616,7 +616,7 @@ export const Onboarding: React.FC = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">{t('onboarding.form.industry')}</label>
+
                                         {/* Select */}
                                         <Controller
                                             name="industry"
@@ -632,6 +632,7 @@ export const Onboarding: React.FC = () => {
                                                         { value: "industrie", label: t('onboarding.industries.industrie') },
                                                         { value: "other", label: t('onboarding.industries.other') }
                                                     ]}
+                                                    label={t('onboarding.form.industry')}
                                                     value={field.value || ''}
                                                     onChange={field.onChange}
                                                     placeholder={t('onboarding.form.select')}
@@ -812,14 +813,22 @@ export const Onboarding: React.FC = () => {
                                 // Pilotage - Sector-specific frameworks
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-4 ml-1 flex items-center gap-2">
+                                        <span className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-4 ml-1 flex items-center gap-2">
                                             <ShieldCheck className="h-4 w-4" /> {t('onboarding.steps.standards')}
-                                        </label>
+                                        </span>
                                         <div className="grid grid-cols-2 gap-3">
                                             {getIndustryFrameworks().map(fw => (
                                                 <div
                                                     key={fw.id}
+                                                    role="button"
+                                                    tabIndex={0}
                                                     onClick={() => handleToggleStandard(fw.name)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault();
+                                                            handleToggleStandard(fw.name);
+                                                        }
+                                                    }}
                                                     className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(fw.name) ? 'bg-brand-50 border-brand-500 ring-1 ring-brand-500' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300'}`}
                                                 >
                                                     <div className="flex flex-col">
@@ -836,7 +845,6 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">{t('onboarding.steps.scope')}</label>
                                         <FloatingLabelInput
                                             value={scope}
                                             onChange={e => {
@@ -862,8 +870,7 @@ export const Onboarding: React.FC = () => {
                             {step === 4 && (
                                 // Team
                                 <div className="space-y-6 animate-fade-in">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">{t('onboarding.steps.invite')}</label>
+                                    <div className="space-y-4">
                                         <div className="flex gap-2 items-start">
                                             <div className="relative flex-[2]">
                                                 <FloatingLabelInput
@@ -939,9 +946,9 @@ export const Onboarding: React.FC = () => {
                                     {/* (Assets UI) */}
                                     <div>
                                         <div className="flex items-center justify-between mb-4">
-                                            <label className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                            <span className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 flex items-center gap-2">
                                                 <Server className="h-4 w-4" /> {t('onboarding.steps.assets')}
-                                            </label>
+                                            </span>
                                             {initialAssets.length === 0 && !isScanning && (
                                                 <span className="text-xs px-2 py-1 bg-brand-500 text-white rounded-lg font-bold animate-pulse">
                                                     {t('onboarding.steps.iaReady')}
@@ -995,14 +1002,20 @@ export const Onboarding: React.FC = () => {
                                             ) : (
                                                 initialAssets.length === 0 && (
                                                     <div
+                                                        role="button"
+                                                        tabIndex={0}
                                                         onClick={runAutoScan}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault();
+                                                                runAutoScan();
+                                                            }
+                                                        }}
                                                         className="py-10 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-300 dark:border-white/10 hover:border-brand-500 dark:hover:border-brand-500 cursor-pointer group transition-all text-center"
                                                     >
                                                         <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-600 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                                            <BrainCircuit className="h-6 w-6" />
-                                                            {/* BrainCircuit not imported, using Globe or Activity instead if not available. Wait, previously it was imported? */}
-                                                            {/* Checking imports: ArrowRight, User, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, Globe, Activity */}
-                                                            {/* BrainCircuit NOT imported. Using Activity. */}
+                                                            <Activity className="h-6 w-6" />
+                                                            {/* Activity icon used as fallback for BrainCircuit */}
                                                         </div>
                                                         <h3 className="font-bold text-slate-900 dark:text-white">{t('onboarding.actions.autoScan')}</h3>
                                                         <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">{t('onboarding.actions.autoScanDesc')}</p>

@@ -626,6 +626,16 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
                             : 'hover:bg-muted'
                         )}
                         onClick={() => toggleDocumentSelection(doc.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleDocumentSelection(doc.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Sélectionner le document: ${doc.title || 'Document sans titre'}`}
+                        aria-pressed={formData.selectedDocuments.includes(doc.id)}
                       >
                         <Checkbox
                           checked={formData.selectedDocuments.includes(doc.id)}

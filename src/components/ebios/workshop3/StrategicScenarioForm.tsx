@@ -197,11 +197,12 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop3.scenarioName', 'Nom du scénario')} *
             </label>
             <input
               {...register('name')}
+              id="name"
               type="text"
               placeholder={t('ebios.workshop3.scenarioNamePlaceholder', 'Ex: Exfiltration de données via fournisseur')}
               className={cn(
@@ -218,11 +219,12 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
 
           {/* SR/OV Pair */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="srOvPairId" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop3.linkedPair', 'Couple SR/OV')} *
             </label>
             <select
               {...register('srOvPairId')}
+              id="srOvPairId"
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                 errors.srOvPairId
@@ -312,11 +314,12 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
 
           {/* Description / Narrative */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop3.narrative', 'Narrative du scénario')}
             </label>
             <textarea
               {...register('description')}
+              id="description"
               rows={3}
               placeholder={t('ebios.workshop3.narrativePlaceholder', 'Décrivez comment l\'attaquant pourrait exploiter ce scénario...')}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
@@ -374,11 +377,12 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
             {/* Gravity Justification */}
             {watchedGravity >= 3 && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="gravityJustification" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   {t('ebios.workshop3.gravityJustification', 'Justification')} *
                 </label>
                 <textarea
                   {...register('gravityJustification')}
+                  id="gravityJustification"
                   rows={2}
                   placeholder={t('ebios.workshop3.gravityJustificationPlaceholder', 'Expliquez pourquoi cette gravité a été attribuée...')}
                   className={cn(

@@ -16,7 +16,7 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
     const handleApprove = React.useCallback(() => onApprove(req), [onApprove, req]);
 
     return (
-        <div className="glass-panel p-5 rounded-2xl border border-blue-200/50 dark:border-blue-900/30 shadow-sm flex flex-col relative overflow-hidden group">
+        <div className="glass-premium p-5 rounded-2xl border border-border/40 shadow-sm flex flex-col relative overflow-hidden group">
             <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/30 dark:bg-blue-900 pointer-events-none" />
             <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-3">

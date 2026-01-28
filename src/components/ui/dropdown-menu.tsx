@@ -92,6 +92,14 @@ const DropdownMenuItem = React.forwardRef<
                         className
                     )}
                     onClick={!disabled ? onClick : undefined}
+                    role="menuitem"
+                    tabIndex={disabled ? -1 : 0}
+                    onKeyDown={(e) => {
+                        if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            onClick?.();
+                        }
+                    }}
                     {...props}
                 >
                     {children as React.ReactNode}

@@ -16,7 +16,8 @@
 
 @layer utilities {
   .glass-premium {
-    @apply bg-background/60 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl;
+    @apply backdrop-blur-3xl border border-border/40 shadow-sm transition-all duration-500;
+    background-color: var(--glass-bg);
   }
 
   .glass-noise {
@@ -221,35 +222,7 @@ h6 {
 }
 
 /* Base Glass Panel - Sharper */
-.glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  box-shadow: var(--glass-shadow);
-  transition: all 0.3s var(--ease-apple);
-}
-
-.glass-panel-lite {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  transition: all 0.2s var(--ease-apple);
-}
-
-.dark .glass-panel-lite {
-  background: rgba(15, 23, 42, 0.4);
-}
-
-.glass-premium {
-  background: var(--glass-bg);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  transition: all 0.4s var(--ease-apple);
-}
+/* Standard Glass defined in utilities layer above */
 
 /* Premium Input Styles - Glass Effect */
 .glass-input {
@@ -424,10 +397,8 @@ textarea:focus {
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
 
+  /* Removed global border reset for better control */
   body {
     @apply bg-background text-foreground;
   }

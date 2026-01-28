@@ -29,7 +29,7 @@ export const RiskLinkedAudits: React.FC<RiskLinkedAuditsProps> = ({
             </div>
             <div className="grid gap-4">
                 {linkedAudits.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucun audit.</p> : linkedAudits.map(a => (
-                    <div key={a.id} className="glass-panel-lite p-4">{a.name}</div>
+                    <div key={a.id} className="glass-premium p-4 border border-border/40 rounded-xl">{a.name}</div>
                 ))}
             </div>
         </div>

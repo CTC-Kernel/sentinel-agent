@@ -191,15 +191,13 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 const reporterUser = users?.find(u => u.displayName === reporterName || u.email === reporterName);
                 return (
                     <div className="flex items-center gap-2">
-                        <img
-                            src={getUserAvatarUrl(reporterUser?.photoURL, reporterUser?.role)}
-                            alt={reporterName}
-                            className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = getUserAvatarUrl(null, reporterUser?.role);
-                            }}
-                        />
+                        <div className="relative">
+                            <img
+                                src={getUserAvatarUrl(reporterUser?.photoURL, reporterUser?.role)}
+                                alt={reporterName}
+                                className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
+                            />
+                        </div>
                         <span className="text-slate-600 dark:text-muted-foreground font-medium">
                             {reporterName}
                         </span>
@@ -264,7 +262,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
             {/* Incident list */}
             {viewMode === 'list' ? (
-                <div className="glass-panel w-full max-w-full rounded-3xl overflow-hidden shadow-sm">
+                <div className="glass-premium w-full max-w-full rounded-3xl overflow-hidden shadow-sm">
                     <DataTable
                         columns={columns}
                         data={filteredIncidents}
@@ -360,15 +358,13 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         <span>{new Date(inc.dateReported).toLocaleDateString()}</span>
                                         <span className="mx-2">•</span>
                                         <div className="flex items-center gap-1.5">
-                                            <img
-                                                src={getUserAvatarUrl(users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.photoURL, users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.role)}
-                                                alt={inc.reporter}
-                                                className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.role);
-                                                }}
-                                            />
+                                            <div className="relative">
+                                                <img
+                                                    src={getUserAvatarUrl(users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.photoURL, users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.role)}
+                                                    alt={inc.reporter}
+                                                    className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                                />
+                                            </div>
                                             <span>{inc.reporter}</span>
                                         </div>
                                     </div>

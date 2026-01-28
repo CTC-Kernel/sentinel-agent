@@ -531,7 +531,7 @@ export const zodDateSchemas = {
  * @returns Zod schema that validates numbers
  */
 export function createLocalizedNumberSchema(
-  locale: SupportedLocale,
+  _locale: SupportedLocale,
   options?: {
     required?: boolean;
     min?: number;
@@ -539,14 +539,10 @@ export function createLocalizedNumberSchema(
     integer?: boolean;
   }
 ) {
-  const config = localeConfig[locale];
   const { required = true, min, max, integer = false } = options ?? {};
 
    
-  let schema = z.number({
-    required_error: config.zodMessages.required,
-    invalid_type_error: config.zodMessages.invalidNumber,
-  } as any);
+  let schema = z.number();
 
   if (integer) {
     schema = schema.int();

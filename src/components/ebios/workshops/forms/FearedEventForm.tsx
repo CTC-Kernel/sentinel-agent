@@ -111,11 +111,12 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
         <form onSubmit={handleSubmit(onSave)} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.eventName')} *
             </label>
             <input
               {...register('name')}
+              id="name"
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
@@ -166,11 +167,12 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.eventDescription')}
             </label>
             <textarea
               {...register('description')}
+              id="description"
               rows={3}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
               placeholder={t('ebios.workshop1.eventDescriptionPlaceholder')}
@@ -235,6 +237,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                   {missions.map((mission) => (
                     <label
                       key={mission.id}
+                      htmlFor={`mission-${mission.id}`}
                       className={cn(
                         "flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-colors text-sm",
                         linkedMissionIds?.includes(mission.id)
@@ -244,6 +247,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                     >
                       <input
                         type="checkbox"
+                        id={`mission-${mission.id}`}
                         checked={linkedMissionIds?.includes(mission.id) || false}
                         onChange={() => toggleMission(mission.id)}
                         className="w-4 h-4 rounded border-slate-300 text-info"
@@ -271,6 +275,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                   {essentialAssets.map((asset) => (
                     <label
                       key={asset.id}
+                      htmlFor={`asset-${asset.id}`}
                       className={cn(
                         "flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-colors text-sm",
                         linkedEssentialAssetIds?.includes(asset.id)
@@ -280,6 +285,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                     >
                       <input
                         type="checkbox"
+                        id={`asset-${asset.id}`}
                         checked={linkedEssentialAssetIds?.includes(asset.id) || false}
                         onChange={() => toggleEssentialAsset(asset.id)}
                         className="w-4 h-4 rounded border-slate-300 text-purple-500"

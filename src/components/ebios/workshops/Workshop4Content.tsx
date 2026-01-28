@@ -454,7 +454,16 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                               {/* Scenario Item Header */}
                               <div
                                 onClick={() => setExpandedScenario(isExpanded ? null : opScenario.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setExpandedScenario(isExpanded ? null : opScenario.id);
+                                  }
+                                }}
                                 className="flex items-center justify-between p-5 cursor-pointer group"
+                                role="button"
+                                aria-label={`Scénario: ${opScenario.name}`}
+                                tabIndex={0}
                               >
                                 <div className="flex items-center gap-4">
                                   <div className={cn(

@@ -83,7 +83,18 @@ vi.mock('lucide-react', async (importOriginal) => {
 vi.mock('@headlessui/react', () => {
     // Dialog compound component
     const Dialog = ({ children, onClose }: { children: React.ReactNode; onClose: () => void; className?: string }) => (
-        <div data-testid="dialog" onClick={(e) => e.target === e.currentTarget && onClose()}>
+        <div
+            data-testid="dialog"
+            onClick={(e) => e.target === e.currentTarget && onClose()}
+            onKeyDown={(e) => {
+                if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+                    onClose();
+                }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close dialog"
+        >
             {children}
         </div>
     );

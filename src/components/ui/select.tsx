@@ -108,10 +108,13 @@ const SelectItem = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement> & { value: string }
 >(({ className, children, value, onClick, ...props }, ref) => {
-    const { onValueChange, setOpen } = React.useContext(SelectContext)!
+    const { onValueChange, setOpen, value: currentValue } = React.useContext(SelectContext)!
     return (
         <div
             ref={ref}
+            role="option"
+            tabIndex={0}
+            aria-selected={value === currentValue}
             className={cn(
                 "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-60 hover:bg-accent hover:text-accent-foreground cursor-pointer",
                 className
@@ -120,6 +123,13 @@ const SelectItem = React.forwardRef<
                 onValueChange?.(value)
                 setOpen?.(false)
                 onClick?.(e)
+            }}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    onValueChange?.(value)
+                    setOpen?.(false)
+                }
             }}
             {...props}
         >

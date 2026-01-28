@@ -432,7 +432,7 @@ class SessionMonitoringService {
       await setDoc(sessionDoc, {
         lastActivity: serverTimestamp()
       }, { merge: true });
-    } catch (error) {
+    } catch {
       // Silent fail - don't interrupt user experience
       ErrorLogger.warn('Failed to update session activity', 'SessionMonitoring');
     }

@@ -128,7 +128,7 @@ const GroupFormModal: React.FC<{
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="glass-panel rounded-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+                className="glass-premium rounded-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto border border-border/40"
             >
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
@@ -143,8 +143,9 @@ const GroupFormModal: React.FC<{
                     <div className="space-y-4">
                         {/* Name */}
                         <div>
-                            <label className="text-sm font-medium mb-1 block">Nom</label>
+                            <label htmlFor="groupName" className="text-sm font-medium mb-1 block">Nom</label>
                             <Input
+                                id="groupName"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Nom du groupe"
@@ -153,8 +154,9 @@ const GroupFormModal: React.FC<{
 
                         {/* Description */}
                         <div>
-                            <label className="text-sm font-medium mb-1 block">Description</label>
+                            <label htmlFor="groupDescription" className="text-sm font-medium mb-1 block">Description</label>
                             <Input
+                                id="groupDescription"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Description optionnelle"
@@ -163,9 +165,10 @@ const GroupFormModal: React.FC<{
 
                         {/* Color */}
                         <div>
-                            <label className="text-sm font-medium mb-1 block">Couleur</label>
+                            <label htmlFor="groupColor" className="text-sm font-medium mb-1 block">Couleur</label>
                             <div className="flex items-center gap-2">
                                 <input
+                                    id="groupColor"
                                     type="color"
                                     value={color}
                                     onChange={(e) => setColor(e.target.value)}
@@ -175,6 +178,7 @@ const GroupFormModal: React.FC<{
                                     value={color}
                                     onChange={(e) => setColor(e.target.value)}
                                     className="flex-1"
+                                    aria-label="Valeur hexadécimale de la couleur"
                                 />
                             </div>
                         </div>
@@ -197,7 +201,7 @@ const GroupFormModal: React.FC<{
                         {isDynamic && (
                             <div className="space-y-3 pt-2">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium">Critères</label>
+                                    <span className="text-sm font-medium">Critères</span>
                                     <div className="flex items-center gap-2">
                                         <Badge
                                             variant={criteriaLogic === 'and' ? 'default' : 'outline'}
@@ -310,157 +314,166 @@ const GroupTreeNode: React.FC<{
     draggedAgentIds,
     onDropAgents,
 }) => {
-    const [isDragOver, setIsDragOver] = useState(false);
-    const isExpanded = expandedIds.has(node.group.id);
-    const hasChildren = node.children.length > 0;
-    const isSelected = selectedId === node.group.id;
+        const [isDragOver, setIsDragOver] = useState(false);
+        const isExpanded = expandedIds.has(node.group.id);
+        const hasChildren = node.children.length > 0;
+        const isSelected = selectedId === node.group.id;
 
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        if (draggedAgentIds && draggedAgentIds.length > 0) {
-            setIsDragOver(true);
-        }
-    };
+        const handleDragOver = (e: React.DragEvent) => {
+            e.preventDefault();
+            if (draggedAgentIds && draggedAgentIds.length > 0) {
+                setIsDragOver(true);
+            }
+        };
 
-    const handleDragLeave = () => {
-        setIsDragOver(false);
-    };
+        const handleDragLeave = () => {
+            setIsDragOver(false);
+        };
 
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragOver(false);
-        if (onDropAgents) {
-            onDropAgents(node.group.id);
-        }
-    };
+        const handleDrop = (e: React.DragEvent) => {
+            e.preventDefault();
+            setIsDragOver(false);
+            if (onDropAgents) {
+                onDropAgents(node.group.id);
+            }
+        };
 
-    return (
-        <div>
-            <div
-                className={cn(
-                    'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer transition-colors',
-                    isSelected ? 'bg-primary/10' : 'hover:bg-accent',
-                    isDragOver && 'ring-2 ring-primary bg-primary/5'
-                )}
-                style={{ paddingLeft: `${node.depth * 20 + 12}px` }}
-                onClick={() => onSelect(node.group.id)}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-            >
-                {/* Expand/Collapse */}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (hasChildren) onToggleExpand(node.group.id);
-                    }}
-                    className={cn(
-                        'p-0.5 rounded hover:bg-accent',
-                        !hasChildren && 'invisible'
-                    )}
-                >
-                    {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                    ) : (
-                        <ChevronRight className="h-4 w-4" />
-                    )}
-                </button>
-
-                {/* Icon */}
+        return (
+            <div>
                 <div
-                    className="p-1.5 rounded"
-                    style={{ backgroundColor: `${node.group.color}20` }}
-                >
-                    {isExpanded ? (
-                        <FolderOpen className="h-4 w-4" style={{ color: node.group.color }} />
-                    ) : (
-                        <Folder className="h-4 w-4" style={{ color: node.group.color }} />
+                    className={cn(
+                        'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                        isSelected ? 'bg-primary/10' : 'hover:bg-accent',
+                        isDragOver && 'ring-2 ring-primary bg-primary/5'
                     )}
+                    style={{ paddingLeft: `${node.depth * 20 + 12}px` }}
+                    onClick={() => onSelect(node.group.id)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onSelect(node.group.id);
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                >
+                    {/* Expand/Collapse */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (hasChildren) onToggleExpand(node.group.id);
+                        }}
+                        className={cn(
+                            'p-0.5 rounded hover:bg-accent',
+                            !hasChildren && 'invisible'
+                        )}
+                    >
+                        {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                        ) : (
+                            <ChevronRight className="h-4 w-4" />
+                        )}
+                    </button>
+
+                    {/* Icon */}
+                    <div
+                        className="p-1.5 rounded"
+                        style={{ backgroundColor: `${node.group.color}20` }}
+                    >
+                        {isExpanded ? (
+                            <FolderOpen className="h-4 w-4" style={{ color: node.group.color }} />
+                        ) : (
+                            <Folder className="h-4 w-4" style={{ color: node.group.color }} />
+                        )}
+                    </div>
+
+                    {/* Name */}
+                    <span className="flex-1 font-medium truncate">{node.group.name}</span>
+
+                    {/* Agent Count */}
+                    <Badge variant="soft" className="text-xs">
+                        {node.group.agentCount}
+                    </Badge>
+
+                    {/* Badges */}
+                    {node.group.isDynamic && (
+                        <Badge variant="outline" className="text-xs">Auto</Badge>
+                    )}
+                    {node.group.isDefault && (
+                        <Badge variant="soft" className="text-xs bg-primary/10 text-primary">Défaut</Badge>
+                    )}
+
+                    {/* Actions */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-70"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onEdit(node.group)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onAddChild(node.group.id)}>
+                                <FolderPlus className="h-4 w-4 mr-2" />
+                                Sous-groupe
+                            </DropdownMenuItem>
+                            {!node.group.isSystem && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => onDelete(node.group.id)}
+                                        className="text-destructive"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Supprimer
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
-                {/* Name */}
-                <span className="flex-1 font-medium truncate">{node.group.name}</span>
-
-                {/* Agent Count */}
-                <Badge variant="soft" className="text-xs">
-                    {node.group.agentCount}
-                </Badge>
-
-                {/* Badges */}
-                {node.group.isDynamic && (
-                    <Badge variant="outline" className="text-xs">Auto</Badge>
-                )}
-                {node.group.isDefault && (
-                    <Badge variant="soft" className="text-xs bg-primary/10 text-primary">Défaut</Badge>
-                )}
-
-                {/* Actions */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 opacity-0 group-hover:opacity-70"
-                            onClick={(e) => e.stopPropagation()}
+                {/* Children */}
+                <AnimatePresence>
+                    {isExpanded && hasChildren && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(node.group)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onAddChild(node.group.id)}>
-                            <FolderPlus className="h-4 w-4 mr-2" />
-                            Sous-groupe
-                        </DropdownMenuItem>
-                        {!node.group.isSystem && (
-                            <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => onDelete(node.group.id)}
-                                    className="text-destructive"
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Supprimer
-                                </DropdownMenuItem>
-                            </>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            {node.children.map(child => (
+                                <GroupTreeNode
+                                    key={child.group.id}
+                                    node={child}
+                                    selectedId={selectedId}
+                                    expandedIds={expandedIds}
+                                    onToggleExpand={onToggleExpand}
+                                    onSelect={onSelect}
+                                    onEdit={onEdit}
+                                    onDelete={onDelete}
+                                    onAddChild={onAddChild}
+                                    draggedAgentIds={draggedAgentIds}
+                                    onDropAgents={onDropAgents}
+                                />
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
-
-            {/* Children */}
-            <AnimatePresence>
-                {isExpanded && hasChildren && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        {node.children.map(child => (
-                            <GroupTreeNode
-                                key={child.group.id}
-                                node={child}
-                                selectedId={selectedId}
-                                expandedIds={expandedIds}
-                                onToggleExpand={onToggleExpand}
-                                onSelect={onSelect}
-                                onEdit={onEdit}
-                                onDelete={onDelete}
-                                onAddChild={onAddChild}
-                                draggedAgentIds={draggedAgentIds}
-                                onDropAgents={onDropAgents}
-                            />
-                        ))}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-};
+        );
+    };
 
 // Agent List for Group
 const GroupAgentList: React.FC<{
@@ -670,7 +683,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
 
     if (loading) {
         return (
-            <div className={cn('glass-panel rounded-2xl p-8 flex items-center justify-center', className)}>
+            <div className={cn('glass-premium rounded-2xl p-8 flex items-center justify-center border border-border/40', className)}>
                 <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
         );
@@ -684,7 +697,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
                 animate="visible"
                 variants={staggerContainerVariants}
                 className={cn(
-                    'glass-panel rounded-2xl overflow-hidden',
+                    'glass-premium rounded-2xl overflow-hidden border border-border/40',
                     compact ? 'w-full' : 'w-80 flex-shrink-0'
                 )}
             >
@@ -756,7 +769,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
                     variants={slideUpVariants}
                     initial="hidden"
                     animate="visible"
-                    className="glass-panel rounded-2xl flex-1 overflow-hidden"
+                    className="glass-premium rounded-2xl flex-1 overflow-hidden border border-border/40"
                 >
                     <div className="p-4 border-b border-border/50">
                         <div className="flex items-center gap-3">

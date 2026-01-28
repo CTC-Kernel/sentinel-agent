@@ -92,19 +92,17 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
   // Step state: 'select' | 'preview' | 'confirm'
   const [step, setStep] = useState<'select' | 'preview' | 'confirm'>('select');
 
-  // Form setup
-  const {
-    control,
-    handleSubmit,
-    watch,
-    formState: { errors, isValid },
-  } = useZodForm<typeof batchAssignmentSchema>({
+  // Default due date (2 weeks from now)
+  const defaultDueDate = useMemo(() => {
+    return new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  }, []);
+
+  const { control, handleSubmit, watch, formState: { errors, isValid } } = useZodForm({
     schema: batchAssignmentSchema,
-    mode: 'onChange',
     defaultValues: {
       courseId: preselectedCourseId || '',
       userIds: preselectedUserIds || [],
-      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 2 weeks default
+      dueDate: defaultDueDate,
     },
   });
 

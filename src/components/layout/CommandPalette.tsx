@@ -204,13 +204,17 @@ export const CommandPalette: React.FC = () => {
 
     return createPortal(
         <div className="fixed inset-0 z-max flex items-start justify-center pt-[5vh] sm:pt-[10vh] md:pt-[15vh] px-2 sm:px-4">
-            <div
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300"
+            <button
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300 border-0 cursor-pointer"
                 onClick={() => setIsOpen(false)}
+                aria-label="Fermer la palette de commandes"
+                onKeyDown={(e) => {
+                    if (e.key === 'Escape') setIsOpen(false);
+                }}
             />
 
-            <div className="relative w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl glass-panel rounded-3xl sm:rounded-4xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-white/20 dark:border-white/10 ring-1 ring-black/5">
-                <div className="flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 relative z-10">
+            <div className="relative w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl glass-premium rounded-3xl sm:rounded-4xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-border/40 ring-1 ring-black/5 pointer-events-none">
+                <div className="pointer-events-auto flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 relative z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />
                     <input value={queryStr} onChange={e => { setQueryStr(e.target.value); setSelectedIndex(0); }}

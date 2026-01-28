@@ -61,7 +61,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
     return (
         <div className="space-y-6">
             {canEdit && (
-                <form onSubmit={findingForm.handleSubmit(onSubmit)} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+                <form onSubmit={findingForm.handleSubmit(onSubmit)} className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-4 flex items-center gap-2">
                         <Plus className="h-4 w-4 text-brand-500" /> {t('audits.findingsSection.newFinding')}
                     </h3>
@@ -121,20 +121,19 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                     />
                 ) : (
                     findings.map(f => (
-                        <div key={f.id} className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all flex justify-between items-start group">
+                        <div key={f.id} className="p-4 glass-premium rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all flex justify-between items-start group">
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${f.type === 'Majeure' ? 'bg-red-50 text-red-600 dark:text-red-400 ring-1 ring-red-500/20' : f.type === 'Opportunité' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-amber-50 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20'}`}>
                                         {f.type}
                                     </span>
                                     {f.severity && (
-                                        <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
-                                            f.severity === 'Critique' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20' :
-                                            f.severity === 'Haute' ? 'bg-red-50 text-red-600 dark:text-red-400 ring-1 ring-red-500/20' :
-                                            f.severity === 'Moyenne' ? 'bg-amber-50 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
-                                            f.severity === 'Faible' ? 'bg-blue-50 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
-                                            'bg-slate-500/10 text-slate-600 dark:text-slate-300 ring-1 ring-slate-500/20'
-                                        }`}>
+                                        <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${f.severity === 'Critique' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20' :
+                                                f.severity === 'Haute' ? 'bg-red-50 text-red-600 dark:text-red-400 ring-1 ring-red-500/20' :
+                                                    f.severity === 'Moyenne' ? 'bg-amber-50 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
+                                                        f.severity === 'Faible' ? 'bg-blue-50 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
+                                                            'bg-slate-500/10 text-slate-600 dark:text-slate-300 ring-1 ring-slate-500/20'
+                                            }`}>
                                             {f.severity}
                                         </span>
                                     )}

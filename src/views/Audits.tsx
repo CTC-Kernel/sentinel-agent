@@ -267,7 +267,7 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'list' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6 sm:space-y-8">
-                        <div className="glass-premium overflow-hidden rounded-3xl border border-white/60 dark:border-white/5 shadow-apple-sm">
+                        <div className="glass-premium overflow-hidden rounded-3xl border border-border/40 shadow-apple-sm">
                             <AuditsList
                                 audits={filteredAudits}
                                 isLoading={loading}
@@ -322,7 +322,7 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'audit-trail' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
-                        <div className="glass-premium rounded-3xl p-6 border border-white/60 dark:border-white/5">
+                        <div className="glass-premium rounded-3xl p-6 border border-border/40">
                             <ActivityLogList
                                 logs={activityLogs}
                                 loading={activityLoading}

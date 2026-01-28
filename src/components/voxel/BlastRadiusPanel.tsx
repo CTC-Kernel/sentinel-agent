@@ -336,8 +336,9 @@ const ConfigPanel: React.FC<{
 
     <div className="space-y-2">
       <div>
-        <label className="text-[11px] text-white/50 block mb-1">Profondeur max</label>
+        <label htmlFor="max-depth" className="text-[11px] text-white/50 block mb-1">Profondeur max</label>
         <input
+          id="max-depth"
           type="range"
           min={1}
           max={10}
@@ -349,8 +350,9 @@ const ConfigPanel: React.FC<{
       </div>
 
       <div>
-        <label className="text-[11px] text-white/50 block mb-1">Seuil min impact</label>
+        <label htmlFor="min-impact" className="text-[11px] text-white/50 block mb-1">Seuil min impact</label>
         <input
+          id="min-impact"
           type="range"
           min={0}
           max={50}
@@ -362,8 +364,9 @@ const ConfigPanel: React.FC<{
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-[11px] text-white/50">Bidirectionnel</label>
+        <label htmlFor="bidirectional" className="text-[11px] text-white/50">Bidirectionnel</label>
         <input
+          id="bidirectional"
           type="checkbox"
           checked={config.bidirectional || false}
           onChange={(e) => onSetConfig({ bidirectional: e.target.checked })}

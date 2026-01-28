@@ -141,7 +141,7 @@ export const PartnerManagement: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass-panel rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm">
                 <div>
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent flex items-center gap-3">
                         <Handshake className="w-8 h-8 text-brand-500" />

@@ -69,7 +69,11 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                             placeholder="Rechercher dans tous les modules..."
                             className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 text-lg"
-                            autoFocus
+                            ref={(input) => {
+                                if (input) {
+                                    setTimeout(() => input.focus(), 100);
+                                }
+                            }}
                         />
                     </div>
                 </div>
@@ -93,10 +97,11 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                     <div className="p-6 space-y-4 bg-white dark:bg-slate-900">
                         {/* Type Filter */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="search-type" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                 Type de ressource
                             </label>
                             <select
+                                id="search-type"
                                 aria-label="Filtrer par type de ressource"
                                 value={filters.type}
                                 onChange={(e) => updateFilter('type', e.target.value as SearchFilters['type'])}
@@ -112,12 +117,15 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             </select>
                         </div>
 
+
                         {/* Status Filter */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="search-status" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                 Statut
                             </label>
-                            <input value={filters.status || ''}
+                            <input
+                                id="search-status"
+                                value={filters.status || ''}
                                 aria-label="Filtrer par statut"
                                 type="text"
                                 onChange={(e) => updateFilter('status', e.target.value)}
@@ -126,13 +134,16 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             />
                         </div>
 
+
                         {/* Owner Filter */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                            <label htmlFor="search-owner" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                                 <UserIcon className="h-4 w-4" />
                                 Propriétaire
                             </label>
-                            <input value={filters.owner || ''}
+                            <input
+                                id="search-owner"
+                                value={filters.owner || ''}
                                 aria-label="Filtrer par propriétaire"
                                 type="text"
                                 onChange={(e) => updateFilter('owner', e.target.value)}
@@ -141,39 +152,47 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             />
                         </div>
 
+
                         {/* Date Range */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                                <label htmlFor="search-date-from" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                                     <Calendar className="h-4 w-4" />
                                     Date de début
                                 </label>
-                                <input value={filters.dateFrom || ''}
+                                <input
+                                    id="search-date-from"
+                                    value={filters.dateFrom || ''}
                                     aria-label="Date de début"
                                     type="date"
                                     onChange={(e) => updateFilter('dateFrom', e.target.value)}
                                     className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <label htmlFor="search-date-to" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Date de fin
                                 </label>
-                                <input value={filters.dateTo || ''}
+                                <input
+                                    id="search-date-to"
+                                    value={filters.dateTo || ''}
                                     aria-label="Date de fin"
                                     type="date"
                                     onChange={(e) => updateFilter('dateTo', e.target.value)}
                                     className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                                 />
                             </div>
+
                         </div>
 
                         {/* Criticality Filter */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="search-criticality" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                 Criticité
                             </label>
                             <select
+                                id="search-criticality"
                                 aria-label="Filtrer par criticité"
                                 value={filters.criticality || ''}
                                 onChange={(e) => updateFilter('criticality', e.target.value as SearchFilters['criticality'])}
@@ -186,6 +205,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 <option value="Critique">Critique</option>
                             </select>
                         </div>
+
                     </div>
                 )}
 

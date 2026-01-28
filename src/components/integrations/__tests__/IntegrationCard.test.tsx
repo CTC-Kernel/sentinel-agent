@@ -197,7 +197,7 @@ describe('IntegrationCard', () => {
                 />
             );
 
-            expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+            expect(container.querySelector('.glass-premium')).toBeInTheDocument();
         });
     });
 });

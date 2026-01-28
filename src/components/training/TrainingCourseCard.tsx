@@ -7,7 +7,7 @@
  * @module TrainingCourseCard
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   PlayCircle,
@@ -90,7 +90,7 @@ const getSourceConfig = (source: TrainingSource) => {
   return configs[source] || configs.internal;
 };
 
-const getContentTypeIcon = (type: TrainingContentType) => {
+const getContentTypeIcon = (type: TrainingContentType): React.ElementType<{ className?: string }> => {
   const icons = {
     video: PlayCircle,
     document: FileText,
@@ -123,8 +123,10 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
 
   const categoryConfig = getCategoryConfig(course.category);
   const sourceConfig = getSourceConfig(course.source);
-  const ContentIcon = getContentTypeIcon(course.content.type);
-  const CategoryIcon = categoryConfig.icon;
+
+  // Memoize icons to avoid recreation during render
+  const ContentIcon = useMemo(() => getContentTypeIcon(course.content.type), [course.content.type]);
+  const CategoryIcon = useMemo(() => categoryConfig.icon, [categoryConfig.icon]);
 
   const frameworkBadges = [];
   if (course.frameworkMappings?.nis2?.length) {
@@ -191,7 +193,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
                 leaveFrom="transform scale-100 opacity-70"
                 leaveTo="transform scale-95 opacity-0"
               >
-                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-panel rounded-2xl p-1 shadow-lg z-50 border border-white/10">
+                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-premium rounded-2xl p-1 shadow-lg z-50 border border-border/40">
                   {onAssign && (
                     <Menu.Item>
                       {({ active }) => (

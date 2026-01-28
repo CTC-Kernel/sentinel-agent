@@ -668,7 +668,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-success-bg rounded-2xl">
@@ -698,7 +698,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-slate-500/10 rounded-2xl">
@@ -728,7 +728,7 @@ export const AgentManagement: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-red-50 rounded-2xl">
@@ -1062,7 +1062,7 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-4"
+                        className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-4"
                     >
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-success-bg rounded-xl text-success-600 dark:text-success-400">
@@ -1100,7 +1100,7 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.45 }}
-                        className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-6"
+                        className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 space-y-6"
                     >
                         {/* Tab Navigation */}
                         <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl">

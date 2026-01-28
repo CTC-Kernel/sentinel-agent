@@ -164,9 +164,7 @@ class WebAuthnServiceClass {
     if (!this.isSupported()) return false;
 
     try {
-      // @ts-ignore - isConditionalMediationAvailable is not in all TypeScript definitions
       if (typeof PublicKeyCredential.isConditionalMediationAvailable === 'function') {
-        // @ts-ignore - isConditionalMediationAvailable is not in all TypeScript definitions
         return await PublicKeyCredential.isConditionalMediationAvailable();
       }
       return false;

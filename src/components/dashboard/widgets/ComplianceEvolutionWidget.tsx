@@ -63,7 +63,11 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
             expandable={true}
             className="lg:col-span-2 min-h-[400px]"
             headerAction={
-                <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1 gap-1 cursor-default hover:bg-slate-200 dark:hover:bg-white/10 transition-colors" onClick={(e) => e.stopPropagation()} role="group" aria-label={t('dashboard.selectPeriod')}>
+                <div 
+                    className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1 gap-1 cursor-default hover:bg-slate-200 dark:hover:bg-white/10 transition-colors" 
+                    role="group" 
+                    aria-label={t('dashboard.selectPeriod')}
+                >
                     {(['30d', '90d', '1y', 'all'] as const).map(range => (
                         <button
                             key={range}

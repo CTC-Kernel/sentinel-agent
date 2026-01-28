@@ -65,7 +65,7 @@ const UsageBar: React.FC<{ value: number; variant?: 'cpu' | 'memory' }> = ({ val
             <span className={cn(
                 'text-xs font-mono tabular-nums',
                 value > 80 ? 'text-destructive font-semibold' :
-                value > 60 ? 'text-warning' : 'text-muted-foreground'
+                    value > 60 ? 'text-warning' : 'text-muted-foreground'
             )}>
                 {value.toFixed(1)}%
             </span>
@@ -227,7 +227,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
             </div>
 
             {/* Process table */}
-            <div className="glass-panel rounded-2xl border border-border/50 overflow-hidden">
+            <div className="glass-premium rounded-2xl border border-border/50 overflow-hidden">
                 {/* Table header */}
                 <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-muted/30 border-b border-border/50">
                     <ColumnHeader
@@ -293,8 +293,8 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                                         <div className={cn(
                                             'w-2 h-2 rounded-full shrink-0',
                                             process.status === 'running' ? 'bg-success' :
-                                            process.status === 'sleeping' ? 'bg-muted-foreground' :
-                                            process.status === 'zombie' ? 'bg-destructive' : 'bg-warning'
+                                                process.status === 'sleeping' ? 'bg-muted-foreground' :
+                                                    process.status === 'zombie' ? 'bg-destructive' : 'bg-warning'
                                         )} />
                                         <span className="font-medium text-sm text-foreground truncate">
                                             {process.name}
@@ -320,8 +320,8 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                                             className="text-[11px] px-1.5 py-0"
                                         >
                                             {process.status === 'running' ? 'Actif' :
-                                             process.status === 'sleeping' ? 'Veille' :
-                                             process.status === 'stopped' ? 'Arrêté' : 'Zombie'}
+                                                process.status === 'sleeping' ? 'Veille' :
+                                                    process.status === 'stopped' ? 'Arrêté' : 'Zombie'}
                                         </Badge>
                                     </div>
 

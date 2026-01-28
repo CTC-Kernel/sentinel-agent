@@ -217,10 +217,11 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
       <div className="space-y-6">
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="business-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Description générale
           </label>
           <textarea
+            id="business-description"
             value={formData.description || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={3}
@@ -231,11 +232,12 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
 
         {/* Activities */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="new-activity" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Activités principales
           </label>
           <div className="flex gap-2 mb-3">
             <input
+              id="new-activity"
               type="text"
               value={newActivity}
               onChange={(e) => setNewActivity(e.target.value)}
@@ -243,7 +245,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
               className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               placeholder="Ajouter une activité..."
             />
-            <Button variant="outline" onClick={() => addItem('activities', newActivity, setNewActivity)}>
+            <Button variant="outline" onClick={() => addItem('activities', newActivity, setNewActivity)} aria-label="Ajouter l'activité">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -251,7 +253,11 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
             {formData.activities.map((activity, index) => (
               <Badge key={index} variant="soft" className="gap-1.5 py-1.5">
                 {activity}
-                <button onClick={() => removeItem('activities', index)} className="ml-1 hover:text-red-500">
+                <button
+                  onClick={() => removeItem('activities', index)}
+                  className="ml-1 hover:text-red-500"
+                  aria-label={`Supprimer l'activité ${activity}`}
+                >
                   <X className="w-3 h-3" />
                 </button>
               </Badge>
@@ -261,11 +267,12 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
 
         {/* Objectives */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="new-objective" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Objectifs stratégiques
           </label>
           <div className="flex gap-2 mb-3">
             <input
+              id="new-objective"
               type="text"
               value={newObjective}
               onChange={(e) => setNewObjective(e.target.value)}
@@ -273,7 +280,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
               className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               placeholder="Ajouter un objectif..."
             />
-            <Button variant="outline" onClick={() => addItem('objectives', newObjective, setNewObjective)}>
+            <Button variant="outline" onClick={() => addItem('objectives', newObjective, setNewObjective)} aria-label="Ajouter l'objectif">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -281,7 +288,11 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
             {formData.objectives.map((objective, index) => (
               <Badge key={index} variant="soft" className="gap-1.5 py-1.5">
                 {objective}
-                <button onClick={() => removeItem('objectives', index)} className="ml-1 hover:text-red-500">
+                <button
+                  onClick={() => removeItem('objectives', index)}
+                  className="ml-1 hover:text-red-500"
+                  aria-label={`Supprimer l'objectif ${objective}`}
+                >
                   <X className="w-3 h-3" />
                 </button>
               </Badge>
@@ -291,11 +302,12 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
 
         {/* Critical Processes */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="new-process" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Processus critiques
           </label>
           <div className="flex gap-2 mb-3">
             <input
+              id="new-process"
               type="text"
               value={newProcess}
               onChange={(e) => setNewProcess(e.target.value)}
@@ -303,7 +315,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
               className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               placeholder="Ajouter un processus critique..."
             />
-            <Button variant="outline" onClick={() => addItem('criticalProcesses', newProcess, setNewProcess)}>
+            <Button variant="outline" onClick={() => addItem('criticalProcesses', newProcess, setNewProcess)} aria-label="Ajouter le processus critique">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -312,13 +324,18 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
               <Badge key={index} variant="soft" className="gap-1.5 py-1.5 bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text">
                 <AlertTriangle className="w-3 h-3" />
                 {process}
-                <button onClick={() => removeItem('criticalProcesses', index)} className="ml-1 hover:text-red-500">
+                <button
+                  onClick={() => removeItem('criticalProcesses', index)}
+                  className="ml-1 hover:text-red-500"
+                  aria-label={`Supprimer le processus ${process}`}
+                >
                   <X className="w-3 h-3" />
                 </button>
               </Badge>
             ))}
           </div>
         </div>
+
       </div>
     </PremiumCard>
   );
@@ -386,10 +403,11 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
       <div className="space-y-6">
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="reg-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Vue d'ensemble réglementaire
           </label>
           <textarea
+            id="reg-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
@@ -409,8 +427,9 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
             <h4 className="font-medium text-slate-900 dark:text-white mb-4">Nouvelle réglementation</h4>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Nom *</label>
+                <label htmlFor="reg-name" className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Nom *</label>
                 <input
+                  id="reg-name"
                   type="text"
                   value={newRegulation.name}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, name: e.target.value }))}
@@ -419,8 +438,9 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Framework</label>
+                <label htmlFor="reg-framework" className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Framework</label>
                 <select
+                  id="reg-framework"
                   value={newRegulation.framework}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, framework: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -432,8 +452,9 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Obligations clés</label>
+                <label htmlFor="reg-obligations" className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Obligations clés</label>
                 <input
+                  id="reg-obligations"
                   type="text"
                   value={newRegulation.obligations}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, obligations: e.target.value }))}
@@ -442,8 +463,9 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Échéance de conformité</label>
+                <label htmlFor="reg-deadline" className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Échéance de conformité</label>
                 <input
+                  id="reg-deadline"
                   type="date"
                   value={newRegulation.deadline}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, deadline: e.target.value }))}
@@ -457,6 +479,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
             </div>
           </motion.div>
         )}
+
 
         {/* Regulations List */}
         <div className="space-y-3">
@@ -493,9 +516,11 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 <button
                   onClick={() => onRemoveRegulation(reg.id)}
                   className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 text-muted-foreground hover:text-red-500 transition-colors"
+                  aria-label={`Supprimer la réglementation ${reg.name}`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+
               </div>
             ))
           )}
@@ -599,10 +624,11 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
       <div className="space-y-6 sm:space-y-8">
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="appetite-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Déclaration d'appétit au risque
           </label>
           <textarea
+            id="appetite-description"
             value={formData.description || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={2}
@@ -610,6 +636,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
             placeholder="Décrivez la politique d'appétit au risque de votre organisation..."
           />
         </div>
+
 
         {/* Acceptable Risk Levels */}
         <div>
@@ -623,9 +650,10 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 <div key={level} className={`p-4 rounded-xl border-2 ${styles.border} ${styles.bg}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-3 h-3 rounded-full ${styles.dot}`} />
-                    <span className={`font-medium ${styles.text}`}>{config.label}</span>
+                    <label htmlFor={`threshold-${level}`} className={`font-medium ${styles.text} cursor-pointer`}>{config.label}</label>
                   </div>
                   <input
+                    id={`threshold-${level}`}
                     type="number"
                     min="1"
                     max="25"
@@ -635,6 +663,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">{config.description}</p>
                 </div>
+
               );
             })}
           </div>
@@ -650,9 +679,10 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-2 mb-2">
                 <ChevronRight className="w-4 h-4 text-blue-500" />
-                <span className="font-medium text-slate-900 dark:text-white">Escalade automatique</span>
+                <label htmlFor="escalation-automatic" className="font-medium text-slate-900 dark:text-white cursor-pointer">Escalade automatique</label>
               </div>
               <input
+                id="escalation-automatic"
                 type="number"
                 min="1"
                 max="25"
@@ -663,13 +693,15 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
               <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification automatique au responsable</p>
             </div>
 
+
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-2 mb-2">
                 <ChevronRight className="w-4 h-4 text-amber-500" />
                 <ChevronRight className="-ml-3 w-4 h-4 text-amber-500" />
-                <span className="font-medium text-slate-900 dark:text-white">Direction</span>
+                <label htmlFor="escalation-management" className="font-medium text-slate-900 dark:text-white cursor-pointer">Direction</label>
               </div>
               <input
+                id="escalation-management"
                 type="number"
                 min="1"
                 max="25"
@@ -680,14 +712,16 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
               <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Escalade à la direction générale</p>
             </div>
 
+
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-2 mb-2">
                 <ChevronRight className="w-4 h-4 text-red-500" />
                 <ChevronRight className="-ml-3 w-4 h-4 text-red-500" />
                 <ChevronRight className="-ml-3 w-4 h-4 text-red-500" />
-                <span className="font-medium text-slate-900 dark:text-white">Conseil</span>
+                <label htmlFor="escalation-board" className="font-medium text-slate-900 dark:text-white cursor-pointer">Conseil</label>
               </div>
               <input
+                id="escalation-board"
                 type="number"
                 min="1"
                 max="25"
@@ -697,6 +731,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
               />
               <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification au conseil d'administration</p>
             </div>
+
           </div>
         </div>
       </div>
@@ -739,7 +774,9 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
             <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-bold">
               {item.level}
             </div>
+            <label htmlFor={`${type}-name-${index}`} className="sr-only">Nom du niveau {item.level}</label>
             <input
+              id={`${type}-name-${index}`}
               type="text"
               value={item.name}
               onChange={(e) => onUpdate(type, index, 'name', e.target.value)}
@@ -747,13 +784,16 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
               placeholder="Nom du niveau"
             />
           </div>
+          <label htmlFor={`${type}-desc-${index}`} className="sr-only">Description du niveau {item.level}</label>
           <textarea
+            id={`${type}-desc-${index}`}
             value={item.description}
             onChange={(e) => onUpdate(type, index, 'description', e.target.value)}
             rows={2}
             className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none"
             placeholder="Description du niveau..."
           />
+
           {item.criteria && (
             <div className="mt-2 flex flex-wrap gap-1">
               {item.criteria.map((criterion, ci) => (

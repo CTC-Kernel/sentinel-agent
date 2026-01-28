@@ -18,7 +18,15 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
         <motion.div
             variants={slideUpVariants}
             onClick={() => onClick(activity)}
-            className="glass-panel rounded-3xl p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5 transition-all"
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick(activity);
+                }
+            }}
+            role="button"
+            tabIndex={0}
+            className="glass-premium rounded-3xl p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-border/40 transition-all outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
             <div className="flex justify-between items-start mb-5">
                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">

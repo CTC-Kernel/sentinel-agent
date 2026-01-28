@@ -85,10 +85,11 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                                     <div className="space-y-6">
                                         {/* Title Input */}
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
+                                            <label htmlFor="report-title" className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                 Titre du rapport
                                             </label>
                                             <input
+                                                id="report-title"
                                                 type="text"
                                                 value={title}
                                                 onChange={(e) => setTitle(e.target.value)}
@@ -98,12 +99,13 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                                         </div>
 
                                         <div className="space-y-3">
-                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-2">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-2">
                                                 Sections à inclure
-                                            </label>
+                                            </span>
 
                                             <button
                                                 onClick={() => toggleSection('includeRisks')}
+                                                aria-pressed={sections.includeRisks}
                                                 className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeRisks ? 'border-red-2000 bg-red-50 dark:bg-red-50 dark:bg-red-900' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -117,6 +119,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
 
                                             <button
                                                 onClick={() => toggleSection('includeCompliance')}
+                                                aria-pressed={sections.includeCompliance}
                                                 className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeCompliance ? 'border-emerald-500/50 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -130,6 +133,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
 
                                             <button
                                                 onClick={() => toggleSection('includeProjects')}
+                                                aria-pressed={sections.includeProjects}
                                                 className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeProjects ? 'border-blue-2000 bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -143,6 +147,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
 
                                             <button
                                                 onClick={() => toggleSection('includeIncidents')}
+                                                aria-pressed={sections.includeIncidents}
                                                 className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${sections.includeIncidents ? 'border-orange-500/50 bg-orange-50 dark:bg-orange-900/10' : 'border-slate-200 dark:border-white/10 opacity-60'}`}
                                             >
                                                 <div className="flex items-center gap-3">

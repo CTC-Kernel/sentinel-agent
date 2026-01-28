@@ -85,7 +85,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
     return (
         <motion.div
             className={cn(
-                "glass-panel flex items-center gap-4 p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer",
+                "glass-premium flex items-center gap-4 p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer",
                 isOverdue
                     ? "border-error-border bg-error-bg/50"
                     : "hover:border-primary-500/30"

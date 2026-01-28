@@ -181,8 +181,8 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
   // Status config
   const statusConfig = getStatusConfig(assignment.status, isOverdue);
   const StatusIcon = statusConfig.icon;
-  const CategoryIcon = getCategoryIcon(course.category);
-  const ContentTypeIcon = getContentTypeIcon(course.content.type);
+  /* const CategoryIcon = getCategoryIcon(course.category); - Removed to avoid creating component during render */
+  /* const ContentTypeIcon = getContentTypeIcon(course.content.type); - Removed to avoid creating component during render */
 
   // Countdown
   const countdown = useMemo(() => {
@@ -194,21 +194,20 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
   const progress = assignment.status === 'completed'
     ? 100
     : assignment.status === 'in_progress'
-    ? 50
-    : 0;
+      ? 50
+      : 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: appleEasing }}
-      className={`relative glass-panel p-5 rounded-3xl border transition-all duration-300 hover:shadow-md ${
-        isOverdue
-          ? 'border-error-border/50 bg-error-bg/5'
-          : assignment.status === 'completed'
+      className={`relative glass-premium p-5 rounded-3xl border transition-all duration-300 hover:shadow-md ${isOverdue
+        ? 'border-error-border/50 bg-error-bg/5'
+        : assignment.status === 'completed'
           ? 'border-success-border/50'
-          : 'border-white/10'
-      }`}
+          : 'border-border/40'
+        }`}
     >
       {/* Status Badge */}
       <div className="absolute -top-2 -right-2 z-10">
@@ -221,27 +220,27 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
       {/* Header: Category + Content Type */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-2xl ${
-            assignment.status === 'completed'
-              ? 'bg-success-bg'
-              : isOverdue
+          <div className={`p-3 rounded-2xl ${assignment.status === 'completed'
+            ? 'bg-success-bg'
+            : isOverdue
               ? 'bg-error-bg'
               : 'bg-primary/10'
-          }`}>
-            <CategoryIcon className={`w-6 h-6 ${
-              assignment.status === 'completed'
+            }`}>
+            {React.createElement(getCategoryIcon(course.category), {
+              className: `w-6 h-6 ${assignment.status === 'completed'
                 ? 'text-success-text'
                 : isOverdue
-                ? 'text-error-text'
-                : 'text-primary'
-            }`} />
+                  ? 'text-error-text'
+                  : 'text-primary'
+                }`
+            })}
           </div>
           <div>
             <h3 className="font-bold text-foreground line-clamp-1">
               {course.title}
             </h3>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <ContentTypeIcon className="w-3 h-3" />
+              {React.createElement(getContentTypeIcon(course.content.type), { className: "w-3 h-3" })}
               <span>{t(`training.contentTypes.${course.content.type}`)}</span>
               <span>•</span>
               <Clock className="w-3 h-3" />
@@ -285,28 +284,25 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
 
       {/* Countdown / Due Date */}
       {countdown && (
-        <div className={`flex items-center gap-2 mb-4 p-3 rounded-xl ${
-          countdown.overdue
-            ? 'bg-error-bg/50 border border-error-border/30'
-            : countdown.urgent
+        <div className={`flex items-center gap-2 mb-4 p-3 rounded-xl ${countdown.overdue
+          ? 'bg-error-bg/50 border border-error-border/30'
+          : countdown.urgent
             ? 'bg-warning-bg/50 border border-warning-border/30'
             : 'bg-muted/30 border border-muted'
-        }`}>
-          <Calendar className={`w-4 h-4 ${
-            countdown.overdue
-              ? 'text-error-text'
-              : countdown.urgent
+          }`}>
+          <Calendar className={`w-4 h-4 ${countdown.overdue
+            ? 'text-error-text'
+            : countdown.urgent
               ? 'text-warning-text'
               : 'text-muted-foreground'
-          }`} />
+            }`} />
           <div className="flex-1">
-            <div className={`text-sm font-medium ${
-              countdown.overdue
-                ? 'text-error-text'
-                : countdown.urgent
+            <div className={`text-sm font-medium ${countdown.overdue
+              ? 'text-error-text'
+              : countdown.urgent
                 ? 'text-warning-text'
                 : 'text-foreground'
-            }`}>
+              }`}>
               {countdown.text}
             </div>
             <div className="text-xs text-muted-foreground">

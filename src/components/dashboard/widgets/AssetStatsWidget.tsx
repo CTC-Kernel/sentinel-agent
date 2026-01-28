@@ -30,7 +30,7 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
 
     if (loading) {
         return (
-            <div className="h-full flex items-center justify-center glass-panel rounded-2xl border border-white/60 dark:border-white/5 p-4">
+            <div className="h-full flex items-center justify-center glass-premium rounded-2xl border border-border/40 p-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             </div>
         );

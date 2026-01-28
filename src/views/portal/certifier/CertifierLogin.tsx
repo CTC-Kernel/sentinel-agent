@@ -62,13 +62,14 @@ export const CertifierLogin: React.FC = () => {
                 <div className="bg-white dark:bg-slate-800 py-8 px-4 shadow-xl border border-slate-200 dark:border-white/5 sm:rounded-2xl sm:px-10">
                     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
                         <div>
-                            <label className="block text-sm font-medium text-slate-900 dark:text-white">{t('certifier.emailLabel')}</label>
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-900 dark:text-white">{t('certifier.emailLabel')}</label>
                             <div className="mt-2 relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <Mail className="h-5 w-5 text-slate-400" />
                                 </div>
                                 <input
                                     {...register('email')}
+                                    id="email"
                                     type="email"
                                     className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     placeholder="nom@organisme-certif.com"
@@ -78,13 +79,14 @@ export const CertifierLogin: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-900 dark:text-white">{t('certifier.passwordLabel')}</label>
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-900 dark:text-white">{t('certifier.passwordLabel')}</label>
                             <div className="mt-2 relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <Lock className="h-5 w-5 text-slate-400" />
                                 </div>
                                 <input
                                     {...register('password')}
+                                    id="password"
                                     type="password"
                                     className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     placeholder="••••••••"

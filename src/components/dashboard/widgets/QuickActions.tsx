@@ -40,8 +40,16 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
         <div
             className="fixed right-6 top-24 z-[9999] !important"
             data-tour="quick-actions"
+            role="toolbar"
+            aria-label="Actions rapides"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                    handleMouseLeave();
+                }
+            }}
+            tabIndex={0}
         >
             {/* Subtle indicator when hidden */}
             <AnimatePresence>
@@ -150,7 +158,14 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
             whileHover={{ scale: 1.15, y: -5 }}
             whileTap={{ scale: 0.95 }}
             onClick={onClick}
-            className="group relative flex flex-col items-center gap-2 p-2 focus:outline-none"
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+            className="group relative flex flex-col items-center gap-2 p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            aria-label={label}
         >
             <div className={`p-3 rounded-2xl transition-all duration-300 bg-transparent ${colorStyles[color]} shadow-sm group-hover:shadow-lg`}>
                 {/* @ts-expect-error: Icon component type mismatch */}

@@ -12,7 +12,7 @@ interface OnboardingBannerProps {
 export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onDismiss }) => {
     const { t } = useTranslation();
     return (
-        <div className="glass-panel fixed bottom-6 left-6 lg:left-[284px] z-40 p-6 rounded-2xl w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+        <div className="glass-premium fixed bottom-6 left-6 lg:left-[284px] z-40 p-6 rounded-2xl w-[320px] max-w-[calc(100vw-48px)] animate-slide-up border border-border/40">
             <div className="bg-gradient-to-r from-brand-600 to-purple-600 rounded-2xl shadow-2xl p-6 text-white">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">

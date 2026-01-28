@@ -75,6 +75,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => setFilter(e.target.value as ActivityFilter)}
                     className="px-2 py-1.5 bg-background rounded-lg text-[11px] font-bold text-muted-foreground border border-border hover:bg-accent transition-colors outline-none cursor-pointer"
+                    aria-label={t('dashboard.filterActivity')}
                 >
                     <option value="All">{t('common.all')}</option>
                     <option value="Risk">{t('common.risks')}</option>
@@ -95,9 +96,15 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                     ) : displayActivity.map((log, i) => (
                         <div
                             key={`activity-${i}`}
-                            className={`relative group ${log.resourceId ? 'cursor-pointer' : ''}`}
-                            onClick={() => handleLogClick(log)}
+                            className={`relative group ${log.resourceId ? 'rounded-xl' : ''}`}
                         >
+                            {log.resourceId && (
+                                <button
+                                    onClick={() => handleLogClick(log)}
+                                    className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl"
+                                    aria-label={`Voir les détails: ${log.action}`}
+                                />
+                            )}
                             <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-brand-400 transition-all z-10">
                                 {getActivityIcon(log.resource)}
                             </span>

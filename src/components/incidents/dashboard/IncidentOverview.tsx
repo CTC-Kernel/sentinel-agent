@@ -550,6 +550,11 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 className={`flex items-center gap-2 px-2 py-1 rounded-lg cursor-pointer transition-all ${activeIndex === i ? 'bg-slate-100 dark:bg-slate-800 scale-105' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
                                 onMouseEnter={() => setActiveIndex(i)}
                                 onMouseLeave={() => setActiveIndex(null)}
+                                onFocus={() => setActiveIndex(i)}
+                                onBlur={() => setActiveIndex(null)}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`Sévérité: ${item.name} (${item.value})`}
                             >
                                 <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
                                 <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{item.name} ({item.value})</span>
@@ -579,6 +584,11 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         className={`relative transition-all duration-300 ${isHovered ? 'scale-[1.02]' : ''}`}
                                         onMouseEnter={() => setHoveredCategory(cat.name)}
                                         onMouseLeave={() => setHoveredCategory(null)}
+                                        onFocus={() => setHoveredCategory(cat.name)}
+                                        onBlur={() => setHoveredCategory(null)}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={`Catégorie: ${cat.name} (${cat.value})`}
                                     >
                                         <div className="flex items-center justify-between mb-1">
                                             <div className="flex items-center gap-2">

@@ -293,7 +293,7 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl border border-border/50 overflow-hidden"
+            className="glass-premium rounded-2xl border border-border/50 overflow-hidden"
         >
             {/* Header */}
             <div className="px-5 py-4 border-b border-border/50 bg-muted/20">

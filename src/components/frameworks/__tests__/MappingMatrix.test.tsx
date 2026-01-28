@@ -109,6 +109,15 @@ vi.mock('../ControlMappingCard', () => ({
       data-testid="control-mapping-card"
       data-selected={isSelected}
       onClick={() => onClick?.(control)}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick(control);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Contrôle: ${control.controlName}`}
     >
       {control.controlCode} - {control.controlName}
     </div>

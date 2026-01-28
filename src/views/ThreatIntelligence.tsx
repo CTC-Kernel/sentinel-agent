@@ -461,8 +461,16 @@ export const ThreatIntelligence: React.FC = () => {
                                 {topContributors.map((c, i) => (
                                     <div
                                         key={c.name}
+                                        role="button"
+                                        tabIndex={0}
                                         className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer"
                                         onClick={() => handleHunterClick({ ...c, rank: i + 1 })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                handleHunterClick({ ...c, rank: i + 1 });
+                                            }
+                                        }}
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-warning-text to-warning-text/80' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : i === 2 ? 'bg-gradient-to-br from-warning-text/70 to-warning-text' : 'bg-brand-500'}`}>
@@ -508,7 +516,15 @@ const ThreatCard = React.memo(({
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect(threat)}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect(threat);
+                }
+            }}
             className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-300 transition-all group relative cursor-pointer"
         >
             <div className="absolute top-6 right-6 flex items-center gap-3">

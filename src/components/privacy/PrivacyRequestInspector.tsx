@@ -39,7 +39,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
         >
             <div className="p-6 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
                 {/* Summary Card */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 relative z-10">
                         <div>
@@ -92,7 +92,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                 </div>
 
                 {/* Workflow Actions */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Workflow de Traitement</h4>
 
                     <div className="relative pl-8 border-l-2 border-slate-200 dark:border-slate-700 space-y-6 sm:space-y-8">

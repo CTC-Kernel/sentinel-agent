@@ -262,10 +262,10 @@ describe('RiskFormIdentificationTab', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel container', () => {
+        it('has glass-premium container', () => {
             const { container } = render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+            expect(container.querySelector('.glass-premium')).toBeInTheDocument();
         });
     });
 });

@@ -26,6 +26,15 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
             <div
                 className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center overflow-hidden mb-6"
                 onClick={() => navigate('/compliance')}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate('/compliance');
+                    }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Voir le radar de maturité détaillé"
             >
                 {/* Radar Sweep Effect - Premium Animated */}
                 <div className="absolute inset-0 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '4s' }}>

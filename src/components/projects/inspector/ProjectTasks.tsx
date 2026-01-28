@@ -113,7 +113,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
             {viewMode === 'list' ? (
                 <div className="space-y-2">
                     {project.tasks?.map(task => (
-                        <div key={task.id} className="flex items-center p-3 glass-panel rounded-xl border border-white/60 dark:border-white/10 group hover:shadow-apple transition-all">
+                        <div key={task.id} className="flex items-center p-3 glass-premium rounded-xl border border-border/40 group hover:shadow-apple transition-all">
                             <button
                                 onClick={() => toggleTaskStatus(task.id)}
                                 disabled={!canEdit}

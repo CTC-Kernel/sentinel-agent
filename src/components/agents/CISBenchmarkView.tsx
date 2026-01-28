@@ -165,7 +165,7 @@ const BaselineCard: React.FC<{
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl overflow-hidden"
+            className="glass-premium rounded-2xl overflow-hidden border border-border/40"
         >
             {/* Header */}
             <button
@@ -460,7 +460,7 @@ const FleetSummary: React.FC<{ baselines: CISBaseline[] }> = ({ baselines }) => 
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl p-4 sm:p-6 mb-6"
+            className="glass-premium rounded-2xl p-4 sm:p-6 mb-6 border border-border/40"
         >
             <div className="flex flex-col sm:flex-row items-center gap-6">
                 <ComplianceGauge score={averageScore} size="lg" />

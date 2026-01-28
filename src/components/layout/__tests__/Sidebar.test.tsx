@@ -50,7 +50,17 @@ vi.mock('../../../services/errorLogger', () => ({
 // Mock LegalModal
 vi.mock('../../ui/LegalModal', () => ({
     LegalModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-        isOpen ? <div data-testid="legal-modal" onClick={onClose}>Legal Modal</div> : null
+        isOpen ? (
+            <div
+                data-testid="legal-modal"
+                onClick={onClose}
+                onKeyDown={(e) => e.key === 'Escape' && onClose()}
+                role="button"
+                tabIndex={0}
+            >
+                Legal Modal
+            </div>
+        ) : null
 }));
 
 // Mock Button

@@ -4,11 +4,11 @@ import { db } from '../../firebase';
 import { Document, DocumentFolder, UserProfile } from '../../types';
 import { DocumentFormData } from '../../schemas/documentSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
-import { logAction } from '../../services/logger';
+import { AuditLogService } from '../../services/auditLogService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { DocumentService } from '../../services/documentService';
 import { useStore } from '../../store';
-import { canEditResource } from '../../utils/permissions';
+import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { EncryptionService } from '../../services/encryptionService';
 import { ImportService } from '../../services/ImportService';
 import { getDocumentReviewTemplate } from '../../services/emailTemplates';
@@ -30,7 +30,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
 
-    // Confirm Dialog State (managed here or passed down? Managed here for actions involving confirmation)
+    // Confirm Dialog State
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
@@ -79,7 +79,15 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 });
             }
 
-            await logAction(user, 'CREATE', 'Document', `Nouveau document: ${data.title}`);
+            await AuditLogService.logCreate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                docRef.id,
+                sanitizeData(docData) as Record<string, unknown>,
+                `Nouveau document: ${data.title}`
+            );
+
             addToast("Document ajouté", "success");
             return docRef.id;
         } catch (e) {
@@ -138,7 +146,16 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 });
             }
 
-            await logAction(user, 'UPDATE', 'Document', `MAJ document: ${data.title}`);
+            await AuditLogService.logUpdate(
+                user.organizationId || '',
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                id,
+                currentDoc as unknown as Record<string, unknown>,
+                updates as Record<string, unknown>,
+                data.title
+            );
+
             addToast("Document mis à jour", "success");
             return { ...currentDoc, ...updates };
         } catch (error) {
@@ -173,6 +190,12 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
     const handleDelete = async (id: string, title: string) => {
         if (!user?.organizationId || !user?.uid) return;
+        // Strict RBAC check for deletion
+        if (!canDeleteResource(user, 'Document')) {
+            addToast('Permission refusée', 'error');
+            return;
+        }
+
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             // Use DocumentService for cascade deletion with dependency cleanup
@@ -182,6 +205,15 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 organizationId: user.organizationId,
                 user
             });
+
+            await AuditLogService.logDelete(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                id,
+                { id, title },
+                title
+            );
 
             addToast("Document et liens supprimés", "info");
             setConfirmData(prev => ({ ...prev, isOpen: false }));
@@ -197,14 +229,23 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         if (!canEditResource(user, 'Document')) return; // RBAC Check
 
         try {
-            await addDoc(collection(db, 'document_folders'), {
+            const docRef = await addDoc(collection(db, 'document_folders'), {
                 organizationId: user.organizationId,
                 name,
                 parentId: parentId || null,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });
-            await logAction(user, 'CREATE', 'DocumentFolder', `Nouveau dossier: ${name}`);
+
+            await AuditLogService.logCreate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                docRef.id,
+                { name, parentId, type: 'folder' },
+                name
+            );
+
             addToast('Dossier créé', 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleCreateFolder', 'CREATE_FAILED');
@@ -229,7 +270,17 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 name,
                 updatedAt: serverTimestamp()
             });
-            await logAction(user, 'UPDATE', 'DocumentFolder', `Dossier renommé: ${name}`);
+
+            await AuditLogService.logUpdate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                id,
+                { name: 'Unknown', type: 'folder' },
+                { name, type: 'folder' },
+                name
+            );
+
             addToast('Dossier renommé', 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdateFolder', 'UPDATE_FAILED');
@@ -238,7 +289,10 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
     const handleDeleteFolder = async (id: string, rawFolders: DocumentFolder[], documents: Document[], selectedFolderId: string | null, setSelectedFolderId: (id: string | null) => void) => {
         if (!user?.organizationId) return;
-        if (!canEditResource(user, 'Document')) return; // RBAC Check
+        if (!canDeleteResource(user, 'Document')) {
+            addToast('Permission refusée', 'error');
+            return;
+        }
 
         // SECURITY: IDOR protection - verify folder belongs to user's organization
         const folder = rawFolders.find(f => f.id === id);
@@ -266,7 +320,15 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 await updateDoc(doc(db, 'documents', d.id), { folderId: null });
             }
 
-            await logAction(user, 'DELETE', 'DocumentFolder', `Dossier supprimé: ${id}`);
+            await AuditLogService.logDelete(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                id,
+                folder as unknown as Record<string, unknown>,
+                folder.name
+            );
+
             if (selectedFolderId === id) setSelectedFolderId(null);
             addToast('Dossier supprimé', 'success');
         } catch (error) {
@@ -316,7 +378,18 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
             }));
 
             ImportService.exportDocuments(exportData);
-            if (user) await logAction(user, 'EXPORT', 'Documents', `Exported ${documents.length} documents`);
+            if (user?.organizationId) {
+                await AuditLogService.log({
+                    organizationId: user.organizationId,
+                    userId: user.uid,
+                    userName: user.displayName || user.email || 'Unknown',
+                    userEmail: user.email || '',
+                    action: 'export',
+                    entityType: 'document',
+                    entityId: 'bulk',
+                    details: `Exported ${documents.length} documents`
+                });
+            }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleExportCSV');
         } finally {
@@ -326,6 +399,11 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
     const importDocuments = async (csvContent: string) => {
         if (!user?.organizationId) return;
+        if (!canEditResource(user, 'Document')) {
+            addToast('Permission refusée', 'error');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const lines = ImportService.parseCSV(csvContent);
@@ -338,6 +416,14 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 lines,
                 user.organizationId,
                 user
+            );
+
+            await AuditLogService.logImport(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                count,
+                'CSV Import'
             );
 
             addToast(`Import de ${count} documents réussi`, "success");

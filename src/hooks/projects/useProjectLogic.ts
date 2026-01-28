@@ -296,7 +296,7 @@ export const useProjectLogic = () => {
         } finally {
             setIsSubmitting(false);
         }
-    }, [user, addToast, canEdit]); // Added canEdit to deps
+    }, [user, addToast]);
 
     const createProjectFromTemplateData = async (
         projectData: Omit<Project, 'id'>,

@@ -68,15 +68,17 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
             {/* Title */}
             <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <label htmlFor="action-title" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                     Titre <span className="text-red-500">*</span>
                 </label>
                 <input
+                    id="action-title"
                     type="text"
                     {...register('title')}
                     placeholder="Ex: Mettre à jour la politique de sécurité"
                     className={`w-full rounded-xl border ${errors.title ? 'border-red-500' : 'border-slate-200 dark:border-white/10'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
                 />
+
                 {errors.title && (
                     <p className="text-xs text-red-500">{errors.title.message}</p>
                 )}
@@ -84,15 +86,17 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
             {/* Description */}
             <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <label htmlFor="action-description" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                     Description
                 </label>
                 <textarea
+                    id="action-description"
                     {...register('description')}
                     rows={2}
                     placeholder="Décrivez l'action à réaliser..."
                     className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
                 />
+
                 {errors.description && (
                     <p className="text-xs text-red-500">{errors.description.message}</p>
                 )}
@@ -101,12 +105,13 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Owner */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                    <label htmlFor="action-owner" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                         Responsable
                     </label>
                     <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <select
+                            id="action-owner"
                             {...register('ownerId')}
                             className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
                         >
@@ -118,14 +123,16 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     </div>
                 </div>
 
+
                 {/* Deadline */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                    <label htmlFor="action-deadline" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                         Échéance
                     </label>
                     <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
+                            id="action-deadline"
                             type="date"
                             {...register('deadline')}
                             className="w-full pl-9 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
@@ -133,12 +140,14 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     </div>
                 </div>
 
+
                 {/* Status */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                    <label htmlFor="action-status" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                         Statut
                     </label>
                     <select
+                        id="action-status"
                         {...register('status')}
                         className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
                     >
@@ -147,6 +156,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                         <option value="Terminé">Terminé</option>
                     </select>
                 </div>
+
             </div>
 
             {/* Actions */}

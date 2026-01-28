@@ -340,7 +340,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
   const allTypes: AnnotationType[] = ['note', 'question', 'issue', 'highlight'];
 
   return (
-    <div className="glass-panel rounded-2xl p-4 space-y-4">
+    <div className="glass-premium rounded-2xl p-4 space-y-4 border border-border/40">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">Annotations</h3>
@@ -350,14 +350,12 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
           </span>
           <button
             onClick={onToggleVisibility}
-            className={`w-10 h-5 rounded-full transition-colors relative ${
-              annotationsVisible ? 'bg-brand-500' : 'bg-slate-600'
-            }`}
+            className={`w-10 h-5 rounded-full transition-colors relative ${annotationsVisible ? 'bg-brand-500' : 'bg-slate-600'
+              }`}
           >
             <span
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
-                annotationsVisible ? 'left-5' : 'left-0.5'
-              }`}
+              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${annotationsVisible ? 'left-5' : 'left-0.5'
+                }`}
             />
           </button>
         </div>
@@ -373,11 +371,10 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
                 <button
                   key={type}
                   onClick={() => onToggleType(type)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    activeTypes.includes(type)
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeTypes.includes(type)
                       ? 'bg-brand-100 text-brand-400 border border-brand-400'
                       : 'bg-slate-800/50 text-slate-400 border border-transparent hover:bg-slate-700/50'
-                  }`}
+                    }`}
                 >
                   {type}
                 </button>
@@ -389,21 +386,19 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
           <div className="flex gap-2">
             <button
               onClick={onToggleUnreadOnly}
-              className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                showUnreadOnly
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${showUnreadOnly
                   ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50'
                   : 'bg-slate-800/50 text-slate-400 border border-transparent hover:bg-slate-700/50'
-              }`}
+                }`}
             >
               Non lues
             </button>
             <button
               onClick={onTogglePinnedOnly}
-              className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                showPinnedOnly
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${showPinnedOnly
                   ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
                   : 'bg-slate-800/50 text-slate-400 border border-transparent hover:bg-slate-700/50'
-              }`}
+                }`}
             >
               Epinglees
             </button>

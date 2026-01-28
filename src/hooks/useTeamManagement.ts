@@ -1,4 +1,4 @@
-
+import { toast } from '@/lib/toast';
 import { useState, useCallback, useEffect } from 'react';
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, limit, serverTimestamp, getCountFromServer, onSnapshot, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -93,6 +93,16 @@ export const useTeamManagement = (enabled = true) => {
 
     const inviteUser = useCallback(async (data: UserFormData, silent = false) => {
         if (!user?.organizationId) return false;
+
+        // SECURITY: Check permissions
+        if (!hasPermission(user, 'User', 'create')) {
+            if (!silent) toast.error(t('common.accessDenied'));
+            ErrorLogger.warn('Unauthorized user invite attempt', 'useTeamManagement.inviteUser', {
+                metadata: { attemptedBy: user.uid, role: user.role }
+            });
+            return false;
+        }
+
         if (demoMode) {
             if (!silent) addToast(t("team.invite.success"), "success");
             return true;
@@ -160,9 +170,20 @@ export const useTeamManagement = (enabled = true) => {
 
     const approveRequest = async (req: JoinRequest) => {
         if (!user?.organizationId) return false;
+
+        // SECURITY: Check permissions
+        if (!hasPermission(user, 'User', 'manage')) {
+            toast.error(t('common.accessDenied'));
+            return false;
+        }
+
         try {
             const approveFn = httpsCallable(functions, 'approveJoinRequest');
             await approveFn({ requestId: req.id });
+
+            // Audit Log handled by backend usually, but client trace is good
+            await logAction(user, 'APPROVE_REQUEST', 'User', `Approbation demande: ${req.displayName}`);
+
             addToast(`Approuvé: ${req.displayName}`, "success");
             return true;
         } catch (e) {
@@ -172,9 +193,20 @@ export const useTeamManagement = (enabled = true) => {
     };
 
     const rejectRequest = async (req: JoinRequest) => {
+        if (!user) return false;
+
+        // SECURITY: Check permissions
+        if (!hasPermission(user, 'User', 'manage')) {
+            toast.error(t('common.accessDenied'));
+            return false;
+        }
+
         try {
             const rejectFn = httpsCallable(functions, 'rejectJoinRequest');
             await rejectFn({ requestId: req.id });
+
+            await logAction(user, 'REJECT_REQUEST', 'User', `Refus demande: ${req.displayName}`);
+
             addToast("Refusé", "info");
             return true;
         } catch (e) {

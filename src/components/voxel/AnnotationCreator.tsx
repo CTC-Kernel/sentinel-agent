@@ -288,12 +288,14 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
           transform: 'translate(-50%, -50%)',
         }}
       >
-        <div className="w-[400px] glass-panel rounded-3xl shadow-apple-xl overflow-hidden">
+        <div className="w-[400px] glass-premium rounded-3xl shadow-apple-xl overflow-hidden border border-border/40">
           {/* Header */}
           <div
+            role="presentation"
             className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-800/80 to-slate-900/80 cursor-move"
             onMouseDown={handleDragStart}
           >
+
             <div className="flex items-center gap-3">
               <GripVertical className="w-4 h-4 text-muted-foreground" />
               <h3 className="text-base font-semibold text-white">
@@ -327,12 +329,14 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
 
             {/* Type selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Type</label>
-              <div className="flex gap-2">
+              <label htmlFor="anno-type" className="text-sm font-medium text-muted-foreground">Type</label>
+
+              <div className="flex gap-2" id="anno-type">
                 {TYPE_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setType(option.value)}
+                    aria-pressed={type === option.value}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${type === option.value
                       ? 'bg-brand-100 border-2 border-brand-500 text-brand-400'
                       : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
@@ -343,18 +347,21 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   </button>
                 ))}
               </div>
+
             </div>
 
             {/* Content textarea */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Contenu</label>
+              <label htmlFor="anno-content" className="text-sm font-medium text-muted-foreground">Contenu</label>
               <textarea
+                id="anno-content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Écrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
                 rows={4}
                 className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
               />
+
               <p className="text-xs text-slate-500">
                 Supporte Markdown. Utilisez @username pour mentionner des collègues.
               </p>
@@ -362,28 +369,34 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
 
             {/* Color picker */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Couleur</label>
-              <div className="flex gap-2">
+              <label htmlFor="anno-color" className="text-sm font-medium text-muted-foreground">Couleur</label>
+
+              <div className="flex gap-2" id="anno-color">
                 {COLOR_PRESETS.map((presetColor) => (
                   <button
                     key={presetColor}
                     onClick={() => setColor(presetColor)}
+                    aria-label={`Sélectionner la couleur ${presetColor}`}
+                    aria-pressed={color === presetColor}
                     className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ${color === presetColor ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900' : ''
                       }`}
                     style={{ backgroundColor: presetColor }}
                   />
                 ))}
               </div>
+
             </div>
 
             {/* Visibility selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Visibilite</label>
-              <div className="flex gap-2">
+              <label htmlFor="anno-visibility" className="text-sm font-medium text-muted-foreground">Visibilite</label>
+
+              <div className="flex gap-2" id="anno-visibility">
                 {VISIBILITY_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setVisibility(option.value)}
+                    aria-pressed={visibility === option.value}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${visibility === option.value
                       ? 'bg-brand-100 border-2 border-brand-500 text-brand-400'
                       : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
@@ -394,13 +407,15 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   </button>
                 ))}
               </div>
+
             </div>
 
             {/* Team selector (shown only when visibility is 'team') */}
             {visibility === 'team' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Équipe</label>
+                <label htmlFor="anno-team" className="text-sm font-medium text-muted-foreground">Équipe</label>
                 <input
+                  id="anno-team"
                   type="text"
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
@@ -409,6 +424,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                 />
               </div>
             )}
+
 
             {/* Error message */}
             {error && (

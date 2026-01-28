@@ -54,7 +54,7 @@ export const SortableWidget = ({ widget, isEditing, children, onRemove }: Sortab
                     <div
                         {...attributes}
                         {...listeners}
-                        className="glass-panel absolute top-4 left-1/2 -translate-x-1/2 z-20 cursor-grab active:cursor-grabbing p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all border border-white/20 dark:border-white/10"
+                        className="glass-premium absolute top-4 left-1/2 -translate-x-1/2 z-20 cursor-grab active:cursor-grabbing p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all border border-border/40"
                     >
                         <div className="absolute inset-0 bg-white/50 dark:bg-black/50 rounded-full blur-md -z-10" />
                         <GripVertical className="w-5 h-5 text-slate-600 dark:text-slate-300" />

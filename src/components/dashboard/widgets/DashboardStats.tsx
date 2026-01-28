@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAIGemini } from '../../../hooks/useAIGemini';
 import { useAIAnalysisPersistence } from '../../../hooks/dashboard/useAIAnalysisPersistence';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { AI_PROMPTS } from '../../../config/prompts';
 
 interface DashboardStatsProps {
@@ -75,7 +75,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     };
 
 
-    const navigate = useNavigate();
+
 
     return (
         <div className="flex flex-col gap-6 mb-8">
@@ -102,7 +102,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 <div className="p-6 h-full flex flex-col justify-between">
                     <div className="flex items-start justify-between mb-4 relative z-10">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border/40 shadow-sm">
                                 <BrainCircuit className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                             </div>
                             <div>
@@ -150,7 +150,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     {aiSummary}
                                 </ReactMarkdown>
                                 <div className="mt-3 flex items-center justify-end">
-                                    <span className="text-[11px] font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
+                                    <span className="text-[11px] font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-secondary/50 border border-border/20">
                                         Généré par Sentinel AI
                                     </span>
                                 </div>
@@ -171,7 +171,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 <div className="p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-xl bg-success/10 border border-success/20 shadow-sm shadow-success/10">
+                            <div className="p-2.5 rounded-2xl bg-success/10 border border-success/20 shadow-sm shadow-success/10">
                                 <Activity className="w-5 h-5 text-success-text dark:text-success" />
                             </div>
                             <div>
@@ -187,7 +187,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 h-full">
                         {/* 1. Risk Metric */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" onClick={() => navigate('/risks')} onKeyDown={(e) => e.key === 'Enter' && navigate('/risks')} role="button" tabIndex={0} aria-label="Voir les risques">
+                        <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir les risques">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Risques</span>
                                 <AlertTriangle className="w-4 h-4 text-warning group-hover/item:text-warning/80 transition-colors" />
@@ -202,10 +202,10 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     style={{ width: `${Math.min(100, (stats.criticalRisks / (stats.totalRisks || 1)) * 100)}%` }}
                                 />
                             </div>
-                        </div>
+                        </Link>
 
                         {/* 2. Compliance Metric */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" onClick={() => navigate('/compliance')} onKeyDown={(e) => e.key === 'Enter' && navigate('/compliance')} role="button" tabIndex={0} aria-label="Voir la conformité">
+                        <Link to="/compliance" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir la conformité">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Conformité</span>
                                 <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-success group-hover/item:text-success/80' :
@@ -244,10 +244,10 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
                         {/* 3. Financial Metric */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" onClick={() => navigate('/risks')} onKeyDown={(e) => e.key === 'Enter' && navigate('/risks')} role="button" tabIndex={0} aria-label="Voir l'exposition financière">
+                        <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir l'exposition financière">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Financier</span>
                                 <Activity className="w-4 h-4 text-info group-hover/item:text-info/80 transition-colors" />
@@ -264,7 +264,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     style={{ width: `${Math.min(100, Math.max(5, (stats.financialRisk / (stats.assetValue || 1)) * 100))}%` }}
                                 />
                             </div>
-                        </div>
+                        </Link>
                     </div>
                 </div>
             </PremiumCard>

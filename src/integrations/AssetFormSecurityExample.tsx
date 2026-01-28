@@ -82,10 +82,11 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
         <form onSubmit={form.handleSubmit} className="space-y-4">
             {/* Nom */}
             <div>
-                <label className="block text-sm font-medium mb-1">
+                <label htmlFor="asset-name" className="block text-sm font-medium mb-1">
                     Nom de l'actif *
                 </label>
                 <input
+                    id="asset-name"
                     type="text"
                     value={form.values.name}
                     onChange={(e) => form.handleChange('name')(e.target.value)}
@@ -101,10 +102,11 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
 
             {/* Type */}
             <div>
-                <label className="block text-sm font-medium mb-1">
+                <label htmlFor="asset-type" className="block text-sm font-medium mb-1">
                     Type *
                 </label>
                 <select
+                    id="asset-type"
                     value={form.values.type}
                     onChange={(e) => form.handleChange('type')(e.target.value)}
                     disabled={readOnly || form.isSubmitting}

@@ -68,7 +68,7 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-6">
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Informations Générales</h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">

@@ -360,7 +360,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {activeTab === 'identification' && <RiskFormIdentificationTab control={control} errors={errors} assets={assets} getValues={getValues} setValue={setValue} showLibraryModal={showLibraryModal} setShowLibraryModal={setShowLibraryModal} readOnly={readOnly} />}
                     {activeTab === 'assessment' && <RiskFormAssessmentTab probability={probability ?? 3} impact={impact ?? 3} residualProbability={residualProbability ?? 3} residualImpact={residualImpact ?? 3} setValue={setValue} control={control} errors={errors} readOnly={readOnly} />}
                     {activeTab === 'treatment' && <RiskFormTreatmentTab control={control} errors={errors} existingRisk={existingRisk} controls={controls} usersList={usersList} getValues={getValues} setValue={setValue} strategy={strategy || 'Atténuer'} probability={probability ?? 3} impact={impact ?? 3} mitigationControlIds={mitigationControlIds || []} suggestedControlIds={suggestedControlIds} readOnly={readOnly} />}
-                    {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
+                    {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
                 </fieldset>
                 {activeTab === 'history' && !existingRisk?.id && <div className="p-8 text-center text-slate-500">Veuillez enregistrer le risque pour voir l'historique.</div>}
             </div>

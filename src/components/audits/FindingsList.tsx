@@ -95,7 +95,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                 }
             />
 
-            <div className="glass-panel overflow-hidden rounded-2xl border border-white/20 dark:border-white/5 relative">
+            <div className="glass-premium overflow-hidden rounded-2xl border border-border/40 relative">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -153,26 +153,18 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                         </td>
                                         <td className="py-4 px-6">
                                             <div className="flex flex-col">
-                                                <span
-                                                    className={`text-sm font-medium rounded ${onOpenAudit ? 'text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500' : 'text-slate-700 dark:text-slate-300'}`}
+                                                <button
+                                                    type="button"
+                                                    className={onOpenAudit ? 'text-sm font-medium rounded text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500' : 'text-sm font-medium text-slate-700 dark:text-slate-300'}
                                                     onClick={() => {
                                                         if (onOpenAudit) {
                                                             const audit = audits.find(a => a.id === finding.auditId);
                                                             if (audit) onOpenAudit(audit);
                                                         }
                                                     }}
-                                                    role={onOpenAudit ? "button" : undefined}
-                                                    tabIndex={onOpenAudit ? 0 : undefined}
-                                                    onKeyDown={(e) => {
-                                                        if (onOpenAudit && (e.key === 'Enter' || e.key === ' ')) {
-                                                            e.preventDefault();
-                                                            const audit = audits.find(a => a.id === finding.auditId);
-                                                            if (audit) onOpenAudit(audit);
-                                                        }
-                                                    }}
                                                 >
                                                     {finding.auditName}
-                                                </span>
+                                                </button>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">

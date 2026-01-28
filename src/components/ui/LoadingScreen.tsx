@@ -26,7 +26,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
                 <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-100 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
             </div>
             <div className="relative z-10 flex flex-col items-center">
-                <div className="w-20 h-20 rounded-3xl glass-premium flex items-center justify-center shadow-2xl animate-pulse mb-8 border border-white/40 dark:border-white/10">
+                <div className="w-20 h-20 rounded-3xl glass-premium flex items-center justify-center shadow-2xl animate-pulse mb-8 border border-border/40">
                     <Lock className="h-10 w-10 text-slate-900 dark:text-white" strokeWidth={2.5} />
                 </div>
                 {!showTimeout ? (

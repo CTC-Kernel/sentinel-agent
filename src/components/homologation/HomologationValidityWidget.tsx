@@ -304,10 +304,19 @@ export const HomologationValidityWidget: React.FC<HomologationValidityWidgetProp
                 <div
                   key={item.dossier.id}
                   className={cn(
-                    'flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer',
+                    'flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer relative',
                     compact && 'p-2'
                   )}
                   onClick={() => handleViewDossier(item.dossier.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleViewDossier(item.dossier.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Dossier: ${item.dossier.name}`}
                 >
                   {/* State indicator */}
                   <div className={cn('p-2 rounded-lg', config.bgColor)}>

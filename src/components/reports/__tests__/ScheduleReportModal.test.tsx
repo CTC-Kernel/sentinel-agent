@@ -10,7 +10,16 @@ import { ScheduleReportModal } from '../ScheduleReportModal';
 // Mock Headless UI
 vi.mock('@headlessui/react', () => {
     const Dialog = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
-        <div data-testid="dialog" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>{children}</div>
+        <div
+            data-testid="dialog"
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+            onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close dialog"
+        >
+            {children}
+        </div>
     );
     Dialog.Panel = ({ children, className }: { children: React.ReactNode; className?: string }) => (
         <div data-testid="dialog-panel" className={className}>{children}</div>
@@ -262,7 +271,7 @@ describe('ScheduleReportModal', () => {
         });
 
         it('shows loading state while submitting', async () => {
-            mockOnSchedule.mockImplementation(() => new Promise(() => {}));
+            mockOnSchedule.mockImplementation(() => new Promise(() => { }));
 
             render(<ScheduleReportModal {...defaultProps} />);
 

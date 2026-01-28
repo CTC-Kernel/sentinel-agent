@@ -97,7 +97,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-bold px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg ring-1 ring-red-500/20">{vuln.severity} ({vuln.score})</span>
+                                        <span className="text-[11px] font-bold px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-xl ring-1 ring-red-500/20">{vuln.severity} ({vuln.score})</span>
                                         <CustomTooltip content="Créer un risque">
                                             <button
                                                 onClick={() => createRiskFromVuln(vuln)}
@@ -135,10 +135,10 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
-                            <div key={risk.id} className="p-5 glass-panel-lite rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
+                            <div key={risk.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
-                                    <span className={`text-[11px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
+                                    <span className={`text-[11px] px-2 py-1 rounded-xl font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-muted-foreground mb-3">{risk.vulnerability}</p>
                                 {risk.score >= 15 && <div className="flex items-center text-[11px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}
@@ -167,10 +167,10 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (
-                            <div key={inc.id} className="p-5 glass-panel-lite rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
+                            <div key={inc.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
-                                    <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>
+                                    <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-xl ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-muted-foreground mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p>
                             </div>

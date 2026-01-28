@@ -108,7 +108,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
     return (
         <div className="space-y-6 sm:space-y-8">
             {/* Internal Team */}
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest flex items-center">
                         <Shield className="h-3.5 w-3.5 mr-2" /> Équipe Interne
@@ -165,7 +165,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             </div>
 
             {/* External Auditors */}
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest flex items-center">
                         <ExternalLink className="h-3.5 w-3.5 mr-2" /> Auditeurs Externes

@@ -105,7 +105,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {filteredPlans.map(plan => (
-                        <div key={plan.id} className="glass-panel p-4 sm:p-6 rounded-2xl relative group hover:border-brand-300 transition-all flex flex-col h-full">
+                        <div key={plan.id} className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 relative group hover:border-brand-300 transition-all flex flex-col h-full">
                             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity z-10">
                                 <button onClick={() => handleEdit(plan)} className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
                                     <Edit2 className="w-4 h-4" />

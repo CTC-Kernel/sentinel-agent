@@ -145,6 +145,17 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div
                     className="relative flex-shrink-0 cursor-pointer group/chart"
                     onClick={() => navigate && navigate('/compliance')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            if (navigate) {
+                                navigate('/compliance');
+                            }
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Voir la compliance détaillée"
                 >
                     <div className="w-28 h-28">
                         <ResponsiveContainer width="100%" height="100%">

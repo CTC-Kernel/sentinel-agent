@@ -389,13 +389,14 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
       <div className="p-4 space-y-4">
         {/* Keyword Search */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="ediscovery-keywords" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Mots-cles
           </label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
+                id="ediscovery-keywords"
                 type="text"
                 value={keywords}
                 onChange={(e) => setKeywords(e.target.value)}
@@ -405,6 +406,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
               />
             </div>
+
             <select
               value={booleanOperator}
               onChange={(e) => setBooleanOperator(e.target.value as BooleanOperator)}
@@ -420,9 +422,9 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
         {/* Action Type Filter */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Type d'action
-          </label>
+          </div>
           <div className="flex flex-wrap gap-2">
             {allActions.map(({ value, label }) => {
               const colors = VaultAuditService.getActionColorClass(value);
@@ -466,11 +468,12 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="ediscovery-date-start" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   <Calendar className="h-3 w-3 inline mr-1" />
                   Date debut
                 </label>
                 <input
+                  id="ediscovery-date-start"
                   type="date"
                   value={dateRange.start}
                   onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
@@ -478,12 +481,14 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="ediscovery-date-end" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   <Calendar className="h-3 w-3 inline mr-1" />
                   Date fin
                 </label>
                 <input
+                  id="ediscovery-date-end"
                   type="date"
                   value={dateRange.end}
                   onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
@@ -491,15 +496,17 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 />
               </div>
+
             </div>
 
             {/* User Filter */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="ediscovery-user-filter" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 <User className="h-3 w-3 inline mr-1" />
                 ID Utilisateur
               </label>
               <input
+                id="ediscovery-user-filter"
                 type="text"
                 value={userFilter}
                 onChange={(e) => setUserFilter(e.target.value)}
@@ -509,13 +516,15 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
               />
             </div>
 
+
             {/* Document IDs Filter */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="ediscovery-doc-ids" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 <FileText className="h-3 w-3 inline mr-1" />
                 IDs Documents (separes par virgule)
               </label>
               <input
+                id="ediscovery-doc-ids"
                 type="text"
                 value={documentIds}
                 onChange={(e) => setDocumentIds(e.target.value)}
@@ -524,6 +533,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
+
           </div>
         )}
 
@@ -683,10 +693,11 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="save-search-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Nom *
                 </label>
                 <input
+                  id="save-search-name"
                   type="text"
                   value={searchName}
                   onChange={(e) => setSearchName(e.target.value)}
@@ -695,11 +706,13 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 />
               </div>
 
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="save-search-desc" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Description
                 </label>
                 <textarea
+                  id="save-search-desc"
                   value={searchDescription}
                   onChange={(e) => setSearchDescription(e.target.value)}
                   placeholder="Description optionnelle..."
@@ -707,6 +720,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
                 />
               </div>
+
 
               <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                 <input

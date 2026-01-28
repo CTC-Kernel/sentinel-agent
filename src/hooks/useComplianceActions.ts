@@ -189,14 +189,24 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleUnlinkSupplier = async (control: Control, supplierId: string) => {
-        await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
+        const success = await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
+        if (success && user) {
+            await AuditLogService.logUpdate(
+                user.organizationId || '',
+                { id: user.uid, name: user.displayName || '', email: user.email || '' },
+                'control',
+                control.id,
+                { relatedSupplierIds: control.relatedSupplierIds },
+                { relatedSupplierIds: control.relatedSupplierIds?.filter(id => id !== supplierId) },
+                control.name
+            );
+        }
     };
 
     const handleLinkProject = async (control: Control, projectId: string) => {
         const newProjectIds = [...(control.relatedProjectIds || []), projectId];
         const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, "Projet lié", true, control.organizationId);
         if (success && user) {
-            const changes = getDiff({ relatedProjectIds: newProjectIds }, { relatedProjectIds: control.relatedProjectIds || [] });
             await logAction(
                 user,
                 'LINK_PROJECT',
@@ -205,20 +215,30 @@ export const useComplianceActions = (user: UserProfile | null) => {
                 undefined,
                 control.id,
                 undefined,
-                changes
+                getDiff({ relatedProjectIds: newProjectIds }, { relatedProjectIds: control.relatedProjectIds || [] })
             );
         }
     };
 
     const handleUnlinkProject = async (control: Control, projectId: string) => {
-        await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
+        const success = await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
+        if (success && user) {
+            await AuditLogService.logUpdate(
+                user.organizationId || '',
+                { id: user.uid, name: user.displayName || '', email: user.email || '' },
+                'control',
+                control.id,
+                { relatedProjectIds: control.relatedProjectIds },
+                { relatedProjectIds: control.relatedProjectIds?.filter(id => id !== projectId) },
+                control.name
+            );
+        }
     };
 
     const handleLinkDocument = async (control: Control, documentId: string) => {
         const newDocIds = [...(control.evidenceIds || []), documentId];
         const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, "Document lié", true, control.organizationId);
         if (success && user) {
-            const changes = getDiff({ evidenceIds: newDocIds }, { evidenceIds: control.evidenceIds || [] });
             await logAction(
                 user,
                 'LINK_DOCUMENT',
@@ -227,13 +247,24 @@ export const useComplianceActions = (user: UserProfile | null) => {
                 undefined,
                 control.id,
                 undefined,
-                changes
+                getDiff({ evidenceIds: newDocIds }, { evidenceIds: control.evidenceIds || [] })
             );
         }
     };
 
     const handleUnlinkDocument = async (control: Control, documentId: string) => {
-        await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
+        const success = await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
+        if (success && user) {
+            await AuditLogService.logUpdate(
+                user.organizationId || '',
+                { id: user.uid, name: user.displayName || '', email: user.email || '' },
+                'control',
+                control.id,
+                { evidenceIds: control.evidenceIds },
+                { evidenceIds: control.evidenceIds?.filter(id => id !== documentId) },
+                control.name
+            );
+        }
     };
 
     const updateJustification = async (control: Control, text: string) => {

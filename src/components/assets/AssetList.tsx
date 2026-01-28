@@ -134,10 +134,10 @@ export const AssetList = React.memo<AssetListProps>(({
                 const TypeIcon = styles.icon;
                 return (
                     <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${styles.bg} ${styles.color} border ${styles.border}`}>
+                        <div className={`p-1.5 rounded-xl ${styles.bg} ${styles.color} border ${styles.border}`}>
                             <TypeIcon className="h-3.5 w-3.5" />
                         </div>
-                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border shadow-sm ${styles.badge}`}>
+                        <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold border shadow-sm ${styles.badge}`}>
                             {row.original.type}
                         </span>
                     </div>
@@ -147,7 +147,7 @@ export const AssetList = React.memo<AssetListProps>(({
         {
             header: t('common.criticality'),
             accessorKey: 'confidentiality',
-            cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
+            cell: ({ row }) => <span className={`px-2 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
         },
         {
             header: t('common.owner'),
@@ -160,12 +160,13 @@ export const AssetList = React.memo<AssetListProps>(({
                     <div className="flex items-center gap-2">
                         <img
                             src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-                            alt={ownerName}
+                            alt={`${ownerName} avatar`}
                             className="w-6 h-6 rounded-full border border-muted object-cover bg-muted/30"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = getUserAvatarUrl(null, ownerUser?.role);
                             }}
+                            role="presentation"
                         />
                         <span className="font-medium text-foreground">{ownerName}</span>
                     </div>
@@ -237,7 +238,7 @@ export const AssetList = React.memo<AssetListProps>(({
 
     if (viewMode === 'list') {
         return (
-            <div className="w-full max-w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+            <div className="w-full max-w-full rounded-3xl overflow-hidden shadow-sm border border-border/40 bg-background/50 backdrop-blur-sm">
                 <DataTable
                     columns={columns}
                     data={assets}
@@ -299,7 +300,7 @@ export const AssetList = React.memo<AssetListProps>(({
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit(asset); }}
                             role="button"
                             tabIndex={0}
-                            className="glass-panel p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-muted/50 dark:border-white/5 transition-all relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                            className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 transition-all duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
@@ -341,28 +342,29 @@ export const AssetList = React.memo<AssetListProps>(({
                                         {React.createElement(getTypeStyles(asset.type).icon, { className: "h-6 w-6" })}
                                     </div>
                                     <div className="flex gap-2">
-                                        <span className={`px-2 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
+                                        <span className={`px-2 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
                                 <div className="flex items-center gap-2 mb-4">
-                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
+                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-xl border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
                                     <span className="text-muted-foreground/50">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <img
                                             src={getUserAvatarUrl(users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.photoURL, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role)}
-                                            alt={asset.owner}
+                                            alt={`${asset.owner} avatar`}
                                             className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role);
                                             }}
+                                            role="presentation"
                                         />
                                         <span className="text-xs text-muted-foreground font-medium">{asset.owner}</span>
                                     </div>
                                 </div>
 
-                                <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
+                                <div className="mt-auto pt-4 border-t border-dashed border-border/40 flex justify-between items-center">
                                     <div className="flex items-center gap-2">
                                         <span className={`w-2 h-2 rounded-full ${asset.lifecycleStatus === 'En service' ? 'bg-success' : 'bg-muted'}`}></span>
                                         <span className="text-xs font-bold text-slate-600 dark:text-muted-foreground">
@@ -374,7 +376,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             })()}
                                         </span>
                                     </div>
-                                    {warrantyExpired && <span className="text-[11px] font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-lg shadow-sm">{t('assets.warrantyExp')}</span>}
+                                    {warrantyExpired && <span className="text-[11px] font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-xl shadow-sm">{t('assets.warrantyExp')}</span>}
                                 </div>
                             </div>
                         </div>

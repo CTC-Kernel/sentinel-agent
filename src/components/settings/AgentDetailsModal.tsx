@@ -521,8 +521,9 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                 >
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Intervalle de vérification (secondes)</label>
+                                            <label htmlFor="check-interval" className="text-sm font-medium text-slate-700 dark:text-slate-300">Intervalle de vérification (secondes)</label>
                                             <input
+                                                id="check-interval"
                                                 type="number"
                                                 className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                                                 value={configForm.check_interval_secs || 900}
@@ -532,8 +533,9 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Niveau de Log</label>
+                                            <label htmlFor="log-level" className="text-sm font-medium text-slate-700 dark:text-slate-300">Niveau de Log</label>
                                             <select
+                                                id="log-level"
                                                 className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                                                 value={configForm.log_level || 'info'}
                                                 onChange={e => setConfigForm({ ...configForm, log_level: e.target.value })}
@@ -546,8 +548,9 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Intervalle Heartbeat (secondes)</label>
+                                            <label htmlFor="heartbeat-interval" className="text-sm font-medium text-slate-700 dark:text-slate-300">Intervalle Heartbeat (secondes)</label>
                                             <input
+                                                id="heartbeat-interval"
                                                 type="number"
                                                 className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                                                 value={configForm.heartbeat_interval_secs || 60}

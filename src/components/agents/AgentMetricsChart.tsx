@@ -170,7 +170,7 @@ export const AgentMetricsChart: React.FC<AgentMetricsChartProps> = ({
             </div>
 
             {/* Streaming Chart */}
-            <div className="glass-panel rounded-2xl p-4 border border-border/50">
+            <div className="glass-premium rounded-2xl p-4 border border-border/50">
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h3 className="text-sm font-bold text-foreground">Métriques en temps réel</h3>

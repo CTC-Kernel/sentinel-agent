@@ -60,6 +60,14 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            onClose()
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Close modal"
       />
 
       {/* Modal */}

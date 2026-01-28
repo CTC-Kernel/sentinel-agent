@@ -114,15 +114,16 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 />
 
                 {/* NIS 2 Section */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-red-100 dark:border-red-900/30 space-y-4 relative overflow-hidden group">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-red-500/30 space-y-4 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 pointer-events-none" />
                     <div className="relative z-10">
                         <div className="flex items-center space-x-3">
                             <input {...register('isSignificant')}
+                                id="is-significant"
                                 type="checkbox"
                                 className="h-5 w-5 rounded text-red-600 dark:text-red-400 focus:ring-red-500 border-slate-300"
                             />
-                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
+                            <label htmlFor="is-significant" className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
                                 <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
                                 Incident Significatif (NIS 2)
                             </label>
@@ -306,7 +307,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-white/5">
+            <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border/40">
                 <Button
                     type="button"
                     onClick={onCancel}

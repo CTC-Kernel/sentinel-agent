@@ -84,11 +84,12 @@ export const MissionForm: React.FC<MissionFormProps> = ({
         <form onSubmit={handleSubmit(onSave)} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.missionName')} *
             </label>
             <input
               {...register('name')}
+              id="name"
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
@@ -105,11 +106,12 @@ export const MissionForm: React.FC<MissionFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.missionDescription')}
             </label>
             <textarea
               {...register('description')}
+              id="description"
               rows={3}
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors resize-none",

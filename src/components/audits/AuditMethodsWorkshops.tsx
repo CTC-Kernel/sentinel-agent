@@ -391,12 +391,20 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
             >
               <PremiumCard glass
                 className={cn(
-                  "p-5 cursor-pointer transition-all border-2",
+                  "p-5 cursor-pointer transition-all border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                   isSelected ? "ring-2 ring-indigo-500 border-indigo-300 dark:border-indigo-700" : "border-transparent",
                   isActive && "bg-green-500 dark:bg-green-50 dark:bg-green-900 border-green-300 dark:border-green-700 dark:border-green-700",
                   typeBgColors[template.type]
                 )}
                 onClick={() => setSelectedTemplate(template)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedTemplate(template);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={cn("p-3 rounded-xl text-white", typeColors[template.type])}>
@@ -552,8 +560,8 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                         <div className={cn(
                           "w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold",
                           phase.status === 'completed' ? 'bg-green-500' :
-                          phase.status === 'in_progress' ? 'bg-blue-500' :
-                          'bg-slate-400'
+                            phase.status === 'in_progress' ? 'bg-blue-500' :
+                              'bg-slate-400'
                         )}>
                           {phase.status === 'completed' ? (
                             <CheckCircle className="w-5 h-5" />
@@ -603,14 +611,20 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                 <div
                                   key={task.id}
                                   className={cn(
-                                    "flex items-start gap-3 p-3 rounded-xl border transition-colors",
+                                    "flex items-start gap-3 p-3 rounded-xl border transition-colors relative",
                                     task.isCompleted
                                       ? "bg-green-50 dark:bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-800 dark:border-green-800"
                                       : "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700",
-                                    isWorkshopActive && "cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700"
+                                    isWorkshopActive && "hover:border-indigo-300 dark:hover:border-indigo-700"
                                   )}
-                                  onClick={() => isWorkshopActive && handleToggleTask(phase.id, task.id)}
                                 >
+                                  {isWorkshopActive && (
+                                    <button
+                                      onClick={() => handleToggleTask(phase.id, task.id)}
+                                      className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl"
+                                      aria-label={`Toggle task: ${task.title}`}
+                                    />
+                                  )}
                                   <div className="mt-0.5">
                                     {task.isCompleted ? (
                                       <CheckCircle className="w-5 h-5 text-green-500" />

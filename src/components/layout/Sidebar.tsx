@@ -172,7 +172,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       <aside className={`
         fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-sidebar w-[82vw] max-w-[320px] lg:w-[260px]
         bg-[var(--glass-bg)] dark:bg-[var(--glass-bg)]
-        backdrop-blur-xl border-r border-[var(--glass-border)]
+        backdrop-blur-xl border-r border-border/40
         shadow-[var(--glass-shadow)] lg:shadow-none
         transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -271,7 +271,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         </nav>
 
         {/* User Settings & Logout */}
-        <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-background/40 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/5 space-y-1">
+        <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-border/40 space-y-1">
           <NavLink
             to="/settings"
             data-tour="settings"

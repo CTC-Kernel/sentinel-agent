@@ -101,7 +101,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                             leaveFrom="opacity-70 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl glass-panel p-8 text-left align-middle transition-all">
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl glass-premium p-8 text-left align-middle transition-all border border-border/40">
                                 <div className="flex justify-between items-center mb-6">
                                     <Dialog.Title as="h3" className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                         <Mail className="w-5 h-5 text-brand-600 dark:text-brand-400" />

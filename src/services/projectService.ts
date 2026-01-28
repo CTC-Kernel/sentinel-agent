@@ -215,7 +215,6 @@ export class ProjectService {
                 const name = row.Nom || row.name;
                 if (!name) continue;
 
-                const newRef = doc(collection(db, 'projects'));
                 const projectData = {
                     organizationId,
                     name,
@@ -230,6 +229,17 @@ export class ProjectService {
                     tags: ['Import CSV']
                 };
 
+                // VALIDATION: Ensure imported data respects projectSchema
+                const { projectSchema } = await import('../schemas/projectSchema');
+                const validation = projectSchema.safeParse(projectData);
+                if (!validation.success) {
+                    ErrorLogger.warn('Project import validation failed for row', 'ProjectService.importProjectsFromCSV', {
+                        metadata: { row, issues: validation.error.issues }
+                    });
+                    continue; // Skip invalid row
+                }
+
+                const newRef = doc(collection(db, 'projects'));
                 const sanitized = sanitizeData(projectData);
                 batch.set(newRef, sanitized);
                 count++;

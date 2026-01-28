@@ -141,11 +141,11 @@ describe('ProcessGeneralDetails', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel containers', () => {
+        it('has glass-premium containers', () => {
             const { container } = render(<ProcessGeneralDetails process={mockProcess} />);
 
-            // Multiple glass-panel containers for description and recovery plan
-            expect(container.querySelectorAll('.glass-panel').length).toBe(2);
+            // Multiple glass-premium containers for description and recovery plan
+            expect(container.querySelectorAll('.glass-premium').length).toBe(2);
         });
 
         it('has metric cards with rounded styling', () => {
@@ -156,3 +156,4 @@ describe('ProcessGeneralDetails', () => {
         });
     });
 });
+

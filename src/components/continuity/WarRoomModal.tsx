@@ -403,11 +403,10 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         </Tooltip>
 
                                         <input
+                                            {...register('content')}
                                             aria-label="Message de war room"
                                             placeholder="Tapez un message chiffré..."
                                             className="flex-1 bg-transparent border-none text-white placeholder-slate-500 focus:ring-0 font-mono"
-                                            autoFocus
-                                            {...register('content')}
                                         />
 
                                         <Button

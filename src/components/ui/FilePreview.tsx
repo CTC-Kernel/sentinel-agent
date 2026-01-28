@@ -80,6 +80,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                                 src={url}
                                 className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
                                 onLoad={() => setLoading(false)}
+                                role="presentation"
                             />
                             {loading && (
                                 <div className="absolute inset-0 flex items-center justify-center">

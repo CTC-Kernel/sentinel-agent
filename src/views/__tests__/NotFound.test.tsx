@@ -35,7 +35,22 @@ vi.mock('../../components/ui/MasterpieceBackground', () => ({
 // Mock FeedbackModal
 vi.mock('../../components/ui/FeedbackModal', () => ({
     FeedbackModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
-        isOpen ? <div data-testid="feedback-modal" onClick={onClose}>Feedback Modal</div> : null
+        isOpen ? (
+            <div
+                data-testid="feedback-modal"
+                onClick={onClose}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        onClose();
+                    }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Close feedback modal"
+            >
+                Feedback Modal
+            </div>
+        ) : null
     )
 }));
 

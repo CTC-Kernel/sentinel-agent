@@ -25,6 +25,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
             <div
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
+                role="presentation"
+                aria-hidden="true"
             />
 
             <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">

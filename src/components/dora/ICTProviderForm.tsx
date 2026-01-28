@@ -159,7 +159,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* General Tab */}
                     {activeTab === 'general' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <Building2 className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.fields.name')}
@@ -288,7 +288,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* Services Tab */}
                     {activeTab === 'services' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                                         <Server className="w-5 h-5 mr-2 text-indigo-500" />
@@ -405,7 +405,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* Contract Tab */}
                     {activeTab === 'contract' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <FileText className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.contract.title')}
@@ -517,7 +517,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* Compliance Tab */}
                     {activeTab === 'compliance' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <Shield className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.compliance.title')}
@@ -617,7 +617,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                 </div>
                             </div>
 
-                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <AlertTriangle className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.risk.title')}

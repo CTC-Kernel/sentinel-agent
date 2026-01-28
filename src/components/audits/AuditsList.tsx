@@ -135,12 +135,8 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                     <div className="flex items-center gap-2">
                         <img
                             src={getUserAvatarUrl(auditorUser?.photoURL, auditorUser?.role)}
-                            alt={auditorName}
+                            alt=""
                             className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = getUserAvatarUrl(null, auditorUser?.role);
-                            }}
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{auditorName}</span>
                     </div>

@@ -249,7 +249,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         description="Ajoutez un fournisseur type ou laissez l'IA le qualifier."
                     />
                 )}
-                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <Building2 className="w-5 h-5 mr-2 text-indigo-500" />
                         Informations Générales
@@ -307,8 +307,10 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                         {!readOnly && (
                             <div className="col-span-1 md:col-span-2">
+                                <label htmlFor="company-search" className="sr-only">Rechercher une entreprise</label>
                                 <div className="relative">
                                     <input
+                                        id="company-search"
                                         type="text"
                                         placeholder="Rechercher une entreprise (Sirene/Pappers)..."
                                         className="w-full px-4 py-2 bg-transparent border-b border-slate-200 dark:border-white/10 text-sm focus:border-indigo-500 outline-none transition-colors"
@@ -321,6 +323,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 </div>
                             </div>
                         )}
+
 
                         <div className="col-span-1 md:col-span-2">
                             <div className="relative">
@@ -399,12 +402,13 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Responsable Interne</label>
+                            <label htmlFor="internal-owner" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Responsable Interne</label>
                             <Controller
                                 name="ownerId"
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
+                                        id="internal-owner"
                                         options={users.map(u => ({ value: u.uid, label: u.displayName, subLabel: u.role }))}
                                         value={field.value ?? ''}
                                         onChange={field.onChange}
@@ -413,6 +417,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 )}
                             />
                         </div>
+
 
                         <div className="col-span-1 md:col-span-2 relative">
                             <Controller
@@ -443,7 +448,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 </div>
 
                 {/* DORA Compliance Card */}
-                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm bg-indigo-50/30 dark:bg-slate-900/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm bg-indigo-50/30 dark:bg-slate-900/10">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <ShieldAlert className="w-5 h-5 mr-2 text-indigo-600" />
                         Conformité DORA
@@ -451,13 +456,14 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5">
-                            <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('isICTProvider')} />
-                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Prestataire TIC Critique</label>
+                            <input id="isICTProvider" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('isICTProvider')} />
+                            <label htmlFor="isICTProvider" className="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">Prestataire TIC Critique</label>
                         </div>
                         <div className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5">
-                            <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('supportsCriticalFunction')} />
-                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Supporte Fonction Critique</label>
+                            <input id="supportsCriticalFunction" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('supportsCriticalFunction')} />
+                            <label htmlFor="supportsCriticalFunction" className="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">Supporte Fonction Critique</label>
                         </div>
+
 
                         <div>
                             <Controller
@@ -491,7 +497,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 </div>
 
                 {/* Relations Card */}
-                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <LinkIcon className="w-5 h-5 mr-2 text-indigo-500" />
                         Relations & Dépendances
@@ -499,13 +505,15 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Processus Supportés</label>
+                            <label htmlFor="supported-processes" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Processus Supportés</label>
                             <Controller
                                 name="supportedProcessIds"
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
+                                        id="supported-processes"
                                         options={processes.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+
                                         value={field.value || []}
                                         onChange={field.onChange}
                                         placeholder="Sélectionner les processus..."
@@ -517,7 +525,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Actifs Liés</label>
+                                <label htmlFor="related-assets" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Actifs Liés</label>
+
                                 {/* This button seems to be misplaced or part of a different context, adding it as requested */}
 
                                 <Controller
@@ -525,7 +534,9 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                     control={control}
                                     render={({ field }) => (
                                         <CustomSelect
+                                            id="related-assets"
                                             options={assets.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
+
                                             value={field.value || []}
                                             onChange={field.onChange}
                                             placeholder="Lier des actifs..."
@@ -535,13 +546,15 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Risques Liés</label>
+                                <label htmlFor="related-risks" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Risques Liés</label>
                                 <Controller
                                     name="relatedRiskIds"
                                     control={control}
                                     render={({ field }) => (
                                         <CustomSelect
+                                            id="related-risks"
                                             options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
+
                                             value={field.value || []}
                                             onChange={field.onChange}
                                             placeholder="Lier des risques..."
@@ -555,7 +568,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 </div>
 
                 {/* Contract & Contact Card */}
-                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <FileText className="w-5 h-5 mr-2 text-indigo-500" />
                         Contrat & Contact
@@ -578,12 +591,13 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         />
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Contrat (Document)</label>
+                            <label htmlFor="contract-doc" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 ml-1">Contrat (Document)</label>
                             <Controller
                                 name="contractDocumentId"
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
+                                        id="contract-doc"
                                         options={documents.map(d => ({ value: d.id, label: d.title, subLabel: d.version }))}
                                         value={field.value ?? ''}
                                         onChange={field.onChange}
@@ -592,6 +606,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 )}
                             />
                         </div>
+
 
                         <Controller
                             name="contractEnd"

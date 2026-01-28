@@ -93,8 +93,6 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                             className="p-2.5 hover:bg-muted/50 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                             aria-label={isExpanded ? "Réduire la carte" : "Agrandir la carte"}
                             aria-expanded={isExpanded}
-                            role="button"
-                            tabIndex={0}
                         >
                             {isExpanded ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-4 h-4" />}
                         </button>
@@ -132,7 +130,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
 
                 {/* Modal Container */}
                 <div
-                    className="relative w-full max-w-6xl h-[85vh] glass-panel rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-muted ring-1 ring-black/5"
+                    className="relative w-full max-w-6xl h-[85vh] glass-premium rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-muted ring-1 ring-black/5"
                     role="dialog"
                     aria-modal="true"
                 >

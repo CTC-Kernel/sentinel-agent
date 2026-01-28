@@ -146,7 +146,7 @@ export const ThreatRegistry: React.FC = () => {
         } else {
             proceedWithSeed();
         }
-    }, [threats.length, seedStandardThreats, user]);
+    }, [threats.length, seedStandardThreats, user, t]);
 
     const handleDelete = React.useCallback(async (id: string) => {
         setConfirmData({
@@ -163,7 +163,7 @@ export const ThreatRegistry: React.FC = () => {
                 }
             }
         });
-    }, [deleteThreat, user]);
+    }, [deleteThreat, user, t]);
 
     const handleEdit = React.useCallback((threat: ThreatTemplate) => {
         setSelectedThreat(threat);
@@ -416,6 +416,13 @@ const ThreatRegistryCard = React.memo(({
         <motion.div variants={slideUpVariants}>
             <div
                 onClick={() => onEdit(threat)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        onEdit(threat);
+                    }
+                }}
+                role="button"
+                tabIndex={0}
                 className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-slate-100 dark:border-white/5 hover:border-brand-300 transition-all duration-200 group relative overflow-hidden cursor-pointer hover:shadow-lg active:scale-[0.98]"
             >
                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity flex gap-2">

@@ -320,7 +320,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 </div>
 
                 <div className="pt-4 border-t border-border">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Stockage du Document</label>
+                    <div className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Stockage du Document</div>
                     <div className="mb-6">
                         <CustomSelect
                             label="Fournisseur de stockage"

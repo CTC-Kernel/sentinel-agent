@@ -64,14 +64,14 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
     return (
         <div className="flex h-full gap-6 overflow-x-auto pb-6">
             {COLUMNS.map(column => (
-                <div key={column.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex flex-col h-full rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 backdrop-blur-md">
+                <div key={column.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex flex-col h-full rounded-3xl bg-background/40 backdrop-blur-md border border-border/40">
                     {/* Column Header */}
                     <div className="p-4 border-b border-white/20 flex items-center justify-between sticky top-0 bg-inherit rounded-t-2xl z-10 backdrop-blur-md">
                         <div className="flex items-center gap-2">
                             <div className={`w-3 h-3 rounded-full ${column.color}`} />
                             <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200 dark:text-white">{column.title}</h3>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-xs font-bold text-slate-600 dark:text-muted-foreground">
+                        <span className="px-2 py-0.5 rounded-full bg-secondary/50 text-xs font-bold text-slate-600 dark:text-muted-foreground border border-border/20">
                             {loading ? '-' : (groupedIncidents[column.id]?.length || 0)}
                         </span>
                     </div>
@@ -108,7 +108,16 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                 <div
                                     key={incident.id}
                                     onClick={() => onSelect(incident)}
-                                    className="group relative bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            onSelect(incident);
+                                        }
+                                    }}
+                                    className="group relative bg-background/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-border/40 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden"
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`Incident: ${incident.title}`}
                                 >
                                     {/* Actions Overlay */}
                                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-70 transition-opacity z-10">
@@ -181,7 +190,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                             )}
                                         </div>
                                         {incident.category && (
-                                            <span className="px-1.5 py-0.5 rounded bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 text-[11px]">
+                                            <span className="px-1.5 py-0.5 rounded-lg bg-secondary/30 border border-border/30 text-[11px]">
                                                 {incident.category}
                                             </span>
                                         )}

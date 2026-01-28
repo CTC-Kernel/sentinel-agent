@@ -220,7 +220,7 @@ const TrendSummary: React.FC<{
     }
 
     return (
-        <div className="glass-panel rounded-xl p-4">
+        <div className="glass-premium rounded-xl p-4 border border-border/40">
             <div className="flex items-center justify-between mb-4">
                 <h4 className="text-sm font-medium text-muted-foreground">Tendance</h4>
                 <TrendIcon direction={trend.direction} className="h-5 w-5" />
@@ -340,7 +340,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
 
     if (displayPredictions.length === 0) {
         return (
-            <div className={cn('glass-panel rounded-2xl p-6 text-center', className)}>
+            <div className={cn('glass-premium rounded-2xl p-6 text-center border border-border/40', className)}>
                 <div className="p-4 rounded-full bg-muted/50 inline-block mb-4">
                     <Sparkles className="h-8 w-8 text-muted-foreground" />
                 </div>
@@ -363,7 +363,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
         const primaryTarget = primaryPrediction?.predictions.find(p => !p.isReached);
 
         return (
-            <div className={cn('glass-panel rounded-xl p-4', className)}>
+            <div className={cn('glass-premium rounded-xl p-4 border border-border/40', className)}>
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-primary" />
@@ -428,7 +428,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
                     <motion.div
                         key={prediction.id}
                         variants={slideUpVariants}
-                        className="glass-panel rounded-2xl overflow-hidden"
+                        className="glass-premium rounded-2xl overflow-hidden border border-border/40"
                     >
                         {/* Framework Header */}
                         <button

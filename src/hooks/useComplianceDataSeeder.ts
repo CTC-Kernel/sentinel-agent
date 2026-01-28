@@ -15,6 +15,8 @@ import {
 import { useStore } from '../store';
 import { toast } from '@/lib/toast';
 import { Framework } from '../types';
+import { AuditLogService } from '../services/auditLogService';
+import { canEditResource } from '../utils/permissions';
 
 export const useComplianceDataSeeder = () => {
     const { user } = useStore();
@@ -37,6 +39,12 @@ export const useComplianceDataSeeder = () => {
 
     const seedControls = async (framework: Framework) => {
         if (!user?.organizationId) return;
+
+        // RBAC Check
+        if (!canEditResource(user, 'Control')) {
+            toast.error("Permission refusée : Vous n'avez pas les droits pour gérer les contrôles.");
+            return;
+        }
 
         const seedData = getSeedDataForFramework(framework);
         if (seedData.length === 0) {
@@ -69,9 +77,19 @@ export const useComplianceDataSeeder = () => {
             }
 
             await batch.commit();
+
+            await AuditLogService.logImport(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'control',
+                count,
+                `Compliance Framework Import (${framework})`
+            );
+
             toast.success(`${count} contrôles ${framework} importés avec succès`);
 
-        } catch {
+        } catch (error) {
+            console.error('Seeder Error:', error);
             toast.error("Erreur lors de l'import des données");
         } finally {
             setSeeding(false);

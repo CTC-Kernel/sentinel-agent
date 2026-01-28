@@ -15,7 +15,7 @@ export const IntegrationCard: React.FC<IntegrationCardProps> = ({ provider, onCo
     return (
         <div className={`group relative p-6 rounded-3xl border transition-all duration-300 ${isConnected
             ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-500/30 shadow-lg shadow-emerald-500/5'
-            : 'glass-panel hover:shadow-xl hover:border-brand-300 dark:hover:border-white/20'
+            : 'glass-premium hover:shadow-xl hover:border-brand-300 dark:hover:border-white/20 border-border/40'
             }`}>
             {/* Inner Glow Effect */}
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/50 to-transparent dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none" />

@@ -13,7 +13,11 @@ import type { ControlWithMappings } from '../../../types/framework';
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, onClick, className, ...props }: React.ComponentProps<'div'>) => (
-      <div onClick={onClick} className={className} {...props}>{children}</div>
+      onClick ? (
+        <button onClick={onClick as unknown as React.MouseEventHandler<HTMLButtonElement>} className={className} {...(props as unknown as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>
+      ) : (
+        <div className={className} {...props}>{children}</div>
+      )
     ),
   },
 }));

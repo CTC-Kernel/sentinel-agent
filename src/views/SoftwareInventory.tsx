@@ -66,7 +66,7 @@ const KPICard: React.FC<{
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl p-4 sm:p-6"
+            className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40 shadow-sm"
         >
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ const RiskDistribution: React.FC<{
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl p-4 sm:p-6"
+            className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40 shadow-sm"
         >
             <h3 className="text-sm font-medium text-muted-foreground mb-4">
                 Distribution des risques
@@ -236,6 +236,7 @@ const FilterDropdown: React.FC<{
                     <div
                         className="fixed inset-0 z-40"
                         onClick={() => setIsOpen(false)}
+                        aria-hidden="true"
                     />
                     <div className="absolute top-full left-0 mt-1 z-50 bg-popover border rounded-lg shadow-lg p-2 min-w-48">
                         {options.map(option => (

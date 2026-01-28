@@ -37,7 +37,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
             </div>
 
             {drills.length === 0 ? (
-                <div className="glass-panel rounded-3xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40">
                     <EmptyState
                         icon={Zap}
                         title="Aucun exercice enregistré"
@@ -46,7 +46,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                 </div>
             ) : (
 
-                <div className="glass-panel rounded-3xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-slate-300 font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">

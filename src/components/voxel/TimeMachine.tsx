@@ -416,6 +416,8 @@ export function TimeMachine({
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
             onClick={onClose}
+            role="presentation"
+            aria-hidden="true"
           />
           <motion.div
             initial={{ x: '100%', opacity: 0 }}
@@ -430,297 +432,301 @@ export function TimeMachine({
               boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
             }}
           >
-      {/* Header */}
-      <div className="p-5 border-b border-white/10 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
-            <Clock className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-white">Time Machine</h2>
-            <Badge variant="soft" className="text-xs mt-0.5">
-              {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setShowHelp(!showHelp)}
-            className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-brand-100 text-brand-400' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
-            title="Aide"
-          >
-            <Info className="h-5 w-5" />
-          </button>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
+            {/* Header */}
+            <div className="p-5 border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Time Machine</h2>
+                  <Badge variant="soft" className="text-xs mt-0.5">
+                    {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowHelp(!showHelp)}
+                  className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-brand-100 text-brand-400' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
+                  title="Aide"
+                >
+                  <Info className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
 
-      {/* Help Content */}
-      <AnimatePresence>
-        {showHelp && <TimeMachineHelpContent onClose={() => setShowHelp(false)} />}
-      </AnimatePresence>
+            {/* Help Content */}
+            <AnimatePresence>
+              {showHelp && <TimeMachineHelpContent onClose={() => setShowHelp(false)} />}
+            </AnimatePresence>
 
-      {/* Date Navigation */}
-      <div className="p-4 border-b space-y-4">
-        {/* Date picker and arrows */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={goToPreviousDay}
-            disabled={isBefore(subDays(selectedDate, 1), dateRange.start)}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+            {/* Date Navigation */}
+            <div className="p-4 border-b space-y-4">
+              {/* Date picker and arrows */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={goToPreviousDay}
+                  disabled={isBefore(subDays(selectedDate, 1), dateRange.start)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
 
-          <div className="relative flex-1">
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-              onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              {format(selectedDate, 'PPP', { locale: fr })}
-            </Button>
+                <div className="relative flex-1">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {format(selectedDate, 'PPP', { locale: fr })}
+                  </Button>
 
-            {isCalendarOpen && (
-              <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
-                <CalendarPicker
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedDate(date);
-                      setIsCalendarOpen(false);
-                    }
-                  }}
-                  disabled={(date) =>
-                    isAfter(date, new Date()) || isBefore(date, dateRange.start)
-                  }
-                  initialFocus
+                  {isCalendarOpen && (
+                    <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
+                      <CalendarPicker
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => {
+                          if (date) {
+                            setSelectedDate(date);
+                            setIsCalendarOpen(false);
+                          }
+                        }}
+                        disabled={(date) =>
+                          isAfter(date, new Date()) || isBefore(date, dateRange.start)
+                        }
+                        initialFocus
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={goToNextDay}
+                  disabled={isAfter(addDays(selectedDate, 1), dateRange.end)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Timeline slider */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>90 jours</span>
+                  <span>Aujourd'hui</span>
+                </div>
+                <input
+                  type="range"
+                  value={sliderValue[0]}
+                  max={90}
+                  min={0}
+                  step={1}
+                  onChange={(e) => handleSliderChange([parseInt(e.target.value, 10)])}
+                  className="w-full cursor-pointer accent-primary h-2 bg-secondary rounded-lg appearance-none"
+                  aria-label="Sélectionner la période (jours)"
                 />
               </div>
-            )}
-          </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={goToNextDay}
-            disabled={isAfter(addDays(selectedDate, 1), dateRange.end)}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+              {/* Action buttons */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={isCompareMode ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={toggleCompareMode}
+                >
+                  <GitCompare className="h-4 w-4 mr-2" />
+                  {isCompareMode ? 'Annuler comparaison' : 'Comparer'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetToToday}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset
+                </Button>
+              </div>
 
-        {/* Timeline slider */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>90 jours</span>
-            <span>Aujourd'hui</span>
-          </div>
-          <input
-            type="range"
-            value={sliderValue[0]}
-            max={90}
-            min={0}
-            step={1}
-            onChange={(e) => handleSliderChange([parseInt(e.target.value, 10)])}
-            className="w-full cursor-pointer accent-primary h-2 bg-secondary rounded-lg appearance-none"
-          />
-        </div>
+              {/* Compare date picker */}
+              {isCompareMode && (
+                <div className="pt-2 border-t">
+                  <label htmlFor="compare-date-trigger" className="text-sm text-muted-foreground mb-2 block">
+                    Comparer avec:
+                  </label>
+                  <div className="relative">
+                    <Button
+                      id="compare-date-trigger"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                      onClick={() => setIsCompareCalendarOpen(!isCompareCalendarOpen)}
+                      aria-haspopup="dialog"
+                      aria-expanded={isCompareCalendarOpen}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {compareDate ? format(compareDate, 'PPP', { locale: fr }) : "Sélectionnez une date"}
+                    </Button>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant={isCompareMode ? 'default' : 'outline'}
-            size="sm"
-            className="flex-1"
-            onClick={toggleCompareMode}
-          >
-            <GitCompare className="h-4 w-4 mr-2" />
-            {isCompareMode ? 'Annuler comparaison' : 'Comparer'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetToToday}
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-        </div>
-
-        {/* Compare date picker */}
-        {isCompareMode && (
-          <div className="pt-2 border-t">
-            <label className="text-sm text-muted-foreground mb-2 block">
-              Comparer avec:
-            </label>
-            <div className="relative">
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-                onClick={() => setIsCompareCalendarOpen(!isCompareCalendarOpen)}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {compareDate ? format(compareDate, 'PPP', { locale: fr }) : "Sélectionnez une date"}
-              </Button>
-
-              {isCompareCalendarOpen && (
-                <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
-                  <CalendarPicker
-                    mode="single"
-                    selected={compareDate || undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setCompareDate(date);
-                        setIsCompareCalendarOpen(false);
-                      }
-                    }}
-                    disabled={(date) =>
-                      isAfter(date, new Date()) ||
-                      isBefore(date, dateRange.start) ||
-                      isEqual(date, selectedDate)
-                    }
-                    initialFocus
-                  />
+                    {isCompareCalendarOpen && (
+                      <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
+                        <CalendarPicker
+                          mode="single"
+                          selected={compareDate || undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setCompareDate(date);
+                              setIsCompareCalendarOpen(false);
+                            }
+                          }}
+                          disabled={(date) =>
+                            isAfter(date, new Date()) ||
+                            isBefore(date, dateRange.start) ||
+                            isEqual(date, selectedDate)
+                          }
+                          initialFocus
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Snapshot Content */}
-      <div className="flex-1 overflow-auto p-4">
-        {isLoading ? (
-          <SnapshotSkeleton />
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <AlertCircle className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">{error}</p>
-          </div>
-        ) : snapshot ? (
-          <div className="space-y-6">
-            {/* Node counts */}
-            <div>
-              <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                <Layers className="h-4 w-4" />
-                Noeuds du graphe
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <MetricCard
-                  label="Total"
-                  value={snapshot.metrics.nodes.total}
-                  delta={delta?.nodes.total}
-                />
-                <MetricCard
-                  label="Risques"
-                  value={snapshot.metrics.nodes.byType.risk || 0}
-                  delta={delta?.nodes.byType.risk}
-                />
-                <MetricCard
-                  label="Controles"
-                  value={snapshot.metrics.nodes.byType.control || 0}
-                  delta={delta?.nodes.byType.control}
-                />
-                <MetricCard
-                  label="Actifs"
-                  value={snapshot.metrics.nodes.byType.asset || 0}
-                  delta={delta?.nodes.byType.asset}
-                />
-              </div>
-            </div>
-
-            {/* Anomalies */}
-            <div>
-              <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                Anomalies
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <MetricCard
-                  label="Actives"
-                  value={snapshot.metrics.anomalies.active}
-                  delta={delta?.anomalies.active}
-                />
-                <MetricCard
-                  label="Total"
-                  value={snapshot.metrics.anomalies.total}
-                  delta={delta?.anomalies.total}
-                />
-              </div>
-            </div>
-
-            {/* Risk distribution */}
-            <div>
-              <h3 className="text-sm font-medium mb-3">Distribution des risques</h3>
-              <div className="flex gap-2">
-                <Tooltip content={`Critique: ${snapshot.metrics.risks.critical}`}>
-                  <div className="flex-1 h-2 bg-red-500 rounded" style={{
-                    flex: snapshot.metrics.risks.critical || 0.1,
-                  }} />
-                </Tooltip>
-                <Tooltip content={`Haut: ${snapshot.metrics.risks.high}`}>
-                  <div className="flex-1 h-2 bg-orange-500 rounded" style={{
-                    flex: snapshot.metrics.risks.high || 0.1,
-                  }} />
-                </Tooltip>
-                <Tooltip content={`Moyen: ${snapshot.metrics.risks.medium}`}>
-                  <div className="flex-1 h-2 bg-yellow-500 rounded" style={{
-                    flex: snapshot.metrics.risks.medium || 0.1,
-                  }} />
-                </Tooltip>
-                <Tooltip content={`Faible: ${snapshot.metrics.risks.low}`}>
-                  <div className="flex-1 h-2 bg-green-500 rounded" style={{
-                    flex: snapshot.metrics.risks.low || 0.1,
-                  }} />
-                </Tooltip>
-              </div>
-            </div>
-
-            {/* Compliance */}
-            {snapshot.metrics.compliance && (
-              <div>
-                <h3 className="text-sm font-medium mb-3">Conformite</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <MetricCard
-                    label="Taux d'implementation"
-                    value={`${snapshot.metrics.compliance.implementationRate}%`}
-                    delta={delta?.compliance?.implementationRate}
-                  />
-                  <MetricCard
-                    label="Efficacite moyenne"
-                    value={`${snapshot.metrics.compliance.averageEffectiveness}%`}
-                    delta={delta?.compliance?.averageEffectiveness}
-                  />
+            {/* Snapshot Content */}
+            <div className="flex-1 overflow-auto p-4">
+              {isLoading ? (
+                <SnapshotSkeleton />
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground">{error}</p>
                 </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">Sélectionnez une date pour voir le snapshot</p>
-          </div>
-        )}
-      </div>
+              ) : snapshot ? (
+                <div className="space-y-6">
+                  {/* Node counts */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                      <Layers className="h-4 w-4" />
+                      Noeuds du graphe
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <MetricCard
+                        label="Total"
+                        value={snapshot.metrics.nodes.total}
+                        delta={delta?.nodes.total}
+                      />
+                      <MetricCard
+                        label="Risques"
+                        value={snapshot.metrics.nodes.byType.risk || 0}
+                        delta={delta?.nodes.byType.risk}
+                      />
+                      <MetricCard
+                        label="Controles"
+                        value={snapshot.metrics.nodes.byType.control || 0}
+                        delta={delta?.nodes.byType.control}
+                      />
+                      <MetricCard
+                        label="Actifs"
+                        value={snapshot.metrics.nodes.byType.asset || 0}
+                        delta={delta?.nodes.byType.asset}
+                      />
+                    </div>
+                  </div>
 
-      {/* Footer with read-only indicator */}
-      <div className="p-4 border-t border-white/10 shrink-0" style={{ background: 'rgba(255,255,255,0.03)' }}>
-        <div className="flex items-center gap-2 text-xs text-white/50">
-          <Badge variant="outline" className="border-white/20 text-white/60">Lecture seule</Badge>
-          <span>Données historiques - non modifiables</span>
-        </div>
-      </div>
+                  {/* Anomalies */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Anomalies
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <MetricCard
+                        label="Actives"
+                        value={snapshot.metrics.anomalies.active}
+                        delta={delta?.anomalies.active}
+                      />
+                      <MetricCard
+                        label="Total"
+                        value={snapshot.metrics.anomalies.total}
+                        delta={delta?.anomalies.total}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Risk distribution */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-3">Distribution des risques</h3>
+                    <div className="flex gap-2">
+                      <Tooltip content={`Critique: ${snapshot.metrics.risks.critical}`}>
+                        <div className="flex-1 h-2 bg-red-500 rounded" style={{
+                          flex: snapshot.metrics.risks.critical || 0.1,
+                        }} />
+                      </Tooltip>
+                      <Tooltip content={`Haut: ${snapshot.metrics.risks.high}`}>
+                        <div className="flex-1 h-2 bg-orange-500 rounded" style={{
+                          flex: snapshot.metrics.risks.high || 0.1,
+                        }} />
+                      </Tooltip>
+                      <Tooltip content={`Moyen: ${snapshot.metrics.risks.medium}`}>
+                        <div className="flex-1 h-2 bg-yellow-500 rounded" style={{
+                          flex: snapshot.metrics.risks.medium || 0.1,
+                        }} />
+                      </Tooltip>
+                      <Tooltip content={`Faible: ${snapshot.metrics.risks.low}`}>
+                        <div className="flex-1 h-2 bg-green-500 rounded" style={{
+                          flex: snapshot.metrics.risks.low || 0.1,
+                        }} />
+                      </Tooltip>
+                    </div>
+                  </div>
+
+                  {/* Compliance */}
+                  {snapshot.metrics.compliance && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-3">Conformite</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <MetricCard
+                          label="Taux d'implementation"
+                          value={`${snapshot.metrics.compliance.implementationRate}%`}
+                          delta={delta?.compliance?.implementationRate}
+                        />
+                        <MetricCard
+                          label="Efficacite moyenne"
+                          value={`${snapshot.metrics.compliance.averageEffectiveness}%`}
+                          delta={delta?.compliance?.averageEffectiveness}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground">Sélectionnez une date pour voir le snapshot</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer with read-only indicator */}
+            <div className="p-4 border-t border-white/10 shrink-0" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <div className="flex items-center gap-2 text-xs text-white/50">
+                <Badge variant="outline" className="border-white/20 text-white/60">Lecture seule</Badge>
+                <span>Données historiques - non modifiables</span>
+              </div>
+            </div>
           </motion.div>
         </>
       )}

@@ -64,7 +64,7 @@ describe('MigrationTool', () => {
 
     describe('migration process', () => {
         it('shows loading state when migration starts', async () => {
-            mockRunMigration.mockImplementation(() => new Promise(() => {}));
+            mockRunMigration.mockImplementation(() => new Promise(() => { }));
 
             render(<MigrationTool />);
 
@@ -76,7 +76,7 @@ describe('MigrationTool', () => {
         });
 
         it('disables button during migration', async () => {
-            mockRunMigration.mockImplementation(() => new Promise(() => {}));
+            mockRunMigration.mockImplementation(() => new Promise(() => { }));
 
             render(<MigrationTool />);
 
@@ -126,10 +126,10 @@ describe('MigrationTool', () => {
     });
 
     describe('styling', () => {
-        it('has glass panel styling', () => {
+        it('has glass premium styling', () => {
             const { container } = render(<MigrationTool />);
 
-            expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+            expect(container.querySelector('.glass-premium')).toBeInTheDocument();
         });
 
         it('has log display area', () => {

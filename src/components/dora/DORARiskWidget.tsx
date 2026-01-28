@@ -31,7 +31,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
 
     if (loading) {
         return (
-            <div className={`glass-panel rounded-3xl p-6 animate-pulse ${className}`}>
+            <div className={`glass-premium rounded-3xl p-6 animate-pulse border border-border/40 ${className}`}>
                 <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-40 mb-4" />
                 <div className="grid grid-cols-2 gap-4">
                     {[1, 2, 3, 4].map(i => (
@@ -43,7 +43,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
     }
 
     return (
-        <div className={`glass-panel rounded-3xl p-6 border border-white/50 dark:border-white/5 ${className}`}>
+        <div className={`glass-premium rounded-3xl p-6 border border-white/50 dark:border-white/5 ${className}`}>
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">

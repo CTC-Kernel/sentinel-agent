@@ -61,7 +61,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
 
     if (viewMode === 'list') {
         return (
-            <div className="glass-panel rounded-3xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5 animate-in fade-in duration-500">
+            <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40 animate-in fade-in duration-500">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-slate-300 font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
@@ -109,12 +109,8 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                             <div className="flex items-center gap-2">
                                                 <img
                                                     src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-                                                    alt={proc.owner}
+                                                    alt=""
                                                     className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = getUserAvatarUrl(null, ownerUser?.role);
-                                                    }}
                                                 />
                                                 <span>{proc.owner}</span>
                                             </div>
@@ -175,7 +171,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                         role="button"
                         tabIndex={0}
                         aria-label={`Ouvrir le processus ${proc.name}`}
-                        className="glass-panel rounded-3xl p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5"
+                        className="glass-premium rounded-3xl p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-border/40"
                     >
                         <div className="flex justify-between items-start mb-5">
                             <div className="p-3 bg-rose-50 dark:bg-slate-800 rounded-2xl text-rose-600 shadow-inner">
@@ -206,12 +202,8 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                 <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px] flex items-center gap-2">
                                     <img
                                         src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-                                        alt={proc.owner}
+                                        alt=""
                                         className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.src = getUserAvatarUrl(null, ownerUser?.role);
-                                        }}
                                     />
                                     {proc.owner}
                                 </span>

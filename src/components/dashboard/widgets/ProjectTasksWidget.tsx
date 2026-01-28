@@ -98,6 +98,17 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                                 if (navigate) navigate(path);
                                 else routerNavigate(path);
                             }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    const path = `/projects?id=${project.id}`;
+                                    if (navigate) navigate(path);
+                                    else routerNavigate(path);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Voir le projet: ${project.name}`}
                         >
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate text-foreground group-hover:text-brand-500 transition-colors">{project.name}</p>

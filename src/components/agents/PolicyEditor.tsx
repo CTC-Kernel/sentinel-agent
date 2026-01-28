@@ -228,7 +228,8 @@ const RulesCategorySection: React.FC<{
         <div className="mb-4">
             <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-2 w-full p-2 hover:bg-accent/50 rounded-lg transition-colors"
+                aria-expanded={expanded}
+                className="flex items-center gap-2 w-full p-2 hover:bg-accent/50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
                 <motion.div
                     animate={{ rotate: expanded ? 90 : 0 }}
@@ -378,21 +379,23 @@ const PolicyForm: React.FC<{
             )}
 
             {/* Basic Info */}
-            <div className="glass-panel rounded-xl p-4 space-y-4">
+            <div className="glass-premium rounded-xl p-4 space-y-4 border border-border/40">
                 <h4 className="font-medium">Informations générales</h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="text-sm font-medium mb-1 block">Nom</label>
+                        <label htmlFor="policyName" className="text-sm font-medium mb-1 block">Nom</label>
                         <Input
+                            id="policyName"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Nom de la politique"
                         />
                     </div>
                     <div>
-                        <label className="text-sm font-medium mb-1 block">Description</label>
+                        <label htmlFor="policyDescription" className="text-sm font-medium mb-1 block">Description</label>
                         <Input
+                            id="policyDescription"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Description optionnelle"
@@ -402,8 +405,9 @@ const PolicyForm: React.FC<{
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="text-sm font-medium mb-1 block">Portée</label>
+                        <label htmlFor="policyScope" className="text-sm font-medium mb-1 block">Portée</label>
                         <select
+                            id="policyScope"
                             value={scope}
                             onChange={(e) => setScope(e.target.value as PolicyScope)}
                             className="w-full bg-background border border-input rounded-md px-3 py-2"
@@ -415,8 +419,9 @@ const PolicyForm: React.FC<{
                         </select>
                     </div>
                     <div>
-                        <label className="text-sm font-medium mb-1 block">Priorité</label>
+                        <label htmlFor="policyPriority" className="text-sm font-medium mb-1 block">Priorité</label>
                         <select
+                            id="policyPriority"
                             value={priority}
                             onChange={(e) => setPriority(e.target.value as PolicyPriority)}
                             className="w-full bg-background border border-input rounded-md px-3 py-2"
@@ -424,15 +429,16 @@ const PolicyForm: React.FC<{
                             {POLICY_PRIORITIES.map(p => (
                                 <option key={p} value={p}>
                                     {p === 'critical' ? 'Critique' :
-                                     p === 'high' ? 'Haute' :
-                                     p === 'medium' ? 'Moyenne' : 'Basse'}
+                                        p === 'high' ? 'Haute' :
+                                            p === 'medium' ? 'Moyenne' : 'Basse'}
                                 </option>
                             ))}
                         </select>
                     </div>
                     <div>
-                        <label className="text-sm font-medium mb-1 block">Mode</label>
+                        <label htmlFor="policyEnforcement" className="text-sm font-medium mb-1 block">Mode</label>
                         <select
+                            id="policyEnforcement"
                             value={enforcement}
                             onChange={(e) => setEnforcement(e.target.value as EnforcementMode)}
                             className="w-full bg-background border border-input rounded-md px-3 py-2"
@@ -447,7 +453,7 @@ const PolicyForm: React.FC<{
                 {/* Target Groups */}
                 {scope === 'group' && (
                     <div>
-                        <label className="text-sm font-medium mb-2 block">Groupes cibles</label>
+                        <span className="text-sm font-medium mb-2 block">Groupes cibles</span>
                         <div className="flex flex-wrap gap-2">
                             {groups.map(group => (
                                 <Badge
@@ -471,7 +477,7 @@ const PolicyForm: React.FC<{
             </div>
 
             {/* Rules */}
-            <div className="glass-panel rounded-xl p-4">
+            <div className="glass-premium rounded-xl p-4 border border-border/40">
                 <h4 className="font-medium mb-4">Règles</h4>
 
                 {RULE_CATEGORIES.map(category => (
@@ -516,18 +522,27 @@ const PolicyCard: React.FC<{
         <motion.div
             variants={slideUpVariants}
             className={cn(
-                'glass-panel rounded-xl p-4 cursor-pointer transition-all',
+                'glass-premium rounded-xl p-4 cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none border border-border/40',
                 isSelected && 'ring-2 ring-primary'
             )}
             onClick={onSelect}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect();
+                }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected}
         >
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                     <div className={cn(
                         'p-2 rounded-lg',
                         policy.scope === 'global' ? 'bg-primary/10' :
-                        policy.scope === 'group' ? 'bg-warning/10' :
-                        'bg-success/10'
+                            policy.scope === 'group' ? 'bg-warning/10' :
+                                'bg-success/10'
                     )}>
                         <Layers className={cn(
                             'h-4 w-4',
@@ -761,7 +776,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
 
     if (loading) {
         return (
-            <div className={cn('glass-panel rounded-2xl p-8 flex items-center justify-center', className)}>
+            <div className={cn('glass-premium rounded-2xl p-8 flex items-center justify-center border border-border/40', className)}>
                 <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
         );
@@ -818,7 +833,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
             {filteredPolicies.length === 0 ? (
                 <motion.div
                     variants={slideUpVariants}
-                    className="glass-panel rounded-2xl p-8 text-center"
+                    className="glass-premium rounded-2xl p-8 text-center border border-border/40"
                 >
                     <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-semibold mb-2">Aucune politique</h3>
@@ -853,7 +868,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
             {selectedPolicy && (
                 <motion.div
                     variants={slideUpVariants}
-                    className="glass-panel rounded-2xl p-6"
+                    className="glass-premium rounded-2xl p-6 border border-border/40"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold">Détails de la politique</h3>

@@ -180,15 +180,15 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
                     <p className="text-slate-600 dark:text-muted-foreground mb-4">{config.description}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="glass-panel p-4 rounded-xl">
+                        <div className="glass-premium p-4 rounded-xl border border-border/40">
                             <div className="text-2xl font-bold text-slate-900 dark:text-white">{phaseData.progress}%</div>
                             <div className="text-sm text-muted-foreground">Progression</div>
                         </div>
-                        <div className="glass-panel p-4 rounded-xl">
+                        <div className="glass-premium p-4 rounded-xl border border-border/40">
                             <div className="text-2xl font-bold text-slate-900 dark:text-white">{completedMilestones}/{milestones.length}</div>
                             <div className="text-sm text-muted-foreground">Jalons</div>
                         </div>
-                        <div className="glass-panel p-4 rounded-xl">
+                        <div className="glass-premium p-4 rounded-xl border border-border/40">
                             <div className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                                 {phaseData.responsibleId ? (
                                     <Users className="w-5 h-5 text-brand-500" />

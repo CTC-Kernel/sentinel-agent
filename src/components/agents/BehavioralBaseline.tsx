@@ -228,8 +228,8 @@ const HourlyPatternChart: React.FC<{
                                 className={cn(
                                     'w-full rounded-t transition-colors',
                                     isPeak ? 'bg-destructive' :
-                                    isTrough ? 'bg-success' :
-                                    'bg-primary/50 hover:bg-primary'
+                                        isTrough ? 'bg-success' :
+                                            'bg-primary/50 hover:bg-primary'
                                 )}
                                 style={{ height: `${height}%` }}
                             />
@@ -301,8 +301,8 @@ const WeeklyPatternChart: React.FC<{
                                     className={cn(
                                         'w-full rounded-t transition-colors',
                                         isPeak ? 'bg-destructive' :
-                                        isTrough ? 'bg-success' :
-                                        'bg-primary/50 hover:bg-primary'
+                                            isTrough ? 'bg-success' :
+                                                'bg-primary/50 hover:bg-primary'
                                     )}
                                     style={{ height: `${height}%` }}
                                 />
@@ -455,7 +455,7 @@ const AgentBaselineView: React.FC<{
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl overflow-hidden"
+            className="glass-premium rounded-2xl overflow-hidden border border-border/40"
         >
             {/* Header */}
             <div className="p-4 sm:p-6 border-b border-border/50">
@@ -657,7 +657,7 @@ export const BehavioralBaseline: React.FC<BehavioralBaselineProps> = ({
     if (loading) {
         return (
             <div className={cn('space-y-4', className)}>
-                <div className="glass-panel rounded-2xl p-8 flex items-center justify-center">
+                <div className="glass-premium rounded-2xl p-8 flex items-center justify-center border border-border/40">
                     <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
             </div>
@@ -674,7 +674,7 @@ export const BehavioralBaseline: React.FC<BehavioralBaselineProps> = ({
             >
                 <motion.div
                     variants={slideUpVariants}
-                    className="glass-panel rounded-2xl p-8 text-center"
+                    className="glass-premium rounded-2xl p-8 text-center border border-border/40"
                 >
                     <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-semibold mb-2">Aucune baseline disponible</h3>
@@ -695,7 +695,7 @@ export const BehavioralBaseline: React.FC<BehavioralBaselineProps> = ({
         >
             {/* Summary Stats */}
             {showAllAgents && (
-                <motion.div variants={slideUpVariants} className="glass-panel rounded-2xl p-4 sm:p-6">
+                <motion.div variants={slideUpVariants} className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-xl bg-primary/10">
                             <TrendingUp className="h-5 w-5 text-primary" />

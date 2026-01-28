@@ -42,7 +42,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
             role="button"
             tabIndex={0}
             onKeyDown={handleKeyDown}
-            className="glass-panel p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full transition-colors"
+            className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="relative z-10 flex flex-col h-full">

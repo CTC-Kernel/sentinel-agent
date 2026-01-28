@@ -111,7 +111,20 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
     <div data-testid="dropdown-group" {...props}>{children}</div>
   ),
   DropdownMenuItem: ({ children, onClick, ...props }: React.PropsWithChildren<{ onClick?: () => void }>) => (
-    <div data-testid="dropdown-item" role="menuitem" onClick={onClick} {...props}>{children}</div>
+    <div 
+      data-testid="dropdown-item" 
+      role="menuitem" 
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.();
+        }
+      }}
+      {...props}
+    >
+      {children}
+    </div>
   ),
   DropdownMenuLabel: ({ children, ...props }: React.PropsWithChildren) => (
     <div data-testid="dropdown-label" {...props}>{children}</div>

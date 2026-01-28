@@ -237,7 +237,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
 
             {/* Version History Panel */}
             {showHistory && (
-                <div className="glass-panel rounded-xl p-4 space-y-3">
+                <div className="glass-premium rounded-xl p-4 space-y-3 border border-border/40">
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                             <History className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -384,6 +384,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                 </Badge>
                                             ) : (
                                                 <label className="relative inline-flex items-center cursor-pointer">
+                                                    <span className="sr-only">Toggle applicability for {item.name}</span>
                                                     <input
                                                         checked={!isNonApplicable}
                                                         onChange={(e) => 'control' in item && item.control && handlers.handleApplicabilityChange(item.control, e.target.checked)}
@@ -430,7 +431,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                     className={`bg-transparent text-xs w-full focus:ring-1 focus-visible:ring-brand-500 rounded px-2 py-1 transition-colors ${missingJustification
                                                         ? 'border border-red-500 bg-red-50 dark:bg-red-50 dark:bg-red-900 placeholder-red-400'
                                                         : 'border-none placeholder-slate-400'
-                                                    }`}
+                                                        }`}
                                                     placeholder={missingJustification ? "Justification requise !" : "Ajouter une justification..."}
                                                     aria-label={`Justification pour ${item.name}`}
                                                 />

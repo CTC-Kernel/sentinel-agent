@@ -39,7 +39,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       <div className={`
         relative flex flex-col gap-6
         ${compact ? 'py-2' : 'py-4 lg:py-6'}
-        border-b border-[color:var(--glass-border)]
+        border-b border-border/40
       `}>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
@@ -54,10 +54,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 className={`
                   relative flex shrink-0 items-center justify-center
-                  ${compact ? 'w-20 h-20 sm:w-24 sm:h-24 rounded-2xl' : 'w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 xl:w-56 xl:h-56 rounded-3xl sm:rounded-4xl lg:rounded-3xl'}
-                  bg-white/60 dark:bg-slate-950/40 backdrop-blur-2xl
-                  shadow-2xl shadow-black/5 dark:shadow-black/20
-                  ring-1 ring-[color:var(--glass-border)]
+                  ${compact ? 'w-20 h-20 sm:w-24 sm:h-24 rounded-2xl' : 'w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-3xl lg:rounded-[2.5rem]'}
+                  glass-premium
+                  shadow-xl shadow-black/5 dark:shadow-black/20
+                  ring-1 ring-border/40
                   overflow-hidden
                   transition-all duration-500 ease-out
                   hover:scale-[1.02] hover:shadow-primary/5 hover:ring-primary/20
@@ -88,7 +88,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             <div className="min-w-0 flex flex-col gap-2">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className={`
-                  ${compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl'}
+                  ${compact ? 'text-xl sm:text-2xl' : 'text-3xl sm:text-4xl'}
                   font-bold font-display tracking-tight leading-none
                   text-slate-900 dark:text-white
                   drop-shadow-sm dark:drop-shadow-lg

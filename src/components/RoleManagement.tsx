@@ -98,7 +98,7 @@ export const RoleManagement: React.FC = () => {
             </div>
 
             {/* Users Table */}
-            <div className="glass-panel rounded-2xl overflow-hidden border border-white/40 dark:border-white/10">
+            <div className="glass-premium rounded-2xl overflow-hidden border border-border/40">
                 {users.length === 0 ? (
                     <div className="text-center py-12">
                         <Info className="h-12 w-12 mx-auto text-slate-400 dark:text-slate-300 mb-4" />
@@ -150,7 +150,7 @@ export const RoleManagement: React.FC = () => {
             </div>
 
             {/* Info Box */}
-            <div className="glass-panel p-4 rounded-2xl border border-primary/20 bg-primary/5">
+            <div className="glass-premium p-4 rounded-2xl border border-primary/20 bg-primary/5">
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-foreground">

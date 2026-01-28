@@ -171,7 +171,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-brand-50 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <Globe className="w-6 h-6 text-brand-600 dark:text-brand-400" />
@@ -183,7 +183,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                         </div>
                     </div>
 
-                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-error-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <AlertTriangle className="w-6 h-6 text-error-text" />
@@ -195,7 +195,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                         </div>
                     </div>
 
-                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-warning-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <FileText className="w-6 h-6 text-warning-text" />
@@ -207,7 +207,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                         </div>
                     </div>
 
-                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-info-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <Shield className="w-6 h-6 text-info-text" />
@@ -223,7 +223,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                 </div>
 
                 {/* Filters */}
-                <div className="glass-panel p-4 rounded-3xl border border-white/50 dark:border-white/5 mb-6 shadow-sm">
+                <div className="glass-premium p-4 rounded-3xl border border-border/40 mb-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-1">
                             <SearchInput
@@ -261,7 +261,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                 </div>
 
                 {/* List */}
-                <div className="glass-panel rounded-4xl border border-white/50 dark:border-white/5 overflow-hidden shadow-apple-sm">
+                <div className="glass-premium rounded-4xl border border-border/40 overflow-hidden shadow-apple-sm">
                     <ICTProviderList
                         providers={providers}
                         loading={loading}

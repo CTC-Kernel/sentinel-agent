@@ -128,16 +128,14 @@ const FrameworkRow: React.FC<FrameworkRowProps> = ({ framework }) => {
             <div className="flex items-center gap-3">
                 <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
                     <div
-                        className={`h-full transition-all duration-500 ${
-                            passRate >= 80 ? 'bg-success' : passRate >= 60 ? 'bg-warning' : 'bg-danger'
-                        }`}
+                        className={`h-full transition-all duration-500 ${passRate >= 80 ? 'bg-success' : passRate >= 60 ? 'bg-warning' : 'bg-danger'
+                            }`}
                         style={{ width: `${passRate}%` }}
                     />
                 </div>
-                <span className={`text-sm font-semibold w-12 text-right ${
-                    framework.averageScore >= 80 ? 'text-success' :
-                    framework.averageScore >= 60 ? 'text-warning' : 'text-danger'
-                }`}>
+                <span className={`text-sm font-semibold w-12 text-right ${framework.averageScore >= 80 ? 'text-success' :
+                        framework.averageScore >= 60 ? 'text-warning' : 'text-danger'
+                    }`}>
                     {framework.averageScore.toFixed(0)}%
                 </span>
             </div>
@@ -222,10 +220,9 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
                     >
                         <div className="relative w-full">
                             <div
-                                className={`w-full rounded-t transition-all duration-300 group-hover:opacity-80 ${
-                                    point.averageScore >= 80 ? 'bg-success' :
-                                    point.averageScore >= 60 ? 'bg-warning' : 'bg-danger'
-                                }`}
+                                className={`w-full rounded-t transition-all duration-300 group-hover:opacity-80 ${point.averageScore >= 80 ? 'bg-success' :
+                                        point.averageScore >= 60 ? 'bg-warning' : 'bg-danger'
+                                    }`}
                                 style={{ height: `${Math.max(height, 5)}%`, minHeight: '4px' }}
                             />
                             <div className="absolute -top-6 left-1/2 -translate-x-1/2 hidden group-hover:block bg-foreground text-background text-xs px-2 py-1 rounded whitespace-nowrap z-10">
@@ -379,7 +376,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
 
     if (error) {
         return (
-            <div className={`glass-panel rounded-2xl p-8 text-center ${className}`}>
+            <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <AlertTriangle className="h-12 w-12 text-danger mx-auto mb-4" />
                 <p className="text-sm text-muted-foreground">{error}</p>
                 <Button
@@ -396,7 +393,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
 
     if (!data) {
         return (
-            <div className={`glass-panel rounded-2xl p-8 text-center ${className}`}>
+            <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <FileCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-sm text-muted-foreground">Aucune donnée disponible</p>
             </div>
@@ -516,7 +513,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Compliance Gauge */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <PieChart className="h-4 w-4 text-primary" />
                         Score de conformité global
@@ -549,7 +546,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                 </div>
 
                 {/* Score Distribution */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <BarChart3 className="h-4 w-4 text-primary" />
                         Distribution des scores
@@ -558,7 +555,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                 </div>
 
                 {/* Trend Chart */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         {scoreTrend >= 0 ? (
                             <TrendingUp className="h-4 w-4 text-success" />
@@ -571,7 +568,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                 </div>
 
                 {/* By Framework */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <ListChecks className="h-4 w-4 text-primary" />
                         Par framework
@@ -585,7 +582,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
             </div>
 
             {/* Top Issues */}
-            <div className="glass-panel rounded-2xl p-6">
+            <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                 <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                     Problèmes principaux

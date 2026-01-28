@@ -271,7 +271,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 />
             )}
             <fieldset disabled={readOnly} className="space-y-8 disabled:text-slate-500 dark:disabled:text-slate-400">
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="glass-premium p-6 rounded-3xl shadow-sm border border-border/40">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Informations Principales</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="col-span-1 md:col-span-2">
@@ -377,7 +377,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
                 {/* Specialized Fields based on Type */}
                 {watch('type') === 'Matériel' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <div className="glass-premium p-6 rounded-3xl shadow-sm animate-fade-in border border-border/40">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Détails Matériel</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
@@ -398,7 +398,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 )}
 
                 {watch('type') === 'Logiciel' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <div className="glass-premium p-6 rounded-3xl shadow-sm animate-fade-in border border-border/40">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Détails Logiciel</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
@@ -433,7 +433,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 )}
 
                 {watch('type') === 'Humain' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <div className="glass-premium p-6 rounded-3xl shadow-sm animate-fade-in border border-border/40">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Détails Collaborateur</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
@@ -480,7 +480,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 )}
 
                 {watch('type') === 'Service' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <div className="glass-premium p-6 rounded-3xl shadow-sm animate-fade-in border border-border/40">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Détails Service / SaaS</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
@@ -540,7 +540,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 )}
 
                 {watch('type') === 'Données' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <div className="glass-premium p-6 rounded-3xl shadow-sm animate-fade-in border border-border/40">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Détails Données</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
@@ -584,14 +584,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             />
                             <div className="flex flex-col gap-4 justify-center md:col-span-2">
                                 <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
-                                    <input {...control.register('dataDetails.isEncrypted')}
-                                        type="checkbox"
-                                        id="isEncrypted"
-                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-slate-300 focus-visible:ring-brand-500 transition-all duration-200"
-                                    />
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
-                                </label>
-                                <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
                                     <input {...register('dataDetails.isEncrypted')}
                                         type="checkbox"
                                         id="isEncrypted"
@@ -612,7 +604,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
                 )}
 
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="glass-premium p-6 rounded-3xl shadow-sm border border-border/40">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center justify-between">
                         <div className="flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</div>
                         <button
@@ -644,7 +636,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="glass-premium p-6 rounded-3xl shadow-sm border border-border/40">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6 flex items-center">
                         <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
                     </h3>
@@ -680,7 +672,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="glass-premium p-6 rounded-3xl shadow-sm border border-border/40">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Cycle de Vie</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
@@ -749,7 +741,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             </fieldset>
 
             {!readOnly && (
-                <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="flex justify-end gap-3 pt-6 border-t border-border/40">
                     <Button
                         type="button"
                         onClick={onCancel}

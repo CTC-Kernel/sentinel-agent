@@ -124,7 +124,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
                 {/* Hardware Detected Section */}
-                <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-slate-800/50">
+                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 bg-white/50 dark:bg-slate-800/50">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                         {assetTypeIcons[hardwareType]}
                         Matériel Détecté
@@ -170,7 +170,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 </div>
 
                 {/* User Input Section */}
-                <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/40 dark:border-white/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
                         Informations Complémentaires
                     </h3>

@@ -137,11 +137,12 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
           {/* Strategic Scenario Selection */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label htmlFor="strategicScenarioId" className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
               {t('ebios.workshop4.parentStrategicScenario')} *
             </label>
             <select
               {...register('strategicScenarioId')}
+              id="strategicScenarioId"
               className={cn(
                 "w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.strategicScenarioId
@@ -195,11 +196,12 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Name */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
               {t('ebios.workshop4.scenarioName')} *
             </label>
             <input
               {...register('name')}
+              id="name"
               type="text"
               placeholder="Ex: Phishing ciblé via messagerie"
               className={cn(
@@ -219,11 +221,12 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
+            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
               {t('ebios.workshop4.scenarioDescription')} *
             </label>
             <textarea
               {...register('description')}
+              id="description"
               rows={4}
               placeholder="Décrivez le mode opératoire détaillé de ce scénario..."
               className={cn(

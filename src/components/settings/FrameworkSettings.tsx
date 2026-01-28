@@ -126,7 +126,7 @@ export const FrameworkSettings: React.FC = () => {
 
     if (!hasPermission(user, 'Settings', 'manage')) {
         return (
-            <div className="glass-panel p-8 text-center">
+            <div className="glass-premium p-8 text-center rounded-2xl border border-border/40">
                 <Landmark className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Accès restreint
@@ -141,7 +141,7 @@ export const FrameworkSettings: React.FC = () => {
     return (
         <div className="space-y-6 sm:space-y-8">
             {/* Header */}
-            <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10">
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">

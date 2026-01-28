@@ -770,8 +770,16 @@ export const Help: React.FC = () => {
                 {/* Mobile Menu Overlay */}
                 {mobileMenuOpen && (
                     <div
+                        role="button"
+                        tabIndex={-1}
+                        aria-label="Fermer le menu"
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden"
                         onClick={() => setMobileMenuOpen(false)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                                setMobileMenuOpen(false);
+                            }
+                        }}
                     />
                 )}
 

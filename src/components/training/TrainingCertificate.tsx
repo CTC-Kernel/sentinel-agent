@@ -123,7 +123,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
   // Check if assignment is completed
   if (assignment.status !== 'completed') {
     return (
-      <div className={`glass-panel p-5 rounded-2xl border border-white/10 ${className}`}>
+      <div className={`glass-premium p-5 rounded-2xl border border-border/40 ${className}`}>
         <div className="flex items-center gap-3 text-muted-foreground">
           <Award className="w-6 h-6" />
           <div>
@@ -139,7 +139,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`glass-panel p-5 rounded-2xl border border-white/10 ${className}`}
+      className={`glass-premium p-5 rounded-2xl border border-border/40 ${className}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">

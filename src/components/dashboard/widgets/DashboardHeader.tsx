@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, ShieldCheck, Users, LayoutDashboard, Check, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Lightbulb, Sparkles, Target, Calendar, Download, Bot } from '../../ui/Icons';
+import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, ShieldCheck, Users, LayoutDashboard, Check, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Lightbulb, Sparkles, Target, Calendar, Download, Bot, AlertTriangle, Activity } from '../../ui/Icons';
 import { Rocket } from '../../ui/Icons';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { ShinyText } from '../../ui/ShinyText';
@@ -256,29 +256,29 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             initial={{ opacity: 0, scale: 0.96, filter: 'blur(20px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="group relative rounded-3xl p-[2px] overflow-hidden shadow-2xl shadow-brand-500/25"
+            className="group relative rounded-4xl p-[1.5px] overflow-hidden shadow-2xl shadow-brand-500/20"
         >
             {/* Premium Animated Border Gradient */}
-            <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--brand-400)_0%,var(--info-400)_25%,var(--brand-500)_50%,var(--success-400)_75%,var(--brand-400)_100%)] animate-shimmer-rotate opacity-60 group-hover:opacity-70 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
-            <div className="absolute inset-[1px] rounded-3xl bg-background/95 dark:bg-slate-950/95" />
+            <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--brand-400)_0%,var(--info-400)_25%,var(--brand-500)_50%,var(--success-400)_75%,var(--brand-400)_100%)] animate-shimmer-rotate opacity-50 group-hover:opacity-80 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
+            <div className="absolute inset-[1.5px] rounded-[1.9rem] bg-background/60 dark:bg-slate-950/60 backdrop-blur-xl" />
 
-            <PremiumCard glass className="glass-premium relative rounded-3xl overflow-hidden shadow-none border-none bg-gradient-to-br from-white/80 via-white/60 to-slate-50/80 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950/90">
+            <PremiumCard glass className="glass-premium relative rounded-[1.85rem] overflow-hidden shadow-none border-none !bg-transparent">
                 {/* Multi-layer Spotlight Effects */}
-                <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--brand-500)" />
-                <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-60" fill="var(--info-400)" />
+                <Spotlight className="-top-40 left-0 md:left-60 md:-top-20 opacity-80" fill="var(--brand-500)" />
+                <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-70" fill="var(--info-400)" />
 
                 {/* Premium Border Beam */}
-                <BorderBeam size={600} duration={15} colorFrom="var(--brand-400)" colorTo="var(--info-500)" />
+                <BorderBeam size={600} duration={15} colorFrom="var(--brand-400)" colorTo="var(--info-500)" borderWidth={2} />
 
                 {/* Layered Aurora Background */}
-                <div className="absolute inset-0 bg-aurora animate-aurora opacity-40 dark:opacity-20 pointer-events-none" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--brand-500-rgb),0.3),transparent)] pointer-events-none" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_80%_50%,rgba(var(--info-500-rgb),0.15),transparent)] pointer-events-none" />
-                <div className="absolute inset-0 bg-grid-slate-900/[0.02] dark:bg-grid-white/[0.02] pointer-events-none" />
+                <div className="absolute inset-0 bg-aurora animate-aurora opacity-50 dark:opacity-30 pointer-events-none" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--brand-500-rgb),0.4),transparent)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_80%_50%,rgba(var(--info-500-rgb),0.2),transparent)] pointer-events-none" />
+                <div className="absolute inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-white/[0.04] pointer-events-none" />
 
                 {/* Floating Orbs */}
-                <div className="absolute top-10 left-[20%] w-32 h-32 bg-brand-300/30 dark:bg-brand-9000/15 rounded-full blur-3xl animate-float pointer-events-none" />
-                <div className="absolute bottom-10 right-[15%] w-40 h-40 bg-info-400/20 dark:bg-info-500/15 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
+                <div className="absolute top-10 left-[20%] w-32 h-32 bg-brand-300/40 dark:bg-brand-500/20 rounded-full blur-3xl animate-float pointer-events-none" />
+                <div className="absolute bottom-10 right-[15%] w-40 h-40 bg-info-400/30 dark:bg-info-400/20 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
 
                 {/* Inner Content Container */}
                 <div className="relative z-10 p-6 md:p-8 lg:p-10">
@@ -293,7 +293,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/30 via-info-500/30 to-brand-500/30 rounded-[2.5rem] blur-2xl opacity-0 group-hover/orb:opacity-70 transition-all duration-700 animate-pulse-slow" />
 
                                     {/* Main Logo Container */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-[1.5rem] bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--brand-500-rgb),0.25)] ring-1 ring-white/80 dark:ring-white/10">
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-[1.5rem] bg-background/60 dark:bg-slate-900/40 backdrop-blur-xl shadow-xl overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--brand-500-rgb),0.15)] ring-1 ring-border/40">
 
                                         {/* Inner Gradient Overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-info-500/10 opacity-0 group-hover/orb:opacity-70 transition-opacity duration-700" />
@@ -612,7 +612,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className={`p-2 rounded-xl shrink-0 transition-transform duration-500 group-hover/insight:scale-110
                                         ${insight.type === 'danger' ? 'bg-destructive/10' : 'bg-success/10'}`}>
                                         {insight.type === 'danger' ? (
-                                            <img src="/images/risques.png" alt="RISQUE" className="h-8 w-8 object-contain" />
+                                            <AlertTriangle className="h-6 w-6 text-destructive animate-pulse-subtle" />
                                         ) : (
                                             <ShieldCheck className="h-6 w-6 text-success" />
                                         )}
@@ -632,13 +632,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     transition={{ delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex-1 flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-slate-50/60 dark:from-slate-800/60 dark:via-slate-900/40 dark:to-slate-950/60 border border-white/30 dark:border-slate-700/30 backdrop-blur-xl shadow-sm"
                                 >
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 ring-1 ring-inset ring-brand-200 shadow-sm relative overflow-hidden group">
-                                        <div className="absolute inset-0 bg-brand-50 animate-pulse group-hover:bg-brand-50 transition-colors" />
-                                        <img
-                                            src="/images/tableau-de-bord.png"
-                                            alt="DASHBOARD"
-                                            className="w-8 h-8 object-contain relative z-10 filter drop-shadow-sm group-hover:scale-110 transition-transform duration-500"
-                                        />
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50/50 dark:bg-brand-900/20 ring-1 ring-inset ring-brand-200/50 dark:ring-brand-500/20 shadow-sm relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-brand-50 dark:bg-brand-900/10 animate-pulse group-hover:bg-brand-50 transition-colors" />
+                                        <Activity className="w-7 h-7 text-brand-600 dark:text-brand-400 relative z-10 filter drop-shadow-sm group-hover:scale-110 transition-transform duration-500" />
                                     </div>
                                     <div>
                                         <p className="font-bold text-foreground tracking-tight leading-none mb-1">{t('dashboard.allSystemsOperational')}</p>

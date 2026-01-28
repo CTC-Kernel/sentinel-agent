@@ -10,10 +10,11 @@ const Label = React.forwardRef<
     HTMLLabelElement,
     React.LabelHTMLAttributes<HTMLLabelElement> &
     VariantProps<typeof labelVariants>
->(({ className, ...props }, ref) => (
+>(({ className, htmlFor, ...props }, ref) => (
     <label
         ref={ref}
         className={cn(labelVariants(), className)}
+        htmlFor={htmlFor}
         {...props}
     />
 ))

@@ -45,7 +45,7 @@ import { OnboardingService } from '../services/onboardingService';
 
 // --- Premium Skeleton (Matches Card Layout) ---
 const DocumentCardSkeleton = () => (
-    <div className="glass-premium p-5 rounded-3xl border border-white/5 flex flex-col gap-4 relative overflow-hidden">
+    <div className="glass-premium p-5 rounded-3xl border border-border/40 flex flex-col gap-4 relative overflow-hidden animate-pulse">
         <div className="flex-1 space-y-3">
             <Skeleton className="h-5 w-3/4 rounded-md" />
             <div className="flex items-center gap-2 mt-2">
@@ -677,8 +677,16 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { d
 
     return (
         <div
+            role="button"
+            tabIndex={0}
             onClick={handleClick}
-            className={`glass-premium p-5 rounded-3xl border border-border/50 hover:border-brand-400 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-4 shadow-sm hover:shadow-apple-sm ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleClick();
+                }
+            }}
+            className={`glass-premium p-5 rounded-3xl border border-border/40 hover:border-brand-400 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-4 shadow-sm hover:shadow-apple-sm ${viewMode === 'list' ? 'flex-row items-center border-l-4' : ''}`}
         >
             <div className="flex-1">
                 <h4 className="text-base font-black text-slate-900 dark:text-white truncate tracking-tight">{doc.title}</h4>
@@ -690,12 +698,8 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { d
                     <div className="flex items-center gap-2 min-w-0">
                         <img
                             src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-                            alt={doc.owner}
+                            alt=""
                             className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 flex-shrink-0 ring-1 ring-border/50"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = getUserAvatarUrl(null, ownerUser?.role);
-                            }}
                         />
                         <span className="text-xs font-bold text-slate-500 dark:text-slate-300 truncate">{doc.owner}</span>
                     </div>

@@ -45,7 +45,7 @@ const GUIDE_SECTIONS = [
         content: (
             <div className="space-y-4">
                 <div className="grid gap-3">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-border/40">
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
                             <MousePointer className="w-5 h-5 text-muted-foreground" />
                         </div>
@@ -54,7 +54,7 @@ const GUIDE_SECTIONS = [
                             <p className="text-xs text-muted-foreground">Rotation de la vue (orbite)</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-border/40">
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
                             Scroll
                         </div>
@@ -63,7 +63,7 @@ const GUIDE_SECTIONS = [
                             <p className="text-xs text-muted-foreground">Zoom avant/arrière</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-border/40">
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
                             Clic
                         </div>
@@ -244,7 +244,7 @@ const GUIDE_SECTIONS = [
         icon: Search,
         content: (
             <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-slate-800/50 border border-white/10">
+                <div className="p-4 rounded-xl bg-slate-800/50 border border-border/40">
                     <div className="flex items-center gap-3 mb-3">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">Rechercher un nœud...</span>
@@ -302,7 +302,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-lg bg-slate-900/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
+                        className="relative w-full max-w-lg glass-premium border border-border/40 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
                     >
                         {/* Progress */}
                         <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
@@ -315,7 +315,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                         </div>
 
                         {/* Header */}
-                        <div className="p-5 border-b border-white/10">
+                        <div className="p-5 border-b border-border/40">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
@@ -351,7 +351,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                         </div>
 
                         {/* Footer Navigation */}
-                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                        <div className="p-4 border-t border-border/40 flex items-center justify-between">
                             <div className="flex items-center gap-1">
                                 {GUIDE_SECTIONS.map((_, idx) => (
                                     <button

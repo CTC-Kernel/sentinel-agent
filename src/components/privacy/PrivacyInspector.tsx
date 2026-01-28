@@ -74,7 +74,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                         <FloatingLabelInput label="Nom" {...editActivityForm.register('name')} />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Responsable</label>
+                                        <div className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Responsable</div>
                                         <CustomSelect
                                             value={watchedManagerId || ''}
                                             onChange={(val) => {
@@ -115,7 +115,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                 </div>
                             </>
                         ) : (
-                            <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+                            <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                                 <PrivacyDetails
                                     activity={selectedActivity}
                                     isEditing={isEditing}
@@ -128,7 +128,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'data' && (
-                    <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+                    <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                         <PrivacyData
                             activity={selectedActivity}
                             isEditing={isEditing}
@@ -140,7 +140,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'links' && (
-                    <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+                    <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                         <PrivacyLinks
                             activity={selectedActivity}
                             isEditing={isEditing}

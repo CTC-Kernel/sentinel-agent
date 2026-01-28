@@ -443,7 +443,7 @@ export const Compliance: React.FC = () => {
                                                 <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
                                             </Button>
                                             <Button
-                                                className="shadow-lg shadow-brand-600/20"
+                                                className="shadow-lg shadow-brand-600/10"
                                                 onClick={() => handleCreateClick('risk')}
                                             >
                                                 <ShieldCheck className="h-4 w-4 mr-2" />
@@ -468,6 +468,7 @@ export const Compliance: React.FC = () => {
                                                 { value: 'Non applicable', label: 'Non applicable' }
                                             ]}
                                             placeholder="Filtrer par statut"
+                                            className="rounded-xl"
                                         />
                                     </div>
                                     <Button

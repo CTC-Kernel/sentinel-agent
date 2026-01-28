@@ -92,7 +92,7 @@ const getStatusConfig = (status: CampaignStatus) => {
   return configs[status];
 };
 
-const getScopeIcon = (scope: CampaignScope) => {
+const getScopeIcon = (scope: CampaignScope): React.ElementType<{ className?: string }> => {
   const icons: Record<CampaignScope, React.ElementType<{ className?: string }>> = {
     all: Users,
     department: Building2,
@@ -106,7 +106,7 @@ const getScopeIcon = (scope: CampaignScope) => {
 // ============================================================================
 
 const CampaignCardSkeleton: React.FC = () => (
-  <div className="glass-panel p-5 rounded-2xl border border-white/10">
+  <div className="glass-premium p-5 rounded-2xl border border-border/40">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <Skeleton className="w-12 h-12 rounded-xl" />
@@ -148,7 +148,9 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
 }) => {
   const statusConfig = getStatusConfig(campaign.status);
   const StatusIcon = statusConfig.icon;
-  const ScopeIcon = getScopeIcon(campaign.scope);
+
+  // Memoize the ScopeIcon to avoid recreation during render
+  const ScopeIcon = useMemo(() => getScopeIcon(campaign.scope), [campaign.scope]);
 
   const progressPercent = campaign.progress.totalAssignments > 0
     ? Math.round((campaign.progress.completed / campaign.progress.totalAssignments) * 100)
@@ -160,7 +162,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
   return (
     <motion.div
       variants={staggerItem}
-      className="glass-panel p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all hover:shadow-md cursor-pointer group"
+      className="glass-premium p-5 rounded-2xl border border-border/40 hover:border-border/60 transition-all hover:shadow-md cursor-pointer group"
       onClick={onView}
     >
       {/* Header */}
@@ -387,17 +389,15 @@ export const TrainingCampaignList: React.FC<TrainingCampaignListProps> = ({
               <button
                 key={btn.value}
                 onClick={() => setStatusFilter(btn.value)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                  isActive
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-muted'
-                }`}
+                  }`}
               >
                 {t(btn.label)}
                 {btn.count > 0 && (
-                  <span className={`px-1.5 py-0.5 rounded-md text-xs font-bold ${
-                    isActive ? 'bg-white/20' : 'bg-muted'
-                  }`}>
+                  <span className={`px-1.5 py-0.5 rounded-md text-xs font-bold ${isActive ? 'bg-white/20' : 'bg-muted'
+                    }`}>
                     {btn.count}
                   </span>
                 )}

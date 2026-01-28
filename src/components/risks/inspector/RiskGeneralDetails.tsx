@@ -58,7 +58,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-2">Identification du Risque</h4>
                 <div>
                     <span className="text-[11px] uppercase text-muted-foreground font-bold">Menace</span>
@@ -83,15 +83,15 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                 onUpdate={onAIAssistantUpdate}
             />
 
-            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Stratégie de Traitement</h4>
                 <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
             </div>
-            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Propriétaire</h4>
                 <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
             </div>
-            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Statut Actuel</h4>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     {canEdit ? (

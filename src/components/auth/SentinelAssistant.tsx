@@ -31,7 +31,19 @@ export const SentinelAssistant: React.FC = () => {
 
                 {/* AI Avatar / Core */}
                 {/* AI Avatar / Core */}
-                <div className="flex items-center gap-4 mb-4" onMouseEnter={() => setShowChat(true)}>
+                <div
+                    className="flex items-center gap-4 mb-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl"
+                    onMouseEnter={() => setShowChat(true)}
+                    onFocus={() => setShowChat(true)}
+                    tabIndex={0}
+                    role="button"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setShowChat(true);
+                        }
+                    }}
+                >
                     <div className="relative w-28 h-28 flex items-center justify-center -ml-2">
                         <div className="absolute inset-[-20px] w-[calc(100%+40px)] h-[calc(100%+40px)]">
                             <Sentinel3DCore />

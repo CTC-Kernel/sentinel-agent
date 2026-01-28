@@ -88,7 +88,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
     const progressPercentage = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
 
     return (
-        <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+        <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <ListChecks className="h-4 w-4 text-brand-500" />
@@ -138,11 +138,10 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                         return (
                             <div
                                 key={action.id}
-                                className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${
-                                    action.status === 'Terminé'
+                                className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${action.status === 'Terminé'
                                         ? 'bg-success-bg/50 dark:bg-success-bg/10 border-success-border dark:border-success-border/30'
                                         : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-sm'
-                                }`}
+                                    }`}
                             >
                                 {/* Status Toggle */}
                                 {!readOnly && (
@@ -151,7 +150,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                         onClick={() => {
                                             const nextStatus: TreatmentActionStatus =
                                                 action.status === 'À faire' ? 'En cours' :
-                                                action.status === 'En cours' ? 'Terminé' : 'À faire';
+                                                    action.status === 'En cours' ? 'Terminé' : 'À faire';
                                             handleStatusChange(action, nextStatus);
                                         }}
                                         className={`mt-0.5 flex-shrink-0 ${STATUS_CONFIG[action.status].color} hover:scale-110 transition-transform`}
@@ -163,11 +162,10 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
-                                    <p className={`text-sm font-medium ${
-                                        action.status === 'Terminé'
+                                    <p className={`text-sm font-medium ${action.status === 'Terminé'
                                             ? 'text-slate-500 line-through'
                                             : 'text-slate-900 dark:text-white'
-                                    }`}>
+                                        }`}>
                                         {action.title}
                                     </p>
                                     {action.description && (
@@ -190,9 +188,8 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                             </span>
                                         )}
                                         {action.deadline && (
-                                            <span className={`inline-flex items-center gap-1 text-xs ${
-                                                deadlineStatus ? deadlineStatus.color + ' px-1.5 py-0.5 rounded-full border' : 'text-slate-500'
-                                            }`}>
+                                            <span className={`inline-flex items-center gap-1 text-xs ${deadlineStatus ? deadlineStatus.color + ' px-1.5 py-0.5 rounded-full border' : 'text-slate-500'
+                                                }`}>
                                                 <Calendar className="h-3 w-3" />
                                                 {deadlineStatus ? deadlineStatus.label : format(parseISO(action.deadline), 'dd MMM yyyy', { locale: fr })}
                                             </span>

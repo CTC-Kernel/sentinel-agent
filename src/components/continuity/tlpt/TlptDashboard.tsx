@@ -73,8 +73,17 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
                     {campaigns.map(campaign => (
                         <div
                             key={campaign.id}
-                            className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                            className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             onClick={() => canEdit && handleEdit(campaign)}
+                            onKeyDown={(e) => {
+                                if (canEdit && (e.key === 'Enter' || e.key === ' ')) {
+                                    e.preventDefault();
+                                    handleEdit(campaign);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Edit campaign: ${campaign.name}`}
                         >
                             <div className="flex justify-between items-start mb-4">
                                 <div className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(campaign.status)}`}>

@@ -425,11 +425,12 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                    <label className="flex items-center gap-2 text-xs text-white/60 mb-2">
+                    <label htmlFor="max-alerts" className="flex items-center gap-2 text-xs text-white/60 mb-2">
                       <Clock className="h-3 w-3" />
                       Max alertes / heure
                     </label>
                     <input
+                      id="max-alerts"
                       type="number"
                       min={1}
                       max={100}
@@ -442,11 +443,12 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                     />
                   </div>
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                    <label className="flex items-center gap-2 text-xs text-white/60 mb-2">
+                    <label htmlFor="cooldown" className="flex items-center gap-2 text-xs text-white/60 mb-2">
                       <Clock className="h-3 w-3" />
                       Cooldown (minutes)
                     </label>
                     <input
+                      id="cooldown"
                       type="number"
                       min={5}
                       max={1440}

@@ -82,7 +82,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
             <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Global Health Loading State */}
-                    <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-4xl shadow-sm flex flex-col md:flex-row gap-6 border border-transparent dark:border-white/5 animate-pulse">
+                    <div className="lg:col-span-2 glass-premium p-6 md:p-8 rounded-4xl shadow-sm flex flex-col md:flex-row gap-6 border border-transparent dark:border-border/40 animate-pulse">
                         <div className="flex items-center gap-6">
                             <Skeleton className="h-24 w-24 rounded-full" />
                             <div className="space-y-2">
@@ -101,7 +101,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                     </div>
 
                     {/* Status Distribution Loading State */}
-                    <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5 animate-pulse">
+                    <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 animate-pulse">
                         <Skeleton className="h-4 w-32 rounded mb-4" />
                         <Skeleton className="h-[140px] w-full rounded-full" />
                     </div>
@@ -110,7 +110,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {/* Secondary Charts Loading State */}
                     {[1, 2].map(i => (
-                        <div key={i} className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5 animate-pulse">
+                        <div key={i} className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 animate-pulse">
                             <Skeleton className="h-4 w-48 rounded mb-4" />
                             <Skeleton className="h-[250px] w-full rounded" />
                         </div>
@@ -136,7 +136,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Global Health - Radial Premium Card */}
-                <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-4xl shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
+                <div className="lg:col-span-2 glass-premium p-6 md:p-8 rounded-4xl shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-border/40 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
                     <div className="flex items-center gap-6 relative z-10">
                         <div className="relative">
@@ -179,7 +179,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 </div>
 
                 {/* Status Distribution */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5 relative overflow-hidden">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 relative overflow-hidden">
                     <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4">Statut des Projets</h3>
                     <div className="h-[140px] w-full">
                         {statusData.length === 0 ? (
@@ -218,7 +218,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
             {/* Secondary Charts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Progress Distribution */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40">
                     <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4">Distribution de l'Avancement</h3>
                     <div className="h-[250px] w-full">
                         {progressData.every(d => d.value === 0) ? (
@@ -249,7 +249,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 </div>
 
                 {/* Deadlines Chart (Replaces Placeholder) */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/5">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40">
                     <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4">Échéances à Venir (6 mois)</h3>
                     <div className="h-[250px] w-full">
                         {deadlineData.every(d => d.value === 0) ? (

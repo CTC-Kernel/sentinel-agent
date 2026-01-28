@@ -105,11 +105,12 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
         <form onSubmit={handleSubmit(handleSave)} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.assetName')} *
             </label>
             <input
               {...register('name')}
+              id="name"
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
@@ -157,11 +158,12 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.assetDescription')}
             </label>
             <textarea
               {...register('description')}
+              id="description"
               rows={3}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
               placeholder={t('ebios.workshop1.supportingAssetDescriptionPlaceholder')}
@@ -182,6 +184,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                 {essentialAssets.map((essentialAsset) => (
                   <label
                     key={essentialAsset.id}
+                    htmlFor={`essential-asset-${essentialAsset.id}`}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
                       linkedEssentialAssetIds?.includes(essentialAsset.id)
@@ -189,8 +192,10 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                         : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                     )}
                   >
+                    <span className="sr-only">Sélectionner l'actif essentiel: {essentialAsset.name}</span>
                     <input
                       type="checkbox"
+                      id={`essential-asset-${essentialAsset.id}`}
                       checked={linkedEssentialAssetIds?.includes(essentialAsset.id) || false}
                       onChange={() => toggleEssentialAsset(essentialAsset.id)}
                       className="w-4 h-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-500"

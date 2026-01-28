@@ -195,7 +195,17 @@ vi.mock('../../utils/permissions', () => ({
 vi.mock('framer-motion', () => ({
     motion: {
         div: ({ children, className, onClick, ...props }: React.ComponentProps<'div'>) => (
-            <div className={className} onClick={onClick} {...props}>{children}</div>
+            onClick ? (
+                <button
+                    className={className}
+                    onClick={onClick as unknown as React.MouseEventHandler<HTMLButtonElement>}
+                    {...props as unknown as React.ButtonHTMLAttributes<HTMLButtonElement>}
+                >
+                    {children}
+                </button>
+            ) : (
+                <div className={className} {...props}>{children}</div>
+            )
         )
     },
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>

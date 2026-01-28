@@ -101,10 +101,10 @@ describe('RoleCard', () => {
     });
 
     describe('styling', () => {
-        it('renders with glass panel class', () => {
+        it('renders with glass premium class', () => {
             const { container } = render(<RoleCard role="admin" count={5} />);
 
-            expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+            expect(container.querySelector('.glass-premium')).toBeInTheDocument();
         });
 
         it('renders count badge with brand styling', () => {

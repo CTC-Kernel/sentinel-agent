@@ -348,8 +348,8 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                     <Badge
                         status={
                             suggestion.suggestedStatus === 'compliant' ? 'success' :
-                            suggestion.suggestedStatus === 'non_compliant' ? 'error' :
-                            suggestion.suggestedStatus === 'partially_compliant' ? 'warning' : 'neutral'
+                                suggestion.suggestedStatus === 'non_compliant' ? 'error' :
+                                    suggestion.suggestedStatus === 'partially_compliant' ? 'warning' : 'neutral'
                         }
                     >
                         {suggestion.suggestedStatus === 'compliant' && 'Conforme'}
@@ -722,7 +722,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                         transition={{ duration: 0.2 }}
                     >
                         {/* Stats bar */}
-                        <div className="flex items-center gap-4 mb-6 p-4 glass-panel rounded-xl">
+                        <div className="flex items-center gap-4 mb-6 p-4 glass-premium rounded-xl border border-border/40">
                             <div className="flex-1">
                                 <div className="flex items-center gap-4 text-sm">
                                     <span className="flex items-center gap-1">
@@ -775,9 +775,9 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                                             className="h-7 px-2 text-xs"
                                         >
                                             {status === 'all' ? 'Tous' :
-                                             status === 'pending' ? 'En attente' :
-                                             status === 'approved' ? 'Approuvés' :
-                                             status === 'rejected' ? 'Rejetés' : 'Modifiés'}
+                                                status === 'pending' ? 'En attente' :
+                                                    status === 'approved' ? 'Approuvés' :
+                                                        status === 'rejected' ? 'Rejetés' : 'Modifiés'}
                                         </Button>
                                     ))}
                                 </div>
@@ -794,8 +794,8 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                                             className="h-7 px-2 text-xs"
                                         >
                                             {level === 'all' ? 'Toutes' :
-                                             level === 'high' ? 'Haute' :
-                                             level === 'medium' ? 'Moyenne' : 'Basse'}
+                                                level === 'high' ? 'Haute' :
+                                                    level === 'medium' ? 'Moyenne' : 'Basse'}
                                         </Button>
                                     ))}
                                 </div>

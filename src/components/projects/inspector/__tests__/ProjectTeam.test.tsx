@@ -178,10 +178,10 @@ describe('ProjectTeam', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel containers', () => {
+        it('has glass-premium containers', () => {
             const { container } = render(<ProjectTeam {...defaultProps} />);
 
-            expect(container.querySelectorAll('.glass-panel').length).toBe(2);
+            expect(container.querySelectorAll('.glass-premium').length).toBe(2);
         });
 
         it('has proper grid layout', () => {

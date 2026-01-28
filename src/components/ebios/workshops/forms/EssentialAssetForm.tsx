@@ -98,11 +98,12 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
         <form onSubmit={handleSubmit(onSave)} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.assetName')} *
             </label>
             <input
               {...register('name')}
+              id="name"
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
@@ -150,11 +151,12 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.assetDescription')}
             </label>
             <textarea
               {...register('description')}
+              id="description"
               rows={3}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
               placeholder={t('ebios.workshop1.assetDescriptionPlaceholder')}
@@ -214,6 +216,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                 {missions.map((mission) => (
                   <label
                     key={mission.id}
+                    htmlFor={`mission-${mission.id}`}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
                       linkedMissionIds?.includes(mission.id)
@@ -223,6 +226,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                   >
                     <input
                       type="checkbox"
+                      id={`mission-${mission.id}`}
                       checked={linkedMissionIds?.includes(mission.id) || false}
                       onChange={() => toggleMission(mission.id)}
                       className="w-4 h-4 rounded border-slate-300 text-info focus-visible:ring-brand-500"

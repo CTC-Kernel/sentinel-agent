@@ -36,7 +36,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
     }, [suppliers]);
 
     return (
-        <div className="glass-panel p-4 sm:p-6 rounded-4xl h-full flex flex-col relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+        <div className="glass-premium p-4 sm:p-6 rounded-4xl h-full flex flex-col relative overflow-hidden group hover:shadow-lg transition-all duration-300 border border-border/40">
             <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
                 <Shield className="w-24 h-24 text-brand-500" />
             </div>

@@ -210,10 +210,10 @@ describe('ThreatDashboard', () => {
             expect(container.querySelector('.glass-premium')).toBeInTheDocument();
         });
 
-        it('has glass-panel chart containers', () => {
+        it('has glass-premium chart containers', () => {
             const { container } = render(<ThreatDashboard threats={mockThreats} />);
 
-            expect(container.querySelectorAll('.glass-panel').length).toBe(2);
+            expect(container.querySelectorAll('.glass-premium').length).toBe(2);
         });
 
         it('has pulsing indicator', () => {

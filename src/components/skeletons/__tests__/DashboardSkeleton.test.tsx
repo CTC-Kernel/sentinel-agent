@@ -65,7 +65,7 @@ describe('DashboardSkeleton', () => {
 
             // Select only stat panels inside the lg:grid-cols-4 grid (Quick Stats Grid)
             const statsGrid = container.querySelector('.lg\\:grid-cols-4');
-            const panels = statsGrid?.querySelectorAll('.glass-panel') ?? [];
+            const panels = statsGrid?.querySelectorAll('.glass-premium') ?? [];
             expect(panels.length).toBe(4);
         });
     });

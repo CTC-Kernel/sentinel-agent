@@ -101,10 +101,18 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
             <motion.div
                 variants={slideUpVariants}
                 onClick={onClick}
+                onKeyDown={(e) => {
+                    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        onClick();
+                    }
+                }}
+                role={onClick ? "button" : undefined}
+                tabIndex={onClick ? 0 : undefined}
                 className={cn(
-                    'group flex items-center gap-3 p-3 rounded-xl border border-border/50',
-                    'bg-card/50 backdrop-blur-sm hover:bg-card hover:border-border',
-                    'transition-all duration-200 cursor-pointer hover:shadow-apple-sm'
+                    'group flex items-center gap-3 p-3 rounded-2xl border border-border/40',
+                    'bg-background/50 backdrop-blur-sm hover:bg-card hover:border-border/60',
+                    'transition-all duration-200 cursor-pointer hover:shadow-apple-sm focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none'
                 )}
             >
                 {/* Status indicator + OS */}
@@ -139,7 +147,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 <Cpu className="h-3 w-3" />
                                 <span className={cn(
                                     agent.cpuPercent > 80 ? 'text-destructive font-medium' :
-                                    agent.cpuPercent > 60 ? 'text-warning' : ''
+                                        agent.cpuPercent > 60 ? 'text-warning' : ''
                                 )}>
                                     {agent.cpuPercent.toFixed(0)}%
                                 </span>
@@ -182,18 +190,22 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
         <motion.div
             variants={slideUpVariants}
             className={cn(
-                'group relative rounded-2xl border overflow-hidden',
-                'bg-card/80 backdrop-blur-sm transition-all duration-300',
+                'group relative rounded-3xl border overflow-hidden',
+                'bg-background/80 backdrop-blur-sm transition-all duration-300',
                 'hover:shadow-apple-md hover:-translate-y-0.5',
-                isActive ? 'border-border/50 hover:border-success/30' : 'border-border/30 opacity-80'
+                isActive ? 'border-border/40 hover:border-success/40' : 'border-border/30 opacity-80'
             )}
         >
             {/* Header */}
-            <div
-                onClick={onClick}
-                className="cursor-pointer p-4 pb-3"
-            >
+            <div className="p-4 pb-3">
                 <div className="flex items-start justify-between gap-2">
+                    {onClick && (
+                        <button
+                            onClick={onClick}
+                            className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none rounded-3xl"
+                            aria-label={`Agent ${agent.name} details`}
+                        />
+                    )}
                     <div className="flex items-center gap-3">
                         {/* OS Icon with status */}
                         <div className="relative">
@@ -276,7 +288,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         <span className={cn(
                             'text-sm font-bold',
                             agent.cpuPercent !== undefined && agent.cpuPercent > 80 ? 'text-destructive' :
-                            agent.cpuPercent !== undefined && agent.cpuPercent > 60 ? 'text-warning' : 'text-foreground'
+                                agent.cpuPercent !== undefined && agent.cpuPercent > 60 ? 'text-warning' : 'text-foreground'
                         )}>
                             {agent.cpuPercent !== undefined ? `${agent.cpuPercent.toFixed(0)}%` : '-'}
                         </span>
@@ -309,7 +321,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         <span>{formatLastSeen(agent.lastHeartbeat)}</span>

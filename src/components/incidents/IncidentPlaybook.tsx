@@ -128,10 +128,11 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                 {availablePlaybooks.length > 0 ? (
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="playbook-select" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Sélectionner un Playbook
                             </label>
                             <select
+                                id="playbook-select"
                                 value={selectedPlaybookId}
                                 onChange={(e) => setSelectedPlaybookId(e.target.value)}
                                 className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
@@ -246,9 +247,9 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                 {/* Status Icon */}
                                 <div className="mr-4 mt-1 flex-shrink-0">
                                     {isCompleted ? (
-                                        <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                                        <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
                                     ) : (
-                                        <Circle className={`h-6 w-6 ${isNext ? 'text-brand-500 animate-pulse' : 'text-slate-300'}`} />
+                                        <Circle className={`h-6 w-6 ${isNext ? 'text-brand-500 animate-pulse' : 'text-slate-300'}`} aria-hidden="true" />
                                     )}
                                 </div>
 

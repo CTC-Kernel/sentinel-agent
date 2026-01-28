@@ -61,7 +61,17 @@ vi.mock('../../ui/Breadcrumbs', () => ({
 
 vi.mock('../../ui/FeedbackModal', () => ({
     FeedbackModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-        isOpen ? <div data-testid="feedback-modal" onClick={onClose}>Feedback Modal</div> : null
+        isOpen ? (
+            <div
+                data-testid="feedback-modal"
+                onClick={onClose}
+                onKeyDown={(e) => e.key === 'Escape' && onClose()}
+                role="button"
+                tabIndex={0}
+            >
+                Feedback Modal
+            </div>
+        ) : null
 }));
 
 vi.mock('../../ui/Tooltip', () => ({

@@ -196,14 +196,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
         <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-200">
           <button
             onClick={() => toggleSection('missions')}
+            aria-expanded={expandedSections.has('missions')}
+            aria-controls="missions-section"
             className="w-full flex items-center justify-between group"
           >
+
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-brand-50 text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-brand-50 text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
                 <Building2 className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                <h3 className="text-lg font-bold text-foreground group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                   {t('ebios.workshop1.missions')}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
@@ -223,17 +226,24 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
           </button>
 
           {expandedSections.has('missions') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 space-y-4 animate-accordion-down">
+            <div id="missions-section" className="mt-6 pt-6 border-t border-border/40 space-y-4 animate-accordion-down">
+
               {data.scope.missions.map((mission) => (
-                <div
+                <button
                   key={mission.id}
+                  type="button"
                   onClick={() => !readOnly && handleEditMission(mission)}
+                  disabled={readOnly}
+                  aria-label={!readOnly ? `Modifier la mission ${mission.name}` : undefined}
                   className={cn(
-                    "group p-4 rounded-2xl border transition-all duration-200",
-                    "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
+                    "w-full text-left group p-4 rounded-3xl border transition-all duration-300",
+                    "bg-slate-50/50 dark:bg-slate-800/30 border-border/40",
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-brand-200/50 hover:shadow-apple-md hover:-translate-y-0.5",
+                    readOnly && "cursor-default"
                   )}
                 >
+
+
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
@@ -254,13 +264,14 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       {getCriticalityLabel(mission.criticality)}
                     </span>
                   </div>
-                </div>
+                </button>
+
               ))}
 
               {!readOnly && (
                 <button
                   onClick={handleAddMission}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 font-medium group"
+                  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-brand-300/50 hover:bg-brand-50/50 dark:hover:bg-brand-900/20 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-brand-600 font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                     <Plus className="w-4 h-4" />
@@ -278,10 +289,13 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
         <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5 hover:border-violet-500/20">
           <button
             onClick={() => toggleSection('essentialAssets')}
+            aria-expanded={expandedSections.has('essentialAssets')}
+            aria-controls="essential-assets-section"
             className="w-full flex items-center justify-between group"
           >
+
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
                 <Box className="w-6 h-6" />
               </div>
               <div className="text-left">
@@ -305,17 +319,24 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
           </button>
 
           {expandedSections.has('essentialAssets') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 space-y-4 animate-accordion-down">
+            <div id="essential-assets-section" className="mt-6 pt-6 border-t border-border/40 space-y-4 animate-accordion-down">
+
               {data.scope.essentialAssets.map((asset) => (
-                <div
+                <button
                   key={asset.id}
+                  type="button"
                   onClick={() => !readOnly && handleEditEssentialAsset(asset)}
+                  disabled={readOnly}
+                  aria-label={!readOnly ? `Modifier l'actif essentiel ${asset.name}` : undefined}
                   className={cn(
-                    "group p-4 rounded-2xl border transition-all duration-200",
-                    "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-violet-500/30 hover:shadow-md hover:-translate-y-0.5"
+                    "w-full text-left group p-4 rounded-3xl border transition-all duration-300",
+                    "bg-slate-50/50 dark:bg-slate-800/30 border-border/40",
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-violet-200/50 hover:shadow-apple-md hover:-translate-y-0.5",
+                    readOnly && "cursor-default"
                   )}
                 >
+
+
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -345,13 +366,14 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       {getCriticalityLabel(asset.criticality)}
                     </span>
                   </div>
-                </div>
+                </button>
+
               ))}
 
               {!readOnly && (
                 <button
                   onClick={handleAddEssentialAsset}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-violet-500/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-violet-600 font-medium group"
+                  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-violet-300/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-violet-600 font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors">
                     <Plus className="w-4 h-4" />
@@ -369,10 +391,13 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
         <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/5 hover:border-slate-500/20">
           <button
             onClick={() => toggleSection('supportingAssets')}
+            aria-expanded={expandedSections.has('supportingAssets')}
+            aria-controls="supporting-assets-section"
             className="w-full flex items-center justify-between group"
           >
+
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-slate-500/10 text-slate-600 dark:text-slate-300 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-slate-500/10 text-slate-600 dark:text-slate-300 group-hover:scale-110 transition-transform duration-300 shadow-sm">
                 <Server className="w-6 h-6" />
               </div>
               <div className="text-left">
@@ -396,17 +421,24 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
           </button>
 
           {expandedSections.has('supportingAssets') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 space-y-4 animate-accordion-down">
+            <div id="supporting-assets-section" className="mt-6 pt-6 border-t border-border/40 space-y-4 animate-accordion-down">
+
               {data.scope.supportingAssets.map((asset) => (
-                <div
+                <button
                   key={asset.id}
+                  type="button"
                   onClick={() => !readOnly && handleEditSupportingAsset(asset)}
+                  disabled={readOnly}
+                  aria-label={!readOnly ? `Modifier l'actif de support ${asset.name}` : undefined}
                   className={cn(
-                    "group p-4 rounded-2xl border transition-all duration-200",
-                    "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400/30 hover:shadow-md hover:-translate-y-0.5"
+                    "w-full text-left group p-4 rounded-3xl border transition-all duration-300",
+                    "bg-slate-50/50 dark:bg-slate-800/30 border-border/40",
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-slate-300/50 hover:shadow-apple-md hover:-translate-y-0.5",
+                    readOnly && "cursor-default"
                   )}
                 >
+
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
@@ -435,7 +467,8 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       {asset.linkedEssentialAssetIds.length} {t('ebios.workshop1.linkedEssentialAssets')}
                     </div>
                   </div>
-                </div>
+                </button>
+
               ))}
 
               {!readOnly && (
@@ -451,7 +484,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   </button>
                   <button
                     onClick={() => setShowImportModal(true)}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 font-medium group"
+                    className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-brand-300/50 hover:bg-brand-50/50 dark:hover:bg-brand-900/20 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-brand-600 font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                       <Download className="w-4 h-4" />
@@ -470,10 +503,13 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
         <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 hover:border-error/20">
           <button
             onClick={() => toggleSection('fearedEvents')}
+            aria-expanded={expandedSections.has('fearedEvents')}
+            aria-controls="feared-events-section"
             className="w-full flex items-center justify-between group"
           >
+
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-error-bg text-error-text group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-error-bg text-error-text group-hover:scale-110 transition-transform duration-300 shadow-sm">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="text-left">
@@ -497,17 +533,24 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
           </button>
 
           {expandedSections.has('fearedEvents') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 space-y-4 animate-accordion-down">
+            <div id="feared-events-section" className="mt-6 pt-6 border-t border-border/40 space-y-4 animate-accordion-down">
+
               {data.fearedEvents.map((event) => (
-                <div
+                <button
                   key={event.id}
+                  type="button"
                   onClick={() => !readOnly && handleEditFearedEvent(event)}
+                  disabled={readOnly}
+                  aria-label={!readOnly ? `Modifier l'événement redouté ${event.name}` : undefined}
                   className={cn(
-                    "group p-4 rounded-2xl border transition-all duration-200",
-                    "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-error/30 hover:shadow-md hover:-translate-y-0.5"
+                    "w-full text-left group p-4 rounded-3xl border transition-all duration-300",
+                    "bg-slate-50/50 dark:bg-slate-800/30 border-border/40",
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-error/30 hover:shadow-apple-md hover:-translate-y-0.5",
+                    readOnly && "cursor-default"
                   )}
                 >
+
+
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -549,13 +592,14 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       G{event.gravity}
                     </span>
                   </div>
-                </div>
+                </button>
+
               ))}
 
               {!readOnly && (
                 <button
                   onClick={handleAddFearedEvent}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-error-text font-medium group"
+                  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-error-text font-medium group"
                 >
                   <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                     <Plus className="w-4 h-4" />
@@ -573,10 +617,13 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
         <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-success/5 hover:border-success/20">
           <button
             onClick={() => toggleSection('securityBaseline')}
+            aria-expanded={expandedSections.has('securityBaseline')}
+            aria-controls="security-baseline-section"
             className="w-full flex items-center justify-between group"
           >
+
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-success-bg text-success-text group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-success-bg text-success-text group-hover:scale-110 transition-transform duration-300 shadow-sm">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div className="text-left">
@@ -600,7 +647,8 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
           </button>
 
           {expandedSections.has('securityBaseline') && (
-            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+            <div id="security-baseline-section" className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
+
               <SecurityBaselinePanel
                 baseline={data.securityBaseline}
                 onChange={handleSecurityBaselineChange}

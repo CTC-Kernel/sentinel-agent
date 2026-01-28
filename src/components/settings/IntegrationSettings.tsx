@@ -118,7 +118,7 @@ export const IntegrationSettings: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 col-span-1 md:col-span-2">{t('settings.integrations')}</h2>
 
             {/* AI Settings */}
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
@@ -168,7 +168,7 @@ export const IntegrationSettings: React.FC = () => {
             </div>
 
             {/* Google Calendar */}
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">
@@ -237,7 +237,7 @@ export const IntegrationSettings: React.FC = () => {
             </div>
 
             {/* SSO Settings - Enterprise */}
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
                     <div className="flex items-center gap-3">

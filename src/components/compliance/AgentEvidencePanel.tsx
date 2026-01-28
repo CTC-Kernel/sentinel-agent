@@ -146,7 +146,7 @@ const EvidenceRow: React.FC<EvidenceRowProps> = ({ evidence, onClick }) => {
             <div className={cn(
                 'w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
                 evidence.status === 'pass' ? 'bg-success/10' :
-                evidence.status === 'fail' ? 'bg-destructive/10' : 'bg-warning/10'
+                    evidence.status === 'fail' ? 'bg-destructive/10' : 'bg-warning/10'
             )}>
                 <StatusIcon status={evidence.status} className="h-4 w-4" />
             </div>
@@ -210,7 +210,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
     const Icon = config.icon;
 
     return (
-        <div className="glass-panel rounded-2xl p-4 border border-border/50">
+        <div className="glass-premium rounded-2xl p-4 border border-border/50">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', config.bg)}>

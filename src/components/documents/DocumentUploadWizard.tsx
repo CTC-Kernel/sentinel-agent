@@ -193,11 +193,11 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="relative w-full max-w-4xl glass-panel rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/20"
+                className="relative w-full max-w-4xl glass-premium rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-border/40"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-white/10 glass-panel backdrop-blur-md relative z-10">
+                <div className="px-8 py-6 border-b border-border/40 glass-premium backdrop-blur-md relative z-10">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Nouveau Document</h2>
                         <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">Assistant d'importation et de classification</p>
@@ -329,7 +329,6 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     label="Titre du document"
                                     {...register('title')}
                                     error={errors.title?.message}
-                                    autoFocus
                                 />
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <CustomSelect
@@ -353,14 +352,18 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                         error={errors.version?.message}
                                     />
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 ml-1">Statut</label>
-                                        <div className="flex p-1 bg-slate-100 dark:bg-black/20 rounded-xl">
+                                        <label htmlFor="status" className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 ml-1">Statut</label>
+                                        <div className="flex p-1 bg-slate-100 dark:bg-black/20 rounded-xl" role="radiogroup" aria-labelledby="status">
                                             {['Brouillon', 'Publié'].map((s) => (
                                                 <button
                                                     key={s}
                                                     type="button"
+                                                    id={`status-${s}`}
                                                     onClick={() => setValue('status', s as DocumentFormData['status'])}
                                                     className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${status === s ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-600' : 'text-muted-foreground hover:text-foreground'}`}
+                                                    role="radio"
+                                                    aria-checked={status === s}
+                                                    aria-label={`Statut: ${s}`}
                                                 >
                                                     {s}
                                                 </button>
@@ -369,7 +372,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 ml-1">Description / Résumé</label>
+                                    <label htmlFor="description" className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 ml-1">Description / Résumé</label>
                                     <Controller
                                         control={control}
                                         name="content"
@@ -527,7 +530,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="px-8 py-6 border-t border-white/10 glass-panel backdrop-blur-md relative z-10 flex justify-between items-center">
+                <div className="px-8 py-6 border-t border-border/40 glass-premium backdrop-blur-md relative z-10 flex justify-between items-center">
                     <Button
                         type="button"
                         variant="ghost"

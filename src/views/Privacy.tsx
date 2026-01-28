@@ -203,7 +203,7 @@ export const Privacy: React.FC = () => {
             />
 
             {/* Insight Card (Summary) */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-8 rounded-3xl border border-white/60 dark:border-white/5 shadow-apple-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
+            <motion.div variants={slideUpVariants} className="glass-premium p-8 rounded-3xl border border-border/40 shadow-apple-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
                 <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>

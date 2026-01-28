@@ -97,7 +97,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
 
     if (controls.length === 0) {
         return (
-            <div className="glass-panel p-12 text-center">
+            <div className="glass-premium p-12 text-center border border-border/40 rounded-xl">
                 <Layers className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Aucun contrôle disponible
@@ -118,7 +118,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                         key={fw.id}
                         onClick={() => setExpandedFramework(expandedFramework === fw.id ? null : fw.id)}
                         className={cn(
-                            "glass-panel p-4 rounded-xl text-left transition-all hover:shadow-md",
+                            "glass-premium p-4 rounded-xl text-left transition-all hover:shadow-md border border-border/40",
                             expandedFramework === fw.id && "ring-2 ring-brand-500"
                         )}
                     >
@@ -165,7 +165,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
 
             {/* Expanded Framework Details */}
             {expandedFramework && (
-                <div className="glass-panel p-4 sm:p-6 rounded-xl border border-brand-200 dark:border-brand-800 animate-fade-in">
+                <div className="glass-premium p-4 sm:p-6 rounded-xl border border-brand-200 dark:border-brand-800 animate-fade-in">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                             {getFrameworkLabel(expandedFramework)}
@@ -220,7 +220,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
             </div>
 
             {/* Matrix Table */}
-            <div className="glass-panel rounded-xl overflow-hidden">
+            <div className="glass-premium rounded-xl overflow-hidden border border-border/40">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>

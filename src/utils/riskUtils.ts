@@ -115,5 +115,5 @@ export const getSLAStatus = (risk: Risk) => {
 
     if (diffDays < 0) return { status: 'overdue', days: Math.abs(diffDays), label: `Retard ${Math.abs(diffDays)}j`, color: 'text-red-600 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800' };
     if (diffDays <= 7) return { status: 'warning', days: diffDays, label: `J-${diffDays}`, color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800' };
-    return { status: 'ok', days: diffDays, label: `${diffDays}j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-400 dark:bg-slate-800 dark:border-white/10' };
+    return { status: 'ok', days: diffDays, label: `${diffDays}j`, color: 'text-slate-500 bg-slate-100 border-border/40 dark:text-slate-400 dark:bg-slate-800' };
 };

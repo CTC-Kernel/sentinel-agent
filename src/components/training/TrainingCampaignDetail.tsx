@@ -120,7 +120,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, color, su
   const classes = colorClasses[color];
 
   return (
-    <div className="glass-panel p-4 rounded-xl border border-white/10">
+    <div className="glass-premium p-4 rounded-xl border border-border/40">
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg ${classes.bg}`}>
           <Icon className={`w-5 h-5 ${classes.text}`} />
@@ -226,7 +226,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
       {/* Header Card */}
       <motion.div
         variants={staggerItem}
-        className="glass-panel p-6 rounded-2xl border border-white/10"
+        className="glass-premium p-6 rounded-2xl border border-border/40"
       >
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           {/* Campaign Info */}
@@ -338,7 +338,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
 
       {/* Progress Bar */}
       {campaign.status === 'active' && stats.total > 0 && (
-        <motion.div variants={staggerItem} className="glass-panel p-5 rounded-2xl border border-white/10">
+        <motion.div variants={staggerItem} className="glass-premium p-5 rounded-2xl border border-border/40">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-foreground">{t('training.campaign.overallProgress')}</h3>
             <span className="text-sm text-muted-foreground">
@@ -350,20 +350,19 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
               initial={{ width: 0 }}
               animate={{ width: `${stats.completionRate}%` }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
-              className={`h-full rounded-full ${
-                stats.completionRate >= 80
+              className={`h-full rounded-full ${stats.completionRate >= 80
                   ? 'bg-gradient-to-r from-success to-success/80'
                   : stats.completionRate >= 50
-                  ? 'bg-gradient-to-r from-warning to-warning/80'
-                  : 'bg-gradient-to-r from-error to-error/80'
-              }`}
+                    ? 'bg-gradient-to-r from-warning to-warning/80'
+                    : 'bg-gradient-to-r from-error to-error/80'
+                }`}
             />
           </div>
         </motion.div>
       )}
 
       {/* Courses List */}
-      <motion.div variants={staggerItem} className="glass-panel p-5 rounded-2xl border border-white/10">
+      <motion.div variants={staggerItem} className="glass-premium p-5 rounded-2xl border border-border/40">
         <h3 className="font-bold text-foreground mb-4">
           {t('training.campaign.includedCourses')} ({campaignCourses.length})
         </h3>

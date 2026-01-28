@@ -214,24 +214,17 @@ export const KPICard = React.memo(function KPICard({
         colorClasses.border,
         sizeConfig.padding,
         sizeConfig.minWidth,
-        onClick && 'cursor-pointer hover:shadow-md hover:scale-[1.02] hover:shadow-glow',
+        onClick && 'hover:shadow-md hover:scale-[1.02] hover:shadow-glow',
         className
       )}
-      onClick={onClick}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={
-        onClick
-          ? (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onClick();
-            }
-          }
-          : undefined
-      }
-      aria-label={`${title}: ${value}${subtitle ? `, ${subtitle}` : ''}${trendAriaLabel ? `, ${trendAriaLabel}` : ''}`}
     >
+      {onClick && (
+        <button
+          onClick={onClick}
+          className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-2xl"
+          aria-label={`${title}: ${value}${subtitle ? `, ${subtitle}` : ''}${trendAriaLabel ? `, ${trendAriaLabel}` : ''}`}
+        />
+      )}
       {/* Gradient overlay for visual differentiation */}
       <div className={cn('absolute inset-0 pointer-events-none', gradientClass)} />
 

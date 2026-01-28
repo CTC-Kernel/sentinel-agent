@@ -177,7 +177,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                     {/* Options for Choice types */}
                                     {(q.type === 'choice' || q.type === 'multiple_choice') && (
                                         <div className="md:col-span-12 pl-4 border-l-2 border-brand-200">
-                                            <label className="text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-2 block">Options de réponse</label>
+                                            <div className="text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-2 block">Options de réponse</div>
                                             <div className="space-y-2">
                                                 {q.options?.map((opt, optIndex) => (
                                                     <div key={optIndex} className="flex gap-2">

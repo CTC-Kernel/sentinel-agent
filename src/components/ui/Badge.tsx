@@ -22,14 +22,6 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
     onClick,
     ...props
 }) => {
-    // Keyboard handler for interactive badges
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault();
-            onClick();
-        }
-    };
-
     // Base styles - added focus styles for accessibility
     const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-200 animate-badge-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
 
@@ -82,14 +74,13 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
         }
     };
 
+    const Component = onClick ? 'button' : 'span';
+
     return (
-        <span
+        <Component
             className={`${baseStyles} ${sizeStyles[size]} ${getStatusStyles()} ${className} ${onClick ? 'cursor-pointer hover:opacity-90 active:scale-95' : ''}`}
             onClick={onClick}
-            onKeyDown={onClick ? handleKeyDown : undefined}
-            role={onClick ? "button" : "status"}
-            tabIndex={onClick ? 0 : undefined}
-            aria-label={onClick ? undefined : undefined}
+            type={onClick ? "button" : undefined}
             {...props}
         >
             {Icon && (
@@ -99,7 +90,7 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
                 />
             )}
             {children}
-        </span>
+        </Component>
     );
 });
 

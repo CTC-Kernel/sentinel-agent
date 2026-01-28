@@ -50,7 +50,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         return (
             <div className="space-y-6 w-full min-w-0">
                 {/* Summary Card Skeleton */}
-                <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/60 dark:border-white/5 shadow-lg flex flex-col xl:flex-row gap-8">
+                <div className="glass-premium p-6 md:p-8 rounded-3xl border border-border/40 shadow-lg flex flex-col xl:flex-row gap-8">
                     <div className="flex items-center gap-6 min-w-[240px]">
                         <Skeleton className="w-24 h-24 rounded-full" />
                         <div className="space-y-2">
@@ -68,7 +68,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Charts Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="glass-panel p-4 sm:p-6 rounded-3xl h-[350px]">
+                        <div key={i} className="glass-premium p-4 sm:p-6 rounded-3xl h-[350px] border border-border/40">
                             <Skeleton className="h-6 w-48 mb-6" />
                             <Skeleton className="h-full w-full rounded-2xl" />
                         </div>
@@ -122,7 +122,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                         variant="bar"
                         message="Référentiel non initialisé"
                         description={`Les contrôles pour ${currentFramework} ne sont pas encore chargés.`}
-                        className="glass-panel border-dashed p-12 w-full max-w-2xl mx-auto"
+                        className="glass-premium border-dashed border border-border/40 p-12 w-full max-w-2xl mx-auto shadow-sm"
                     />
                     {onSeedData && (
                         <div className="flex gap-4">

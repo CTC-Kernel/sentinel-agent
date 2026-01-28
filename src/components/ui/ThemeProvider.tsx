@@ -48,9 +48,11 @@ export const ThemeSelector: React.FC = () => {
   return (
     <div className="p-4 space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-          Thème
-        </label>
+        <div className="mb-2">
+          <span className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Thème
+          </span>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           {(['light', 'dark', 'system'] as Theme[]).map((t) => (
             <button
@@ -72,9 +74,11 @@ export const ThemeSelector: React.FC = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-          Palette de couleurs
-        </label>
+        <div className="mb-2">
+          <span className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Palette de couleurs
+          </span>
+        </div>
         <div className="grid grid-cols-3 gap-2">
           {Object.keys(colorSchemes).map((scheme) => (
             <button

@@ -69,7 +69,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             }}
             role="button"
             tabIndex={0}
-            className={`glass-panel rounded-3xl ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+            className={`glass-premium rounded-3xl ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
         >
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">

@@ -174,7 +174,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, pl
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-muted-foreground">Quality Preset</label>
+      <h3 className="text-sm font-medium text-muted-foreground">Quality Preset</h3>
       <div className="grid grid-cols-3 gap-2">
         {qualities.map((q) => (
           <button
@@ -383,7 +383,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {/* Platform Selection */}
           <div>
-            <label className="text-sm font-medium text-slate-300 mb-3 block">Target Platform</label>
+            <h3 className="text-sm font-medium text-slate-300 mb-3 block">Target Platform</h3>
             <div className="grid grid-cols-3 gap-3">
               {(['quest', 'visionPro', 'generic'] as VRTargetPlatform[]).map((p) => (
                 <PlatformCard
@@ -401,7 +401,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
           {/* Export Options */}
           <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 block">Include Options</label>
+            <h3 className="text-sm font-medium text-slate-300 mb-2 block">Include Options</h3>
             <div className="bg-slate-800/50 rounded-lg px-4 divide-y divide-white/5">
               <OptionsToggle
                 label="Node Labels"
@@ -426,8 +426,9 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
           {/* Filename */}
           <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 block">Filename</label>
+            <label htmlFor="filename-input" className="text-sm font-medium text-slate-300 mb-2 block">Filename</label>
             <input
+              id="filename-input"
               type="text"
               value={filename}
               onChange={(e) => setFilename(e.target.value)}

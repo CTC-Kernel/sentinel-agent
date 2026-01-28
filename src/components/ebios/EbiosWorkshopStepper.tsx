@@ -130,7 +130,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 disabled={locked}
                 className={cn(
                   "relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300",
-                  "shadow-lg backdrop-blur-xl border border-white/20 dark:border-white/10",
+                  "shadow-lg backdrop-blur-xl border border-border/40",
                   locked && "opacity-70 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400",
                   !locked && "cursor-pointer hover:-translate-y-1 hover:shadow-xl",
                   isActive && "scale-110 ring-4 ring-brand-300 shadow-brand bg-gradient-to-br from-brand-500 to-brand-600 text-white border-transparent",
@@ -195,7 +195,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 !locked && "cursor-pointer active:scale-[0.98]",
                 isActive
                   ? "border-brand-300 bg-brand-100 dark:bg-brand-800 shadow-lg shadow-brand"
-                  : "border-white/10 bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
+                  : "border-border/40 bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
               )}
             >
               <div className={cn(

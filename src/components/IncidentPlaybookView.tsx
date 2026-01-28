@@ -372,10 +372,14 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                         <div className="mt-3 pl-6 space-y-3">
                           {/* Evidence Input */}
                           <div>
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            <label
+                              htmlFor={`evidence-${step.id}`}
+                              className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"
+                            >
                               Evidence
                             </label>
                             <textarea
+                              id={`evidence-${step.id}`}
                               className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Décrire l'evidence collectée..."
@@ -389,10 +393,14 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
                           {/* Notes */}
                           <div>
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            <label
+                              htmlFor={`notes-${step.id}`}
+                              className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"
+                            >
                               Notes
                             </label>
                             <textarea
+                              id={`notes-${step.id}`}
                               className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Notes sur cette étape..."

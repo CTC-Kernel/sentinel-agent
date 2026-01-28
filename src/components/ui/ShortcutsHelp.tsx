@@ -44,6 +44,8 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
             <div
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
+                role="presentation"
+                aria-hidden="true"
             />
 
             <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden animate-scale-in">

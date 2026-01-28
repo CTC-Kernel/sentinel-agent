@@ -58,7 +58,7 @@ const SoftwareCard: React.FC<{
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className={cn(
-                'glass-panel rounded-2xl p-4 text-left w-full',
+                'glass-premium rounded-2xl p-4 text-left w-full border border-border/40',
                 'hover:shadow-apple-md transition-all duration-300',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
             )}
@@ -458,7 +458,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
     }
 
     return (
-        <div className="glass-panel rounded-2xl overflow-hidden">
+        <div className="glass-premium rounded-2xl overflow-hidden border border-border/40">
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>

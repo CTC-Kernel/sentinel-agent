@@ -113,21 +113,22 @@ export const SecureFormExample: React.FC = () => {
       <form onSubmit={form.handleSubmit} className="space-y-4">
         {/* Nom */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="example-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Nom *
           </label>
           <input
+            id="example-name"
             type="text"
             value={form.values.name}
             onChange={(e) => form.handleChange('name')(e.target.value)}
             onBlur={form.handleBlur('name')}
-            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${
-              form.errors.name && form.touched.name
+            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${form.errors.name && form.touched.name
                 ? 'border-red-500'
                 : 'border-slate-300 dark:border-slate-600'
-            }`}
+              }`}
             placeholder="Entrez un nom"
           />
+
           {form.errors.name && form.touched.name && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
               {form.errors.name}
@@ -142,21 +143,22 @@ export const SecureFormExample: React.FC = () => {
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="example-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Email *
           </label>
           <input
+            id="example-email"
             type="email"
             value={form.values.email}
             onChange={(e) => form.handleChange('email')(e.target.value)}
             onBlur={form.handleBlur('email')}
-            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${
-              form.errors.email && form.touched.email
+            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${form.errors.email && form.touched.email
                 ? 'border-red-500'
                 : 'border-slate-300 dark:border-slate-600'
-            }`}
+              }`}
             placeholder="email@example.com"
           />
+
           {form.errors.email && form.touched.email && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
               {form.errors.email}
@@ -166,21 +168,22 @@ export const SecureFormExample: React.FC = () => {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="example-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Description *
           </label>
           <textarea
+            id="example-description"
             value={form.values.description}
             onChange={(e) => form.handleChange('description')(e.target.value)}
             onBlur={form.handleBlur('description')}
             rows={4}
-            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${
-              form.errors.description && form.touched.description
+            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${form.errors.description && form.touched.description
                 ? 'border-red-500'
                 : 'border-slate-300 dark:border-slate-600'
-            }`}
+              }`}
             placeholder="Entrez une description..."
           />
+
           {form.errors.description && form.touched.description && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
               {form.errors.description}
@@ -190,16 +193,18 @@ export const SecureFormExample: React.FC = () => {
 
         {/* URL (optionnel) */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="example-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             URL (optionnel)
           </label>
           <input
+            id="example-url"
             type="url"
             value={form.values.url || ''}
             onChange={(e) => form.handleChange('url')(e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             placeholder="https://example.com"
           />
+
           <p className="mt-1 text-xs text-slate-500 dark:text-muted-foreground">
             Essayez d'entrer: <code>http://localhost/admin</code>
             <br />
@@ -209,24 +214,27 @@ export const SecureFormExample: React.FC = () => {
 
         {/* Téléphone (optionnel) */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="example-phone" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Téléphone (optionnel)
           </label>
           <input
+            id="example-phone"
             type="tel"
             value={form.values.phone || ''}
             onChange={(e) => form.handleChange('phone')(e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             placeholder="+33 6 12 34 56 78"
           />
+
         </div>
 
         {/* Upload de fichier */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="example-file" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Fichier (optionnel)
           </label>
           <input
+            id="example-file"
             type="file"
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -237,6 +245,7 @@ export const SecureFormExample: React.FC = () => {
             className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             accept=".png,.jpg,.jpeg,.pdf"
           />
+
           {fileUpload.error && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
               {fileUpload.error}
@@ -257,11 +266,10 @@ export const SecureFormExample: React.FC = () => {
           <button
             type="submit"
             disabled={form.isSubmitting || !form.isValid}
-            className={`flex-1 px-4 py-2 rounded-md font-medium ${
-              form.isSubmitting || !form.isValid
+            className={`flex-1 px-4 py-2 rounded-md font-medium ${form.isSubmitting || !form.isValid
                 ? 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-muted-foreground cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+              }`}
           >
             {form.isSubmitting ? 'Envoi en cours...' : 'Soumettre'}
           </button>
@@ -302,7 +310,7 @@ export const SecureFormExample: React.FC = () => {
           📖 Pour utiliser dans vos composants:
         </h3>
         <pre className="text-xs text-yellow-800 dark:text-yellow-200 overflow-auto">
-{`import { useSecureForm } from '@/hooks/useSecureForm';
+          {`import { useSecureForm } from '@/hooks/useSecureForm';
 
 const MyForm = () => {
   const form = useSecureForm({

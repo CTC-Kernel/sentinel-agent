@@ -77,7 +77,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend
                         <div className={cn(
                             'flex items-center gap-1 text-xs font-semibold mt-1',
                             trend.isPositive === undefined ? 'text-muted-foreground' :
-                            trend.isPositive ? 'text-success' : 'text-destructive'
+                                trend.isPositive ? 'text-success' : 'text-destructive'
                         )}>
                             {trend.isPositive === undefined ? (
                                 <Minus className="h-3 w-3" />
@@ -176,8 +176,8 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
             const date = new Date(now);
             date.setDate(date.getDate() - (6 - i));
             const dayLabel = i === 6 ? 'Auj.' :
-                           i === 5 ? 'Hier' :
-                           date.toLocaleDateString('fr-FR', { weekday: 'short' });
+                i === 5 ? 'Hier' :
+                    date.toLocaleDateString('fr-FR', { weekday: 'short' });
             // Simulated compliance trend (in production: real historical data)
             const score = Math.max(60, Math.min(100, stats.avgScore + variations[i]));
             return { day: dayLabel, score: Math.round(score) };
@@ -344,7 +344,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
             {/* Compliance Trend Chart */}
             <motion.div
                 variants={slideUpVariants}
-                className="glass-panel rounded-2xl p-6 border border-border/50"
+                className="glass-premium rounded-2xl p-6 border border-border/50"
             >
                 <div className="flex items-center justify-between mb-4">
                     <div>

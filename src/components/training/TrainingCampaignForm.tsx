@@ -137,14 +137,19 @@ const CourseSelectCard: React.FC<CourseSelectCardProps> = ({
 }) => (
   <div
     onClick={onToggle}
-    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-      selected
-        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-        : 'border-white/10 hover:border-white/20 hover:bg-muted/30'
-    }`}
+    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onToggle()}
+    role="button"
+    tabIndex={0}
+    aria-pressed={selected}
+    className={`p-4 rounded-xl border cursor-pointer transition-all ${selected
+      ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+      : 'border-white/10 hover:border-white/20 hover:bg-muted/30'
+      }`}
   >
+
     <div className="flex items-start gap-3">
-      <Checkbox checked={selected} onCheckedChange={onToggle} />
+      <Checkbox checked={selected} onCheckedChange={onToggle} aria-label={`Sélectionner le cours ${course.title}`} />
+
       <div className="flex-1 min-w-0">
         <div className="font-medium text-foreground">{course.title}</div>
         <div className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -183,6 +188,9 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form
+  const defaultStartDate = useMemo(() => new Date(), []);
+  const defaultEndDate = useMemo(() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), []);
+
   const {
     register,
     control,
@@ -190,13 +198,13 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
     watch,
     setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<TrainingCampaignFormData>({
     resolver: zodResolver(trainingCampaignSchema),
     defaultValues: {
       name: '',
       description: '',
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      startDate: defaultStartDate,
+      endDate: defaultEndDate,
       scope: 'all' as const,
       scopeFilter: [] as string[],
       courseIds: [] as string[],
@@ -208,7 +216,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
   });
 
   const watchedValues = watch();
-  const selectedCourseIds = watchedValues.courseIds || [];
+  const selectedCourseIds = useMemo(() => watchedValues.courseIds || [], [watchedValues.courseIds]);
 
   // Navigation
   const currentStepIndex = STEPS.findIndex((s) => s.id === currentStep);
@@ -226,7 +234,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
       default:
         return false;
     }
-  }, [currentStep, watchedValues, selectedCourseIds]);
+  }, [currentStep, watchedValues.name, watchedValues.startDate, watchedValues.endDate, selectedCourseIds]);
 
   const goNext = useCallback(() => {
     const nextIndex = currentStepIndex + 1;
@@ -262,7 +270,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
       const campaignId = await TrainingService.createCampaign(data, user);
       toast.success(t('training.campaign.createSuccess'));
       onSuccess(campaignId);
-    } catch (error) {
+    } catch {
       toast.error(t('training.errors.createFailed'));
     } finally {
       setIsSubmitting(false);
@@ -307,13 +315,12 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
             <React.Fragment key={step.id}>
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : isCompleted
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : isCompleted
                       ? 'bg-success text-white'
                       : 'bg-muted text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   {isCompleted ? (
                     <CheckCircle className="w-5 h-5" />
@@ -342,7 +349,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2, ease: appleEasing }}
-            className="glass-panel p-6 rounded-2xl border border-white/10 min-h-[400px]"
+            className="glass-premium p-6 rounded-2xl border border-border/40 min-h-[400px]"
           >
             {/* Step: Info */}
             {currentStep === 'info' && (
@@ -440,14 +447,15 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
                             <button
                               type="button"
                               onClick={() => field.onChange(opt.value)}
-                              className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                                field.value === opt.value
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                              }`}
+                              aria-pressed={field.value === opt.value}
+                              className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${field.value === opt.value
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                                }`}
                             >
                               {t(opt.label)}
                             </button>
+
                           )}
                         />
                       ))}
@@ -508,12 +516,16 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
                           render={({ field }) => (
                             <div
                               onClick={() => field.onChange(opt.value)}
-                              className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                                isSelected
-                                  ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                                  : 'border-white/10 hover:border-white/20 hover:bg-muted/30'
-                              }`}
+                              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && field.onChange(opt.value)}
+                              role="button"
+                              tabIndex={0}
+                              aria-pressed={isSelected}
+                              className={`p-4 rounded-xl border cursor-pointer transition-all ${isSelected
+                                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                                : 'border-white/10 hover:border-white/20 hover:bg-muted/30'
+                                }`}
                             >
+
                               <div className="flex items-center gap-3">
                                 <div className={`p-2 rounded-xl ${isSelected ? 'bg-primary/10' : 'bg-muted'}`}>
                                   <ScopeIcon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />

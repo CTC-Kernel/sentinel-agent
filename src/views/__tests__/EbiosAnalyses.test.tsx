@@ -88,7 +88,17 @@ vi.mock('../../components/ui/MasterpieceBackground', () => ({
 
 vi.mock('../../components/ui/GlassCard', () => ({
   GlassCard: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <div data-testid="glass-card" onClick={onClick}>{children}</div>
+    onClick ? (
+      <button
+        data-testid="glass-card"
+        onClick={onClick}
+        className="glass-card-mock-btn"
+      >
+        {children}
+      </button>
+    ) : (
+      <div data-testid="glass-card">{children}</div>
+    )
   )
 }));
 

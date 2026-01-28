@@ -18,7 +18,7 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
 
     return (
         <div className="space-y-6">
-            <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-brand-500" />
                     Accès Auditeur Externe

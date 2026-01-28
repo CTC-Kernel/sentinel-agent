@@ -10,24 +10,33 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 2.5%;
 
-  /* Primary - Refined Apple Blue (professional vibrance) */
-  --primary: 221 83% 50%;
+  /* Primary - Refined Apple Blue (high contrast, low aggression) */
+  --primary: 221 68% 50%;
   --primary-foreground: 210 40% 98%;
+  --brand-500-rgb: 59, 130, 246;
+  --info-500-rgb: 6, 182, 212;
 
   /* Navigation Icon Colors - Harmonized palette */
-  --nav-pilotage: 221 75% 55%;     /* Blue - steering/dashboard */
-  --nav-operations: 28 70% 52%;    /* Orange - operations */
-  --nav-governance: 152 58% 42%;   /* Teal - governance (matches success) */
-  --nav-repository: 270 60% 55%;   /* Purple - repository */
-  --nav-admin: 4 62% 52%;          /* Red - admin (matches error) */
-  --nav-support: 215 20% 50%;      /* Slate - support */
+  --nav-pilotage: 221 75% 55%;
+  /* Blue - steering/dashboard */
+  --nav-operations: 28 70% 52%;
+  /* Orange - operations */
+  --nav-governance: 152 58% 42%;
+  /* Teal - governance (matches success) */
+  --nav-repository: 270 60% 55%;
+  /* Purple - repository */
+  --nav-admin: 4 62% 52%;
+  /* Red - admin (matches error) */
+  --nav-support: 215 20% 50%;
+  /* Slate - support */
 
   /* Secondary/Muted - Better contrast (was 96.1% luminosity, now 92%) */
   --secondary: 210 40% 92%;
   --secondary-foreground: 222.2 47.4% 11.2%;
 
   --muted: 210 40% 92%;
-  --muted-foreground: 215.4 25% 20%; /* WCAG AAA: 7.5:1+ on light backgrounds - luminosity 20% for safe contrast */
+  --muted-foreground: 215.4 25% 20%;
+  /* WCAG AAA: 7.5:1+ on light backgrounds - luminosity 20% for safe contrast */
 
   --accent: 210 40% 92%;
   --accent-foreground: 222.2 47.4% 11.2%;
@@ -35,17 +44,17 @@
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 214.3 31.8% 88%;
-  --input: 214.3 31.8% 88%;
+  --border: 214.3 31.8% 91%;
+  /* Was 88% - Lightened for subtlety */
+  --input: 214.3 31.8% 91%;
   --ring: 221 83% 50%;
 
   /* ===== STATUS COLORS - Light Mode (Harmonized Palette) ===== */
-  /* Reduced saturation (62-72%) for professional, non-aggressive appearance */
-  /* Consistent hues that work in both light and dark modes */
-  --success: 152 62% 38%;          /* Teal-green - balanced */
-  --warning: 38 72% 48%;           /* Amber - warm but not harsh */
-  --error: 4 68% 50%;              /* True red - consistent */
-  --info: 201 68% 44%;             /* Cyan-blue - professional */
+  /* Target saturation ~45-55% for professional, non-aggressive appearance */
+  --success: 155 45% 40%;
+  --warning: 35 55% 50%;
+  --error: 5 50% 55%;
+  --info: 205 50% 50%;
 
   /* Semantic Badge Tokens - Light Mode */
   /* WCAG AAA: 7:1 contrast ratio - Text 25-30% luminosity on light backgrounds */
@@ -55,22 +64,23 @@
 
   --warning-text: 38 68% 26%;
   --warning-bg: 38 50% 94%;
-  --warning-border: 38 45% 72%;
+  --warning-border: 38 45% 82%;
 
   --error-text: 4 65% 30%;
   --error-bg: 4 50% 96%;
-  --error-border: 4 45% 80%;
+  --error-border: 4 45% 85%;
 
   --info-text: 201 65% 25%;
   --info-bg: 201 50% 95%;
-  --info-border: 201 45% 75%;
+  --info-border: 201 45% 80%;
 
   /* Gradient Variables - Harmonized with reduced saturation */
-  --gradient-primary: linear-gradient(135deg, hsl(221 83% 50%) 0%, hsl(235 70% 55%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(152 62% 38%) 0%, hsl(162 58% 42%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(38 72% 48%) 0%, hsl(28 68% 46%) 100%);
-  --gradient-danger: linear-gradient(135deg, hsl(4 68% 50%) 0%, hsl(358 65% 46%) 100%);
-  --gradient-info: linear-gradient(135deg, hsl(201 68% 44%) 0%, hsl(210 65% 50%) 100%);
+  /* Gradient Variables - Desaturated for premium feel */
+  --gradient-primary: linear-gradient(135deg, hsl(221 68% 50%) 0%, hsl(235 60% 55%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(152 48% 42%) 0%, hsl(162 45% 46%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(38 58% 52%) 0%, hsl(28 55% 50%) 100%);
+  --gradient-danger: linear-gradient(135deg, hsl(4 55% 54%) 0%, hsl(358 52% 52%) 100%);
+  --gradient-info: linear-gradient(135deg, hsl(201 55% 50%) 0%, hsl(210 52% 54%) 100%);
 
   /* Spacing Scale - Standard (Tailwind compatible) */
   --spacing-1: 0.25rem;
@@ -138,18 +148,24 @@
 
   /* ===== SHADOW SYSTEM ===== */
   /* Elevation Scale - Unified */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
-  --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.18);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  /* Softer */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.01);
+  /* Softer */
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+  /* Softer */
+  --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 0, 0, 0.03);
+  /* Softer */
+  --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04);
+  /* Softer */
+  --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.12);
+  /* Softer */
 
   /* Colored Shadows - For buttons and status elements */
-  --shadow-primary: 0 8px 24px -4px hsl(var(--primary) / 0.3);
-  --shadow-success: 0 8px 24px -4px hsl(var(--success) / 0.3);
-  --shadow-warning: 0 8px 24px -4px hsl(var(--warning) / 0.3);
-  --shadow-error: 0 8px 24px -4px hsl(var(--error) / 0.3);
+  --shadow-primary: 0 8px 24px -4px hsl(var(--primary) / 0.25);
+  --shadow-success: 0 8px 24px -4px hsl(var(--success) / 0.25);
+  --shadow-warning: 0 8px 24px -4px hsl(var(--warning) / 0.25);
+  --shadow-error: 0 8px 24px -4px hsl(var(--error) / 0.25);
 
   /* Interactive Shadow Elevations */
   --shadow-button: var(--shadow-sm);
@@ -167,8 +183,10 @@
 
   /* ===== GLASSMORPHISM ===== */
   /* WCAG AAA: Increased opacity for better text readability (Apple-style) */
-  --glass-bg: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(28, 32, 48, 0.18);
+  --glass-bg: rgba(255, 255, 255, 0.15);
+  /* Lowered opacity to allow semantic color bleed */
+  --glass-border: rgba(28, 32, 48, 0.08);
+  /* Reduced from 0.18 for subtlety */
   --glass-shadow: var(--shadow-md);
 
   /* Modal Overlay - 60% for sufficient contrast */
@@ -188,23 +206,30 @@
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
 
-  /* Primary - Refined Blue for Dark (matches light mode hue) */
-  --primary: 221 78% 60%;
+  /* Primary - Refined Blue for Dark (desaturated) */
+  --primary: 221 65% 62%;
   --primary-foreground: 222.2 47.4% 11.2%;
 
   /* Navigation Icon Colors - Dark Mode (brighter for visibility) */
-  --nav-pilotage: 221 72% 62%;     /* Blue */
-  --nav-operations: 28 68% 58%;    /* Orange */
-  --nav-governance: 152 55% 52%;   /* Teal */
-  --nav-repository: 270 58% 62%;   /* Purple */
-  --nav-admin: 4 60% 60%;          /* Red */
-  --nav-support: 215 18% 58%;      /* Slate */
+  --nav-pilotage: 221 72% 62%;
+  /* Blue */
+  --nav-operations: 28 68% 58%;
+  /* Orange */
+  --nav-governance: 152 55% 52%;
+  /* Teal */
+  --nav-repository: 270 58% 62%;
+  /* Purple */
+  --nav-admin: 4 60% 60%;
+  /* Red */
+  --nav-support: 215 18% 58%;
+  /* Slate */
 
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
 
   --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 22% 72%; /* WCAG AAA: 7.5:1 on dark backgrounds - improved from 68% to 72% luminosity */
+  --muted-foreground: 215 22% 72%;
+  /* WCAG AAA: 7.5:1 on dark backgrounds - improved from 68% to 72% luminosity */
 
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
@@ -217,11 +242,11 @@
   --ring: 212.7 26.8% 83.9%;
 
   /* ===== STATUS COLORS - Dark Mode (Consistent Hues with Light) ===== */
-  /* Same hues as light mode, adjusted luminosity for dark backgrounds */
-  --success: 152 58% 52%;          /* Same hue 152 as light */
-  --warning: 38 68% 55%;           /* Same hue 38 as light */
-  --error: 4 65% 58%;              /* Same hue 4 as light (not 350) */
-  --info: 201 65% 52%;             /* Same hue 201 as light */
+  /* Target saturation ~45-55%, adjusted luminosity for dark backgrounds */
+  --success: 155 45% 50%;
+  --warning: 35 50% 55%;
+  --error: 5 45% 58%;
+  --info: 205 45% 54%;
 
   /* Semantic Badge Tokens - Dark Mode */
   /* WCAG AAA: 7:1 contrast ratio - Text 72-78% luminosity on dark backgrounds */
@@ -258,8 +283,10 @@
 
   /* Glassmorphism Dark - Premium Apple-style */
   /* WCAG AAA: Increased opacity for better text readability */
-  --glass-bg: rgba(15, 23, 42, 0.95);
-  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  /* Slightly more transparent to reduce blue tint */
+  --glass-border: rgba(255, 255, 255, 0.1);
+  /* Thinner border for premium feel */
   --glass-shadow: var(--shadow-lg);
 
   /* Modal Overlay - Dark Mode */

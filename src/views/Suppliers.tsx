@@ -639,7 +639,7 @@ export const Suppliers: React.FC = () => {
                         />
 
                         {viewMode === 'list' ? (
-                            <motion.div variants={slideUpVariants} className="glass-premium rounded-3xl overflow-hidden shadow-apple-sm border border-white/60 dark:border-white/5">
+                            <motion.div variants={slideUpVariants} className="glass-premium rounded-3xl overflow-hidden shadow-apple-sm border border-border/40">
                                 <DataTable
                                     columns={columns}
                                     data={filteredSuppliers}

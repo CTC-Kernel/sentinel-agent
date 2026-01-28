@@ -57,7 +57,10 @@ export const AUDITABLE_ENTITIES = [
     'certificate',
     'access_review',
     'access_review_campaign',
-    'dormant_account'
+    'dormant_account',
+    'questionnaire',
+    'questionnaire_response',
+    'evidence_request'
 ] as const;
 
 export type AuditableEntity = typeof AUDITABLE_ENTITIES[number];
@@ -481,7 +484,10 @@ function getCollectionName(entityType: AuditableEntity): string {
         certificate: 'certificates',
         access_review: 'access_reviews',
         access_review_campaign: 'access_review_campaigns',
-        dormant_account: 'dormant_accounts'
+        dormant_account: 'dormant_accounts',
+        questionnaire: 'questionnaires',
+        questionnaire_response: 'questionnaire_responses',
+        evidence_request: 'evidence_requests'
     };
 
     return mapping[entityType] || entityType;
@@ -867,7 +873,10 @@ export class AuditLogService {
             certificate: 'Certificat',
             access_review: 'Revue d\'accès',
             access_review_campaign: 'Campagne de revue d\'accès',
-            dormant_account: 'Compte dormant'
+            dormant_account: 'Compte dormant',
+            questionnaire: 'Questionnaire',
+            questionnaire_response: 'Réponse questionnaire',
+            evidence_request: 'Demande de preuve'
         };
 
         return labels[entityType] || entityType;

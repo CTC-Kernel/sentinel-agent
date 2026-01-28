@@ -124,10 +124,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Control Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="control-code" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Contrôle *
                             </label>
                             <select
+                                id="control-code"
                                 value={formData.controlCode}
                                 onChange={(e) => setFormData(prev => ({ ...prev, controlCode: e.target.value }))}
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -174,10 +175,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Assessment Method */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="assessment-method" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Méthode d'évaluation
                             </label>
                             <select
+                                id="assessment-method"
                                 value={formData.assessmentMethod}
                                 onChange={(e) => setFormData(prev => ({ ...prev, assessmentMethod: e.target.value }))}
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -190,10 +192,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Notes */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="notes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Notes / Observations
                             </label>
                             <textarea
+                                id="notes"
                                 value={formData.notes}
                                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                                 rows={3}
@@ -204,12 +207,13 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Next Assessment Date */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="next-assessment" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Prochaine évaluation
                             </label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <input
+                                    id="next-assessment"
                                     type="date"
                                     value={formData.nextAssessmentDate}
                                     onChange={(e) => setFormData(prev => ({ ...prev, nextAssessmentDate: e.target.value }))}

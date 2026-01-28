@@ -2,18 +2,29 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 interface SwitchProps {
+    id?: string;
+    ariaLabel?: string;
     checked: boolean;
     onChange: (checked: boolean) => void;
     disabled?: boolean;
     className?: string;
 }
 
-export const Switch: React.FC<SwitchProps> = ({ checked, onChange, disabled = false, className = '' }) => {
+export const Switch: React.FC<SwitchProps> = ({
+    id,
+    ariaLabel,
+    checked,
+    onChange,
+    disabled = false,
+    className = ''
+}) => {
     return (
         <button
+            id={id}
             type="button"
             role="switch"
             aria-checked={checked}
+            aria-label={ariaLabel}
             disabled={disabled}
             onClick={() => !disabled && onChange(!checked)}
             className={`

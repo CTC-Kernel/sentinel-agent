@@ -88,7 +88,7 @@ export const Search: React.FC = () => {
                 icon={<SearchIcon className="h-6 w-6 text-white" strokeWidth={2.5} />}
             />
 
-            <div className="glass-panel p-2 rounded-2xl flex items-center space-x-4 shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-4 z-30">
+            <div className="glass-premium p-2 rounded-2xl flex items-center space-x-4 shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-4 z-30 border border-border/40">
                 <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl">
                     <SearchIcon className="h-6 w-6 text-slate-500" />
                 </div>
@@ -98,7 +98,6 @@ export const Search: React.FC = () => {
                     placeholder="Rechercher quelque chose..."
                     className="flex-1 bg-transparent border-none focus:ring-0 text-lg dark:text-white py-3 font-medium placeholder-gray-400"
                     onChange={e => setQueryText(e.target.value)}
-                    autoFocus
                 />
                 {loading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-600 mr-4"></div>}
                 <button
@@ -176,9 +175,17 @@ export const Search: React.FC = () => {
                 ) : (
                     results.map((result) => (
                         <div
+                            role="button"
+                            tabIndex={0}
                             key={`${result.type}-${result.id}`}
                             onClick={() => handleNavigate(result)}
-                            className="glass-panel p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-all group border border-transparent hover:border-brand-200 dark:hover:border-brand-900"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleNavigate(result);
+                                }
+                            }}
+                            className="glass-premium p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-all group border border-border/40 hover:border-brand-200 dark:hover:border-brand-900 shadow-sm"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">

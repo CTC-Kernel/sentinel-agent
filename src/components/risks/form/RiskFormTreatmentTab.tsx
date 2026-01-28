@@ -40,7 +40,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
     const showJustification = strategy === 'Accepter' && (probability * impact) >= 12;
 
     return (
-        <div className="space-y-8 glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+        <div className="space-y-8 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Layers className="h-5 w-5 text-brand-500" /> {t('risks.tabs.treatment')}
             </h3>
@@ -96,10 +96,10 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
 
             {/* 3. Existing Controls Link */}
             <div className="space-y-3">
-                <label className="flex items-center text-sm font-bold text-slate-900 dark:text-white">
+                <div className="flex items-center text-sm font-bold text-slate-900 dark:text-white">
                     <Shield className="h-4 w-4 mr-2 text-brand-500" />
                     {t('common.controls')}
-                </label>
+                </div>
 
                 {/* Search Bar */}
                 <div className="relative mb-2">

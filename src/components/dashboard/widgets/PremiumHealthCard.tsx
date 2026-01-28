@@ -160,6 +160,15 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                     <div
                         className="flex-shrink-0 relative cursor-pointer group"
                         onClick={() => navigate('/compliance')}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                navigate('/compliance');
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Voir la compliance détaillée"
                     >
                         <div className="relative w-36 h-36">
                             <ResponsiveContainer width="100%" height="100%">

@@ -192,7 +192,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date de début</label>
+                            <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date de début</div>
                             <div className="flex gap-2">
                                 <div className="flex-1">
                                     <Controller
@@ -225,7 +225,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date de fin / Échéance</label>
+                            <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date de fin / Échéance</div>
                             <div className="flex gap-2">
                                 <div className="flex-1">
                                     <Controller

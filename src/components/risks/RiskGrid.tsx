@@ -165,15 +165,15 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">
                                     <TextHighlight text={risk.threat} query={searchQuery || ''} />
                                 </h4>
-                                <div className="text-sm text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl inline-block w-full border border-slate-200 dark:border-white/10">
+                                <div className="text-sm text-slate-900 dark:text-white bg-secondary/50 p-3 rounded-2xl inline-block w-full border border-border/40">
                                     <span className="font-bold text-xs uppercase text-slate-700 dark:text-slate-300 block mb-1">{t('common.vulnerability')}</span>
                                     <TextHighlight text={risk.vulnerability || ''} query={searchQuery || ''} isHtml className="line-clamp-3" />
                                 </div>
                             </div>
-                            <div className="space-y-3 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
+                            <div className="space-y-3 pt-4 border-t border-dashed border-border/40">
                                 <div className="flex items-center justify-between">
                                     <div className="flex flex-col gap-1.5 items-start">
-                                        <span className="text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{risk.strategy}</span>
+                                        <span className="text-xs font-bold text-slate-900 dark:text-white bg-secondary/50 px-2 py-1 rounded-lg border border-border/40">{risk.strategy}</span>
                                         {(() => {
                                             const sla = getSLAStatus(risk);
                                             if (sla) return (

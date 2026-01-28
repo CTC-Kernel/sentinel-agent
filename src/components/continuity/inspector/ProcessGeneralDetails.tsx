@@ -38,13 +38,13 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
             </div>
 
             {/* Description */}
-            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('common.description')}</h3>
                 <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{process.description}</p>
             </div>
 
             {/* Recovery Tasks */}
-            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('continuity.recoveryPlan')}</h3>
                 <div className="space-y-3">
                     {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (

@@ -74,7 +74,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
     };
 
     return (
-        <div className="glass-panel rounded-2xl p-4">
+        <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
             <div className="flex items-start justify-between mb-3">
                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${statusStyles[status]}`}>
                     {icon}
@@ -429,7 +429,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
 
     if (error) {
         return (
-            <div className={`glass-panel rounded-2xl p-8 text-center ${className}`}>
+            <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <AlertTriangle className="h-12 w-12 text-danger mx-auto mb-4" />
                 <p className="text-sm text-muted-foreground">{error}</p>
                 <Button
@@ -446,7 +446,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
 
     if (!data) {
         return (
-            <div className={`glass-panel rounded-2xl p-8 text-center ${className}`}>
+            <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-sm text-muted-foreground">Aucune donnée disponible</p>
             </div>
@@ -537,7 +537,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
 
             {/* Summary Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="glass-panel rounded-2xl p-4">
+                <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                             <Server className="h-5 w-5" />
@@ -551,7 +551,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                     </div>
                 </div>
 
-                <div className="glass-panel rounded-2xl p-4">
+                <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success">
                             <CheckCircle2 className="h-5 w-5" />
@@ -565,7 +565,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                     </div>
                 </div>
 
-                <div className="glass-panel rounded-2xl p-4">
+                <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                             <XCircle className="h-5 w-5" />
@@ -579,7 +579,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                     </div>
                 </div>
 
-                <div className="glass-panel rounded-2xl p-4">
+                <div className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success">
                             <Zap className="h-5 w-5" />
@@ -626,7 +626,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Status Distribution */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <PieChart className="h-4 w-4 text-primary" />
                         Distribution des statuts
@@ -635,7 +635,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                 </div>
 
                 {/* OS Distribution */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <Server className="h-4 w-4 text-primary" />
                         Distribution par OS
@@ -644,7 +644,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                 </div>
 
                 {/* Uptime Chart */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <BarChart3 className="h-4 w-4 text-primary" />
                         Historique de disponibilité
@@ -653,7 +653,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                 </div>
 
                 {/* Version Distribution */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <RefreshCw className="h-4 w-4 text-primary" />
                         Versions des agents
@@ -663,7 +663,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
             </div>
 
             {/* Anomaly Summary */}
-            <div className="glass-panel rounded-2xl p-6">
+            <div className="glass-premium rounded-2xl p-6 border border-border/40 shadow-sm">
                 <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                     Résumé des anomalies

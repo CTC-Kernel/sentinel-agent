@@ -78,7 +78,7 @@ const ImpactSummaryCard: React.FC<{
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl p-4 sm:p-6"
+            className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40"
         >
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-xl bg-success/10">
@@ -156,7 +156,7 @@ const ActionCard: React.FC<{
         <motion.div
             variants={slideUpVariants}
             className={cn(
-                'glass-panel rounded-xl overflow-hidden',
+                'glass-premium rounded-xl overflow-hidden border border-border/40',
                 action.isQuickWin && 'ring-2 ring-primary/30'
             )}
         >
@@ -357,55 +357,55 @@ const FilterControls: React.FC<{
     categoryFilter,
     onCategoryChange: _onCategoryChange,
 }) => {
-    const sortOptions = [
-        { value: 'rank' as const, label: 'Rang' },
-        { value: 'impact' as const, label: 'Impact' },
-        { value: 'effort' as const, label: 'Effort' },
-        { value: 'quickWin' as const, label: 'Quick Win Score' },
-    ];
+        const sortOptions = [
+            { value: 'rank' as const, label: 'Rang' },
+            { value: 'impact' as const, label: 'Impact' },
+            { value: 'effort' as const, label: 'Effort' },
+            { value: 'quickWin' as const, label: 'Quick Win Score' },
+        ];
 
-    return (
-        <div className="flex flex-wrap items-center gap-2">
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                {sortOptions.map((option) => (
-                    <Button
-                        key={option.value}
-                        variant={sortBy === option.value ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => onSortChange(option.value)}
-                        className="h-7 text-xs"
-                    >
-                        {option.label}
-                    </Button>
-                ))}
-            </div>
+        return (
+            <div className="flex flex-wrap items-center gap-2">
+                {/* Sort Dropdown */}
+                <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                    {sortOptions.map((option) => (
+                        <Button
+                            key={option.value}
+                            variant={sortBy === option.value ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => onSortChange(option.value)}
+                            className="h-7 text-xs"
+                        >
+                            {option.label}
+                        </Button>
+                    ))}
+                </div>
 
-            {/* Quick Wins Toggle */}
-            <Button
-                variant={showQuickWinsOnly ? 'default' : 'outline'}
-                size="sm"
-                onClick={onQuickWinsToggle}
-                className="gap-1"
-            >
-                <Zap className="h-3 w-3" />
-                Quick Wins
-            </Button>
-
-            {/* Category Filter */}
-            <div className="relative group">
-                <Button variant="outline" size="sm" className="gap-1">
-                    <Filter className="h-3 w-3" />
-                    {categoryFilter ? getCategoryLabel(categoryFilter) : 'Catégorie'}
+                {/* Quick Wins Toggle */}
+                <Button
+                    variant={showQuickWinsOnly ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={onQuickWinsToggle}
+                    className="gap-1"
+                >
+                    <Zap className="h-3 w-3" />
+                    Quick Wins
                 </Button>
+
+                {/* Category Filter */}
+                <div className="relative group">
+                    <Button variant="outline" size="sm" className="gap-1">
+                        <Filter className="h-3 w-3" />
+                        {categoryFilter ? getCategoryLabel(categoryFilter) : 'Catégorie'}
+                    </Button>
+                </div>
             </div>
-        </div>
-    );
-};
+        );
+    };
 
 // Empty State
 const EmptyState: React.FC = () => (
-    <div className="glass-panel rounded-2xl p-6 text-center">
+    <div className="glass-premium rounded-2xl p-6 text-center border border-border/40">
         <div className="p-4 rounded-full bg-muted/50 inline-block mb-4">
             <CheckCircle className="h-8 w-8 text-success" />
         </div>

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../firebase';
 import { Loader2, Building2, FileCheck, Clock, CheckCircle, Search, ChevronRight, LogOut, Shield } from '../../../components/ui/Icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from '@/lib/toast';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../../firebase';
@@ -138,18 +138,10 @@ export const CertifierDashboard: React.FC = () => {
                             {data.assignments.length > 0 ? (
                                 <div className="divide-y divide-slate-100 dark:divide-white/5">
                                     {data.assignments.map((audit) => (
-                                        <div
+                                        <Link
                                             key={audit.shareId}
-                                            onClick={() => navigate(`/portal/audit/${audit.shareId}`)}
-                                            role="button"
-                                            tabIndex={0}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    navigate(`/portal/audit/${audit.shareId}`);
-                                                }
-                                            }}
-                                            className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group"
+                                            to={`/portal/audit/${audit.shareId}`}
+                                            className="block p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-start gap-4">
@@ -174,7 +166,7 @@ export const CertifierDashboard: React.FC = () => {
                                                     <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-brand-500" />
                                                 </div>
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             ) : (

@@ -123,8 +123,15 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   return (
     <div
       onClick={onClick}
+      role={(interactive || onClick) ? "button" : undefined}
+      tabIndex={(interactive || onClick) ? 0 : undefined}
+      onKeyDown={(interactive || onClick) ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.();
+        }
+      } : undefined}
       className={`
-        glass-panel rounded-4xl border border-white/50 dark:border-white/5
+        glass-premium rounded-4xl border border-border/40
         transition-all duration-300
         ${interactive ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''}
         ${interactive ? 'hover:-translate-y-1' : ''}

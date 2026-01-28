@@ -33,7 +33,7 @@ export const AuditChecklist: React.FC<AuditChecklistProps> = ({
             {checklist ? (
                 <div className="space-y-4">
                     {checklist.questions.map(q => (
-                        <div key={q.id} className="p-5 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
+                        <div key={q.id} className="p-5 glass-premium rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                             <p className="font-medium text-slate-900 dark:text-white mb-4">{q.question}</p>
                             <div className="flex flex-wrap gap-2">
                                 {(['Conforme', 'Non-conforme', 'Non-applicable'] as const).map(opt => (
@@ -42,15 +42,14 @@ export const AuditChecklist: React.FC<AuditChecklistProps> = ({
                                         key={opt}
                                         onClick={() => onAnswer(q.id, opt)}
                                         aria-label={`Marquer comme ${opt}`}
-                                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
-                                            q.response === opt
+                                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${q.response === opt
                                                 ? opt === 'Conforme'
                                                     ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/30 shadow-sm'
                                                     : opt === 'Non-conforme'
                                                         ? 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/30 shadow-sm'
                                                         : 'bg-slate-500/15 text-slate-700 dark:text-slate-300 ring-1 ring-slate-500/30 shadow-sm'
                                                 : 'bg-white/50 dark:bg-slate-800/30 border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-brand-300 hover:text-brand-600 dark:hover:text-brand-400'
-                                        }`}
+                                            }`}
                                     >
                                         {opt === 'Conforme' ? t('audits.checklist.responses.compliant') :
                                             opt === 'Non-conforme' ? t('audits.checklist.responses.nonCompliant') :

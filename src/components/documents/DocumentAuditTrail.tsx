@@ -306,9 +306,10 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 space-y-4">
           {/* Action Type Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Type d'action
-            </label>
+            </span>
+
             <div className="flex flex-wrap gap-2">
               {allActions.map(({ value, label }) => {
                 const colors = VaultAuditService.getActionColorClass(value);
@@ -338,29 +339,33 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
           {/* Date Range Filter */}
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="audit-start-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 <Calendar className="h-3 w-3 inline mr-1" />
                 Date debut
               </label>
               <input
+                id="audit-start-date"
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
+
             <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="audit-end-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 <Calendar className="h-3 w-3 inline mr-1" />
                 Date fin
               </label>
               <input
+                id="audit-end-date"
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               />
             </div>
+
             {(selectedActions.length > 0 || dateRange.start || dateRange.end) && (
               <Button
                 variant="ghost"
@@ -412,9 +417,9 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
               const isExpanded = expandedEntries.has(entry.id);
 
               return (
-                <div
+                <button
                   key={entry.id}
-                  className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${onEntryClick ? 'cursor-pointer' : ''
+                  className={`w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${onEntryClick ? 'cursor-pointer' : ''
                     }`}
                   onClick={() => onEntryClick?.(entry)}
                 >
@@ -428,6 +433,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                         <div className="w-px h-full bg-slate-200 dark:bg-slate-700 mt-2" />
                       )}
                     </div>
+
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
@@ -509,7 +515,8 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                       )}
                     </div>
                   </div>
-                </div>
+                </button>
+
               );
             })}
           </div>

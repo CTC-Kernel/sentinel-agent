@@ -140,7 +140,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top Threat Types */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40">
                     <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-6">Top Types de Menaces</h3>
                     <div className="h-[250px] w-full">
                         {typeData.length === 0 ? (
@@ -171,7 +171,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                 </div>
 
                 {/* Activity Trend */}
-                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40">
                     <h3 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-6">Volume d'Activité (24h)</h3>
                     <div className="h-[250px] w-full">
                         {activityData.every(d => d.value === 0) ? (

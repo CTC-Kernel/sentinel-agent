@@ -43,7 +43,14 @@ vi.mock('../../ui/Tooltip', () => ({
 // Mock NotificationItem
 vi.mock('../NotificationItem', () => ({
     NotificationItem: ({ notification, onRead }: { notification: Notification; onRead: (id: string) => void }) => (
-        <div data-testid="notification-item" data-id={notification.id} onClick={() => onRead(notification.id)}>
+        <div
+            data-testid="notification-item"
+            data-id={notification.id}
+            onClick={() => onRead(notification.id)}
+            onKeyDown={(e) => e.key === 'Enter' && onRead(notification.id)}
+            role="button"
+            tabIndex={0}
+        >
             {notification.title}
         </div>
     )

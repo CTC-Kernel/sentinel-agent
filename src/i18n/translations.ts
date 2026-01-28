@@ -1092,6 +1092,30 @@ export const translations = {
                 assignments: 'Aucune affectation',
                 assignmentsDesc: 'Assignez des formations aux utilisateurs'
             }
+        },
+        incidents: {
+            title: 'Incidents',
+            subtitle: 'Gestion des incidents de sécurité',
+            author: 'Auteur',
+            description: 'Description',
+            status: 'Statut',
+            criticality: 'Criticité',
+            category: 'Catégorie',
+            date: 'Date',
+            assignedTo: 'Assigné à',
+            reportedBy: 'Signalé par',
+            resolution: 'Résolution',
+            impact: 'Impact',
+            actions: 'Actions',
+            newIncident: 'Nouvel Incident',
+            exportCsv: 'Exporter CSV',
+            allStatuses: 'Tous les statuts',
+            allCategories: 'Toutes les catégories',
+            searchPlaceholder: 'Rechercher un incident...',
+            noResultsTitle: 'Aucun résultat trouvé',
+            noResultsDescription: 'Essayez de modifier vos filtres ou termes de recherche',
+            emptyTitle: 'Aucun incident',
+            emptyDescription: 'Commencez par créer votre premier incident'
         }
     },
     en: {
@@ -1890,6 +1914,30 @@ export const translations = {
                 assignments: 'No assignments',
                 assignmentsDesc: 'Assign trainings to users'
             }
+        },
+        incidents: {
+            title: 'Incidents',
+            subtitle: 'Security incident management',
+            author: 'Author',
+            description: 'Description',
+            status: 'Status',
+            criticality: 'Criticality',
+            category: 'Category',
+            date: 'Date',
+            assignedTo: 'Assigned to',
+            reportedBy: 'Reported by',
+            resolution: 'Resolution',
+            impact: 'Impact',
+            actions: 'Actions',
+            newIncident: 'New Incident',
+            exportCsv: 'Export CSV',
+            allStatuses: 'All Statuses',
+            allCategories: 'All Categories',
+            searchPlaceholder: 'Search incidents...',
+            noResultsTitle: 'No results found',
+            noResultsDescription: 'Try adjusting your filters or search terms',
+            emptyTitle: 'No incidents',
+            emptyDescription: 'Create your first incident to get started'
         }
     },
     audits: {

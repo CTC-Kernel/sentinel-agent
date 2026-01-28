@@ -93,13 +93,13 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <div>
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Déclaré le</label>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Déclaré le</div>
                             <p className="font-medium text-slate-900 dark:text-white mt-1">
                                 {new Date(incident.dateReported).toLocaleString()}
                             </p>
                         </div>
                         <div className="mt-4">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Déclaré par</label>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Déclaré par</div>
                             <div className="flex items-center gap-2 mt-1">
                                 <div className="h-6 w-6 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
                                     {incident.reporter.charAt(0)}

@@ -98,7 +98,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <Component
       className={`
-        glass-panel p-5 rounded-2xl text-left w-full
+        glass-premium p-5 rounded-2xl text-left w-full border border-border/40 shadow-sm
         ${onClick ? 'cursor-pointer hover:shadow-apple-md transition-shadow' : ''}
       `}
       onClick={onClick}
@@ -387,7 +387,7 @@ export const VendorConcentration: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Category Distribution Chart */}
-          <div className="glass-panel p-4 sm:p-6 rounded-2xl">
+          <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
               {t('vendorConcentration.categoryDistribution.title')}
             </h2>
@@ -400,7 +400,7 @@ export const VendorConcentration: React.FC = () => {
           </div>
 
           {/* SPOF Alerts */}
-          <div className="glass-panel p-4 sm:p-6 rounded-2xl">
+          <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {t('vendorConcentration.spofAlerts.title')}
@@ -421,7 +421,7 @@ export const VendorConcentration: React.FC = () => {
 
           {/* Trend Summary */}
           {trends && trends.overallTrend.length > 0 && (
-            <div className="glass-panel p-4 sm:p-6 rounded-2xl lg:col-span-2">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl lg:col-span-2 border border-border/40 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 {t('vendorConcentration.trends.title')}
               </h2>
@@ -449,7 +449,7 @@ export const VendorConcentration: React.FC = () => {
       )}
 
       {activeTab === 'matrix' && dependencyMatrix && (
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl">
+        <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
             {t('vendorConcentration.dependencyMatrix.title')}
           </h2>
@@ -463,7 +463,7 @@ export const VendorConcentration: React.FC = () => {
       )}
 
       {activeTab === 'recommendations' && recommendations && (
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl">
+        <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">

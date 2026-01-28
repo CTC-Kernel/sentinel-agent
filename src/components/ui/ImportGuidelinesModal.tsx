@@ -156,6 +156,15 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                     {/* File Upload */}
                     {!selectedFile ? (
                         <div
+                            role="button"
+                            tabIndex={0}
+                            aria-label="Cliquer ou glisser-déposer pour uploader un fichier CSV"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    fileInputRef.current?.click();
+                                }
+                            }}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}

@@ -173,6 +173,15 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                         }
                                     `}
                                     onClick={() => document.getElementById('csv-upload')?.click()}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            document.getElementById('csv-upload')?.click();
+                                        }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label="Télécharger un fichier CSV"
                                 >
                                     <input
                                         id="csv-upload"

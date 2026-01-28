@@ -405,7 +405,16 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                     {/* Scenario Header */}
                     <div
                       onClick={() => setExpandedScenario(isExpanded ? null : opScenario.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setExpandedScenario(isExpanded ? null : opScenario.id);
+                        }
+                      }}
                       className="flex items-center justify-between cursor-pointer hover:bg-muted/30/50 dark:hover:bg-slate-800/50 -m-6 p-6 transition-colors"
+                      role="button"
+                      aria-label={`Scénario: ${opScenario.name}`}
+                      tabIndex={0}
                     >
                       <div className="flex items-center gap-5">
                         {/* Risk Badge Transition */}
@@ -936,7 +945,11 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <button
+        className="absolute inset-0 w-full h-full bg-black/50 backdrop-blur-sm border-0 cursor-pointer"
+        onClick={onClose}
+        aria-label="Fermer la boîte de dialogue"
+      />
       <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
           {t('ebios.workshop5.acceptRiskTitle')}

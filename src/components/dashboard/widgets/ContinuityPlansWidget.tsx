@@ -58,7 +58,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
 
     if (loading) {
         return (
-            <div className="h-full flex items-center justify-center glass-panel rounded-2xl border border-white/60 dark:border-white/5 p-4">
+            <div className="h-full flex items-center justify-center glass-premium rounded-2xl border border-border/40 p-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             </div>
         );
@@ -97,7 +97,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
     }
 
     return (
-        <div className="h-full flex flex-col p-5 glass-panel rounded-2xl border border-white/60 dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+        <div className="h-full flex flex-col p-5 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">

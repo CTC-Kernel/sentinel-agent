@@ -199,10 +199,11 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                 <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                                     {/* Report Name */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        <label htmlFor="scheduled-report-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             Nom du rapport planifié
                                         </label>
                                         <input
+                                            id="scheduled-report-name"
                                             type="text"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
@@ -213,15 +214,16 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
 
                                     {/* Template Selection */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             <FileText className="inline h-4 w-4 mr-1" />
                                             Type de rapport
-                                        </label>
+                                        </span>
                                         <div className="grid grid-cols-3 gap-2">
                                             {(Object.keys(templateLabels) as ReportTemplateId[]).map((tid) => (
                                                 <button
                                                     key={tid}
                                                     onClick={() => setTemplateId(tid)}
+                                                    aria-pressed={templateId === tid}
                                                     className={cn(
                                                         "px-3 py-2 rounded-lg text-sm font-medium transition-all",
                                                         templateId === tid
@@ -237,15 +239,16 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
 
                                     {/* Frequency Selection */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             <Clock className="inline h-4 w-4 mr-1" />
                                             Fréquence
-                                        </label>
+                                        </span>
                                         <div className="grid grid-cols-3 gap-2">
                                             {(Object.keys(frequencyLabels) as ReportFrequency[]).map((freq) => (
                                                 <button
                                                     key={freq}
                                                     onClick={() => setFrequency(freq)}
+                                                    aria-pressed={frequency === freq}
                                                     className={cn(
                                                         "px-3 py-2 rounded-lg text-sm font-medium transition-all",
                                                         frequency === freq
@@ -262,11 +265,12 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                     {/* Day Selection */}
                                     {frequency === 'weekly' ? (
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                            <label htmlFor="weekly-day" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                                 <Calendar className="inline h-4 w-4 mr-1" />
                                                 Jour de la semaine
                                             </label>
                                             <select
+                                                id="weekly-day"
                                                 value={dayOfWeek}
                                                 onChange={(e) => setDayOfWeek(Number(e.target.value))}
                                                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
@@ -278,11 +282,12 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                         </div>
                                     ) : (
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                            <label htmlFor="monthly-day" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                                 <Calendar className="inline h-4 w-4 mr-1" />
                                                 Jour du mois
                                             </label>
                                             <select
+                                                id="monthly-day"
                                                 value={dayOfMonth}
                                                 onChange={(e) => setDayOfMonth(Number(e.target.value))}
                                                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
@@ -311,18 +316,20 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
 
                                     {/* Recipients */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             <Mail className="inline h-4 w-4 mr-1" />
                                             Destinataires
-                                        </label>
+                                        </span>
                                         <div className="space-y-2">
                                             {recipients.map((email, index) => (
                                                 <div key={index} className="flex gap-2">
                                                     <input
+                                                        id={`recipient-email-${index}`}
                                                         type="email"
                                                         value={email}
                                                         onChange={(e) => handleRecipientChange(index, e.target.value)}
                                                         placeholder="email@example.com"
+                                                        aria-label={`Email du destinataire ${index + 1}`}
                                                         className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                                     />
                                                     {recipients.length > 1 && (
@@ -348,9 +355,9 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                     {/* Report Content Options (for custom reports) */}
                                     {templateId === 'custom' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                            <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                                 Contenu du rapport
-                                            </label>
+                                            </span>
                                             <div className="space-y-2">
                                                 {[
                                                     { key: 'risks', label: 'Risques', value: includeRisks, setter: setIncludeRisks },

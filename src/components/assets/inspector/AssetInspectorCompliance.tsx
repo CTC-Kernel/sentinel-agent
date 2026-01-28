@@ -24,12 +24,12 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
             ) : (
                 <div className="grid gap-4">
                     {linkedControls.map(ctrl => (
-                        <div key={ctrl.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
+                        <div key={ctrl.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     {ctrl.code}
                                 </span>
-                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-lg ${ctrl.status === 'Implémenté' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
+                                <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-xl ${ctrl.status === 'Implémenté' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
                                     {ctrl.status}
                                 </span>
                             </div>
@@ -42,7 +42,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
             <p className="text-xs text-muted-foreground text-center mt-4">Les contrôles sont gérés dans le module Conformité.</p>
 
             {/* Supported Processes */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
                     <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
                 </h3>
@@ -53,7 +53,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                             {supported.map(p => (
                                 <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
                                     <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
-                                    <span className={`text-[11px] px-2 py-0.5 rounded font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
+                                    <span className={`text-[11px] px-2 py-0.5 rounded-xl font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
                                 </div>
                             ))}
                         </div>

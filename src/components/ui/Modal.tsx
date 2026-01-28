@@ -47,17 +47,17 @@ export const Modal: React.FC<ModalProps> = ({
                             leaveFrom="opacity-70 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className={`relative transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 text-left shadow-modal transition-all w-full border border-white/60 dark:border-white/5 glass-premium ${maxWidth}`}>
+                            <Dialog.Panel className={`relative transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 text-left shadow-modal transition-all w-full border border-white/20 dark:border-white/5 glass-premium ${maxWidth}`}>
                                 {title && (
-                                    <div className="flex items-center justify-between p-6 border-b border-slate-200/60 dark:border-white/5 shrink-0 transition-colors">
-                                        <Dialog.Title as="h3" className="text-xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
+                                    <div className="flex items-center justify-between p-6 border-b border-border/40 shrink-0 transition-colors">
+                                        <Dialog.Title as="h3" className="text-xl font-bold font-display text-foreground tracking-tight">
                                             {title}
                                         </Dialog.Title>
                                         <Button
                                             onClick={onClose}
                                             variant="ghost"
                                             size="icon"
-                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white"
                                             aria-label="Fermer"
                                         >
                                             <X className="w-5 h-5" aria-hidden="true" />

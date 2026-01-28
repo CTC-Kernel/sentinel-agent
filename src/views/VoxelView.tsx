@@ -841,8 +841,8 @@ export const VoxelView: React.FC = () => {
               onClick={handleAIAnalysis}
               disabled={analyzing}
               className={`flex items - center gap - 1.5 px - 2.5 py - 1.5 rounded - lg font - medium text - xs transition - all duration - 200 ${analyzing
-                  ? 'bg-brand-100 text-brand-300 cursor-wait'
-                  : 'bg-gradient-to-r from-brand-500 to-violet-600 text-white hover:shadow-lg hover:shadow-brand-500/30'
+                ? 'bg-brand-100 text-brand-300 cursor-wait'
+                : 'bg-gradient-to-r from-brand-500 to-violet-600 text-white hover:shadow-lg hover:shadow-brand-500/30'
                 } `}
             >
               {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
@@ -1092,7 +1092,6 @@ export const VoxelView: React.FC = () => {
                     value={commandSearch}
                     onChange={e => setCommandSearch(e.target.value)}
                     placeholder="Rechercher un nœud..."
-                    autoFocus
                     className="flex-1 bg-transparent text-white text-lg placeholder:text-white/30 outline-none"
                   />
                   <kbd className="px-2 py-1 rounded bg-white/10 text-xs text-white/40">ESC</kbd>

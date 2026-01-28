@@ -63,7 +63,7 @@ export const SystemHealth: React.FC = () => {
                     <motion.div
                         key={metric.label}
                         variants={slideUpVariants}
-                        className="glass-premium p-4 sm:p-6 rounded-2xl relative overflow-hidden group"
+                        className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 relative overflow-hidden group"
                     >
                         <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
                             <metric.icon className="h-24 w-24" />
@@ -83,7 +83,7 @@ export const SystemHealth: React.FC = () => {
             </div>
 
             {/* Services Status */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-4 sm:p-6 rounded-2xl">
+            <motion.div variants={slideUpVariants} className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Globe className="h-5 w-5 text-brand-500" />
                     {t('systemHealth.servicesStatus')}
@@ -116,7 +116,7 @@ export const SystemHealth: React.FC = () => {
             </motion.div>
 
             {/* Recent Alerts (Mock) */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-4 sm:p-6 rounded-2xl">
+            <motion.div variants={slideUpVariants} className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-warning-text" />
                     {t('systemHealth.recentAlerts')}

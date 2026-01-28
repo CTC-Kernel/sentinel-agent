@@ -716,13 +716,21 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                         >
                             <PremiumCard glass
                                 className={cn(
-                                    "p-5 cursor-pointer transition-all border-2",
+                                    "p-5 cursor-pointer transition-all border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                                     isSelected ? "ring-2 ring-indigo-500 border-indigo-300 dark:border-indigo-700" : "border-transparent",
                                     isActive && "bg-green-500 dark:bg-green-50 dark:bg-green-900 border-green-300 dark:border-green-700 dark:border-green-700",
                                     config.bgColor,
                                     config.borderColor
                                 )}
                                 onClick={() => setSelectedTemplate(template)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        setSelectedTemplate(template);
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={0}
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div className={cn("p-3 rounded-xl text-white", config.color)}>
@@ -916,11 +924,20 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                                     <div
                                                                         key={task.id}
                                                                         className={cn(
-                                                                            "flex items-start gap-3 p-3 rounded-lg transition-all",
+                                                                            "flex items-start gap-3 p-3 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                                                                             isWorkshopActive ? "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" : "opacity-70",
                                                                             task.isCompleted && "bg-green-50 dark:bg-green-50 dark:bg-green-900"
                                                                         )}
                                                                         onClick={() => isWorkshopActive && handleToggleTask(phase.id, task.id)}
+                                                                        onKeyDown={(e) => {
+                                                                            if (isWorkshopActive && (e.key === 'Enter' || e.key === ' ')) {
+                                                                                e.preventDefault();
+                                                                                handleToggleTask(phase.id, task.id);
+                                                                            }
+                                                                        }}
+                                                                        role="button"
+                                                                        tabIndex={0}
+                                                                        aria-label={`Toggle task: ${task.title}`}
                                                                     >
                                                                         {task.isCompleted ? (
                                                                             <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />

@@ -56,10 +56,10 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
 
     return createPortal(
         <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="glass-panel rounded-4xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/20 animate-scale-in relative">
+            <div className="glass-premium rounded-4xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-border/40 animate-scale-in relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/10 relative z-10 glass-panel backdrop-blur-md">
+                <div className="flex items-center justify-between p-6 border-b border-border/60 relative z-10 glass-premium backdrop-blur-md">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             Créer depuis un Template
@@ -122,7 +122,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     ) : (
                         /* Template Configuration */
                         <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-6">
-                            <div className="glass-panel p-4 rounded-xl border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900">
+                            <div className="glass-premium p-4 rounded-xl border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900">
                                 <div className="flex items-center gap-3">
                                     <span className="text-3xl">{selectedTemplate.icon}</span>
                                     <div>
@@ -144,10 +144,12 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <label htmlFor="project-name" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Nom du Projet *
                                 </label>
-                                <input {...register('projectName')}
+                                <input
+                                    id="project-name"
+                                    {...register('projectName')}
                                     type="text"
                                     placeholder="Ex: Certification ISO 27001 2025"
                                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
@@ -156,10 +158,12 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <label htmlFor="start-date" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Date de Début *
                                 </label>
-                                <input {...register('startDate')}
+                                <input
+                                    id="start-date"
+                                    {...register('startDate')}
                                     type="date"
                                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                 />
@@ -167,7 +171,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <label htmlFor="manager-id" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Chef de Projet *
                                 </label>
                                 <Controller
@@ -175,6 +179,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                     control={control}
                                     render={({ field }) => (
                                         <CustomSelect
+                                            id="manager-id"
                                             options={managers.filter(m => !!m.uid).map(m => ({
                                                 value: m.uid,
                                                 label: m.displayName || m.email || 'Utilisateur'
@@ -182,7 +187,6 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                             value={field.value}
                                             onChange={field.onChange}
                                             placeholder="Sélectionner..."
-                                            label="Chef de Projet"
                                         />
                                     )}
                                 />

@@ -150,7 +150,7 @@ export const AuditTrailViewer: React.FC = () => {
             />
 
             {/* Filters */}
-            <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Search */}
                     <div className="relative flex-1 md:min-w-[300px]">

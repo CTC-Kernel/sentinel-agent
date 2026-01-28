@@ -20,7 +20,19 @@ vi.mock('../../store', () => ({
 // Mock Headless UI
 vi.mock('@headlessui/react', () => {
     const MockDialog = ({ children, open, onClose }: { children: React.ReactNode; open: boolean; onClose: () => void }) => (
-        open ? <div data-testid="dialog" onClick={onClose}>{children}</div> : null
+        open ? (
+            <button
+                data-testid="dialog"
+                onClick={onClose}
+                onKeyDown={(e) => {
+                    if (e.key === 'Escape') onClose();
+                }}
+                className="dialog-backdrop-mock"
+                aria-label="Close dialog"
+            >
+                {children}
+            </button>
+        ) : null
     );
     // Attach sub-components to the functional component
     (MockDialog as unknown as { Panel: React.FC<{ children: React.ReactNode }> }).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;

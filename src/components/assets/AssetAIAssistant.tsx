@@ -170,7 +170,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
     }
 
     return (
-        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-5 border border-primary/20">
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-3xl p-5 border border-primary/20">
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-background rounded-xl shadow-sm">
                     <Sparkles className="h-5 w-5 text-primary" />
@@ -216,7 +216,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
             )}
 
             {response && (
-                <div className="bg-background rounded-xl p-4 border border-primary/20 border-primary/20 shadow-sm animate-fade-in">
+                <div className="bg-background rounded-2xl p-4 border border-primary/20 shadow-sm animate-fade-in">
                     <div className="flex justify-between items-start mb-2">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center">
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
@@ -255,7 +255,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                             onClick={handleApply}
                             disabled={applying}
                             aria-label="Appliquer les recommandations de criticité"
-                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-xs font-bold transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-xl text-xs font-bold transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         >
                             {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
                             {applying ? 'Application...' : 'Appliquer les changements'}

@@ -163,8 +163,10 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 <div
                     className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedFolderId === null ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold ring-1 ring-slate-200 dark:ring-slate-700' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
                     onClick={handleSelectAll}
-                    tabIndex={0}
                     onKeyDown={handleSelectAllKeyDown}
+                    role="button"
+                    aria-label="Tous les documents"
+                    tabIndex={0}
                 >
                     <div className="w-5 mr-1" /> {/* Spacer for alignment */}
                     <Folder className="h-4 w-4 mr-2 text-slate-500" />
@@ -210,7 +212,6 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     placeholder="Nom du dossier"
                                     className={`w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
                                         } mb-1 focus:ring-2 focus-visible:ring-brand-500 outline-none`}
-                                    autoFocus
                                 />
                                 {errors.name && (
                                     <p className="text-red-500 text-xs mb-3">{errors.name.message}</p>
@@ -361,9 +362,11 @@ const FolderNode = React.memo(({
                 className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
                 style={{ paddingLeft: `${depth * 16 + 12}px` }}
                 onClick={handleSelectClick}
-                tabIndex={0}
                 onKeyDown={handleKeyDown}
                 onContextMenu={handleContextMenuFn}
+                role="button"
+                aria-label={`Dossier: ${folder.name}`}
+                tabIndex={0}
             >
                 <Button
                     aria-label={isExpanded ? "Replier le dossier" : "Déplier le dossier"}
@@ -379,7 +382,6 @@ const FolderNode = React.memo(({
                     <input value={newFolderName} onChange={handleInputChange} onBlur={handleUpdateBlur} onKeyDown={handleUpdateKeyDown}
                         aria-label="Renommer le dossier"
                         type="text"
-                        autoFocus
                         className="flex-1 bg-white dark:bg-slate-800 border border-brand-500 rounded px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                         onClick={(e) => e.stopPropagation()}
                     />

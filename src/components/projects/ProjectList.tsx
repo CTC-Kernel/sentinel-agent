@@ -235,7 +235,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
     ], [canEdit, onEdit, onDuplicate, deletingIds, duplicatingIds, user, usersList, t, handleDelete]);
 
     return (
-        <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+        <motion.div variants={slideUpVariants} className="glass-premium w-full max-w-full rounded-3xl overflow-hidden shadow-sm border border-border/40 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="relative z-10">
                 <DataTable

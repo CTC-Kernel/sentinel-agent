@@ -136,6 +136,17 @@ export const AccessReview: React.FC = () => {
     return AccessReviewService.calculateStats(campaigns, [], dormantAccounts);
   }, [campaigns, dormantAccounts]);
 
+  // Reset form
+  const resetForm = useCallback(() => {
+    setCampaignName('');
+    setCampaignDescription('');
+    setStartDate('');
+    setEndDate('');
+    setScope('all');
+    setIsRecurring(false);
+    setRecurrenceDays(90);
+  }, []);
+
   // Create campaign
   const handleCreateCampaign = useCallback(async () => {
     if (!user || !campaignName || !startDate || !endDate) return;
@@ -163,18 +174,7 @@ export const AccessReview: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user, campaignName, campaignDescription, startDate, endDate, scope, isRecurring, recurrenceDays, addToast]);
-
-  // Reset form
-  const resetForm = useCallback(() => {
-    setCampaignName('');
-    setCampaignDescription('');
-    setStartDate('');
-    setEndDate('');
-    setScope('all');
-    setIsRecurring(false);
-    setRecurrenceDays(90);
-  }, []);
+  }, [user, campaignName, campaignDescription, startDate, endDate, scope, isRecurring, recurrenceDays, addToast, resetForm]);
 
   // Launch campaign
   const handleLaunchCampaign = useCallback(async (campaign: AccessReviewCampaign) => {

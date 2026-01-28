@@ -296,13 +296,21 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       {/* Drag and drop zone */}
       <div
         className={cn(
-          'border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer',
+          'border-2 border-dashed rounded-3xl p-12 text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
           isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-slate-400'
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => document.getElementById('csv-file-input')?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            document.getElementById('csv-file-input')?.click();
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         <input
           id="csv-file-input"
@@ -321,7 +329,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       </div>
 
       {/* Template download */}
-      <Card className="p-4">
+      <Card className="p-4 rounded-3xl border-border/40 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -370,7 +378,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         <select
           value={getMappedColumn(fieldName)}
           onChange={(e) => updateMapping(fieldName, e.target.value)}
-          className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+          className="flex-1 px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500 bg-background"
         >
           <option value="">{t('otImport.mapping.selectColumn', '-- Sélectionner --')}</option>
           {csvData.headers.map(header => (
@@ -389,7 +397,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
     return (
       <div className="space-y-6">
         {/* File info */}
-        <Card className="p-4">
+        <Card className="p-4 rounded-3xl border-border/40 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <Table className="h-5 w-5 text-blue-600" />
@@ -408,7 +416,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
             {t('otImport.mapping.requiredFields', 'Champs obligatoires')}
           </h3>
-          <Card className="p-4">
+          <Card className="p-4 rounded-3xl border-border/40 shadow-sm">
             {requiredFields.map(f => renderFieldMapping(f, true))}
           </Card>
         </div>
@@ -418,7 +426,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
             {t('otImport.mapping.optionalFields', 'Champs optionnels')}
           </h3>
-          <Card className="p-4 max-h-64 overflow-y-auto">
+          <Card className="p-4 max-h-64 overflow-y-auto rounded-3xl border-border/40 shadow-sm">
             {optionalFields.map(f => renderFieldMapping(f, false))}
           </Card>
         </div>
@@ -449,7 +457,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         </div>
 
         {/* Preview table */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden rounded-3xl border-border/40 shadow-sm">
           <div className="max-h-80 overflow-y-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 sticky top-0">
@@ -568,7 +576,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
 
         {/* Error details */}
         {importResult.errors.length > 0 && (
-          <Card className="p-4">
+          <Card className="p-4 rounded-3xl border-border/40 shadow-sm">
             <h4 className="font-medium text-red-700 dark:text-red-400 mb-2">
               {t('otImport.complete.errorDetails', 'Détail des erreurs')}
             </h4>

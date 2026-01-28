@@ -332,7 +332,7 @@ export const Reports: React.FC = () => {
                             {t('reports.categories.compliance')}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all group relative overflow-hidden ${activeFramework?.toUpperCase() === 'ISO27001' ? 'border-brand-500 ring-2 ring-brand-300' : 'border-white/10 hover:border-brand-500'}`}>
+                            <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all duration-300 group relative overflow-hidden ${activeFramework?.toUpperCase() === 'ISO27001' ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-border/40 hover:border-brand-500/50'}`}>
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-200 dark:group-hover:bg-brand-500/30 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -371,7 +371,7 @@ export const Reports: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all group relative overflow-hidden ${activeFramework?.toUpperCase() === 'GDPR' ? 'border-brand-500 ring-2 ring-brand-300' : 'border-white/10 hover:border-brand-500'}`}>
+                            <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all duration-300 group relative overflow-hidden ${activeFramework?.toUpperCase() === 'GDPR' ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-border/40 hover:border-brand-500/50'}`}>
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-200 dark:group-hover:bg-brand-500/30 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -419,7 +419,7 @@ export const Reports: React.FC = () => {
                             {t('reports.categories.executive')}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/10 hover:border-violet-500 transition-all group relative overflow-hidden">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 hover:border-violet-500/50 transition-all duration-300 group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/15 dark:bg-violet-400/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/25 dark:group-hover:bg-violet-400/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -464,7 +464,7 @@ export const Reports: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {documents.filter(d => d.type === 'Rapport').length > 0 ? (
                         documents.filter(d => d.type === 'Rapport').map(doc => (
-                            <div key={doc.id} className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 hover:border-brand-400 transition-all group">
+                            <div key={doc.id} className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 hover:border-brand-400/50 transition-all duration-300 group">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-muted-foreground">
                                         <FileText className="h-6 w-6" />
@@ -481,7 +481,7 @@ export const Reports: React.FC = () => {
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-500 dark:text-slate-300 glass-panel rounded-3xl border-dashed">
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-500 dark:text-slate-300 glass-premium rounded-3xl border border-dashed border-border/40 shadow-sm">
                             <Archive className="h-12 w-12 opacity-20 mb-4" />
                             <p className="font-medium">{t('reports.generated.empty')}</p>
                             <Button variant="link" onClick={() => setActiveTab('templates')}>
@@ -521,9 +521,9 @@ export const Reports: React.FC = () => {
                             {scheduledReports.map(report => (
                                 <div
                                     key={report.id}
-                                    className={`glass-premium p-4 sm:p-6 rounded-2xl border transition-all ${report.status === 'active'
-                                        ? 'border-success-border'
-                                        : 'border-slate-200 dark:border-slate-700 opacity-60'
+                                    className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all duration-300 ${report.status === 'active'
+                                        ? 'border-success-border/50 shadow-md shadow-success/5'
+                                        : 'border-border/40 opacity-60'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-4">
@@ -597,7 +597,7 @@ export const Reports: React.FC = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-16 text-slate-500 dark:text-slate-300 font-medium glass-panel rounded-3xl border-dashed">
+                        <div className="text-center py-16 text-slate-500 dark:text-slate-300 font-medium glass-premium rounded-3xl border border-dashed border-border/40 shadow-sm">
                             <History className="h-16 w-16 mx-auto mb-6 opacity-20" />
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('reports.scheduledSection.emptyTitle')}</h3>
                             <p className="max-w-md mx-auto mb-6">{t('reports.scheduledSection.emptyDescription')}</p>

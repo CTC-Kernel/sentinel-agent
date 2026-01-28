@@ -73,12 +73,8 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                     <div className="flex items-center gap-2">
                         <img
                             src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-                            alt={process.owner}
+                            alt=""
                             className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = getUserAvatarUrl(null, ownerUser?.role);
-                            }}
                         />
                         <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                             {process.owner}

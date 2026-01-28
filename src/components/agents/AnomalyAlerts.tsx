@@ -107,7 +107,7 @@ const StatsSummaryCard: React.FC<{
     return (
         <motion.div
             variants={slideUpVariants}
-            className="glass-panel rounded-2xl p-4 sm:p-6"
+            className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40"
         >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {/* Active Anomalies */}
@@ -197,266 +197,275 @@ const AnomalyCard: React.FC<{
     selected,
     onSelect,
 }) => {
-    const TypeIcon = AnomalyTypeIcons[anomaly.type];
-    const SeverityIcon = SeverityIcons[anomaly.severity];
+        const TypeIcon = AnomalyTypeIcons[anomaly.type];
+        const SeverityIcon = SeverityIcons[anomaly.severity];
 
-    const timeAgo = useMemo(() => {
-        const now = new Date();
-        const detected = new Date(anomaly.detectedAt);
-        const diffMs = now.getTime() - detected.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
+        const timeAgo = useMemo(() => {
+            const now = new Date();
+            const detected = new Date(anomaly.detectedAt);
+            const diffMs = now.getTime() - detected.getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
 
-        if (diffDays > 0) return `Il y a ${diffDays}j`;
-        if (diffHours > 0) return `Il y a ${diffHours}h`;
-        if (diffMins > 0) return `Il y a ${diffMins}min`;
-        return "À l'instant";
-    }, [anomaly.detectedAt]);
+            if (diffDays > 0) return `Il y a ${diffDays}j`;
+            if (diffHours > 0) return `Il y a ${diffHours}h`;
+            if (diffMins > 0) return `Il y a ${diffMins}min`;
+            return "À l'instant";
+        }, [anomaly.detectedAt]);
 
-    const statusBadge = useMemo(() => {
-        switch (anomaly.status) {
-            case 'new':
-                return <Badge variant="soft" className="bg-destructive/10 text-destructive">Nouveau</Badge>;
-            case 'acknowledged':
-                return <Badge variant="soft" className="bg-primary/10 text-primary">Pris en compte</Badge>;
-            case 'investigating':
-                return <Badge variant="soft" className="bg-warning/10 text-warning">Investigation</Badge>;
-            case 'resolved':
-                return <Badge variant="soft" className="bg-success/10 text-success">Résolu</Badge>;
-            case 'false_positive':
-                return <Badge variant="soft" className="bg-muted text-muted-foreground">Faux positif</Badge>;
-        }
-    }, [anomaly.status]);
+        const statusBadge = useMemo(() => {
+            switch (anomaly.status) {
+                case 'new':
+                    return <Badge variant="soft" className="bg-destructive/10 text-destructive">Nouveau</Badge>;
+                case 'acknowledged':
+                    return <Badge variant="soft" className="bg-primary/10 text-primary">Pris en compte</Badge>;
+                case 'investigating':
+                    return <Badge variant="soft" className="bg-warning/10 text-warning">Investigation</Badge>;
+                case 'resolved':
+                    return <Badge variant="soft" className="bg-success/10 text-success">Résolu</Badge>;
+                case 'false_positive':
+                    return <Badge variant="soft" className="bg-muted text-muted-foreground">Faux positif</Badge>;
+            }
+        }, [anomaly.status]);
 
-    return (
-        <motion.div
-            layout
-            variants={slideUpVariants}
-            className={cn(
-                'glass-panel rounded-xl overflow-hidden transition-all',
-                anomaly.severity === 'critical' && 'ring-2 ring-destructive/50',
-                anomaly.severity === 'high' && 'ring-1 ring-orange-500/30',
-                selected && 'ring-2 ring-primary'
-            )}
-        >
-            {/* Header */}
-            <div
-                className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={onToggle}
+        return (
+            <motion.div
+                layout
+                variants={slideUpVariants}
+                className={cn(
+                    'glass-premium rounded-xl overflow-hidden transition-all border border-border/40',
+                    anomaly.severity === 'critical' && 'ring-2 ring-destructive/50',
+                    anomaly.severity === 'high' && 'ring-1 ring-orange-500/30',
+                    selected && 'ring-2 ring-primary'
+                )}
             >
-                {/* Selection Checkbox */}
-                <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={(e) => {
-                        e.stopPropagation();
-                        onSelect(e.target.checked);
+                {/* Header */}
+                <div
+                    className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    onClick={onToggle}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onToggle();
+                        }
                     }}
-                    className="h-4 w-4 rounded border-border"
-                    onClick={(e) => e.stopPropagation()}
-                />
-
-                {/* Severity Icon */}
-                <div className={cn(
-                    'p-2 rounded-lg',
-                    getSeverityBgColor(anomaly.severity)
-                )}>
-                    <SeverityIcon className={cn('h-4 w-4', getSeverityColor(anomaly.severity))} />
-                </div>
-
-                {/* Type Icon */}
-                <div className="p-2 rounded-lg bg-accent">
-                    <TypeIcon className="h-4 w-4 text-foreground" />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">{anomaly.title}</span>
-                        {statusBadge}
-                    </div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
-                        <span>{anomaly.agentHostname}</span>
-                        <span>•</span>
-                        <span>{getAnomalyTypeLabel(anomaly.type)}</span>
-                        <span>•</span>
-                        <span>{timeAgo}</span>
-                        {anomaly.occurrenceCount > 1 && (
-                            <>
-                                <span>•</span>
-                                <Badge variant="outline" className="text-xs">
-                                    {anomaly.occurrenceCount}x
-                                </Badge>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {/* Expand Icon */}
-                <motion.div
-                    animate={{ rotate: expanded ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={expanded}
                 >
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                </motion.div>
-            </div>
+                    {/* Selection Checkbox */}
+                    <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={(e) => {
+                            e.stopPropagation();
+                            onSelect(e.target.checked);
+                        }}
+                        className="h-4 w-4 rounded border-border"
+                        onClick={(e) => e.stopPropagation()}
+                    />
 
-            {/* Expanded Content */}
-            <AnimatePresence>
-                {expanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="border-t border-border/50"
-                    >
-                        <div className="p-4 space-y-4">
-                            {/* Description */}
-                            <p className="text-sm">{anomaly.description}</p>
+                    {/* Severity Icon */}
+                    <div className={cn(
+                        'p-2 rounded-lg',
+                        getSeverityBgColor(anomaly.severity)
+                    )}>
+                        <SeverityIcon className={cn('h-4 w-4', getSeverityColor(anomaly.severity))} />
+                    </div>
 
-                            {/* Metrics */}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                <div className="bg-accent/50 rounded-lg p-3">
-                                    <div className="text-xs text-muted-foreground">Valeur actuelle</div>
-                                    <div className="font-semibold">
-                                        {anomaly.currentValue.toFixed(1)}{anomaly.unit}
-                                    </div>
-                                </div>
-                                <div className="bg-accent/50 rounded-lg p-3">
-                                    <div className="text-xs text-muted-foreground">Baseline</div>
-                                    <div className="font-semibold">
-                                        {anomaly.baselineValue.toFixed(1)}{anomaly.unit}
-                                    </div>
-                                </div>
-                                <div className="bg-accent/50 rounded-lg p-3">
-                                    <div className="text-xs text-muted-foreground">Écart-type</div>
-                                    <div className="font-semibold">
-                                        ±{anomaly.baselineStdDev.toFixed(1)}{anomaly.unit}
-                                    </div>
-                                </div>
-                                <div className="bg-accent/50 rounded-lg p-3">
-                                    <div className="text-xs text-muted-foreground">Déviation</div>
-                                    <div className={cn('font-semibold', getSeverityColor(anomaly.severity))}>
-                                        {anomaly.deviationMultiplier.toFixed(1)}σ
-                                    </div>
-                                </div>
-                            </div>
+                    {/* Type Icon */}
+                    <div className="p-2 rounded-lg bg-accent">
+                        <TypeIcon className="h-4 w-4 text-foreground" />
+                    </div>
 
-                            {/* Context */}
-                            {anomaly.context && Object.keys(anomaly.context).length > 0 && (
-                                <div className="bg-accent/30 rounded-lg p-3">
-                                    <div className="text-xs text-muted-foreground mb-2">Contexte</div>
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                        {anomaly.context.processName && (
-                                            <div>
-                                                <span className="text-muted-foreground">Processus: </span>
-                                                <span className="font-mono">{anomaly.context.processName}</span>
-                                            </div>
-                                        )}
-                                        {anomaly.context.remoteAddress && (
-                                            <div>
-                                                <span className="text-muted-foreground">Adresse: </span>
-                                                <span className="font-mono">
-                                                    {anomaly.context.remoteAddress}:{anomaly.context.remotePort}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {anomaly.context.user && (
-                                            <div>
-                                                <span className="text-muted-foreground">Utilisateur: </span>
-                                                <span>{anomaly.context.user}</span>
-                                            </div>
-                                        )}
-                                        {anomaly.context.configKey && (
-                                            <div className="col-span-2">
-                                                <span className="text-muted-foreground">Config: </span>
-                                                <span className="font-mono">{anomaly.context.configKey}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium truncate">{anomaly.title}</span>
+                            {statusBadge}
+                        </div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                            <span>{anomaly.agentHostname}</span>
+                            <span>•</span>
+                            <span>{getAnomalyTypeLabel(anomaly.type)}</span>
+                            <span>•</span>
+                            <span>{timeAgo}</span>
+                            {anomaly.occurrenceCount > 1 && (
+                                <>
+                                    <span>•</span>
+                                    <Badge variant="outline" className="text-xs">
+                                        {anomaly.occurrenceCount}x
+                                    </Badge>
+                                </>
                             )}
+                        </div>
+                    </div>
 
-                            {/* Actions */}
-                            {anomaly.status !== 'resolved' && anomaly.status !== 'false_positive' && (
-                                <div className="flex flex-wrap gap-2 pt-2">
-                                    {anomaly.status === 'new' && (
-                                        <>
+                    {/* Expand Icon */}
+                    <motion.div
+                        animate={{ rotate: expanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    </motion.div>
+                </div>
+
+                {/* Expanded Content */}
+                <AnimatePresence>
+                    {expanded && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="border-t border-border/50"
+                        >
+                            <div className="p-4 space-y-4">
+                                {/* Description */}
+                                <p className="text-sm">{anomaly.description}</p>
+
+                                {/* Metrics */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div className="bg-accent/50 rounded-lg p-3">
+                                        <div className="text-xs text-muted-foreground">Valeur actuelle</div>
+                                        <div className="font-semibold">
+                                            {anomaly.currentValue.toFixed(1)}{anomaly.unit}
+                                        </div>
+                                    </div>
+                                    <div className="bg-accent/50 rounded-lg p-3">
+                                        <div className="text-xs text-muted-foreground">Baseline</div>
+                                        <div className="font-semibold">
+                                            {anomaly.baselineValue.toFixed(1)}{anomaly.unit}
+                                        </div>
+                                    </div>
+                                    <div className="bg-accent/50 rounded-lg p-3">
+                                        <div className="text-xs text-muted-foreground">Écart-type</div>
+                                        <div className="font-semibold">
+                                            ±{anomaly.baselineStdDev.toFixed(1)}{anomaly.unit}
+                                        </div>
+                                    </div>
+                                    <div className="bg-accent/50 rounded-lg p-3">
+                                        <div className="text-xs text-muted-foreground">Déviation</div>
+                                        <div className={cn('font-semibold', getSeverityColor(anomaly.severity))}>
+                                            {anomaly.deviationMultiplier.toFixed(1)}σ
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Context */}
+                                {anomaly.context && Object.keys(anomaly.context).length > 0 && (
+                                    <div className="bg-accent/30 rounded-lg p-3">
+                                        <div className="text-xs text-muted-foreground mb-2">Contexte</div>
+                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                            {anomaly.context.processName && (
+                                                <div>
+                                                    <span className="text-muted-foreground">Processus: </span>
+                                                    <span className="font-mono">{anomaly.context.processName}</span>
+                                                </div>
+                                            )}
+                                            {anomaly.context.remoteAddress && (
+                                                <div>
+                                                    <span className="text-muted-foreground">Adresse: </span>
+                                                    <span className="font-mono">
+                                                        {anomaly.context.remoteAddress}:{anomaly.context.remotePort}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {anomaly.context.user && (
+                                                <div>
+                                                    <span className="text-muted-foreground">Utilisateur: </span>
+                                                    <span>{anomaly.context.user}</span>
+                                                </div>
+                                            )}
+                                            {anomaly.context.configKey && (
+                                                <div className="col-span-2">
+                                                    <span className="text-muted-foreground">Config: </span>
+                                                    <span className="font-mono">{anomaly.context.configKey}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Actions */}
+                                {anomaly.status !== 'resolved' && anomaly.status !== 'false_positive' && (
+                                    <div className="flex flex-wrap gap-2 pt-2">
+                                        {anomaly.status === 'new' && (
+                                            <>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onAcknowledge();
+                                                    }}
+                                                >
+                                                    <Check className="h-4 w-4 mr-1" />
+                                                    Prendre en compte
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onInvestigate();
+                                                    }}
+                                                >
+                                                    <Eye className="h-4 w-4 mr-1" />
+                                                    Investiguer
+                                                </Button>
+                                            </>
+                                        )}
+                                        {(anomaly.status === 'acknowledged' || anomaly.status === 'investigating') && (
                                             <Button
-                                                variant="outline"
+                                                variant="default"
                                                 size="sm"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    onAcknowledge();
+                                                    onResolve();
                                                 }}
                                             >
-                                                <Check className="h-4 w-4 mr-1" />
-                                                Prendre en compte
+                                                <CheckCircle className="h-4 w-4 mr-1" />
+                                                Résoudre
                                             </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onInvestigate();
-                                                }}
-                                            >
-                                                <Eye className="h-4 w-4 mr-1" />
-                                                Investiguer
-                                            </Button>
-                                        </>
-                                    )}
-                                    {(anomaly.status === 'acknowledged' || anomaly.status === 'investigating') && (
+                                        )}
                                         <Button
-                                            variant="default"
+                                            variant="ghost"
                                             size="sm"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                onResolve();
+                                                onFalsePositive();
                                             }}
                                         >
-                                            <CheckCircle className="h-4 w-4 mr-1" />
-                                            Résoudre
+                                            <BellOff className="h-4 w-4 mr-1" />
+                                            Faux positif
                                         </Button>
-                                    )}
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onFalsePositive();
-                                        }}
-                                    >
-                                        <BellOff className="h-4 w-4 mr-1" />
-                                        Faux positif
-                                    </Button>
-                                </div>
-                            )}
+                                    </div>
+                                )}
 
-                            {/* Resolution Info */}
-                            {(anomaly.status === 'resolved' || anomaly.status === 'false_positive') && anomaly.resolvedAt && (
-                                <div className="text-sm text-muted-foreground">
-                                    {anomaly.status === 'resolved' ? 'Résolu' : 'Marqué faux positif'} le{' '}
-                                    {new Date(anomaly.resolvedAt).toLocaleDateString('fr-FR', {
-                                        day: 'numeric',
-                                        month: 'short',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })}
-                                    {anomaly.resolutionNotes && (
-                                        <span> - {anomaly.resolutionNotes}</span>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
-    );
-};
+                                {/* Resolution Info */}
+                                {(anomaly.status === 'resolved' || anomaly.status === 'false_positive') && anomaly.resolvedAt && (
+                                    <div className="text-sm text-muted-foreground">
+                                        {anomaly.status === 'resolved' ? 'Résolu' : 'Marqué faux positif'} le{' '}
+                                        {new Date(anomaly.resolvedAt).toLocaleDateString('fr-FR', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                        {anomaly.resolutionNotes && (
+                                            <span> - {anomaly.resolutionNotes}</span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        );
+    };
 
 // Main Component
 export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
@@ -619,7 +628,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     if (loading) {
         return (
             <div className={cn('space-y-4', className)}>
-                <div className="glass-panel rounded-2xl p-8 flex items-center justify-center">
+                <div className="glass-premium rounded-2xl p-8 flex items-center justify-center border border-border/40">
                     <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
             </div>
@@ -688,11 +697,11 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="glass-panel rounded-xl p-4 space-y-4 overflow-hidden"
+                        className="glass-premium rounded-xl p-4 space-y-4 overflow-hidden border border-border/40"
                     >
                         {/* Status Filter */}
                         <div>
-                            <label className="text-sm font-medium mb-2 block">Statut</label>
+                            <span className="text-sm font-medium mb-2 block">Statut</span>
                             <div className="flex flex-wrap gap-2">
                                 {ANOMALY_STATUSES.map(status => (
                                     <Badge
@@ -719,7 +728,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
 
                         {/* Severity Filter */}
                         <div>
-                            <label className="text-sm font-medium mb-2 block">Sévérité</label>
+                            <span className="text-sm font-medium mb-2 block">Sévérité</span>
                             <div className="flex flex-wrap gap-2">
                                 {ANOMALY_SEVERITIES.map(severity => (
                                     <Badge
@@ -749,7 +758,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
 
                         {/* Type Filter */}
                         <div>
-                            <label className="text-sm font-medium mb-2 block">Type</label>
+                            <span className="text-sm font-medium mb-2 block">Type</span>
                             <div className="flex flex-wrap gap-2">
                                 {ANOMALY_TYPES.map(type => (
                                     <Badge
@@ -812,7 +821,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                 {filteredAnomalies.length === 0 ? (
                     <motion.div
                         variants={slideUpVariants}
-                        className="glass-panel rounded-2xl p-8 text-center"
+                        className="glass-premium rounded-2xl p-8 text-center border border-border/40"
                     >
                         <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
                         <h3 className="font-semibold mb-2">Aucune anomalie</h3>

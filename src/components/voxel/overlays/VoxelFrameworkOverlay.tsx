@@ -160,9 +160,8 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
 
   return (
     <div
-      className={`rounded-lg transition-all duration-200 cursor-pointer ${
-        isSelected ? 'ring-2' : 'hover:bg-slate-700/30'
-      }`}
+      className={`rounded-lg transition-all duration-200 cursor-pointer ${isSelected ? 'ring-2' : 'hover:bg-slate-700/30'
+        }`}
       style={{
         background: isSelected ? `${framework.color}15` : 'rgba(30, 41, 59, 0.5)',
         borderColor: isSelected ? framework.color : 'transparent',
@@ -173,6 +172,13 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       aria-pressed={isSelected}
       aria-label={`${framework.name} framework`}
     >
@@ -407,9 +413,8 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
               <button
                 key={framework.id}
                 onClick={() => handleSelect(framework.id)}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                  selectedFrameworkId === framework.id ? 'ring-2' : 'hover:bg-slate-700/50'
-                }`}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${selectedFrameworkId === framework.id ? 'ring-2' : 'hover:bg-slate-700/50'
+                  }`}
                 style={{
                   background:
                     selectedFrameworkId === framework.id

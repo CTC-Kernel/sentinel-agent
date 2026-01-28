@@ -282,7 +282,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-2">
@@ -325,7 +325,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-border/40 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-success-bg rounded-2xl">
@@ -355,7 +355,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-border/40 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-warning-bg rounded-2xl">
@@ -385,7 +385,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col justify-between"
+                    className="glass-premium p-5 rounded-3xl border border-border/40 flex flex-col justify-between"
                 >
                     <div className="flex items-center justify-between">
                         <div className="p-3 bg-red-50 rounded-2xl">
@@ -421,7 +421,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">
@@ -470,7 +470,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">
@@ -519,7 +519,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">
@@ -589,7 +589,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.35 }}
-                    className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 relative overflow-hidden"
+                    className="glass-premium p-6 rounded-4xl border border-border/40 relative overflow-hidden"
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-4">
@@ -659,28 +659,28 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         </h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
+                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <FileText className="w-4 h-4 text-slate-500" />
                                 <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Total</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.total}</div>
                         </div>
-                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
+                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <Edit className="w-4 h-4 text-slate-500" />
                                 <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Brouillons</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.drafts}</div>
                         </div>
-                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
+                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <Shield className="w-4 h-4 text-brand-500" />
                                 <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Sécurisés</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.secure}</div>
                         </div>
-                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
+                        <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <Calendar className="w-4 h-4 text-slate-500" />
                                 <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Ce Mois</span>

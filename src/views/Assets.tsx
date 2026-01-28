@@ -382,7 +382,7 @@ const Assets: React.FC = () => {
                             transition={{ duration: 0.2 }}
                         >
                             {reachedAssetLimit && (
-                                <div className="mb-4 rounded-3xl border border-warning/30 bg-warning/10 text-warning px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-warning/10">
+                                <div className="mb-4 rounded-4xl border border-warning/30 bg-warning/10 text-warning px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-warning/10">
                                     <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
                                     <Button
                                         variant="link"

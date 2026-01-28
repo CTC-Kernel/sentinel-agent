@@ -33,7 +33,7 @@ export const EmptyState = ({
 
     return (
         <div className={cn(
-            "glass-panel flex flex-col items-center justify-center p-8 text-center min-h-[400px]",
+            "glass-premium flex flex-col items-center justify-center p-8 text-center min-h-[400px] border border-border/40",
             className
         )}>
             {image && !Icon && (

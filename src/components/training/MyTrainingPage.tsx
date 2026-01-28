@@ -51,7 +51,7 @@ type FilterType = 'all' | 'pending' | 'in_progress' | 'completed' | 'overdue';
 // ============================================================================
 
 const TrainingCardSkeleton: React.FC = () => (
-  <div className="glass-panel p-5 rounded-3xl border border-white/5">
+  <div className="glass-premium p-5 rounded-3xl border border-border/40">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -166,7 +166,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
       );
       updateAssignment(assignment.id, { status: 'in_progress' });
       toast.success(t('training.success.trainingStarted'));
-    } catch (error) {
+    } catch {
       toast.error(t('training.errors.updateFailed'));
     } finally {
       setIsUpdating(null);
@@ -191,7 +191,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
       );
       updateAssignment(assignment.id, { status: 'completed' });
       toast.success(t('training.success.assignmentCompleted'));
-    } catch (error) {
+    } catch {
       toast.error(t('training.errors.updateFailed'));
     } finally {
       setIsUpdating(null);
@@ -245,7 +245,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-panel p-4 rounded-2xl border border-white/10"
+          className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10">
@@ -264,7 +264,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="glass-panel p-4 rounded-2xl border border-white/10"
+          className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-success-bg">
@@ -283,7 +283,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="glass-panel p-4 rounded-2xl border border-white/10"
+          className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-error-bg">
@@ -302,7 +302,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="glass-panel p-4 rounded-2xl border border-white/10"
+          className="glass-premium p-4 rounded-2xl border border-border/40"
         >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-warning-bg">
@@ -327,22 +327,20 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
             <button
               key={btn.value}
               onClick={() => setFilter(btn.value)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                isActive
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-muted'
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               {t(btn.label)}
               {btn.count > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-md text-xs font-bold ${
-                  isActive
+                <span className={`px-1.5 py-0.5 rounded-md text-xs font-bold ${isActive
                     ? 'bg-white/20'
                     : btn.value === 'overdue' && btn.count > 0
-                    ? 'bg-error-bg text-error-text'
-                    : 'bg-muted'
-                }`}>
+                      ? 'bg-error-bg text-error-text'
+                      : 'bg-muted'
+                  }`}>
                   {btn.count}
                 </span>
               )}

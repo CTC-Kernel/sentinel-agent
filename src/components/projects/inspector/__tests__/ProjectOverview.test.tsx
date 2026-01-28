@@ -133,10 +133,10 @@ describe('ProjectOverview', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel container for description', () => {
+        it('has glass-premium container for description', () => {
             const { container } = render(<ProjectOverview project={mockProject} />);
 
-            expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+            expect(container.querySelector('.glass-premium')).toBeInTheDocument();
         });
 
         it('has rounded stat cards', () => {

@@ -334,10 +334,10 @@ describe.skip('IntakeForm', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel containers', async () => {
+        it('has glass-premium containers', async () => {
             const { container } = render(<IntakeForm {...defaultProps} />);
             await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
-            expect(container.querySelectorAll('.glass-panel').length).toBe(2);
+            expect(container.querySelectorAll('.glass-premium').length).toBe(2);
         });
     });
 

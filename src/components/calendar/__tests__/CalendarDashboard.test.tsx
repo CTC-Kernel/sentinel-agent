@@ -32,6 +32,15 @@ vi.mock('react-big-calendar', () => ({
                             key={idx}
                             data-testid="calendar-event"
                             onClick={() => onSelectEvent(event)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onSelectEvent(event);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Select event: ${(event as { title: string }).title}`}
                         >
                             {(event as { title: string }).title}
                         </div>
@@ -276,11 +285,11 @@ describe('CalendarDashboard', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel container', async () => {
+        it('has glass-premium container', async () => {
             const { container } = render(<CalendarDashboard />);
 
             await waitFor(() => {
-                expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+                expect(container.querySelector('.glass-premium')).toBeInTheDocument();
             });
         });
     });

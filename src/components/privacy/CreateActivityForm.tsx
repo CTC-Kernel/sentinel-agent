@@ -93,7 +93,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Base Légale</label>
+                    <div className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Base Légale</div>
                     <CustomSelect
                         value={legalBasis}
                         onChange={(val) => setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['legalBasis'])}
@@ -102,7 +102,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                     {errors.legalBasis && <p className="text-destructive text-xs mt-1">{errors.legalBasis.message}</p>}
                 </div>
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Statut</label>
+                    <div className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Statut</div>
                     <CustomSelect
                         value={status}
                         onChange={(val) => setValue('status', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['status'])}

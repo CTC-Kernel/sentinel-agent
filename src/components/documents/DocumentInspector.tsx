@@ -132,6 +132,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                     const target = e.target as HTMLImageElement;
                                     target.src = getUserAvatarUrl(null, ownerUser?.role);
                                 }}
+                                role="presentation"
                             />
                             <span>{ownerUser?.displayName || selectedDocument.owner}</span>
                         </div>

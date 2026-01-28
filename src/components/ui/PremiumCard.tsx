@@ -24,18 +24,12 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   onClick,
   ...props
 }) => {
-  const baseClasses = "rounded-2xl p-6 transition-all duration-300 relative overflow-hidden group border";
+  const baseClasses = "rounded-3xl p-6 transition-all duration-300 relative overflow-hidden group border border-transparent";
 
   const variantClasses = cn(
-    glass && [
-      "backdrop-blur-xl saturate-150",
-      "bg-[var(--glass-bg,rgba(255,255,255,0.85))]",
-      "border-[var(--glass-border,rgba(28,32,48,0.12))]",
-      "shadow-[var(--glass-shadow,0_4px_20px_-2px_rgba(28,32,48,0.08))]",
-      "dark:bg-[var(--glass-bg,rgba(15,23,42,0.6))]" // Fallback for dark mode if var not set
-    ],
-    gradient && "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700",
-    !glass && !gradient && "bg-card text-card-foreground border-border shadow-sm",
+    glass && "glass-premium",
+    gradient && "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-border/50",
+    !glass && !gradient && "bg-card text-card-foreground border-border/60 shadow-sm",
     hover && [
       "hover:shadow-lg",
       onClick && "cursor-pointer"

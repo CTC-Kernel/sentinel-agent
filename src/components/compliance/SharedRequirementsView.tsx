@@ -116,7 +116,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
 
     if (controls.length === 0) {
         return (
-            <div className="glass-panel p-12 text-center">
+            <div className="glass-premium p-12 text-center border border-border/40 rounded-xl">
                 <Layers className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Aucun contrôle disponible
@@ -132,7 +132,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
         return (
             <div className="space-y-6">
                 {/* Header */}
-                <div className="glass-panel p-4 sm:p-6 rounded-xl">
+                <div className="glass-premium p-4 sm:p-6 rounded-xl border border-border/40">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                             <Layers className="w-5 h-5 text-brand-600 dark:text-brand-400" />
@@ -149,7 +149,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                 </div>
 
                 {/* Empty State */}
-                <div className="glass-panel p-12 text-center">
+                <div className="glass-premium p-12 text-center border border-border/40 rounded-xl">
                     <Target className="w-12 h-12 mx-auto text-yellow-400 mb-4" />
                     <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                         Aucune exigence partagée
@@ -167,7 +167,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
     return (
         <div className="space-y-6">
             {/* Header with Effort Savings */}
-            <div className="glass-panel p-4 sm:p-6 rounded-xl">
+            <div className="glass-premium p-4 sm:p-6 rounded-xl border border-border/40">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                         <Layers className="w-5 h-5 text-brand-600 dark:text-brand-400" />
@@ -236,7 +236,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
 
             {/* Framework Groups */}
             {frameworkGroups.map(group => (
-                <div key={group.framework} className="glass-panel rounded-xl overflow-hidden">
+                <div key={group.framework} className="glass-premium rounded-xl overflow-hidden border border-border/40">
                     {/* Group Header */}
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                         <div className="flex items-center justify-between">
@@ -315,7 +315,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
             ))}
 
             {/* Summary Footer */}
-            <div className="glass-panel p-4 rounded-xl bg-gradient-to-r from-green-50 to-brand-50 dark:from-green-900/20 dark:to-brand-900/20 border border-green-100 dark:border-green-900/30">
+            <div className="glass-premium p-4 rounded-xl bg-gradient-to-r from-green-50 to-brand-50 dark:from-green-900/20 dark:to-brand-900/20 border border-green-100 dark:border-green-900/30">
                 <div className="flex items-center gap-3">
                     <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                     <p className="text-sm text-green-800 dark:text-green-200">

@@ -12,13 +12,13 @@
  */
 export const SENTINEL_PALETTE = {
     // Semantic colors (harmonized with design tokens)
-    primary: '#4a7fc7',   // hsl(221 55% 54%) - Blue
-    secondary: '#9b6dd7', // hsl(270 55% 64%) - Purple
-    success: '#2d9d6a',   // hsl(152 62% 38%) - Teal-green
-    warning: '#c87f1a',   // hsl(38 72% 48%) - Amber
-    danger: '#d64545',    // hsl(4 68% 50%) - True red
-    info: '#2a8ab8',      // hsl(201 68% 44%) - Cyan-blue
-    tertiary: '#6b8fa3',  // hsl(200 22% 53%) - Slate-blue
+    primary: '#4a8ce7',   // hsl(221 68% 60%) - Softened blue
+    secondary: '#9b7ed7', // hsl(270 50% 67%) - Softened purple
+    success: '#52a67e',   // hsl(152 48% 42%) - Softened teal
+    warning: '#d69e5e',   // hsl(38 58% 52%) - Softened amber
+    danger: '#d66161',    // hsl(4 55% 54%) - Softened red
+    info: '#4ba0c7',      // hsl(201 55% 50%) - Softened cyan
+    tertiary: '#7fa1b3',  // hsl(200 25% 60%) - Softened slate-blue
 
     // Data Series Colors (for multi-series charts)
     series1: '#4a7fc7',   // Primary blue
@@ -32,11 +32,11 @@ export const SENTINEL_PALETTE = {
 };
 
 export const SEVERITY_COLORS = {
-    critical: '#d64545',  // hsl(4 68% 50%) - True red
-    high: '#c87f1a',      // hsl(38 72% 48%) - Amber
-    medium: '#d4a820',    // hsl(45 75% 48%) - Yellow-gold
-    low: '#2d9d6a',       // hsl(152 62% 38%) - Teal-green
-    info: '#2a8ab8',      // hsl(201 68% 44%) - Cyan-blue
+    critical: '#d66161',  // Soft red
+    high: '#d69e5e',      // Soft amber
+    medium: '#d4b45d',    // Soft gold
+    low: '#52a67e',       // Soft teal
+    info: '#4ba0c7',      // Soft cyan
 };
 
 export const CHART_STYLES = {

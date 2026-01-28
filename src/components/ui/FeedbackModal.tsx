@@ -134,10 +134,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     {/* Priority (only for bugs/features) */}
                     {(formValues.type === 'bug' || formValues.type === 'feature') && (
                         <div className="animate-fade-in">
-                            <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                            <span id="priority-label" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                                 Priorité / Importance
-                            </label>
-                            <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 w-fit">
+                            </span>
+                            <div role="radiogroup" aria-labelledby="priority-label" className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 w-fit">
                                 {(['low', 'medium', 'high'] as const).map((p) => (
                                     <label key={p} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                                         <input {...register('priority')}
@@ -158,10 +158,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                        <label htmlFor="feedback-title" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                             Sujet
                         </label>
                         <input {...register('title')}
+                            id="feedback-title"
                             type="text"
                             placeholder="Ex: Ajout d'un filtre par date..."
                             className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-brand-300 focus:border-brand-500 outline-none transition-all"
@@ -171,10 +172,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                        <label htmlFor="feedback-description" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                             Description détaillée
                         </label>
                         <textarea {...register('description')}
+                            id="feedback-description"
                             placeholder="Dites-nous en plus..."
                             rows={5}
                             className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-brand-300 focus:border-brand-500 outline-none transition-all resize-none"

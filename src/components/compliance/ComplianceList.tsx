@@ -174,12 +174,20 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                 const fwStyles = getFrameworkStyles(currentFramework);
 
                 return (
-                    <div key={domain.id} className="glass-premium rounded-3xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
+                    <div key={domain.id} className="glass-premium rounded-3xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative border border-border/40">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div
                             data-testid={`domain-header-${domain.id}`}
                             onClick={() => toggleDomain(domain.id)}
-                            className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    toggleDomain(domain.id);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-5 flex-1 min-w-0">
                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shrink-0 shadow-sm shadow-black/5 transition-all group-hover:scale-110 ${fwStyles.bg} ${fwStyles.accent} ${fwStyles.border}`}>
@@ -219,12 +227,19 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                 key={control.id}
                                                 data-testid={`control-row-${control.code}`}
                                                 onClick={() => {
-
                                                     onSelectControl(control);
                                                 }}
-                                                className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md ${isActive
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        onSelectControl(control);
+                                                    }
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
+                                                className={`group relative p-4 rounded-3xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isActive
                                                     ? 'bg-brand-50 border-brand-200 dark:bg-brand-800 dark:border-brand-800'
-                                                    : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-brand-200 dark:hover:border-brand-600'
+                                                    : 'bg-white dark:bg-white/5 border-border/40 hover:border-brand-200 dark:hover:border-brand-600'
                                                     }`}
                                             >
                                                 <div className="flex items-start justify-between gap-4">

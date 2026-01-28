@@ -23,7 +23,7 @@ vi.mock('../../../ui/Icons', () => ({
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: { children?: React.ReactNode; className?: string; [key: string]: unknown }) => (
+        div: ({ children, className, ...props }: { children?: React.ReactNode; className?: string;[key: string]: unknown }) => (
             <div className={className} {...props}>{children}</div>
         )
     }
@@ -241,10 +241,10 @@ describe('SupplierContractCompliance', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel container', () => {
+        it('has glass-premium container', () => {
             const { container } = render(<SupplierContractCompliance {...defaultProps} />);
 
-            expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+            expect(container.querySelector('.glass-premium')).toBeInTheDocument();
         });
 
         it('applies emerald color for completed items', () => {

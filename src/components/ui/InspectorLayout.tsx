@@ -65,7 +65,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             title={
                 <div className="flex items-center gap-3 relative z-10">
                     {Icon && (
-                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900 rounded-xl text-slate-700 dark:text-slate-300 dark:text-brand-400 shadow-sm border border-brand-200 dark:border-brand-300">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-700 dark:text-brand-400 shadow-sm border border-brand-200 dark:border-brand-300/30">
                             <Icon className="h-5 w-5" />
                         </div>
                     )}
@@ -87,7 +87,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
 
                 {/* Sticky Tabs Header */}
                 {tabs.length > 0 && onTabChange && (
-                    <div className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/60 dark:border-white/10 px-6 pt-2 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
+                    <div className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 border-b border-border/40 px-6 pt-2 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
                         <ScrollableTabs
                             tabs={tabs}
                             activeTab={activeTab || tabs[0].id}
@@ -112,7 +112,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
 
                 {/* Sticky Footer */}
                 {footer && (
-                    <div className="p-6 border-t border-slate-200/60 dark:border-white/5 bg-white/95 dark:bg-slate-900/95 shrink-0 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
+                    <div className="p-6 border-t border-border/40 bg-white/95 dark:bg-slate-900/95 shrink-0 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
                         {footer}
                     </div>
                 )}

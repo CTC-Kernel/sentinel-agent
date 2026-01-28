@@ -110,7 +110,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                 {actionView === 'submit' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                         <div>
-                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">Sélectionner les réviseurs</label>
+                            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">Sélectionner les réviseurs</div>
                             <select
                                 aria-label="Sélectionner les réviseurs"
                                 multiple

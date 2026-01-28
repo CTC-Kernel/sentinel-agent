@@ -47,17 +47,18 @@ function ResetConfirmDialog({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onCancel}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onCancel();
+      }}
+      tabIndex={0}
       role="dialog"
       aria-modal="true"
       aria-labelledby="reset-confirm-title"
-      onClick={onCancel}
     >
       <div
         className="bg-background rounded-xl shadow-2xl p-6 max-w-sm mx-4 border border-muted"
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') onCancel();
-        }}
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-warning/10 rounded-full">
