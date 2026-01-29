@@ -270,10 +270,8 @@ impl SentinelApp {
                     agent_id,
                 } => {
                     self.enrollment_wizard.set_result(success, message);
-                    if success {
-                        if let Some(id) = agent_id {
-                            self.state.summary.agent_id = Some(id);
-                        }
+                    if success && let Some(id) = agent_id {
+                        self.state.summary.agent_id = Some(id);
                     }
                 }
                 AgentEvent::ShuttingDown => {

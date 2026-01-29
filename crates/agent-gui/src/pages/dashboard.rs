@@ -152,7 +152,7 @@ impl DashboardPage {
                                 _ => theme::TEXT_SECONDARY,
                             };
                             ui.label(
-                                egui::RichText::new(&entry.level.to_uppercase())
+                                egui::RichText::new(entry.level.to_uppercase())
                                     .font(theme::font_small())
                                     .color(level_color),
                             );
