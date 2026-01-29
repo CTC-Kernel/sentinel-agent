@@ -14,11 +14,7 @@ impl SettingsPage {
         let mut command = None;
 
         egui::ScrollArea::vertical().show(ui, |ui| {
-            widgets::page_header(
-                ui,
-                "Param\u{00e8}tres",
-                Some("Configuration de l'agent"),
-            );
+            widgets::page_header(ui, "Param\u{00e8}tres", Some("Configuration de l'agent"));
 
             // Agent controls
             widgets::card(ui, |ui| {

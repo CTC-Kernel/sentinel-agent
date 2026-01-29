@@ -92,11 +92,7 @@ impl NetworkPage {
                     Self::detail_row(ui, "Adresse MAC", mac);
                 }
                 if let Some(ref ts) = state.last_network_scan {
-                    Self::detail_row(
-                        ui,
-                        "Dernier scan",
-                        &ts.format("%d/%m/%Y %H:%M").to_string(),
-                    );
+                    Self::detail_row(ui, "Dernier scan", &ts.format("%d/%m/%Y %H:%M").to_string());
                 }
 
                 if state.primary_ip.is_none() {

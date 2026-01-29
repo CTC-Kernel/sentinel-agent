@@ -245,7 +245,10 @@ impl<'a> PolicySnapshotsRepository<'a> {
                         StorageError::Query(format!("Failed to delete old snapshots: {}", e))
                     })?;
 
-                info!("Deleted {} policy snapshots older than {}", count, before_str);
+                info!(
+                    "Deleted {} policy snapshots older than {}",
+                    count, before_str
+                );
                 Ok(count)
             })
             .await
@@ -256,7 +259,9 @@ impl<'a> PolicySnapshotsRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let count: i64 = conn
-                    .query_row("SELECT COUNT(*) FROM policy_snapshots", [], |row| row.get(0))
+                    .query_row("SELECT COUNT(*) FROM policy_snapshots", [], |row| {
+                        row.get(0)
+                    })
                     .map_err(|e| {
                         StorageError::Query(format!("Failed to count snapshots: {}", e))
                     })?;
@@ -295,8 +300,8 @@ impl<'a> PolicySnapshotsRepository<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agent_storage::{Database, DatabaseConfig, KeyManager};
     use crate::migration_v2::run_v2_migrations;
+    use agent_storage::{Database, DatabaseConfig, KeyManager};
     use tempfile::TempDir;
 
     async fn create_test_db() -> (TempDir, Database) {

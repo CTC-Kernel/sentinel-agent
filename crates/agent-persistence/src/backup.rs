@@ -6,9 +6,9 @@
 use crate::error::{PersistenceError, PersistenceResult};
 use agent_common::config::AgentConfig;
 use chrono::{DateTime, Utc};
-use flate2::write::GzEncoder;
-use flate2::read::GzDecoder;
 use flate2::Compression;
+use flate2::read::GzDecoder;
+use flate2::write::GzEncoder;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -132,16 +132,15 @@ impl BackupManager {
         info!("Creating backup: {}", backup_path.display());
 
         // Read the database file
-        let db_data = fs::read(&self.db_path).map_err(|e| {
-            PersistenceError::Backup(format!("Failed to read database: {}", e))
-        })?;
+        let db_data = fs::read(&self.db_path)
+            .map_err(|e| PersistenceError::Backup(format!("Failed to read database: {}", e)))?;
         let original_size = db_data.len() as u64;
 
         // Compress with gzip
         let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-        encoder.write_all(&db_data).map_err(|e| {
-            PersistenceError::Backup(format!("Failed to compress backup: {}", e))
-        })?;
+        encoder
+            .write_all(&db_data)
+            .map_err(|e| PersistenceError::Backup(format!("Failed to compress backup: {}", e)))?;
         let compressed = encoder.finish().map_err(|e| {
             PersistenceError::Backup(format!("Failed to finalize compression: {}", e))
         })?;
@@ -152,9 +151,8 @@ impl BackupManager {
         let hash = hex::encode(hasher.finalize());
 
         // Write compressed backup
-        fs::write(&backup_path, &compressed).map_err(|e| {
-            PersistenceError::Backup(format!("Failed to write backup: {}", e))
-        })?;
+        fs::write(&backup_path, &compressed)
+            .map_err(|e| PersistenceError::Backup(format!("Failed to write backup: {}", e)))?;
 
         // Set restrictive permissions on Unix
         #[cfg(unix)]
@@ -197,12 +195,9 @@ impl BackupManager {
     /// Restore the database from a backup.
     pub fn restore_backup(&self, backup_id: &str) -> PersistenceResult<()> {
         let backups = self.list_backups()?;
-        let metadata = backups
-            .iter()
-            .find(|b| b.id == backup_id)
-            .ok_or_else(|| {
-                PersistenceError::NotFound(format!("Backup not found: {}", backup_id))
-            })?;
+        let metadata = backups.iter().find(|b| b.id == backup_id).ok_or_else(|| {
+            PersistenceError::NotFound(format!("Backup not found: {}", backup_id))
+        })?;
 
         // Find the backup file by matching the creation timestamp
         let backup_filename = format!(
@@ -222,9 +217,8 @@ impl BackupManager {
         info!("Restoring backup: {}", backup_path.display());
 
         // Read and verify the backup
-        let compressed = fs::read(&backup_path).map_err(|e| {
-            PersistenceError::Restore(format!("Failed to read backup: {}", e))
-        })?;
+        let compressed = fs::read(&backup_path)
+            .map_err(|e| PersistenceError::Restore(format!("Failed to read backup: {}", e)))?;
 
         // Verify hash
         let mut hasher = Sha256::new();
@@ -253,7 +247,10 @@ impl BackupManager {
                     e
                 ))
             })?;
-            debug!("Pre-restore backup saved to: {}", pre_restore_path.display());
+            debug!(
+                "Pre-restore backup saved to: {}",
+                pre_restore_path.display()
+            );
         }
 
         // Write restored database
@@ -291,19 +288,11 @@ impl BackupManager {
                         Ok(content) => match serde_json::from_str::<BackupMetadata>(&content) {
                             Ok(metadata) => backups.push(metadata),
                             Err(e) => {
-                                warn!(
-                                    "Failed to parse backup metadata {}: {}",
-                                    path.display(),
-                                    e
-                                );
+                                warn!("Failed to parse backup metadata {}: {}", path.display(), e);
                             }
                         },
                         Err(e) => {
-                            warn!(
-                                "Failed to read backup metadata {}: {}",
-                                path.display(),
-                                e
-                            );
+                            warn!("Failed to read backup metadata {}: {}", path.display(), e);
                         }
                     }
                 }

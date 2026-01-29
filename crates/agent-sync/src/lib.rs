@@ -38,7 +38,6 @@
 pub mod authenticated_client;
 pub mod client;
 pub mod config_sync;
-pub mod orchestrator;
 pub mod credentials;
 pub mod diagnostics;
 pub mod enrollment;
@@ -46,6 +45,7 @@ pub mod error;
 pub mod heartbeat;
 pub mod integrity;
 pub mod offline;
+pub mod orchestrator;
 pub mod pinning;
 pub mod result_upload;
 pub mod rollout;

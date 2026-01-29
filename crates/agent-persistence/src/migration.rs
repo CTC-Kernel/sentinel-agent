@@ -66,7 +66,11 @@ impl MigrationManager {
         enrolled_at: DateTime<Utc>,
         output_path: &Path,
     ) -> PersistenceResult<IdentityExport> {
-        info!("Exporting identity for agent {} to {}", agent_id, output_path.display());
+        info!(
+            "Exporting identity for agent {} to {}",
+            agent_id,
+            output_path.display()
+        );
 
         let source_machine_id = get_machine_id();
         let now = Utc::now();
@@ -74,7 +78,10 @@ impl MigrationManager {
         // Build identity data (without hash) for hashing
         let identity_data = format!(
             "{}:{}:{}:{}",
-            agent_id, organization_id, client_certificate, now.to_rfc3339()
+            agent_id,
+            organization_id,
+            client_certificate,
+            now.to_rfc3339()
         );
 
         let mut hasher = Sha256::new();
@@ -164,9 +171,7 @@ impl MigrationManager {
     }
 
     /// Detect hardware changes by comparing current machine ID with stored one.
-    pub fn detect_hardware_change(
-        stored_machine_id: Option<&str>,
-    ) -> HardwareChangeResult {
+    pub fn detect_hardware_change(stored_machine_id: Option<&str>) -> HardwareChangeResult {
         let current_id = get_machine_id();
 
         let result = match (stored_machine_id, current_id.as_deref()) {
@@ -185,14 +190,14 @@ impl MigrationManager {
                     changed: true,
                     previous_machine_id: Some(stored.to_string()),
                     current_machine_id: current_id.clone(),
-                    detail: format!(
-                        "Machine ID changed from {} to {}",
-                        stored, current
-                    ),
+                    detail: format!("Machine ID changed from {} to {}", stored, current),
                 }
             }
             (Some(stored), None) => {
-                warn!("Cannot determine current machine ID, stored was: {}", stored);
+                warn!(
+                    "Cannot determine current machine ID, stored was: {}",
+                    stored
+                );
                 HardwareChangeResult {
                     changed: false,
                     previous_machine_id: Some(stored.to_string()),

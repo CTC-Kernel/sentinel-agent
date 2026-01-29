@@ -95,15 +95,10 @@ pub fn run_v2_migrations(conn: &mut Connection) -> Result<(), StorageError> {
             [],
             |row| row.get(0),
         )
-        .map_err(|e| {
-            StorageError::Migration(format!("Failed to query schema version: {}", e))
-        })?;
+        .map_err(|e| StorageError::Migration(format!("Failed to query schema version: {}", e)))?;
 
     if current_version >= V2_SCHEMA_VERSION {
-        debug!(
-            "V2 schema already applied (current: v{})",
-            current_version
-        );
+        debug!("V2 schema already applied (current: v{})", current_version);
         return Ok(());
     }
 
@@ -137,11 +132,13 @@ pub fn run_v2_migrations(conn: &mut Connection) -> Result<(), StorageError> {
         )));
     }
 
-    tx.commit().map_err(|e| {
-        StorageError::Migration(format!("Failed to commit v2 migration: {}", e))
-    })?;
+    tx.commit()
+        .map_err(|e| StorageError::Migration(format!("Failed to commit v2 migration: {}", e)))?;
 
-    info!("V2 migration applied successfully (now at schema v{})", V2_SCHEMA_VERSION);
+    info!(
+        "V2 migration applied successfully (now at schema v{})",
+        V2_SCHEMA_VERSION
+    );
     Ok(())
 }
 
@@ -153,9 +150,7 @@ pub fn rollback_v2_migration(conn: &mut Connection) -> Result<(), StorageError> 
             [],
             |row| row.get(0),
         )
-        .map_err(|e| {
-            StorageError::Migration(format!("Failed to query schema version: {}", e))
-        })?;
+        .map_err(|e| StorageError::Migration(format!("Failed to query schema version: {}", e)))?;
 
     if current_version < V2_SCHEMA_VERSION {
         debug!("V2 migration not applied, nothing to rollback");
@@ -168,21 +163,17 @@ pub fn rollback_v2_migration(conn: &mut Connection) -> Result<(), StorageError> 
         StorageError::Migration(format!("Failed to start rollback transaction: {}", e))
     })?;
 
-    tx.execute_batch(V2_DOWN).map_err(|e| {
-        StorageError::Migration(format!("V2 rollback failed: {}", e))
-    })?;
+    tx.execute_batch(V2_DOWN)
+        .map_err(|e| StorageError::Migration(format!("V2 rollback failed: {}", e)))?;
 
     tx.execute(
         "DELETE FROM schema_version WHERE version = ?",
         [V2_SCHEMA_VERSION],
     )
-    .map_err(|e| {
-        StorageError::Migration(format!("Failed to remove v2 migration record: {}", e))
-    })?;
+    .map_err(|e| StorageError::Migration(format!("Failed to remove v2 migration record: {}", e)))?;
 
-    tx.commit().map_err(|e| {
-        StorageError::Migration(format!("Failed to commit v2 rollback: {}", e))
-    })?;
+    tx.commit()
+        .map_err(|e| StorageError::Migration(format!("Failed to commit v2 rollback: {}", e)))?;
 
     info!("V2 migration rolled back successfully");
     Ok(())
@@ -305,7 +296,12 @@ mod tests {
 
         conn.execute(
             "INSERT INTO notifications (id, title, body, severity) VALUES (?, ?, ?, ?)",
-            ["notif-001", "Check Failed", "Firewall check failed", "warning"],
+            [
+                "notif-001",
+                "Check Failed",
+                "Firewall check failed",
+                "warning",
+            ],
         )
         .unwrap();
 

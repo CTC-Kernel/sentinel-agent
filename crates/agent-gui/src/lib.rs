@@ -13,17 +13,17 @@ pub mod dto;
 pub mod events;
 
 #[cfg(feature = "render")]
-pub mod theme;
-#[cfg(feature = "render")]
-pub mod widgets;
-#[cfg(feature = "render")]
-pub mod pages;
+pub mod app;
 #[cfg(feature = "render")]
 pub mod enrollment;
 #[cfg(feature = "render")]
-pub mod app;
+pub mod pages;
+#[cfg(feature = "render")]
+pub mod theme;
 #[cfg(feature = "render")]
 pub mod tray_bridge;
+#[cfg(feature = "render")]
+pub mod widgets;
 
 #[cfg(feature = "render")]
 pub use app::SentinelApp;
