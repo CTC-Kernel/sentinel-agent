@@ -9,7 +9,7 @@ description = "Desktop GUI for the Sentinel GRC Agent using egui/eframe"
 [features]
 default = ["render"]
 # Enable egui rendering (disable for DTO-only usage)
-render = ["dep:eframe", "dep:egui", "dep:egui_extras", "dep:image", "dep:open", "dep:tray-icon", "dep:muda", "dep:tao", "dep:tracing", "dep:tokio", "dep:directories"]
+render = ["dep:eframe", "dep:egui", "dep:egui_extras", "dep:image", "dep:open", "dep:tray-icon", "dep:muda", "dep:tao", "dep:tracing", "dep:tokio", "dep:directories", "dep:hostname"]
 
 [dependencies]
 agent-common = { path = "../agent-common" }
@@ -28,6 +28,7 @@ tao = { workspace = true, optional = true }
 tracing = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
 directories = { workspace = true, optional = true }
+hostname = { workspace = true, optional = true }
 
 [dev-dependencies]
 serde_json.workspace = true

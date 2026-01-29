@@ -1,6 +1,6 @@
 //! Navigation sidebar widget.
 
-use egui::{Frame, Margin, Rounding, Stroke, Ui, Vec2};
+use egui::{Frame, Margin, CornerRadius, Stroke, Ui, Vec2};
 
 use crate::app::Page;
 use crate::theme;
@@ -15,7 +15,7 @@ impl Sidebar {
 
         Frame::new()
             .fill(theme::BG_SIDEBAR)
-            .inner_margin(Margin::symmetric(theme::SPACE_SM, theme::SPACE))
+            .inner_margin(Margin::symmetric(8, 16))
             .stroke(Stroke::new(0.5, theme::BORDER))
             .show(ui, |ui| {
                 ui.set_min_width(theme::SIDEBAR_WIDTH);
@@ -96,7 +96,7 @@ impl Sidebar {
                 .color(text_color),
         )
         .fill(bg)
-        .rounding(Rounding::same(theme::BUTTON_ROUNDING))
+        .corner_radius(CornerRadius::same(theme::BUTTON_ROUNDING))
         .stroke(Stroke::NONE)
         .min_size(Vec2::new(theme::SIDEBAR_WIDTH - theme::SPACE, 36.0));
 

@@ -1,6 +1,6 @@
 //! Card container widget (elevated panel).
 
-use egui::{Frame, Margin, Rounding, Stroke, Ui, epaint::Shadow, Vec2};
+use egui::{Frame, Margin, CornerRadius, Stroke, Ui, epaint::Shadow};
 
 use crate::theme;
 
@@ -8,13 +8,13 @@ use crate::theme;
 pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
     Frame::new()
         .fill(theme::BG_SECONDARY)
-        .rounding(Rounding::same(theme::CARD_ROUNDING))
-        .inner_margin(Margin::same(theme::SPACE))
+        .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
+        .inner_margin(Margin::same(16))
         .stroke(Stroke::new(0.5, theme::BORDER))
         .shadow(Shadow {
-            offset: Vec2::new(0.0, 2.0),
-            blur: 8.0,
-            spread: 0.0,
+            offset: [0, 2],
+            blur: 8,
+            spread: 0,
             color: egui::Color32::from_black_alpha(40),
         })
         .show(ui, add_contents);
