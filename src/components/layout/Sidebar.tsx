@@ -163,7 +163,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/40 z-header lg:hidden backdrop-blur-sm transition-opacity duration-500 touch-none overscroll-contain"
+          className="fixed inset-0 bg-[var(--overlay-bg)] z-header lg:hidden backdrop-blur-sm transition-opacity duration-500 touch-none overscroll-contain"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />

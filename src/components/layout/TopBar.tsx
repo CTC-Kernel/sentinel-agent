@@ -87,7 +87,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     <button
                         aria-label={mobileOpen ? "Fermer le menu mobile" : "Ouvrir le menu mobile"}
                         onClick={() => setMobileOpen(!mobileOpen)}
-                        className="p-2.5 -ml-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-all lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                        className="p-2.5 -ml-2 text-muted-foreground hover:text-foreground transition-all lg:hidden rounded-lg hover:bg-muted"
                     >
                         <div className="relative h-5 w-5">
                             <Menu className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-70 rotate-0 scale-100'}`} />
@@ -117,7 +117,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     <button
                         aria-label="Rechercher"
                         onClick={openCommandPalette}
-                        className="md:hidden p-2.5 text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                        className="md:hidden p-2.5 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
                     >
                         <Search className="h-5 w-5" />
                     </button>
@@ -144,13 +144,13 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         <NotificationCenter />
                     </span>
 
-                    <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
+                    <div className="h-6 w-px bg-border mx-1 hidden sm:block"></div>
 
                     <Tooltip content={theme === 'light' ? t('common.darkMode') : t('common.lightMode')} position="bottom">
                         <button
                             data-tour="theme-toggle"
                             onClick={handleThemeToggle}
-                            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400"
+                            className="p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400"
                             aria-label="Toggle Theme"
                         >
                             {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
@@ -172,7 +172,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                 <img
                                     alt="Profile"
                                     src={getDefaultAvatarUrl(user?.role)}
-                                    className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
+                                    className="h-9 w-9 rounded-full object-cover ring-2 ring-background shadow-md group-hover:scale-105 transition-transform"
                                 />
                             </div>
                         </button>

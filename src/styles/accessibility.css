@@ -68,12 +68,12 @@
 
 /* High contrast text for light backgrounds */
 .text-high-contrast {
-  @apply text-slate-900 dark:text-white;
+  @apply text-foreground;
 }
 
 /* High contrast muted text */
 .text-high-contrast-muted {
-  @apply text-slate-700 dark:text-slate-200;
+  @apply text-muted-foreground;
 }
 
 /* ============================================================================
@@ -83,8 +83,7 @@
 /* Accessible disabled state (no opacity reduction) */
 .disabled-accessible {
   @apply cursor-not-allowed;
-  @apply bg-slate-100 text-slate-500 border-slate-200;
-  @apply dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700;
+  @apply bg-muted text-muted-foreground border-border/40;
 }
 
 /* ============================================================================

@@ -205,7 +205,7 @@ export const CommandPalette: React.FC = () => {
     return createPortal(
         <div className="fixed inset-0 z-max flex items-start justify-center pt-[5vh] sm:pt-[10vh] md:pt-[15vh] px-2 sm:px-4">
             <button
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300 border-0 cursor-pointer"
+                className="absolute inset-0 bg-[var(--overlay-bg)] backdrop-blur-md transition-opacity duration-300 border-0 cursor-pointer"
                 onClick={() => setIsOpen(false)}
                 aria-label="Fermer la palette de commandes"
                 onKeyDown={(e) => {
@@ -220,12 +220,12 @@ export const CommandPalette: React.FC = () => {
                     <input value={queryStr} onChange={e => { setQueryStr(e.target.value); setSelectedIndex(0); }}
                         type="text"
                         placeholder={t('commandPalette.placeholder')}
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium h-auto py-0"
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-foreground placeholder-muted-foreground outline-none font-medium h-auto py-0"
                         aria-label="Rechercher une commande"
                     />
                     <div className="hidden sm:flex items-center gap-2">
                         {loading && <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>}
-                        <kbd className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-white/10 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 tracking-wider shadow-sm border border-border/40 dark:border-white/5 font-mono">
+                        <kbd className="inline-flex items-center gap-1 px-2.5 py-1 bg-muted rounded-lg text-[11px] font-bold text-muted-foreground tracking-wider shadow-sm border border-border/40 font-mono">
                             ESC
                         </kbd>
                     </div>
@@ -233,8 +233,8 @@ export const CommandPalette: React.FC = () => {
 
                 <div className="overflow-y-auto p-2 sm:p-3 max-h-[50vh] sm:max-h-[60vh] custom-scrollbar relative z-10">
                     {filteredItems.length === 0 && !loading ? (
-                        <div className="p-16 text-center text-slate-500 dark:text-slate-300 text-sm flex flex-col items-center">
-                            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                        <div className="p-16 text-center text-muted-foreground text-sm flex flex-col items-center">
+                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                                 <Command className="h-8 w-8 opacity-40" />
                             </div>
                             <p className="font-medium">{t('commandPalette.noResults')} "{queryStr}"</p>
@@ -248,25 +248,25 @@ export const CommandPalette: React.FC = () => {
                                     onMouseEnter={() => setSelectedIndex(index)}
                                     className={`w-full flex items-center px-4 py-3.5 rounded-3xl group transition-all duration-200 ${index === selectedIndex
                                         ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-[1.01] ring-1 ring-white/20'
-                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5'
+                                        : 'text-muted-foreground hover:bg-muted/50'
                                         }`}
                                 >
                                     <div className={`p-2.5 rounded-3xl mr-4 transition-colors ${index === selectedIndex
                                         ? 'bg-white/20 text-white'
-                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-border/40 dark:border-white/5'
+                                        : 'bg-muted text-muted-foreground border border-border/40'
                                         }`}>
                                         <item.icon className="h-5 w-5" />
                                     </div>
                                     <div className="flex-1 text-left">
                                         <span className="font-bold block text-sm">{item.title}</span>
-                                        {item.subtitle && <span className={`text-xs block mt-0.5 ${index === selectedIndex ? 'text-white/80' : 'text-slate-500 dark:text-slate-300'}`}>{item.subtitle}</span>}
+                                        {item.subtitle && <span className={`text-xs block mt-0.5 ${index === selectedIndex ? 'text-white/80' : 'text-muted-foreground'}`}>{item.subtitle}</span>}
                                     </div>
                                     <div className="flex items-center">
                                         <span className={`text-[11px] uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${index === selectedIndex
                                             ? 'bg-white/20 text-white border border-white/20'
-                                            : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 border border-border/40 dark:border-white/5'
+                                            : 'bg-muted text-muted-foreground border border-border/40'
                                             }`}>{item.category}</span>
-                                        <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${index === selectedIndex ? 'text-white translate-x-1' : 'text-slate-300 opacity-0 group-hover:opacity-70'}`} />
+                                        <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${index === selectedIndex ? 'text-white translate-x-1' : 'text-muted-foreground/40 opacity-0 group-hover:opacity-70'}`} />
                                     </div>
                                 </button>
                             ))}
@@ -274,7 +274,7 @@ export const CommandPalette: React.FC = () => {
                     )}
                 </div>
 
-                <div className="px-6 py-3 bg-slate-50/80 dark:bg-black/40 border-t border-border/40 dark:border-white/5 flex justify-between items-center text-[11px] font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider backdrop-blur-md relative z-10">
+                <div className="px-6 py-3 bg-muted/50 border-t border-border/40 flex justify-between items-center text-[11px] font-medium text-muted-foreground uppercase tracking-wider backdrop-blur-md relative z-10">
                     <span className="flex items-center gap-2">
                         <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                         <span className="font-bold">Sentinel GRC Pro</span>

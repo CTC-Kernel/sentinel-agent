@@ -77,7 +77,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                 {showLoading ? (
                     <Loader2 className="h-4 w-4 text-brand-500 animate-spin" />
                 ) : (
-                    <Search className="h-4 w-4 text-slate-400" />
+                    <Search className="h-4 w-4 text-muted-foreground" />
                 )}
             </div>
             <input
@@ -88,10 +88,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                 aria-busy={showLoading}
                 className={cn(
                     'block w-full pl-10 pr-10 py-2.5',
-                    'bg-white dark:bg-slate-800',
-                    'border border-border/40 dark:border-slate-700',
+                    'bg-card',
+                    'border border-border/40',
                     'rounded-3xl',
-                    'text-sm text-slate-900 dark:text-white',
+                    'text-sm text-foreground',
                     'placeholder:text-muted-foreground',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:border-brand-500',
                     'transition-all duration-200'
@@ -104,7 +104,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     aria-label="Effacer la recherche"
                 >
-                    <X className="h-4 w-4 text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors" />
+                    <X className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                 </button>
             )}
         </div>

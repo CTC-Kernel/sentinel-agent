@@ -33,9 +33,9 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, cl
 
 export const DialogContent: React.FC<DialogContentProps> = ({ children, className = '' }) => {
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" aria-hidden="true">
+    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-sm" aria-hidden="true">
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <HeadlessDialogPanel className={`bg-white dark:bg-slate-900 border border-border/40 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl p-6 max-w-lg w-full max-h-[90vh] overflow-auto ${className}`}>
+        <HeadlessDialogPanel className={`bg-[var(--modal-bg)] border border-border/40 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl p-6 max-w-lg w-full max-h-[90vh] overflow-auto ${className}`}>
           {children}
         </HeadlessDialogPanel>
       </div>
@@ -53,7 +53,7 @@ export const DialogHeader: React.FC<DialogHeaderProps> = ({ children, className 
 
 export const DialogTitle: React.FC<DialogTitleProps> = ({ children, className = '' }) => {
   return (
-    <HeadlessDialogTitle className={`text-lg font-bold font-display text-slate-900 dark:text-white ${className}`}>
+    <HeadlessDialogTitle className={`text-lg font-bold font-display text-foreground ${className}`}>
       {children}
     </HeadlessDialogTitle>
   );
@@ -61,7 +61,7 @@ export const DialogTitle: React.FC<DialogTitleProps> = ({ children, className = 
 
 export const DialogDescription: React.FC<DialogTitleProps> = ({ children, className = '' }) => {
   return (
-    <div className={`mt-2 text-sm text-slate-500 dark:text-slate-300 ${className}`}>
+    <div className={`mt-2 text-sm text-muted-foreground ${className}`}>
       {children}
     </div>
   );

@@ -23,11 +23,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     // Hover states for better feedback
                     "hover:border-primary/30 hover:bg-background/80 hover:shadow-sm",
                     // Disabled state
-                    "disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40",
-                    "dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700",
+                    "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40",
                     // Dark mode explicit styles
-                    "dark:bg-slate-900/50 dark:border-slate-800 dark:text-white dark:placeholder:text-slate-500",
-                    "dark:hover:border-primary/40 dark:hover:bg-slate-800/70",
+                    "dark:bg-card/50 dark:border-border dark:text-foreground dark:placeholder:text-muted-foreground/60",
+                    "dark:hover:border-primary/40 dark:hover:bg-card/70",
                     // Error state styling
                     hasError && "border-error-500 dark:border-error-500 focus-visible:ring-error-500 hover:border-error-500",
                     className

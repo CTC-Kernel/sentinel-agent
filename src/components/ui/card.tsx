@@ -10,7 +10,7 @@ const cardVariants = cva(
                 default: "border shadow-sm",
                 elevated: "border shadow-apple-md",
                 glass: "bg-[var(--glass-bg)] backdrop-blur-xl border-[var(--glass-border)] shadow-[var(--glass-shadow)]",
-                premium: "bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 border shadow-premium ring-1 ring-black/5 dark:ring-white/10",
+                premium: "bg-gradient-to-br from-card to-background dark:from-card dark:to-background border shadow-premium ring-1 ring-black/5 dark:ring-white/10",
             },
             hover: {
                 none: "",

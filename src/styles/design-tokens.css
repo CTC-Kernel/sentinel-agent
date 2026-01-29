@@ -199,6 +199,10 @@
   --modal-bg: hsl(0 0% 100%);
   --drawer-bg: hsl(0 0% 99%);
 
+  /* Dropdown/Menu Solid Background - Fully opaque for dropdown menus */
+  --dropdown-bg: hsl(0 0% 100%);
+  --dropdown-border: hsl(220 10% 90%);
+
   /* Modal Overlay - 70% for sufficient contrast */
   --overlay-bg: rgba(15, 23, 42, 0.7);
   --overlay-blur: var(--blur-sm);
@@ -302,6 +306,10 @@
   /* Modal/Drawer Solid Background - Full opacity for readability on overlays */
   --modal-bg: hsl(220 12% 9%);
   --drawer-bg: hsl(220 12% 10%);
+
+  /* Dropdown/Menu Solid Background - Fully opaque for dropdown menus */
+  --dropdown-bg: hsl(220 12% 10%);
+  --dropdown-border: hsl(220 12% 16%);
 
   /* Modal Overlay - Dark Mode */
   --overlay-bg: rgba(0, 0, 0, 0.75);

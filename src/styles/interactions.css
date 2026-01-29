@@ -62,8 +62,7 @@
   cursor: not-allowed;
   pointer-events: none;
   transition: none;
-  @apply bg-slate-100 text-slate-500 border-slate-200;
-  @apply dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700;
+  @apply bg-muted text-muted-foreground border-border/40;
 }
 
 /* Loading states - standardized */

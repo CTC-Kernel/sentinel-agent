@@ -53,7 +53,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         {label && (
                             <ListboxLabel className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
-                                -top-2.5 text-[11px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md text-slate-500 dark:text-slate-300 peer-focus:text-brand-600
+                                -top-2.5 text-[11px] font-bold uppercase tracking-widest bg-card/90 backdrop-blur-sm px-1.5 rounded-md text-muted-foreground peer-focus:text-brand-600
                                 ${error ? '!text-destructive' : ''}
                             `}>
                                 {label} {required && <span className="text-destructive">*</span>}
@@ -74,12 +74,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                             : 'glass-input'
                                     }
                             `}>
-                                <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-500 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>
+                                <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-muted-foreground' : 'text-foreground'}`}>
                                     {displayValue}
                                 </span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
                                     <ChevronDown
-                                        className={`h-4 w-4 text-slate-500 dark:text-slate-300 transition-transform duration-200 ${open ? 'rotate-180 text-brand-500' : ''}`}
+                                        className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180 text-brand-500' : ''}`}
                                         aria-hidden="true"
                                     />
                                 </span>
@@ -89,13 +89,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 anchor="bottom start"
                                 transition
                                 portal={true}
-                                className="z-[99999] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl glass-premium py-2 text-base ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                                className="z-[99999] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-[var(--dropdown-bg)] border border-[var(--dropdown-border)] py-2 text-base shadow-lg focus:outline-none sm:text-sm custom-scrollbar transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                             >
                                 {options.map((option, optionIdx) => (
                                     <ListboxOption
                                         key={optionIdx}
                                         className={({ focus }) =>
-                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-brand-50 dark:bg-brand-900 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-brand-50 dark:bg-brand-900/50 text-foreground' : 'text-muted-foreground'
                                             }`
                                         }
                                         value={option.value}
@@ -107,7 +107,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                                         {option.label}
                                                     </span>
                                                     {option.subLabel && (
-                                                        <span className="text-xs text-slate-500 truncate">{option.subLabel}</span>
+                                                        <span className="text-xs text-muted-foreground truncate">{option.subLabel}</span>
                                                     )}
                                                 </div>
                                                 {selected ? (

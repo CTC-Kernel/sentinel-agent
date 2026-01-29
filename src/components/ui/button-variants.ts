@@ -8,7 +8,7 @@ import { cva } from "class-variance-authority"
 export const buttonVariants = cva(
     // Base styles with unified focus ring
     // WCAG AAA: disabled state uses explicit colors instead of opacity for proper contrast
-    "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-bold ring-offset-background transition-all duration-normal active:duration-75 ease-apple focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-bold ring-offset-background transition-all duration-normal active:duration-75 ease-apple focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:shadow-none",
     {
         variants: {
             variant: {
