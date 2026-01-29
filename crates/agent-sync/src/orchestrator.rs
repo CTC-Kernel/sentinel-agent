@@ -110,7 +110,7 @@ const MAX_HISTORY_ENTRIES: usize = 100;
 
 /// Orchestrates sync operations between agent and SaaS.
 pub struct SyncOrchestrator {
-    db: Arc<Database>,
+    _db: Arc<Database>,
     /// Current sync status.
     status: RwLock<SyncStatus>,
     /// Sync history log.
@@ -129,7 +129,7 @@ impl SyncOrchestrator {
     /// Create a new sync orchestrator.
     pub fn new(db: Arc<Database>) -> Self {
         Self {
-            db,
+            _db: db,
             status: RwLock::new(SyncStatus::Idle),
             history: RwLock::new(Vec::new()),
             last_success: RwLock::new(None),

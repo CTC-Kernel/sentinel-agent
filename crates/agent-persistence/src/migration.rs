@@ -56,6 +56,7 @@ pub struct MigrationManager;
 
 impl MigrationManager {
     /// Export agent identity to a file for migration.
+    #[allow(clippy::too_many_arguments)]
     pub fn export_identity(
         agent_id: &str,
         organization_id: &str,
@@ -174,7 +175,7 @@ impl MigrationManager {
     pub fn detect_hardware_change(stored_machine_id: Option<&str>) -> HardwareChangeResult {
         let current_id = get_machine_id();
 
-        let result = match (stored_machine_id, current_id.as_deref()) {
+        match (stored_machine_id, current_id.as_deref()) {
             (Some(stored), Some(current)) if stored == current => HardwareChangeResult {
                 changed: false,
                 previous_machine_id: Some(stored.to_string()),
@@ -214,8 +215,7 @@ impl MigrationManager {
                     detail: "No previous machine ID stored".to_string(),
                 }
             }
-        };
-        result
+        }
     }
 }
 
@@ -239,14 +239,14 @@ fn get_machine_id() -> Option<String> {
         .and_then(|output| {
             let stdout = String::from_utf8_lossy(&output.stdout);
             for line in stdout.lines() {
-                if line.contains("IOPlatformUUID") {
-                    if let Some(start) = line.find('"') {
-                        let rest = &line[start + 1..];
-                        if let Some(end) = rest.rfind('"') {
-                            let inner = &rest[..end];
-                            if let Some(uuid_start) = inner.rfind('"') {
-                                return Some(inner[uuid_start + 1..].to_string());
-                            }
+                if line.contains("IOPlatformUUID")
+                    && let Some(start) = line.find('"')
+                {
+                    let rest = &line[start + 1..];
+                    if let Some(end) = rest.rfind('"') {
+                        let inner = &rest[..end];
+                        if let Some(uuid_start) = inner.rfind('"') {
+                            return Some(inner[uuid_start + 1..].to_string());
                         }
                     }
                 }
@@ -362,10 +362,10 @@ mod tests {
         let result = MigrationManager::detect_hardware_change(Some("old-machine-id"));
         // On test machines, the current ID will be different from "old-machine-id"
         // unless the machine happens to have that exact ID
-        if let Some(ref current) = result.current_machine_id {
-            if current != "old-machine-id" {
-                assert!(result.changed);
-            }
+        if let Some(ref current) = result.current_machine_id
+            && current != "old-machine-id"
+        {
+            assert!(result.changed);
         }
     }
 }
