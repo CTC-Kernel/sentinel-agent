@@ -24,10 +24,30 @@ vi.mock('../../firebase', () => ({
 }));
 
 // Mock store
-vi.mock('../../store', () => ({
-    useStore: () => ({
-        user: { organizationId: 'org-123' }
-    })
+const { mockGetState } = vi.hoisted(() => ({
+    mockGetState: vi.fn(() => ({
+        customRoles: []
+    }))
+}));
+
+vi.mock('../../store', () => {
+    const useStore = () => ({
+        user: {
+            uid: 'test-user-id',
+            email: 'test@example.com',
+            organizationId: 'org-123',
+            role: 'admin'
+        }
+    });
+    useStore.getState = mockGetState;
+    return { useStore };
+});
+
+// Mock AuditLogService
+vi.mock('../../services/auditLogService', () => ({
+    AuditLogService: {
+        logImport: vi.fn()
+    }
 }));
 
 // Mock toast
