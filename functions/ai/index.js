@@ -19,6 +19,17 @@ const {
     recordScoreSnapshot
 } = require('./predictiveCompliance');
 
+/**
+ * Determine the correct API version for a given model
+ */
+function getApiVersionForModel(modelName) {
+    if (!modelName) return 'v1beta';
+    if (modelName.includes('gemini-3') || modelName.includes('gemini-2.0')) {
+        return 'v1alpha';
+    }
+    return 'v1beta';
+}
+
 // Secrets
 const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
@@ -96,7 +107,7 @@ function decryptUserSecret(secretObject) {
 /**
  * Get Gemini client for user (prioritizes user key, then global key)
  */
-async function getGeminiClientForUser(uid, apiVersion) {
+async function getGeminiClientForUser(uid, requestModelName, apiVersion) {
     const db = admin.firestore();
     const userKeysRef = db.collection('user_api_keys').doc(uid);
     const userKeysSnap = await userKeysRef.get();
@@ -107,6 +118,7 @@ async function getGeminiClientForUser(uid, apiVersion) {
     // 1) Encrypted key stored in user_api_keys
     if (userKeys.gemini) {
         apiKey = decryptUserSecret(userKeys.gemini);
+        if (apiKey) apiKey = apiKey.replace(/\s+/g, '');
     }
 
     // 2) Progressive migration: cleartext key in users/{uid}.geminiApiKey
@@ -139,8 +151,18 @@ async function getGeminiClientForUser(uid, apiVersion) {
         throw new HttpsError('failed-precondition', 'Gemini API key not configured.');
     }
 
-    const options = apiVersion ? { apiVersion } : undefined;
-    return new GoogleGenerativeAI(apiKey, options);
+    // Determine API version based on model name
+    let effectiveApiVersion = apiVersion;
+    if (!effectiveApiVersion) {
+        const modelStr = String(requestModelName || '');
+        if (modelStr.includes('gemini-3') || modelStr.includes('gemini-2.0')) {
+            effectiveApiVersion = 'v1alpha';
+        } else {
+            effectiveApiVersion = 'v1beta';
+        }
+    }
+
+    return new GoogleGenerativeAI(apiKey, { apiVersion: effectiveApiVersion });
 }
 
 /**
@@ -306,37 +328,44 @@ exports.callGeminiGenerateContent = onCall({
             await checkAndIncrementAiUsage(uid, userData.organizationId);
         }
 
-        const apiVersion = modelName.includes('gemini-3') ? 'v1alpha' : undefined;
-        const genAI = await getGeminiClientForUser(uid, apiVersion);
-
         const runGenerate = async (name) => {
+            const version = getApiVersionForModel(name);
+            const genAI = await getGeminiClientForUser(uid, name, version);
+
             let config = {};
             if (name.includes("gemini-3")) {
                 config.thinkingConfig = { thinkingLevel: "high" };
             }
 
             const model = genAI.getGenerativeModel({ model: name });
-            const result = await model.generateContent(prompt);
+            const result = await model.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: config
+            });
             const response = await result.response;
             return response.text();
         };
 
         try {
             const text = await runGenerate(modelName);
-            return { text };
+            return { text, model: modelName, version: getApiVersionForModel(modelName) };
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            logger.warn('Primary Gemini model failed in callGeminiGenerateContent', { error: message });
+            logger.warn(`Primary Gemini model (${modelName}) failed in callGeminiGenerateContent`, { error: message });
 
-            if (message.includes('404') || message.includes('not found') || message.includes('429') || message.includes('Too Many Requests')) {
-                const fallbackModels = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+            const isTransient = message.includes('404') || message.includes('not found') ||
+                message.includes('429') || message.includes('Too Many Requests') ||
+                message.includes('503') || message.includes('500');
+
+            if (isTransient) {
+                const fallbackModels = ['gemini-3-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
                 for (const name of fallbackModels) {
+                    if (name === modelName) continue;
                     try {
                         const text = await runGenerate(name);
-                        return { text, model: name };
+                        return { text, model: name, version: getApiVersionForModel(name), fallback: true };
                     } catch (fallbackError) {
-                        logger.warn('Fallback Gemini model failed in callGeminiGenerateContent', {
-                            model: name,
+                        logger.warn(`Fallback Gemini model (${name}) failed in callGeminiGenerateContent`, {
                             error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
                         });
                         continue;
@@ -387,12 +416,9 @@ exports.callGeminiChat = onCall({
             await checkAndIncrementAiUsage(uid, userData.organizationId);
         }
 
-        const apiVersion = (modelName.includes('gemini-3') || modelName.includes('gemini-2.0')) ? 'v1alpha' : undefined;
-        const genAI = await getGeminiClientForUser(uid, apiVersion);
-
         const runChat = async (name) => {
-            const apiVersion = (name.includes('gemini-3') || name.includes('gemini-2.0')) ? 'v1alpha' : undefined;
-            const client = await getGeminiClientForUser(uid, apiVersion);
+            const version = getApiVersionForModel(name);
+            const client = await getGeminiClientForUser(uid, name, version);
 
             const contents = [
                 { role: "user", parts: [{ text: systemPrompt }] },
@@ -400,15 +426,20 @@ exports.callGeminiChat = onCall({
                 { role: "user", parts: [{ text: message }] }
             ];
 
+            const config = name.includes("gemini-3") ? { thinkingConfig: { thinkingLevel: "high" } } : {};
+
             const model = client.getGenerativeModel({ model: name });
-            const result = await model.generateContent({ contents });
+            const result = await model.generateContent({
+                contents,
+                generationConfig: config
+            });
             const response = await result.response;
             return response.text();
         };
 
         try {
             const text = await runChat(modelName);
-            return { text };
+            return { text, model: modelName, version: getApiVersionForModel(modelName) };
         } catch (error) {
             const errMsg = error instanceof Error ? error.message : String(error);
             logger.warn(`Primary Gemini chat model (${modelName}) failed: ${errMsg}`);
@@ -425,21 +456,21 @@ exports.callGeminiChat = onCall({
                 errMsg.includes('quota');
 
             if (isTransient) {
-                const fallbackModels = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+                const fallbackModels = ['gemini-3-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
                 const backoffDelays = [1000, 2000, 4000];
 
                 for (let i = 0; i < fallbackModels.length; i++) {
                     const fallbackModel = fallbackModels[i];
                     const waitTime = backoffDelays[i] || 3000;
 
-                    if (fallbackModel === modelName && i === 0) continue;
+                    if (fallbackModel === modelName) continue;
 
                     logger.info(`Retrying with ${fallbackModel} after ${waitTime}ms... (Attempt ${i + 1})`);
                     await delay(waitTime);
 
                     try {
                         const text = await runChat(fallbackModel);
-                        return { text, model: `${fallbackModel} (fallback)` };
+                        return { text, model: `${fallbackModel} (fallback)`, version: getApiVersionForModel(fallbackModel) };
                     } catch (retryError) {
                         const retryMsg = retryError instanceof Error ? retryError.message : String(retryError);
                         logger.warn(`Retry attempt ${i + 1} (${fallbackModel}) failed: ${retryMsg}`);
