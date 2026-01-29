@@ -30,3 +30,4 @@ pub mod types;
 pub use config::AgentConfig;
 pub use error::{CommonError, Result};
 pub use types::{AgentStatus, CheckResult, CheckStatus, Proof};
+pub use types::{RuntimeEvent, RuntimeEventKind, Severity};
