@@ -20,16 +20,16 @@ const bucket = getStorage().bucket('sentinel-grc-a8701.firebasestorage.app');
 // Release metadata configuration
 const RELEASE_CONFIG = {
     agent: {
-        currentVersion: '1.0.2',
-        releaseDate: '2026-01-26',
-        changelogUrl: 'https://github.com/sentinel/agent/releases',
+        currentVersion: '2.0.0',
+        releaseDate: '2026-01-29',
+        changelogUrl: 'https://github.com/CTC-Kernel/sentinel-agent/releases',
         platforms: {
             windows: {
-                filename: 'SentinelAgentSetup-{version}.zip',
-                latestFilename: 'SentinelAgentSetup-latest.zip',
-                checksumFilename: 'SentinelAgentSetup-{version}.zip.sha256',
-                contentType: 'application/zip',
-                displayName: 'Windows (ZIP)',
+                filename: 'SentinelAgentSetup-{version}.msi',
+                latestFilename: 'SentinelAgentSetup-latest.msi',
+                checksumFilename: 'SentinelAgentSetup-{version}.msi.sha256',
+                contentType: 'application/x-msi',
+                displayName: 'Windows (MSI)',
             },
             macos: {
                 filename: 'SentinelAgent-{version}.dmg',
@@ -51,13 +51,6 @@ const RELEASE_CONFIG = {
                 checksumFilename: 'sentinel-agent-{version}.x86_64.rpm.sha256',
                 contentType: 'application/x-rpm',
                 displayName: 'Linux (RPM)',
-            },
-            linux_appimage: {
-                filename: 'SentinelAgent-{version}.AppImage',
-                latestFilename: 'SentinelAgent-latest.AppImage',
-                checksumFilename: 'SentinelAgent-{version}.AppImage.sha256',
-                contentType: 'application/x-executable',
-                displayName: 'Linux (AppImage)',
             },
         },
     },
