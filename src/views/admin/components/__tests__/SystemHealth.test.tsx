@@ -166,7 +166,8 @@ describe('SystemHealth - Latency Colors', () => {
 
         await waitFor(() => {
             const latency45 = screen.getByText('45ms');
-            expect(latency45).toHaveClass('text-emerald-400');
-        }, { timeout: 10000 });
+            // Check for color class (supports both light/dark theme classes)
+            expect(latency45.className).toMatch(/text-success-600|dark:text-success-400/);
+        }, { timeout: 4000 }); // Decrease timeout to stay within vitest limit if it fails
     });
 });

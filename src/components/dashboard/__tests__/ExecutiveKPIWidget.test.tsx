@@ -149,9 +149,9 @@ describe('ExecutiveKPIWidget', () => {
       <ExecutiveKPIWidget organizationId="org-123" onKPIClick={handleClick} />
     );
 
-    // Click on Score Global card
-    const scoreCard = screen.getByText('Sante Conformite').closest('[role="button"]');
-    fireEvent.click(scoreCard!);
+    // Click on Score Global card - find the button overlay by its accessible name
+    const scoreCard = screen.getByRole('button', { name: /Sante Conformite/i });
+    fireEvent.click(scoreCard);
 
     expect(handleClick).toHaveBeenCalledWith('score_global');
   });

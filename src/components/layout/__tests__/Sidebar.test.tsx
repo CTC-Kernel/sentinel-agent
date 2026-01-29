@@ -58,10 +58,8 @@ vi.mock('../../../hooks/useAuth', () => ({
 // Mock useAdminActions hook
 vi.mock('../../../hooks/useAdminActions', () => ({
     useAdminActions: () => ({
-        isSuperAdmin: false,
-        setIsSuperAdmin: vi.fn(),
-        checkSuperAdminStatus: vi.fn()
-    })
+        verifySuperAdmin: vi.fn().mockResolvedValue(false),
+    }),
 }));
 
 // Mock LegalModal
