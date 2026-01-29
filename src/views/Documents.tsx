@@ -414,6 +414,7 @@ export const Documents: React.FC = () => {
                     tabs={tabs}
                     activeTab={activeTab}
                     onTabChange={(id) => setActiveTab(id as 'overview' | 'documents')}
+                    isChanging={loading}
                 />
             </div>
 

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Menu, X, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare, Globe } from '../ui/Icons';
 import { NotificationCenter } from '../notifications/NotificationCenter';
+import { Spinner } from '../ui/Spinner';
+import { Button } from '../ui/button';
 import { Breadcrumbs } from '../ui/Breadcrumbs';
 
 import { signOut } from 'firebase/auth';
@@ -25,6 +27,8 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
     const { updateUser } = useTeamData();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showFeedback, setShowFeedback] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isTogglingTheme, setIsTogglingTheme] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
 
     // Handle click outside for user menu
@@ -60,14 +64,18 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
     };
 
     const handleLogout = async () => {
+        setIsLoggingOut(true);
         try {
             await signOut(auth);
         } catch (error) {
             ErrorLogger.error(error, 'TopBar.handleLogout');
+        } finally {
+            setIsLoggingOut(false);
         }
     };
 
     const handleThemeToggle = useCallback(async () => {
+        setIsTogglingTheme(true);
         toggleTheme();
         if (user) {
             try {
@@ -75,7 +83,11 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                 await updateUser(user.uid, { theme: newTheme });
             } catch (e) {
                 ErrorLogger.error(e, 'TopBar.toggleTheme');
+            } finally {
+                setIsTogglingTheme(false);
             }
+        } else {
+            setIsTogglingTheme(false);
         }
     }, [toggleTheme, user, theme, updateUser]);
 
@@ -150,10 +162,11 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         <button
                             data-tour="theme-toggle"
                             onClick={handleThemeToggle}
-                            className="p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400"
+                            disabled={isTogglingTheme}
+                            className={`p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400 ${isTogglingTheme ? 'opacity-50 cursor-wait' : ''}`}
                             aria-label="Toggle Theme"
                         >
-                            {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
+                            {isTogglingTheme ? <Spinner size="sm" /> : (theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />)}
                         </button>
                     </Tooltip>
 
@@ -230,14 +243,16 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                 </div>
                                 <div className="h-px bg-border/40 mx-2"></div>
                                 <div className="p-2">
-                                    <button
+                                    <Button
                                         aria-label="Se déconnecter"
+                                        variant="ghost"
                                         onClick={() => { handleLogout(); setShowUserMenu(false); }}
-                                        className="w-full flex items-center px-3 py-2 text-sm font-medium text-error-text hover:bg-error-bg rounded-lg transition-colors"
+                                        isLoading={isLoggingOut}
+                                        className="w-full justify-start px-3 py-2 text-sm font-medium text-error-text hover:bg-error-bg rounded-lg transition-colors border-none"
                                     >
-                                        <LogOut className="h-4 w-4 mr-3" />
+                                        {!isLoggingOut && <LogOut className="h-4 w-4 mr-3" />}
                                         {t('common.logout')}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}

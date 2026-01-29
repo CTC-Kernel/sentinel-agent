@@ -266,6 +266,7 @@ export const Vulnerabilities: React.FC = () => {
                     activeTab={activeTab}
                     onTabChange={(id) => setActiveTab(id as 'overview' | 'list')}
                     className="mb-6"
+                    isChanging={loading}
                 />
             </motion.div>
 
@@ -278,7 +279,7 @@ export const Vulnerabilities: React.FC = () => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <VulnerabilityOverview vulnerabilities={vulnerabilities} />
+                        <VulnerabilityOverview vulnerabilities={vulnerabilities} loading={loading} />
                     </motion.div>
                 ) : (
                     <motion.div

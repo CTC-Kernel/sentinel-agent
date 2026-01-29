@@ -361,7 +361,7 @@ export const Risks: React.FC = () => {
                 <RiskIntelCard risks={filteredRisks} />
             </React.Suspense>
 
-            <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as RiskTab)} />
+            <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as RiskTab)} isChanging={loading} />
 
             <RiskTabsContent
                 activeTab={activeTab}

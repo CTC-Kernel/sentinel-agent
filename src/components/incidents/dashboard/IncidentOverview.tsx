@@ -46,10 +46,12 @@ import {
     Flame,
     Zap
 } from '../../ui/Icons';
+import { Skeleton, CardSkeleton } from '../../ui/Skeleton';
 
 interface IncidentOverviewProps {
     incidents: Incident[];
     agents?: SentinelAgent[];
+    loading?: boolean;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -79,12 +81,13 @@ const CATEGORY_ICONS: Record<string, string> = {
     'Autre': '❓'
 };
 
-export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, agents = [] }) => {
+export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, agents = [], loading = false }) => {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
     // ========== STATS CALCULATION ==========
     const stats = useMemo(() => {
+        if (loading) return null;
         const total = incidents.length;
         const open = incidents.filter(i => i.status !== 'Fermé' && i.status !== 'Résolu').length;
         const critical = incidents.filter(i => i.severity === Criticality.CRITICAL && i.status !== 'Fermé' && i.status !== 'Résolu').length;
@@ -180,9 +183,12 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
     }, [incidents]);
 
     // Radial gauge data for resolution rate
-    const gaugeData = useMemo(() => [
-        { name: 'Résolution', value: stats.resolutionRate, fill: stats.resolutionRate >= 70 ? SENTINEL_PALETTE.success : stats.resolutionRate >= 40 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical }
-    ], [stats.resolutionRate]);
+    const gaugeData = useMemo(() => {
+        const rate = stats?.resolutionRate ?? 0;
+        return [
+            { name: 'Résolution', value: rate, fill: rate >= 70 ? SENTINEL_PALETTE.success : rate >= 40 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical }
+        ];
+    }, [stats?.resolutionRate]);
 
     // Timeline (Last 30 days) with cumulative
     const timelineData = useMemo(() => {
@@ -288,6 +294,29 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
             </g>
         );
     };
+
+    // Loading skeleton
+    if (loading || !stats) {
+        return (
+            <div className="space-y-6 animate-fade-in pb-10">
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 md:p-8 rounded-xl border border-border/40 flex flex-col gap-6 relative overflow-hidden">
+                    <div className="flex flex-col md:flex-row gap-8 items-center">
+                        <Skeleton variant="circular" className="w-36 h-36 shrink-0" />
+                        <div className="flex-1 space-y-4 w-full">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-8 w-64" />
+                            <Skeleton className="h-16 w-full" />
+                        </div>
+                    </div>
+                </div>
+                <CardSkeleton count={4} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Skeleton className="h-[350px] w-full rounded-xl" />
+                    <Skeleton className="h-[350px] w-full rounded-xl" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-fade-in pb-10">

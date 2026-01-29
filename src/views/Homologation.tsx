@@ -275,10 +275,10 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
       {/* Dossier list */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
-          <TabsTrigger value="all">{t('common.all', 'Tous')}</TabsTrigger>
-          <TabsTrigger value="active">{t('homologation.active', 'Actifs')}</TabsTrigger>
-          <TabsTrigger value="pending">{t('homologation.pending', 'En attente')}</TabsTrigger>
-          <TabsTrigger value="expired">{t('homologation.expired', 'Expirés')}</TabsTrigger>
+          <TabsTrigger value="all" isLoading={loading}>{t('common.all', 'Tous')}</TabsTrigger>
+          <TabsTrigger value="active" isLoading={loading}>{t('homologation.active', 'Actifs')}</TabsTrigger>
+          <TabsTrigger value="pending" isLoading={loading}>{t('homologation.pending', 'En attente')}</TabsTrigger>
+          <TabsTrigger value="expired" isLoading={loading}>{t('homologation.expired', 'Expirés')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-4">

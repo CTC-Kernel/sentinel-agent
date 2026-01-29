@@ -383,6 +383,7 @@ export const Incidents: React.FC = () => {
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     className="mb-6"
+                    isChanging={loading}
                 />
             </motion.div>
 
@@ -401,7 +402,7 @@ export const Incidents: React.FC = () => {
                 onDownloadTemplate={handleDownloadTemplate}
             />
 
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
                 {activeTab === 'overview' ? (
                     <motion.div
                         key="overview"
@@ -410,7 +411,7 @@ export const Incidents: React.FC = () => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <IncidentOverview incidents={sortedIncidents} agents={agents} />
+                        <IncidentOverview incidents={sortedIncidents} agents={agents} loading={loading} />
                     </motion.div>
                 ) : (
                     <motion.div

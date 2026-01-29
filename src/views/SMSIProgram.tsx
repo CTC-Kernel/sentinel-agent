@@ -330,6 +330,7 @@ export const SMSIProgramView: React.FC = () => {
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={(id) => setActiveTab(id as 'overview' | 'planning' | 'timeline' | 'maturity')}
+        isChanging={loading}
       />
 
       {/* Upcoming Milestones Alert */}

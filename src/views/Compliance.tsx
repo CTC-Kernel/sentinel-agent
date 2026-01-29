@@ -391,6 +391,7 @@ export const Compliance: React.FC = () => {
                     }))}
                     activeTab={currentFrameworkId}
                     onTabChange={(id) => setActiveFramework(id as Framework)}
+                    isChanging={loading}
                 />
 
                 {/* Main Navigation Tabs (Feature Level) */}
@@ -407,6 +408,7 @@ export const Compliance: React.FC = () => {
                         ]}
                         activeTab={activeTab}
                         onTabChange={handleTabChange}
+                        isChanging={loading}
                     />
                 </div>
 

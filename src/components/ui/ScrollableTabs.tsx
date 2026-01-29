@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from './Icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Spinner } from './Spinner';
 
 type TabIconComponent = React.ElementType<{ className?: string }>;
 
@@ -9,6 +10,7 @@ interface Tab {
     label: string;
     icon?: TabIconComponent;
     count?: number;
+    isLoading?: boolean;
 }
 
 interface ScrollableTabsProps {
@@ -16,9 +18,16 @@ interface ScrollableTabsProps {
     activeTab: string;
     onTabChange: (id: string) => void;
     className?: string;
+    isChanging?: boolean;
 }
 
-export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab, onTabChange, className = '' }) => {
+export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
+    tabs,
+    activeTab,
+    onTabChange,
+    className = '',
+    isChanging = false
+}) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
@@ -49,6 +58,19 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
 
     return (
         <div className={`relative group ${className}`}>
+            {/* Global Progress Bar */}
+            <AnimatePresence>
+                {isChanging && (
+                    <motion.div
+                        initial={{ scaleX: 0, opacity: 0 }}
+                        animate={{ scaleX: 1, opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className="absolute -top-1 left-0 right-0 h-0.5 bg-brand-500 origin-left z-30 rounded-full shadow-[0_0_8px_rgba(var(--brand-500-rgb),0.5)]"
+                    />
+                )}
+            </AnimatePresence>
+
             <AnimatePresence>
                 {showLeftArrow && (
                     <motion.button
@@ -73,6 +95,8 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
             >
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
+                    const isLoading = tab.isLoading;
+
                     return (
                         <button
                             key={tab.id}
@@ -82,10 +106,11 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                             id={`tab-${tab.id}`}
                             tabIndex={isActive ? 0 : -1}
                             onClick={() => onTabChange(tab.id)}
+                            disabled={isLoading}
                             className={`relative px-4 py-2 text-sm font-medium rounded-full transition-colors flex items-center whitespace-nowrap z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isActive
                                 ? 'text-foreground'
                                 : 'text-muted-foreground hover:text-foreground'
-                                }`}
+                                } ${isLoading ? 'cursor-wait opacity-80' : ''}`}
                         >
                             {isActive && (
                                 <motion.div
@@ -95,7 +120,9 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                                 />
                             )}
 
-                            {tab.icon && (
+                            {isLoading ? (
+                                <Spinner className="h-3 w-3 mr-2 text-brand-500" size="sm" />
+                            ) : tab.icon && (
                                 <tab.icon
                                     aria-hidden="true"
                                     className={`h-4 w-4 mr-2 transition-colors ${isActive ? 'text-brand-500 dark:text-brand-500' : 'opacity-70 group-hover:opacity-70'
@@ -104,7 +131,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                             )}
                             <span className="relative">{tab.label}</span>
 
-                            {tab.count !== undefined && (
+                            {tab.count !== undefined && !isLoading && (
                                 <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[11px] font-bold transition-colors ${isActive
                                     ? 'bg-brand-500 text-white'
                                     : 'bg-muted text-muted-foreground'

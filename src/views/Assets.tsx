@@ -369,6 +369,7 @@ const Assets: React.FC = () => {
                         activeTab={activeTab}
                         onTabChange={setActiveTab}
                         className="mb-6"
+                        isChanging={loading}
                     />
                 </motion.div>
 

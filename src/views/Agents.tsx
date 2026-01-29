@@ -130,15 +130,15 @@ export const Agents: React.FC = () => {
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <div className="flex justify-center mb-6">
                         <TabsList className="bg-muted/50 p-1 rounded-xl" data-tour="agents-tabs">
-                            <TabsTrigger value="overview" className="flex items-center gap-2">
+                            <TabsTrigger value="overview" className="flex items-center gap-2" isLoading={loading}>
                                 <Layers className="h-4 w-4" />
                                 <span>Supervision</span>
                             </TabsTrigger>
-                            <TabsTrigger value="policies" className="flex items-center gap-2">
+                            <TabsTrigger value="policies" className="flex items-center gap-2" isLoading={loading}>
                                 <Shield className="h-4 w-4" />
                                 <span>Politiques</span>
                             </TabsTrigger>
-                            <TabsTrigger value="software" className="flex items-center gap-2">
+                            <TabsTrigger value="software" className="flex items-center gap-2" isLoading={loading}>
                                 <Package className="h-4 w-4" />
                                 <span>Inventaire Logiciels</span>
                             </TabsTrigger>
