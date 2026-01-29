@@ -64,6 +64,9 @@ allow = [
     # Licenses from transitive dependencies
     "OpenSSL",                # aws-lc-sys (crypto library)
     "CDLA-Permissive-2.0",    # webpki-root-certs (root certificates)
+    # Font licenses (used by egui default fonts)
+    "OFL-1.1",             # SIL Open Font License (epaint_default_fonts)
+    "Ubuntu-font-1.0",     # Ubuntu Font Licence (epaint_default_fonts)
     # Our proprietary crates
     "LicenseRef-Proprietary",
 ]
@@ -108,6 +111,16 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "agent-system"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent-gui"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent-persistence"
 expression = "LicenseRef-Proprietary"
 license-files = []
 
