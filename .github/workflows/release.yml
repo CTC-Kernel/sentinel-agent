@@ -16,10 +16,31 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
+  # Determine release version from tag or manual input
+  version:
+    name: Determine version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Get version
+        id: get-version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref_name }}" == v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=1.0.0" >> "$GITHUB_OUTPUT"
+          fi
+
   # Build macOS universal binary and DMG
   build-macos:
     name: Build macOS
     runs-on: macos-latest
+    needs: [version]
+    env:
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -68,9 +89,9 @@ jobs:
       - name: Build DMG
         run: |
           chmod +x scripts/build-macos.sh
-          VERSION="${{ github.event.inputs.version || '1.0.0' }}" ./scripts/build-macos.sh
+          VERSION="${{ env.RELEASE_VERSION }}" ./scripts/build-macos.sh
         env:
-          VERSION: ${{ github.event.inputs.version || '1.0.0' }}
+          VERSION: ${{ env.RELEASE_VERSION }}
 
       - name: Notarize DMG
         continue-on-error: true
@@ -123,8 +144,10 @@ jobs:
   build-windows:
     name: Build Windows MSI
     runs-on: windows-latest
+    needs: [version]
     env:
       VCPKG_ROOT: C:\vcpkg
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -152,19 +175,19 @@ jobs:
 
       - name: Build MSI
         run: |
-          $version = "${{ github.event.inputs.version || '1.0.0' }}"
+          $version = "${{ env.RELEASE_VERSION }}"
           wix build -d "TargetDir=.\target\release" -d "Version=$version" -o "target/release/SentinelAgentSetup-$version.msi" wix/sentinel-agent.wxs
         shell: pwsh
 
       - name: Create latest copy
         run: |
-          $version = "${{ github.event.inputs.version || '1.0.0' }}"
+          $version = "${{ env.RELEASE_VERSION }}"
           Copy-Item "target/release/SentinelAgentSetup-$version.msi" "target/release/SentinelAgentSetup-latest.msi"
         shell: pwsh
 
       - name: Generate checksums
         run: |
-          $version = "${{ github.event.inputs.version || '1.0.0' }}"
+          $version = "${{ env.RELEASE_VERSION }}"
           cd target/release
           Get-FileHash "SentinelAgentSetup-$version.msi" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  SentinelAgentSetup-$version.msi" } | Out-File -Encoding ASCII "SentinelAgentSetup-$version.msi.sha256"
           Get-FileHash "SentinelAgentSetup-latest.msi" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  SentinelAgentSetup-latest.msi" } | Out-File -Encoding ASCII "SentinelAgentSetup-latest.msi.sha256"
@@ -182,10 +205,12 @@ jobs:
   build-deb:
     name: Build Linux DEB
     runs-on: ubuntu-latest
+    needs: [version]
     env:
       OPENSSL_DIR: /usr
       OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
       OPENSSL_INCLUDE_DIR: /usr/include/openssl
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -207,7 +232,7 @@ jobs:
 
       - name: Create latest copy
         run: |
-          VERSION="${{ github.event.inputs.version || '1.0.0' }}"
+          VERSION="${{ env.RELEASE_VERSION }}"
           cp target/debian/sentinel-agent_*.deb target/debian/sentinel-agent_latest_amd64.deb
 
       - name: Generate checksums
@@ -229,10 +254,12 @@ jobs:
   build-rpm:
     name: Build Linux RPM
     runs-on: ubuntu-latest
+    needs: [version]
     env:
       OPENSSL_DIR: /usr
       OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
       OPENSSL_INCLUDE_DIR: /usr/include/openssl
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -278,7 +305,9 @@ jobs:
   upload-releases:
     name: Upload to Firebase Storage
     runs-on: ubuntu-latest
-    needs: [build-macos, build-windows, build-deb, build-rpm]
+    needs: [version, build-macos, build-windows, build-deb, build-rpm]
+    env:
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -295,7 +324,7 @@ jobs:
 
       - name: Upload to Firebase Storage
         run: |
-          VERSION="${{ github.event.inputs.version || '1.0.0' }}"
+          VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
 
           # Upload macOS DMG to correct path structure
