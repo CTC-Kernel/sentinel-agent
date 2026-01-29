@@ -54,7 +54,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                         onClick={scanShodan}
                         disabled={scanning}
                         aria-label={t('common.inspector.security.scanShodanTooltip')}
-                        className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex-1 py-3 bg-primary text-primary-foreground rounded-3xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
                         {t('common.inspector.security.scanShodan')}
@@ -75,43 +75,44 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
             </div>
 
             {shodanResult && (
-                <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-lg">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-4 flex items-center">
+                <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:opacity-100 opacity-0 transition-opacity" />
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400 mb-4 flex items-center">
                         <Server className="h-4 w-4 mr-2" /> {t('common.inspector.security.shodanResult')}
                     </h3>
-                    <div className="space-y-2 text-sm font-mono">
-                        <p><span className="text-slate-500 dark:text-slate-400">IP:</span> {shodanResult.ip_str}</p>
-                        <p><span className="text-slate-500 dark:text-slate-400">OS:</span> {shodanResult.os || 'N/A'}</p>
-                        <p><span className="text-slate-500 dark:text-slate-400">Ports:</span> {shodanResult.ports?.join(', ') || 'None'}</p>
-                        <p><span className="text-slate-500 dark:text-slate-400">Org:</span> {shodanResult.org || 'N/A'}</p>
+                    <div className="space-y-3 text-sm font-mono relative z-10">
+                        <p className="flex justify-between items-center"><span className="text-text-description font-sans font-bold">IP:</span> <span className="text-foreground">{shodanResult.ip_str}</span></p>
+                        <p className="flex justify-between items-center"><span className="text-text-description font-sans font-bold">OS:</span> <span className="text-foreground">{shodanResult.os || 'N/A'}</span></p>
+                        <p className="flex justify-between items-center"><span className="text-text-description font-sans font-bold">Ports:</span> <span className="text-foreground">{shodanResult.ports?.join(', ') || 'None'}</span></p>
+                        <p className="flex justify-between items-center"><span className="text-text-description font-sans font-bold">Org:</span> <span className="text-foreground">{shodanResult.org || 'N/A'}</span></p>
                     </div>
                 </div>
             )}
 
             {vulnerabilities.length > 0 && (
-                <div className="bg-red-50 dark:bg-red-50 dark:bg-red-900 p-6 rounded-3xl border border-red-100 dark:border-red-900/30">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-4 flex items-center">
+                <div className="bg-red-50/50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-200/50 dark:border-red-900/30">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-red-600 dark:text-red-400 mb-5 flex items-center">
                         <ShieldAlert className="h-4 w-4 mr-2" /> {t('common.inspector.security.nvdVulns')} ({vulnerabilities.length})
                     </h3>
                     <div className="space-y-3">
                         {vulnerabilities.map(vuln => (
-                            <div key={vuln.cveId} className="p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-red-200/60 dark:border-red-900/30 shadow-sm hover:shadow-md transition-all">
+                            <div key={vuln.cveId} className="p-4 bg-white/80 dark:bg-slate-800/40 backdrop-blur-md rounded-2xl border border-red-200/40 dark:border-red-900/40 shadow-sm hover:shadow-md transition-all group">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-bold px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-3xl ring-1 ring-red-500/20">{vuln.severity} ({vuln.score})</span>
+                                        <span className="text-[11px] font-black px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full ring-1 ring-red-500/10">{vuln.severity} ({vuln.score})</span>
                                         <CustomTooltip content={t('common.inspector.security.newRisk')}>
                                             <button
                                                 onClick={() => createRiskFromVuln(vuln)}
                                                 aria-label={t('common.inspector.security.newRisk')}
-                                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 <Plus className="h-4 w-4" />
                                             </button>
                                         </CustomTooltip>
                                     </div>
                                 </div>
-                                <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2" title={vuln.description}>{vuln.description}</p>
+                                <p className="text-xs text-text-description line-clamp-2 leading-relaxed" title={vuln.description}>{vuln.description}</p>
                             </div>
                         ))}
                     </div>
@@ -142,8 +143,8 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
                                     <span className={`text-[11px] px-2 py-1 rounded-3xl font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
                                 </div>
-                                <p className="text-xs text-slate-600 dark:text-muted-foreground mb-3">{risk.vulnerability}</p>
-                                {risk.score >= 15 && <div className="flex items-center text-[11px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-3xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> {t('common.inspector.security.criticalRisk')}</div>}
+                                <p className="text-xs text-text-description mb-3">{risk.vulnerability}</p>
+                                {risk.score >= 15 && <div className="flex items-center text-[11px] text-red-600 dark:text-red-400 font-black uppercase tracking-wider bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full w-fit border border-red-100 dark:border-red-900/30 shadow-sm"><Flame className="h-3 w-3 mr-2" /> {t('common.inspector.security.criticalRisk')}</div>}
                             </div>
                         ))}
                     </div>

@@ -99,7 +99,7 @@ function WidgetEmpty() {
       <p className="text-sm text-slate-600 dark:text-muted-foreground">
         Aucun score calculé
       </p>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-slate-600">
         Le score sera calculé automatiquement
       </p>
     </div>
@@ -182,7 +182,7 @@ export function ComplianceScoreWidget({
   return (
     <div className={cn('flex flex-col items-center gap-3', className)}>
       {/* Title */}
-      <h3 className="text-sm font-medium text-slate-500 dark:text-muted-foreground">
+      <h3 className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
         {title}
       </h3>
 

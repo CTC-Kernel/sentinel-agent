@@ -158,7 +158,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                   ? t('ebios.workshop3.editPath', 'Modifier le chemin d\'attaque')
                   : t('ebios.workshop3.addAttackPath', 'Créer un chemin d\'attaque')}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 {t('ebios.workshop3.pathFormHelp', 'Définir le parcours depuis la source vers la cible')}
               </p>
             </div>
@@ -167,7 +167,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
             onClick={onClose}
             className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 
@@ -250,7 +250,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           {/* Path Preview */}
           {watchedSourceId && watchedTargetAssetId && (
             <div className="p-3 rounded-3xl bg-slate-50 dark:bg-slate-800/50">
-              <p className="text-sm text-slate-500 dark:text-slate-300 mb-2">{t('ebios.workshop3.pathPreview', 'Aperçu du chemin')}:</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{t('ebios.workshop3.pathPreview', 'Aperçu du chemin')}:</p>
               <div className="flex items-center flex-wrap gap-2">
                 <span className="px-2 py-1 rounded bg-orange-100 dark:bg-amber-900/30 text-orange-700 dark:text-orange-400 text-sm font-medium">
                   {getPartyName(watchedSourceId)}
@@ -277,7 +277,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 {t('ebios.workshop3.intermediateParties', 'Parties intermédiaires')}
               </label>
-              <p className="text-xs text-slate-500 dark:text-slate-300 mb-2">
+              <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">
                 {t('ebios.workshop3.intermediateHelp', 'Sélectionnez les parties traversées par l\'attaque')}
               </p>
               <div className="flex flex-wrap gap-2">

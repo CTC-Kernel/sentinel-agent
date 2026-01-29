@@ -76,7 +76,7 @@ function TrendArrow({ trend, className }: { trend: TrendType | null; className?:
   if (!trend || trend === 'stable') {
     return (
       <Minus
-        className={cn('w-4 h-4 text-slate-500', className)}
+        className={cn('w-4 h-4 text-slate-600', className)}
         aria-hidden="true"
       />
     );

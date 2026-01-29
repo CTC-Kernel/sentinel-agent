@@ -176,7 +176,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
               {t('ebios.workshop1.linkedEssentialAssets')} *
             </label>
             {essentialAssets.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-300 italic">
+              <p className="text-sm text-slate-600 dark:text-slate-300 italic">
                 {t('ebios.workshop1.noEssentialAssetsYet')}
               </p>
             ) : (
@@ -204,7 +204,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                       <span className="text-sm text-slate-700 dark:text-slate-300 block truncate">
                         {essentialAsset.name}
                       </span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-600">
                         {t(`ebios.assetTypes.${essentialAsset.type}`)}
                       </span>
                     </div>

@@ -124,7 +124,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {t('ebios.workshop1.importFromInventory', 'Importer depuis l\'inventaire')}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 {availableAssets.length} {t('ebios.workshop1.assetsAvailable', 'actifs disponibles')}
               </p>
             </div>
@@ -133,7 +133,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
             onClick={onClose}
             className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 
@@ -182,7 +182,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
 
           {/* Selection controls */}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500 dark:text-slate-400">
+            <span className="text-slate-600 dark:text-slate-600">
               {selectedAssetIds.size} {t('common.selected', 'sélectionné(s)')}
             </span>
             <div className="flex gap-2">
@@ -195,7 +195,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
               <span className="text-muted-foreground">|</span>
               <button
                 onClick={deselectAll}
-                className="text-slate-500 hover:text-slate-600 font-medium"
+                className="text-slate-600 hover:text-slate-600 font-medium"
               >
                 {t('common.deselectAll', 'Tout désélectionner')}
               </button>
@@ -212,7 +212,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
           ) : filteredAssets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Package className="w-12 h-12 text-slate-300 dark:text-slate-300 mb-3" />
-              <p className="text-slate-500 dark:text-muted-foreground">
+              <p className="text-slate-600 dark:text-muted-foreground">
                 {searchQuery
                   ? t('ebios.workshop1.noAssetsMatchSearch', 'Aucun actif ne correspond à votre recherche')
                   : t('ebios.workshop1.noAssetsAvailable', 'Aucun actif disponible dans l\'inventaire')}
@@ -221,7 +221,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
           ) : (
             Object.entries(groupedAssets).map(([type, typeAssets]) => (
               <div key={type}>
-                <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
+                <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide mb-2">
                   {type} ({typeAssets.length})
                 </h4>
                 <div className="space-y-2">
@@ -258,11 +258,11 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                           <span className="font-medium text-slate-900 dark:text-white truncate">
                             {asset.name}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-800 text-slate-500">
+                          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-800 text-slate-600">
                             {mapAssetTypeToEbiosType(asset.type)}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-300 truncate">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 truncate">
                           {asset.owner && `${asset.owner} • `}
                           {asset.location || t('common.noLocation', 'Emplacement non spécifié')}
                         </p>
@@ -277,7 +277,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
 
         {/* Footer */}
         <div className="pt-4 border-t border-border/40 dark:border-slate-700/50 flex items-center justify-between">
-          <div className="text-sm text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
+          <div className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4" />
             {t('ebios.workshop1.importNote', 'Les actifs importés seront liés à l\'inventaire')}
           </div>

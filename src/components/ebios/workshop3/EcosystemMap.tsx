@@ -576,7 +576,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                       opacity: level >= 3 ? 1 : 0.7,
                     }}
                   />
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-600">
                     V{level} - {locale === 'fr'
                       ? ['Faible', 'Modérée', 'Élevée', 'Très élevée'][level - 1]
                       : ['Low', 'Moderate', 'High', 'Very High'][level - 1]
@@ -624,7 +624,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                     <h4 className="font-semibold text-slate-900 dark:text-white">
                       {selectedParty.name}
                     </h4>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-600">
                       {t(`ebios.partyTypes.${selectedParty.type}`)} ·{' '}
                       {selectedParty.category === 'internal'
                         ? t('ebios.ecosystem.internal')
@@ -637,25 +637,25 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                     <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.trustLevel}
                     </p>
-                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.trust')}</p>
+                    <p className="text-xs text-slate-600">{t('ebios.ecosystem.trust')}</p>
                   </div>
                   <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
                     <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.exposure}
                     </p>
-                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.exposure')}</p>
+                    <p className="text-xs text-slate-600">{t('ebios.ecosystem.exposure')}</p>
                   </div>
                   <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
                     <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.cyberDependency}
                     </p>
-                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.dependency')}</p>
+                    <p className="text-xs text-slate-600">{t('ebios.ecosystem.dependency')}</p>
                   </div>
                   <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
                     <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.penetration}
                     </p>
-                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.penetration')}</p>
+                    <p className="text-xs text-slate-600">{t('ebios.ecosystem.penetration')}</p>
                   </div>
                 </div>
               </div>
@@ -671,7 +671,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                     <h4 className="font-semibold text-slate-900 dark:text-white">
                       {selectedPath.name || t('ebios.ecosystem.attackPath')}
                     </h4>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-600">
                       {getPartyById(selectedPath.sourcePartyId)?.name} →{' '}
                       {getAssetById(selectedPath.targetAssetId)?.name}
                     </p>
@@ -687,13 +687,13 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                     >
                       V{selectedPath.likelihood}
                     </p>
-                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.likelihood')}</p>
+                    <p className="text-xs text-slate-600">{t('ebios.ecosystem.likelihood')}</p>
                   </div>
                   <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
                     <p className="text-lg font-bold text-slate-900 dark:text-white">
                       C{selectedPath.complexity}
                     </p>
-                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.complexity')}</p>
+                    <p className="text-xs text-slate-600">{t('ebios.ecosystem.complexity')}</p>
                   </div>
                 </div>
                 {selectedPath.description && (
@@ -742,7 +742,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <Globe className="w-12 h-12 text-slate-300 dark:text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 dark:text-slate-400">{t('ebios.ecosystem.noParties')}</p>
+            <p className="text-slate-600 dark:text-slate-600">{t('ebios.ecosystem.noParties')}</p>
             <p className="text-sm text-muted-foreground mt-1">
               {t('ebios.ecosystem.addPartiesHelp')}
             </p>

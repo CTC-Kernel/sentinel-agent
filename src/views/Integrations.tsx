@@ -169,24 +169,24 @@ export const Integrations: React.FC = () => {
                         }}
                     />
                     <button
-                        aria-label="Connecteurs"
+                        aria-label={t('integrations.tabs.providers')}
                         onClick={() => setActiveTab('providers')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'providers'
                             ? 'text-slate-900 dark:text-white'
-                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
+                            : 'text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                             }`}
                     >
-                        Connecteurs
+                        {t('integrations.tabs.providers')}
                     </button>
                     <button
-                        aria-label="Tâches & Scans"
+                        aria-label={t('integrations.tabs.jobs')}
                         onClick={() => setActiveTab('jobs')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'jobs'
                             ? 'text-slate-900 dark:text-white'
-                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
+                            : 'text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                             }`}
                     >
-                        Tâches & Scans
+                        {t('integrations.tabs.jobs')}
                     </button>
                 </div>
             </div>
@@ -198,7 +198,7 @@ export const Integrations: React.FC = () => {
                         <div className="relative flex-1 min-w-0 group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                                aria-label="Rechercher une intégration"
+                                aria-label={t('integrations.searchPlaceholder')}
                                 type="text"
                                 placeholder={t('integrations.searchPlaceholder')}
                                 className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
@@ -206,10 +206,10 @@ export const Integrations: React.FC = () => {
                         </div>
                         <div className="flex gap-1 overflow-x-auto no-scrollbar items-center pr-1.5 pl-1.5 border-l border-slate-200/50 dark:border-white/5">
                             {[
-                                { id: 'all', label: 'Tout', icon: LayoutGrid },
-                                { id: 'cloud', label: 'Cloud', icon: Cloud },
-                                { id: 'code', label: 'Code', icon: Code },
-                                { id: 'security', label: 'Sécurité', icon: ShieldCheck },
+                                { id: 'all', label: t('integrations.categories.all'), icon: LayoutGrid },
+                                { id: 'cloud', label: t('integrations.categories.cloud'), icon: Cloud },
+                                { id: 'code', label: t('integrations.categories.code'), icon: Code },
+                                { id: 'security', label: t('integrations.categories.security'), icon: ShieldCheck },
                             ].map((cat) => (
                                 <Button
                                     key={cat.id}
@@ -218,7 +218,7 @@ export const Integrations: React.FC = () => {
                                     onClick={() => setCategoryFilter(cat.id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${categoryFilter === cat.id
                                         ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-900/20 dark:shadow-white/20'
-                                        : 'text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                                        : 'text-muted-foreground dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                 >
                                     <cat.icon className="h-3.5 w-3.5 mr-2" />
@@ -231,15 +231,15 @@ export const Integrations: React.FC = () => {
                                 aria-label="Test N8N"
                                 onClick={() => {
                                     toast.promise(integrationService.triggerN8nWorkflow('test-connection', { test: true }, demoMode), {
-                                        loading: 'Test de connexion N8N...',
-                                        success: 'Connexion N8N réussie !',
-                                        error: 'Erreur de connexion N8N'
+                                        loading: t('integrations.n8n.testing'),
+                                        success: t('integrations.n8n.success'),
+                                        error: t('integrations.n8n.error')
                                     });
                                 }}
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                             >
                                 <Cloud className="h-3.5 w-3.5 mr-2" />
-                                Test N8N
+                                {t('integrations.testN8n') || 'Test N8N'}
                             </Button>
                         </div>
                     </div>
@@ -272,12 +272,12 @@ export const Integrations: React.FC = () => {
                     >
                         <div className="space-y-6 pt-2">
                             <p className="text-slate-600 dark:text-muted-foreground">
-                                Veuillez saisir votre clé API (ou Token) pour permettre à Sentinel GRC d'accéder aux données de <strong>{selectedProvider?.name}</strong>.
+                                {t('integrations.apiKeyModal.description', { provider: selectedProvider?.name })}
                             </p>
 
                             <div className="space-y-2">
                                 <FloatingLabelInput
-                                    label="Clé API / Token"
+                                    label={t('integrations.apiKeyModal.label')}
                                     type="password"
                                     value={apiKey}
                                     onChange={(e) => {
@@ -287,29 +287,29 @@ export const Integrations: React.FC = () => {
                                     icon={Key}
                                     placeholder="sk_live_..."
                                 />
-                                <p className="text-xs text-slate-500">
-                                    Cette clé sera stockée de manière sécurisée et utilisée uniquement pour la synchronisation.
+                                <p className="text-xs text-muted-foreground">
+                                    {t('integrations.apiKeyModal.hint')}
                                 </p>
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4">
                                 <Button
                                     variant="outline"
-                                    aria-label="Annuler la connexion"
+                                    aria-label={t('integrations.apiKeyModal.cancel') || t('common.cancel')}
                                     onClick={() => setApiKeyModalOpen(false)}
                                     className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white transition-colors"
                                 >
-                                    Annuler
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
-                                    aria-label="Connecter l'intégration"
+                                    aria-label={t('integrations.apiKeyModal.connectButton')}
                                     onClick={confirmConnect}
                                     disabled={isSubmittingKey || !apiKey.trim()}
                                     isLoading={isSubmittingKey}
                                     className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 flex items-center gap-2"
                                 >
-                                    {!isSubmittingKey && 'Connecter l\'intégration'}
-                                    {isSubmittingKey && 'Connexion...'}
+                                    {!isSubmittingKey && t('integrations.apiKeyModal.connectButton')}
+                                    {isSubmittingKey && t('integrations.apiKeyModal.connecting')}
                                 </Button>
                             </div>
                         </div>

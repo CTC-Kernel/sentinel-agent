@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TreatmentAction, TreatmentActionStatus } from '../../types';
 import { ListChecks, Calendar, User, Edit, Trash2, Plus, CheckCircle2, Clock, Circle } from '../ui/Icons';
 import { Button } from '../ui/button';
@@ -17,7 +18,7 @@ interface TreatmentActionsListProps {
 }
 
 const STATUS_CONFIG: Record<TreatmentActionStatus, { icon: typeof CheckCircle2; color: string; badgeStatus: 'success' | 'warning' | 'info' }> = {
-    'À faire': { icon: Circle, color: 'text-slate-400', badgeStatus: 'info' },
+    'À faire': { icon: Circle, color: 'text-slate-600', badgeStatus: 'info' },
     'En cours': { icon: Clock, color: 'text-warning-text', badgeStatus: 'warning' },
     'Terminé': { icon: CheckCircle2, color: 'text-success-text', badgeStatus: 'success' }
 };
@@ -30,11 +31,12 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
     onDelete,
     readOnly = false
 }) => {
+    const { t } = useTranslation();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
     const getUserName = (userId?: string) => {
-        if (!userId) return 'Non assigné';
+        if (!userId) return t('risks.treatment.not_assigned');
         const user = users.find(u => u.uid === userId);
         return user?.displayName || userId;
     };
@@ -44,10 +46,10 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
         try {
             const date = parseISO(deadline);
             if (isPast(date) && !isToday(date)) {
-                return { label: 'En retard', color: 'text-red-600 bg-red-50 dark:bg-red-900/30 border-red-200' };
+                return { label: t('risks.treatment.late'), color: 'text-red-600 bg-red-50 dark:bg-red-900/30 border-red-200' };
             }
             if (isToday(date)) {
-                return { label: 'Aujourd\'hui', color: 'text-warning-text bg-warning-bg border-warning-border' };
+                return { label: t('risks.treatment.today'), color: 'text-warning-text bg-warning-bg border-warning-border' };
             }
             return null;
         } catch {
@@ -92,11 +94,11 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <ListChecks className="h-4 w-4 text-brand-500" />
-                    Actions de traitement ({totalActions})
+                    {t('risks.treatment.actions_title')} ({totalActions})
                 </h3>
                 {totalActions > 0 && (
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-slate-500">Progression:</span>
+                        <span className="text-xs font-semibold text-muted-foreground"> {t('risks.treatment.progress')}:</span>
                         <div className="flex items-center gap-1.5">
                             <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div
@@ -115,8 +117,8 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
             {/* Actions List */}
             <div className="space-y-2">
                 {actions.length === 0 && !isAdding ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic py-4 text-center">
-                        Aucune action de traitement définie. Ajoutez des actions pour suivre la mise en oeuvre du plan.
+                    <p className="text-sm text-muted-foreground dark:text-slate-300 italic py-4 text-center">
+                        {t('risks.treatment.no_actions')}
                     </p>
                 ) : (
                     actions.map(action => {
@@ -139,8 +141,8 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                             <div
                                 key={action.id}
                                 className={`flex items-start gap-3 p-3 rounded-3xl border transition-colors ${action.status === 'Terminé'
-                                        ? 'bg-success-bg/50 dark:bg-success-bg/10 border-success-border dark:border-success-border/30'
-                                        : 'bg-white dark:bg-slate-800 border-border/40 dark:border-slate-700 hover:shadow-sm'
+                                    ? 'bg-success-bg/50 dark:bg-success-bg/10 border-success-border dark:border-success-border/30'
+                                    : 'bg-white dark:bg-slate-800 border-border/40 dark:border-slate-700 hover:shadow-sm'
                                     }`}
                             >
                                 {/* Status Toggle */}
@@ -162,14 +164,14 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
-                                    <p className={`text-sm font-medium ${action.status === 'Terminé'
-                                            ? 'text-slate-500 line-through'
-                                            : 'text-slate-900 dark:text-white'
+                                    <p className={`text-sm font-semibold ${action.status === 'Terminé'
+                                        ? 'text-slate-500 line-through'
+                                        : 'text-slate-900 dark:text-white'
                                         }`}>
                                         {action.title}
                                     </p>
                                     {action.description && (
-                                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5 line-clamp-2">
+                                        <p className="text-xs text-muted-foreground dark:text-slate-300 mt-0.5 line-clamp-2">
                                             {action.description}
                                         </p>
                                     )}
@@ -182,13 +184,13 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                             {action.status}
                                         </Badge>
                                         {action.ownerId && (
-                                            <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                                                 <User className="h-3 w-3" />
                                                 {getUserName(action.ownerId)}
                                             </span>
                                         )}
                                         {action.deadline && (
-                                            <span className={`inline-flex items-center gap-1 text-xs ${deadlineStatus ? deadlineStatus.color + ' px-1.5 py-0.5 rounded-full border' : 'text-slate-500'
+                                            <span className={`inline-flex items-center gap-1 text-xs ${deadlineStatus ? deadlineStatus.color + ' px-1.5 py-0.5 rounded-full border' : 'text-muted-foreground'
                                                 }`}>
                                                 <Calendar className="h-3 w-3" />
                                                 {deadlineStatus ? deadlineStatus.label : format(parseISO(action.deadline), 'dd MMM yyyy', { locale: fr })}
@@ -205,7 +207,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                             size="sm"
                                             onClick={() => setEditingId(action.id)}
                                             className="h-7 w-7 p-0 text-muted-foreground hover:text-brand-500"
-                                            aria-label="Modifier l'action"
+                                            aria-label={t('risks.treatment.edit_action')}
                                         >
                                             <Edit className="h-3.5 w-3.5" />
                                         </Button>
@@ -214,7 +216,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                             size="sm"
                                             onClick={() => onDelete(action.id)}
                                             className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500"
-                                            aria-label="Supprimer l'action"
+                                            aria-label={t('risks.treatment.delete_action')}
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
@@ -242,7 +244,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                     className="w-full gap-1.5 border-dashed"
                 >
                     <Plus className="h-4 w-4" />
-                    Ajouter une action
+                    {t('risks.treatment.add_action')}
                 </Button>
             )}
         </div>

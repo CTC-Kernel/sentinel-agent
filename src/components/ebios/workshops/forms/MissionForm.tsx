@@ -144,7 +144,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                     "block text-lg font-bold",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-500 dark:text-slate-300"
+                      : "text-slate-600 dark:text-slate-300"
                   )}>
                     {level.level}
                   </span>
@@ -152,14 +152,14 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                     "block text-xs mt-1",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-400 dark:text-slate-400"
+                      : "text-slate-600 dark:text-slate-600"
                   )}>
                     {level[locale]}
                   </span>
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-slate-600">
               {GRAVITY_SCALE.find((l) => l.level === criticality)?.description[locale]}
             </p>
           </div>

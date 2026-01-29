@@ -175,7 +175,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
             {value}/5
           </span>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-300 mb-2">{description}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">{description}</p>
         <input
           type="range"
           min={1}
@@ -208,7 +208,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
                   ? t('ebios.workshop3.editParty', 'Modifier la partie prenante')
                   : t('ebios.workshop3.addParty', 'Ajouter une partie prenante')}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 {t('ebios.workshop3.partyFormHelp', 'Définir les caractéristiques de cette partie')}
               </p>
             </div>
@@ -217,7 +217,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
             onClick={onClose}
             className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 

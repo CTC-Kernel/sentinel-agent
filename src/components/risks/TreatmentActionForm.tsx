@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TreatmentAction } from '../../types';
 import { useZodForm } from '../../hooks/useZodForm';
 import { treatmentActionSchema, TreatmentActionFormData } from '../../schemas/treatmentActionSchema';
@@ -19,6 +20,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
     onSave,
     onCancel
 }) => {
+    const { t } = useTranslation();
     const { register, handleSubmit, watch, reset, formState: { errors } } = useZodForm<typeof treatmentActionSchema>({
         schema: treatmentActionSchema,
         mode: 'onChange',
@@ -53,14 +55,14 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-slate-700">
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {action ? 'Modifier l\'action' : 'Nouvelle action'}
+                    {action ? t('risks.treatment.edit_action') : t('risks.treatment.new_action')}
                 </h4>
                 <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={onCancel}
-                    aria-label="Annuler"
+                    aria-label={t('risks.treatment.cancel')}
                 >
                     <X className="h-4 w-4" />
                 </Button>
@@ -68,14 +70,14 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
             {/* Title */}
             <div className="space-y-1.5">
-                <label htmlFor="action-title" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
-                    Titre <span className="text-red-500">*</span>
+                <label htmlFor="action-title" className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                    {t('risks.treatment.title_label')} <span className="text-red-500">*</span>
                 </label>
                 <input
                     id="action-title"
                     type="text"
                     {...register('title')}
-                    placeholder="Ex: Mettre à jour la politique de sécurité"
+                    placeholder={t('risks.treatment.placeholder_title')}
                     className={`w-full rounded-3xl border ${errors.title ? 'border-red-500' : 'border-border/40 dark:border-border/40'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
                 />
 
@@ -86,14 +88,14 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
             {/* Description */}
             <div className="space-y-1.5">
-                <label htmlFor="action-description" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
-                    Description
+                <label htmlFor="action-description" className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                    {t('risks.treatment.description_label')}
                 </label>
                 <textarea
                     id="action-description"
                     {...register('description')}
                     rows={2}
-                    placeholder="Décrivez l'action à réaliser..."
+                    placeholder={t('risks.treatment.placeholder_description')}
                     className="w-full rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
                 />
 
@@ -105,8 +107,8 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Owner */}
                 <div className="space-y-1.5">
-                    <label htmlFor="action-owner" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
-                        Responsable
+                    <label htmlFor="action-owner" className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        {t('risks.treatment.owner_label')}
                     </label>
                     <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -115,7 +117,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                             {...register('ownerId')}
                             className="w-full pl-9 pr-4 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
                         >
-                            <option value="">Non assigné</option>
+                            <option value="">{t('risks.treatment.not_assigned')}</option>
                             {users.map(u => (
                                 <option key={u.uid} value={u.uid}>{u.displayName}</option>
                             ))}
@@ -126,8 +128,8 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
                 {/* Deadline */}
                 <div className="space-y-1.5">
-                    <label htmlFor="action-deadline" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
-                        Échéance
+                    <label htmlFor="action-deadline" className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        {t('risks.treatment.deadline_label')}
                     </label>
                     <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -143,8 +145,8 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
                 {/* Status */}
                 <div className="space-y-1.5">
-                    <label htmlFor="action-status" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
-                        Statut
+                    <label htmlFor="action-status" className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        {t('risks.treatment.status_label')}
                     </label>
                     <select
                         id="action-status"
@@ -167,7 +169,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     size="sm"
                     onClick={onCancel}
                 >
-                    Annuler
+                    {t('risks.treatment.cancel')}
                 </Button>
                 <Button
                     type="submit"
@@ -176,7 +178,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     className="gap-1"
                 >
                     <Check className="h-4 w-4" />
-                    {action ? 'Enregistrer' : 'Ajouter'}
+                    {action ? t('risks.treatment.save') : t('risks.treatment.add_action')}
                 </Button>
             </div>
         </form>

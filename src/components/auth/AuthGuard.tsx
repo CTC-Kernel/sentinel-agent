@@ -1,6 +1,10 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { PremiumCard } from '../ui/PremiumCard';
+import { MasterpieceBackground } from '../ui/MasterpieceBackground';
+import { AlertCircle, RefreshCw, LogOut, Mail } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingScreen } from '../ui/LoadingScreen';
 
@@ -11,7 +15,7 @@ interface AuthGuardProps {
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboarding = true }) => {
     const { t } = useTranslation();
-    const { user, loading, firebaseUser, error, profileError, claimsSynced } = useAuth();
+    const { user, loading, firebaseUser, error, profileError, claimsSynced, logout } = useAuth();
 
     const location = useLocation();
 
@@ -32,8 +36,46 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (!firebaseUser.emailVerified && location.pathname !== '/verify-email') {
-        return <Navigate to="/verify-email" replace />;
+    // NEW: Handle Email Verification Screen
+    if (firebaseUser && !firebaseUser.emailVerified && location.pathname !== '/verify-email') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background relative overflow-hidden">
+                <MasterpieceBackground />
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-md p-6 relative z-10"
+                >
+                    <PremiumCard glass className="p-8 text-center border-brand-500/20 dark:border-brand-500/10 shadow-xl shadow-brand-500/5">
+                        <div className="w-20 h-20 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-full flex items-center justify-center mb-6 mx-auto ring-8 ring-brand-50 dark:ring-brand-500/5">
+                            <Mail className="w-10 h-10" />
+                        </div>
+                        <h1 className="text-2xl font-black mb-3 text-slate-900 dark:text-white tracking-tight">
+                            {t('auth.verifyEmailTitle')}
+                        </h1>
+                        <p className="text-text-description mb-8 leading-relaxed">
+                            {t('auth.verifyEmailDesc')} <b>{firebaseUser.email}</b>.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="w-full py-4 bg-primary text-primary-foreground font-black rounded-3xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            >
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                {t('auth.iVerified')}
+                            </button>
+                            <button
+                                onClick={() => logout()}
+                                className="w-full py-3 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-bold flex items-center justify-center"
+                            >
+                                <LogOut className="w-4 h-4 mr-2" />
+                                {t('common.logout')}
+                            </button>
+                        </div>
+                    </PremiumCard>
+                </motion.div>
+            </div>
+        );
     }
 
     if (user && requireOnboarding && (!user.onboardingCompleted || !user.organizationId)) {
@@ -44,20 +86,41 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
     // Show a "Retry" screen instead of redirecting to Onboarding (which causes a loop).
     if (firebaseUser && !user && !loading && (requireOnboarding || profileError)) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 text-center">
-                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
-                </div>
-                <h1 className="text-2xl font-bold mb-2">{t('auth.connectionError')}</h1>
-                <p className="text-muted-foreground max-w-md mb-8">
-                    {t('auth.profileLoadError')}
-                </p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-3xl hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background relative overflow-hidden">
+                <MasterpieceBackground />
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-md p-6 relative z-10"
                 >
-                    {t('common.retry')}
-                </button>
+                    <PremiumCard glass className="p-8 text-center border-red-500/20 dark:border-red-500/10 shadow-xl shadow-red-500/5">
+                        <div className="w-20 h-20 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-6 mx-auto ring-8 ring-red-50 dark:ring-red-500/5">
+                            <AlertCircle className="w-10 h-10" />
+                        </div>
+                        <h1 className="text-2xl font-black mb-3 text-slate-900 dark:text-white tracking-tight">
+                            {t('auth.connectionError')}
+                        </h1>
+                        <p className="text-text-description mb-8 leading-relaxed">
+                            {t('auth.profileLoadError')}
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="w-full py-4 bg-primary text-primary-foreground font-black rounded-3xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            >
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                {t('common.retry')}
+                            </button>
+                            <button
+                                onClick={() => logout()}
+                                className="w-full py-3 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-bold flex items-center justify-center"
+                            >
+                                <LogOut className="w-4 h-4 mr-2" />
+                                {t('common.logout')}
+                            </button>
+                        </div>
+                    </PremiumCard>
+                </motion.div>
             </div>
         );
     }

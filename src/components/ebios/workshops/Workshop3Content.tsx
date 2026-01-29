@@ -246,7 +246,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                 onClick={() => setShowEcosystemMap(false)}
                 className="p-3 rounded-full bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 shadow-lg hover:scale-110 transition-transform hover:bg-slate-50 dark:hover:bg-slate-700"
               >
-                <X className="w-5 h-5 text-slate-500" />
+                <X className="w-5 h-5 text-slate-600" />
               </button>
             </div>
             <div className="absolute top-6 left-6 z-10 glass-premium backdrop-blur-md px-6 py-3 rounded-2xl border border-border/40">
@@ -293,18 +293,18 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                     {t('ebios.workshop3.ecosystem')}
                   </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                     {data.ecosystem.length} {t('ebios.workshop3.partiesCount')}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 {expandedSections.has('ecosystem') ? (
-                  <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all">
+                  <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all">
                     <ChevronUp className="w-5 h-5" />
                   </div>
                 ) : (
-                  <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+                  <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                     <ChevronDown className="w-5 h-5" />
                   </div>
                 )}
@@ -328,7 +328,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
           {expandedSections.has('ecosystem') && (
             <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
+              <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop3.ecosystemHelp')}
               </p>
@@ -402,7 +402,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                       {/* Trust Level Indicator */}
                       <div className="flex items-center justify-between pt-4 border-t border-border/40">
-                        <span className="text-xs font-medium text-slate-500">{t('ebios.workshop3.trustLevel')}</span>
+                        <span className="text-xs font-medium text-slate-600">{t('ebios.workshop3.trustLevel')}</span>
                         <div className="flex gap-1.5">
                           {[1, 2, 3, 4, 5].map((level) => (
                             <div
@@ -427,10 +427,10 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                     onClick={handleAddParty}
                     className="group relative flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-dashed border-border/40 hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all duration-300 min-h-[160px]"
                   >
-                    <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all duration-300 mb-3 shadow-sm group-hover:shadow-brand group-hover:scale-110">
+                    <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all duration-300 mb-3 shadow-sm group-hover:shadow-brand group-hover:scale-110">
                       <Plus className="w-6 h-6" />
                     </div>
-                    <span className="font-bold text-slate-500 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                    <span className="font-bold text-slate-600 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                       {t('ebios.workshop3.addParty')}
                     </span>
                   </button>
@@ -456,17 +456,17 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                   {t('ebios.workshop3.attackPaths')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
+                <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                   {data.attackPaths.length} {t('ebios.workshop3.pathsCount')}
                 </p>
               </div>
             </div>
             {expandedSections.has('attackPaths') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-orange-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-orange-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -474,7 +474,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
           {expandedSections.has('attackPaths') && (
             <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
+              <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop3.attackPathsHelp')}
               </p>
@@ -487,7 +487,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                   <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                     {t('ebios.workshop3.ecosystemRequired', 'Ecosystème requis')}
                   </h4>
-                  <p className="text-slate-500 dark:text-slate-400">{t('ebios.workshop3.addEcosystemFirst')}</p>
+                  <p className="text-slate-600 dark:text-slate-600">{t('ebios.workshop3.addEcosystemFirst')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -537,7 +537,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                           <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-slate-800/50">
                             <div className="flex flex-col items-end">
-                              <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop3.likelihood')}</span>
+                              <span className="text-[11px] uppercase font-bold text-slate-600 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop3.likelihood')}</span>
                               <span className={cn(
                                 "px-3 py-1 rounded-lg text-sm font-bold shadow-sm border",
                                 `bg-${likelihoodScale?.color || 'gray'}-50 dark:bg-${likelihoodScale?.color || 'gray'}-900/20`,
@@ -576,7 +576,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                   {!readOnly && (
                     <button
                       onClick={handleAddPath}
-                      className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-orange-600 font-medium group"
+                      className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-orange-600 font-medium group"
                     >
                       <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-200 dark:group-hover:bg-orange-800 transition-colors">
                         <Plus className="w-4 h-4" />
@@ -606,17 +606,17 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-error-text transition-colors">
                   {t('ebios.workshop3.strategicScenarios')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
+                <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                   {data.strategicScenarios.length} {t('ebios.workshop3.scenariosCount')}
                 </p>
               </div>
             </div>
             {expandedSections.has('strategicScenarios') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-error group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-error group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -624,7 +624,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
           {expandedSections.has('strategicScenarios') && (
             <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
+              <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop3.strategicScenariosHelp')}
               </p>
@@ -637,7 +637,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                   <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                     {t('ebios.workshop3.noRetainedPairs', 'Aucun pair retenu')}
                   </h4>
-                  <p className="text-slate-500 dark:text-slate-400">{t('ebios.workshop3.retainPairsFirst')}</p>
+                  <p className="text-slate-600 dark:text-slate-600">{t('ebios.workshop3.retainPairsFirst')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -655,7 +655,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                               {scenario.name}
                             </h4>
                             {scenario.description && (
-                              <p className="text-sm text-slate-500 dark:text-muted-foreground line-clamp-2 leading-relaxed mb-3">
+                              <p className="text-sm text-slate-600 dark:text-muted-foreground line-clamp-2 leading-relaxed mb-3">
                                 {scenario.description}
                               </p>
                             )}
@@ -673,7 +673,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                           <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-slate-800/50">
                             <div className="flex flex-col items-end">
-                              <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop3.gravity')}</span>
+                              <span className="text-[11px] uppercase font-bold text-slate-600 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop3.gravity')}</span>
                               <span className={cn(
                                 "inline-block px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border",
                                 `bg-${gravityScale?.color || 'gray'}-50 dark:bg-${gravityScale?.color || 'gray'}-900/20`,
@@ -712,7 +712,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                   {!readOnly && (
                     <button
                       onClick={handleAddScenario}
-                      className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-error-text font-medium group"
+                      className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-error-text font-medium group"
                     >
                       <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                         <Plus className="w-4 h-4" />

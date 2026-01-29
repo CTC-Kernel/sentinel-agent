@@ -393,9 +393,9 @@ export const Suppliers: React.FC = () => {
     const suppliersSubtitle = t('suppliers.subtitle');
 
     const tabs = [
-        { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-        { id: 'suppliers', label: 'Fournisseurs', icon: List, count: filteredSuppliers.length },
-        { id: 'concentration', label: 'Concentration', icon: PieChart },
+        { id: 'overview', label: t('suppliers.tabs.overview') || 'Vue d\'ensemble', icon: LayoutDashboard },
+        { id: 'suppliers', label: t('suppliers.tabs.suppliers') || 'Fournisseurs', icon: List, count: filteredSuppliers.length },
+        { id: 'concentration', label: t('suppliers.tabs.concentration') || 'Concentration', icon: PieChart },
         { id: 'dora', label: t('suppliers.tabs.dora') || 'Registre DORA', icon: Shield }
     ];
 
@@ -415,8 +415,15 @@ export const Suppliers: React.FC = () => {
         return (
             <div className="p-8 max-w-5xl mx-auto animate-fade-in">
                 <div className="mb-6 flex items-center">
-                    <button aria-label="Retour au tableau de bord" onClick={handleTemplateModeClose} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-2" title="Retour au tableau de bord">Retour</button>
-                    <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
+                    <button
+                        aria-label={t('suppliers.backToDashboard')}
+                        onClick={handleTemplateModeClose}
+                        className="text-muted-foreground hover:text-slate-900 dark:hover:text-white mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-2"
+                        title={t('suppliers.backToDashboard')}
+                    >
+                        {t('suppliers.backLabel')}
+                    </button>
+                    <h1 className="text-2xl font-bold dark:text-white">{t('suppliers.templateEditorTitle')}</h1>
                 </div>
                 <QuestionnaireBuilder onCancel={handleTemplateModeClose} onSave={handleTemplateModeClose} />
             </div>
@@ -599,36 +606,37 @@ export const Suppliers: React.FC = () => {
                                     </Menu>
 
 
-                                    <CustomTooltip content="Gérer les modèles d'évaluation">
+                                    <CustomTooltip content={t('suppliers.tooltips.templates')}>
                                         <Button
                                             variant="outline"
                                             size="icon"
                                             onClick={handleTemplateModeOpen}
                                             className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm"
-                                            aria-label="Gérer les modèles d'évaluation"
+                                            aria-label={t('suppliers.tooltips.templates')}
                                         >
-                                            <ClipboardList className="h-5 w-5" />
+                                            <ClipboardList className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </CustomTooltip>
 
-                                    <CustomTooltip content="Vue DORA des fournisseurs ICT">
+                                    <CustomTooltip content={t('suppliers.tooltips.dora')}>
                                         <Button
                                             variant="outline"
                                             size="icon"
                                             onClick={() => window.open('/#/dora/providers', '_blank')}
                                             className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm"
-                                            aria-label="Vue DORA des fournisseurs ICT"
+                                            aria-label={t('suppliers.tooltips.dora')}
                                         >
-                                            <ShieldAlert className="h-5 w-5" />
+                                            <ShieldAlert className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </CustomTooltip>
 
-                                    <CustomTooltip content="Ajouter un nouveau fournisseur">
+                                    <CustomTooltip content={t('suppliers.tooltips.add')}>
                                         <Button
                                             variant="default"
                                             onClick={handleCreationDrawerOpen}
                                             className="rounded-2xl shadow-lg shadow-brand-500/20 font-black uppercase tracking-wider"
                                             data-tour="suppliers-new"
+                                            aria-label={t('suppliers.newSupplier')}
                                         >
                                             <Plus className="h-4 w-4 mr-2" />
                                             <span className="hidden sm:inline">{t('suppliers.newSupplier')}</span>
@@ -685,7 +693,7 @@ export const Suppliers: React.FC = () => {
                 isOpen={creationMode}
                 onClose={handleCreationDrawerClose}
                 title={t('suppliers.newSupplier')}
-                subtitle="Ajouter un nouveau tiers"
+                subtitle={t('suppliers.newSupplierSubtitle')}
                 width="max-w-6xl"
             >
                 <div className="p-6">

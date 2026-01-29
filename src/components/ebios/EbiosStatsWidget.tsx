@@ -55,7 +55,7 @@ export const EbiosStatsWidget: React.FC<EbiosStatsWidgetProps> = ({ analyses }) 
             {stats.map((stat, index) => (
                 <PremiumCard glass key={index} className="p-4 flex items-center justify-between" hover>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-muted-foreground">
+                        <p className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
                             {stat.label}
                         </p>
                         <p className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">

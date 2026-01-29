@@ -70,7 +70,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               className={cn(
                 "relative flex items-center justify-center w-10 h-10 rounded-3xl transition-all duration-300",
                 "border font-medium text-sm backdrop-blur-md",
-                locked && "opacity-40 cursor-not-allowed border-transparent bg-slate-100 dark:bg-slate-800 text-slate-400",
+                locked && "opacity-40 cursor-not-allowed border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600",
                 !locked && "cursor-pointer hover:scale-105 hover:bg-white/10 dark:hover:bg-white/5",
                 isActive && "ring-2 ring-offset-2 ring-brand-500 dark:ring-offset-slate-900 border-brand-400 bg-brand-50 text-brand-600 dark:text-brand-400",
                 (workshop.status === 'validated' || workshop.status === 'completed') && !isActive && "bg-success/10 border-success/50 text-success-text",
@@ -131,7 +131,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 className={cn(
                   "relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300",
                   "shadow-lg backdrop-blur-xl border border-border/40",
-                  locked && "opacity-70 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400",
+                  locked && "opacity-70 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-600",
                   !locked && "cursor-pointer hover:-translate-y-1 hover:shadow-xl",
                   isActive && "scale-110 ring-4 ring-brand-300 shadow-brand bg-gradient-to-br from-brand-500 to-brand-600 text-white border-transparent",
                   isDone && !isActive && "bg-gradient-to-br from-success to-success text-success-foreground border-transparent shadow-success",
@@ -163,7 +163,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                     "text-[11px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
                     isDone ? "bg-success-bg text-success-text" :
                       isActive ? "bg-brand-500 text-white" :
-                        "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300"
+                        "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
                   )}>
                     {WORKSHOP_STATUS_LABELS[workshop.status][locale]}
                   </span>
@@ -202,7 +202,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 "flex items-center justify-center w-10 h-10 rounded-3xl font-bold shadow-sm transition-colors",
                 isActive ? "bg-brand-500 text-white shadow-brand" :
                   isDone ? "bg-success text-success-foreground shadow-success" :
-                    locked ? "bg-slate-200 dark:bg-slate-800 text-slate-400" :
+                    locked ? "bg-slate-200 dark:bg-slate-800 text-slate-600" :
                       "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300"
               )}>
                 {isDone ? (
@@ -228,7 +228,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                       isActive ? "bg-brand-500" :
                         "bg-slate-300 dark:bg-slate-600"
                   )} />
-                  <p className="text-xs text-slate-500 dark:text-muted-foreground">
+                  <p className="text-xs text-slate-600 dark:text-muted-foreground">
                     {WORKSHOP_STATUS_LABELS[workshop.status][locale]}
                   </p>
                 </div>

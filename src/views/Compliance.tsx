@@ -44,7 +44,6 @@ import { ControlEffectivenessDashboard } from '../components/controls/dashboard/
 import { ControlEffectivenessManager } from '../components/controls/ControlEffectivenessManager';
 import { AssessmentFormModal } from '../components/controls/AssessmentFormModal';
 import { useControlEffectiveness } from '../hooks/controls/useControlEffectiveness';
-import { ISO_SEED_CONTROLS } from '../data/complianceData';
 import { BarChart3, Award } from '../components/ui/Icons';
 import Homologation from './Homologation';
 // Initialisation du service d'onboarding
@@ -428,7 +427,7 @@ export const Compliance: React.FC = () => {
                         <PremiumPageControl
                             searchQuery={filter}
                             onSearchChange={setFilter}
-                            searchPlaceholder="Rechercher un contrôle (code, nom...)"
+                            searchPlaceholder={t('compliance.searchPlaceholder')}
                             actions={
                                 canEdit && (
                                     <div className="flex gap-2">
@@ -438,7 +437,7 @@ export const Compliance: React.FC = () => {
                                             disabled={generatingDossier || filteredControls.length === 0}
                                         >
                                             <Archive className="h-4 w-4 mr-2" />
-                                            {generatingDossier ? 'Génération...' : (t('compliance.generateDossier') || 'Dossier Preuves')}
+                                            {generatingDossier ? t('compliance.generating') : t('compliance.generateDossier')}
                                         </Button>
                                         <Button
                                             variant="secondary"
@@ -464,12 +463,12 @@ export const Compliance: React.FC = () => {
                                         value={statusFilter || 'all'}
                                         onChange={(val) => setStatusFilter(val === 'all' ? null : val as string)}
                                         options={[
-                                            { value: 'all', label: 'Tous les statuts' },
-                                            { value: 'Non commencé', label: 'Non commencé' },
-                                            { value: 'En cours', label: 'En cours' },
-                                            { value: 'Partiel', label: 'Partiel' },
-                                            { value: 'Implémenté', label: 'Implémenté' },
-                                            { value: 'Non applicable', label: 'Non applicable' }
+                                            { value: 'all', label: t('common.statuses.all') },
+                                            { value: 'Non commencé', label: t('common.statuses.notStarted') },
+                                            { value: 'En cours', label: t('common.statuses.inProgress') },
+                                            { value: 'Partiel', label: t('common.statuses.partial') },
+                                            { value: 'Implémenté', label: t('common.statuses.implemented') },
+                                            { value: 'Non applicable', label: t('common.statuses.notApplicable') }
                                         ]}
                                         placeholder="Filtrer par statut"
                                         className="rounded-xl"
@@ -485,7 +484,7 @@ export const Compliance: React.FC = () => {
                                         }`}
                                 >
                                     <AlertTriangle className="h-4 w-4 mr-2" />
-                                    <span>Preuves manquantes</span>
+                                    <span>{t('compliance.missingEvidence')}</span>
                                 </Button>
                             </div>
                         </PremiumPageControl>
@@ -620,7 +619,7 @@ export const Compliance: React.FC = () => {
                 showAssessmentForm && (
                     <AssessmentFormModal
                         control={selectedEffControl}
-                        controls={ISO_SEED_CONTROLS}
+                        controls={filteredControlsList}
                         onClose={() => {
                             setShowAssessmentForm(false);
                             setSelectedEffControl(null);

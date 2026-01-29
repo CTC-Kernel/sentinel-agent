@@ -5,6 +5,7 @@ import { PremiumCard } from '../ui/PremiumCard';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
 import { ISO_DOMAINS } from '../../data/complianceData';
+import { useStore } from '../../store';
 import {
     Target,
     X,
@@ -13,11 +14,11 @@ import {
 } from '../ui/Icons';
 
 const ASSESSMENT_METHODS = [
-    { value: 'documentation', label: 'Revue documentaire' },
-    { value: 'interview', label: 'Entretien' },
-    { value: 'testing', label: 'Test technique' },
-    { value: 'observation', label: 'Observation' },
-    { value: 'audit', label: 'Audit interne' },
+    { value: 'documentation', label: 'compliance.assessment.methods.documentation' },
+    { value: 'interview', label: 'compliance.assessment.methods.interview' },
+    { value: 'testing', label: 'compliance.assessment.methods.testing' },
+    { value: 'observation', label: 'compliance.assessment.methods.observation' },
+    { value: 'audit', label: 'compliance.assessment.methods.audit' },
 ];
 
 export interface AssessmentFormModalProps {
@@ -41,6 +42,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     onClose,
     onSubmit
 }) => {
+    const { t } = useStore();
     const [formData, setFormData] = useState({
         controlCode: control?.code || '',
         effectivenessScore: 50,
@@ -106,26 +108,26 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                             </div>
                             <div>
-                                <h3 id="assessment-modal-title" className="text-lg font-semibold text-slate-900 dark:text-white">
-                                    Évaluation d'efficacité
+                                <h3 id="assessment-modal-title" className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                                    {t('compliance.assessment.title')}
                                 </h3>
-                                <p className="text-sm text-slate-500">ISO 27002</p>
+                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">ISO 27002</p>
                             </div>
                         </div>
                         <button
                             onClick={onClose}
-                            aria-label="Fermer le formulaire d'évaluation"
-                            className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            aria-label={t('common.cancel')}
+                            className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
-                            <X className="w-5 h-5 text-slate-500" aria-hidden="true" />
+                            <X className="w-5 h-5 text-slate-400" aria-hidden="true" />
                         </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Control Selection */}
                         <div>
-                            <label htmlFor="control-code" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Contrôle *
+                            <label htmlFor="control-code" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                                {t('compliance.assessment.control')} *
                             </label>
                             <select
                                 id="control-code"
@@ -134,7 +136,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 required
                             >
-                                <option value="">Sélectionner un contrôle...</option>
+                                <option value="">{t('common.selectTemplate')}</option>
                                 {ISO_DOMAINS.map(domain => (
                                     <optgroup key={domain.id} label={`${domain.id} - ${domain.title}`}>
                                         {controls.filter(c => c.code.startsWith(domain.id)).map(c => (
@@ -147,11 +149,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Effectiveness Score */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Score d'efficacité: <span className={cn(
-                                    "font-bold",
-                                    formData.effectivenessScore >= 60 ? 'text-emerald-600' :
-                                        formData.effectivenessScore >= 40 ? 'text-amber-600' : 'text-red-600'
+                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                                {t('compliance.assessment.score')}: <span className={cn(
+                                    "font-black text-sm",
+                                    formData.effectivenessScore >= 60 ? 'text-success-text' :
+                                        formData.effectivenessScore >= 40 ? 'text-warning-text' : 'text-error-text'
                                 )}>{formData.effectivenessScore}%</span>
                             </label>
                             <input
@@ -175,8 +177,8 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Assessment Method */}
                         <div>
-                            <label htmlFor="assessment-method" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Méthode d'évaluation
+                            <label htmlFor="assessment-method" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                                {t('compliance.assessment.method')}
                             </label>
                             <select
                                 id="assessment-method"
@@ -185,30 +187,30 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                             >
                                 {ASSESSMENT_METHODS.map(m => (
-                                    <option key={m.value} value={m.value}>{m.label}</option>
+                                    <option key={m.value} value={m.value}>{t(m.label)}</option>
                                 ))}
                             </select>
                         </div>
 
                         {/* Notes */}
                         <div>
-                            <label htmlFor="notes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Notes / Observations
+                            <label htmlFor="notes" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                                {t('compliance.assessment.notes')}
                             </label>
                             <textarea
                                 id="notes"
                                 value={formData.notes}
                                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
-                                placeholder="Observations et constats de l'évaluation..."
+                                className="w-full px-4 py-3 rounded-2xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
+                                placeholder={t('compliance.assessment.notesPlaceholder')}
                             />
                         </div>
 
                         {/* Next Assessment Date */}
                         <div>
-                            <label htmlFor="next-assessment" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Prochaine évaluation
+                            <label htmlFor="next-assessment" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                                {t('compliance.assessment.nextDate')}
                             </label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -223,13 +225,13 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-border/40 dark:border-slate-700/50">
-                            <Button type="button" variant="outline" onClick={onClose}>
-                                Annuler
+                        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border/40 dark:border-slate-700/50">
+                            <Button type="button" variant="ghost" onClick={onClose} className="rounded-2xl">
+                                {t('common.cancel')}
                             </Button>
-                            <Button type="submit" disabled={isSaving || !formData.controlCode}>
+                            <Button type="submit" disabled={isSaving || !formData.controlCode} className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20">
                                 <Save className="w-4 h-4 mr-2" />
-                                {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+                                {isSaving ? t('compliance.assessment.saving') : t('compliance.assessment.save')}
                             </Button>
                         </div>
                     </form>

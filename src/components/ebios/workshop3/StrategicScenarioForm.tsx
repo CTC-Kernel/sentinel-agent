@@ -180,7 +180,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                   ? t('ebios.workshop3.editScenario', 'Modifier le scénario stratégique')
                   : t('ebios.workshop3.addScenario', 'Créer un scénario stratégique')}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 {t('ebios.workshop3.scenarioFormHelp', 'Décrire le scénario d\'attaque de haut niveau')}
               </p>
             </div>
@@ -189,7 +189,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
             onClick={onClose}
             className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 
@@ -250,7 +250,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
               {t('ebios.workshop3.fearedEvents', 'Événements redoutés')} *
             </label>
             {fearedEvents.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-300 italic">
+              <p className="text-sm text-slate-600 dark:text-slate-300 italic">
                 {t('ebios.workshop3.noFearedEvents', 'Aucun événement redouté défini dans l\'Atelier 1')}
               </p>
             ) : (
@@ -363,11 +363,11 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                     "text-lg font-bold",
                     watchedGravity === g.level
                       ? `text-${g.color}-600 dark:text-${g.color}-400`
-                      : "text-slate-500 dark:text-slate-400"
+                      : "text-slate-600 dark:text-slate-600"
                   )}>
                     G{g.level}
                   </span>
-                  <p className="text-xs mt-1 text-slate-500">
+                  <p className="text-xs mt-1 text-slate-600">
                     {g[locale]}
                   </p>
                 </button>

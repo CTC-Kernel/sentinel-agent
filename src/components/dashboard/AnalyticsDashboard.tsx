@@ -262,7 +262,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                     onClick={() => setTimeRange(range)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range
                                         ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                        : 'text-slate-500 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200'
+                                        : 'text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200'
                                         }`}
                                 >
                                     {range === '7d' ? '7J' : range === '30d' ? '30J' : range === '90d' ? '90J' : '1A'}
@@ -431,7 +431,7 @@ export const AnalyticsDashboard: React.FC = () => {
                             </div>
                             <div className="p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-border/40 dark:border-slate-700/30">
                                 <p className="text-2xl font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-300/70 mt-1">Non commencés</p>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-600/70 dark:text-slate-300/70 mt-1">Non commencés</p>
                             </div>
                         </div>
                     </div>

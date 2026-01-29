@@ -157,7 +157,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
                         </div>
                     )}
                     {!stats.lastDrillResult && (
-                        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 dark:bg-slate-800 dark:text-muted-foreground">
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 dark:bg-slate-800 dark:text-muted-foreground">
                             <CalendarClock className="w-3 h-3" />
                             À Planifier
                         </div>

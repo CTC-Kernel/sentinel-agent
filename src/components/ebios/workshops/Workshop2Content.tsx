@@ -312,17 +312,17 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-error-text transition-colors">
                   {t('ebios.workshop2.riskSources')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
+                <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                   {selectedSourcesCount} {t('ebios.workshop2.selectedSources')}
                 </p>
               </div>
             </div>
             {expandedSections.has('riskSources') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-error group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-error group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -330,7 +330,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
 
           {expandedSections.has('riskSources') && (
             <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
+              <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop2.riskSourcesHelp')}
               </p>
@@ -383,7 +383,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                               )}>
                                 {source.code} - {source.name}
                               </p>
-                              <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
                                 {source.description}
                               </p>
                             </div>
@@ -401,7 +401,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                       setEditingRiskSource(null);
                       setShowRiskSourceForm(true);
                     }}
-                    className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-error-text font-medium group"
+                    className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-error-text font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                       <Plus className="w-4 h-4" />
@@ -430,17 +430,17 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-warning-text transition-colors">
                   {t('ebios.workshop2.targetedObjectives')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
+                <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                   {selectedObjectivesCount} {t('ebios.workshop2.selectedObjectives')}
                 </p>
               </div>
             </div>
             {expandedSections.has('targetedObjectives') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-warning group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-warning group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -448,7 +448,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
 
           {expandedSections.has('targetedObjectives') && (
             <div className="mt-6 pt-6 border-t border-border/40 animate-accordion-down">
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
+              <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40">
                 <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop2.targetedObjectivesHelp')}
               </p>
@@ -500,7 +500,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                                 )}>
                                   {objective.code} - {objective.name}
                                 </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
                                   {objective.description}
                                 </p>
                               </div>
@@ -519,7 +519,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                       setEditingObjective(null);
                       setShowObjectiveForm(true);
                     }}
-                    className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-warning/50 hover:bg-warning-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 hover:text-warning-text font-medium group"
+                    className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-warning/50 hover:bg-warning-bg/50 transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-warning-text font-medium group"
                   >
                     <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-warning-bg transition-colors">
                       <Plus className="w-4 h-4" />
@@ -548,17 +548,17 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                   {t('ebios.workshop2.srOvPairs')}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">
+                <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                   {retainedPairsCount}/{pairsCount} {t('ebios.workshop2.retainedPairs')}
                 </p>
               </div>
             </div>
             {expandedSections.has('srOvPairs') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -574,7 +574,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                   <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                     {t('ebios.workshop2.noSelectionTitle', 'Pas de sélection')}
                   </h4>
-                  <p className="text-slate-500 max-w-sm mx-auto">
+                  <p className="text-slate-600 max-w-sm mx-auto">
                     {t('ebios.workshop2.selectSourcesAndObjectivesFirst')}
                   </p>
                 </div>
@@ -598,7 +598,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                         {t('ebios.workshop2.noPairsYet')}
                       </p>
                       {!readOnly && (
-                        <p className="text-slate-500 dark:text-slate-400">
+                        <p className="text-slate-600 dark:text-slate-600">
                           {t('ebios.workshop2.clickGeneratePairs')}
                         </p>
                       )}
@@ -663,7 +663,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                               <div className="flex items-center justify-between lg:justify-end gap-6 pt-4 lg:pt-0 border-t lg:border-t-0 border-border/40 dark:border-slate-700/50">
                                 {/* Relevance Selector */}
                                 <div className="flex flex-col items-center lg:items-end gap-2">
-                                  <span className="text-[11px] items-center uppercase font-bold text-slate-500 dark:text-slate-300 tracking-wider">
+                                  <span className="text-[11px] items-center uppercase font-bold text-slate-600 dark:text-slate-300 tracking-wider">
                                     {t('ebios.workshop2.relevance')}
                                   </span>
                                   {!readOnly ? (
@@ -705,7 +705,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                                     "flex items-center gap-2 px-4 py-2.5 rounded-3xl font-bold text-sm transition-all duration-200 transform active:scale-95",
                                     pair.retainedForAnalysis
                                       ? "bg-success text-success-foreground shadow-lg shadow-success hover:bg-success/90"
-                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300",
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300",
                                     readOnly && "cursor-default active:scale-100"
                                   )}
                                 >

@@ -119,7 +119,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {isEdit ? t('ebios.workshop4.editScenario') : t('ebios.workshop4.newScenario')}
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 {!isEdit && `Code: ${generateCode()}`}
                 {isEdit && `Code: ${scenario?.code || 'SO-XXX'}`}
               </p>
@@ -129,7 +129,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 
@@ -242,7 +242,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
                 {errors.description.message}
               </p>
             )}
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               {t('ebios.workshop4.descriptionHelp')}
             </p>
           </div>
@@ -252,7 +252,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
             <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop4.nextSteps')}
             </h4>
-            <ul className="text-sm text-slate-500 dark:text-slate-300 space-y-1 list-disc list-inside">
+            <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-disc list-inside">
               <li>{t('ebios.workshop4.nextStep1')}</li>
               <li>{t('ebios.workshop4.nextStep2')}</li>
               <li>{t('ebios.workshop4.nextStep3')}</li>
@@ -271,7 +271,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2 rounded-3xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+              className="px-6 py-2 rounded-3xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-600 dark:disabled:bg-slate-700 dark:disabled:text-slate-600"
             >
               {isSubmitting ? t('common.saving') : isEdit ? t('common.save') : t('common.create')}
             </button>

@@ -98,7 +98,7 @@ function WidgetCard({
           className={cn(
             'p-2.5 rounded-3xl transition-colors',
             isDisabled
-              ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
+              ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-600'
               : [
                   'bg-white dark:bg-slate-800 text-brand-500 dark:text-brand-400',
                   'group-hover:bg-brand-500 group-hover:text-white',
@@ -113,13 +113,13 @@ function WidgetCard({
             className={cn(
               'font-bold text-sm mb-1 truncate',
               isDisabled
-                ? 'text-slate-400 dark:text-slate-400'
+                ? 'text-slate-600 dark:text-slate-600'
                 : 'text-slate-900 dark:text-white'
             )}
           >
             {t(titleKey)}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-muted-foreground line-clamp-2">
+          <p className="text-xs text-slate-600 dark:text-muted-foreground line-clamp-2">
             {t(`dashboard.widgets.${id}.description`, {
               defaultValue: t('dashboard.addWidgetToDashboard'),
             })}
@@ -135,7 +135,7 @@ function WidgetCard({
               {t(`dashboard.widgetCategories.${category}`)}
             </span>
             {isDisabled && (
-              <span className="text-xs text-muted-foreground dark:text-slate-400">
+              <span className="text-xs text-muted-foreground dark:text-slate-600">
                 (déjà ajouté)
               </span>
             )}
@@ -279,13 +279,13 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                 >
                   {t('dashboard.addWidget')}
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
+                <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                   {t('dashboard.customizeDashboard')}
                 </p>
               </div>
               <button
                 onClick={handleClose}
-                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label={t('common.close')}
               >
                 <X className="w-6 h-6" />

@@ -499,7 +499,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
           </h4>
           <button
             onClick={handleDismiss}
-            className="text-slate-500 hover:text-slate-600 focus:outline-none"
+            className="text-slate-600 hover:text-slate-600 focus:outline-none"
             aria-label={t('common.close', 'Fermer')}
           >
             <X className="h-4 w-4" />

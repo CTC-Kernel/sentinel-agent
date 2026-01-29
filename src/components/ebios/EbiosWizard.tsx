@@ -109,7 +109,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
             <div className="flex items-center gap-5">
               <button
                 onClick={handleExit}
-                className="p-2.5 -ml-2 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                className="p-2.5 -ml-2 rounded-3xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                 title={t('common.exit')}
               >
                 <X className="w-5 h-5" />
@@ -120,7 +120,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     {analysis.name}
                   </h1>
                 </div>
-                <p className="text-xs font-medium text-slate-500 dark:text-muted-foreground">
+                <p className="text-xs font-medium text-slate-600 dark:text-muted-foreground">
                   EBIOS RM Analysis
                 </p>
               </div>
@@ -151,7 +151,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     <span className="hidden sm:inline">{t('common.unsavedChanges')}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-slate-400 dark:text-slate-400">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-slate-600 dark:text-slate-600">
                     {t('common.saved')}
                   </div>
                 )}
@@ -258,7 +258,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                 "group flex items-center gap-3 px-6 py-3 rounded-2xl font-medium transition-all duration-300",
                 canGoBack
                   ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 border border-border/40 shadow-sm hover:translate-x-1"
-                  : "opacity-70 cursor-not-allowed text-slate-400 dark:text-slate-300"
+                  : "opacity-70 cursor-not-allowed text-slate-600 dark:text-slate-300"
               )}
             >
               <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
@@ -277,7 +277,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     "px-6 py-3 rounded-2xl font-medium transition-all duration-300 border",
                     hasUnsavedChanges && !isSaving
                       ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-border/40 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
-                      : "bg-transparent border-transparent text-slate-400 dark:text-slate-300 cursor-not-allowed"
+                      : "bg-transparent border-transparent text-slate-600 dark:text-slate-300 cursor-not-allowed"
                   )}
                 >
                   {t('common.save')}
@@ -304,7 +304,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     "group flex items-center gap-3 px-8 py-3 rounded-2xl font-bold transition-all duration-300",
                     canGoForward
                       ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-300 cursor-not-allowed"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-not-allowed"
                   )}
                 >
                   <div className="text-right">

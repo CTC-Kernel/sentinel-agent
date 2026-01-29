@@ -126,7 +126,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
                   ? t('ebios.workshop2.editObjective', 'Modifier l\'objectif visé')
                   : t('ebios.workshop2.addCustomObjective', 'Ajouter un objectif personnalisé')}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 {t('ebios.workshop2.customObjectiveHelp', 'Objectif visé spécifique à votre contexte')}
               </p>
             </div>
@@ -135,7 +135,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
             onClick={onClose}
             className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 

@@ -47,7 +47,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
                 </div>
                 <div>
                     <h3 className="font-bold text-lg text-slate-900 dark:text-white">Conformité NIS2 & DORA</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">Indicateurs clés de régulation</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Indicateurs clés de régulation</p>
                 </div>
             </div>
 
@@ -63,7 +63,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
                     <div className="space-y-3">
                         <div>
                             <span className="text-2xl font-black text-slate-900 dark:text-white">{nis2Metrics.total}</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-300 ml-1">Incidents Significatifs</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 ml-1">Incidents Significatifs</span>
                         </div>
 
                         <div className="space-y-1">
@@ -93,7 +93,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
                     <div className="space-y-3">
                         <div>
                             <span className="text-2xl font-black text-slate-900 dark:text-white">{doraMetrics.criticalCount}</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-300 ml-1">Fournisseurs Critiques</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 ml-1">Fournisseurs Critiques</span>
                         </div>
 
                         <div className="space-y-1">

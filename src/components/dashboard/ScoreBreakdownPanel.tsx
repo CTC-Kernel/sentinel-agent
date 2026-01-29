@@ -41,7 +41,7 @@ function CategoryRow({ label, score, weight, details }: CategoryRowProps) {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="font-medium text-slate-900 dark:text-white">{label}</span>
-          <span className="text-xs text-slate-500">({weightPercent}%)</span>
+          <span className="text-xs text-slate-600">({weightPercent}%)</span>
         </div>
         <span className={cn('font-bold text-lg', colorClass)}>
           {formatScore(score)}
@@ -60,7 +60,7 @@ function CategoryRow({ label, score, weight, details }: CategoryRowProps) {
       </div>
 
       {details && (
-        <p className="mt-1 text-xs text-slate-500">{details}</p>
+        <p className="mt-1 text-xs text-slate-600">{details}</p>
       )}
     </div>
   );
@@ -124,7 +124,7 @@ export function ScoreBreakdownPanel({
             aria-label="Fermer"
           >
             <svg
-              className="w-5 h-5 text-slate-500"
+              className="w-5 h-5 text-slate-600"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -170,7 +170,7 @@ export function ScoreBreakdownPanel({
       </div>
 
       {/* Weight explanation */}
-      <p className="mt-4 text-xs text-slate-500 dark:text-slate-300 text-center">
+      <p className="mt-4 text-xs text-slate-600 dark:text-slate-300 text-center">
         Score global = Somme pondérée des catégories
       </p>
     </div>

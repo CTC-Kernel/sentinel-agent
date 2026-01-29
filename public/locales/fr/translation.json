@@ -251,6 +251,14 @@
     "emptyState": {
       "noComments": "Aucun commentaire pour le moment."
     },
+    "statuses": {
+      "all": "Tous les statuts",
+      "notStarted": "Non commencé",
+      "inProgress": "En cours",
+      "partial": "Partiel",
+      "implemented": "Implémenté",
+      "notApplicable": "Non applicable"
+    },
     "errors": {
       "generic": "Une erreur est survenue",
       "loading": "Erreur lors du chargement",
@@ -861,8 +869,21 @@
       "contract": "Contrats",
       "comments": "Discussion",
       "history": "Historique",
-      "dora": "Registre DORA"
+      "dora": "Registre DORA",
+      "overview": "Vue d'ensemble",
+      "suppliers": "Fournisseurs",
+      "concentration": "Concentration"
     },
+    "backToDashboard": "Retour au tableau de bord",
+    "backLabel": "Retour",
+    "templateEditorTitle": "Éditeur de Modèle de Questionnaire",
+    "newSupplierSubtitle": "Ajouter un nouveau tiers",
+    "tooltips": {
+      "templates": "Gérer les modèles d'évaluation",
+      "dora": "Vue DORA des fournisseurs ICT",
+      "add": "Ajouter un nouveau fournisseur"
+    },
+    "registryDora": "Registre DORA",
     "cards": {
       "contact": "Contact",
       "security": "Sécurité",
@@ -1278,6 +1299,27 @@
       "accept": "Accepter",
       "avoid": "Éviter",
       "transfer": "Transférer"
+    },
+    "treatment": {
+      "actions_title": "Actions de traitement",
+      "progress": "Progression",
+      "no_actions": "Aucune action de traitement définie. Ajoutez des actions pour suivre la mise en oeuvre du plan.",
+      "add_action": "Ajouter une action",
+      "edit_action": "Modifier l'action",
+      "delete_action": "Supprimer l'action",
+      "new_action": "Nouvelle action",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "title_label": "Titre",
+      "description_label": "Description",
+      "owner_label": "Responsable",
+      "deadline_label": "Échéance",
+      "status_label": "Statut",
+      "not_assigned": "Non assigné",
+      "late": "En retard",
+      "today": "Aujourd'hui",
+      "placeholder_title": "Ex: Mettre à jour la politique de sécurité",
+      "placeholder_description": "Décrivez l'action à réaliser..."
     }
   },
   "settings": {
@@ -2010,7 +2052,6 @@
     "exportInfo": "Télécharger la DdA ou la liste des contrôles.",
     "mapping": "Cartographie",
     "shared": "Partagé",
-    "generateDossier": "Générer Dossier",
     "dossierGenerated": "Dossier généré",
     "dashboard": {
       "initializing": "Initialisation de la conformité...",
@@ -2040,6 +2081,28 @@
       "excellentLevel": "Excellent niveau de conformité.",
       "acceptableLevel": "Niveau acceptable, continuez les efforts.",
       "priorityActionsRequired": "Actions correctives prioritaires requises."
+    },
+    "generateDossier": "Dossier Preuves",
+    "generating": "Génération...",
+    "searchPlaceholder": "Rechercher un contrôle (code, nom...)",
+    "missingEvidence": "Preuves manquantes",
+    "assessment": {
+      "title": "Évaluation d'efficacité",
+      "control": "Contrôle",
+      "score": "Score d'efficacité",
+      "method": "Méthode d'évaluation",
+      "notes": "Notes / Observations",
+      "notesPlaceholder": "Observations et constats de l'évaluation...",
+      "nextDate": "Prochaine évaluation",
+      "saving": "Enregistrement...",
+      "save": "Enregistrer",
+      "methods": {
+        "documentation": "Revue documentaire",
+        "interview": "Entretien",
+        "testing": "Test technique",
+        "observation": "Observation",
+        "audit": "Audit interne"
+      }
     }
   },
   "requirements": {
@@ -4458,6 +4521,12 @@
       "hint": "Cette clé sera stockée de manière sécurisée et utilisée uniquement pour la synchronisation.",
       "connectButton": "Connecter l'intégration",
       "connecting": "Connexion..."
+    },
+    "testN8n": "Test N8N",
+    "n8n": {
+      "testing": "Test de connexion N8N...",
+      "success": "Connexion N8N réussie !",
+      "error": "Erreur de connexion N8N"
     },
     "confirm": {
       "disconnectTitle": "Déconnecter l'intégration",

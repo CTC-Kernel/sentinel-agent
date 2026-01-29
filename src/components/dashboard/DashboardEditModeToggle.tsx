@@ -164,7 +164,7 @@ export function DashboardEditModeToggle({
             onClick={() => setShowResetConfirm(true)}
             className={cn(
               'inline-flex items-center rounded-full font-medium transition-all duration-200',
-              'text-slate-500 hover:text-slate-900 hover:bg-slate-100',
+              'text-slate-600 hover:text-slate-900 hover:bg-slate-100',
               'dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10',
               'focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2',
               sizeClasses[size]
@@ -181,7 +181,7 @@ export function DashboardEditModeToggle({
           <span
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
-              'bg-slate-100 text-slate-500',
+              'bg-slate-100 text-slate-600',
               'dark:bg-white/5 dark:text-slate-300'
             )}
             aria-live="polite"
@@ -225,7 +225,7 @@ export function DashboardEditModeToggle({
             </>
           ) : (
             <>
-              <Pencil className={cn(iconSize, "text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300 transition-colors")} aria-hidden="true" />
+              <Pencil className={cn(iconSize, "text-slate-600 group-hover:text-slate-600 dark:text-slate-600 dark:group-hover:text-slate-300 transition-colors")} aria-hidden="true" />
               <span>{t('dashboard.customize')}</span>
             </>
           )}

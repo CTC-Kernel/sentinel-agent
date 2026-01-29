@@ -108,10 +108,10 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
   if (baseline.measures.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-slate-500 dark:text-muted-foreground">
+        <p className="text-slate-600 dark:text-muted-foreground">
           {t('ebios.workshop1.noSecurityBaselineYet')}
         </p>
-        <p className="text-sm text-muted-foreground dark:text-slate-400 mt-1">
+        <p className="text-sm text-muted-foreground dark:text-slate-600 mt-1">
           {t('ebios.workshop1.securityBaselineHint')}
         </p>
       </div>
@@ -129,7 +129,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
             strokeWidth={6}
             className="mx-auto"
           />
-          <p className="text-sm text-slate-500 dark:text-slate-300 mt-2">{t('ebios.workshop1.maturityScore')}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">{t('ebios.workshop1.maturityScore')}</p>
         </div>
 
         <div className="p-4 rounded-3xl bg-green-50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-700/50">
@@ -212,7 +212,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
                 <span className="font-medium text-slate-900 dark:text-white">
                   {category}
                 </span>
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-slate-600">
                   ({measures.length} {t('ebios.workshop1.measures')})
                 </span>
               </div>
@@ -246,7 +246,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
                             {measure.name}
                           </h4>
                           {measure.description && (
-                            <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 line-clamp-2">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
                               {measure.description}
                             </p>
                           )}
@@ -296,7 +296,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
                       </div>
 
                       {measure.notes && (
-                        <p className="mt-2 text-xs text-muted-foreground dark:text-slate-400 italic">
+                        <p className="mt-2 text-xs text-muted-foreground dark:text-slate-600 italic">
                           {measure.notes}
                         </p>
                       )}
@@ -309,7 +309,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
         ))}
 
         {Object.keys(filteredByCategory).length === 0 && (
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-slate-600">
             {t('ebios.workshop1.noMeasuresFound')}
           </div>
         )}

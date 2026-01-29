@@ -187,7 +187,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm">{t('dashboard.gettingStarted')}</h3>
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">{t('dashboard.setupProgress')}</p>
+                        <p className="text-xs text-slate-600 dark:text-muted-foreground">{t('dashboard.setupProgress')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -247,14 +247,14 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                 {t('common.done')}
                             </span>
                         ) : (
-                            <ChevronRight className="h-4 w-4 text-slate-400" />
+                            <ChevronRight className="h-4 w-4 text-slate-600" />
                         )}
                     </div>
                 ))}
             </div>
 
             <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-800">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="flex items-center gap-2 text-xs text-slate-600">
                     <Info className="h-3.5 w-3.5" />
                     <span>{t('dashboard.gettingStartedTip')}</span>
                 </div>

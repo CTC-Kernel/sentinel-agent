@@ -168,7 +168,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                 </div>
                 <div className="text-right">
                     <div className="text-lg font-black text-slate-900 dark:text-white">{stats.total}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">Total</div>
+                    <div className="text-[11px] text-slate-600 dark:text-slate-300 uppercase tracking-wider">Total</div>
                 </div>
             </div>
 
@@ -177,7 +177,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                 <div className="grid grid-cols-[auto_1fr] gap-3 w-full max-w-[380px]">
                     {/* Y Axis Label */}
                     <div className="flex items-center justify-center">
-                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider -rotate-90 whitespace-nowrap">
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider -rotate-90 whitespace-nowrap">
                             {t('risks.probability')}
                         </span>
                     </div>
@@ -189,7 +189,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                             <div className="flex flex-col justify-between pr-1">
                                 {[5, 4, 3, 2, 1].map(num => (
                                     <div key={num} className="h-10 flex items-center justify-center">
-                                        <span className="text-[11px] font-bold text-slate-400">{num}</span>
+                                        <span className="text-[11px] font-bold text-slate-600">{num}</span>
                                     </div>
                                 ))}
                             </div>
@@ -232,14 +232,14 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                         <div className="flex gap-1.5 pl-6">
                             {[1, 2, 3, 4, 5].map(num => (
                                 <div key={num} className="flex-1 flex items-center justify-center">
-                                    <span className="text-[11px] font-bold text-slate-400">{num}</span>
+                                    <span className="text-[11px] font-bold text-slate-600">{num}</span>
                                 </div>
                             ))}
                         </div>
 
                         {/* X Axis Label */}
                         <div className="flex items-center justify-center pt-1">
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                                 {t('risks.impact')}
                             </span>
                         </div>

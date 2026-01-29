@@ -86,7 +86,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
                 {sectorProfile.name[locale]}
               </span>
             </h3>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600">
               {availableTemplates.length}{' '}
               {t('ebios.workshop3.templatesAvailable', 'modèles disponibles pour votre secteur')}
             </p>
@@ -122,7 +122,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-300 line-clamp-2">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
                       {template.description[locale]}
                     </p>
                     <div className="flex items-center gap-3 mt-2">
@@ -176,7 +176,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
           })}
 
           {/* Info note */}
-          <p className="text-xs text-slate-500 dark:text-slate-300 flex items-center gap-1.5 pt-2">
+          <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 pt-2">
             <Lightbulb className="w-3.5 h-3.5" />
             {t(
               'ebios.workshop3.templatesBasedOnSector',

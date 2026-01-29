@@ -132,7 +132,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
                   ? t('ebios.workshop2.editRiskSource', 'Modifier la source de risque')
                   : t('ebios.workshop2.addCustomSource', 'Ajouter une source personnalisée')}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 {t('ebios.workshop2.customSourceHelp', 'Source de risque spécifique à votre contexte')}
               </p>
             </div>
@@ -141,7 +141,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
             onClick={onClose}
             className="p-2 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 

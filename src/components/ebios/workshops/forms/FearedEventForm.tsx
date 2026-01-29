@@ -201,7 +201,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                     "block text-xl font-bold",
                     gravity === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-500 dark:text-slate-400"
+                      : "text-slate-600 dark:text-slate-600"
                   )}>
                     G{level.level}
                   </span>
@@ -216,7 +216,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-slate-600">
               {GRAVITY_SCALE.find((l) => l.level === gravity)?.description[locale]}
             </p>
           </div>
@@ -229,7 +229,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 {t('ebios.workshop1.linkedMissions')} *
               </label>
               {missions.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-300 italic p-3 border border-dashed border-border/40 dark:border-slate-700 rounded-3xl">
+                <p className="text-sm text-slate-600 dark:text-slate-300 italic p-3 border border-dashed border-border/40 dark:border-slate-700 rounded-3xl">
                   {t('ebios.workshop1.noMissionsYet')}
                 </p>
               ) : (
@@ -267,7 +267,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 {t('ebios.workshop1.linkedEssentialAssets')} *
               </label>
               {essentialAssets.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-300 italic p-3 border border-dashed border-border/40 dark:border-slate-700 rounded-3xl">
+                <p className="text-sm text-slate-600 dark:text-slate-300 italic p-3 border border-dashed border-border/40 dark:border-slate-700 rounded-3xl">
                   {t('ebios.workshop1.noEssentialAssetsYet')}
                 </p>
               ) : (

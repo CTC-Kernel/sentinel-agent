@@ -135,8 +135,8 @@ export const AUDIT_STATUS_COLORS = {
 // Chart axis and grid colors
 export const CHART_AXIS_COLORS = {
     grid: '#94a3b8',         // Slate-400
-    tick: '#64748b',         // Slate-500
-    gridOpacity: 0.15,
+    tick: '#475569',         // Slate-600 (better contrast)
+    gridOpacity: 0.2,        // Slightly increased for visibility
     gridDark: '#475569',     // Slate-600 for dark mode
 } as const;
 

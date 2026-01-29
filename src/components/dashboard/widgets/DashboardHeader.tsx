@@ -133,7 +133,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         if (!weather) return <Sun className={`${baseClass} text-amber-400`} />;
         switch (weather.icon) {
             case 'sun': return <Sun className={`${baseClass} text-amber-400 animate-pulse-slow`} />;
-            case 'cloud': return <Cloud className={`${baseClass} text-slate-500`} />;
+            case 'cloud': return <Cloud className={`${baseClass} text-slate-600`} />;
             case 'rain': return <CloudRain className={`${baseClass} text-blue-500`} />;
             case 'snow': return <CloudSnow className={`${baseClass} text-sky-500`} />;
             case 'storm': return <CloudLightning className={`${baseClass} text-purple-500`} />;
@@ -356,7 +356,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                                 >
-                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">
+                                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                         {getGreeting()}, <span className="text-slate-700 dark:text-slate-200 font-semibold">{user?.displayName || 'Utilisateur'}</span>
                                     </p>
                                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-display text-slate-900 dark:text-white tracking-tight leading-none">
@@ -376,7 +376,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
                                             {currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                                         </span>
-                                        <span className="text-lg font-bold text-slate-500 dark:text-slate-300 tabular-nums">
+                                        <span className="text-lg font-bold text-slate-600 dark:text-slate-300 tabular-nums">
                                             {currentTime.toLocaleTimeString(undefined, { second: '2-digit' }).slice(-2)}
                                         </span>
                                     </div>
@@ -392,7 +392,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         {weather && (
                                             <div className="flex items-center gap-2">
                                                 {getWeatherIcon()}
-                                                <span className="text-sm font-medium text-slate-500 dark:text-slate-300">
+                                                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                                     {weather.temp}°C · Paris
                                                 </span>
                                             </div>
@@ -411,7 +411,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                                 onClick={onToggleEdit}
                                                 className={`p-2.5 rounded-3xl transition-all duration-300 ${isEditing
                                                     ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30'
-                                                    : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                                     }`}
                                                 aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
                                             >
@@ -424,7 +424,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <button
                                             onClick={generateExecutiveReport}
                                             disabled={isGeneratingReport}
-                                            className="p-2.5 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                            className="p-2.5 rounded-3xl text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-600 dark:disabled:bg-slate-700 dark:disabled:text-slate-600"
                                             aria-label={t('dashboard.executiveReport')}
                                         >
                                             {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
@@ -434,7 +434,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.exportIcal')} position="bottom">
                                         <button
                                             onClick={generateICal}
-                                            className="p-2.5 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300"
+                                            className="p-2.5 rounded-3xl text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300"
                                             aria-label={t('dashboard.exportIcal')}
                                         >
                                             <CalendarDays className="h-4 w-4" />
@@ -445,7 +445,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <Tooltip content={t('dashboard.showGettingStarted')} position="bottom">
                                             <button
                                                 onClick={onShowGettingStarted}
-                                                className="p-2.5 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300"
+                                                className="p-2.5 rounded-2xl text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300"
                                                 aria-label={t('dashboard.showGettingStarted')}
                                             >
                                                 <Rocket className="h-4 w-4" />
@@ -498,10 +498,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                            <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                                                 Conseil du jour
                                             </span>
-                                            <Sparkles className="h-3 w-3 text-slate-400 dark:text-slate-400" />
+                                            <Sparkles className="h-3 w-3 text-slate-600 dark:text-slate-600" />
                                         </div>
                                         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
                                             {todayTip.tip}
@@ -528,7 +528,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-600">
                                                 Prochaine échéance
                                             </span>
                                         </div>
@@ -551,7 +551,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         )}
                                     </div>
                                     {nextDeadline && (
-                                        <ArrowRight className="h-4 w-4 text-slate-400 opacity-0 group-hover/deadline:opacity-70 transition-opacity shrink-0 translate-x-1 group-hover/deadline:translate-x-0 transition-transform" />
+                                        <ArrowRight className="h-4 w-4 text-slate-600 opacity-0 group-hover/deadline:opacity-70 transition-opacity shrink-0 translate-x-1 group-hover/deadline:translate-x-0 transition-transform" />
                                     )}
                                 </div>
                             </motion.div>
@@ -569,7 +569,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-brand-500/20 to-info-500/10 rounded-full blur-2xl opacity-0 group-hover/incidents:opacity-100 transition-opacity duration-700" />
 
                                 <div className="relative flex items-center justify-between mb-2">
-                                    <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
+                                    <span className="text-[11px] font-black text-slate-600 dark:text-slate-600 uppercase tracking-[0.2em]">
                                         {t('dashboard.incidents')} Actifs
                                     </span>
                                     <div className="relative flex h-3 w-3">
@@ -582,7 +582,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         {activeIncidentsCount}
                                     </span>
                                     <div className="flex flex-col -mb-0.5">
-                                        <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 leading-tight uppercase tracking-widest">
+                                        <span className="text-[11px] font-black text-slate-600 dark:text-slate-600 leading-tight uppercase tracking-widest">
                                             En cours
                                         </span>
                                     </div>
@@ -616,7 +616,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-black text-slate-900 dark:text-white truncate pr-2 tracking-tight mb-0.5">{insight.text}</p>
-                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{insight.details}</p>
+                                        <p className="text-xs font-medium text-slate-600 dark:text-slate-600 truncate">{insight.details}</p>
                                     </div>
                                     <div className="p-2 rounded-xl bg-white/60 dark:bg-slate-800/60 opacity-0 group-hover/insight:opacity-100 transition-all duration-300 translate-x-1 group-hover/insight:translate-x-0">
                                         <ArrowRight className="h-4 w-4 text-brand-500" />
@@ -635,7 +635,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div>
                                         <p className="font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1.5 uppercase text-xs tracking-widest">{t('dashboard.allSystemsOperational')}</p>
-                                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2 uppercase tracking-wider">
+                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-600 flex items-center gap-2 uppercase tracking-wider">
                                             <span className="flex h-2 w-2">
                                                 <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>

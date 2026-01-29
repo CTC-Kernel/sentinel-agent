@@ -153,7 +153,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                 {t('ebios.workshop5.selectControls')}
               </h2>
               {scenarioName && (
-                <p className="text-sm text-slate-500">{scenarioName}</p>
+                <p className="text-sm text-slate-600">{scenarioName}</p>
               )}
             </div>
           </div>
@@ -161,7 +161,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 
@@ -206,7 +206,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
               <Filter className="w-4 h-4" />
               {filteredControls.length} {t('ebios.workshop5.controlsAvailable')}
             </div>
@@ -242,7 +242,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                       <span className="font-medium text-slate-900 dark:text-white">
                         {domain.id} - {domain.title}
                       </span>
-                      <span className="ml-2 text-sm text-slate-500">
+                      <span className="ml-2 text-sm text-slate-600">
                         ({domainControls.length} {locale === 'fr' ? 'contrôles' : 'controls'})
                       </span>
                     </div>
@@ -291,7 +291,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                               )}
                             </div>
                             <div>
-                              <span className="font-mono text-sm text-slate-500 dark:text-muted-foreground">
+                              <span className="font-mono text-sm text-slate-600 dark:text-muted-foreground">
                                 {ctrl.code}
                               </span>
                               <span className="ml-2 text-sm text-slate-900 dark:text-white">
@@ -317,14 +317,14 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
           {filteredControls.length === 0 && (
             <div className="text-center py-12">
               <Shield className="w-12 h-12 text-slate-300 dark:text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 dark:text-slate-400">{t('ebios.workshop5.noControlsFound')}</p>
+              <p className="text-slate-600 dark:text-slate-600">{t('ebios.workshop5.noControlsFound')}</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="pt-4 border-t border-border/40 dark:border-slate-700/50 flex items-center justify-between">
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-slate-600">
             {localSelection.length} {locale === 'fr' ? 'contrôles sélectionnés' : 'controls selected'}
           </div>
           <div className="flex gap-3">

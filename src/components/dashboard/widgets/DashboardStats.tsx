@@ -109,7 +109,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
                                     Sentinel AI Analysis
                                 </h3>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-300">
+                                <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
                                     Synthèse de posture temps réel
                                 </p>
                             </div>
@@ -118,7 +118,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         <button
                             onClick={handleManualRefresh}
                             disabled={aiLoading || !aiSummary}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-300 hover:text-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 group/refresh"
+                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 hover:text-brand-500 disabled:bg-slate-200 disabled:text-slate-600 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-600 dark:disabled:border-slate-600 group/refresh"
                             title="Actualiser l'analyse"
                         >
                             <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin text-brand-500' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />
@@ -189,7 +189,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 1. Risk Metric */}
                         <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir les risques">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Risques</span>
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Risques</span>
                                 <AlertTriangle className="w-4 h-4 text-warning group-hover/item:text-warning/80 transition-colors" />
                             </div>
                             <div className="flex items-end gap-2 mt-auto">
@@ -207,7 +207,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 2. Compliance Metric */}
                         <Link to="/compliance" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir la conformité">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Conformité</span>
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Conformité</span>
                                 <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-success group-hover/item:text-success/80' :
                                     effectiveComplianceScore >= 50 ? 'text-warning group-hover/item:text-warning/80' :
                                         'text-destructive group-hover/item:text-destructive/80'
@@ -233,7 +233,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     <span className="absolute text-sm font-bold text-slate-900 dark:text-white">{effectiveComplianceScore}%</span>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-xs text-slate-500 dark:text-muted-foreground">Score</div>
+                                    <div className="text-xs text-slate-600 dark:text-muted-foreground">Score</div>
                                     <div className={`text-sm font-bold ${effectiveComplianceScore >= 80 ? 'text-success-text dark:text-success' :
                                         effectiveComplianceScore >= 50 ? 'text-warning-text dark:text-warning' :
                                             'text-error-text dark:text-error'
@@ -249,7 +249,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 3. Financial Metric */}
                         <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir l'exposition financière">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Financier</span>
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Financier</span>
                                 <Activity className="w-4 h-4 text-info group-hover/item:text-info/80 transition-colors" />
                             </div>
                             <div className="mt-auto">

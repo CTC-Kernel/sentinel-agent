@@ -104,7 +104,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                 {sectorProfile.name[locale]}
               </span>
             </h3>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600">
               {pendingSourceRecommendations.length + pendingObjectiveRecommendations.length}{' '}
               {t('ebios.workshop2.pendingRecommendations', 'recommandations en attente')}
             </p>
@@ -144,7 +144,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-red-600 dark:text-red-400">{source.code}</span>
-                    <span className="text-slate-500 dark:text-muted-foreground">-</span>
+                    <span className="text-slate-600 dark:text-muted-foreground">-</span>
                     <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{source.name}</span>
                     {!readOnly && (
                       <div className="flex items-center gap-1 ml-2">
@@ -158,7 +158,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissSource && (
                           <button
                             onClick={() => onDismissSource(source.code)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />
@@ -197,7 +197,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-amber-600 dark:text-amber-400">{obj.code}</span>
-                    <span className="text-slate-500 dark:text-muted-foreground">-</span>
+                    <span className="text-slate-600 dark:text-muted-foreground">-</span>
                     <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{obj.name}</span>
                     {!readOnly && (
                       <div className="flex items-center gap-1 ml-2">
@@ -211,7 +211,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissObjective && (
                           <button
                             onClick={() => onDismissObjective(obj.code)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />
@@ -226,7 +226,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
           )}
 
           {/* Info note */}
-          <p className="text-xs text-slate-500 dark:text-slate-300 flex items-center gap-1.5 pt-2">
+          <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 pt-2">
             <Building2 className="w-3.5 h-3.5" />
             {t('ebios.workshop2.sectorBasedOnProfile', 'Basé sur le profil ANSSI pour le secteur')}{' '}
             <strong>{sectorProfile.name[locale]}</strong>

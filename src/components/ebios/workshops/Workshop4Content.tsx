@@ -314,7 +314,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
             <Cpu className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{totalScenarios}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.totalScenarios')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t('ebios.workshop4.totalScenarios')}</p>
         </PremiumCard>
 
         <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-border/40 rounded-3xl">
@@ -322,7 +322,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
             <AlertTriangle className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">{criticalScenarios}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.criticalScenarios')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t('ebios.workshop4.criticalScenarios')}</p>
         </PremiumCard>
 
         <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-border/40 rounded-3xl">
@@ -332,7 +332,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
             {data.operationalScenarios.reduce((sum, s) => sum + s.attackSequence.length, 0)}
           </p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.totalSteps')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t('ebios.workshop4.totalSteps')}</p>
         </PremiumCard>
 
         <PremiumCard glass className="text-center group hover:scale-[1.02] transition-transform duration-300 border-border/40 rounded-3xl">
@@ -342,7 +342,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
             {strategicScenarios.length}
           </p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{t('ebios.workshop4.sourceScenarios')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t('ebios.workshop4.sourceScenarios')}</p>
         </PremiumCard>
       </div>
 
@@ -357,7 +357,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
               <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                 {t('ebios.workshop4.noStrategicScenarios')}
               </h4>
-              <p className="text-slate-500 dark:text-slate-400">{t('ebios.workshop4.completeWorkshop3First')}</p>
+              <p className="text-slate-600 dark:text-slate-600">{t('ebios.workshop4.completeWorkshop3First')}</p>
             </div>
           </PremiumCard>
         ) : (
@@ -400,7 +400,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                               Gravité G{strategicScenario.gravity}
                             </span>
                             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
-                            <span className="text-slate-500 dark:text-slate-400">
+                            <span className="text-slate-600 dark:text-slate-600">
                               {relatedOps.length} {t('ebios.workshop4.operationalScenarios')}
                             </span>
                           </div>
@@ -422,7 +422,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                     <div className="mt-6 space-y-4">
                       {relatedOps.length === 0 ? (
                         <div className="text-center py-10 px-4 rounded-2xl border-2 border-dashed border-border/40 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20">
-                          <p className="text-slate-500 font-medium mb-1">
+                          <p className="text-slate-600 font-medium mb-1">
                             {t('ebios.workshop4.noOperationalYet')}
                           </p>
                           {!readOnly && (
@@ -501,7 +501,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                 <div className="flex items-center gap-6">
                                   {/* Likelihood Selector (Compact) */}
                                   <div className="flex flex-col items-end mr-4">
-                                    <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
+                                    <span className="text-[11px] uppercase font-bold text-slate-600 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
                                     <div className="flex items-center bg-slate-100/50 dark:bg-slate-800 rounded-lg p-0.5 border border-border/40">
                                       {!readOnly ? (
                                         LIKELIHOOD_SCALE.map((level) => (
@@ -537,7 +537,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                     "p-2 rounded-full transition-all duration-300",
                                     isExpanded
                                       ? "bg-brand-100 dark:bg-brand-900 text-brand-600 rotate-180"
-                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
                                   )}>
                                     <ChevronDown className="w-5 h-5" />
                                   </div>
@@ -674,7 +674,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             onClick={() => handleCreateRiskFromScenario(opScenario)}
                                             disabled={creatingRiskForScenario === opScenario.id}
                                             className={cn(
-                                              "flex items-center gap-2 px-4 py-2 rounded-3xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600",
+                                              "flex items-center gap-2 px-4 py-2 rounded-3xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:bg-slate-200 disabled:text-slate-600 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-600 dark:disabled:border-slate-600",
                                               "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800"
                                             )}
                                           >
