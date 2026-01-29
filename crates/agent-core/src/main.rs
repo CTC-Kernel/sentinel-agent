@@ -8,11 +8,16 @@
 //! - Uninstall: `sentinel-agent uninstall` (requires admin/root)
 
 use agent_common::config::AgentConfig;
-use agent_core::{AgentRuntime, init_logging, service, tray};
+use agent_core::{AgentRuntime, init_logging, service};
+#[cfg(feature = "tray")]
+use agent_core::tray;
 use clap::{Parser, Subcommand};
+#[cfg(feature = "tray")]
 use muda::MenuEvent;
 use std::process::ExitCode;
+#[cfg(feature = "tray")]
 use std::sync::atomic::Ordering;
+#[cfg(feature = "tray")]
 use tao::event_loop::{ControlFlow, EventLoopBuilder};
 use tracing::{error, info, warn};
 
@@ -434,11 +439,27 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
         }
     } else {
         // Desktop mode with tray icon
-        run_with_tray(runtime)
+        #[cfg(feature = "tray")]
+        {
+            run_with_tray(runtime)
+        }
+        #[cfg(not(feature = "tray"))]
+        {
+            info!("Tray feature not enabled, running in headless mode");
+            let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+            match rt.block_on(runtime.run()) {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) => {
+                    error!("Agent error: {}", e);
+                    ExitCode::FAILURE
+                }
+            }
+        }
     }
 }
 
 /// Run the agent with a system tray icon.
+#[cfg(feature = "tray")]
 fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     info!("Starting with system tray icon");
 

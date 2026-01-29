@@ -38,6 +38,7 @@
 pub mod authenticated_client;
 pub mod client;
 pub mod config_sync;
+pub mod orchestrator;
 pub mod credentials;
 pub mod diagnostics;
 pub mod enrollment;
@@ -72,6 +73,9 @@ pub use integrity::{IntegrityChecker, verify_or_exit};
 pub use offline::{
     CircuitBreaker, CircuitState, ConflictResolution, ConflictStrategy, OfflineStatus,
     OfflineTracker, SyncEntityType, SyncQueueItem, resolve_config_conflict, resolve_rule_conflict,
+};
+pub use orchestrator::{
+    SyncHistoryEntry, SyncKind, SyncOrchestrator, SyncStatus, SyncStatusSummary,
 };
 pub use pinning::{CertificatePinning, PinningResult};
 pub use result_upload::{

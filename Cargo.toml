@@ -44,6 +44,9 @@ open = "5"
 tao = { version = "0.30", default-features = false, features = ["rwh_06"] }
 hostname = "0.4"
 rand = "0.9"
+eframe = "0.31"
+egui = "0.31"
+egui_extras = { version = "0.31", features = ["image"] }
 
 [workspace.dependencies.windows]
 version = "0.58"
