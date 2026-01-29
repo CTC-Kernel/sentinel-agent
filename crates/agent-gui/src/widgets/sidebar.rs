@@ -1,6 +1,6 @@
 //! Navigation sidebar widget.
 
-use egui::{Frame, Margin, CornerRadius, Stroke, Ui, Vec2};
+use egui::{CornerRadius, Frame, Margin, Stroke, Ui, Vec2};
 
 use crate::app::Page;
 use crate::theme;

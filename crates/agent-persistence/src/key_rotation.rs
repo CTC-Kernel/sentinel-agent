@@ -126,16 +126,14 @@ impl<'a> KeyRotationManager<'a> {
         })?;
 
         // Step 3: Rekey the database
-        let new_key = new_key_manager.get_database_key().map_err(|e| {
-            PersistenceError::KeyRotation(format!("Failed to get new key: {}", e))
-        })?;
+        let new_key = new_key_manager
+            .get_database_key()
+            .map_err(|e| PersistenceError::KeyRotation(format!("Failed to get new key: {}", e)))?;
 
         let new_key_hex: String = new_key.iter().map(|b| format!("{:02x}", b)).collect();
 
         let rekey_result = tokio::runtime::Runtime::new()
-            .map_err(|e| {
-                PersistenceError::KeyRotation(format!("Failed to create runtime: {}", e))
-            })?
+            .map_err(|e| PersistenceError::KeyRotation(format!("Failed to create runtime: {}", e)))?
             .block_on(async {
                 db.with_connection(|conn| {
                     conn.execute_batch(&format!("PRAGMA rekey = \"x'{}'\"", new_key_hex))
@@ -273,24 +271,29 @@ mod tests {
         let new_key_manager = KeyManager::new_with_key(b"new_key_for_rotation_testing_32!");
         let manager = KeyRotationManager::new(&db_path);
 
-        let result = manager.rotate_key(&old_key_manager, &new_key_manager).unwrap();
+        let result = manager
+            .rotate_key(&old_key_manager, &new_key_manager)
+            .unwrap();
         assert!(result.success);
 
         // Verify data is still accessible with new key
         let config = DatabaseConfig::with_path(&db_path);
         let db = Database::open(config, &new_key_manager).unwrap();
 
-        let value: String = tokio::runtime::Runtime::new().unwrap().block_on(async {
-            db.with_connection(|conn| {
-                conn.query_row(
-                    "SELECT value FROM agent_config WHERE key = 'test'",
-                    [],
-                    |row| row.get(0),
-                )
-                .map_err(|e| StorageError::Query(e.to_string()))
+        let value: String = tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+                db.with_connection(|conn| {
+                    conn.query_row(
+                        "SELECT value FROM agent_config WHERE key = 'test'",
+                        [],
+                        |row| row.get(0),
+                    )
+                    .map_err(|e| StorageError::Query(e.to_string()))
+                })
+                .await
             })
-            .await
-        }).unwrap();
+            .unwrap();
 
         assert_eq!(value, "value");
     }
@@ -309,7 +312,9 @@ mod tests {
         // Rotate to new key
         let new_key_manager = KeyManager::new_with_key(b"new_key_for_rotation_testing_32!");
         let manager = KeyRotationManager::new(&db_path);
-        manager.rotate_key(&old_key_manager, &new_key_manager).unwrap();
+        manager
+            .rotate_key(&old_key_manager, &new_key_manager)
+            .unwrap();
 
         // Old key should fail
         let config = DatabaseConfig {

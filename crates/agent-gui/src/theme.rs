@@ -3,7 +3,9 @@
 //! Provides colors, spacing, fonts, and style helpers used across
 //! all pages and widgets.
 
-use egui::{Color32, CornerRadius, FontId, Margin, Stroke, Style, TextStyle, Visuals, epaint::Shadow, Vec2};
+use egui::{
+    Color32, CornerRadius, FontId, Margin, Stroke, Style, TextStyle, Vec2, Visuals, epaint::Shadow,
+};
 
 // ============================================================================
 // Brand colors
@@ -125,11 +127,21 @@ pub fn apply_theme(ctx: &egui::Context) {
     let mut style = Style::default();
 
     // Text styles
-    style.text_styles.insert(TextStyle::Heading, FontId::proportional(20.0));
-    style.text_styles.insert(TextStyle::Body, FontId::proportional(14.0));
-    style.text_styles.insert(TextStyle::Button, FontId::proportional(14.0));
-    style.text_styles.insert(TextStyle::Small, FontId::proportional(12.0));
-    style.text_styles.insert(TextStyle::Monospace, FontId::monospace(13.0));
+    style
+        .text_styles
+        .insert(TextStyle::Heading, FontId::proportional(20.0));
+    style
+        .text_styles
+        .insert(TextStyle::Body, FontId::proportional(14.0));
+    style
+        .text_styles
+        .insert(TextStyle::Button, FontId::proportional(14.0));
+    style
+        .text_styles
+        .insert(TextStyle::Small, FontId::proportional(12.0));
+    style
+        .text_styles
+        .insert(TextStyle::Monospace, FontId::monospace(13.0));
 
     // Spacing
     style.spacing.item_spacing = Vec2::new(SPACE_SM, SPACE_SM);

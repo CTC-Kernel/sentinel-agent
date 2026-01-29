@@ -123,26 +123,25 @@ impl<'a> RecoveryManager<'a> {
                 });
 
                 // Check 4: SQLite integrity_check
-                let integrity_ok =
-                    tokio::runtime::Runtime::new()
-                        .map_err(|e| {
-                            PersistenceError::Recovery(format!("Failed to create runtime: {}", e))
-                        })?
-                        .block_on(async {
-                            db.with_connection(|conn| {
-                                let result: String = conn
-                                    .query_row("PRAGMA integrity_check", [], |row| row.get(0))
-                                    .map_err(|e| {
-                                        agent_storage::StorageError::Query(format!(
-                                            "integrity_check failed: {}",
-                                            e
-                                        ))
-                                    })?;
-                                Ok(result)
-                            })
-                            .await
+                let integrity_ok = tokio::runtime::Runtime::new()
+                    .map_err(|e| {
+                        PersistenceError::Recovery(format!("Failed to create runtime: {}", e))
+                    })?
+                    .block_on(async {
+                        db.with_connection(|conn| {
+                            let result: String = conn
+                                .query_row("PRAGMA integrity_check", [], |row| row.get(0))
+                                .map_err(|e| {
+                                    agent_storage::StorageError::Query(format!(
+                                        "integrity_check failed: {}",
+                                        e
+                                    ))
+                                })?;
+                            Ok(result)
                         })
-                        .unwrap_or_else(|_| "error".to_string());
+                        .await
+                    })
+                    .unwrap_or_else(|_| "error".to_string());
 
                 let sqlite_ok = integrity_ok == "ok";
                 checks.push(IntegrityCheck {
@@ -152,25 +151,24 @@ impl<'a> RecoveryManager<'a> {
                 });
 
                 // Check 5: Schema version is valid
-                let schema_ok =
-                    tokio::runtime::Runtime::new()
-                        .map_err(|e| {
-                            PersistenceError::Recovery(format!("Failed to create runtime: {}", e))
-                        })?
-                        .block_on(async {
-                            db.with_connection(|conn| {
-                                let version: i32 = conn
-                                    .query_row(
-                                        "SELECT COALESCE(MAX(version), 0) FROM schema_version",
-                                        [],
-                                        |row| row.get(0),
-                                    )
-                                    .unwrap_or(0);
-                                Ok(version)
-                            })
-                            .await
+                let schema_ok = tokio::runtime::Runtime::new()
+                    .map_err(|e| {
+                        PersistenceError::Recovery(format!("Failed to create runtime: {}", e))
+                    })?
+                    .block_on(async {
+                        db.with_connection(|conn| {
+                            let version: i32 = conn
+                                .query_row(
+                                    "SELECT COALESCE(MAX(version), 0) FROM schema_version",
+                                    [],
+                                    |row| row.get(0),
+                                )
+                                .unwrap_or(0);
+                            Ok(version)
                         })
-                        .unwrap_or(0);
+                        .await
+                    })
+                    .unwrap_or(0);
 
                 let version_ok = schema_ok > 0;
                 checks.push(IntegrityCheck {
@@ -257,7 +255,10 @@ impl<'a> RecoveryManager<'a> {
             PersistenceError::Recovery("No backups available for recovery".to_string())
         })?;
 
-        info!("Recovering from backup: {} (created {})", latest.id, latest.created_at);
+        info!(
+            "Recovering from backup: {} (created {})",
+            latest.id, latest.created_at
+        );
 
         backup_manager.restore_backup(&latest.id)?;
 

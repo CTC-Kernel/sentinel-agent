@@ -4,8 +4,8 @@
 //! Close = hide window to tray; tray click = restore window.
 
 use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
-use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 use tracing::{debug, info};
+use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
 /// Embedded 32x32 tray icon PNG.
 static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/icon_32x32.png");
@@ -31,10 +31,8 @@ pub struct TrayBridge {
 impl TrayBridge {
     /// Create the tray icon and menu.
     pub fn new() -> Result<Self, String> {
-        let show_item =
-            MenuItem::with_id(ids::SHOW, "Ouvrir Sentinel Agent", true, None);
-        let quit_item =
-            MenuItem::with_id(ids::QUIT, "Quitter", true, None);
+        let show_item = MenuItem::with_id(ids::SHOW, "Ouvrir Sentinel Agent", true, None);
+        let quit_item = MenuItem::with_id(ids::QUIT, "Quitter", true, None);
 
         let menu = Menu::new();
         menu.append(&show_item)
@@ -84,8 +82,8 @@ impl TrayBridge {
     }
 
     fn load_icon() -> Result<Icon, String> {
-        let img = image::load_from_memory(TRAY_ICON_PNG)
-            .map_err(|e| format!("load icon: {}", e))?;
+        let img =
+            image::load_from_memory(TRAY_ICON_PNG).map_err(|e| format!("load icon: {}", e))?;
         let rgba = img.to_rgba8();
         let (w, h) = rgba.dimensions();
         Icon::from_rgba(rgba.into_raw(), w, h).map_err(|e| format!("icon rgba: {}", e))

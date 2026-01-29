@@ -28,7 +28,9 @@ impl DashboardPage {
 
                     let (status_text, status_color) = match state.summary.status {
                         GuiAgentStatus::Connected => ("Connect\u{00e9}", theme::SUCCESS),
-                        GuiAgentStatus::Disconnected => ("D\u{00e9}connect\u{00e9}", theme::WARNING),
+                        GuiAgentStatus::Disconnected => {
+                            ("D\u{00e9}connect\u{00e9}", theme::WARNING)
+                        }
                         GuiAgentStatus::Paused => ("En pause", theme::TEXT_TERTIARY),
                         GuiAgentStatus::Scanning => ("Analyse en cours", theme::INFO),
                         GuiAgentStatus::Error => ("Erreur", theme::ERROR),
@@ -155,11 +157,9 @@ impl DashboardPage {
                                     .color(level_color),
                             );
                             ui.label(
-                                egui::RichText::new(
-                                    entry.timestamp.format("%H:%M:%S").to_string(),
-                                )
-                                .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY),
+                                egui::RichText::new(entry.timestamp.format("%H:%M:%S").to_string())
+                                    .font(theme::font_small())
+                                    .color(theme::TEXT_TERTIARY),
                             );
                             ui.label(
                                 egui::RichText::new(&entry.message)

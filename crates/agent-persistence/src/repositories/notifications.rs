@@ -242,9 +242,7 @@ impl<'a> NotificationsRepository<'a> {
                         "UPDATE notifications SET read = 1, read_at = ? WHERE read = 0",
                         [&now],
                     )
-                    .map_err(|e| {
-                        StorageError::Query(format!("Failed to mark all read: {}", e))
-                    })?;
+                    .map_err(|e| StorageError::Query(format!("Failed to mark all read: {}", e)))?;
 
                 info!("Marked {} notifications as read", count);
                 Ok(count)
@@ -282,9 +280,7 @@ impl<'a> NotificationsRepository<'a> {
                         [],
                         |row| row.get(0),
                     )
-                    .map_err(|e| {
-                        StorageError::Query(format!("Failed to count unread: {}", e))
-                    })?;
+                    .map_err(|e| StorageError::Query(format!("Failed to count unread: {}", e)))?;
                 Ok(count)
             })
             .await
@@ -326,8 +322,8 @@ impl<'a> NotificationsRepository<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agent_storage::{Database, DatabaseConfig, KeyManager};
     use crate::migration_v2::run_v2_migrations;
+    use agent_storage::{Database, DatabaseConfig, KeyManager};
     use tempfile::TempDir;
 
     async fn create_test_db() -> (TempDir, Database) {
@@ -398,12 +394,22 @@ mod tests {
         let (_temp_dir, db) = create_test_db().await;
         let repo = NotificationsRepository::new(&db);
 
-        repo.insert(&Notification::new("n1", "A", "Body A", NotificationSeverity::Info))
-            .await
-            .unwrap();
-        repo.insert(&Notification::new("n2", "B", "Body B", NotificationSeverity::Warning))
-            .await
-            .unwrap();
+        repo.insert(&Notification::new(
+            "n1",
+            "A",
+            "Body A",
+            NotificationSeverity::Info,
+        ))
+        .await
+        .unwrap();
+        repo.insert(&Notification::new(
+            "n2",
+            "B",
+            "Body B",
+            NotificationSeverity::Warning,
+        ))
+        .await
+        .unwrap();
 
         repo.mark_read("n1").await.unwrap();
 
@@ -417,12 +423,22 @@ mod tests {
         let (_temp_dir, db) = create_test_db().await;
         let repo = NotificationsRepository::new(&db);
 
-        repo.insert(&Notification::new("n1", "A", "A", NotificationSeverity::Info))
-            .await
-            .unwrap();
-        repo.insert(&Notification::new("n2", "B", "B", NotificationSeverity::Info))
-            .await
-            .unwrap();
+        repo.insert(&Notification::new(
+            "n1",
+            "A",
+            "A",
+            NotificationSeverity::Info,
+        ))
+        .await
+        .unwrap();
+        repo.insert(&Notification::new(
+            "n2",
+            "B",
+            "B",
+            NotificationSeverity::Info,
+        ))
+        .await
+        .unwrap();
 
         let count = repo.mark_all_read().await.unwrap();
         assert_eq!(count, 2);

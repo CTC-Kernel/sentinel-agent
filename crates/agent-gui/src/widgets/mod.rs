@@ -1,15 +1,15 @@
 //! Reusable UI widgets for the Sentinel Agent GUI.
 
-mod compliance_gauge;
-mod resource_bar;
-mod status_badge;
 mod card;
-mod sidebar;
+mod compliance_gauge;
 mod header;
+mod resource_bar;
+mod sidebar;
+mod status_badge;
 
-pub use compliance_gauge::compliance_gauge;
-pub use resource_bar::resource_bar;
-pub use status_badge::status_badge;
 pub use card::card;
-pub use sidebar::Sidebar;
+pub use compliance_gauge::compliance_gauge;
 pub use header::page_header;
+pub use resource_bar::resource_bar;
+pub use sidebar::Sidebar;
+pub use status_badge::status_badge;

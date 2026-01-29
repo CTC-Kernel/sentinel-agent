@@ -142,10 +142,7 @@ impl SyncOrchestrator {
     /// Trigger a manual sync.
     ///
     /// Returns the sync history entry when complete.
-    pub async fn manual_sync(
-        &self,
-        client: &AuthenticatedClient,
-    ) -> SyncResult<SyncHistoryEntry> {
+    pub async fn manual_sync(&self, client: &AuthenticatedClient) -> SyncResult<SyncHistoryEntry> {
         info!("Manual sync triggered");
         self.execute_sync(SyncKind::Manual, client).await
     }
@@ -158,7 +155,16 @@ impl SyncOrchestrator {
     ) -> SyncResult<SyncHistoryEntry> {
         // Check circuit breaker
         if !self.circuit_breaker.is_allowed().await {
-            let entry = self.record_history_async(kind, SyncStatus::Skipped, 0, 0, Some("Circuit breaker open".to_string()), 0).await;
+            let entry = self
+                .record_history_async(
+                    kind,
+                    SyncStatus::Skipped,
+                    0,
+                    0,
+                    Some("Circuit breaker open".to_string()),
+                    0,
+                )
+                .await;
             return Ok(entry);
         }
 
@@ -187,15 +193,16 @@ impl SyncOrchestrator {
                 *self.last_success.write().await = Some(Utc::now());
                 *self.last_error.write().await = None;
 
-                let entry = self.record_history_async(
-                    kind,
-                    SyncStatus::Success,
-                    items_synced,
-                    duration_ms,
-                    None,
-                    0,
-                )
-                .await;
+                let entry = self
+                    .record_history_async(
+                        kind,
+                        SyncStatus::Success,
+                        items_synced,
+                        duration_ms,
+                        None,
+                        0,
+                    )
+                    .await;
 
                 info!(
                     "Sync completed: {} items in {}ms",
@@ -215,15 +222,16 @@ impl SyncOrchestrator {
                 let error_msg = e.to_string();
                 *self.last_error.write().await = Some(error_msg.clone());
 
-                let _entry = self.record_history_async(
-                    kind,
-                    SyncStatus::Failed,
-                    0,
-                    duration_ms,
-                    Some(error_msg),
-                    0,
-                )
-                .await;
+                let _entry = self
+                    .record_history_async(
+                        kind,
+                        SyncStatus::Failed,
+                        0,
+                        duration_ms,
+                        Some(error_msg),
+                        0,
+                    )
+                    .await;
 
                 warn!("Sync failed: {}", e);
                 Err(e)
