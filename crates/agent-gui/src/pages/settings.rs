@@ -48,7 +48,7 @@ impl SettingsPage {
                             .color(theme::TEXT_ON_ACCENT),
                     )
                     .fill(btn_color)
-                    .rounding(egui::Rounding::same(theme::BUTTON_ROUNDING));
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
                     if ui.add(btn).clicked() {
                         state.is_paused = !state.is_paused;
@@ -63,7 +63,7 @@ impl SettingsPage {
                             .color(theme::TEXT_ON_ACCENT),
                     )
                     .fill(theme::ACCENT)
-                    .rounding(egui::Rounding::same(theme::BUTTON_ROUNDING));
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
                     if ui.add_enabled(!state.is_paused, check_btn).clicked() {
                         command = Some(GuiCommand::RunCheck);
@@ -131,7 +131,7 @@ impl SettingsPage {
                         .color(theme::TEXT_ON_ACCENT),
                 )
                 .fill(theme::ERROR)
-                .rounding(egui::Rounding::same(theme::BUTTON_ROUNDING));
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
                 if ui.add(quit_btn).clicked() {
                     command = Some(GuiCommand::Shutdown);
