@@ -17,7 +17,7 @@ echo ""
 echo "1. Building release binary..."
 cd "$PROJECT_DIR"
 if [ ! -f "$BUILD_DIR/agent-core" ]; then
-    cargo build --release --package agent-core
+    cargo build --release --package agent-core --features gui
 else
     echo "Binary already exists, skipping build (using pre-built binary)"
 fi
