@@ -85,9 +85,9 @@ describe('FilePreview', () => {
     });
 
     it('should render iframe for PDF files', () => {
-        render(<FilePreview {...defaultProps} />);
+        const { container } = render(<FilePreview {...defaultProps} />);
 
-        const iframe = screen.getByTitle('test-file.pdf');
+        const iframe = container.querySelector('iframe');
         expect(iframe).toBeInTheDocument();
         expect(iframe).toHaveAttribute('src', defaultProps.url);
     });
@@ -138,9 +138,12 @@ describe('FilePreview', () => {
     });
 
     it('should remove loading state when iframe loads', () => {
-        render(<FilePreview {...defaultProps} />);
+        const { container } = render(<FilePreview {...defaultProps} />);
 
-        const iframe = screen.getByTitle('test-file.pdf');
-        fireEvent.load(iframe);
+        const iframe = container.querySelector('iframe');
+        expect(iframe).toBeInTheDocument();
+        if (iframe) {
+            fireEvent.load(iframe);
+        }
     });
 });

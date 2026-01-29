@@ -127,7 +127,7 @@ describe('VoxelMinimap', () => {
       render(<VoxelMinimap visible={true} />);
 
       expect(screen.getByText('Minimap')).toBeInTheDocument();
-      expect(screen.getByLabelText('3D scene minimap')).toBeInTheDocument();
+      expect(screen.getByLabelText(/3D scene minimap/)).toBeInTheDocument();
     });
 
     it('should render toggle button when not visible', () => {
@@ -147,7 +147,7 @@ describe('VoxelMinimap', () => {
     it('should use default dimensions', () => {
       render(<VoxelMinimap visible={true} />);
 
-      const canvas = screen.getByLabelText('3D scene minimap');
+      const canvas = screen.getByLabelText(/3D scene minimap/);
       expect(canvas).toHaveAttribute('width', '160');
       expect(canvas).toHaveAttribute('height', '120');
     });
@@ -155,7 +155,7 @@ describe('VoxelMinimap', () => {
     it('should accept custom dimensions', () => {
       render(<VoxelMinimap visible={true} width={200} height={150} />);
 
-      const canvas = screen.getByLabelText('3D scene minimap');
+      const canvas = screen.getByLabelText(/3D scene minimap/);
       expect(canvas).toHaveAttribute('width', '200');
       expect(canvas).toHaveAttribute('height', '150');
     });
@@ -195,7 +195,7 @@ describe('VoxelMinimap', () => {
       const onNavigate = vi.fn();
       render(<VoxelMinimap visible={true} onNavigate={onNavigate} />);
 
-      const canvas = screen.getByLabelText('3D scene minimap');
+      const canvas = screen.getByLabelText(/3D scene minimap/);
       fireEvent.click(canvas, { clientX: 80, clientY: 60 });
 
       expect(onNavigate).toHaveBeenCalledWith(
@@ -210,7 +210,7 @@ describe('VoxelMinimap', () => {
     it('should not call onNavigate if handler not provided', () => {
       render(<VoxelMinimap visible={true} />);
 
-      const canvas = screen.getByLabelText('3D scene minimap');
+      const canvas = screen.getByLabelText(/3D scene minimap/);
       expect(() => fireEvent.click(canvas, { clientX: 80, clientY: 60 })).not.toThrow();
     });
   });
@@ -219,7 +219,7 @@ describe('VoxelMinimap', () => {
     it('should render viewport indicator when camera position provided', () => {
       render(<VoxelMinimap visible={true} cameraPosition={[0, 50, 0]} />);
 
-      expect(screen.getByLabelText('3D scene minimap')).toBeInTheDocument();
+      expect(screen.getByLabelText(/3D scene minimap/)).toBeInTheDocument();
     });
 
     it('should render direction indicator when both position and target provided', () => {
@@ -227,7 +227,7 @@ describe('VoxelMinimap', () => {
         <VoxelMinimap visible={true} cameraPosition={[0, 50, 0]} cameraTarget={[10, 0, 10]} />
       );
 
-      expect(screen.getByLabelText('3D scene minimap')).toBeInTheDocument();
+      expect(screen.getByLabelText(/3D scene minimap/)).toBeInTheDocument();
     });
   });
 

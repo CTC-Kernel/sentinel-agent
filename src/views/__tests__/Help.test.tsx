@@ -318,8 +318,10 @@ describe('Help', () => {
             fireEvent.click(menuButton);
 
             await waitFor(() => {
-                // After clicking, the button text should change to "Fermer le menu"
-                expect(screen.getByRole('button', { name: /Fermer le menu/i })).toBeInTheDocument();
+                // After clicking, there should be at least one element with "Fermer le menu" label
+                // Use getAllByRole to handle multiple matches (overlay and button)
+                const closeButtons = screen.getAllByRole('button', { name: /Fermer le menu/i });
+                expect(closeButtons.length).toBeGreaterThan(0);
             });
         });
     });
