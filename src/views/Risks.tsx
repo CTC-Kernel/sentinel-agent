@@ -66,6 +66,7 @@ export const Risks: React.FC = () => {
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     // 2. Dependency Fetches (Lazy Loading)
     const shouldFetchDetails = creationMode || !!editingRisk || !!selectedRisk;
@@ -240,6 +241,7 @@ export const Risks: React.FC = () => {
         } else {
             await createRisk(cleanedData as Risk);
         }
+        setIsFormDirty(false);
         setCreationMode(false);
         setEditingRisk(null);
     }, [editingRisk, updateRisk, createRisk]);
@@ -428,11 +430,17 @@ export const Risks: React.FC = () => {
 
             <AnimatePresence>
                 {creationMode && (
-                    <Drawer isOpen={creationMode} onClose={() => { setCreationMode(false); setEditingRisk(null); }} title={editingRisk ? t('risks.editRisk') : t('risks.newRisk')}>
+                    <Drawer
+                        isOpen={creationMode}
+                        onClose={() => { setCreationMode(false); setEditingRisk(null); setIsFormDirty(false); }}
+                        title={editingRisk ? t('risks.editRisk') : t('risks.newRisk')}
+                        hasUnsavedChanges={isFormDirty}
+                    >
                         <React.Suspense fallback={<Spinner />}>
                             <RiskForm
                                 onSubmit={handleFormSubmit}
-                                onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
+                                onCancel={() => { setCreationMode(false); setEditingRisk(null); setIsFormDirty(false); }}
+                                onDirtyChange={setIsFormDirty}
                                 initialData={editingRisk || initialFormData || undefined}
                                 isLoading={submitting}
                                 assets={assets}

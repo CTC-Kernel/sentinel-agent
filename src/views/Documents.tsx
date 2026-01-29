@@ -126,6 +126,7 @@ export const Documents: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [templateData, setTemplateData] = useState<DocumentTemplate | null>(null);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     // Tabs configuration
     const tabs = useMemo(() => [
@@ -299,6 +300,7 @@ export const Documents: React.FC = () => {
         setShowCreateModal(false);
         setIsEditing(false);
         setTemplateData(null);
+        setIsFormDirty(false);
     }, []);
 
     const handleOpenTemplateModal = useCallback(() => {
@@ -314,10 +316,16 @@ export const Documents: React.FC = () => {
     const handleFormSubmit = useCallback(async (data: DocumentFormPayload) => {
         if (isEditing && selectedDocument) {
             const updated = await handleUpdate(selectedDocument.id, data, selectedDocument);
-            if (updated) setIsEditing(false);
+            if (updated) {
+                setIsFormDirty(false);
+                setIsEditing(false);
+            }
         } else {
             const success = await handleCreate(data);
-            if (success) setShowCreateModal(false);
+            if (success) {
+                setIsFormDirty(false);
+                setShowCreateModal(false);
+            }
         }
     }, [isEditing, selectedDocument, handleUpdate, handleCreate]);
 
@@ -623,6 +631,7 @@ export const Documents: React.FC = () => {
                 subtitle={isEditing && selectedDocument ? selectedDocument.title : templateData ? templateData.title : "Créer un nouveau document"}
                 width="max-w-6xl"
                 disableScroll={true}
+                hasUnsavedChanges={isFormDirty}
             >
                 <div className="h-full overflow-y-auto px-6 py-8 custom-scrollbar">
                     <DocumentForm
@@ -648,6 +657,7 @@ export const Documents: React.FC = () => {
                         assets={rawAssets}
                         audits={rawAudits}
                         risks={rawRisks}
+                        onDirtyChange={setIsFormDirty}
                     />
                 </div>
             </Drawer>

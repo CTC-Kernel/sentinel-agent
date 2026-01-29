@@ -49,6 +49,7 @@ export const Vulnerabilities: React.FC = () => {
 
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [filter, setFilter] = useState('');
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     // Actions Hook
     const {
@@ -144,6 +145,7 @@ export const Vulnerabilities: React.FC = () => {
         try {
             await addVulnerability(data);
             setCreationMode(false);
+            setIsFormDirty(false);
         } catch {
             ErrorLogger.warn('Creation handled in hook');
         }
@@ -154,6 +156,7 @@ export const Vulnerabilities: React.FC = () => {
         try {
             await updateVulnerability(selectedVulnerability.id, data || {});
             setSelectedVulnerability(null);
+            setIsFormDirty(false);
         } catch {
             ErrorLogger.warn('Update handled in hook');
         }
@@ -187,10 +190,22 @@ export const Vulnerabilities: React.FC = () => {
     const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'kanban'), [setViewMode]);
     const handleImportClick = useCallback(() => setImportModalOpen(true), []);
     const handleCreateClick = useCallback(() => setCreationMode(true), []);
-    const handleCloseCreateDrawer = useCallback(() => setCreationMode(false), []);
-    const handleCloseEditDrawer = useCallback(() => setSelectedVulnerability(null), []);
-    const handleCancelCreate = useCallback(() => setCreationMode(false), []);
-    const handleCancelEdit = useCallback(() => setSelectedVulnerability(null), []);
+    const handleCloseCreateDrawer = useCallback(() => {
+        setCreationMode(false);
+        setIsFormDirty(false);
+    }, []);
+    const handleCloseEditDrawer = useCallback(() => {
+        setSelectedVulnerability(null);
+        setIsFormDirty(false);
+    }, []);
+    const handleCancelCreate = useCallback(() => {
+        setCreationMode(false);
+        setIsFormDirty(false);
+    }, []);
+    const handleCancelEdit = useCallback(() => {
+        setSelectedVulnerability(null);
+        setIsFormDirty(false);
+    }, []);
     const handleImportModalClose = useCallback(() => setImportModalOpen(false), []);
     const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
     const handleImportMock = useCallback(async (importData: Partial<Vulnerability>[]) => {
@@ -364,6 +379,7 @@ export const Vulnerabilities: React.FC = () => {
                 title={t('vulnerabilities.declare')}
                 subtitle={t('vulnerabilities.newSubtitle')}
                 width="max-w-6xl"
+                hasUnsavedChanges={isFormDirty}
             // Headless UI handles FocusTrap and keyboard navigation
             >
                 <div className="p-6">
@@ -374,6 +390,7 @@ export const Vulnerabilities: React.FC = () => {
                         projects={projects}
                         users={users} // Pass users if needed for assignment
                         isLoading={loadingAction}
+                        onDirtyChange={setIsFormDirty}
                     />
                 </div>
             </Drawer>
@@ -385,6 +402,7 @@ export const Vulnerabilities: React.FC = () => {
                 title={selectedVulnerability?.title || ''}
                 subtitle={t('vulnerabilities.details')}
                 width="max-w-6xl"
+                hasUnsavedChanges={isFormDirty}
             >
                 <div className="p-6">
                     {selectedVulnerability && (
@@ -396,6 +414,7 @@ export const Vulnerabilities: React.FC = () => {
                             projects={projects}
                             users={users}
                             isLoading={loadingAction}
+                            onDirtyChange={setIsFormDirty}
                         />
                     )}
                 </div>

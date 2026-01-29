@@ -15,6 +15,7 @@ interface TreatmentActionsListProps {
     onUpdate: (action: TreatmentAction) => void;
     onDelete: (actionId: string) => void;
     readOnly?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 const STATUS_CONFIG: Record<TreatmentActionStatus, { icon: typeof CheckCircle2; color: string; badgeStatus: 'success' | 'warning' | 'info' }> = {
@@ -29,11 +30,22 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
     onAdd,
     onUpdate,
     onDelete,
-    readOnly = false
+    readOnly = false,
+    onDirtyChange
 }) => {
     const { t } = useTranslation();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+
+    const handleCloseAdd = () => {
+        setIsAdding(false);
+        onDirtyChange?.(false);
+    };
+
+    const handleCloseEdit = () => {
+        setEditingId(null);
+        onDirtyChange?.(false);
+    };
 
     const getUserName = (userId?: string) => {
         if (!userId) return t('risks.treatment.not_assigned');
@@ -59,7 +71,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
 
     const handleSaveNew = (actionData: Omit<TreatmentAction, 'id' | 'createdAt'> & { id?: string }) => {
         onAdd(actionData);
-        setIsAdding(false);
+        handleCloseAdd();
     };
 
     const handleSaveEdit = (actionData: Omit<TreatmentAction, 'id' | 'createdAt'> & { id?: string }) => {
@@ -72,7 +84,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
             ...actionData,
             id: actionData.id
         } as TreatmentAction);
-        setEditingId(null);
+        handleCloseEdit();
     };
 
     const handleStatusChange = (action: TreatmentAction, newStatus: TreatmentActionStatus) => {
@@ -129,7 +141,8 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                     action={action}
                                     users={users}
                                     onSave={handleSaveEdit}
-                                    onCancel={() => setEditingId(null)}
+                                    onCancel={handleCloseEdit}
+                                    onDirtyChange={onDirtyChange}
                                 />
                             );
                         }
@@ -233,7 +246,8 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                 <TreatmentActionForm
                     users={users}
                     onSave={handleSaveNew}
-                    onCancel={() => setIsAdding(false)}
+                    onCancel={handleCloseAdd}
+                    onDirtyChange={onDirtyChange}
                 />
             ) : !readOnly && (
                 <Button

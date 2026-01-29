@@ -28,6 +28,7 @@ interface DocumentFormProps {
     isLoading?: boolean;
     isStorageFull?: boolean;
     onUploadComplete?: (size: number) => void;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const DocumentForm: React.FC<DocumentFormProps> = ({
@@ -42,14 +43,15 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     folders,
     isLoading = false,
     isStorageFull = false,
-    onUploadComplete
+    onUploadComplete,
+    onDirtyChange
 }) => {
     const { addToast } = useStore();
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string>(initialData?.url || '');
     const [uploadedFileHash, setUploadedFileHash] = useState<string>(initialData?.hash || '');
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(initialData?.isSecure || false);
 
-    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useZodForm<typeof documentSchema>({
+    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors, isDirty } } = useZodForm<typeof documentSchema>({
         schema: documentSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -76,6 +78,10 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             folderId: initialData?.folderId || ''
         }
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Persistence Hook
     const { clearDraft } = useFormPersistence<DocumentFormData>('sentinel_document_draft_new', {

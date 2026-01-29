@@ -19,6 +19,7 @@ interface ComplianceDetailsProps {
         handleMapFramework?: (c: Control, f: Framework) => Promise<void>;
         handleUnmapFramework?: (c: Control, f: Framework) => Promise<void>;
     };
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
@@ -26,7 +27,8 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
     canEdit,
     usersList,
     enabledFrameworks,
-    handlers
+    handlers,
+    onDirtyChange
 }) => {
     const { updating, handleStatusChange, handleAssign, updateJustification, handleMapFramework, handleUnmapFramework } = handlers;
 
@@ -44,6 +46,12 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
     // Local state for justification text area
     const [justification, setJustification] = useState(control.justification || '');
     const [isSaving, setIsSaving] = useState(false);
+
+    // Monitor dirty state
+    React.useEffect(() => {
+        const isDirty = justification !== (control.justification || '');
+        onDirtyChange?.(isDirty);
+    }, [justification, control.justification, onDirtyChange]);
 
     // Helper to handle justification update from AI or Textarea
     const handleJustificationChange = (text: string) => {

@@ -64,6 +64,7 @@ export const Projects: React.FC = () => {
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [csvImportOpen, setCsvImportOpen] = useState(false);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     // Dependencies Logic: Only fetch detailed collections when needed (optimization)
     const shouldFetchDetails = creationMode || !!editingProject || !!selectedProject;
@@ -263,10 +264,17 @@ export const Projects: React.FC = () => {
     const handleNewProjectClick = useCallback(() => { setCreationMode(true); setEditingProject(null); }, []);
     const handleOpenTemplateModal = useCallback(() => setShowTemplateModal(true), []);
     const handleCloseTemplateModal = useCallback(() => setShowTemplateModal(false), []);
-    const handleCloseDrawer = useCallback(() => { setCreationMode(false); setEditingProject(null); }, []);
+    const handleCloseDrawer = useCallback(() => {
+        setCreationMode(false);
+        setEditingProject(null);
+        setIsFormDirty(false);
+    }, []);
     const handleCloseInspector = useCallback(() => setSelectedProject(null), []);
     const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
-    const handleDrawerSubmit = useCallback((data: import('../schemas/projectSchema').ProjectFormData) => handleProjectFormSubmit(data as unknown as import('../types').Project, editingProject), [handleProjectFormSubmit, editingProject]);
+    const handleDrawerSubmit = useCallback(async (data: import('../schemas/projectSchema').ProjectFormData) => {
+        await handleProjectFormSubmit(data as unknown as import('../types').Project, editingProject);
+        setIsFormDirty(false);
+    }, [handleProjectFormSubmit, editingProject]);
     const handleInspectorUpdateTasks = useCallback(async (p: Project, t: import('../types').ProjectTask[]) => { await updateProjectTasks(p, t); }, [updateProjectTasks]);
 
     return (
@@ -528,6 +536,7 @@ export const Projects: React.FC = () => {
                 subtitle={editingProject ? editingProject.name : t('common.create')}
                 width="max-w-6xl"
                 disableScroll={true}
+                hasUnsavedChanges={isFormDirty}
             >
                 <ProjectForm
                     onCancel={handleCloseDrawer}
@@ -538,6 +547,7 @@ export const Projects: React.FC = () => {
                     availableControls={controls}
                     availableAssets={assets}
                     isLoading={isSubmitting}
+                    onDirtyChange={setIsFormDirty}
                 />
             </Drawer>
 

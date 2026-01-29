@@ -207,9 +207,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
     if (isEmpty && !loading) {
         return (
-            <PremiumCard glass className="relative overflow-hidden rounded-xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
+            <PremiumCard glass className="relative overflow-hidden rounded-xl p-0 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background/0 to-background/0 opacity-60 transition-opacity duration-1000 group-hover:opacity-70" />
-                <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
+                <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto p-8 md:p-16">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
                         <span className="relative flex h-2.5 w-2.5 mr-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success/60 opacity-75"></span>
@@ -262,7 +262,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--primary)_0%,var(--info)_25%,var(--primary)_50%,var(--success)_75%,var(--primary)_100%)] animate-shimmer-rotate opacity-50 group-hover:opacity-80 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
             <div className="absolute inset-[1.5px] rounded-[0.95rem] bg-[var(--background)]/60 backdrop-blur-xl" />
 
-            <PremiumCard glass className="relative rounded-[0.9rem] overflow-hidden shadow-none border-none !bg-transparent">
+            <PremiumCard glass className="relative rounded-[0.9rem] overflow-hidden shadow-none border-none !bg-transparent p-0">
                 {/* Multi-layer Spotlight Effects */}
                 <Spotlight className="-top-40 left-0 md:left-60 md:-top-20 opacity-80" fill="var(--primary)" />
                 <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-70" fill="var(--info)" />

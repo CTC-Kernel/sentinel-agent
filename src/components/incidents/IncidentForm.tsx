@@ -25,6 +25,7 @@ interface IncidentFormProps {
     assets: Asset[];
     risks: Risk[];
     isLoading?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
@@ -37,10 +38,11 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     processes,
     assets,
     risks,
-    isLoading = false
+    isLoading = false,
+    onDirtyChange
 }) => {
     const { addToast } = useStore();
-    const { register, handleSubmit, setValue, control, getValues, watch, reset, formState: { errors } } = useZodForm<typeof incidentSchema>({
+    const { register, handleSubmit, setValue, control, getValues, watch, reset, formState: { errors, isDirty } } = useZodForm<typeof incidentSchema>({
         schema: incidentSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -90,6 +92,10 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     const title = useWatch({ control, name: 'title' });
     const category = useWatch({ control, name: 'category' });
     const severity = useWatch({ control, name: 'severity' });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     useEffect(() => {
         if (!affectedAssetId) return;

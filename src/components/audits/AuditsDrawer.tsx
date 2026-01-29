@@ -32,24 +32,35 @@ export const AuditsDrawer: React.FC<AuditsDrawerProps> = ({
     usersList,
 }) => {
     const { t } = useStore();
+    const [isFormDirty, setIsFormDirty] = React.useState(false);
+
+    const handleClose = () => {
+        setIsFormDirty(false);
+        onClose();
+    };
 
     return (
         <Drawer
             isOpen={creationMode}
-            onClose={onClose}
+            onClose={handleClose}
             title={editingAudit ? t('audits.editAudit') : t('audits.newAudit')}
             width="max-w-6xl"
+            hasUnsavedChanges={isFormDirty}
         >
             <AuditForm
                 initialData={editingAudit || undefined}
-                onSubmit={onFormSubmit}
-                onCancel={onClose}
+                onSubmit={async (data) => {
+                    await onFormSubmit(data);
+                    setIsFormDirty(false);
+                }}
+                onCancel={handleClose}
                 isLoading={isLoading}
                 assets={assets}
                 risks={risks}
                 controls={controls}
                 projects={projects}
                 usersList={usersList}
+                onDirtyChange={setIsFormDirty}
             />
         </Drawer>
     );

@@ -43,6 +43,7 @@ interface ProjectFormProps {
     isLoading?: boolean;
     formId?: string;
     hideActions?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const ProjectForm: React.FC<ProjectFormProps> = ({
@@ -55,7 +56,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     availableAssets = [],
     initialData,
     isLoading = false,
+    formId,
     hideActions = false,
+    onDirtyChange,
 }) => {
     const [isGenerating, setIsGenerating] = React.useState(false);
     const formRef = useRef<HTMLFormElement | null>(null);
@@ -68,7 +71,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             label: u.displayName || u.email || 'Utilisateur'
         })), [usersList]);
 
-    const { register, handleSubmit, reset, control, setValue, getValues, watch, formState: { errors } } = useZodForm<typeof projectSchema>({
+    const { register, handleSubmit, reset, control, setValue, getValues, watch, formState: { errors, isDirty } } = useZodForm<typeof projectSchema>({
         schema: projectSchema,
         mode: 'onChange',
         defaultValues: {
@@ -87,6 +90,10 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             framework: initialData?.framework,
         }
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Persistence Hook
     const { clearDraft } = useFormPersistence<ProjectFormData>('sentinel_project_draft_new', {
@@ -220,7 +227,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     const submitHandler = handleSubmit(onFormSubmit, onInvalid);
 
     return (
-        <form ref={formRef} onSubmit={submitHandler} className="space-y-8 animate-fade-in relative">
+        <form id={formId} ref={formRef} onSubmit={submitHandler} className="space-y-8 animate-fade-in relative">
             {isGenerating && (
                 <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm rounded-3xl">
                     <Loader2 className="h-8 w-8 animate-spin text-brand-600" />

@@ -58,7 +58,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
 
     // --- 3. Render "The Command Center" ---
     return (
-        <PremiumCard glass className="mb-8 overflow-hidden relative border-t border-white/20 dark:border-border/40" hover={false}>
+        <PremiumCard glass className="mb-8 overflow-hidden relative border-t border-white/20 dark:border-border/40 p-0" hover={false}>
             {/* Ambient Background Gradient for "Hero" feel */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-500/5 to-transparent pointer-events-none" />
 

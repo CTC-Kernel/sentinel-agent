@@ -12,16 +12,18 @@ interface TreatmentActionFormProps {
     users: { uid: string; displayName: string }[];
     onSave: (action: Omit<TreatmentAction, 'id' | 'createdAt'> & { id?: string }) => void;
     onCancel: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
     action,
     users,
     onSave,
-    onCancel
+    onCancel,
+    onDirtyChange
 }) => {
     const { t } = useTranslation();
-    const { register, handleSubmit, watch, reset, formState: { errors } } = useZodForm<typeof treatmentActionSchema>({
+    const { register, handleSubmit, watch, reset, formState: { errors, isDirty } } = useZodForm<typeof treatmentActionSchema>({
         schema: treatmentActionSchema,
         mode: 'onChange',
         defaultValues: {
@@ -32,6 +34,11 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
             status: action?.status || 'À faire'
         }
     });
+
+    // Notify parent about dirty state
+    React.useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Persistence Hook
     const { clearDraft } = useFormPersistence<TreatmentActionFormData>('sentinel_treatment_draft_new', {

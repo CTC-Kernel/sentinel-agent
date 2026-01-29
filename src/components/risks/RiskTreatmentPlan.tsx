@@ -13,9 +13,10 @@ interface RiskTreatmentPlanProps {
     onRiskUpdate?: (updates: Partial<Risk>) => void;
     users: { uid: string; displayName: string }[];
     controls?: Control[];
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, onRiskUpdate, users, controls = [] }) => {
+export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, onRiskUpdate, users, controls = [], onDirtyChange }) => {
     // Default SLAs (in days)
     const SLA_DAYS = {
         [Criticality.CRITICAL]: 7,
@@ -135,6 +136,19 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
         return initial;
     });
+
+    // Monitor dirty state for main treatment fields
+    React.useEffect(() => {
+        const isDirty = (
+            treatment.strategy !== (risk.treatment?.strategy || risk.strategy || 'Atténuer') ||
+            treatment.status !== (risk.treatment?.status || 'Planifié') ||
+            treatment.ownerId !== (risk.treatment?.ownerId || risk.ownerId) ||
+            treatment.dueDate !== risk.treatment?.dueDate ||
+            treatment.description !== (risk.treatment?.description || '') ||
+            treatment.estimatedCost !== risk.treatment?.estimatedCost
+        );
+        onDirtyChange?.(isDirty);
+    }, [treatment, risk.treatment, risk.strategy, risk.ownerId, onDirtyChange]);
 
     const handleChange = (field: keyof RiskTreatment, value: string | number | string[]) => {
         const updated = { ...treatment, [field]: value };
@@ -522,6 +536,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     onAdd={handleAddAction}
                     onUpdate={handleUpdateAction}
                     onDelete={handleDeleteAction}
+                    onDirtyChange={onDirtyChange}
                 />
             )}
         </div>

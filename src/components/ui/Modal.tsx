@@ -10,6 +10,10 @@ interface ModalProps {
     children: React.ReactNode;
     maxWidth?: string;
     initialFocus?: React.MutableRefObject<HTMLElement | null>;
+    /** If true, shows a confirmation dialog before closing */
+    hasUnsavedChanges?: boolean;
+    /** Custom message for unsaved changes dialog */
+    unsavedChangesMessage?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -18,60 +22,146 @@ export const Modal: React.FC<ModalProps> = ({
     title,
     children,
     maxWidth = 'max-w-4xl',
-    initialFocus
+    initialFocus,
+    hasUnsavedChanges = false,
+    unsavedChangesMessage = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?'
 }) => {
-    return (
-        <Transition.Root show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-[200]" initialFocus={initialFocus} onClose={onClose}>
-                {/* FocusTrap and keyboard navigation are handled internally by Headless UI */}
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-normal"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-70"
-                    leave="ease-in duration-fast"
-                    leaveFrom="opacity-70"
-                    leaveTo="opacity-0"
-                >
-                    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
-                </Transition.Child>
+    const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
 
-                <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-                    <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                        <Transition.Child
-                            as={Fragment}
-                            enter="ease-apple duration-normal"
-                            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-70 translate-y-0 sm:scale-100"
-                            leave="ease-in duration-fast"
-                            leaveFrom="opacity-70 translate-y-0 sm:scale-100"
-                            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                        >
-                            <Dialog.Panel className={`relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] text-left shadow-modal transition-all w-full border border-border/30 ${maxWidth}`}>
-                                {title && (
-                                    <div className="flex items-center justify-between p-6 border-b border-border/40 shrink-0 transition-colors">
-                                        <Dialog.Title as="h3" className="text-xl font-bold font-display text-foreground tracking-tight">
-                                            {title}
-                                        </Dialog.Title>
+    const handleClose = React.useCallback(() => {
+        if (hasUnsavedChanges) {
+            setShowConfirmDialog(true);
+            return;
+        }
+        onClose();
+    }, [hasUnsavedChanges, onClose]);
+
+    const handleConfirmClose = React.useCallback(() => {
+        setShowConfirmDialog(false);
+        onClose();
+    }, [onClose]);
+
+    const handleCancelClose = React.useCallback(() => {
+        setShowConfirmDialog(false);
+    }, []);
+
+    return (
+        <>
+            <Transition.Root show={isOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-[200]" initialFocus={initialFocus} onClose={handleClose}>
+                    {/* FocusTrap and keyboard navigation are handled internally by Headless UI */}
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-normal"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-70"
+                        leave="ease-in duration-fast"
+                        leaveFrom="opacity-70"
+                        leaveTo="opacity-0"
+                    >
+                        <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-apple duration-normal"
+                                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                enterTo="opacity-70 translate-y-0 sm:scale-100"
+                                leave="ease-in duration-fast"
+                                leaveFrom="opacity-70 translate-y-0 sm:scale-100"
+                                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                            >
+                                <Dialog.Panel className={`relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] text-left shadow-modal transition-all w-full border border-border/30 ${maxWidth}`}>
+                                    {title && (
+                                        <div className="flex items-center justify-between p-6 border-b border-border/40 shrink-0 transition-colors">
+                                            <Dialog.Title as="h3" className="text-xl font-bold font-display text-foreground tracking-tight">
+                                                {title}
+                                            </Dialog.Title>
+                                            <Button
+                                                onClick={handleClose}
+                                                variant="ghost"
+                                                size="icon"
+                                                className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white"
+                                                aria-label="Fermer"
+                                            >
+                                                <X className="w-5 h-5" aria-hidden="true" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    <div className="p-0 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
+                                        {children}
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </div>
+                </Dialog>
+            </Transition.Root>
+
+            {/* Unsaved Changes Confirmation Dialog */}
+            <Transition.Root show={showConfirmDialog} as={Fragment}>
+                <Dialog as="div" className="relative z-[210]" onClose={handleCancelClose}>
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-70"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-70"
+                        leaveTo="opacity-0"
+                    >
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 z-10 overflow-y-auto">
+                        <div className="flex min-h-full items-center justify-center p-4">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-out duration-300"
+                                enterFrom="opacity-0 scale-95"
+                                enterTo="opacity-100 scale-100"
+                                leave="ease-in duration-200"
+                                leaveFrom="opacity-100 scale-100"
+                                leaveTo="opacity-0 scale-95"
+                            >
+                                <Dialog.Panel className="relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] p-6 text-left shadow-xl transition-all sm:max-w-md w-full border border-border/30">
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-warning-bg flex items-center justify-center">
+                                            <svg className="h-5 w-5 text-warning-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1">
+                                            <Dialog.Title className="text-lg font-semibold text-foreground">
+                                                Modifications non sauvegardées
+                                            </Dialog.Title>
+                                            <p className="mt-2 text-sm text-muted-foreground">
+                                                {unsavedChangesMessage}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-6 flex justify-end gap-3">
                                         <Button
-                                            onClick={onClose}
                                             variant="ghost"
-                                            size="icon"
-                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white"
-                                            aria-label="Fermer"
+                                            onClick={handleCancelClose}
                                         >
-                                            <X className="w-5 h-5" aria-hidden="true" />
+                                            Continuer l'édition
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            onClick={handleConfirmClose}
+                                        >
+                                            Quitter sans sauvegarder
                                         </Button>
                                     </div>
-                                )}
-                                <div className="p-0 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
-                                    {children}
-                                </div>
-                            </Dialog.Panel>
-                        </Transition.Child>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
                     </div>
-                </div>
-            </Dialog>
-        </Transition.Root>
+                </Dialog>
+            </Transition.Root>
+        </>
     );
 };

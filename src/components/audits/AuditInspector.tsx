@@ -50,6 +50,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
     const [activeTab, setActiveTab] = useState('details');
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     useEffect(() => {
         fetchDetails();
@@ -111,6 +112,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            hasUnsavedChanges={isFormDirty}
         >
             {activeTab === 'details' && (
                 <div className="p-6">
@@ -118,6 +120,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                         existingAudit={audit}
                         onSubmit={async (data) => {
                             await updateAuditDetails(data);
+                            setIsFormDirty(false);
                         }}
                         onCancel={onClose}
                         assets={assets}
@@ -126,6 +129,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                         projects={projects}
                         usersList={usersList}
                         readOnly={!canEdit}
+                        onDirtyChange={setIsFormDirty}
                     />
                 </div>
             )}

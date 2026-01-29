@@ -94,6 +94,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const [mitreResults, setMitreResults] = useState<MitreTechnique[]>([]);
     const [confirmClose, setConfirmClose] = useState(false);
     const [pendingStatus, setPendingStatus] = useState<Risk['status'] | null>(null);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     // Reset state when risk changes
     const handleClose = React.useCallback(() => {
@@ -102,6 +103,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         setConfirmClose(false);
         setPendingStatus(null);
         if (isEditing) exitEditMode();
+        setIsFormDirty(false);
         // Reset tab if needed or let logic persist
         setActiveTab('details');
         onClose();
@@ -122,7 +124,10 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         if (!risk) return;
         // setUpdating is handled by hook (mapped to saving)
         await handleHookUpdate(updates);
-        if (isEditing) exitEditMode();
+        if (isEditing) {
+            exitEditMode();
+            setIsFormDirty(false);
+        }
     }, [risk, handleHookUpdate, isEditing, exitEditMode]);
 
     const handleStatusChangeRequest = (status: Risk['status']) => {
@@ -208,6 +213,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             tabs={isEditing ? [] : tabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
+            hasUnsavedChanges={isFormDirty}
             actions={
                 !isEditing && canEdit ? (
                     <div className="flex gap-2">
@@ -261,6 +267,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                     controls={controls}
                     isEditing={true}
                     isLoading={updating}
+                    onDirtyChange={setIsFormDirty}
                 />
             ) : (
                 <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
@@ -291,6 +298,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                             onUpdate={handleTreatmentUpdate}
                             users={usersList}
                             controls={controls}
+                            onDirtyChange={setIsFormDirty}
                         />
                     )}
 

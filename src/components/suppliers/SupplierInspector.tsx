@@ -52,6 +52,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
 }) => {
     // Tabs state
     const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'contracts' | 'history' | 'comments'>('profile');
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     const tabs = [
         { id: 'profile', label: 'Profil', icon: Building },
@@ -64,6 +65,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
     const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
         // Validation handled by SupplierForm with zodResolver + supplierSchema
         await onUpdate(data);
+        setIsFormDirty(false);
     };
 
     const contactUser = users?.find(u =>
@@ -122,6 +124,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
             tabs={tabs}
             activeTab={inspectorTab}
             onTabChange={(id) => setInspectorTab(id as 'profile' | 'assessment' | 'contracts' | 'history' | 'comments')}
+            hasUnsavedChanges={isFormDirty}
         >
             <div className="h-full flex flex-col">
                 <div className="flex-1 overflow-hidden relative">
@@ -138,6 +141,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                             documents={documents}
                             isEditing={true}
                             readOnly={!canEdit} // Pass readOnly based on permissions
+                            onDirtyChange={setIsFormDirty}
                         />
                     )}
                     {inspectorTab === 'assessment' && (

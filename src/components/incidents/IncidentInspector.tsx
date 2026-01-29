@@ -43,10 +43,14 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     const { t } = useStore();
     const [activeTab, setActiveTab] = useState('details');
     const [isEditing, setIsEditing] = useState(false);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
-    // Reset editing state when incident changes or closes
+    // Reset editing state and dirty state when incident changes or closes
     React.useEffect(() => {
-        if (!isOpen) setIsEditing(false);
+        if (!isOpen) {
+            setIsEditing(false);
+            setIsFormDirty(false);
+        }
     }, [isOpen]);
 
     if (!incident) return null;
@@ -54,6 +58,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     const handleUpdate = async (data: IncidentFormData) => {
         await onUpdate(data);
         setIsEditing(false);
+        setIsFormDirty(false);
     };
 
     const tabs = [
@@ -87,6 +92,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
             tabs={!isEditing ? tabs : []} // Hide tabs when editing
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            hasUnsavedChanges={isFormDirty}
             actions={
                 <div className="flex gap-2">
                     {!isEditing && canEdit && (
@@ -123,6 +129,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                         assets={assets}
                         risks={risks}
                         isLoading={isSubmitting}
+                        onDirtyChange={setIsFormDirty}
                     />
                 </div>
             ) : (

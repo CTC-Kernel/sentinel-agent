@@ -58,6 +58,7 @@ interface RiskFormProps {
     isDraftMode?: boolean;
     enableAutoSave?: boolean;
     autoSaveDebounceMs?: number;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 
@@ -79,7 +80,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     readOnly = false,
     isDraftMode: initialDraftMode = false,
     enableAutoSave = true,
-    autoSaveDebounceMs = 30000
+    autoSaveDebounceMs = 30000,
+    onDirtyChange
 }) => {
     const { t } = useTranslation();
 
@@ -162,6 +164,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         debounceMs: autoSaveDebounceMs,
         isEqual: (a, b) => JSON.stringify(a) === JSON.stringify(b)
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Navigation warning
     const { isBlocked: isNavigationBlocked, proceed: proceedNavigation, cancel: cancelNavigation, bypass: bypassNavigation } = useUnsavedChangesWarning({

@@ -37,6 +37,7 @@ interface SupplierFormProps {
     documents: Document[];
     isLoading?: boolean;
     readOnly?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const SupplierForm: React.FC<SupplierFormProps> = ({
@@ -50,7 +51,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     risks,
     documents,
     isLoading = false,
-    readOnly = false
+    readOnly = false,
+    onDirtyChange
 }) => {
     const { addToast, demoMode } = useStore();
     const defaultData: SupplierFormData = {
@@ -65,7 +67,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
     };
 
-    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors }, getValues } = useZodForm<typeof supplierSchema>({
+    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors, isDirty }, getValues } = useZodForm<typeof supplierSchema>({
         schema: supplierSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -79,6 +81,10 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             status: initialData.status ?? 'Actif',
         } : defaultData
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Persistence Hook
     const { clearDraft } = useFormPersistence<SupplierFormData>('sentinel_supplier_draft_new', {

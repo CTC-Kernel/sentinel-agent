@@ -39,6 +39,7 @@ interface AuditFormProps {
 
     isLoading?: boolean;
     readOnly?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const AuditForm: React.FC<AuditFormProps> = ({
@@ -52,7 +53,8 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     usersList,
     initialData,
     isLoading = false,
-    readOnly = false
+    readOnly = false,
+    onDirtyChange
 }) => {
     const { t } = useStore();
 
@@ -63,7 +65,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
         { name: 'Review Accès Logiques', description: t('audits.form.templates.access', { defaultValue: 'Revue trimestrielle des comptes à privilèges.' }), type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
     ];
 
-    const { register, handleSubmit, reset, control, setValue, getValues, watch, formState: { errors } } = useZodForm<typeof auditSchema>({
+    const { register, handleSubmit, reset, control, setValue, getValues, watch, formState: { errors, isDirty } } = useZodForm<typeof auditSchema>({
         schema: auditSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -71,6 +73,10 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             // ...
         }
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Persistence Hook
     const { clearDraft } = useFormPersistence<AuditFormData>('sentinel_audit_draft_new', {

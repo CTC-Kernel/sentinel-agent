@@ -82,22 +82,29 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
     enabledFrameworks
 }) => {
     const { t } = useStore();
+    const [isFormDirty, setIsFormDirty] = React.useState(false);
+
+    const handleClose = () => {
+        setIsFormDirty(false);
+        onClose();
+    };
 
     if (creationMode === 'project') {
         return (
             <InspectorLayout
                 isOpen={isOpen}
-                onClose={onClose}
+                onClose={handleClose}
                 title={t('compliance.newProject')}
                 subtitle={t('projects.drawerSubtitle')}
                 icon={FolderKanban}
                 width="max-w-3xl"
+                hasUnsavedChanges={isFormDirty}
                 footer={
                     <div className="flex justify-end gap-3" aria-busy={isProjectSubmitting}>
                         <Button
                             type="button"
                             variant="ghost"
-                            onClick={onClose}
+                            onClick={handleClose}
                             disabled={isProjectSubmitting}
                             className="min-w-[120px]"
                         >
@@ -122,10 +129,14 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
                         availableRisks={risks}
                         availableControls={frameworkControls}
                         availableAssets={assets}
-                        onCancel={onClose}
-                        onSubmit={onProjectSubmit}
+                        onCancel={handleClose}
+                        onSubmit={async (data) => {
+                            await onProjectSubmit(data);
+                            setIsFormDirty(false);
+                        }}
                         initialData={projectInitialData}
                         isLoading={isProjectSubmitting}
+                        onDirtyChange={setIsFormDirty}
                     />
                 </div>
             </InspectorLayout>
@@ -135,17 +146,19 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
     return (
         <Drawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={handleClose}
             title={creationMode ? (
                 creationMode === 'risk' ? t('compliance.newRisk') : t('compliance.newAudit')
             ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('commandPalette.select'))}
             width="max-w-6xl"
+            hasUnsavedChanges={isFormDirty}
         >
             {creationMode === 'risk' && (
                 <RiskForm
-                    onCancel={onClose}
+                    onCancel={handleClose}
                     onSubmit={async (data) => {
                         await actions.createRisk(data);
+                        setIsFormDirty(false);
                         onClose();
                     }}
                     assets={assets}
@@ -153,14 +166,16 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
                     processes={[]}
                     suppliers={suppliers}
                     controls={frameworkControls}
+                    onDirtyChange={setIsFormDirty}
                 />
             )}
 
             {creationMode === 'audit' && (
                 <AuditForm
-                    onCancel={onClose}
+                    onCancel={handleClose}
                     onSubmit={async (data) => {
                         await actions.createAudit(data);
+                        setIsFormDirty(false);
                         onClose();
                     }}
                     assets={assets}
@@ -168,6 +183,7 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
                     controls={frameworkControls}
                     projects={projects}
                     usersList={usersList}
+                    onDirtyChange={setIsFormDirty}
                 />
             )}
 
@@ -189,6 +205,7 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
                         ...actions,
                         onUploadEvidence: onUploadEvidence
                     }}
+                    onDirtyChange={setIsFormDirty}
                 />
             )}
         </Drawer>

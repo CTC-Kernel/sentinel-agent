@@ -39,6 +39,7 @@ interface ComplianceInspectorProps {
         handleMapFramework?: (c: Control, f: Framework) => Promise<void>;
         handleUnmapFramework?: (c: Control, f: Framework) => Promise<void>;
     };
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
@@ -54,7 +55,8 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
     linkingToProjectId,
     linkingToProjectName,
     enabledFrameworks,
-    handlers
+    handlers,
+    onDirtyChange
 }) => {
     type InspectorTabId = 'details' | 'evidence' | 'comments' | 'history' | 'linkedItems';
     const [activeTab, setActiveTab] = useState<InspectorTabId>('details');
@@ -105,6 +107,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         usersList={usersList}
                         enabledFrameworks={enabledFrameworks}
                         handlers={handlers}
+                        onDirtyChange={onDirtyChange}
                     />
                 )}
 

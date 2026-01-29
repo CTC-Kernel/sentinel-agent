@@ -36,7 +36,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
         reset,
         setValue,
         control,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<ProjectTaskFormData>({
         resolver: zodResolver(projectTaskSchema) as Resolver<ProjectTaskFormData>,
         defaultValues: {
@@ -54,6 +54,21 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
             progress: 0
         }
     });
+
+    const [isFormDirty, setIsFormDirty] = React.useState(false);
+
+    useEffect(() => {
+        setIsFormDirty(isDirty);
+    }, [isDirty]);
+
+    const handleClose = () => {
+        setIsFormDirty(false);
+        if (onCancel) {
+            onCancel();
+        } else {
+            onClose();
+        }
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -74,8 +89,9 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
         }
     }, [isOpen, existingTask, reset]);
 
-    const onFormSubmit = (data: ProjectTaskFormData) => {
-        onSubmit(data);
+    const onFormSubmit = async (data: ProjectTaskFormData) => {
+        await onSubmit(data);
+        setIsFormDirty(false);
         onClose();
     };
 
@@ -88,10 +104,11 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
     return (
         <Drawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={handleClose}
             title={existingTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
             subtitle="Définissez les détails de la tâche du projet"
             width="max-w-2xl"
+            hasUnsavedChanges={isFormDirty}
         >
             <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col h-full pt-6 px-1">
                 <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-2 pb-6">
@@ -310,7 +327,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                     <Button
                         type="button"
                         variant="ghost"
-                        onClick={onClose || onCancel}
+                        onClick={handleClose}
                         disabled={isSubmitting}
                     >
                         Annuler

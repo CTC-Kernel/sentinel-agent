@@ -74,6 +74,7 @@ export const Incidents: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [severityFilter, setSeverityFilter] = useState('');
     const [activeTab, setActiveTab] = usePersistedState<string>('incidents-active-tab', 'overview');
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     // Optimized Data Hooks
     const {
@@ -236,6 +237,7 @@ export const Incidents: React.FC = () => {
         setIsSubmitting(true);
         try {
             await addIncident(data);
+            setIsFormDirty(false);
             setCreationMode(false);
         } catch (error) {
             ErrorLogger.warn('Creation handled in hook', 'Incidents.handleCreate', { metadata: { error } });
@@ -337,8 +339,8 @@ export const Incidents: React.FC = () => {
     const handleOpenCreate = useCallback(() => setCreationMode(true), []);
     const handleSelectIncident = useCallback((inc: Incident) => setSelectedIncident(inc), []);
     const handleInspectorClose = useCallback(() => setSelectedIncident(null), []);
-    const handleCloseCreateDrawer = useCallback(() => setCreationMode(false), []);
-    const handleCancelCreate = useCallback(() => setCreationMode(false), []);
+    const handleCloseCreateDrawer = useCallback(() => { setCreationMode(false); setIsFormDirty(false); }, []);
+    const handleCancelCreate = useCallback(() => { setCreationMode(false); setIsFormDirty(false); }, []);
 
     const tabs = [
         { id: 'overview', label: t('common.overview'), icon: LayoutDashboard },
@@ -623,12 +625,14 @@ export const Incidents: React.FC = () => {
                 subtitle={t('incidents.newIncident')}
                 width="max-w-6xl"
                 breadcrumbs={breadcrumbs}
+                hasUnsavedChanges={isFormDirty}
             >
                 <div className="p-6">
                     <React.Suspense fallback={<Spinner />}>
                         <IncidentForm
                             onSubmit={handleCreate}
                             onCancel={handleCancelCreate}
+                            onDirtyChange={setIsFormDirty}
                             users={effectiveUsers}
                             processes={rawProcesses}
                             assets={assets}
