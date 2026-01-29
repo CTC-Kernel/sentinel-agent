@@ -176,7 +176,7 @@ jobs:
       - name: Build MSI
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
-          wix build -d "TargetDir=.\target\release" -d "Version=$version" -o "target/release/SentinelAgentSetup-$version.msi" wix/sentinel-agent.wxs
+          wix build -d "TargetDir=.\target\release" -d "Version=$version" -o "target/release/SentinelAgentSetup-$version.msi" wix/main.wxs -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
         shell: pwsh
 
       - name: Create latest copy
