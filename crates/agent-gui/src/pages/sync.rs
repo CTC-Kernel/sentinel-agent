@@ -111,8 +111,12 @@ impl SyncPage {
                                 theme::ERROR
                             };
                             ui.label(
-                                egui::RichText::new(if entry.success { "\u{2713}" } else { "\u{2717}" })
-                                    .color(color),
+                                egui::RichText::new(if entry.success {
+                                    "\u{2713}"
+                                } else {
+                                    "\u{2717}"
+                                })
+                                .color(color),
                             );
                             ui.label(
                                 egui::RichText::new(

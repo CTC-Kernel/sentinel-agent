@@ -8,9 +8,9 @@
 //! - Uninstall: `sentinel-agent uninstall` (requires admin/root)
 
 use agent_common::config::AgentConfig;
-use agent_core::{AgentRuntime, init_logging, service};
 #[cfg(feature = "tray")]
 use agent_core::tray;
+use agent_core::{AgentRuntime, init_logging, service};
 use clap::{Parser, Subcommand};
 #[cfg(feature = "tray")]
 use muda::MenuEvent;
@@ -547,7 +547,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
     use agent_gui::events::{AgentEvent, GuiCommand};
     use std::sync::mpsc;
 
-    info!("Starting Sentinel Agent with egui GUI (enrolled={})", enrolled);
+    info!(
+        "Starting Sentinel Agent with egui GUI (enrolled={})",
+        enrolled
+    );
 
     let (event_tx, event_rx) = mpsc::channel::<AgentEvent>();
     let (command_tx, command_rx) = mpsc::channel::<GuiCommand>();
@@ -609,8 +612,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
                         Some(EnrollmentCommand::SubmitQr(qr_data)) => {
                             info!("GUI enrollment: received QR data");
                             // QR payload is JSON with { server_url, token, ... }
-                            if let Ok(payload) =
-                                serde_json::from_str::<serde_json::Value>(&qr_data)
+                            if let Ok(payload) = serde_json::from_str::<serde_json::Value>(&qr_data)
                             {
                                 if let Some(token) = payload
                                     .get("enrollment_token")
@@ -618,9 +620,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
                                     .and_then(|v| v.as_str())
                                 {
                                     config.enrollment_token = Some(token.to_string());
-                                    if let Some(url) = payload
-                                        .get("server_url")
-                                        .and_then(|v| v.as_str())
+                                    if let Some(url) =
+                                        payload.get("server_url").and_then(|v| v.as_str())
                                     {
                                         config.server_url = url.to_string();
                                     }

@@ -249,8 +249,8 @@ impl<'a> EventsRepository<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agent_storage::{Database, DatabaseConfig, KeyManager};
     use crate::migration_v2::run_v2_migrations;
+    use agent_storage::{Database, DatabaseConfig, KeyManager};
     use tempfile::TempDir;
 
     async fn create_test_db() -> (TempDir, Database) {
@@ -276,9 +276,13 @@ mod tests {
         let (_temp_dir, db) = create_test_db().await;
         let repo = EventsRepository::new(&db);
 
-        let event = AgentEvent::new("check_completed", EventSeverity::Info, "Disk encryption check passed")
-            .with_detail(r#"{"check_id": "disk_encryption"}"#)
-            .with_source("scanner");
+        let event = AgentEvent::new(
+            "check_completed",
+            EventSeverity::Info,
+            "Disk encryption check passed",
+        )
+        .with_detail(r#"{"check_id": "disk_encryption"}"#)
+        .with_source("scanner");
 
         let id = repo.insert(&event).await.unwrap();
         assert!(id > 0);
@@ -294,15 +298,27 @@ mod tests {
         let (_temp_dir, db) = create_test_db().await;
         let repo = EventsRepository::new(&db);
 
-        repo.insert(&AgentEvent::new("check_completed", EventSeverity::Info, "Check A"))
-            .await
-            .unwrap();
-        repo.insert(&AgentEvent::new("sync_started", EventSeverity::Info, "Sync started"))
-            .await
-            .unwrap();
-        repo.insert(&AgentEvent::new("check_completed", EventSeverity::Info, "Check B"))
-            .await
-            .unwrap();
+        repo.insert(&AgentEvent::new(
+            "check_completed",
+            EventSeverity::Info,
+            "Check A",
+        ))
+        .await
+        .unwrap();
+        repo.insert(&AgentEvent::new(
+            "sync_started",
+            EventSeverity::Info,
+            "Sync started",
+        ))
+        .await
+        .unwrap();
+        repo.insert(&AgentEvent::new(
+            "check_completed",
+            EventSeverity::Info,
+            "Check B",
+        ))
+        .await
+        .unwrap();
 
         let checks = repo.get_by_type("check_completed", 10).await.unwrap();
         assert_eq!(checks.len(), 2);

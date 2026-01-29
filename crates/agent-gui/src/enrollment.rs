@@ -163,10 +163,7 @@ impl EnrollmentWizard {
 
             // Toggle between token and QR
             ui.horizontal(|ui| {
-                if ui
-                    .selectable_label(!self.use_qr, "Token manuel")
-                    .clicked()
-                {
+                if ui.selectable_label(!self.use_qr, "Token manuel").clicked() {
                     self.use_qr = false;
                 }
                 if ui
@@ -299,8 +296,7 @@ impl EnrollmentWizard {
 
                 if success {
                     ui.label(
-                        egui::RichText::new("\u{2705}")
-                            .font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new("\u{2705}").font(egui::FontId::proportional(48.0)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -311,8 +307,7 @@ impl EnrollmentWizard {
                     );
                 } else {
                     ui.label(
-                        egui::RichText::new("\u{274c}")
-                            .font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new("\u{274c}").font(egui::FontId::proportional(48.0)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -332,13 +327,21 @@ impl EnrollmentWizard {
 
                 ui.add_space(theme::SPACE_LG);
 
-                let btn_text = if success { "Continuer" } else { "R\u{00e9}essayer" };
+                let btn_text = if success {
+                    "Continuer"
+                } else {
+                    "R\u{00e9}essayer"
+                };
                 let btn = egui::Button::new(
                     egui::RichText::new(btn_text)
                         .font(theme::font_body())
                         .color(theme::TEXT_ON_ACCENT),
                 )
-                .fill(if success { theme::ACCENT } else { theme::WARNING })
+                .fill(if success {
+                    theme::ACCENT
+                } else {
+                    theme::WARNING
+                })
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
                 .min_size(egui::Vec2::new(160.0, 40.0));
 
@@ -358,10 +361,13 @@ impl EnrollmentWizard {
             ("Bienvenue", EnrollmentStep::Welcome),
             ("Token", EnrollmentStep::TokenEntry),
             ("Enr\u{00f4}lement", EnrollmentStep::InProgress),
-            ("Termin\u{00e9}", EnrollmentStep::Complete {
-                success: true,
-                message: String::new(),
-            }),
+            (
+                "Termin\u{00e9}",
+                EnrollmentStep::Complete {
+                    success: true,
+                    message: String::new(),
+                },
+            ),
         ];
 
         let current_idx = match current {

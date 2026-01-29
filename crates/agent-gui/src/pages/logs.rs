@@ -71,11 +71,9 @@ impl LogsPage {
 
                             // Timestamp
                             ui.label(
-                                egui::RichText::new(
-                                    entry.timestamp.format("%H:%M:%S").to_string(),
-                                )
-                                .font(theme::font_mono())
-                                .color(theme::TEXT_TERTIARY),
+                                egui::RichText::new(entry.timestamp.format("%H:%M:%S").to_string())
+                                    .font(theme::font_mono())
+                                    .color(theme::TEXT_TERTIARY),
                             );
 
                             // Source module
