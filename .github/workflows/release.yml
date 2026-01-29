@@ -171,7 +171,10 @@ jobs:
           OPENSSL_STATIC: "1"
 
       - name: Install WiX Toolset
-        run: dotnet tool install --global wix
+        run: |
+          dotnet tool install --global wix
+          wix extension add -g WixToolset.UI.wixext
+          wix extension add -g WixToolset.Util.wixext
 
       - name: Build MSI
         run: |
