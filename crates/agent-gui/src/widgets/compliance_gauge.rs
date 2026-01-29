@@ -1,6 +1,6 @@
 //! Circular compliance score gauge widget.
 
-use egui::{Color32, Pos2, Ui, Vec2};
+use egui::{Pos2, Ui, Vec2};
 use std::f32::consts::PI;
 
 use crate::theme;

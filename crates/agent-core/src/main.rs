@@ -374,18 +374,23 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
         .block_on(enrollment_manager.is_enrolled())
         .unwrap_or(false);
 
+    // ── GUI mode: delegate enrollment + runtime to the GUI ──
+    #[cfg(feature = "gui")]
+    if !no_tray {
+        return run_with_gui(config, is_enrolled);
+    }
+
+    // ── Legacy / headless enrollment flow ──
     if !is_enrolled {
         info!("Agent not enrolled. Requesting enrollment token.");
 
         // Try to get token from config or prompt user
         let token = config.enrollment_token.clone().or_else(|| {
             if no_tray {
-                // Headless mode - can't show dialog
-                println!("❌ Agent is not enrolled.");
+                println!("Agent is not enrolled.");
                 println!("Run 'sentinel-agent enroll --token <TOKEN>' first.");
                 None
             } else {
-                // Show enrollment dialog
                 show_enrollment_dialog()
             }
         });
@@ -395,10 +400,10 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
                 config.enrollment_token = Some(token.clone());
                 let enrollment_manager = EnrollmentManager::new(&config, &db);
 
-                println!("🔐 Enrolling agent...");
+                println!("Enrolling agent...");
                 match rt.block_on(enrollment_manager.ensure_enrolled()) {
                     Ok(creds) => {
-                        println!("✅ Enrollment successful! Agent ID: {}", creds.agent_id);
+                        println!("Enrollment successful! Agent ID: {}", creds.agent_id);
                     }
                     Err(e) => {
                         error!("Enrollment failed: {}", e);
@@ -427,7 +432,7 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
     ctrlc_handler(shutdown.clone());
 
     if no_tray {
-        // Headless mode - just run the agent loop
+        // Headless mode
         info!("Running in headless mode (no tray icon)");
         let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
         match rt.block_on(runtime.run()) {
@@ -438,7 +443,6 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
             }
         }
     } else {
-        // Desktop mode with tray icon
         #[cfg(feature = "tray")]
         {
             run_with_tray(runtime)
@@ -531,6 +535,219 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
         *control_flow =
             ControlFlow::WaitUntil(std::time::Instant::now() + std::time::Duration::from_secs(1));
     })
+}
+
+/// Run the agent with the egui desktop GUI.
+///
+/// The GUI handles enrollment (if not yet enrolled), dashboard, and all
+/// pages.  The agent runtime is spawned in a background thread.
+#[cfg(feature = "gui")]
+fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
+    use agent_gui::enrollment::EnrollmentCommand;
+    use agent_gui::events::{AgentEvent, GuiCommand};
+    use std::sync::mpsc;
+
+    info!("Starting Sentinel Agent with egui GUI (enrolled={})", enrolled);
+
+    let (event_tx, event_rx) = mpsc::channel::<AgentEvent>();
+    let (command_tx, command_rx) = mpsc::channel::<GuiCommand>();
+    let (enrollment_tx, enrollment_rx) = mpsc::channel::<EnrollmentCommand>();
+
+    // Spawn background thread for runtime + enrollment
+    let bg_event_tx = event_tx.clone();
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+        rt.block_on(async move {
+            let mut config = config;
+
+            // ── Handle enrollment from GUI if not yet enrolled ──
+            if !enrolled {
+                loop {
+                    // Poll for enrollment commands (non-blocking in async)
+                    let cmd = loop {
+                        match enrollment_rx.try_recv() {
+                            Ok(cmd) => break Some(cmd),
+                            Err(mpsc::TryRecvError::Empty) => {
+                                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                            }
+                            Err(mpsc::TryRecvError::Disconnected) => break None,
+                        }
+                    };
+
+                    match cmd {
+                        Some(EnrollmentCommand::SubmitToken(token)) => {
+                            info!("GUI enrollment: received token");
+                            config.enrollment_token = Some(token);
+
+                            // Open DB and attempt enrollment
+                            let result = enroll_with_config(&config).await;
+                            match result {
+                                Ok(agent_id) => {
+                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                        success: true,
+                                        message: format!(
+                                            "Agent enrôlé avec succès.\nID: {}",
+                                            agent_id
+                                        ),
+                                        agent_id: Some(agent_id),
+                                    });
+                                    // Wait for Finish before starting runtime
+                                    wait_for_finish(&enrollment_rx).await;
+                                    break;
+                                }
+                                Err(e) => {
+                                    warn!("GUI enrollment failed: {}", e);
+                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                        success: false,
+                                        message: format!("Échec: {}", e),
+                                        agent_id: None,
+                                    });
+                                    // Continue loop -- user can retry
+                                }
+                            }
+                        }
+                        Some(EnrollmentCommand::SubmitQr(qr_data)) => {
+                            info!("GUI enrollment: received QR data");
+                            // QR payload is JSON with { server_url, token, ... }
+                            if let Ok(payload) =
+                                serde_json::from_str::<serde_json::Value>(&qr_data)
+                            {
+                                if let Some(token) = payload
+                                    .get("enrollment_token")
+                                    .or_else(|| payload.get("token"))
+                                    .and_then(|v| v.as_str())
+                                {
+                                    config.enrollment_token = Some(token.to_string());
+                                    if let Some(url) = payload
+                                        .get("server_url")
+                                        .and_then(|v| v.as_str())
+                                    {
+                                        config.server_url = url.to_string();
+                                    }
+                                }
+                            } else {
+                                // Treat raw QR data as token
+                                config.enrollment_token = Some(qr_data);
+                            }
+
+                            let result = enroll_with_config(&config).await;
+                            match result {
+                                Ok(agent_id) => {
+                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                        success: true,
+                                        message: format!(
+                                            "Agent enrôlé avec succès.\nID: {}",
+                                            agent_id
+                                        ),
+                                        agent_id: Some(agent_id),
+                                    });
+                                    wait_for_finish(&enrollment_rx).await;
+                                    break;
+                                }
+                                Err(e) => {
+                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                        success: false,
+                                        message: format!("Échec: {}", e),
+                                        agent_id: None,
+                                    });
+                                }
+                            }
+                        }
+                        Some(EnrollmentCommand::Cancel) | None => {
+                            info!("Enrollment cancelled or channel closed");
+                            return;
+                        }
+                        Some(EnrollmentCommand::Finish) => {
+                            // User clicked finish on a retry -- just break
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // ── Run the agent runtime ──
+            let runtime = AgentRuntime::new(config);
+            let handle = runtime.handle();
+
+            // Spawn command processor
+            tokio::spawn(async move {
+                loop {
+                    match command_rx.try_recv() {
+                        Ok(GuiCommand::Pause) => handle.pause(),
+                        Ok(GuiCommand::Resume) => handle.resume(),
+                        Ok(GuiCommand::Shutdown) => {
+                            handle.request_shutdown();
+                            break;
+                        }
+                        Ok(GuiCommand::RunCheck) => {
+                            info!("GUI requested check run");
+                            // TODO: trigger check
+                        }
+                        Ok(GuiCommand::ForceSync) => {
+                            info!("GUI requested force sync");
+                            // TODO: trigger sync
+                        }
+                        Ok(_) => {}
+                        Err(mpsc::TryRecvError::Empty) => {
+                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                        }
+                        Err(mpsc::TryRecvError::Disconnected) => break,
+                    }
+                }
+            });
+
+            // Run the agent (blocks until shutdown)
+            if let Err(e) = runtime.run().await {
+                error!("Agent runtime error: {}", e);
+            }
+        });
+    });
+
+    // Launch GUI on main thread (blocks until window closes)
+    match agent_gui::run_gui(enrolled, event_rx, command_tx, enrollment_tx) {
+        Ok(()) => {
+            info!("GUI exited normally");
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            error!("GUI error: {}", e);
+            ExitCode::FAILURE
+        }
+    }
+}
+
+/// Perform enrollment using the current config. Returns the agent ID on success.
+#[cfg(feature = "gui")]
+async fn enroll_with_config(config: &AgentConfig) -> Result<String, String> {
+    use agent_storage::{Database, DatabaseConfig, KeyManager};
+    use agent_sync::EnrollmentManager;
+
+    let db_config = DatabaseConfig::default();
+    let key_manager = KeyManager::new().map_err(|e| format!("KeyManager: {}", e))?;
+    let db = Database::open(db_config, &key_manager).map_err(|e| format!("DB: {}", e))?;
+    let enrollment_manager = EnrollmentManager::new(config, &db);
+
+    let creds = enrollment_manager
+        .ensure_enrolled()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(creds.agent_id.to_string())
+}
+
+/// Wait for the user to click "Continuer" after successful enrollment.
+#[cfg(feature = "gui")]
+async fn wait_for_finish(rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>) {
+    loop {
+        match rx.try_recv() {
+            Ok(agent_gui::enrollment::EnrollmentCommand::Finish) => break,
+            Ok(_) => continue,
+            Err(std::sync::mpsc::TryRecvError::Empty) => {
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => break,
+        }
+    }
 }
 
 /// Set up Ctrl+C handler for graceful shutdown.

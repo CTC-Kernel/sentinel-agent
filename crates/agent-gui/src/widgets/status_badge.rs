@@ -1,6 +1,6 @@
 //! Pill-shaped status badges.
 
-use egui::{Rounding, Ui, Vec2};
+use egui::{CornerRadius, Ui, Vec2};
 
 use crate::theme;
 
@@ -20,7 +20,7 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
     let (rect, _) = ui.allocate_exact_size(desired, egui::Sense::hover());
     let painter = ui.painter_at(rect);
 
-    painter.rect_filled(rect, Rounding::same(theme::BADGE_ROUNDING), color);
+    painter.rect_filled(rect, CornerRadius::same(theme::BADGE_ROUNDING), color);
     painter.galley(
         rect.min + padding,
         galley,

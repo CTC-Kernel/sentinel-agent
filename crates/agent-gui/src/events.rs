@@ -43,6 +43,15 @@ pub enum AgentEvent {
         /// Error message if sync failed.
         error: Option<String>,
     },
+    /// Enrollment completed (success or failure).
+    EnrollmentResult {
+        /// Whether enrollment succeeded.
+        success: bool,
+        /// Status message.
+        message: String,
+        /// Agent ID if enrollment succeeded.
+        agent_id: Option<String>,
+    },
     /// Agent is shutting down.
     ShuttingDown,
 }
