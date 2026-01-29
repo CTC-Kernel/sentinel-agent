@@ -158,8 +158,8 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
     const getDownloadUrl = (platform: string) => {
         // Map platform to filenames found in public/downloads/agents/
         switch (platform) {
-            case 'windows': return '/downloads/agents/SentinelAgent-Windows-1.0.0.zip'; // Using zip as installer
-            case 'macos': return '/downloads/agents/SentinelAgent-macOS-1.0.1.zip';
+            case 'windows': return '/downloads/agents/SentinelAgentSetup-1.0.2.exe'; // Using exe as installer
+            case 'macos': return '/downloads/agents/SentinelAgent-macOS-1.0.2.zip';
             case 'linux_deb': return '/downloads/agents/SentinelAgent-Linux-1.0.0.deb';
             case 'linux_rpm': return '/downloads/agents/SentinelAgent-Linux-1.0.0.rpm';
             case 'linux_appimage': return '/downloads/agents/SentinelAgent-Linux-1.0.0.AppImage';
