@@ -284,7 +284,7 @@ impl BackupManager {
             let entry = entry?;
             let path = entry.path();
 
-            if let Some(ext) = path.extension() {
+            if path.extension().is_some() {
                 // Look for .json metadata files
                 if path.to_string_lossy().ends_with(METADATA_EXTENSION) {
                     match fs::read_to_string(&path) {
