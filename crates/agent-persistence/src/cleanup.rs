@@ -25,6 +25,14 @@ pub struct CleanupManager {
     data_dir: PathBuf,
 }
 
+impl Default for CleanupManager {
+    fn default() -> Self {
+        Self {
+            data_dir: AgentConfig::platform_data_dir(),
+        }
+    }
+}
+
 impl CleanupManager {
     /// Create a new cleanup manager using the default data directory.
     pub fn new() -> Self {

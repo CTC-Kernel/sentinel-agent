@@ -253,7 +253,7 @@ jobs:
         run: strip target/release/agent-core
 
       - name: Build RPM package
-        run: cargo generate-rpm --package agent-core
+        run: cargo generate-rpm -p crates/agent-core
 
       - name: Create latest copy
         run: |
