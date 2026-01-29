@@ -1030,6 +1030,347 @@ app.get('/v1/agents/:agentId/cis/benchmarks', validateAgentAuth, async (req, res
 });
 
 // ============================================================================
+// Token Validation (NO AUTH - public for pre-enrollment)
+// GET /v1/agents/tokens/validate
+// ============================================================================
+app.get('/v1/agents/tokens/validate', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({
+                code: 'MISSING_TOKEN',
+                message: 'token query parameter is required',
+            });
+        }
+
+        // Find the token
+        const tokensSnapshot = await db
+            .collectionGroup('enrollmentTokens')
+            .where('token', '==', token)
+            .limit(1)
+            .get();
+
+        if (tokensSnapshot.empty) {
+            return res.status(404).json({
+                code: 'TOKEN_NOT_FOUND',
+                message: 'Enrollment token not found',
+                valid: false,
+            });
+        }
+
+        const tokenDoc = tokensSnapshot.docs[0];
+        const tokenData = tokenDoc.data();
+
+        // Check if revoked
+        if (tokenData.revoked) {
+            return res.status(200).json({
+                valid: false,
+                reason: 'revoked',
+                organization_id: tokenData.organizationId,
+            });
+        }
+
+        // Check expiration
+        const expiresAt = tokenData.expiresAt?.toDate?.() || new Date(tokenData.expiresAt);
+        if (expiresAt < new Date()) {
+            return res.status(200).json({
+                valid: false,
+                reason: 'expired',
+                expires_at: expiresAt.toISOString(),
+                organization_id: tokenData.organizationId,
+            });
+        }
+
+        // Check usage limit
+        if (tokenData.maxUses && tokenData.usedCount >= tokenData.maxUses) {
+            return res.status(200).json({
+                valid: false,
+                reason: 'usage_limit_reached',
+                max_uses: tokenData.maxUses,
+                used_count: tokenData.usedCount,
+                organization_id: tokenData.organizationId,
+            });
+        }
+
+        // Token is valid
+        return res.status(200).json({
+            valid: true,
+            organization_id: tokenData.organizationId,
+            expires_at: expiresAt.toISOString(),
+            remaining_uses: tokenData.maxUses
+                ? tokenData.maxUses - (tokenData.usedCount || 0)
+                : null,
+            name: tokenData.name || null,
+        });
+    } catch (error) {
+        logger.error('Token validation error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Certificate Renewal (SECURED)
+// POST /v1/agents/:agentId/certificate/renew
+// ============================================================================
+app.post('/v1/agents/:agentId/certificate/renew', validateAgentAuth, async (req, res) => {
+    try {
+        const { agentId } = req.params;
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
+
+        const { reason } = req.body;
+
+        logger.info(`Certificate renewal requested for agent ${agentId}: ${reason || 'no reason'}`);
+
+        // Generate new certificates
+        const certificateExpiresAt = new Date();
+        certificateExpiresAt.setFullYear(certificateExpiresAt.getFullYear() + 1);
+
+        const clientCertificate = generatePlaceholderCert('client', agentId);
+        const clientKey = generatePlaceholderKey();
+        const serverCertificate = agentData.serverCertificate || generatePlaceholderCert('server');
+
+        // Update agent document with new certificates
+        await agentDoc.ref.update({
+            clientCertificate,
+            clientKey,
+            certificateExpiresAt: certificateExpiresAt.toISOString(),
+            lastCertificateRenewal: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Audit log
+        await db.collection('organizations').doc(organizationId).collection('auditLogs').add({
+            type: 'agent_certificate_renewed',
+            agentId,
+            reason: reason || 'agent_request',
+            hostname: agentData.hostname,
+            ipAddress: req.ip || '',
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info(`Certificate renewed for agent ${agentId}, expires ${certificateExpiresAt.toISOString()}`);
+
+        return res.status(200).json({
+            client_certificate: clientCertificate,
+            client_private_key: clientKey,
+            server_certificate: serverCertificate,
+            certificate_expires_at: certificateExpiresAt.toISOString(),
+            server_fingerprints: [],
+        });
+    } catch (error) {
+        logger.error('Certificate renewal error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Agent Re-enrollment (SECURED)
+// POST /v1/agents/:agentId/re-enroll
+// ============================================================================
+app.post('/v1/agents/:agentId/re-enroll', validateAgentAuth, async (req, res) => {
+    try {
+        const { agentId } = req.params;
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
+
+        const { reason, hostname, os, os_version, machine_id, agent_version } = req.body;
+
+        logger.info(`Re-enrollment requested for agent ${agentId}: ${reason || 'no reason'}`);
+
+        // Generate new certificates
+        const certificateExpiresAt = new Date();
+        certificateExpiresAt.setFullYear(certificateExpiresAt.getFullYear() + 1);
+
+        const serverCertificate = generatePlaceholderCert('server');
+        const clientCertificate = generatePlaceholderCert('client', agentId);
+        const clientKey = generatePlaceholderKey();
+
+        // Update agent document
+        const updateData = {
+            serverCertificate,
+            clientCertificate,
+            clientKey,
+            certificateExpiresAt: certificateExpiresAt.toISOString(),
+            status: 'active',
+            lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
+            reEnrolledAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (hostname) updateData.hostname = hostname;
+        if (os) updateData.os = os.toLowerCase();
+        if (os_version) updateData.osVersion = os_version;
+        if (machine_id) updateData.machineId = machine_id;
+        if (agent_version) updateData.version = agent_version;
+
+        await agentDoc.ref.update(updateData);
+
+        // Audit log
+        await db.collection('organizations').doc(organizationId).collection('auditLogs').add({
+            type: 'agent_re_enrolled',
+            agentId,
+            reason: reason || 'agent_request',
+            hostname: hostname || agentData.hostname,
+            ipAddress: req.ip || '',
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info(`Agent ${agentId} re-enrolled successfully`);
+
+        return res.status(200).json({
+            agent_id: agentId,
+            organization_id: organizationId,
+            server_certificate: serverCertificate,
+            client_certificate: clientCertificate,
+            client_key: clientKey,
+            certificate_expires_at: certificateExpiresAt.toISOString(),
+            config: agentData.config || getDefaultAgentConfig(),
+        });
+    } catch (error) {
+        logger.error('Re-enrollment error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// QR Code Generation for Enrollment Token
+// POST /v1/organizations/:orgId/enrollment-tokens/:tokenId/qr
+// ============================================================================
+app.post('/v1/organizations/:orgId/enrollment-tokens/:tokenId/qr', async (req, res) => {
+    try {
+        const { orgId, tokenId } = req.params;
+
+        // Validate the token exists and belongs to the organization
+        const tokenRef = db
+            .collection('organizations')
+            .doc(orgId)
+            .collection('enrollmentTokens')
+            .doc(tokenId);
+        const tokenDoc = await tokenRef.get();
+
+        if (!tokenDoc.exists) {
+            return res.status(404).json({
+                code: 'TOKEN_NOT_FOUND',
+                message: 'Enrollment token not found',
+            });
+        }
+
+        const tokenData = tokenDoc.data();
+
+        // Check if revoked
+        if (tokenData.revoked) {
+            return res.status(400).json({
+                code: 'TOKEN_REVOKED',
+                message: 'Token has been revoked',
+            });
+        }
+
+        // Check expiration
+        const expiresAt = tokenData.expiresAt?.toDate?.() || new Date(tokenData.expiresAt);
+        if (expiresAt < new Date()) {
+            return res.status(400).json({
+                code: 'TOKEN_EXPIRED',
+                message: 'Token has expired',
+            });
+        }
+
+        // Build the QR payload - this is what the agent scans
+        const serverUrl = process.env.AGENT_SERVER_URL
+            || 'https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi';
+
+        const qrPayload = {
+            version: 1,
+            server_url: serverUrl,
+            enrollment_token: tokenData.token,
+            organization_id: orgId,
+            expires_at: expiresAt.toISOString(),
+        };
+
+        // Return the QR data as JSON (client-side rendering with qrcode library)
+        return res.status(200).json({
+            qr_data: JSON.stringify(qrPayload),
+            qr_payload: qrPayload,
+            token_name: tokenData.name || null,
+            expires_at: expiresAt.toISOString(),
+        });
+    } catch (error) {
+        logger.error('QR generation error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Migration Notification (SECURED)
+// POST /v1/agents/:agentId/migrate
+// ============================================================================
+app.post('/v1/agents/:agentId/migrate', validateAgentAuth, async (req, res) => {
+    try {
+        const { agentId } = req.params;
+        const agentDoc = req.agentDoc;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
+
+        const {
+            previous_machine_id,
+            new_machine_id,
+            hostname,
+            os,
+            os_version,
+            reason,
+        } = req.body;
+
+        if (!new_machine_id) {
+            return res.status(400).json({
+                error: 'new_machine_id is required',
+            });
+        }
+
+        logger.info(`Migration notification for agent ${agentId}: ${previous_machine_id || 'unknown'} -> ${new_machine_id}`);
+
+        // Update agent with new machine info
+        const updateData = {
+            machineId: new_machine_id,
+            previousMachineId: previous_machine_id || agentData.machineId,
+            lastMigratedAt: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'active',
+            lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (hostname) updateData.hostname = hostname;
+        if (os) updateData.os = os.toLowerCase();
+        if (os_version) updateData.osVersion = os_version;
+
+        await agentDoc.ref.update(updateData);
+
+        // Audit log
+        await db.collection('organizations').doc(organizationId).collection('auditLogs').add({
+            type: 'agent_migrated',
+            agentId,
+            previousMachineId: previous_machine_id || agentData.machineId,
+            newMachineId: new_machine_id,
+            hostname: hostname || agentData.hostname,
+            reason: reason || 'hardware_change',
+            ipAddress: req.ip || '',
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info(`Agent ${agentId} migration recorded: ${new_machine_id}`);
+
+        return res.status(200).json({
+            acknowledged: true,
+            agent_id: agentId,
+            organization_id: organizationId,
+            message: 'Migration recorded successfully',
+        });
+    } catch (error) {
+        logger.error('Migration notification error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
 // Health Check
 // GET /v1/health
 // ============================================================================
