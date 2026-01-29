@@ -6,13 +6,20 @@
 //! - Configuration loading and validation
 //! - Clean uninstallation support
 //! - Resource monitoring and limits
-//! - System tray interface (macOS/Windows)
+//! - System tray interface (macOS/Windows) -- behind `tray` feature
 //! - API client for server communication
+//!
+//! # Feature Flags
+//!
+//! - `tray` (default) -- enable system tray icon (tray-icon + muda + tao)
+//! - `gui` -- enable v2 desktop GUI support (agent-gui + agent-persistence)
 
 pub mod api_client;
 pub mod cleanup;
 pub mod resources;
 pub mod service;
+
+#[cfg(feature = "tray")]
 pub mod tray;
 
 use agent_common::config::AgentConfig;
@@ -42,6 +49,10 @@ pub type ShutdownSignal = Arc<AtomicBool>;
 pub struct AgentRuntime {
     config: AgentConfig,
     shutdown: ShutdownSignal,
+    /// Whether the agent is paused (controlled from tray/GUI).
+    paused: Arc<AtomicBool>,
+    /// Whether the agent is currently scanning.
+    scanning: Arc<AtomicBool>,
     resource_monitor: ResourceMonitor,
     api_client: RwLock<Option<ApiClient>>,
     heartbeat_interval_secs: RwLock<u64>,
@@ -55,6 +66,61 @@ pub struct AgentRuntime {
     vuln_scan_interval_secs: u64,
     /// Security scan interval in seconds.
     security_scan_interval_secs: u64,
+}
+
+/// A lightweight handle to the running agent that can be shared with the GUI
+/// or other external controllers.
+///
+/// This provides a non-blocking interface to query runtime state and send
+/// commands without owning the full `AgentRuntime`.
+#[derive(Clone)]
+pub struct RuntimeHandle {
+    /// Shared shutdown signal.
+    shutdown: ShutdownSignal,
+    /// Whether the agent is currently paused.
+    paused: Arc<AtomicBool>,
+    /// Whether the agent is currently scanning.
+    scanning: Arc<AtomicBool>,
+}
+
+impl RuntimeHandle {
+    /// Request agent shutdown.
+    pub fn request_shutdown(&self) {
+        info!("Shutdown requested via handle");
+        self.shutdown.store(true, Ordering::SeqCst);
+    }
+
+    /// Check if shutdown has been requested.
+    pub fn is_shutdown_requested(&self) -> bool {
+        self.shutdown.load(Ordering::SeqCst)
+    }
+
+    /// Pause agent operations.
+    pub fn pause(&self) {
+        info!("Agent paused via handle");
+        self.paused.store(true, Ordering::Release);
+    }
+
+    /// Resume agent operations.
+    pub fn resume(&self) {
+        info!("Agent resumed via handle");
+        self.paused.store(false, Ordering::Release);
+    }
+
+    /// Check if the agent is paused.
+    pub fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Acquire)
+    }
+
+    /// Check if the agent is currently scanning.
+    pub fn is_scanning(&self) -> bool {
+        self.scanning.load(Ordering::Acquire)
+    }
+
+    /// Get a clone of the shutdown signal.
+    pub fn shutdown_signal(&self) -> ShutdownSignal {
+        self.shutdown.clone()
+    }
 }
 
 impl AgentRuntime {
@@ -74,6 +140,8 @@ impl AgentRuntime {
         Self {
             config,
             shutdown: Arc::new(AtomicBool::new(false)),
+            paused: Arc::new(AtomicBool::new(false)),
+            scanning: Arc::new(AtomicBool::new(false)),
             resource_monitor,
             api_client: RwLock::new(None),
             heartbeat_interval_secs: RwLock::new(DEFAULT_HEARTBEAT_INTERVAL_SECS),
@@ -82,6 +150,16 @@ impl AgentRuntime {
             network_manager: RwLock::new(network_manager),
             vuln_scan_interval_secs: DEFAULT_VULN_SCAN_INTERVAL_SECS,
             security_scan_interval_secs: DEFAULT_SECURITY_SCAN_INTERVAL_SECS,
+        }
+    }
+
+    /// Get a lightweight handle to the runtime for sharing with the GUI or
+    /// other controllers.
+    pub fn handle(&self) -> RuntimeHandle {
+        RuntimeHandle {
+            shutdown: self.shutdown.clone(),
+            paused: self.paused.clone(),
+            scanning: self.scanning.clone(),
         }
     }
 
@@ -99,6 +177,11 @@ impl AgentRuntime {
     /// Check if shutdown has been requested.
     pub fn is_shutdown_requested(&self) -> bool {
         self.shutdown.load(Ordering::SeqCst)
+    }
+
+    /// Check if the agent is paused.
+    pub fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Acquire)
     }
 
     /// Get current resource usage for heartbeat.
@@ -855,5 +938,45 @@ mod tests {
         assert!(!signal.load(Ordering::SeqCst));
         runtime.request_shutdown();
         assert!(signal.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    fn test_runtime_handle_shutdown() {
+        let config = AgentConfig::default();
+        let runtime = AgentRuntime::new(config);
+        let handle = runtime.handle();
+
+        assert!(!handle.is_shutdown_requested());
+        handle.request_shutdown();
+        assert!(handle.is_shutdown_requested());
+        assert!(runtime.is_shutdown_requested());
+    }
+
+    #[test]
+    fn test_runtime_handle_pause_resume() {
+        let config = AgentConfig::default();
+        let runtime = AgentRuntime::new(config);
+        let handle = runtime.handle();
+
+        assert!(!handle.is_paused());
+        handle.pause();
+        assert!(handle.is_paused());
+        assert!(runtime.is_paused());
+        handle.resume();
+        assert!(!handle.is_paused());
+    }
+
+    #[test]
+    fn test_runtime_handle_clone() {
+        let config = AgentConfig::default();
+        let runtime = AgentRuntime::new(config);
+        let handle1 = runtime.handle();
+        let handle2 = handle1.clone();
+
+        handle1.pause();
+        assert!(handle2.is_paused());
+
+        handle2.request_shutdown();
+        assert!(handle1.is_shutdown_requested());
     }
 }
