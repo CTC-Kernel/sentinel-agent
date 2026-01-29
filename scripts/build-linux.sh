@@ -14,7 +14,7 @@ echo "Project dir: $PROJECT_DIR"
 echo ""
 echo "1. Building release binary..."
 cd "$PROJECT_DIR"
-cargo build --release --package agent-core
+cargo build --release --package agent-core --features gui
 
 # Create package directories
 echo ""
