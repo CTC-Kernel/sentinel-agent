@@ -150,7 +150,7 @@ describe('IncidentTimeline', () => {
         it('has timeline border', () => {
             const { container } = render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(container.querySelector('.border-l-2')).toBeInTheDocument();
+            expect(container.querySelector('.border-l')).toBeInTheDocument();
         });
     });
 });

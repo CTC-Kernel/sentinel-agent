@@ -66,6 +66,13 @@ vi.mock('react-i18next', () => ({
                 'integrations.title': 'Intégrations',
                 'integrations.seo.title': 'Intégrations',
                 'integrations.seo.description': 'Gérez vos intégrations et connecteurs',
+                'integrations.tabs.providers': 'Connecteurs',
+                'integrations.tabs.jobs': 'Tâches & Scans',
+                'integrations.categories.all': 'Tout',
+                'integrations.categories.cloud': 'Cloud',
+                'integrations.categories.code': 'Code',
+                'integrations.categories.security': 'Sécurité',
+                'integrations.searchPlaceholder': 'Rechercher une intégration'
             };
             return translations[key] || key;
         },

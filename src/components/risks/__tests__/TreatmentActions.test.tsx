@@ -16,6 +16,37 @@ vi.mock('../../../store', () => ({
     }),
 }));
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'risks.treatment.actions_title': 'Actions de traitement',
+                'risks.treatment.no_actions': 'Aucune action de traitement',
+                'risks.treatment.add_action': 'Ajouter une action',
+                'risks.treatment.edit_action': "Modifier l'action",
+                'risks.treatment.delete_action': "Supprimer l'action",
+                'risks.treatment.new_action': 'Nouvelle action',
+                'risks.treatment.save': 'Enregistrer',
+                'risks.treatment.cancel': 'Annuler',
+                'risks.treatment.title_label': 'Titre',
+                'risks.treatment.description_label': 'Description',
+                'risks.treatment.owner_label': 'Responsable',
+                'risks.treatment.deadline_label': 'Échéance',
+                'risks.treatment.status_label': 'Statut',
+                'risks.treatment.placeholder_title': 'Ex: Mettre à jour la politique de sécurité',
+                'risks.treatment.placeholder_description': "Décrivez l'action à réaliser...",
+                'risks.treatment.late': 'En retard',
+                'risks.treatment.today': "Aujourd'hui",
+                'risks.treatment.progress': 'Progression'
+            };
+            return translations[key] || key;
+        },
+        i18n: { language: 'fr' }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Mock useLocale to provide the required locale data
 vi.mock('../../../hooks/useLocale', async () => {
     const { fr } = await import('date-fns/locale');
@@ -83,7 +114,7 @@ describe('TreatmentActionForm', () => {
 
         expect(screen.getByText('Nouvelle action')).toBeInTheDocument();
         expect(screen.getByPlaceholderText(/Mettre à jour/)).toHaveValue('');
-        expect(screen.getByText('Ajouter')).toBeInTheDocument();
+        expect(screen.getByText('Ajouter une action')).toBeInTheDocument();
     });
 
     it('should render form with existing action data', () => {
@@ -118,7 +149,7 @@ describe('TreatmentActionForm', () => {
             />
         );
 
-        fireEvent.click(screen.getByText('Ajouter'));
+        fireEvent.click(screen.getByText('Ajouter une action'));
 
         await waitFor(() => {
             expect(screen.getByText('Le titre est requis')).toBeInTheDocument();
@@ -142,7 +173,7 @@ describe('TreatmentActionForm', () => {
             target: { value: 'New Action Title' }
         });
 
-        fireEvent.click(screen.getByText('Ajouter'));
+        fireEvent.click(screen.getByText('Ajouter une action'));
 
         await waitFor(() => {
             expect(onSave).toHaveBeenCalledWith(
