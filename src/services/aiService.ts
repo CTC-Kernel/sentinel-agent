@@ -22,6 +22,7 @@ export interface Conversation {
 
 const FAST_MODEL = "gemini-1.5-flash";
 const SMART_MODEL = "gemini-3-pro-preview";
+const ULTRA_MODEL = "gemini-3-pro-preview"; // Alias for clarity
 
 const rateLimitMap = new Map<string, number>();
 const pendingRequests = new Set<string>();
@@ -145,7 +146,7 @@ export const aiService = {
         }
       `;
 
-            const text = await generateContentSafe(prompt, SMART_MODEL);
+            const text = await generateContentSafe(prompt, ULTRA_MODEL);
             const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
             const parsed = JSON.parse(cleanText);
 
@@ -334,11 +335,14 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
     if (isRateLimited('generate')) return "";
     cleanupAiCache();
     try {
-        const callGeminiGenerateContent = httpsCallable<{ prompt: string; modelName: string }, { text?: string }>(functions, 'callGeminiGenerateContent');
+        const callGeminiGenerateContent = httpsCallable<{ prompt: string; modelName: string }, { text?: string; model?: string; version?: string }>(functions, 'callGeminiGenerateContent');
         const result = await callGeminiGenerateContent({ prompt, modelName });
-        const text = result.data?.text;
+        const { text, model, version } = result.data;
         if (typeof text === 'string' && text.trim().length > 0) {
             aiCache.set(cacheKey, { data: text, timestamp: now });
+            if (import.meta.env.DEV) {
+                console.log(`[Sentinel AI] Generated content using ${model} (${version})`);
+            }
             return text;
         }
     } catch (_error: unknown) {
@@ -355,10 +359,15 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 
 async function runChatSafe(systemPrompt: string, message: string, modelName: string = FAST_MODEL): Promise<string> {
     try {
-        const callGeminiChat = httpsCallable<{ systemPrompt: string; message: string; modelName: string }, { text?: string }>(functions, 'callGeminiChat');
+        const callGeminiChat = httpsCallable<{ systemPrompt: string; message: string; modelName: string }, { text?: string; model?: string; version?: string }>(functions, 'callGeminiChat');
         const result = await callGeminiChat({ systemPrompt, message, modelName });
-        const text = result.data?.text;
-        if (typeof text === 'string' && text.trim().length > 0) return text;
+        const { text, model, version } = result.data;
+        if (typeof text === 'string' && text.trim().length > 0) {
+            if (import.meta.env.DEV) {
+                console.log(`[Sentinel AI] Chat response using ${model} (${version})`);
+            }
+            return text;
+        }
     } catch (_error: unknown) {
         const err = _error as { code?: string; message?: string };
         const code = err.code;
