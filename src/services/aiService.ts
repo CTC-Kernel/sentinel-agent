@@ -20,7 +20,7 @@ export interface Conversation {
     updatedAt: Date;
 }
 
-const FAST_MODEL = "gemini-1.5-flash";
+const FAST_MODEL = "gemini-3-flash-preview";
 const SMART_MODEL = "gemini-3-pro-preview";
 const ULTRA_MODEL = "gemini-3-pro-preview"; // Alias for clarity
 
@@ -313,6 +313,7 @@ export const aiService = {
 };
 
 const aiCache = new Map<string, { data: unknown; timestamp: number }>();
+const signatureStore = new Map<string, string>(); // Store signatures for context
 const CACHE_DURATION = 5 * 60 * 1000;
 const AI_CACHE_SIZE = 100;
 
@@ -335,9 +336,32 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
     if (isRateLimited('generate')) return "";
     cleanupAiCache();
     try {
-        const callGeminiGenerateContent = httpsCallable<{ prompt: string; modelName: string }, { text?: string; model?: string; version?: string }>(functions, 'callGeminiGenerateContent');
-        const result = await callGeminiGenerateContent({ prompt, modelName });
-        const { text, model, version } = result.data;
+        const thoughtSignature = signatureStore.get('last_signature');
+        const callGeminiGenerateContent = httpsCallable<{
+            prompt: string;
+            modelName: string;
+            thinkingLevel?: string;
+            thoughtSignature?: string;
+        }, {
+            text?: string;
+            thoughtSignature?: string;
+            model?: string;
+            version?: string
+        }>(functions, 'callGeminiGenerateContent');
+
+        const result = await callGeminiGenerateContent({
+            prompt,
+            modelName,
+            thinkingLevel: modelName.includes('pro') ? 'high' : 'low',
+            thoughtSignature
+        });
+
+        const { text, thoughtSignature: nextSignature, model, version } = result.data;
+
+        if (nextSignature) {
+            signatureStore.set('last_signature', nextSignature);
+        }
+
         if (typeof text === 'string' && text.trim().length > 0) {
             aiCache.set(cacheKey, { data: text, timestamp: now });
             if (import.meta.env.DEV) {
@@ -350,6 +374,7 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         const code = err.code;
         const message = err.message || '';
         if (code === 'functions/not-found' || message.includes('404')) throw new Error("Service IA indisponible (404).");
+        if (code === 'resource-exhausted' || message.includes('429')) throw new Error("Quota IA atteint. Patientez.");
         throw _error;
     } finally {
         releaseRateLimit('generate');
@@ -359,9 +384,34 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 
 async function runChatSafe(systemPrompt: string, message: string, modelName: string = FAST_MODEL): Promise<string> {
     try {
-        const callGeminiChat = httpsCallable<{ systemPrompt: string; message: string; modelName: string }, { text?: string; model?: string; version?: string }>(functions, 'callGeminiChat');
-        const result = await callGeminiChat({ systemPrompt, message, modelName });
-        const { text, model, version } = result.data;
+        const thoughtSignature = signatureStore.get('chat_signature');
+        const callGeminiChat = httpsCallable<{
+            systemPrompt: string;
+            message: string;
+            modelName: string;
+            thinkingLevel?: string;
+            thoughtSignature?: string;
+        }, {
+            text?: string;
+            thoughtSignature?: string;
+            model?: string;
+            version?: string
+        }>(functions, 'callGeminiChat');
+
+        const result = await callGeminiChat({
+            systemPrompt,
+            message,
+            modelName,
+            thinkingLevel: 'low',
+            thoughtSignature
+        });
+
+        const { text, thoughtSignature: nextSignature, model, version } = result.data;
+
+        if (nextSignature) {
+            signatureStore.set('chat_signature', nextSignature);
+        }
+
         if (typeof text === 'string' && text.trim().length > 0) {
             if (import.meta.env.DEV) {
                 ErrorLogger.info(`Chat response using ${model} (${version})`, 'aiService');

@@ -24,7 +24,8 @@ const {
  */
 function getApiVersionForModel(modelName) {
     if (!modelName) return 'v1beta';
-    if (modelName.includes('gemini-3') || modelName.includes('gemini-2.0')) {
+    const modelStr = String(modelName);
+    if (modelStr.includes('gemini-3') || modelStr.includes('gemini-2.0')) {
         return 'v1alpha';
     }
     return 'v1beta';
@@ -154,12 +155,7 @@ async function getGeminiClientForUser(uid, requestModelName, apiVersion) {
     // Determine API version based on model name
     let effectiveApiVersion = apiVersion;
     if (!effectiveApiVersion) {
-        const modelStr = String(requestModelName || '');
-        if (modelStr.includes('gemini-3') || modelStr.includes('gemini-2.0')) {
-            effectiveApiVersion = 'v1alpha';
-        } else {
-            effectiveApiVersion = 'v1beta';
-        }
+        effectiveApiVersion = getApiVersionForModel(requestModelName);
     }
 
     return new GoogleGenerativeAI(apiKey, { apiVersion: effectiveApiVersion });
@@ -315,6 +311,8 @@ exports.callGeminiGenerateContent = onCall({
 
     const prompt = request.data?.prompt;
     const modelName = request.data?.modelName || "gemini-3-pro-preview";
+    const thinkingLevel = request.data?.thinkingLevel;
+    const thoughtSignature = request.data?.thoughtSignature;
 
     if (!prompt || typeof prompt !== 'string') {
         throw new HttpsError('invalid-argument', 'Prompt is required.');
@@ -334,42 +332,65 @@ exports.callGeminiGenerateContent = onCall({
 
             let config = {};
             if (name.includes("gemini-3")) {
-                config.thinkingConfig = { thinkingLevel: "high" };
+                config.thinkingConfig = {
+                    thinkingLevel: thinkingLevel || (name.includes("flash") ? "low" : "high")
+                };
             }
 
             const model = genAI.getGenerativeModel({ model: name });
+            const contents = [{ role: 'user', parts: [{ text: prompt }] }];
+
+            // Add signature if provided
+            if (thoughtSignature) {
+                contents[0].parts[0].thoughtSignature = thoughtSignature;
+            }
+
             const result = await model.generateContent({
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                contents,
                 generationConfig: config
             });
             const response = await result.response;
-            return response.text();
+
+            // Extract text and signature
+            const text = response.text();
+            let signature = null;
+            if (response.candidates?.[0]?.content?.parts) {
+                const sigPart = response.candidates[0].content.parts.find(p => p.thoughtSignature);
+                if (sigPart) signature = sigPart.thoughtSignature;
+            }
+
+            return { text, signature };
         };
 
         try {
-            const text = await runGenerate(modelName);
-            return { text, model: modelName, version: getApiVersionForModel(modelName) };
+            const { text, signature } = await runGenerate(modelName);
+            return { text, thoughtSignature: signature, model: modelName, version: getApiVersionForModel(modelName) };
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             logger.warn(`Primary Gemini model (${modelName}) failed in callGeminiGenerateContent`, { error: message });
 
             const isTransient = message.includes('404') || message.includes('not found') ||
                 message.includes('429') || message.includes('Too Many Requests') ||
-                message.includes('503') || message.includes('500');
+                message.includes('503') || message.includes('500') || message.includes('resource exhausted');
 
             if (isTransient) {
-                const fallbackModels = ['gemini-3-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+                const fallbackModels = ['gemini-3-flash-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'];
                 for (const name of fallbackModels) {
                     if (name === modelName) continue;
                     try {
-                        const text = await runGenerate(name);
-                        return { text, model: name, version: getApiVersionForModel(name), fallback: true };
+                        const { text, signature } = await runGenerate(name);
+                        return { text, thoughtSignature: signature, model: name, version: getApiVersionForModel(name), fallback: true };
                     } catch (fallbackError) {
                         logger.warn(`Fallback Gemini model (${name}) failed in callGeminiGenerateContent`, {
                             error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
                         });
                         continue;
                     }
+                }
+
+                // If all fallbacks fail, throw appropriate error
+                if (message.includes('429') || message.includes('resource exhausted')) {
+                    throw new HttpsError('resource-exhausted', 'Service IA surchargé. Patientez.');
                 }
             }
 
@@ -400,7 +421,9 @@ exports.callGeminiChat = onCall({
 
     const systemPrompt = request.data?.systemPrompt;
     const message = request.data?.message;
-    const modelName = request.data?.modelName || "gemini-1.5-pro";
+    const modelName = request.data?.modelName || "gemini-3-pro-preview";
+    const thinkingLevel = request.data?.thinkingLevel;
+    const thoughtSignature = request.data?.thoughtSignature;
 
     if (!systemPrompt || typeof systemPrompt !== 'string' || !message || typeof message !== 'string') {
         throw new HttpsError('invalid-argument', 'systemPrompt and message are required.');
@@ -420,13 +443,23 @@ exports.callGeminiChat = onCall({
             const version = getApiVersionForModel(name);
             const client = await getGeminiClientForUser(uid, name, version);
 
+            const userPart = { text: message };
+            if (thoughtSignature) {
+                userPart.thoughtSignature = thoughtSignature;
+            }
+
             const contents = [
                 { role: "user", parts: [{ text: systemPrompt }] },
                 { role: "model", parts: [{ text: "Bien recu. Je suis Sentinel AI, pret a vous assister sur tous les sujets GRC." }] },
-                { role: "user", parts: [{ text: message }] }
+                { role: "user", parts: [userPart] }
             ];
 
-            const config = name.includes("gemini-3") ? { thinkingConfig: { thinkingLevel: "high" } } : {};
+            let config = {};
+            if (name.includes("gemini-3")) {
+                config.thinkingConfig = {
+                    thinkingLevel: thinkingLevel || "low"
+                };
+            }
 
             const model = client.getGenerativeModel({ model: name });
             const result = await model.generateContent({
@@ -434,12 +467,21 @@ exports.callGeminiChat = onCall({
                 generationConfig: config
             });
             const response = await result.response;
-            return response.text();
+
+            // Extract text and signature
+            const text = response.text();
+            let signature = null;
+            if (response.candidates?.[0]?.content?.parts) {
+                const sigPart = response.candidates[0].content.parts.find(p => p.thoughtSignature);
+                if (sigPart) signature = sigPart.thoughtSignature;
+            }
+
+            return { text, signature };
         };
 
         try {
-            const text = await runChat(modelName);
-            return { text, model: modelName, version: getApiVersionForModel(modelName) };
+            const { text, signature } = await runChat(modelName);
+            return { text, thoughtSignature: signature, model: modelName, version: getApiVersionForModel(modelName) };
         } catch (error) {
             const errMsg = error instanceof Error ? error.message : String(error);
             logger.warn(`Primary Gemini chat model (${modelName}) failed: ${errMsg}`);
@@ -456,7 +498,7 @@ exports.callGeminiChat = onCall({
                 errMsg.includes('quota');
 
             if (isTransient) {
-                const fallbackModels = ['gemini-3-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+                const fallbackModels = ['gemini-3-flash-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'];
                 const backoffDelays = [1000, 2000, 4000];
 
                 for (let i = 0; i < fallbackModels.length; i++) {
@@ -469,15 +511,17 @@ exports.callGeminiChat = onCall({
                     await delay(waitTime);
 
                     try {
-                        const text = await runChat(fallbackModel);
-                        return { text, model: `${fallbackModel} (fallback)`, version: getApiVersionForModel(fallbackModel) };
+                        const { text, signature } = await runChat(fallbackModel);
+                        return { text, thoughtSignature: signature, model: `${fallbackModel} (fallback)`, version: getApiVersionForModel(fallbackModel) };
                     } catch (retryError) {
                         const retryMsg = retryError instanceof Error ? retryError.message : String(retryError);
                         logger.warn(`Retry attempt ${i + 1} (${fallbackModel}) failed: ${retryMsg}`);
                     }
                 }
 
-                throw new HttpsError('resource-exhausted', 'Le service IA est actuellement surcharge. Veuillez reessayer plus tard.');
+                if (errMsg.includes('429') || errMsg.includes('resource exhausted')) {
+                    throw new HttpsError('resource-exhausted', 'Le service IA est actuellement surcharge. Veuillez reessayer plus tard.');
+                }
             }
 
             throw error;
