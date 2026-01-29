@@ -109,6 +109,7 @@ interface DownloadButtonProps {
     label: string;
     sublabel: string;
     icon: React.ReactNode;
+    href?: string;
     available?: boolean;
     loading?: boolean;
 }
@@ -153,22 +154,19 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
     </div>
 );
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true, loading = false }) => {
-    // Use local static files instead of cloud function
+const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, href, available = true, loading = false }) => {
+    // Use href prop if provided (from releaseInfo), otherwise fallback to cloud function endpoint
     const getDownloadUrl = (platform: string) => {
-        // Map platform to filenames found in public/downloads/agents/
         switch (platform) {
-            case 'windows': return '/downloads/agents/SentinelAgentSetup-1.0.2.exe'; // Using exe as installer
-            case 'macos': return '/downloads/agents/SentinelAgent-macOS-1.0.2.zip';
-            case 'linux_deb': return '/downloads/agents/SentinelAgent-Linux-1.0.0.deb';
-            case 'linux_rpm': return '/downloads/agents/SentinelAgent-Linux-1.0.0.rpm';
-            case 'linux_appimage': return '/downloads/agents/SentinelAgent-Linux-1.0.0.AppImage';
-            // Fallback or placeholders for others until files exist
+            case 'windows': return '/releases/agent/windows/latest';
+            case 'macos': return '/releases/agent/macos/latest';
+            case 'linux_deb': return '/releases/agent/linux_deb/latest';
+            case 'linux_rpm': return '/releases/agent/linux_rpm/latest';
             default: return '#';
         }
     };
 
-    const downloadUrl = getDownloadUrl(platform);
+    const downloadUrl = href || getDownloadUrl(platform);
 
     const content = (
         <>
@@ -430,15 +428,14 @@ export const AgentManagement: React.FC = () => {
                 ErrorLogger.error(error, 'AgentManagement.fetchReleases');
                 setReleaseInfo({
                     product: 'agent',
-                    currentVersion: '1.0.0',
-                    releaseDate: undefined,
-                    changelogUrl: 'https://github.com/sentinel/agent/releases',
+                    currentVersion: '2.0.0',
+                    releaseDate: '2026-01-29',
+                    changelogUrl: 'https://github.com/CTC-Kernel/sentinel-agent/releases',
                     platforms: {
-                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Windows-1.0.0.zip', directUrl: null },
-                        macos: { displayName: 'macOS (DMG)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-macOS-1.0.1.zip', directUrl: null },
-                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Linux-1.0.0.deb', directUrl: null },
-                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Linux-1.0.0.rpm', directUrl: null },
-                        linux_appimage: { displayName: 'Linux (AppImage)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Linux-1.0.0.AppImage', directUrl: null },
+                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: '/releases/agent/windows/latest', directUrl: null },
+                        macos: { displayName: 'macOS (DMG)', available: true, downloadUrl: '/releases/agent/macos/latest', directUrl: null },
+                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: '/releases/agent/linux_deb/latest', directUrl: null },
+                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: '/releases/agent/linux_rpm/latest', directUrl: null },
                     },
                     mobile: {
                         ios: { available: true, appStoreUrl: '#', comingSoon: true },
@@ -1174,14 +1171,16 @@ export const AgentManagement: React.FC = () => {
                                             label="Windows"
                                             sublabel="Installateur .MSI"
                                             icon={<Monitor className="w-5 h-5 text-blue-500" />}
+                                            href={releaseInfo?.platforms?.windows?.directUrl || releaseInfo?.platforms?.windows?.downloadUrl}
                                             available={releaseInfo?.platforms?.windows?.available ?? false}
                                             loading={loadingReleases}
                                         />
                                         <DownloadButton
                                             platform="macos"
                                             label="macOS"
-                                            sublabel="Apple Silicon & Intel"
+                                            sublabel="Apple Silicon & Intel (DMG)"
                                             icon={<Cpu className="w-5 h-5 text-slate-600" />}
+                                            href={releaseInfo?.platforms?.macos?.directUrl || releaseInfo?.platforms?.macos?.downloadUrl}
                                             available={releaseInfo?.platforms?.macos?.available ?? false}
                                             loading={loadingReleases}
                                         />
@@ -1190,6 +1189,7 @@ export const AgentManagement: React.FC = () => {
                                             label="Linux DEB"
                                             sublabel="Debian / Ubuntu"
                                             icon={<Terminal className="w-5 h-5 text-orange-500" />}
+                                            href={releaseInfo?.platforms?.linux_deb?.directUrl || releaseInfo?.platforms?.linux_deb?.downloadUrl}
                                             available={releaseInfo?.platforms?.linux_deb?.available ?? false}
                                             loading={loadingReleases}
                                         />
@@ -1198,15 +1198,8 @@ export const AgentManagement: React.FC = () => {
                                             label="Linux RPM"
                                             sublabel="RHEL / Fedora"
                                             icon={<Terminal className="w-5 h-5 text-red-500" />}
+                                            href={releaseInfo?.platforms?.linux_rpm?.directUrl || releaseInfo?.platforms?.linux_rpm?.downloadUrl}
                                             available={releaseInfo?.platforms?.linux_rpm?.available ?? false}
-                                            loading={loadingReleases}
-                                        />
-                                        <DownloadButton
-                                            platform="linux_appimage"
-                                            label="Linux AppImage"
-                                            sublabel="Portable / Universel"
-                                            icon={<Package className="w-5 h-5 text-purple-500" />}
-                                            available={releaseInfo?.platforms?.linux_appimage?.available ?? false}
                                             loading={loadingReleases}
                                         />
                                     </div>

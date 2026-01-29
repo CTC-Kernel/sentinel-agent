@@ -1,39 +1,69 @@
 {
   "agents": {
     "macos": {
-      "version": "1.0.2",
+      "version": "2.0.0",
       "filename": "SentinelAgent-latest.dmg",
       "format": "dmg",
-      "minOsVersion": "10.15",
+      "minOsVersion": "11.0",
       "architecture": "universal",
-      "releaseDate": "2026-01-26",
+      "releaseDate": "2026-01-29",
       "changelog": [
-        "Fixed high CPU usage (80% -> 0%)",
-        "Optimized event loop polling interval",
-        "Improved resource monitoring thresholds",
-        "Added rate-limiting for resource warnings",
-        "Enhanced database encryption stability"
+        "New egui desktop GUI with dashboard, compliance, sync pages",
+        "Enrollment wizard with QR code and copy-paste token support",
+        "System tray integration with minimize-to-tray",
+        "Backup/restore and machine migration support",
+        "Certificate renewal and key rotation",
+        "Offline mode with 7-day sync queue"
       ]
     },
     "windows": {
-      "version": "1.0.2",
-      "filename": "SentinelAgentSetup-latest.zip",
-      "format": "zip",
+      "version": "2.0.0",
+      "filename": "SentinelAgentSetup-latest.msi",
+      "format": "msi",
       "minOsVersion": "10",
       "architecture": "x64",
-      "releaseDate": "2026-01-26",
+      "releaseDate": "2026-01-29",
       "changelog": [
-        "Fixed high CPU usage (80% -> 0%)",
-        "Optimized event loop polling interval",
-        "Improved resource monitoring thresholds",
-        "Added rate-limiting for resource warnings",
-        "Enhanced database encryption stability"
+        "New egui desktop GUI with dashboard, compliance, sync pages",
+        "Enrollment wizard with QR code and copy-paste token support",
+        "System tray integration with minimize-to-tray",
+        "Windows MSI installer with service registration"
+      ]
+    },
+    "linux_deb": {
+      "version": "2.0.0",
+      "filename": "sentinel-agent_latest_amd64.deb",
+      "format": "deb",
+      "minOsVersion": "Ubuntu 20.04 / Debian 11",
+      "architecture": "amd64",
+      "releaseDate": "2026-01-29",
+      "changelog": [
+        "New egui desktop GUI with dashboard, compliance, sync pages",
+        "Enrollment wizard with copy-paste token support",
+        "Systemd service integration",
+        "DEB package with automatic dependency resolution"
+      ]
+    },
+    "linux_rpm": {
+      "version": "2.0.0",
+      "filename": "sentinel-agent-latest.x86_64.rpm",
+      "format": "rpm",
+      "minOsVersion": "RHEL 8 / Fedora 36",
+      "architecture": "x86_64",
+      "releaseDate": "2026-01-29",
+      "changelog": [
+        "New egui desktop GUI with dashboard, compliance, sync pages",
+        "Enrollment wizard with copy-paste token support",
+        "Systemd service integration",
+        "RPM package for RHEL/Fedora/CentOS"
       ]
     }
   },
   "latestVersions": {
-    "macos": "1.0.2",
-    "windows": "1.0.2"
+    "macos": "2.0.0",
+    "windows": "2.0.0",
+    "linux_deb": "2.0.0",
+    "linux_rpm": "2.0.0"
   },
   "downloadBaseUrl": "/releases/agent/"
 }

@@ -379,8 +379,10 @@ export async function getAgentMetricsHistory(
 /**
  * Agent download manifest type
  */
+export type AgentPlatform = 'macos' | 'windows' | 'linux_deb' | 'linux_rpm';
+
 export interface AgentDownloadInfo {
-    platform: 'macos' | 'windows';
+    platform: AgentPlatform;
     version: string;
     filename: string;
     downloadUrl: string;
@@ -392,7 +394,7 @@ export interface AgentDownloadInfo {
  * Get download URL for agent installer
  */
 export async function getAgentDownloadUrl(
-    platform: 'macos' | 'windows'
+    platform: AgentPlatform
 ): Promise<AgentDownloadInfo> {
     try {
         // Get manifest first
@@ -407,8 +409,8 @@ export async function getAgentDownloadUrl(
             throw new Error(`No agent available for platform: ${platform}`);
         }
 
-        // Get download URL for the agent file
-        const agentRef = ref(storage, `releases/agents/${platformInfo.filename}`);
+        // Get download URL for the agent file from the platform-specific folder
+        const agentRef = ref(storage, `releases/agent/${platform}/${platformInfo.filename}`);
         const downloadUrl = await getDownloadURL(agentRef);
 
         return {
@@ -433,20 +435,16 @@ export async function getAgentDownloadUrl(
  * Get all available agent downloads
  */
 export async function getAgentDownloads(): Promise<AgentDownloadInfo[]> {
+    const platforms: AgentPlatform[] = ['macos', 'windows', 'linux_deb', 'linux_rpm'];
     const downloads: AgentDownloadInfo[] = [];
 
-    try {
-        const macosInfo = await getAgentDownloadUrl('macos');
-        downloads.push(macosInfo);
-    } catch {
-        // macOS not available
-    }
-
-    try {
-        const windowsInfo = await getAgentDownloadUrl('windows');
-        downloads.push(windowsInfo);
-    } catch {
-        // Windows not available
+    for (const platform of platforms) {
+        try {
+            const info = await getAgentDownloadUrl(platform);
+            downloads.push(info);
+        } catch {
+            // Platform not available
+        }
     }
 
     return downloads;
