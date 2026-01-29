@@ -1,6 +1,6 @@
 //! Horizontal resource usage bar (CPU, memory).
 
-use egui::{Rect, CornerRadius, Ui, Vec2};
+use egui::{CornerRadius, Rect, Ui, Vec2};
 
 use crate::theme;
 
@@ -45,7 +45,8 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
         } else {
             theme::ACCENT
         };
-        let fill_rect = Rect::from_min_size(rect.min, Vec2::new(rect.width() * clamped, bar_height));
+        let fill_rect =
+            Rect::from_min_size(rect.min, Vec2::new(rect.width() * clamped, bar_height));
         painter.rect_filled(fill_rect, rounding, fill_color);
     }
 }

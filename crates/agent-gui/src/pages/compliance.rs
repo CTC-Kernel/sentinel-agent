@@ -20,11 +20,36 @@ impl CompliancePage {
 
             // Summary cards row
             ui.horizontal(|ui| {
-                Self::summary_card(ui, "Total", &state.policy.total_policies.to_string(), theme::TEXT_PRIMARY);
-                Self::summary_card(ui, "Conforme", &state.policy.passing.to_string(), theme::SUCCESS);
-                Self::summary_card(ui, "Non-conforme", &state.policy.failing.to_string(), theme::ERROR);
-                Self::summary_card(ui, "Erreurs", &state.policy.errors.to_string(), theme::WARNING);
-                Self::summary_card(ui, "En attente", &state.policy.pending.to_string(), theme::TEXT_TERTIARY);
+                Self::summary_card(
+                    ui,
+                    "Total",
+                    &state.policy.total_policies.to_string(),
+                    theme::TEXT_PRIMARY,
+                );
+                Self::summary_card(
+                    ui,
+                    "Conforme",
+                    &state.policy.passing.to_string(),
+                    theme::SUCCESS,
+                );
+                Self::summary_card(
+                    ui,
+                    "Non-conforme",
+                    &state.policy.failing.to_string(),
+                    theme::ERROR,
+                );
+                Self::summary_card(
+                    ui,
+                    "Erreurs",
+                    &state.policy.errors.to_string(),
+                    theme::WARNING,
+                );
+                Self::summary_card(
+                    ui,
+                    "En attente",
+                    &state.policy.pending.to_string(),
+                    theme::TEXT_TERTIARY,
+                );
             });
 
             ui.add_space(theme::SPACE);

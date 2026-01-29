@@ -1,17 +1,17 @@
 //! Application pages.
 
-mod dashboard;
-mod compliance;
-mod network;
-mod sync;
-mod logs;
-mod settings;
 mod about;
+mod compliance;
+mod dashboard;
+mod logs;
+mod network;
+mod settings;
+mod sync;
 
-pub use dashboard::DashboardPage;
-pub use compliance::CompliancePage;
-pub use network::NetworkPage;
-pub use sync::SyncPage;
-pub use logs::LogsPage;
-pub use settings::SettingsPage;
 pub use about::AboutPage;
+pub use compliance::CompliancePage;
+pub use dashboard::DashboardPage;
+pub use logs::LogsPage;
+pub use network::NetworkPage;
+pub use settings::SettingsPage;
+pub use sync::SyncPage;

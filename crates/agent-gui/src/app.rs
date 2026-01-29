@@ -8,8 +8,7 @@ use std::sync::mpsc;
 use eframe::egui;
 
 use crate::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary,
-    GuiResourceUsage,
+    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary, GuiResourceUsage,
 };
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
@@ -334,8 +333,7 @@ impl SentinelApp {
 
         // Update compliance score
         if total > 0 {
-            self.state.summary.compliance_score =
-                Some((passing as f32 / total as f32) * 100.0);
+            self.state.summary.compliance_score = Some((passing as f32 / total as f32) * 100.0);
         }
     }
 
@@ -425,38 +423,34 @@ impl eframe::App for SentinelApp {
                     .fill(theme::BG_PRIMARY)
                     .inner_margin(egui::Margin::same(24)),
             )
-            .show(ctx, |ui| {
-                match self.page {
-                    Page::Dashboard => {
-                        pages::DashboardPage::show(ui, &self.state);
+            .show(ctx, |ui| match self.page {
+                Page::Dashboard => {
+                    pages::DashboardPage::show(ui, &self.state);
+                }
+                Page::Compliance => {
+                    pages::CompliancePage::show(ui, &self.state);
+                }
+                Page::Network => {
+                    pages::NetworkPage::show(ui, &self.state);
+                }
+                Page::Sync => {
+                    if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
+                        self.send_command(cmd);
                     }
-                    Page::Compliance => {
-                        pages::CompliancePage::show(ui, &self.state);
-                    }
-                    Page::Network => {
-                        pages::NetworkPage::show(ui, &self.state);
-                    }
-                    Page::Sync => {
-                        if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
-                            self.send_command(cmd);
+                }
+                Page::Logs => {
+                    pages::LogsPage::show(ui, &self.state);
+                }
+                Page::Settings => {
+                    if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
+                        if matches!(cmd, GuiCommand::Shutdown) {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
+                        self.send_command(cmd);
                     }
-                    Page::Logs => {
-                        pages::LogsPage::show(ui, &self.state);
-                    }
-                    Page::Settings => {
-                        if let Some(cmd) =
-                            pages::SettingsPage::show(ui, &mut self.state)
-                        {
-                            if matches!(cmd, GuiCommand::Shutdown) {
-                                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                            }
-                            self.send_command(cmd);
-                        }
-                    }
-                    Page::About => {
-                        pages::AboutPage::show(ui);
-                    }
+                }
+                Page::About => {
+                    pages::AboutPage::show(ui);
                 }
             });
 
