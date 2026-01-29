@@ -1,0 +1,33 @@
+[package]
+name = "agent-persistence"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Backup, recovery, migration, key rotation, and cleanup for Sentinel GRC Agent"
+
+[features]
+default = []
+test-utils = ["agent-storage/test-utils"]
+
+[dependencies]
+agent-common = { path = "../agent-common" }
+agent-storage = { path = "../agent-storage" }
+rusqlite.workspace = true
+tokio-rusqlite.workspace = true
+tokio = { workspace = true, features = ["sync", "fs"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+sha2.workspace = true
+hex.workspace = true
+flate2 = "1.0"
+rand.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+agent-storage = { path = "../agent-storage", features = ["test-utils"] }

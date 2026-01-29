@@ -4,8 +4,10 @@
 
 mod agent;
 mod check;
+mod event;
 mod proof;
 
 pub use agent::*;
 pub use check::*;
+pub use event::*;
 pub use proof::*;
