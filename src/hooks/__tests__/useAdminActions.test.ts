@@ -25,19 +25,35 @@ vi.mock('../../firebase', () => ({
 }));
 
 // Mock store
-const mockT = vi.fn((key: string, params?: object) =>
-    params ? `${key}:${JSON.stringify(params)}` : key
-);
-vi.mock('../../store', () => ({
-    useStore: () => ({
-        t: mockT
-    })
+const { mockT, mockGetState } = vi.hoisted(() => ({
+    mockT: vi.fn((key: string, params?: object) =>
+        params ? `${key}:${JSON.stringify(params)}` : key
+    ),
+    mockGetState: vi.fn(() => ({
+        customRoles: []
+    }))
 }));
+
+vi.mock('../../store', () => {
+    const useStore = () => ({
+        t: mockT
+    });
+    useStore.getState = mockGetState;
+    return { useStore };
+});
 
 // Mock error logger
 vi.mock('../../services/errorLogger', () => ({
     ErrorLogger: {
-        error: vi.fn()
+        error: vi.fn(),
+        warn: vi.fn()
+    }
+}));
+
+// Mock AuditLogService
+vi.mock('../../services/auditLogService', () => ({
+    AuditLogService: {
+        log: vi.fn()
     }
 }));
 
@@ -49,6 +65,21 @@ vi.mock('@/lib/toast', () => ({
         success: (...args: unknown[]) => mockToastSuccess(...args),
         error: (...args: unknown[]) => mockToastError(...args)
     }
+}));
+
+// Mock useAuth
+const mockUser = {
+    uid: 'test-uid',
+    email: 'test@example.com',
+    displayName: 'Test User',
+    organizationId: 'org-123',
+    role: 'admin'
+};
+
+vi.mock('../useAuth', () => ({
+    useAuth: () => ({
+        user: mockUser
+    })
 }));
 
 import { useAdminActions } from '../useAdminActions';
