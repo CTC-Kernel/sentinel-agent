@@ -19,16 +19,17 @@ describe('score.types', () => {
         DEFAULT_SCORE_WEIGHTS.controls +
         DEFAULT_SCORE_WEIGHTS.risks +
         DEFAULT_SCORE_WEIGHTS.audits +
-        DEFAULT_SCORE_WEIGHTS.documents;
+        DEFAULT_SCORE_WEIGHTS.documents +
+        DEFAULT_SCORE_WEIGHTS.training; // NIS2 Art. 21.2(g)
       expect(sum).toBeCloseTo(1, 10);
     });
 
-    it('should have controls as the highest weight (40%)', () => {
-      expect(DEFAULT_SCORE_WEIGHTS.controls).toBe(0.40);
+    it('should have controls as the highest weight (35%)', () => {
+      expect(DEFAULT_SCORE_WEIGHTS.controls).toBe(0.35);
     });
 
-    it('should have risks at 30%', () => {
-      expect(DEFAULT_SCORE_WEIGHTS.risks).toBe(0.30);
+    it('should have risks at 25%', () => {
+      expect(DEFAULT_SCORE_WEIGHTS.risks).toBe(0.25);
     });
 
     it('should have audits at 20%', () => {
@@ -37,6 +38,10 @@ describe('score.types', () => {
 
     it('should have documents at 10%', () => {
       expect(DEFAULT_SCORE_WEIGHTS.documents).toBe(0.10);
+    });
+
+    it('should have training at 10% (NIS2 Art. 21.2g)', () => {
+      expect(DEFAULT_SCORE_WEIGHTS.training).toBe(0.10);
     });
   });
 
@@ -183,7 +188,7 @@ describe('score.types', () => {
         history: [],
         loading: true,
         error: null,
-        refetch: () => {},
+        refetch: () => { },
       };
       expect(hookResult.loading).toBe(true);
       expect(hookResult.score).toBeNull();
@@ -216,7 +221,7 @@ describe('score.types', () => {
         ],
         loading: false,
         error: null,
-        refetch: () => {},
+        refetch: () => { },
       };
       expect(hookResult.loading).toBe(false);
       expect(hookResult.score?.global).toBe(75);

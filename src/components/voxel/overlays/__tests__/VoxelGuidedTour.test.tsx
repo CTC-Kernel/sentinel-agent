@@ -168,7 +168,7 @@ describe('VoxelGuidedTour', () => {
       render(<VoxelGuidedTour visible={true} stops={customStops} />);
       fireEvent.click(screen.getByText('Start Tour'));
 
-      fireEvent.click(screen.getByRole('button', { name: 'Next stop' }));
+      fireEvent.click(screen.getByRole('button', { name: /Arrêt suivant|suivant/i }));
 
       expect(screen.getByText('Second Stop')).toBeInTheDocument();
       expect(screen.getByText('2 / 3')).toBeInTheDocument();
@@ -177,9 +177,9 @@ describe('VoxelGuidedTour', () => {
     it('should navigate to previous stop', () => {
       render(<VoxelGuidedTour visible={true} stops={customStops} />);
       fireEvent.click(screen.getByText('Start Tour'));
-      fireEvent.click(screen.getByRole('button', { name: 'Next stop' }));
+      fireEvent.click(screen.getByRole('button', { name: /Arrêt suivant|suivant/i }));
 
-      fireEvent.click(screen.getByRole('button', { name: 'Previous stop' }));
+      fireEvent.click(screen.getByRole('button', { name: /Arrêt précédent|précédent/i }));
 
       expect(screen.getByText('First Stop')).toBeInTheDocument();
     });
@@ -188,7 +188,7 @@ describe('VoxelGuidedTour', () => {
       render(<VoxelGuidedTour visible={true} stops={customStops} />);
       fireEvent.click(screen.getByText('Start Tour'));
 
-      const prevButton = screen.getByRole('button', { name: 'Previous stop' });
+      const prevButton = screen.getByRole('button', { name: /Arrêt précédent|précédent/i });
       expect(prevButton).toBeDisabled();
     });
 
@@ -197,7 +197,7 @@ describe('VoxelGuidedTour', () => {
       render(<VoxelGuidedTour visible={true} stops={customStops} onNavigate={onNavigate} />);
       fireEvent.click(screen.getByText('Start Tour'));
 
-      fireEvent.click(screen.getByRole('button', { name: 'Next stop' }));
+      fireEvent.click(screen.getByRole('button', { name: /Arrêt suivant|suivant/i }));
 
       expect(onNavigate).toHaveBeenCalledWith(customStops[1]);
     });
@@ -205,7 +205,7 @@ describe('VoxelGuidedTour', () => {
     it('should highlight node when stop has highlightNodeId', () => {
       render(<VoxelGuidedTour visible={true} stops={customStops} />);
       fireEvent.click(screen.getByText('Start Tour'));
-      fireEvent.click(screen.getByRole('button', { name: 'Next stop' }));
+      fireEvent.click(screen.getByRole('button', { name: /Arrêt suivant|suivant/i }));
 
       expect(mockSelectNode).toHaveBeenCalledWith('risk-1');
     });
@@ -220,7 +220,7 @@ describe('VoxelGuidedTour', () => {
       expect(screen.getByTestId('icon-pause')).toBeInTheDocument();
 
       // Toggle to pause
-      fireEvent.click(screen.getByRole('button', { name: 'Pause tour' }));
+      fireEvent.click(screen.getByRole('button', { name: /Mettre en pause|pause/i }));
       expect(screen.getByTestId('icon-play')).toBeInTheDocument();
     });
 
@@ -242,7 +242,7 @@ describe('VoxelGuidedTour', () => {
       render(<VoxelGuidedTour visible={true} stops={customStops} onClose={onClose} />);
       fireEvent.click(screen.getByText('Start Tour'));
 
-      fireEvent.click(screen.getByRole('button', { name: 'Close tour' }));
+      fireEvent.click(screen.getByRole('button', { name: /Fermer la visite|Fermer/i }));
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -255,11 +255,11 @@ describe('VoxelGuidedTour', () => {
       fireEvent.click(screen.getByText('Start Tour'));
 
       // Navigate to last stop
-      fireEvent.click(screen.getByRole('button', { name: 'Next stop' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Next stop' }));
+      fireEvent.click(screen.getByRole('button', { name: /Arrêt suivant|suivant/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Arrêt suivant|suivant/i }));
 
       // Click next on last stop
-      fireEvent.click(screen.getByRole('button', { name: 'Finish tour' }));
+      fireEvent.click(screen.getByRole('button', { name: /Terminer la visite|Terminer/i }));
 
       expect(onComplete).toHaveBeenCalled();
     });

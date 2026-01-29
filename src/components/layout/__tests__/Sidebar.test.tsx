@@ -47,6 +47,23 @@ vi.mock('../../../services/errorLogger', () => ({
     }
 }));
 
+// Mock useAuth hook
+vi.mock('../../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'user-1', email: 'test@example.com' },
+        loading: false
+    })
+}));
+
+// Mock useAdminActions hook
+vi.mock('../../../hooks/useAdminActions', () => ({
+    useAdminActions: () => ({
+        isSuperAdmin: false,
+        setIsSuperAdmin: vi.fn(),
+        checkSuperAdminStatus: vi.fn()
+    })
+}));
+
 // Mock LegalModal
 vi.mock('../../ui/LegalModal', () => ({
     LegalModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>

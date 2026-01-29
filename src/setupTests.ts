@@ -164,6 +164,9 @@ vi.mock('framer-motion', () => ({
         svg: React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
             React.createElement('svg', { className, ref, ...props }, children as React.ReactNode)
         ),
+        circle: React.forwardRef<SVGCircleElement, React.SVGProps<SVGCircleElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('circle', { className, ref, ...props }, children as React.ReactNode)
+        ),
         li: React.forwardRef<HTMLLIElement, React.HTMLAttributes<HTMLLIElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
             React.createElement('li', { className, ref, ...props }, children as React.ReactNode)
         ),

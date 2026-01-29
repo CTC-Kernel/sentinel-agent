@@ -221,9 +221,9 @@ describe('TimelineView', () => {
 
             render(<TimelineView {...defaultProps} />);
 
-            // Click on the event card
-            const eventCard = screen.getByRole('button');
-            fireEvent.click(eventCard);
+            // Click on the first event card (mock adds role=button to all motion.divs)
+            const eventCards = screen.getAllByRole('button');
+            fireEvent.click(eventCards[0]);
 
             expect(screen.getByText("Détails de l'événement")).toBeInTheDocument();
         });
@@ -236,7 +236,7 @@ describe('TimelineView', () => {
 
             render(<TimelineView {...defaultProps} />);
 
-            fireEvent.click(screen.getByRole('button'));
+            fireEvent.click(screen.getAllByRole('button')[0]);
 
             expect(screen.getByText('Auteur')).toBeInTheDocument();
         });
@@ -249,7 +249,7 @@ describe('TimelineView', () => {
 
             render(<TimelineView {...defaultProps} />);
 
-            fireEvent.click(screen.getByRole('button'));
+            fireEvent.click(screen.getAllByRole('button')[0]);
 
             expect(screen.getByText('Date')).toBeInTheDocument();
         });
@@ -262,7 +262,7 @@ describe('TimelineView', () => {
 
             render(<TimelineView {...defaultProps} />);
 
-            fireEvent.click(screen.getByRole('button'));
+            fireEvent.click(screen.getAllByRole('button')[0]);
 
             expect(screen.getByText('Fermer')).toBeInTheDocument();
         });
@@ -276,7 +276,7 @@ describe('TimelineView', () => {
             render(<TimelineView {...defaultProps} />);
 
             // Open panel
-            fireEvent.click(screen.getByRole('button'));
+            fireEvent.click(screen.getAllByRole('button')[0]);
             expect(screen.getByText("Détails de l'événement")).toBeInTheDocument();
 
             // Close panel
@@ -311,7 +311,7 @@ describe('TimelineView', () => {
 
             render(<TimelineView {...defaultProps} />);
 
-            fireEvent.click(screen.getByRole('button'));
+            fireEvent.click(screen.getAllByRole('button')[0]);
 
             expect(screen.getByText('Visualisation des changements')).toBeInTheDocument();
             expect(screen.getByTestId('diff-viewer')).toBeInTheDocument();

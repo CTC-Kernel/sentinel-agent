@@ -46,6 +46,13 @@ vi.mock('../../utils/dataSanitizer', () => ({
     sanitizeData: vi.fn((data) => data),
 }));
 
+// Mock project schema - always validates successfully in tests
+vi.mock('../../schemas/projectSchema', () => ({
+    projectSchema: {
+        safeParse: vi.fn(() => ({ success: true, data: {} })),
+    },
+}));
+
 import { getDocs, writeBatch } from 'firebase/firestore';
 import { FunctionsService } from '../FunctionsService';
 

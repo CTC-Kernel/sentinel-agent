@@ -23,6 +23,31 @@ vi.mock('../../../ui/Tooltip', () => ({
     Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'common.inspector.security.scanShodan': 'Scan Shodan',
+                'common.inspector.security.checkCVEs': 'Check CVEs (NVD)',
+                'common.inspector.security.scanShodanTooltip': 'Lancer un scan Shodan',
+                'common.inspector.security.checkCVEsTooltip': 'Rechercher des vulnérabilités CVE',
+                'common.inspector.security.identifiedRisks': 'Risques Identifiés',
+                'common.inspector.security.nvdVulnerabilities': 'Vulnérabilités NVD',
+                'common.inspector.security.linkedIncidents': 'Incidents',
+                'common.inspector.security.newRisk': 'Créer un nouveau risque',
+                'common.inspector.security.newIncident': 'Signaler un incident',
+                'common.inspector.security.criticalRisk': 'Risque Critique',
+                'common.inspector.security.noRisks': 'Aucun risque associé.',
+                'common.inspector.security.noIncidents': 'Aucun incident signalé.',
+                'common.inspector.security.shodanResult': 'Résultat Shodan',
+                'common.inspector.security.createRiskFor': 'Créer un risque pour',
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 describe('AssetInspectorSecurity', () => {
     const mockNavigate = vi.fn();
     const mockScanShodan = vi.fn();
