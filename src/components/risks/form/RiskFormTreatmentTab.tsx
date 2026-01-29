@@ -40,9 +40,9 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
     const showJustification = strategy === 'Accepter' && (probability * impact) >= 12;
 
     return (
-        <div className="space-y-8 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Layers className="h-5 w-5 text-brand-500" /> {t('risks.tabs.treatment')}
+        <div className="space-y-8 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Layers className="h-5 w-5 text-primary" /> {t('risks.tabs.treatment')}
             </h3>
 
             {/* 1. Main Treatment Plan (Source of Truth) */}
@@ -68,12 +68,12 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
 
             {/* 2. Justification (Conditional) */}
             {showJustification && (
-                <div className="space-y-2 animate-fade-in p-4 bg-warning-bg dark:bg-warning-bg/10 border border-warning-border dark:border-warning-border/30 rounded-3xl">
-                    <label className="flex items-center gap-2 text-sm font-bold text-warning-text dark:text-warning-text">
+                <div className="space-y-2 animate-fade-in p-4 bg-warning/10 border border-warning/20 rounded-xl">
+                    <label className="flex items-center gap-2 text-sm font-bold text-warning">
                         <AlertTriangle className="h-4 w-4" />
                         {t('risks.validation_justification_required') || "Justification d'Acceptation du Risque (Obligatoire)"}
                     </label>
-                    <p className="text-xs text-warning-text dark:text-warning-text/80">
+                    <p className="text-xs text-muted-foreground">
                         {t('risks.validation_justification_desc', { score: probability * impact }) || `Vous vous apprêtez à accepter un risque critique (Score: ${probability * impact}). Veuillez justifier cette décision pour le registre.`}
                     </p>
                     <FloatingLabelInput
@@ -103,17 +103,17 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
 
                 {/* Search Bar */}
                 <div className="relative mb-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
                         placeholder={t('common.searchPlaceholder') || "Rechercher..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-background border border-border/40 rounded-xl text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all duration-normal ease-apple"
                     />
                 </div>
 
-                <div className="border border-border/40 dark:border-slate-700 rounded-3xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
+                <div className="border border-border/40 rounded-xl max-h-[250px] overflow-y-auto p-2 bg-muted/10">
                     {controls.length > 0 ? (
                         controls
                             .filter(c =>
@@ -132,33 +132,33 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                             .map(ctrl => {
                                 const isSuggested = suggestedControlIds.includes(ctrl.id);
                                 return (
-                                    <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''} ${isSuggested ? 'bg-violet-50/50 dark:bg-violet-900/10' : ' '}`}>
-                                        <input 
+                                    <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-background transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-background shadow-sm border border-border/40' : ''} ${isSuggested ? 'bg-primary/5' : ' '}`}>
+                                        <input
                                             id={`control-${ctrl.id}`}
-                                            checked={mitigationControlIds?.includes(ctrl.id) || false} 
+                                            checked={mitigationControlIds?.includes(ctrl.id) || false}
                                             onChange={() => toggleControlSelection(ctrl.id)}
                                             type="checkbox"
-                                            className="mt-1 rounded border-border/40 text-brand-600 focus-visible:ring-brand-500"
+                                            className="mt-1 rounded border-border/40 text-primary focus-visible:ring-primary"
                                         />
                                         <span className="sr-only">{ctrl.code}</span>
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                                                <span className="text-xs font-bold text-foreground flex items-center gap-2">
                                                     {ctrl.code}
-                                                    {isSuggested && <span className="text-[11px] bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
+                                                    {isSuggested && <span className="text-[11px] bg-primary/10 text-primary px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
                                                 </span>
-                                                {ctrl.status === 'Implémenté' && <span className="text-[11px] bg-success-bg text-success-text px-1.5 rounded-full">{t('common.status.implemented') || "Implémenté"}</span>}
+                                                {ctrl.status === 'Implémenté' && <span className="text-[11px] bg-success/10 text-success px-1.5 rounded-full">{t('common.status.implemented') || "Implémenté"}</span>}
                                             </div>
-                                            <span className="text-xs text-slate-600 dark:text-muted-foreground">{ctrl.name}</span>
+                                            <span className="text-xs text-muted-foreground">{ctrl.name}</span>
                                         </div>
                                     </label>
                                 )
                             })
                     ) : (
-                        <div className="p-4 text-center text-xs text-slate-500">{t('common.noControls') || "Aucun contrôle disponible."}</div>
+                        <div className="p-4 text-center text-xs text-muted-foreground">{t('common.noControls') || "Aucun contrôle disponible."}</div>
                     )}
                 </div>
-                <p className="text-[11px] text-slate-500">{t('risks.controls_hint') || "Sélectionnez les contrôles déjà en place réduisant le risque."}</p>
+                <p className="text-[11px] text-muted-foreground">{t('risks.controls_hint') || "Sélectionnez les contrôles déjà en place réduisant le risque."}</p>
             </div>
         </div>
     );

@@ -365,7 +365,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                               {party.name}
                             </h4>
                             <span className={cn(
-                              "inline-block px-2 py-0.5 rounded text-[11px] uppercase font-bold tracking-wider mt-1",
+                              "inline-block px-2 py-0.5 rounded caption mt-1",
                               party.category === 'internal'
                                 ? "bg-info-bg text-info-text"
                                 : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
@@ -537,7 +537,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                           <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-slate-800/50">
                             <div className="flex flex-col items-end">
-                              <span className="text-[11px] uppercase font-bold text-slate-600 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop3.likelihood')}</span>
+                              <span className="caption mb-1">{t('ebios.workshop3.likelihood')}</span>
                               <span className={cn(
                                 "px-3 py-1 rounded-lg text-sm font-bold shadow-sm border",
                                 `bg-${likelihoodScale?.color || 'gray'}-50 dark:bg-${likelihoodScale?.color || 'gray'}-900/20`,
@@ -673,7 +673,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                           <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-slate-800/50">
                             <div className="flex flex-col items-end">
-                              <span className="text-[11px] uppercase font-bold text-slate-600 dark:text-slate-300 tracking-wider mb-1">{t('ebios.workshop3.gravity')}</span>
+                              <span className="caption mb-1">{t('ebios.workshop3.gravity')}</span>
                               <span className={cn(
                                 "inline-block px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border",
                                 `bg-${gravityScale?.color || 'gray'}-50 dark:bg-${gravityScale?.color || 'gray'}-900/20`,

@@ -110,32 +110,32 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     }, [user?.organizationId, loadData]);
 
     if (loading) {
-        return <div className="p-8 text-center text-slate-500">Chargement du playbook...</div>;
+        return <div className="p-8 text-center text-muted-foreground">Chargement du playbook...</div>;
     }
 
     // CASE 1: No active response -> Selection Mode
     if (!response) {
         return (
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-white/5 shadow-sm space-y-6">
-                <div className="flex items-center gap-3 text-amber-500">
+            <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium space-y-6">
+                <div className="flex items-center gap-3 text-warning">
                     <AlertTriangle className="h-6 w-6" />
                     <h3 className="font-bold text-lg">Aucune réponse initiée</h3>
                 </div>
-                <p className="text-slate-600 dark:text-muted-foreground">
+                <p className="text-muted-foreground">
                     Pour traiter cet incident selon les normes ISO 27001, vous devez initier une procédure de réponse formelle.
                 </p>
 
                 {availablePlaybooks.length > 0 ? (
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="playbook-select" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="playbook-select" className="block text-sm font-bold text-foreground mb-2">
                                 Sélectionner un Playbook
                             </label>
                             <select
                                 id="playbook-select"
                                 value={selectedPlaybookId}
                                 onChange={(e) => setSelectedPlaybookId(e.target.value)}
-                                className="w-full rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+                                className="w-full rounded-xl border-border/40 bg-background text-foreground p-3 focus:outline-none focus:ring-2 focus-visible:ring-primary transition-all duration-normal ease-apple"
                             >
                                 {availablePlaybooks.map(pb => (
                                     <option key={pb.id} value={pb.id}>{pb.title} ({pb.severity})</option>
@@ -148,10 +148,10 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                             const selected = availablePlaybooks.find(p => p.id === selectedPlaybookId);
                             if (!selected) return null;
                             return (
-                                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-3xl border border-border/40 dark:border-white/5 text-sm space-y-2">
-                                    <p><strong>Durée estimée:</strong> {selected.estimatedDuration}</p>
-                                    <p><strong>Étapes:</strong> {selected.steps.length}</p>
-                                    <p className="text-slate-600">{selected.description}</p>
+                                <div className="bg-muted/10 p-4 rounded-xl border border-border/40 text-sm space-y-2">
+                                    <p><strong className="text-foreground">Durée estimée:</strong> {selected.estimatedDuration}</p>
+                                    <p><strong className="text-foreground">Étapes:</strong> {selected.steps.length}</p>
+                                    <p className="text-muted-foreground">{selected.description}</p>
                                 </div>
                             );
                         })()}
@@ -159,18 +159,18 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                         <button
                             onClick={handleStartResponse}
                             disabled={isStarting}
-                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold transition-colors flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                            className="w-full py-4 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all duration-normal ease-apple flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none dark:disabled:bg-muted/20"
                         >
-                            {isStarting ? <span className="animate-spin">⏳</span> : <MonitorPlay className="h-5 w-5" />}
+                            {isStarting ? <span className="animate-spin text-xl">⏳</span> : <MonitorPlay className="h-5 w-5" />}
                             Démarrer la réponse
                         </button>
                     </div>
                 ) : (
-                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl">
-                        <p className="text-slate-600">Aucun playbook disponible pour la catégorie "{incident.category}".</p>
+                    <div className="text-center p-6 bg-muted/10 rounded-xl border border-dashed border-border/40">
+                        <p className="text-muted-foreground">Aucun playbook disponible pour la catégorie "{incident.category}".</p>
                         <button
                             onClick={handleInitializePlaybooks}
-                            className="mt-2 text-brand-600 hover:underline text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+                            className="mt-3 text-primary hover:underline text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2"
                         >
                             Générer les playbooks par défaut
                         </button>
@@ -181,7 +181,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     }
 
     // CASE 2: Active Response -> Execution Mode
-    if (!playbook) return <div className="p-4 text-red-500">Erreur: Playbook introuvable</div>;
+    if (!playbook) return <div className="p-4 text-destructive font-bold">Erreur: Playbook introuvable</div>;
 
     const completedCount = response.completedSteps.length;
     const totalCount = playbook.steps.length;
@@ -190,34 +190,36 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     return (
         <div className="space-y-6">
             {/* Header / Progress */}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-white/5 shadow-sm">
+            <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium">
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-1">Playbook Actif</h3>
-                        <h2 className="font-bold text-lg text-slate-900 dark:text-white">{playbook.title}</h2>
+                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Playbook Actif</h3>
+                        <h2 className="font-bold text-xl text-foreground">{playbook.title}</h2>
                     </div>
-                    <Badge status={progress === 100 ? 'success' : 'info'} size="md">{progress}%</Badge>
+                    <Badge status={progress === 100 ? 'success' : 'info'} size="md" variant="soft" className="font-bold">{progress}%</Badge>
                 </div>
 
-                <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2 mb-4">
-                    <div className="bg-brand-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                <div className="w-full bg-muted/20 rounded-full h-2.5 mb-4 overflow-hidden">
+                    <div className="bg-primary h-full rounded-full transition-all duration-1000 ease-apple relative shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]" style={{ width: `${progress}%` }}>
+                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                    </div>
                 </div>
 
-                <div className="flex gap-4 text-xs text-slate-600 dark:text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
+                <div className="flex gap-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" />
                         <span>Débuté le: {new Date(response.startedAt).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <Shield className="h-4 w-4" />
+                    <div className="flex items-center gap-1.5">
+                        <Shield className="h-3.5 w-3.5" />
                         <span>Sévérité: {playbook.severity}</span>
                     </div>
                 </div>
             </div>
 
             {/* Steps List */}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">Étapes de résolution</h3>
+            <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-6">Étapes de résolution</h3>
                 <div className="space-y-4">
                     {playbook.steps.sort((a, b) => a.order - b.order).map((step) => {
                         const isCompleted = response.completedSteps.includes(step.id);
@@ -237,42 +239,42 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                 }}
                                 role="button"
                                 tabIndex={isNext && !readOnly ? 0 : -1}
-                                className={`relative flex items-start p-4 rounded-3xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isCompleted
-                                    ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
+                                className={`relative flex items-start p-4 rounded-xl border transition-all duration-normal ease-apple focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isCompleted
+                                    ? 'bg-success/5 border-success/20'
                                     : isNext
-                                        ? 'bg-white dark:bg-white/5 border-brand-200 dark:border-brand-300 ring-1 ring-brand-100 dark:ring-brand-700 cursor-pointer hover:shadow-md'
-                                        : 'bg-slate-50 dark:bg-white/5 border-border/40 dark:border-white/5 opacity-70 cursor-not-allowed'
+                                        ? 'bg-background border-primary/30 ring-1 ring-primary/10 cursor-pointer hover:shadow-md hover:border-primary/50'
+                                        : 'bg-muted/5 border-border/20 opacity-60 cursor-not-allowed text-muted-foreground'
                                     }`}
                             >
                                 {/* Status Icon */}
                                 <div className="mr-4 mt-1 flex-shrink-0">
                                     {isCompleted ? (
-                                        <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
+                                        <CheckCircle2 className="h-6 w-6 text-success" aria-hidden="true" />
                                     ) : (
-                                        <Circle className={`h-6 w-6 ${isNext ? 'text-brand-500 animate-pulse' : 'text-slate-300'}`} aria-hidden="true" />
+                                        <Circle className={`h-6 w-6 ${isNext ? 'text-primary animate-pulse' : 'text-muted/40'}`} aria-hidden="true" />
                                     )}
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1">
                                     <div className="flex justify-between items-start">
-                                        <h4 className={`font-bold ${isCompleted ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-900 dark:text-white'}`}>
+                                        <h4 className={`font-bold text-sm ${isCompleted ? 'text-success' : isNext ? 'text-foreground' : 'text-muted-foreground'}`}>
                                             {step.title}
                                         </h4>
-                                        <span className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-md">
+                                        <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground bg-muted/10 px-2 py-1 rounded-lg border border-border/40">
                                             {step.type}
                                         </span>
                                     </div>
 
-                                    <p className={`text-sm mt-1 ${isCompleted ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300'}`}>
+                                    <p className={`text-xs mt-1 leading-relaxed ${isCompleted ? 'text-success/80' : 'text-muted-foreground'}`}>
                                         {step.description}
                                     </p>
 
-                                    <div className="flex items-center gap-4 mt-3 text-xs text-slate-600">
-                                        <span className="flex items-center gap-1">
+                                    <div className="flex items-center gap-4 mt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                                        <span className="flex items-center gap-1.5">
                                             <Clock className="h-3 w-3" /> {step.estimatedTime}
                                         </span>
-                                        <span className="flex items-center gap-1">
+                                        <span className="flex items-center gap-1.5">
                                             <User className="h-3 w-3" /> {step.requiredRole}
                                         </span>
                                     </div>

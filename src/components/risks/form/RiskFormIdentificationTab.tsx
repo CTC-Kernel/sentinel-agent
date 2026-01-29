@@ -24,9 +24,9 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
     const { t } = useTranslation();
 
     return (
-        <div className="space-y-6 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <FileText className="h-5 w-5 text-brand-500" /> {t('risks.tabs.identification')}
+        <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" /> {t('risks.tabs.identification')}
             </h3>
             <div className="relative">
                 <FloatingLabelInput
@@ -42,7 +42,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
                     <button
                         type="button"
                         onClick={() => setShowLibraryModal(true)}
-                        className="p-1 px-2 bg-violet-50 hover:bg-violet-100 text-violet-600 rounded-lg text-xs font-bold transition-colors flex items-center border border-violet-200"
+                        className="p-1 px-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-xs font-bold transition-all duration-normal ease-apple flex items-center border border-primary/20"
                     >
                         <BookOpen className="h-3 w-3 mr-1" /> {t('common.library') || "Biblio"}
                     </button>

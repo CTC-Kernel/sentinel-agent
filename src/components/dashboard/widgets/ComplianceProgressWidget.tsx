@@ -60,7 +60,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
     if (loading) {
         return (
             <div className="h-full flex items-center justify-center min-h-[200px]">
-                <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
         );
     }
@@ -71,13 +71,13 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="h-full flex flex-col p-5 glass-premium rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden"
+                className="h-full flex flex-col p-5 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-sm relative overflow-hidden"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
-                <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                        <div className="p-2 rounded-3xl bg-gradient-to-br from-success-500 to-emerald-600 shadow-sm shadow-success-500/20">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-success to-success/80 shadow-sm shadow-success/20">
                             <ShieldCheck className="w-4 h-4 text-white" />
                         </div>
                         Conformité
@@ -103,7 +103,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="h-full flex flex-col p-5 glass-premium rounded-3xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300"
+            className="h-full flex flex-col p-5 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-normal ease-apple"
         >
             {/* SVG Definitions */}
             <svg width="0" height="0" className="absolute">
@@ -123,16 +123,16 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-success-bg rounded-full blur-2xl pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-2 rounded-3xl bg-gradient-to-br from-success-500 to-emerald-600 shadow-sm shadow-success-500/20">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-success to-success/80 shadow-sm shadow-success/20">
                         <ShieldCheck className="w-4 h-4 text-white" />
                     </div>
                     Conformité
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/compliance')}
-                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-3xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 group/btn"
+                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-background/50 hover:bg-background/80 text-muted-foreground hover:text-foreground transition-all border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group/btn"
                 >
                     Voir tout
                     <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-70 group-hover/btn:translate-x-0 transition-all" />
@@ -214,30 +214,30 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
 
             {/* Distribution Mini Stats */}
             <div className="grid grid-cols-3 gap-2 mt-auto relative z-10">
-                <div className="p-2 rounded-3xl bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40">
+                <div className="p-2 rounded-xl bg-background/40 border border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <CheckCircle2 className="w-3 h-3 text-success-500" />
                         <span className="text-[11px] text-slate-600 dark:text-slate-300 uppercase tracking-wider font-bold">Impl.</span>
                     </div>
-                    <div className="text-lg font-black text-slate-900 dark:text-white">
+                    <div className="text-lg font-black text-foreground">
                         {stats.implementedControls}
                     </div>
                 </div>
-                <div className="p-2 rounded-3xl bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40">
+                <div className="p-2 rounded-xl bg-background/40 border border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <Clock className="w-3 h-3 text-warning-500" />
                         <span className="text-[11px] text-slate-600 dark:text-slate-300 uppercase tracking-wider font-bold">Partiels</span>
                     </div>
-                    <div className="text-lg font-black text-slate-900 dark:text-white">
+                    <div className="text-lg font-black text-foreground">
                         {stats.inProgressControls}
                     </div>
                 </div>
-                <div className="p-2 rounded-3xl bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40">
+                <div className="p-2 rounded-xl bg-background/40 border border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <AlertTriangle className="w-3 h-3 text-slate-600" />
                         <span className="text-[11px] text-slate-600 dark:text-slate-300 uppercase tracking-wider font-bold">Non impl.</span>
                     </div>
-                    <div className="text-lg font-black text-slate-900 dark:text-white">
+                    <div className="text-lg font-black text-foreground">
                         {stats.notImplementedControls}
                     </div>
                 </div>
@@ -249,7 +249,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                     <span className="text-muted-foreground font-bold uppercase tracking-wider text-[11px]">Progression</span>
                     <span className="font-bold text-foreground">{stats.implementedControls}/{stats.totalControls}</span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex">
+                <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden flex">
                     <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${(stats.implementedControls / (stats.totalControls || 1)) * 100}%` }}

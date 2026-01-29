@@ -3,14 +3,14 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const cardVariants = cva(
-    "rounded-2xl bg-card text-card-foreground transition-all duration-300",
+    "rounded-xl bg-card text-card-foreground transition-all duration-300",
     {
         variants: {
             variant: {
                 default: "border shadow-sm",
                 elevated: "border shadow-apple-md",
-                glass: "bg-[var(--glass-bg,rgba(255,255,255,0.85))] backdrop-blur-xl border-[var(--glass-border,rgba(28,32,48,0.12))] shadow-[var(--glass-shadow)]",
-                premium: "bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 border shadow-apple-md ring-1 ring-black/5 dark:ring-white/10",
+                glass: "bg-[var(--glass-bg)] backdrop-blur-xl border-[var(--glass-border)] shadow-[var(--glass-shadow)]",
+                premium: "bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 border shadow-premium ring-1 ring-black/5 dark:ring-white/10",
             },
             hover: {
                 none: "",

@@ -13,16 +13,14 @@
   transition: all var(--transition-slow);
 }
 
-/* Hover states - standardized */
 .hover-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px hsl(var(--primary) / 0.15);
+  box-shadow: 0 12px 30px -4px hsl(var(--primary) / 0.2);
 }
 
-.hover-secondary:hover {
-  background-color: hsl(var(--primary) / 0.05);
-  border-color: hsl(var(--primary) / 0.2);
-  transform: translateY(-1px);
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .hover-danger:hover {
@@ -33,9 +31,9 @@
 }
 
 .hover-success:hover {
-  background-color: hsl(var(--success, 142 71% 45%) / 0.05);
-  border-color: hsl(var(--success, 142 71% 45%) / 0.2);
-  color: hsl(var(--success, 142 71% 45%));
+  background-color: hsl(var(--success) / 0.05);
+  border-color: hsl(var(--success) / 0.2);
+  color: hsl(var(--success));
   transform: translateY(-1px);
 }
 
@@ -152,21 +150,62 @@
 }
 
 .btn-success:hover {
-  background-color: hsl(var(--success, 142 71% 45%) / 0.05);
-  border-color: hsl(var(--success, 142 71% 45%) / 0.2);
-  color: hsl(var(--success, 142 71% 45%));
+  background-color: hsl(var(--success) / 0.05);
+  border-color: hsl(var(--success) / 0.2);
+  color: hsl(var(--success));
   transform: translateY(-1px);
 }
 
-/* Card hover effects - standardized */
-.card-interactive {
-  @apply interactive-element hover-primary;
+/* Card interaction styles */
+.card-premium {
+  @apply interactive-element;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-md));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: var(--radius-2xl);
+  position: relative;
+  overflow: hidden;
 }
 
-.card-interactive:hover {
-  /* Border color change removed for cleaner UI */
+.card-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-highlight);
+  pointer-events: none;
 }
+
+.card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  background: var(--glass-medium-bg);
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
+  transform: skewX(-20deg);
+  transition: 0.75s;
+}
+
+.shine-effect:hover::after {
+  left: 150%;
+}
+
 
 /* Input field states - standardized */
 .input-interactive {
@@ -252,14 +291,14 @@
 }
 
 .input-success {
-  border-color: hsl(var(--success, 142 71% 45%));
-  box-shadow: 0 0 0 3px hsl(var(--success, 142 71% 45%) / 0.1);
+  border-color: hsl(var(--success));
+  box-shadow: 0 0 0 3px hsl(var(--success) / 0.1);
   border-radius: var(--radius-lg);
 }
 
 .input-warning {
-  border-color: hsl(var(--warning, 38 92% 50%));
-  box-shadow: 0 0 0 3px hsl(var(--warning, 38 92% 50%) / 0.1);
+  border-color: hsl(var(--warning));
+  box-shadow: 0 0 0 3px hsl(var(--warning) / 0.1);
   border-radius: var(--radius-lg);
 }
 

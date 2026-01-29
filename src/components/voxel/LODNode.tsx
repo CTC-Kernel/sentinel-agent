@@ -61,13 +61,13 @@ export const DEFAULT_LOD_DISTANCES: LODDistances = {
 
 /** Node type colors */
 const NODE_COLORS: Record<VoxelNodeType, string> = {
-  asset: '#3b82f6',
-  risk: '#ef4444',
-  control: '#22c55e',
-  incident: '#f43f5e',
-  supplier: '#8b5cf6',
-  project: '#f59e0b',
-  audit: '#06b6d4',
+  asset: 'hsl(var(--primary))',
+  risk: 'hsl(var(--error))',
+  control: 'hsl(var(--success))',
+  incident: 'hsl(var(--destructive))',
+  supplier: 'hsl(var(--nav-repository))',
+  project: 'hsl(var(--warning))',
+  audit: 'hsl(var(--info))',
 };
 
 // ============================================================================

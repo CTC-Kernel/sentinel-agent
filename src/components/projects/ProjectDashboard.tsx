@@ -140,7 +140,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     </filter>
                     <linearGradient id="projectHealthGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={projectHealth.status === 'good' ? SENTINEL_PALETTE.success : projectHealth.status === 'warning' ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
-                        <stop offset="100%" stopColor={projectHealth.status === 'good' ? '#10b981' : projectHealth.status === 'warning' ? '#f59e0b' : '#ef4444'} />
+                        <stop offset="100%" stopColor={projectHealth.status === 'good' ? 'hsl(var(--success))' : projectHealth.status === 'warning' ? 'hsl(var(--warning))' : 'hsl(var(--error))'} />
                     </linearGradient>
                     <linearGradient id="projectProgressGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} />
@@ -187,7 +187,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                             </div>
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-foreground mb-1 uppercase tracking-wide">Santé du Projet</h3>
+                            <h3 className="heading-3 mb-1">Santé du Projet</h3>
                             <p className="text-xs text-muted-foreground max-w-[200px]">
                                 {projectHealth.status === 'good' ? 'Le projet est sur la bonne voie.' : projectHealth.status === 'warning' ? 'Attention requise sur certains points.' : 'Situation critique, action immédiate requise.'}
                             </p>
@@ -205,7 +205,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                             <div className="text-2xl font-black bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
                                 {Math.round(projectHealth.progressRate)}%
                             </div>
-                            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Progression</div>
+                            <div className="mono-label mb-2">Progression</div>
                             <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full transition-all duration-1000" style={{ width: `${projectHealth.progressRate}%` }} />
                             </div>
@@ -220,7 +220,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                             <div className="text-2xl font-black bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
                                 {milestoneStats.achieved}/{milestoneStats.total}
                             </div>
-                            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Jalons</div>
+                            <div className="mono-label mb-2">Jalons</div>
                             <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-violet-500 to-violet-400 rounded-full transition-all duration-1000" style={{ width: `${milestoneStats.rate}%` }} />
                             </div>
@@ -260,7 +260,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
-                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="heading-4 mb-4 flex items-center gap-2">
                         <div className="p-2 bg-brand-50 rounded-3xl">
                             <Layers className="w-4 h-4 text-brand-500" />
                         </div>
@@ -304,7 +304,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                         verticalAlign="bottom"
                                         iconType="circle"
                                         iconSize={10}
-                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>}
+                                        formatter={(value) => <span className="caption ml-1">{value}</span>}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>

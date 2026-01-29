@@ -322,8 +322,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {TABS.map((tab) => {
                         const Icon = tab.icon;
                         return (
-                            <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === tab.id ? 'border-brand-600 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200'}`}>
-                                <Icon className={`h-4 w-4 ${activeTab === tab.id ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 group-hover:text-slate-500'}`} />
+                            <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all duration-normal ease-apple ${activeTab === tab.id ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+                                <Icon className={`h-4 w-4 transition-colors ${activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`} />
                                 {tab.label}
                             </button>
                         );
@@ -339,14 +339,14 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Draft Recovery Banner */}
                 {showDraftRecoveryBanner && (
-                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-3xl flex items-center justify-between animate-fade-in">
+                    <div className="p-4 bg-warning/10 border border-warning/20 rounded-xl flex items-center justify-between animate-fade-in">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-500 rounded-full"><History className="h-5 w-5 text-amber-600 dark:text-amber-400" /></div>
-                            <div><p className="font-medium text-amber-800 dark:text-amber-200">Brouillon non enregistré détecté</p><p className="text-sm text-amber-600 dark:text-amber-400">Un brouillon de ce formulaire a été trouvé. Voulez-vous le restaurer ?</p></div>
+                            <div className="p-2 bg-warning/20 rounded-lg"><History className="h-5 w-5 text-warning" /></div>
+                            <div><p className="font-bold text-warning text-sm">Brouillon non enregistré détecté</p><p className="text-xs text-muted-foreground">Un brouillon de ce formulaire a été trouvé. Voulez-vous le restaurer ?</p></div>
                         </div>
                         <div className="flex gap-2">
-                            <Button type="button" variant="ghost" onClick={handleDiscardDraft} className="text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-800/30">Ignorer</Button>
-                            <Button type="button" onClick={handleRestoreDraft} className="bg-amber-600 hover:bg-amber-700 text-white">Restaurer</Button>
+                            <Button type="button" variant="ghost" onClick={handleDiscardDraft} className="text-warning hover:bg-warning/10">Ignorer</Button>
+                            <Button type="button" onClick={handleRestoreDraft} className="bg-warning hover:bg-warning/90 text-white rounded-lg">Restaurer</Button>
                         </div>
                     </div>
                 )}
@@ -360,14 +360,14 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {activeTab === 'identification' && <RiskFormIdentificationTab control={control} errors={errors} assets={assets} getValues={getValues} setValue={setValue} showLibraryModal={showLibraryModal} setShowLibraryModal={setShowLibraryModal} readOnly={readOnly} />}
                     {activeTab === 'assessment' && <RiskFormAssessmentTab probability={probability ?? 3} impact={impact ?? 3} residualProbability={residualProbability ?? 3} residualImpact={residualImpact ?? 3} setValue={setValue} control={control} errors={errors} readOnly={readOnly} />}
                     {activeTab === 'treatment' && <RiskFormTreatmentTab control={control} errors={errors} existingRisk={existingRisk} controls={controls} usersList={usersList} getValues={getValues} setValue={setValue} strategy={strategy || 'Atténuer'} probability={probability ?? 3} impact={impact ?? 3} mitigationControlIds={mitigationControlIds || []} suggestedControlIds={suggestedControlIds} readOnly={readOnly} />}
-                    {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
+                    {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
                 </fieldset>
                 {activeTab === 'history' && !existingRisk?.id && <div className="p-8 text-center text-slate-500">Veuillez enregistrer le risque pour voir l'historique.</div>}
             </div>
 
             {/* Footer Buttons */}
             {!readOnly && (
-                <div className="border-t border-border/40 dark:border-border/40 p-6 bg-white dark:bg-black/40 backdrop-blur-md flex justify-between items-center">
+                <div className="border-t border-border/40 p-6 bg-background/80 backdrop-blur-xl flex justify-between items-center shrink-0">
                     <Button type="button" onClick={onCancel} variant="ghost">Annuler</Button>
                     <div className="flex gap-3">
                         {activeTab !== 'context' && <Button type="button" variant="secondary" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx > 0) setActiveTab(TABS[idx - 1].id); }}>Précédent</Button>}
@@ -375,9 +375,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             <Button type="button" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id); }}>Suivant</Button>
                         ) : (
                             <div className="flex gap-2">
-                                {onSaveDraft && (!isEditing || isDraft) && <Button type="button" variant="secondary" onClick={handleSaveAsDraft} isLoading={isSavingDraft} disabled={isSavingDraft || isLoading} className="px-6 py-3 border border-amber-300 dark:border-amber-700 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:hover:bg-amber-900/20 rounded-3xl font-medium text-sm">Enregistrer brouillon</Button>}
-                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-gradient-to-r from-success-text to-success-text/90 hover:from-success-text/90 hover:to-success-text/80 text-white rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-success-text/20 font-bold text-sm">Publier le Risque</Button>}
-                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-700 hover:to-violet-700 text-white rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm">{isEditing ? 'Sauvegarder' : 'Créer le Risque'}</Button>}
+                                {onSaveDraft && (!isEditing || isDraft) && <Button type="button" variant="secondary" onClick={handleSaveAsDraft} isLoading={isSavingDraft} disabled={isSavingDraft || isLoading} className="px-6 py-3 border border-warning/50 text-warning hover:bg-warning/10 rounded-xl font-bold text-sm transition-all duration-normal ease-apple">Enregistrer brouillon</Button>}
+                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-success hover:bg-success/90 text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-normal ease-apple shadow-lg shadow-success/20 font-bold text-sm">Publier le Risque</Button>}
+                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-normal ease-apple shadow-lg shadow-primary/20 font-bold text-sm">{isEditing ? 'Sauvegarder' : 'Créer le Risque'}</Button>}
                             </div>
                         )}
                     </div>
@@ -390,10 +390,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     <div className="relative mb-4"><FloatingLabelInput label="Rechercher une menace..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={Search} /></div>
                     <div className="max-h-[60vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
                         {filteredLibraryThreats.map((t) => (
-                            <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(t)} role="button" tabIndex={0} aria-label={`Sélectionner la menace ${t.name}`} className="border border-border/40 dark:border-border/40 p-4 rounded-3xl hover:border-brand-500 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(t)} role="button" tabIndex={0} aria-label={`Sélectionner la menace ${t.name}`} className="border border-border/40 p-4 rounded-xl hover:border-primary/50 cursor-pointer bg-background transition-all duration-normal ease-apple hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                                 <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-brand-500" /><span className="font-bold text-slate-900 dark:text-white line-clamp-1">{t.name}</span></div>
-                                    <span className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-300 border px-1.5 py-0.5 rounded">{t.framework}</span>
+                                    <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /><span className="font-bold text-foreground line-clamp-1">{t.name}</span></div>
+                                    <span className="text-[11px] uppercase font-bold text-muted-foreground border px-1.5 py-0.5 rounded-lg">{t.framework}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 mb-2">{t.description}</p>
                                 <div className="flex gap-2 text-[11px] text-slate-500">

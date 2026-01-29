@@ -24,17 +24,16 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   onClick,
   ...props
 }) => {
-  const baseClasses = "rounded-3xl p-6 transition-all duration-300 relative overflow-hidden group border border-transparent";
+  const baseClasses = "rounded-xl p-6 transition-all duration-normal active:duration-75 ease-apple relative overflow-hidden group border border-border/40 shadow-sm";
 
   const variantClasses = cn(
-    glass && "glass-premium",
-    gradient && "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-border/50",
-    !glass && !gradient && "bg-card text-card-foreground border-border/60 shadow-sm",
+    glass && "bg-[var(--glass-bg)] backdrop-blur-xl border-[var(--glass-border)] text-foreground",
+    gradient && "bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800",
     hover && [
-      "hover:shadow-lg",
+      "hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/20 hover:bg-[var(--glass-medium-bg)]",
       onClick && "cursor-pointer"
     ],
-    glow && "shadow-lg shadow-primary/5 dark:shadow-primary/10",
+    glow && "shadow-lg shadow-primary/20 dark:shadow-primary/30",
     className
   );
 

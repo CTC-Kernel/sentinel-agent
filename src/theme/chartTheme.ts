@@ -12,13 +12,13 @@
  */
 export const SENTINEL_PALETTE = {
     // Semantic colors (harmonized with design tokens)
-    primary: '#4a8ce7',   // hsl(221 68% 60%) - Softened blue
-    secondary: '#9b7ed7', // hsl(270 50% 67%) - Softened purple
-    success: '#52a67e',   // hsl(152 48% 42%) - Softened teal
-    warning: '#d69e5e',   // hsl(38 58% 52%) - Softened amber
-    danger: '#d66161',    // hsl(4 55% 54%) - Softened red
-    info: '#4ba0c7',      // hsl(201 55% 50%) - Softened cyan
-    tertiary: '#7fa1b3',  // hsl(200 25% 60%) - Softened slate-blue
+    primary: 'hsl(var(--primary))',
+    secondary: 'hsl(var(--nav-repository))', // Purpleish
+    success: 'hsl(var(--success))',
+    warning: 'hsl(var(--warning))',
+    danger: 'hsl(var(--error))',
+    info: 'hsl(var(--info))',
+    tertiary: 'hsl(var(--nav-support))',
 
     // Data Series Colors (for multi-series charts)
     series1: '#4a7fc7',   // Primary blue
@@ -32,11 +32,11 @@ export const SENTINEL_PALETTE = {
 };
 
 export const SEVERITY_COLORS = {
-    critical: '#d66161',  // Soft red
-    high: '#d69e5e',      // Soft amber
-    medium: '#d4b45d',    // Soft gold
-    low: '#52a67e',       // Soft teal
-    info: '#4ba0c7',      // Soft cyan
+    critical: 'hsl(var(--error))',
+    high: 'hsl(var(--warning))',
+    medium: 'hsl(var(--nav-operations))', // Orange
+    low: 'hsl(var(--success))',
+    info: 'hsl(var(--info))',
 };
 
 export const CHART_STYLES = {
@@ -96,17 +96,17 @@ export const CHART_STYLES = {
 
 // Helper for Recharts Gradient Definitions (harmonized)
 export const ChartGradients = {
-    primary: { id: 'gradientPrimary', from: '#4a7fc7', to: '#93b8fd' },
-    blue: { id: 'gradientBlue', from: '#4a7fc7', to: '#93b8fd' },
-    success: { id: 'gradientSuccess', from: '#2d9d6a', to: '#6fcca3' },
-    teal: { id: 'gradientTeal', from: '#2d9d6a', to: '#6fcca3' },
-    purple: { id: 'gradientPurple', from: '#9b6dd7', to: '#c9aee8' },
-    violet: { id: 'gradientViolet', from: '#7c5cbd', to: '#b49dda' },
-    warning: { id: 'gradientWarning', from: '#c87f1a', to: '#e8b86d' },
-    amber: { id: 'gradientAmber', from: '#c87f1a', to: '#e8b86d' },
-    danger: { id: 'gradientDanger', from: '#d64545', to: '#eb9090' },
-    info: { id: 'gradientInfo', from: '#2a8ab8', to: '#7ac0de' },
-    cyan: { id: 'gradientCyan', from: '#2a8ab8', to: '#7ac0de' },
+    primary: { id: 'gradientPrimary', from: 'hsl(var(--primary))', to: 'hsl(var(--primary) / 0.6)' },
+    blue: { id: 'gradientBlue', from: 'hsl(var(--primary))', to: 'hsl(var(--primary) / 0.6)' },
+    success: { id: 'gradientSuccess', from: 'hsl(var(--success))', to: 'hsl(var(--success) / 0.6)' },
+    teal: { id: 'gradientTeal', from: 'hsl(var(--success))', to: 'hsl(var(--success) / 0.6)' },
+    purple: { id: 'gradientPurple', from: 'hsl(var(--nav-repository))', to: 'hsl(var(--nav-repository) / 0.6)' },
+    violet: { id: 'gradientViolet', from: 'hsl(var(--nav-repository))', to: 'hsl(var(--nav-repository) / 0.6)' },
+    warning: { id: 'gradientWarning', from: 'hsl(var(--warning))', to: 'hsl(var(--warning) / 0.6)' },
+    amber: { id: 'gradientAmber', from: 'hsl(var(--warning))', to: 'hsl(var(--warning) / 0.6)' },
+    danger: { id: 'gradientDanger', from: 'hsl(var(--error))', to: 'hsl(var(--error) / 0.6)' },
+    info: { id: 'gradientInfo', from: 'hsl(var(--info))', to: 'hsl(var(--info) / 0.6)' },
+    cyan: { id: 'gradientCyan', from: 'hsl(var(--info))', to: 'hsl(var(--info) / 0.6)' },
 };
 
 // Score gauge gradient colors (harmonized)

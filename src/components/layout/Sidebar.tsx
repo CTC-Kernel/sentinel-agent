@@ -182,8 +182,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       >
         {/* Brand Logo */}
         <div className="h-16 flex items-center justify-between px-6 mb-4 border-b border-border/60">
-          <div className="flex items-center gap-3 group cursor-pointer select-none">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-foreground text-background shadow-xl shadow-foreground/10 ring-1 ring-border/10">
+          <div className="flex items-center gap-3 group cursor-pointer select-none shine-effect">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-white/10">
               <Lock className="h-5 w-5" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col justify-center">
@@ -223,12 +223,12 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       onClick={() => setMobileOpen(false)}
                       data-tour={`${item.key}-nav`}
                       className={({ isActive }) => `
-                         group relative flex items-center gap-3 rounded-3xl px-3 py-2 text-[14px] font-medium tracking-tight 
-                         transition-all duration-200 active:duration-75 active:scale-95 ease-out
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 overflow-hidden
+                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight 
+                         transition-all duration-300 active:duration-75 active:scale-95 ease-apple
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
                          ${isActive
-                          ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25'
-                          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:translate-x-1 active:bg-slate-100/50 dark:active:bg-white/5'}
+                          ? 'bg-gradient-primary text-primary-foreground shadow-lg shadow-primary/25'
+                          : 'text-muted-foreground hover:bg-white/10 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1'}
                        `}
                     >
                       {({ isActive }) => (
@@ -253,9 +253,9 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/help"
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) => `
-                group relative flex items-center gap-3 rounded-3xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
                 ${isActive
-                ? 'bg-muted text-foreground font-semibold border border-border'
+                ? 'bg-muted text-foreground font-semibold border border-border/50'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}
               `}
           >
@@ -276,8 +276,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/settings"
             data-tour="settings"
             className={({ isActive }) => `
-                group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-3xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
-                ${isActive ? 'bg-background/60 text-foreground shadow-sm' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}
+                group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
+                ${isActive ? 'bg-background/60 text-foreground shadow-sm border border-border/40' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}
               `}
           >
             {({ isActive }) => (
@@ -294,7 +294,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             variant="ghost"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 dark:hover:text-destructive-300 rounded-3xl"
+            className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 dark:hover:text-destructive-300 rounded-xl"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive mr-3 bg-destructive/10">
               {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" strokeWidth={2} />}

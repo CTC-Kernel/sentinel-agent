@@ -26,8 +26,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
                 <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-100 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
             </div>
             <div className="relative z-10 flex flex-col items-center">
-                <div className="w-20 h-20 rounded-3xl glass-premium flex items-center justify-center shadow-2xl animate-pulse mb-8 border border-border/40">
-                    <Lock className="h-10 w-10 text-slate-900 dark:text-white" strokeWidth={2.5} />
+                <div className="w-20 h-20 rounded-2xl bg-[var(--glass-bg)] backdrop-blur-xl flex items-center justify-center shadow-xl animate-pulse mb-8 border border-border/40">
+                    <Lock className="h-10 w-10 text-primary" strokeWidth={2.5} />
                 </div>
                 {!showTimeout ? (
                     <div className="flex space-x-2">
@@ -42,7 +42,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
                         </p>
                         <Button
                             onClick={() => window.location.reload()}
-                            className="bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/20"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                         >
                             Recharger la page
                         </Button>

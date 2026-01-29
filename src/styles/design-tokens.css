@@ -77,12 +77,13 @@
   --info-border: 201 45% 80%;
 
   /* Gradient Variables - Harmonized with reduced saturation */
-  /* Gradient Variables - Desaturated for premium feel */
-  --gradient-primary: linear-gradient(135deg, hsl(221 68% 50%) 0%, hsl(235 60% 55%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(152 48% 42%) 0%, hsl(162 45% 46%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(38 58% 52%) 0%, hsl(28 55% 50%) 100%);
-  --gradient-danger: linear-gradient(135deg, hsl(4 55% 54%) 0%, hsl(358 52% 52%) 100%);
-  --gradient-info: linear-gradient(135deg, hsl(201 55% 50%) 0%, hsl(210 52% 54%) 100%);
+  /* Gradient Variables - Enhanced for Premium Feel */
+  --gradient-primary: linear-gradient(135deg, hsl(221 75% 55%) 0%, hsl(235 65% 60%) 50%, hsl(250 60% 65%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(152 50% 45%) 0%, hsl(162 48% 50%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(38 60% 55%) 0%, hsl(28 58% 53%) 100%);
+  --gradient-danger: linear-gradient(135deg, hsl(4 58% 56%) 0%, hsl(358 55% 54%) 100%);
+  --gradient-info: linear-gradient(135deg, hsl(201 58% 52%) 0%, hsl(210 55% 56%) 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
 
   /* Spacing Scale - Standard (Tailwind compatible) */
   --spacing-1: 0.25rem;
@@ -161,7 +162,8 @@
   --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04);
   /* Softer */
   --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.12);
-  /* Softer */
+  --shadow-premium: 0 0 0 1px rgba(0, 0, 0, 0.02), var(--shadow-lg);
+  --shadow-inset: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 
   /* Colored Shadows - For buttons and status elements */
   --shadow-primary: 0 8px 24px -4px hsl(var(--primary) / 0.25);
@@ -184,12 +186,13 @@
   --blur-xl: 40px;
 
   /* ===== GLASSMORPHISM ===== */
-  /* WCAG AAA: Increased opacity for better text readability (Apple-style) */
+  /* Glassmorphism Evolution - Apple-style multi-layer */
   --glass-bg: rgba(255, 255, 255, 0.15);
-  /* Lowered opacity to allow semantic color bleed */
-  --glass-border: rgba(28, 32, 48, 0.08);
-  /* Reduced from 0.18 for subtlety */
-  --glass-shadow: var(--shadow-md);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: var(--shadow-lg);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  --glass-medium-bg: rgba(255, 255, 255, 0.3);
+  --glass-heavy-bg: rgba(255, 255, 255, 0.5);
 
   /* Modal Overlay - 60% for sufficient contrast */
   --overlay-bg: rgba(15, 23, 42, 0.6);
@@ -198,8 +201,8 @@
 
 .dark {
   /* Shadcn UI Dark Mode - Deep Oceanic Blue/Slate */
-  --background: 222.2 84% 4.9%;
-  /* #020617 */
+  --background: 222.2 84% 3.5%;
+  /* Slightly deeper #010411 */
   --foreground: 210 40% 98%;
 
   --card: 222.2 84% 6.9%;
@@ -269,11 +272,11 @@
   --info-border: 201 50% 35%;
 
   /* Gradient Variables - Dark Mode (harmonized) */
-  --gradient-primary: linear-gradient(135deg, hsl(217 80% 58%) 0%, hsl(235 70% 62%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(152 58% 52%) 0%, hsl(162 55% 55%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(38 68% 55%) 0%, hsl(28 65% 52%) 100%);
-  --gradient-danger: linear-gradient(135deg, hsl(4 65% 58%) 0%, hsl(358 62% 54%) 100%);
-  --gradient-info: linear-gradient(135deg, hsl(201 65% 52%) 0%, hsl(210 62% 55%) 100%);
+  --gradient-primary: linear-gradient(135deg, hsl(217 85% 62%) 0%, hsl(235 75% 65%) 50%, hsl(250 70% 68%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(152 60% 55%) 0%, hsl(162 58% 58%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(38 72% 58%) 0%, hsl(28 70% 55%) 100%);
+  --gradient-danger: linear-gradient(135deg, hsl(4 68% 62%) 0%, hsl(358 65% 58%) 100%);
+  --gradient-info: linear-gradient(135deg, hsl(201 68% 55%) 0%, hsl(210 65% 58%) 100%);
 
   /* Shadow System - Dark Mode (deeper shadows) */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -284,12 +287,13 @@
   --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.6);
 
   /* Glassmorphism Dark - Premium Apple-style */
-  /* WCAG AAA: Increased opacity for better text readability */
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  /* Slightly more transparent to reduce blue tint */
-  --glass-border: rgba(255, 255, 255, 0.1);
-  /* Thinner border for premium feel */
-  --glass-shadow: var(--shadow-lg);
+  --glass-bg: rgba(15, 23, 42, 0.4);
+  /* Darker base for better depth */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: var(--shadow-xl);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  --glass-medium-bg: rgba(15, 23, 42, 0.6);
+  --glass-heavy-bg: rgba(15, 23, 42, 0.8);
 
   /* Modal Overlay - Dark Mode */
   --overlay-bg: rgba(0, 0, 0, 0.65);

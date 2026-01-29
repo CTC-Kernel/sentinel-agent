@@ -207,8 +207,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
     if (isEmpty && !loading) {
         return (
-            <PremiumCard glass className="relative overflow-hidden rounded-3xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-500/20 via-background/0 to-background/0 dark:from-brand-500/10 dark:via-background/0 dark:to-background/0 opacity-60 transition-opacity duration-1000 group-hover:opacity-70" />
+            <PremiumCard glass className="relative overflow-hidden rounded-xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background/0 to-background/0 opacity-60 transition-opacity duration-1000 group-hover:opacity-70" />
                 <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
                         <span className="relative flex h-2.5 w-2.5 mr-3">
@@ -234,13 +234,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             return (
                                 <button key={card.link || `card-${i}`} onClick={() => {
                                     if (card.link && card.link.startsWith('/')) navigate(card.link); // validateUrl check
-                                }} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-400 dark:hover:border-brand-300 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={card.title}>
+                                }} className="group/card relative p-8 rounded-xl bg-card/60 border border-border hover:border-primary/50 transition-all duration-normal ease-apple hover:shadow-xl hover:-translate-y-1 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={card.title}>
                                     <div className={`absolute -right-10 -bottom-10 w-40 h-40 ${styles.bg} rounded-full blur-3xl ${styles.bgHover} transition-all duration-500`} />
 
-                                    <div className={`w-14 h-14 rounded-2xl ${styles.iconBg} flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
+                                    <div className={`w-14 h-14 rounded-xl ${styles.iconBg} flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
                                         <card.icon className={`h-7 w-7 ${styles.iconText}`} />
                                     </div>
-                                    <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight group-hover/card:text-brand-600 dark:group-hover/card:text-brand-400 transition-colors">{card.title}</h3>
+                                    <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight group-hover/card:text-primary transition-colors">{card.title}</h3>
                                     <p className="text-sm text-muted-foreground leading-relaxed relative z-10">{card.desc}</p>
                                 </button>
                             );
@@ -256,19 +256,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             initial={{ opacity: 0, scale: 0.96, filter: 'blur(20px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="group relative rounded-4xl p-[1.5px] overflow-hidden shadow-2xl shadow-brand-500/20"
+            className="group relative rounded-2xl p-[1.5px] overflow-hidden shadow-2xl shadow-primary/20"
         >
             {/* Premium Animated Border Gradient */}
-            <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--brand-400)_0%,var(--info-400)_25%,var(--brand-500)_50%,var(--success-400)_75%,var(--brand-400)_100%)] animate-shimmer-rotate opacity-50 group-hover:opacity-80 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
-            <div className="absolute inset-[1.5px] rounded-[1.9rem] bg-background/60 dark:bg-slate-950/60 backdrop-blur-xl" />
+            <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--primary)_0%,var(--info)_25%,var(--primary)_50%,var(--success)_75%,var(--primary)_100%)] animate-shimmer-rotate opacity-50 group-hover:opacity-80 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
+            <div className="absolute inset-[1.5px] rounded-[0.95rem] bg-[var(--background)]/60 backdrop-blur-xl" />
 
-            <PremiumCard glass className="glass-premium relative rounded-[1.85rem] overflow-hidden shadow-none border-none !bg-transparent">
+            <PremiumCard glass className="relative rounded-[0.9rem] overflow-hidden shadow-none border-none !bg-transparent">
                 {/* Multi-layer Spotlight Effects */}
-                <Spotlight className="-top-40 left-0 md:left-60 md:-top-20 opacity-80" fill="var(--brand-500)" />
-                <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-70" fill="var(--info-400)" />
+                <Spotlight className="-top-40 left-0 md:left-60 md:-top-20 opacity-80" fill="var(--primary)" />
+                <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-70" fill="var(--info)" />
 
                 {/* Premium Border Beam */}
-                <BorderBeam size={600} duration={15} colorFrom="var(--brand-400)" colorTo="var(--info-500)" borderWidth={2} />
+                <BorderBeam size={600} duration={15} colorFrom="var(--primary)" colorTo="var(--info)" borderWidth={2} />
 
                 {/* Layered Aurora Background */}
                 <div className="absolute inset-0 bg-aurora animate-aurora opacity-50 dark:opacity-30 pointer-events-none" />
@@ -277,8 +277,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <div className="absolute inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-white/[0.04] pointer-events-none" />
 
                 {/* Floating Orbs */}
-                <div className="absolute top-10 left-[20%] w-32 h-32 bg-brand-300/40 dark:bg-brand-500/20 rounded-full blur-3xl animate-float pointer-events-none" />
-                <div className="absolute bottom-10 right-[15%] w-40 h-40 bg-info-400/30 dark:bg-info-400/20 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
+                <div className="absolute top-10 left-[20%] w-32 h-32 bg-primary/20 rounded-full blur-3xl animate-float pointer-events-none" />
+                <div className="absolute bottom-10 right-[15%] w-40 h-40 bg-info/20 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
 
                 {/* Inner Content Container */}
                 <div className="relative z-10 p-6 md:p-8 lg:p-10">
@@ -293,7 +293,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/30 via-info-500/30 to-brand-500/30 rounded-[2.5rem] blur-2xl opacity-0 group-hover/orb:opacity-70 transition-all duration-700 animate-pulse-slow" />
 
                                     {/* Main Logo Container */}
-                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl shadow-xl overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--brand-500-rgb),0.15)] border border-border/40">
+                                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl shadow-xl overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--primary-rgb),0.15)] border border-border/40">
 
                                         {/* Inner Gradient Overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-info-500/10 opacity-0 group-hover/orb:opacity-70 transition-opacity duration-700" />
@@ -323,8 +323,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         </div>
 
                                         {/* Premium Holographic Rings */}
-                                        <div className="absolute inset-2 border-2 border-brand-200/20 rounded-2xl animate-spin-slow" />
-                                        <div className="absolute inset-4 border border-info-500/10 rounded-xl animate-spin-slow-reverse" />
+                                        <div className="absolute inset-2 border-2 border-primary/20 rounded-2xl animate-spin-slow" />
+                                        <div className="absolute inset-4 border border-info/10 rounded-xl animate-spin-slow-reverse" />
                                     </div>
 
                                     {/* Status Indicator - Premium */}
@@ -409,9 +409,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <Tooltip content={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')} position="bottom">
                                             <button
                                                 onClick={onToggleEdit}
-                                                className={`p-2.5 rounded-3xl transition-all duration-300 ${isEditing
-                                                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30'
-                                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                                                className={`p-2.5 rounded-lg transition-all duration-300 ${isEditing
+                                                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30'
+                                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                                     }`}
                                                 aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
                                             >

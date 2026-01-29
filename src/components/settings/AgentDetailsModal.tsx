@@ -97,7 +97,7 @@ const RadialGauge: React.FC<{
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label}</span>
             </div>
             {subtitle && (
-                <span className="text-xs text-slate-500 dark:text-slate-300 mt-1">{subtitle}</span>
+                <span className="caption mt-1">{subtitle}</span>
             )}
         </div>
     );
@@ -266,7 +266,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                     "pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors",
                                     activeTab === tab.id
                                         ? "border-brand-500 text-brand-600 dark:text-brand-400"
-                                        : "border-transparent text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300"
+                                        : "border-transparent text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300"
                                 )}
                             >
                                 <tab.icon className="w-4 h-4" />
@@ -342,12 +342,12 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                                     }))}>
                                                         <defs>
                                                             <linearGradient id="cpuGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                                                             </linearGradient>
                                                             <linearGradient id="ramGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
-                                                                <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                                                                <stop offset="5%" stopColor="hsl(var(--nav-repository))" stopOpacity={0.3} />
+                                                                <stop offset="95%" stopColor="hsl(var(--nav-repository))" stopOpacity={0} />
                                                             </linearGradient>
                                                         </defs>
                                                         <XAxis dataKey="time" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
@@ -360,8 +360,8 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                                                 fontSize: '12px'
                                                             }}
                                                         />
-                                                        <Area type="monotone" dataKey="cpu" stroke="#3b82f6" fill="url(#cpuGradient)" strokeWidth={2} name="CPU %" />
-                                                        <Area type="monotone" dataKey="ram" stroke="#a855f7" fill="url(#ramGradient)" strokeWidth={2} name="RAM %" />
+                                                        <Area type="monotone" dataKey="cpu" stroke="hsl(var(--primary))" fill="url(#cpuGradient)" strokeWidth={2} name="CPU %" />
+                                                        <Area type="monotone" dataKey="ram" stroke="hsl(var(--nav-repository))" fill="url(#ramGradient)" strokeWidth={2} name="RAM %" />
                                                     </AreaChart>
                                                 </ResponsiveContainer>
                                             </div>

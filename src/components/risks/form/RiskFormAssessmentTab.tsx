@@ -23,9 +23,9 @@ export const RiskFormAssessmentTab: React.FC<RiskFormAssessmentTabProps> = React
         (residualProbability * residualImpact > probability * impact);
 
     return (
-        <div className="space-y-8 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Activity className="h-5 w-5 text-brand-500" /> {t('risks.tabs.assessment')}
+        <div className="space-y-8 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" /> {t('risks.tabs.assessment')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {/* Initial Risk Matrix - shows residual as reference */}
@@ -60,7 +60,7 @@ export const RiskFormAssessmentTab: React.FC<RiskFormAssessmentTabProps> = React
 
             {/* Validation Warning */}
             {showResidualWarning && (
-                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800 dark:border-red-800 text-sm font-bold flex items-center animate-pulse">
+                <div className="mt-4 p-3 bg-error-bg text-destructive rounded-xl border border-destructive/20 text-sm font-bold flex items-center animate-pulse">
                     <AlertTriangle className="h-5 w-5 mr-2" />
                     {t('risks.validation_residual') || `Attention: Le risque résiduel (${residualProbability * residualImpact}) ne peut pas être supérieur au risque brut (${probability * impact}).`}
                 </div>

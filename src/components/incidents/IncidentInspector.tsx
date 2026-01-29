@@ -96,14 +96,14 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                                     onClick={() => onDelete(incident.id)}
                                     variant="ghost"
                                     size="icon"
-                                    className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
+                                    className="text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-xl transition-all duration-normal ease-apple"
                                 >
                                     <Trash2 className="h-5 w-5" />
                                 </Button>
                             )}
                             <Button
                                 onClick={() => setIsEditing(true)}
-                                className="bg-brand-600 hover:bg-brand-700 text-white"
+                                className="bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all duration-normal ease-apple"
                             >
                                 {t('common.edit')}
                             </Button>
@@ -139,12 +139,12 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                         </div>
                     )}
                     {activeTab === 'playbook' && (
-                        <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
+                        <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
                             <IncidentPlaybook incident={incident} />
                         </div>
                     )}
                     {activeTab === 'timeline' && (
-                        <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
+                        <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
                             <IncidentTimeline selectedIncident={incident} getTimeToResolve={getTimeToResolveLabel} />
                         </div>
                     )}

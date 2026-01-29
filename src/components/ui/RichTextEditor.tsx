@@ -4,6 +4,7 @@ import type { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Quote, Heading1, Heading2 } from './Icons';
+import { InputSanitizer } from '../../services/inputSanitizationService';
 
 interface RichTextEditorProps {
     value: string;
@@ -164,7 +165,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         content: value,
         editable: isEditable,
         onUpdate: ({ editor }) => {
-            onChange(editor.getHTML());
+            // SÉCURITÉ GRC: Sanitize before propagation
+            const html = editor.getHTML();
+            const sanitized = InputSanitizer.sanitizeString(html, {
+                allowHTML: true,
+                allowedTags: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'blockquote']
+            });
+            onChange(sanitized);
         },
         editorProps: {
             attributes: {

@@ -199,7 +199,7 @@ export const DashboardWithQuickActions: React.FC = () => {
         });
     };
 
-    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-premium rounded-4xl p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-destructive shadow-xl"> <h2 className="text-2xl font-bold text-foreground mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-muted-foreground text-sm mb-6">{t('dashboard.dbLocked')}</p> </div> </div>); }
+    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-destructive shadow-xl"> <h2 className="text-2xl font-bold text-foreground mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-muted-foreground text-sm mb-6">{t('dashboard.dbLocked')}</p> </div> </div>); }
 
     if (loading) {
         return <DashboardSkeleton />;

@@ -114,24 +114,24 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 />
 
                 {/* NIS 2 Section */}
-                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-red-500/30 space-y-4 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 pointer-events-none" />
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-error/30 space-y-4 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-error-bg/50 to-transparent pointer-events-none" />
                     <div className="relative z-10">
                         <div className="flex items-center space-x-3">
                             <input {...register('isSignificant')}
                                 id="is-significant"
                                 type="checkbox"
-                                className="h-5 w-5 rounded text-red-600 dark:text-red-400 focus:ring-red-500 border-border/40"
+                                className="h-5 w-5 rounded-lg text-error focus:ring-error border-border/40"
                             />
-                            <label htmlFor="is-significant" className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
-                                <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
+                            <label htmlFor="is-significant" className="text-sm font-bold text-foreground flex items-center">
+                                <ShieldAlert className="h-4 w-4 mr-2 text-error" />
                                 Incident Significatif (NIS 2)
                             </label>
                         </div>
 
                         {isSignificant && (
                             <div className="animate-fade-in pl-8 space-y-4 mt-4">
-                                <div className="bg-white/40 dark:bg-white/5 p-4 rounded-3xl">
+                                <div className="bg-muted/10 p-4 rounded-xl">
                                     <NIS2DeadlineTimer
                                         incident={{
                                             ...initialData,
@@ -313,14 +313,14 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     onClick={onCancel}
                     variant="ghost"
                     disabled={isLoading}
-                    className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors"
+                    className="px-6 py-3 text-sm font-bold text-muted-foreground hover:bg-muted/10 rounded-xl transition-all duration-normal ease-apple"
                 >
                     Annuler
                 </Button>
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-3xl font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all"
+                    className="px-8 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-normal ease-apple"
                 >
                     Enregistrer
                 </Button>

@@ -759,7 +759,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   {/* Risk Comparison Visualization */}
                                   <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm">
                                     <div className="text-center">
-                                      <span className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-1">{t('ebios.workshop5.initialRisk')}</span>
+                                      <span className="caption block mb-1">{t('ebios.workshop5.initialRisk')}</span>
                                       <span className={cn(
                                         "inline-block px-3 py-1 rounded-lg text-lg font-bold",
                                         `bg-${initialRiskColor}-100 dark:bg-${initialRiskColor}-900/30`,
@@ -775,7 +775,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                     </div>
 
                                     <div className="text-center">
-                                      <span className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-1">{t('ebios.workshop5.residualRisk')}</span>
+                                      <span className="caption block mb-1">{t('ebios.workshop5.residualRisk')}</span>
                                       <span className={cn(
                                         "inline-block px-3 py-1 rounded-lg text-lg font-bold transition-all duration-500",
                                         residualRisk
@@ -828,7 +828,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                       </div>
                                     </div>
 
-                                    <div className="flex justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mt-2">
+                                    <div className="flex justify-between caption mt-2">
                                       <span>Ineffective</span>
                                       <span>Effective</span>
                                     </div>

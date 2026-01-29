@@ -341,7 +341,7 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         if (typeof text === 'string' && text.trim().length > 0) {
             aiCache.set(cacheKey, { data: text, timestamp: now });
             if (import.meta.env.DEV) {
-                console.log(`[Sentinel AI] Generated content using ${model} (${version})`);
+                ErrorLogger.info(`Generated content using ${model} (${version})`, 'aiService');
             }
             return text;
         }
@@ -364,7 +364,7 @@ async function runChatSafe(systemPrompt: string, message: string, modelName: str
         const { text, model, version } = result.data;
         if (typeof text === 'string' && text.trim().length > 0) {
             if (import.meta.env.DEV) {
-                console.log(`[Sentinel AI] Chat response using ${model} (${version})`);
+                ErrorLogger.info(`Chat response using ${model} (${version})`, 'aiService');
             }
             return text;
         }

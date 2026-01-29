@@ -38,7 +38,7 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
 
     return createPortal(
         <div
-            className="fixed right-6 top-24 z-[9999] !important"
+            className="fixed right-6 top-24 z-[9999]"
             data-tour="quick-actions"
             role="toolbar"
             aria-label="Actions rapides"
@@ -69,11 +69,11 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="glass-premium px-4 py-6 rounded-4xl flex flex-col items-center gap-4 relative"
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        className="bg-[var(--glass-bg)] backdrop-blur-xl px-4 py-6 rounded-2xl flex flex-col items-center gap-4 relative border border-[var(--glass-border)] shadow-premium"
                     >
                         {/* Dock Background Glow */}
-                        <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-4xl blur-xl opacity-60 -z-10" />
+                        <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-xl opacity-60 -z-10" />
 
                         <DockItem
                             icon={Settings3D}
@@ -135,7 +135,7 @@ interface DockItemProps {
 
 const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, badge, delay }) => {
     const colorStyles = {
-        purple: 'text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900',
+        purple: 'text-primary group-hover:bg-primary/10',
         red: 'text-destructive dark:text-destructive group-hover:bg-error-bg dark:group-hover:bg-destructive/20',
         orange: 'text-warning-text dark:text-warning group-hover:bg-warning-bg dark:group-hover:bg-warning/20',
         blue: 'text-info-text dark:text-info group-hover:bg-info-bg dark:group-hover:bg-info/20',
@@ -143,7 +143,7 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
     };
 
     const badgeColors = {
-        purple: 'bg-brand-500',
+        purple: 'bg-primary',
         red: 'bg-destructive',
         orange: 'bg-warning',
         blue: 'bg-info',
@@ -154,9 +154,9 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
         <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay, duration: 0.4, type: "spring" }}
             whileHover={{ scale: 1.15, y: -5 }}
             whileTap={{ scale: 0.95 }}
+            transition={{ delay, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             onClick={onClick}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -164,10 +164,10 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
                     onClick();
                 }
             }}
-            className="group relative flex flex-col items-center gap-2 p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="group relative flex flex-col items-center gap-2 p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label={label}
         >
-            <div className={`p-3 rounded-2xl transition-all duration-300 bg-transparent ${colorStyles[color]} shadow-sm group-hover:shadow-lg`}>
+            <div className={`p-3 rounded-xl transition-all duration-normal ease-apple bg-transparent ${colorStyles[color]} shadow-sm group-hover:shadow-lg`}>
                 {/* @ts-expect-error: Icon component type mismatch */}
                 <Icon className="h-7 w-7" />
             </div>

@@ -84,7 +84,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                     </linearGradient>
                     <linearGradient id="auditComplianceGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={complianceRate >= 80 ? SENTINEL_PALETTE.success : complianceRate >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
-                        <stop offset="100%" stopColor={complianceRate >= 80 ? '#10b981' : complianceRate >= 50 ? '#f59e0b' : '#ef4444'} />
+                        <stop offset="100%" stopColor={complianceRate >= 80 ? 'hsl(var(--success))' : complianceRate >= 50 ? 'hsl(var(--warning))' : 'hsl(var(--error))'} />
                     </linearGradient>
                     <linearGradient id="auditBarGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.9} />
@@ -103,7 +103,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                             <div className="p-2 bg-brand-50 rounded-3xl">
                                 <TrendingUp className="h-4 w-4 text-brand-500" />
                             </div>
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux de Complétion</span>
+                            <span className="caption">Taux de Complétion</span>
                         </div>
                         <div className="h-[120px] relative">
                             <ResponsiveContainer width="100%" height="100%">
@@ -129,7 +129,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                             <div className="p-2 bg-emerald-500/10 rounded-3xl">
                                 <AlertTriangle className="h-4 w-4 text-emerald-500" />
                             </div>
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux de Conformité</span>
+                            <span className="caption">Taux de Conformité</span>
                         </div>
                         <div className="h-[120px] relative">
                             <ResponsiveContainer width="100%" height="100%">
@@ -158,7 +158,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
-                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
+                    <h4 className="heading-4 mb-4 flex items-center gap-2 relative z-10">
                         <div className="p-2 bg-brand-50 rounded-3xl">
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                         </div>
@@ -202,7 +202,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                                         verticalAlign="bottom"
                                         iconType="circle"
                                         iconSize={10}
-                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>}
+                                        formatter={(value) => <span className="caption ml-1">{value}</span>}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -219,7 +219,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-3xl" />
-                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
+                    <h4 className="heading-4 mb-4 flex items-center gap-2 relative z-10">
                         <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <BarChartIcon className="w-4 h-4 text-orange-500" />
                         </div>

@@ -20,9 +20,9 @@ export const RiskFormContextTab: React.FC<RiskFormContextTabProps> = React.memo(
     setValue,
 }) => {
     return (
-        <div className="space-y-6 glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <LayoutGrid className="h-5 w-5 text-brand-500" /> Le Contexte du Risque
+        <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <LayoutGrid className="h-5 w-5 text-primary" /> Le Contexte du Risque
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <Controller

@@ -415,7 +415,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
               {/* Risk indicator */}
               <div
                 className={cn(
-                  'absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white',
+                  'absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center mono-label text-white',
                   riskScore >= 70
                     ? 'bg-red-500'
                     : riskScore >= 40
@@ -461,7 +461,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
               )}
             >
               <AlertTriangle className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              <p className="text-[11px] font-medium text-purple-800 dark:text-purple-200 text-center truncate w-full px-1">
+              <p className="caption text-purple-800 dark:text-purple-200 text-center truncate w-full px-1">
                 {asset.name}
               </p>
             </div>

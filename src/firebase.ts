@@ -154,7 +154,9 @@ if (import.meta.env.VITE_USE_EMULATORS === 'true') {
   const { connectFunctionsEmulator } = await import('firebase/functions');
   const { connectStorageEmulator } = await import('firebase/storage');
 
-  console.log('[Firebase] Connecting to Emulators...');
+  if (import.meta.env.DEV) {
+    ErrorLogger.info('Connecting to Emulators...', 'firebase');
+  }
   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
   connectFirestoreEmulator(db, 'localhost', 8085);
   connectFunctionsEmulator(functions, 'localhost', 5001);

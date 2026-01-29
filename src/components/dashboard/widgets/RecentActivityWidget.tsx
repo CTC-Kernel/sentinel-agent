@@ -74,7 +74,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                     value={filter}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => setFilter(e.target.value as ActivityFilter)}
-                    className="px-2 py-1.5 bg-background rounded-lg text-[11px] font-bold text-muted-foreground border border-border hover:bg-accent transition-colors outline-none cursor-pointer"
+                    className="px-2 py-1.5 bg-background rounded-lg text-[11px] font-bold text-muted-foreground border border-border/40 hover:bg-muted/50 transition-all duration-normal ease-apple outline-none cursor-pointer"
                     aria-label={t('dashboard.filterActivity')}
                 >
                     <option value="All">{t('common.all')}</option>
@@ -96,19 +96,19 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                     ) : displayActivity.map((log, i) => (
                         <div
                             key={`activity-${i}`}
-                            className={`relative group ${log.resourceId ? 'rounded-3xl' : ''}`}
+                            className={`relative group ${log.resourceId ? 'rounded-xl' : ''}`}
                         >
                             {log.resourceId && (
                                 <button
                                     onClick={() => handleLogClick(log)}
-                                    className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-3xl"
+                                    className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
                                     aria-label={`Voir les détails: ${log.action}`}
                                 />
                             )}
-                            <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-brand-400 transition-all z-10">
+                            <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-primary/50 transition-all z-10">
                                 {getActivityIcon(log.resource)}
                             </span>
-                            <div className="flex justify-between items-start bg-card/60 p-3 rounded-3xl border border-transparent hover:border-border transition-colors group-hover:bg-accent/50">
+                            <div className="flex justify-between items-start bg-card/60 p-3 rounded-xl border border-transparent hover:border-border transition-all duration-normal ease-apple group-hover:bg-muted/50">
                                 <div>
                                     <p className="text-sm font-bold text-foreground">
                                         {t(`dashboard.actions.${log.action}`) !== `dashboard.actions.${log.action}`
@@ -117,7 +117,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                                     </p>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[500px] font-medium leading-relaxed">{log.details}</p>
                                 </div>
-                                <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-wide bg-accent px-2 py-1 rounded-md ml-4 whitespace-nowrap">
+                                <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-wide bg-muted/50 px-2 py-1 rounded-md ml-4 whitespace-nowrap">
                                     {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
@@ -133,7 +133,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                                         setIsExpanded(true);
                                     }
                                 }}
-                                className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1"
+                                className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
                             >
                                 +{allFilteredActivity.length - 5} {t('common.more').toLowerCase()}
                             </button>

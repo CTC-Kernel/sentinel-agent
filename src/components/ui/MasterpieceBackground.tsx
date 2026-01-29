@@ -17,11 +17,11 @@ export const MasterpieceBackground: React.FC<MasterpieceBackgroundProps> = ({
             <div className="absolute inset-0 bg-background transition-colors duration-500" />
 
             {/* Ambient Aurora/Orb Effects - Living Breath - Enhanced for vibrancy */}
-            <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-500/20 dark:bg-blue-500/15 rounded-full blur-[120px] animate-blob animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
-            <div className="absolute top-[40%] right-[10%] w-[40%] h-[40%] bg-violet-500/20 dark:bg-violet-500/15 rounded-full blur-[120px] animate-blob animation-delay-2000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
-            <div className="absolute bottom-[-10%] right-[20%] w-[35%] h-[35%] bg-sky-500/20 dark:bg-sky-500/15 rounded-full blur-[100px] animate-blob animation-delay-4000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
+            <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/20 dark:bg-primary/25 rounded-full blur-[120px] animate-blob animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
+            <div className="absolute top-[40%] right-[10%] w-[40%] h-[40%] bg-indigo-500/20 dark:bg-indigo-500/25 rounded-full blur-[120px] animate-blob animation-delay-2000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
+            <div className="absolute bottom-[-10%] right-[20%] w-[35%] h-[35%] bg-sky-500/20 dark:bg-sky-500/25 rounded-full blur-[100px] animate-blob animation-delay-4000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
             {/* Tertiary blob for added dimension */}
-            <div className="absolute top-[60%] left-[-5%] w-[30%] h-[30%] bg-brand-200/40 dark:bg-brand-600/20 rounded-full blur-[100px] animate-blob animation-delay-3000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
+            <div className="absolute top-[60%] left-[-5%] w-[30%] h-[30%] bg-primary/10 dark:bg-primary/20 rounded-full blur-[100px] animate-blob animation-delay-3000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
 
             {/* Command Center Interaction Lines (Subtler) */}
             <div className="absolute inset-0 bg-transparent dark:bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none mix-blend-multiply dark:mix-blend-normal" />

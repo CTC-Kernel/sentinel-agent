@@ -90,11 +90,10 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ r
   );
 };
 
-// Single Card Skeleton with stagger animation
 export const SkeletonCard: React.FC<{ className?: string; delay?: number }> = ({ className = '', delay = 0 }) => {
   return (
     <motion.div
-      className={`glass-premium p-4 sm:p-6 rounded-4xl space-y-4 ${className}`}
+      className={`bg-[var(--glass-bg)] backdrop-blur-xl border border-border/40 p-4 sm:p-6 rounded-2xl space-y-4 shadow-sm ${className}`}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.4, ease: appleEasing }}
@@ -135,7 +134,7 @@ export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => {
       {Array.from({ length: items }).map((_, i) => (
         <motion.div
           key={`list-item-skeleton-${i}`}
-          className="glass-premium p-4 rounded-2xl flex items-center space-x-4"
+          className="bg-[var(--glass-bg)] backdrop-blur-xl border border-border/40 p-4 rounded-xl flex items-center space-x-4"
           variants={{
             hidden: { opacity: 0, x: -30 },
             visible: { opacity: 1, x: 0, transition: { ease: appleEasing } }
