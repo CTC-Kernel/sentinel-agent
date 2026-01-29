@@ -60,26 +60,26 @@ describe('IncidentSummaryCard', () => {
         it('shows critical alert when critical incidents exist', () => {
             render(<IncidentSummaryCard {...defaultProps} criticalIncidents={3} />);
 
-            expect(screen.getByText('3 critiques ouverts')).toBeInTheDocument();
+            expect(screen.getByText('3 incidents.criticalOpen')).toBeInTheDocument();
         });
 
         it('shows active incidents alert when no critical but open incidents', () => {
             render(<IncidentSummaryCard {...defaultProps} criticalIncidents={0} openIncidents={5} />);
 
-            expect(screen.getByText('5 incidents actifs')).toBeInTheDocument();
+            expect(screen.getByText('5 incidents.activeCount')).toBeInTheDocument();
         });
 
         it('shows no active incidents message when all clear', () => {
             render(<IncidentSummaryCard {...defaultProps} criticalIncidents={0} openIncidents={0} />);
 
-            expect(screen.getByText('Aucun incident actif')).toBeInTheDocument();
+            expect(screen.getByText('incidents.noActive')).toBeInTheDocument();
         });
 
         it('prioritizes critical alert over open incidents alert', () => {
             render(<IncidentSummaryCard {...defaultProps} criticalIncidents={3} openIncidents={12} />);
 
-            expect(screen.getByText('3 critiques ouverts')).toBeInTheDocument();
-            expect(screen.queryByText('12 incidents actifs')).not.toBeInTheDocument();
+            expect(screen.getByText('3 incidents.criticalOpen')).toBeInTheDocument();
+            expect(screen.queryByText('12 incidents.activeCount')).not.toBeInTheDocument();
         });
     });
 

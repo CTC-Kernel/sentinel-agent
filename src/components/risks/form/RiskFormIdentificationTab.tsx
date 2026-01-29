@@ -24,7 +24,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
     const { t } = useTranslation();
 
     return (
-        <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
+        <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium glass-premium">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" /> {t('risks.tabs.identification')}
             </h3>

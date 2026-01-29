@@ -278,14 +278,14 @@ describe('IncidentImpactDetails', () => {
         it('uses red color for high score >= 15', () => {
             const { container } = render(<IncidentImpactDetails {...defaultProps} />);
 
-            expect(container.querySelector('.text-red-500')).toBeInTheDocument();
+            expect(container.querySelector('.text-destructive')).toBeInTheDocument();
         });
 
         it('uses orange color for medium score >= 8', () => {
             const incidentMediumRisk = { ...mockIncident, relatedRiskId: 'risk-2' };
             const { container } = render(<IncidentImpactDetails {...defaultProps} incident={incidentMediumRisk} />);
 
-            expect(container.querySelector('.text-orange-500')).toBeInTheDocument();
+            expect(container.querySelector('.text-warning')).toBeInTheDocument();
         });
 
         it('uses green color for low score < 8', () => {
@@ -314,7 +314,7 @@ describe('IncidentImpactDetails', () => {
                 />
             );
 
-            expect(container.querySelector('.text-emerald-500')).toBeInTheDocument();
+            expect(container.querySelector('.text-success')).toBeInTheDocument();
         });
     });
 

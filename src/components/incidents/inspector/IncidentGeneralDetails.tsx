@@ -15,7 +15,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6 sm:space-y-8">
                 {/* Description */}
-                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden">
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
@@ -34,7 +34,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
 
                 {/* NIS 2 Deadlines */}
                 {incident.isSignificant && (
-                    <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-error/30 shadow-premium relative overflow-hidden">
+                    <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-error/30 shadow-premium relative overflow-hidden glass-premium">
                         <div className="absolute inset-0 bg-error-bg/30 pointer-events-none" />
                         <div className="relative z-10">
                             <h3 className="text-sm font-bold text-error mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -49,7 +49,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
 
                 {/* Badges & Status */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden">
+                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-muted-foreground block mb-1">Sévérité</span>
@@ -61,7 +61,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                             </Badge>
                         </div>
                     </div>
-                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden">
+                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-muted-foreground block mb-1">Statut</span>
@@ -70,14 +70,14 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                             </Badge>
                         </div>
                     </div>
-                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden">
+                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-muted-foreground block mb-1">Impact Financier</span>
                             <span className="font-bold text-foreground">{incident.financialImpact ? `${incident.financialImpact} €` : '-'}</span>
                         </div>
                     </div>
-                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden">
+                    <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <span className="text-xs text-muted-foreground block mb-1">Reporter</span>
@@ -89,7 +89,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
 
             <div className="space-y-6">
                 {/* Meta Info */}
-                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium space-y-4 relative overflow-hidden">
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium space-y-4 relative overflow-hidden glass-premium">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <div>
