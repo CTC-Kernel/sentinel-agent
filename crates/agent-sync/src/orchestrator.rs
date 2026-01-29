@@ -7,14 +7,14 @@
 //! - Conflict resolution coordination
 
 use crate::authenticated_client::AuthenticatedClient;
-use crate::error::{SyncError, SyncResult};
-use crate::offline::{CircuitBreaker, ConflictResolution, OfflineTracker};
+use crate::error::SyncResult;
+use crate::offline::{CircuitBreaker, OfflineTracker};
 use agent_storage::Database;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 /// Sync operation kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -215,7 +215,7 @@ impl SyncOrchestrator {
                 let error_msg = e.to_string();
                 *self.last_error.write().await = Some(error_msg.clone());
 
-                let entry = self.record_history_async(
+                let _entry = self.record_history_async(
                     kind,
                     SyncStatus::Failed,
                     0,
@@ -353,13 +353,13 @@ impl SyncOrchestrator {
     }
 
     /// Sync rules.
-    async fn sync_rules(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+    async fn sync_rules(&self, _client: &AuthenticatedClient) -> SyncResult<u32> {
         // Rules are included in config response
         Ok(0)
     }
 
     /// Sync pending results.
-    async fn sync_results(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+    async fn sync_results(&self, _client: &AuthenticatedClient) -> SyncResult<u32> {
         // Query pending results from DB and upload them
         // For now, return 0 as the sync queue processing is handled separately
         Ok(0)

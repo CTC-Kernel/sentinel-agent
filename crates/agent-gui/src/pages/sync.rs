@@ -78,7 +78,7 @@ impl SyncPage {
                         .color(theme::TEXT_ON_ACCENT),
                 )
                 .fill(theme::ACCENT)
-                .rounding(egui::Rounding::same(theme::BUTTON_ROUNDING));
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
                 let enabled = !state.sync_in_progress;
                 if ui.add_enabled(enabled, btn).clicked() {

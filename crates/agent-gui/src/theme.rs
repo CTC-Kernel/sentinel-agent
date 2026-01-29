@@ -3,7 +3,7 @@
 //! Provides colors, spacing, fonts, and style helpers used across
 //! all pages and widgets.
 
-use egui::{Color32, FontId, Rounding, Stroke, Style, TextStyle, Visuals, epaint::Shadow, Vec2};
+use egui::{Color32, CornerRadius, FontId, Margin, Stroke, Style, TextStyle, Visuals, epaint::Shadow, Vec2};
 
 // ============================================================================
 // Brand colors
@@ -80,12 +80,12 @@ pub const SPACE_XL: f32 = 32.0;
 /// Sidebar width.
 pub const SIDEBAR_WIDTH: f32 = 220.0;
 
-/// Card rounding radius.
-pub const CARD_ROUNDING: f32 = 10.0;
-/// Button rounding radius.
-pub const BUTTON_ROUNDING: f32 = 8.0;
-/// Badge rounding radius (pill shape).
-pub const BADGE_ROUNDING: f32 = 12.0;
+/// Card rounding radius (as u8 for CornerRadius).
+pub const CARD_ROUNDING: u8 = 10;
+/// Button rounding radius (as u8 for CornerRadius).
+pub const BUTTON_ROUNDING: u8 = 8;
+/// Badge rounding radius (as u8 for CornerRadius).
+pub const BADGE_ROUNDING: u8 = 12;
 
 // ============================================================================
 // Font helpers
@@ -133,7 +133,7 @@ pub fn apply_theme(ctx: &egui::Context) {
 
     // Spacing
     style.spacing.item_spacing = Vec2::new(SPACE_SM, SPACE_SM);
-    style.spacing.window_margin = egui::Margin::same(SPACE);
+    style.spacing.window_margin = Margin::same(16);
     style.spacing.button_padding = Vec2::new(SPACE_MD, SPACE_SM);
     style.spacing.indent = SPACE;
 
@@ -144,27 +144,29 @@ pub fn apply_theme(ctx: &egui::Context) {
     visuals.panel_fill = BG_PRIMARY;
     visuals.window_fill = BG_SECONDARY;
 
+    let btn_rounding = CornerRadius::same(BUTTON_ROUNDING);
+
     // Widgets idle
     visuals.widgets.noninteractive.bg_fill = BG_SECONDARY;
     visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, TEXT_SECONDARY);
-    visuals.widgets.noninteractive.rounding = Rounding::same(BUTTON_ROUNDING);
+    visuals.widgets.noninteractive.corner_radius = btn_rounding;
     visuals.widgets.noninteractive.bg_stroke = Stroke::new(0.5, BORDER);
 
     // Widgets hovered
     visuals.widgets.hovered.bg_fill = BG_ELEVATED;
     visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, TEXT_PRIMARY);
-    visuals.widgets.hovered.rounding = Rounding::same(BUTTON_ROUNDING);
+    visuals.widgets.hovered.corner_radius = btn_rounding;
     visuals.widgets.hovered.bg_stroke = Stroke::new(1.0, ACCENT);
 
     // Widgets active
     visuals.widgets.active.bg_fill = ACCENT;
     visuals.widgets.active.fg_stroke = Stroke::new(1.0, TEXT_ON_ACCENT);
-    visuals.widgets.active.rounding = Rounding::same(BUTTON_ROUNDING);
+    visuals.widgets.active.corner_radius = btn_rounding;
 
     // Widgets inactive (buttons)
     visuals.widgets.inactive.bg_fill = BG_ELEVATED;
     visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, TEXT_PRIMARY);
-    visuals.widgets.inactive.rounding = Rounding::same(BUTTON_ROUNDING);
+    visuals.widgets.inactive.corner_radius = btn_rounding;
     visuals.widgets.inactive.bg_stroke = Stroke::new(0.5, BORDER);
 
     // Selection
@@ -172,20 +174,20 @@ pub fn apply_theme(ctx: &egui::Context) {
     visuals.selection.stroke = Stroke::new(1.0, ACCENT);
 
     // Window
-    visuals.window_rounding = Rounding::same(CARD_ROUNDING);
+    visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
     visuals.window_shadow = Shadow {
-        offset: Vec2::new(0.0, 4.0),
-        blur: 16.0,
-        spread: 0.0,
+        offset: [0, 4],
+        blur: 16,
+        spread: 0,
         color: Color32::from_black_alpha(80),
     };
     visuals.window_stroke = Stroke::new(0.5, BORDER);
 
     // Misc
     visuals.popup_shadow = Shadow {
-        offset: Vec2::new(0.0, 2.0),
-        blur: 8.0,
-        spread: 0.0,
+        offset: [0, 2],
+        blur: 8,
+        spread: 0,
         color: Color32::from_black_alpha(60),
     };
     visuals.resize_corner_size = 8.0;

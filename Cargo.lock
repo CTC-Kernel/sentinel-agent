@@ -176,6 +176,7 @@ dependencies = [
  "eframe",
  "egui",
  "egui_extras",
+ "hostname",
  "image",
  "muda",
  "open",
