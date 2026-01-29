@@ -101,7 +101,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                         className={`pointer-events-auto w-screen ${width}`}
                                         style={{ transition: `transform 500ms ${APPLE_EASING}` }}
                                     >
-                                        <div className="flex h-full flex-col glass-premium border-l border-border/50 shadow-2xl">
+                                        <div className="flex h-full flex-col bg-[var(--drawer-bg)] border-l border-border/50 shadow-2xl">
                                             {/* Header */}
                                             <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-border/40 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
                                                 <div className="flex-1 min-w-0 mr-4">
@@ -161,7 +161,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                 leaveFrom="opacity-70 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="relative transform overflow-hidden rounded-3xl glass-premium p-6 text-left shadow-xl transition-all sm:max-w-md w-full border border-border/40">
+                                <Dialog.Panel className="relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] p-6 text-left shadow-xl transition-all sm:max-w-md w-full border border-border/30">
                                     <div className="flex items-start gap-4">
                                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-warning-bg flex items-center justify-center">
                                             <AlertTriangle className="h-5 w-5 text-warning-text" />

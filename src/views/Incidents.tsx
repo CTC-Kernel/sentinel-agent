@@ -45,7 +45,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { OnboardingService } from '../services/onboardingService';
 
 // Inline Loader
-const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-brand-500" /></div>;
+const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-primary" /></div>;
 
 import { useAuth } from '../hooks/useAuth';
 
@@ -466,16 +466,16 @@ export const Incidents: React.FC = () => {
                                         </Menu.Button>
                                         <Transition
                                             as={React.Fragment}
-                                            enter="transition ease-out duration-100"
-                                            enterFrom="transform opacity-0 scale-95"
-                                            enterTo="transform opacity-70 scale-100"
-                                            leave="transition ease-in duration-75"
-                                            leaveFrom="transform opacity-70 scale-100"
-                                            leaveTo="transform opacity-0 scale-95"
+                                            enter="transition ease-apple duration-normal"
+                                            enterFrom="transform opacity-0 scale-95 translate-y-2"
+                                            enterTo="transform opacity-100 scale-100 translate-y-0"
+                                            leave="transition ease-apple duration-fast"
+                                            leaveFrom="transform opacity-100 scale-100 translate-y-0"
+                                            leaveTo="transform opacity-0 scale-95 translate-y-2"
                                         >
-                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
-                                                <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/20 rounded-xl bg-background/95 backdrop-blur-xl text-popover-foreground shadow-premium ring-1 ring-border/40 focus:outline-none z-50 overflow-hidden">
+                                                <div className="p-1.5 bg-[var(--glass-bg)]">
+                                                    <div className="px-3 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70">
                                                         {t('incidents.tools')}
                                                     </div>
                                                     {canEdit && (
@@ -486,11 +486,11 @@ export const Incidents: React.FC = () => {
                                                                         aria-label={t('incidents.importSiem')}
                                                                         onClick={handleOpenImport}
                                                                         className={cn(
-                                                                            "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
-                                                                            active ? "bg-primary text-primary-foreground" : "text-foreground"
+                                                                            "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+                                                                            active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
                                                                         )}
                                                                     >
-                                                                        <BrainCircuit className={cn("mr-2 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
+                                                                        <BrainCircuit className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
                                                                         {t('incidents.importSiem')}
                                                                     </button>
                                                                 )}
@@ -501,11 +501,11 @@ export const Incidents: React.FC = () => {
                                                                         aria-label={t('incidents.simulateAttack')}
                                                                         onClick={handleSimulateAttack}
                                                                         className={cn(
-                                                                            "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
-                                                                            active ? "bg-destructive text-destructive-foreground" : "text-destructive"
+                                                                            "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+                                                                            active ? "bg-destructive text-destructive-foreground shadow-md" : "text-destructive hover:bg-destructive/10"
                                                                         )}
                                                                     >
-                                                                        <Siren className={cn("mr-2 h-4 w-4", active ? "text-destructive-foreground" : "text-destructive")} />
+                                                                        <Siren className={cn("mr-2.5 h-4 w-4", active ? "text-destructive-foreground" : "text-destructive")} />
                                                                         {t('incidents.simulateAttack')}
                                                                     </button>
                                                                 )}
@@ -517,11 +517,11 @@ export const Incidents: React.FC = () => {
                                                             <button
                                                                 onClick={() => setCsvImportOpen(true)}
                                                                 className={cn(
-                                                                    "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
-                                                                    active ? "bg-primary text-primary-foreground" : "text-foreground"
+                                                                    "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+                                                                    active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
                                                                 )}
                                                             >
-                                                                <MoreVertical className={cn("mr-2 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
+                                                                <ListIcon className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
                                                                 {t('common.importCsv')}
                                                             </button>
                                                         )}
@@ -532,11 +532,11 @@ export const Incidents: React.FC = () => {
                                                                 aria-label={t('common.exportCsv')}
                                                                 onClick={handleExportCSV}
                                                                 className={cn(
-                                                                    "group flex w-full items-center rounded-lg px-2 py-2 text-sm",
-                                                                    active ? "bg-primary text-primary-foreground" : "text-foreground"
+                                                                    "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+                                                                    active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
                                                                 )}
                                                             >
-                                                                <Download className={cn("mr-2 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
+                                                                <Download className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
                                                                 {t('common.exportCsv')}
                                                             </button>
                                                         )}
@@ -551,10 +551,10 @@ export const Incidents: React.FC = () => {
                                             <button
                                                 aria-label={t('incidents.declare')}
                                                 onClick={handleOpenCreate}
-                                                className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-colors shadow-lg shadow-primary/20"
+                                                className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold transition-all duration-normal ease-apple shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95"
                                             >
                                                 <Plus className="h-5 w-5 mr-2" />
-                                                <span className="hidden sm:inline">{t('incidents.declare')}</span>
+                                                <span className="hidden sm:inline uppercase tracking-wider text-xs">{t('incidents.declare')}</span>
                                             </button>
                                         </CustomTooltip>
                                     )}

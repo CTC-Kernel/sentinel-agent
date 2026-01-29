@@ -3,7 +3,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, 
 import { EmptyChartState } from '../../ui/EmptyChartState';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { PremiumCard } from '../../ui/PremiumCard';
-import { DONUT_COLORS, SEVERITY_COLORS, CHART_AXIS_COLORS } from '../../../theme/chartTheme';
+import { DONUT_COLORS } from '../../../theme/chartTheme';
 
 interface IncidentChartsProps {
     categoryData: { name: string; value: number }[];
@@ -14,8 +14,8 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Incidents by Category */}
-            <PremiumCard glass className="p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
-                <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Par Catégorie</h4>
+            <PremiumCard glass className="p-6 rounded-xl relative overflow-hidden group hover:shadow-premium hover:-translate-y-1 transition-all duration-normal ease-apple">
+                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-2">Par Catégorie</h4>
                 <div className="h-[250px] w-full">
                     {categoryData.length === 0 ? (
                         <EmptyChartState variant="pie" message="Aucune catégorie" />
@@ -31,14 +31,14 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                                     paddingAngle={4}
                                     dataKey="value"
                                     stroke="none"
-                                    cornerRadius={4}
+                                    cornerRadius={6}
                                 >
                                     {categoryData.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={DONUT_COLORS.category[index % DONUT_COLORS.category.length]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
-                                <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                                <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }} />
                             </PieChart>
                         </ResponsiveContainer>
                     )}
@@ -46,8 +46,8 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
             </PremiumCard>
 
             {/* Incidents Timeline (Last 6 Months) */}
-            <PremiumCard glass className="p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
-                <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Historique (6 mois)</h4>
+            <PremiumCard glass className="p-6 rounded-xl relative overflow-hidden group hover:shadow-premium hover:-translate-y-1 transition-all duration-normal ease-apple">
+                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-2">Historique (6 mois)</h4>
                 <div className="h-[250px] w-full">
                     {timelineData.length === 0 ? (
                         <EmptyChartState variant="bar" message="Aucun historique récent" />
@@ -59,15 +59,15 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                             >
                                 <defs>
                                     <linearGradient id="incidentGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor={SEVERITY_COLORS.high} stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor={SEVERITY_COLORS.high} stopOpacity={0.3} />
+                                        <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.2} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_AXIS_COLORS.grid} strokeOpacity={CHART_AXIS_COLORS.gridOpacity} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} allowDecimals={false} />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
-                                <Bar dataKey="count" fill="url(#incidentGradient)" radius={[6, 6, 0, 0]} barSize={32} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.2} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontWeight: 700 }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontWeight: 700 }} allowDecimals={false} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--primary)', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                <Bar dataKey="count" fill="url(#incidentGradient)" radius={[6, 6, 0, 0]} barSize={24} />
                             </BarChart>
                         </ResponsiveContainer>
                     )}

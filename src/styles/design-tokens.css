@@ -1,14 +1,15 @@
 /* Design Tokens - Sentinel GRC */
 :root {
   /* Shadcn UI Variables - Refined for Premium Light Mode */
-  --background: 210 40% 98%;
-  --foreground: 222.2 84% 2.5%;
+  /* Neutral warm-gray background for eye comfort */
+  --background: 0 0% 98%;
+  --foreground: 220 15% 10%;
 
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 2.5%;
+  --card-foreground: 220 15% 10%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 2.5%;
+  --popover-foreground: 220 15% 10%;
 
   /* Primary - Refined Apple Blue (high contrast, low aggression) */
   --primary: 221 68% 50%;
@@ -30,26 +31,25 @@
   --nav-support: 215 20% 50%;
   /* Slate - support */
 
-  /* Secondary/Muted - Better contrast (was 96.1% luminosity, now 92%) */
-  --secondary: 210 40% 92%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
+  /* Secondary/Muted - Neutral gray for eye comfort */
+  --secondary: 220 10% 94%;
+  --secondary-foreground: 220 15% 15%;
 
-  --muted: 210 40% 92%;
-  --muted-foreground: 215.4 25% 20%;
-  /* WCAG AAA: 7.5:1+ on light backgrounds - luminosity 20% for safe contrast */
-  --text-description: 215 16% 40%;
+  --muted: 220 10% 94%;
+  --muted-foreground: 220 15% 35%;
+  /* WCAG AAA: 7.5:1+ on light backgrounds */
+  --text-description: 220 10% 45%;
   /* WCAG AA (4.5:1) compliant secondary text */
 
-  --accent: 210 40% 92%;
-  --accent-foreground: 222.2 47.4% 11.2%;
+  --accent: 220 10% 94%;
+  --accent-foreground: 220 15% 15%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 214.3 31.8% 91%;
-  /* Was 88% - Lightened for subtlety */
-  --input: 214.3 31.8% 91%;
-  --ring: 221 83% 50%;
+  --border: 220 10% 90%;
+  --input: 220 10% 90%;
+  --ring: 221 70% 55%;
 
   /* ===== STATUS COLORS - Light Mode (Harmonized Palette) ===== */
   /* Target saturation ~45-55% for professional, non-aggressive appearance */
@@ -187,33 +187,38 @@
 
   /* ===== GLASSMORPHISM ===== */
   /* Glassmorphism Evolution - Apple-style multi-layer */
-  --glass-bg: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  /* Card-level glass: subtle transparency for layered cards */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.3);
   --glass-shadow: var(--shadow-lg);
-  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-  --glass-medium-bg: rgba(255, 255, 255, 0.3);
-  --glass-heavy-bg: rgba(255, 255, 255, 0.5);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  --glass-medium-bg: rgba(255, 255, 255, 0.85);
+  --glass-heavy-bg: rgba(255, 255, 255, 0.95);
 
-  /* Modal Overlay - 60% for sufficient contrast */
-  --overlay-bg: rgba(15, 23, 42, 0.6);
+  /* Modal/Drawer Solid Background - Full opacity for readability on overlays */
+  --modal-bg: hsl(0 0% 100%);
+  --drawer-bg: hsl(0 0% 99%);
+
+  /* Modal Overlay - 70% for sufficient contrast */
+  --overlay-bg: rgba(15, 23, 42, 0.7);
   --overlay-blur: var(--blur-sm);
 }
 
 .dark {
-  /* Shadcn UI Dark Mode - Deep Oceanic Blue/Slate */
-  --background: 222.2 84% 3.5%;
-  /* Slightly deeper #010411 */
-  --foreground: 210 40% 98%;
+  /* Shadcn UI Dark Mode - Neutral Slate for Eye Comfort */
+  /* Using 12% saturation instead of 84% for comfortable viewing */
+  --background: 220 12% 6%;
+  --foreground: 0 0% 95%;
 
-  --card: 222.2 84% 6.9%;
-  --card-foreground: 210 40% 98%;
+  --card: 220 12% 9%;
+  --card-foreground: 0 0% 95%;
 
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
+  --popover: 220 12% 7%;
+  --popover-foreground: 0 0% 95%;
 
   /* Primary - Refined Blue for Dark (desaturated) */
-  --primary: 221 65% 62%;
-  --primary-foreground: 222.2 47.4% 11.2%;
+  --primary: 221 60% 58%;
+  --primary-foreground: 220 12% 10%;
 
   /* Navigation Icon Colors - Dark Mode (brighter for visibility) */
   --nav-pilotage: 221 72% 62%;
@@ -229,22 +234,22 @@
   --nav-support: 215 18% 58%;
   /* Slate */
 
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 220 12% 15%;
+  --secondary-foreground: 0 0% 95%;
 
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 22% 72%;
-  /* WCAG AAA: 7.5:1 on dark backgrounds - improved from 68% to 72% luminosity */
+  --muted: 220 12% 15%;
+  --muted-foreground: 220 10% 65%;
+  /* WCAG AAA: 7.5:1 on dark backgrounds */
 
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 220 12% 15%;
+  --accent-foreground: 0 0% 95%;
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: 0 55% 45%;
+  --destructive-foreground: 0 0% 95%;
 
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  --border: 220 12% 18%;
+  --input: 220 12% 18%;
+  --ring: 221 60% 65%;
 
   /* ===== STATUS COLORS - Dark Mode (Consistent Hues with Light) ===== */
   /* Target saturation ~45-55%, adjusted luminosity for dark backgrounds */
@@ -286,16 +291,19 @@
   --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.25);
   --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.6);
 
-  /* Glassmorphism Dark - Premium Apple-style */
-  --glass-bg: rgba(15, 23, 42, 0.4);
-  /* Darker base for better depth */
+  /* Glassmorphism Dark - Neutral Slate for Eye Comfort */
+  --glass-bg: rgba(17, 19, 24, 0.9);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: var(--shadow-xl);
-  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-  --glass-medium-bg: rgba(15, 23, 42, 0.6);
-  --glass-heavy-bg: rgba(15, 23, 42, 0.8);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  --glass-medium-bg: rgba(17, 19, 24, 0.93);
+  --glass-heavy-bg: rgba(17, 19, 24, 0.97);
+
+  /* Modal/Drawer Solid Background - Full opacity for readability on overlays */
+  --modal-bg: hsl(220 12% 9%);
+  --drawer-bg: hsl(220 12% 10%);
 
   /* Modal Overlay - Dark Mode */
-  --overlay-bg: rgba(0, 0, 0, 0.65);
+  --overlay-bg: rgba(0, 0, 0, 0.75);
   --overlay-blur: var(--blur-sm);
 }

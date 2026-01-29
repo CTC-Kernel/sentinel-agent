@@ -28,10 +28,10 @@ interface IncidentDashboardProps {
 
 const getSeverityColor = (s: Criticality) => {
     switch (s) {
-        case Criticality.CRITICAL: return 'bg-error-bg text-error-text border-error-border/60 shadow-sm';
-        case Criticality.HIGH: return 'bg-warning-bg text-warning-text border-warning-border/60 shadow-sm';
-        case Criticality.MEDIUM: return 'bg-warning/10 text-warning border-warning/20 shadow-sm';
-        default: return 'bg-info/10 text-info border-info/20 shadow-sm';
+        case Criticality.CRITICAL: return 'bg-destructive/10 text-destructive border-destructive/20 shadow-sm';
+        case Criticality.HIGH: return 'bg-warning/15 text-warning border-warning/30 shadow-sm';
+        case Criticality.MEDIUM: return 'bg-warning/10 text-warning border-warning/20 shadow-sm opacity-80';
+        default: return 'bg-info/10 text-info border-info/20 shadow-sm opacity-80';
     }
 };
 
@@ -49,7 +49,7 @@ const getStatusColor = (s: string) => {
 const getIncidentCategoryStyles = (category: string) => {
     switch (category) {
         case 'Ransomware':
-            return { icon: Lock, color: 'text-destructive', bg: 'bg-error-bg', border: 'border-destructive/20' };
+            return { icon: Lock, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20' };
         case 'Phishing':
             return { icon: Mail, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' };
         case 'Vol Matériel':
@@ -141,12 +141,12 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 const CategoryIcon = styles.icon;
                 return (
                     <div className="flex items-center gap-3">
-                        <div className={`p-1.5 rounded-lg border shadow-sm ${styles.bg} ${styles.color} ${styles.border}`}>
+                        <div className={`p-1.5 rounded-xl border shadow-sm ${styles.bg} ${styles.color} ${styles.border}`}>
                             <CategoryIcon className="h-4 w-4" />
                         </div>
                         <div>
-                            <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.title}</div>
-                            <div className="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-1">{row.original.description}</div>
+                            <div className="font-bold text-foreground text-[15px]">{row.original.title}</div>
+                            <div className="text-xs text-muted-foreground font-medium line-clamp-1">{row.original.description}</div>
                         </div>
                     </div>
                 );
@@ -157,7 +157,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             header: t('incidents.column.severity'),
             meta: { className: 'hidden sm:table-cell' },
             cell: ({ row }) => (
-                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getSeverityColor(row.original.severity)}`}>
+                <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getSeverityColor(row.original.severity)}`}>
                     {getSeverityLabel(row.original.severity)}
                 </span>
             )
@@ -167,7 +167,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             header: t('incidents.column.status'),
             meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => (
-                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(row.original.status)}`}>
+                <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getStatusColor(row.original.status)}`}>
                     {getStatusLabel(row.original.status)}
                 </span>
             )
@@ -177,7 +177,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             header: t('incidents.column.date'),
             meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-muted-foreground font-medium">
+                <span className="text-muted-foreground font-medium">
                     {new Date(row.original.dateReported).toLocaleDateString()}
                 </span>
             )
@@ -195,10 +195,10 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                             <img
                                 src={getUserAvatarUrl(reporterUser?.photoURL, reporterUser?.role)}
                                 alt={reporterName}
-                                className="w-6 h-6 rounded-full border border-border/40 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
+                                className="w-6 h-6 rounded-full border border-border/40 object-cover bg-muted/20"
                             />
                         </div>
-                        <span className="text-slate-600 dark:text-muted-foreground font-medium">
+                        <span className="text-muted-foreground font-medium">
                             {reporterName}
                         </span>
                     </div>
@@ -210,7 +210,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             header: t('incidents.column.category'),
             meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-muted-foreground font-medium">
+                <span className="text-muted-foreground font-medium">
                     {row.original.category || '-'}
                 </span>
             )
@@ -226,7 +226,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                     e.stopPropagation();
                                     onDelete(row.original.id);
                                 }}
-                                className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:opacity-70"
+                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-normal ease-apple opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -318,10 +318,10 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <div className="flex gap-2">
-                                                <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${getSeverityColor(inc.severity)}`}>
+                                                <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getSeverityColor(inc.severity)}`}>
                                                     {getSeverityLabel(inc.severity)}
                                                 </span>
-                                                <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(inc.status)}`}>
+                                                <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getStatusColor(inc.status)}`}>
                                                     {getStatusLabel(inc.status)}
                                                 </span>
                                             </div>

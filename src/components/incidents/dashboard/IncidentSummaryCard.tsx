@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldAlert, Siren, CheckCircle2 } from '../../ui/Icons';
+import { useStore } from '../../../store';
 
 interface IncidentSummaryCardProps {
     resolutionRate: number;
@@ -14,6 +15,7 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
     openIncidents,
     criticalIncidents
 }) => {
+    const { t } = useStore();
     return (
         <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 md:p-8 rounded-xl border border-border/40 shadow-premium flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
             {/* Tech Corners Generic */}
@@ -93,21 +95,21 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
             {/* Alerts/Status */}
             <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-10">
                 {criticalIncidents > 0 && (
-                    <div className="flex items-center gap-3 text-xs font-bold text-destructive bg-error-bg px-4 py-2.5 rounded-xl border border-destructive/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02] animate-pulse">
+                    <div className="flex items-center gap-3 text-xs font-bold text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl border border-destructive/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02] animate-pulse">
                         <ShieldAlert className="h-4 w-4 shrink-0" />
-                        <span>{criticalIncidents} critiques ouverts</span>
+                        <span>{criticalIncidents} {t('incidents.criticalOpen')}</span>
                     </div>
                 )}
                 {openIncidents > 0 && criticalIncidents === 0 && (
                     <div className="flex items-center gap-3 text-xs font-bold text-warning bg-warning/10 px-4 py-2.5 rounded-xl border border-warning/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02]">
                         <Siren className="h-4 w-4 shrink-0" />
-                        <span>{openIncidents} incidents actifs</span>
+                        <span>{openIncidents} {t('incidents.activeCount')}</span>
                     </div>
                 )}
                 {openIncidents === 0 && (
                     <div className="flex items-center gap-3 text-xs font-bold text-success bg-success/10 px-4 py-2.5 rounded-xl border border-success/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02]">
                         <CheckCircle2 className="h-4 w-4 shrink-0" />
-                        <span>Aucun incident actif</span>
+                        <span>{t('incidents.noActive')}</span>
                     </div>
                 )}
             </div>

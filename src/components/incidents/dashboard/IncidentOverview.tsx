@@ -53,21 +53,21 @@ interface IncidentOverviewProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-    'Ransomware': SEVERITY_COLORS.critical,
-    'Phishing': SENTINEL_PALETTE.secondary,
-    'Vol Matériel': SENTINEL_PALETTE.warning,
-    'Indisponibilité': SENTINEL_PALETTE.info,
-    'Fuite de Données': SENTINEL_PALETTE.danger,
-    'Autre': SENTINEL_PALETTE.tertiary,
-    'Non catégorisé': '#94a3b8'
+    'Ransomware': 'var(--destructive)',
+    'Phishing': 'var(--secondary)',
+    'Vol Matériel': 'var(--warning)',
+    'Indisponibilité': 'var(--primary)',
+    'Fuite de Données': 'var(--destructive)',
+    'Autre': 'var(--muted-foreground)',
+    'Non catégorisé': 'var(--muted)'
 };
 
 const STATUS_COLORS: Record<string, string> = {
     'Nouveau': '#a855f7',
-    'Analyse': SENTINEL_PALETTE.primary,
-    'Contenu': SENTINEL_PALETTE.warning,
-    'Résolu': SENTINEL_PALETTE.success,
-    'Fermé': '#94a3b8'
+    'Analyse': 'var(--primary)',
+    'Contenu': 'var(--warning)',
+    'Résolu': 'var(--success)',
+    'Fermé': 'var(--muted)'
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -247,10 +247,10 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
     }, [incidents]);
 
     const getHeatColor = (count: number) => {
-        if (count === 0) return 'bg-slate-100 dark:bg-slate-800/50';
-        if (count <= 2) return 'bg-emerald-200 dark:bg-emerald-900/50';
-        if (count <= 5) return 'bg-amber-300 dark:bg-amber-500';
-        return 'bg-red-400 dark:bg-red-800/50';
+        if (count === 0) return 'bg-muted/10';
+        if (count <= 2) return 'bg-success/20';
+        if (count <= 5) return 'bg-warning/40';
+        return 'bg-destructive/40';
     };
 
     // Custom active shape for pie
@@ -311,26 +311,26 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                     </filter>
                     {/* Animated gradient */}
                     <linearGradient id="animatedGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor={SENTINEL_PALETTE.primary}>
-                            <animate attributeName="stop-color" values={`${SENTINEL_PALETTE.primary};${SENTINEL_PALETTE.secondary};${SENTINEL_PALETTE.primary}`} dur="4s" repeatCount="indefinite" />
+                        <stop offset="0%" stopColor="var(--primary)">
+                            <animate attributeName="stop-color" values="var(--primary);var(--secondary);var(--primary)" dur="4s" repeatCount="indefinite" />
                         </stop>
-                        <stop offset="100%" stopColor={SENTINEL_PALETTE.secondary}>
-                            <animate attributeName="stop-color" values={`${SENTINEL_PALETTE.secondary};${SENTINEL_PALETTE.primary};${SENTINEL_PALETTE.secondary}`} dur="4s" repeatCount="indefinite" />
+                        <stop offset="100%" stopColor="var(--secondary)">
+                            <animate attributeName="stop-color" values="var(--secondary);var(--primary);var(--secondary)" dur="4s" repeatCount="indefinite" />
                         </stop>
                     </linearGradient>
                 </defs>
             </svg>
 
             {/* ========== HERO KPI SECTION ========== */}
-            <div className="glass-premium p-6 md:p-8 rounded-3xl flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8 relative overflow-hidden group shadow-apple">
+            <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 md:p-8 rounded-xl border border-border/40 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8 relative overflow-hidden group shadow-premium transition-all duration-normal ease-apple">
                 {/* Background Decorations */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-brand-500/5 dark:from-white/5 dark:to-brand-500/10 pointer-events-none" />
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-radial from-brand-500/20 via-transparent to-transparent -mr-48 -mt-48 pointer-events-none opacity-70 blur-2xl" />
-                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-radial from-purple-500/10 via-transparent to-transparent -ml-24 -mb-24 pointer-events-none opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-transparent to-primary/5 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-radial from-primary/10 via-transparent to-transparent -mr-48 -mt-48 pointer-events-none opacity-50 blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-radial from-secondary/10 via-transparent to-transparent -ml-24 -mb-24 pointer-events-none opacity-40 blur-2xl" />
 
                 {/* Animated corner accents */}
-                <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-brand-200 rounded-tl-5xl pointer-events-none" />
-                <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-brand-200 rounded-br-5xl pointer-events-none" />
+                <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-primary/20 rounded-tl-xl pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-primary/20 rounded-br-xl pointer-events-none" />
 
                 {/* Main Gauge - RadialBarChart */}
                 <div className="flex items-center gap-8 relative z-10">
@@ -363,22 +363,22 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="text-center">
-                                <span className="text-3xl font-black text-slate-900 dark:text-white">{stats.resolutionRate}%</span>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold tracking-wider">Résolution</p>
+                                <span className="text-3xl font-black text-foreground">{stats.resolutionRate}%</span>
+                                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Résolution</p>
                             </div>
                         </div>
                         {/* Animated pulse ring */}
-                        <div className="absolute inset-0 rounded-full border-2 border-brand-200 animate-ping opacity-20 pointer-events-none" style={{ animationDuration: '3s' }} />
+                        <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping opacity-20 pointer-events-none" style={{ animationDuration: '3s' }} />
                     </div>
 
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${stats.resolutionRate >= 70 ? 'bg-emerald-500' : stats.resolutionRate >= 40 ? 'bg-amber-500' : 'bg-red-500'} animate-pulse shadow-glow`} />
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Performance</span>
+                            <div className={`w-2 h-2 rounded-full ${stats.resolutionRate >= 70 ? 'bg-success' : stats.resolutionRate >= 40 ? 'bg-warning' : 'bg-destructive'} animate-pulse shadow-glow`} />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Performance</span>
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Taux de Résolution</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 max-w-[200px]">
-                            {stats.resolved}/{stats.total} incidents traités
+                        <h3 className="text-xl font-bold text-foreground">Taux de Résolution</h3>
+                        <p className="text-sm text-muted-foreground max-w-[200px]">
+                            <span className="text-foreground font-black">{stats.resolved}</span>/{stats.total} incidents traités
                         </p>
                         {stats.trend !== 0 && (
                             <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${stats.trend > 0 ? 'text-red-600 bg-red-50 dark:bg-red-900/30' : 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30'}`}>
@@ -390,88 +390,88 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 </div>
 
                 {/* KPI Cards - Enhanced */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full xl:w-auto relative z-10">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full xl:w-auto relative z-10">
                     {/* Total */}
-                    <div className="group/card relative rounded-2xl bg-gradient-to-br from-white/60 to-white/30 dark:from-white/10 dark:to-white/5 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:border-brand-300">
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-transparent rounded-2xl opacity-0 group-hover/card:opacity-70 transition-opacity" />
+                    <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-primary/30">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 opacity-70">Total</span>
-                            <div className="p-2 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-500 dark:text-slate-300 shadow-inner">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">Total</span>
+                            <div className="p-2 rounded-xl bg-muted/10 text-muted-foreground shadow-inner">
                                 <Target className="h-4 w-4" />
                             </div>
                         </div>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white relative">{stats.total}</p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">incidents</p>
+                        <p className="text-3xl font-black text-foreground relative">{stats.total}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">incidents</p>
                     </div>
 
                     {/* Open */}
-                    <div className="group/card relative rounded-2xl bg-gradient-to-br from-white/60 to-amber-50/50 dark:from-white/10 dark:to-amber-900/20 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:border-amber-500/30">
-                        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-2xl opacity-0 group-hover/card:opacity-70 transition-opacity" />
+                    <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-warning/30">
+                        <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 opacity-80">Actifs</span>
-                            <div className="p-2 rounded-3xl bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/50 dark:to-amber-950/50 text-amber-600 dark:text-amber-400 shadow-inner ring-1 ring-amber-200/50 dark:ring-amber-800/50">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-warning opacity-80">Actifs</span>
+                            <div className="p-2 rounded-xl bg-warning/10 text-warning shadow-inner ring-1 ring-warning/20">
                                 <Siren className="h-4 w-4" />
                             </div>
                         </div>
-                        <p className={`text-3xl font-black relative ${stats.open > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>{stats.open}</p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">en cours</p>
-                        {stats.open > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
+                        <p className={`text-3xl font-black relative ${stats.open > 0 ? 'text-warning' : 'text-foreground'}`}>{stats.open}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">en cours</p>
+                        {stats.open > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-warning animate-pulse" />}
                     </div>
 
                     {/* Critical */}
-                    <div className="group/card relative rounded-2xl bg-gradient-to-br from-white/60 to-red-50/50 dark:from-white/10 dark:to-red-900/20 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:border-red-500/30">
-                        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent rounded-2xl opacity-0 group-hover/card:opacity-70 transition-opacity" />
+                    <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-destructive/30">
+                        <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 opacity-80">Critiques</span>
-                            <div className="p-2 rounded-3xl bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/50 dark:to-red-950/50 text-red-600 dark:text-red-400 shadow-inner ring-1 ring-red-200/50 dark:ring-red-800/50">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-destructive opacity-80">Critiques</span>
+                            <div className="p-2 rounded-xl bg-destructive/10 text-destructive shadow-inner ring-1 ring-destructive/20">
                                 <Flame className="h-4 w-4" />
                             </div>
                         </div>
-                        <p className={`text-3xl font-black relative ${stats.critical > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>{stats.critical}</p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">à traiter</p>
-                        {stats.critical > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-500 animate-ping" />}
+                        <p className={`text-3xl font-black relative ${stats.critical > 0 ? 'text-destructive' : 'text-foreground'}`}>{stats.critical}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">à traiter</p>
+                        {stats.critical > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-destructive animate-ping" />}
                     </div>
 
                     {/* MTTR */}
-                    <div className="group/card relative rounded-2xl bg-gradient-to-br from-white/60 to-emerald-50/50 dark:from-white/10 dark:to-emerald-900/20 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:border-emerald-500/30">
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-2xl opacity-0 group-hover/card:opacity-70 transition-opacity" />
+                    <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-success/30">
+                        <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 opacity-80">MTTR</span>
-                            <div className="p-2 rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900/50 dark:to-emerald-950/50 text-emerald-600 dark:text-emerald-400 shadow-inner ring-1 ring-emerald-200/50 dark:ring-emerald-800/50">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-success opacity-80">MTTR</span>
+                            <div className="p-2 rounded-xl bg-success/10 text-success shadow-inner ring-1 ring-success/20">
                                 <Zap className="h-4 w-4" />
                             </div>
                         </div>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white relative">
+                        <p className="text-3xl font-black text-foreground relative">
                             {stats.mttrHours !== null ? `${stats.mttrHours}h` : '-'}
                         </p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">délai moyen</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">délai moyen</p>
                     </div>
                 </div>
 
                 {/* Alerts Section */}
                 <div className="flex flex-col gap-2 min-w-0 xl:min-w-[240px] relative z-10">
                     {stats.nis2Pending > 0 && (
-                        <div className="group flex items-center gap-3 text-xs font-bold text-purple-600 dark:text-purple-400 bg-gradient-to-r from-purple-50/90 to-purple-100/50 dark:from-purple-900/30 dark:to-purple-800/20 px-4 py-3 rounded-3xl border border-purple-200/50 dark:border-purple-800/30 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-md">
+                        <div className="group flex items-center gap-3 text-xs font-black text-primary bg-primary/10 px-4 py-3 rounded-xl border border-primary/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02] hover:shadow-md">
                             <Bell className="h-4 w-4 shrink-0 group-hover:animate-bounce" />
-                            <span>{stats.nis2Pending} NIS2 à notifier</span>
+                            <span className="uppercase tracking-wider">{stats.nis2Pending} NIS2 à notifier</span>
                         </div>
                     )}
                     {stats.agentAlerts > 0 && (
-                        <div className="group flex items-center gap-3 text-xs font-bold text-amber-600 dark:text-amber-400 bg-gradient-to-r from-amber-50/90 to-amber-100/50 dark:from-amber-900/30 dark:to-amber-800/20 px-4 py-3 rounded-3xl border border-amber-200 dark:border-amber-800/30 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-md">
+                        <div className="group flex items-center gap-3 text-xs font-black text-warning bg-warning/10 px-4 py-3 rounded-xl border border-warning/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02] hover:shadow-md">
                             <Bot className="h-4 w-4 shrink-0 group-hover:animate-pulse" />
-                            <span>{stats.agentErrors} erreurs, {stats.agentOffline} hors ligne</span>
+                            <span className="uppercase tracking-wider">{stats.agentErrors} erreurs, {stats.agentOffline} hors ligne</span>
                         </div>
                     )}
                     {stats.critical > 0 && (
-                        <div className="group flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-gradient-to-r from-red-50/90 to-red-100/50 dark:from-red-900/30 dark:to-red-800/20 px-4 py-3 rounded-3xl border border-red-200 dark:border-red-800/30 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-md">
+                        <div className="group flex items-center gap-3 text-xs font-black text-destructive bg-destructive/10 px-4 py-3 rounded-xl border border-destructive/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02] hover:shadow-md">
                             <ShieldAlert className="h-4 w-4 shrink-0 group-hover:animate-pulse" />
-                            <span>{stats.critical} critiques ouverts</span>
+                            <span className="uppercase tracking-wider">{stats.critical} critiques ouverts</span>
                         </div>
                     )}
                     {stats.open === 0 && stats.agentAlerts === 0 && (
-                        <div className="flex items-center gap-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-gradient-to-r from-emerald-50/90 to-emerald-100/50 dark:from-emerald-900/30 dark:to-emerald-800/20 px-4 py-3 rounded-3xl border border-emerald-200/50 dark:border-emerald-800/30 backdrop-blur-sm">
+                        <div className="flex items-center gap-3 text-xs font-black text-success bg-success/10 px-4 py-3 rounded-xl border border-success/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02]">
                             <CheckCircle2 className="h-4 w-4 shrink-0" />
-                            <span>Aucune alerte active</span>
+                            <span className="uppercase tracking-wider">Aucune alerte active</span>
                         </div>
                     )}
                 </div>
@@ -480,10 +480,10 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
             {/* ========== CHARTS GRID ========== */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Severity Distribution (Interactive Donut) */}
-                <div className="glass-premium p-6 rounded-4xl border border-border/40 shadow-apple-sm relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
-                    <h3 className="text-xs font-black text-slate-500/80 uppercase tracking-widest mb-6 px-2 flex items-center gap-2 relative">
-                        <AlertTriangle className="w-4 h-4" />
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
+                    <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
+                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                        <AlertTriangle className="w-4 h-4 text-warning" />
                         Par Sévérité
                     </h3>
                     <div className="h-[240px] w-full relative">
@@ -535,8 +535,8 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 {activeIndex === null && (
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <div className="text-center">
-                                            <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p>
-                                            <p className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold">Total</p>
+                                            <p className="text-3xl font-black text-foreground">{stats.total}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Total</p>
                                         </div>
                                     </div>
                                 )}
@@ -547,7 +547,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         {severityData.map((item, i) => (
                             <div
                                 key={`sev-leg-${i}`}
-                                className={`flex items-center gap-2 px-2 py-1 rounded-lg cursor-pointer transition-all ${activeIndex === i ? 'bg-slate-100 dark:bg-slate-800 scale-105' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer transition-all duration-normal ease-apple ${activeIndex === i ? 'bg-muted/20 scale-105' : 'hover:bg-muted/10'}`}
                                 onMouseEnter={() => setActiveIndex(i)}
                                 onMouseLeave={() => setActiveIndex(null)}
                                 onFocus={() => setActiveIndex(i)}
@@ -557,17 +557,17 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 aria-label={`Sévérité: ${item.name} (${item.value})`}
                             >
                                 <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
-                                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{item.name} ({item.value})</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{item.name} ({item.value})</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Category Distribution (Enhanced Bars) */}
-                <div className="glass-premium p-6 rounded-4xl border border-border/40 shadow-apple-sm relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
-                    <h3 className="text-xs font-black text-slate-500/80 uppercase tracking-widest mb-6 px-2 flex items-center gap-2 relative">
-                        <Activity className="w-4 h-4" />
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-success/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
+                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                        <Activity className="w-4 h-4 text-primary" />
                         Par Catégorie
                     </h3>
                     <div className="space-y-3 relative">
@@ -593,16 +593,16 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         <div className="flex items-center justify-between mb-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm">{cat.icon}</span>
-                                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{cat.name}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-foreground">{cat.name}</span>
                                             </div>
-                                            <span className={`text-xs font-black transition-colors ${isHovered ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'}`}>{cat.value}</span>
+                                            <span className={`text-[10px] font-black transition-colors ${isHovered ? 'text-primary' : 'text-muted-foreground'}`}>{cat.value}</span>
                                         </div>
-                                        <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                        <div className="h-2 bg-muted/10 rounded-full overflow-hidden">
                                             <div
-                                                className="h-full rounded-full transition-all duration-500 ease-out"
+                                                className="h-full rounded-full transition-all duration-normal ease-apple"
                                                 style={{
                                                     width: `${percentage}%`,
-                                                    background: `linear-gradient(90deg, ${cat.color}dd, ${cat.color})`,
+                                                    background: `linear-gradient(90deg, ${cat.color}, var(--primary))`,
                                                     boxShadow: isHovered ? `0 0 12px ${cat.color}66` : 'none'
                                                 }}
                                             />
@@ -615,10 +615,10 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 </div>
 
                 {/* Status Distribution (Radial) */}
-                <div className="glass-premium p-6 rounded-4xl border border-border/40 shadow-apple-sm relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
-                    <h3 className="text-xs font-black text-slate-500/80 uppercase tracking-widest mb-6 px-2 flex items-center gap-2 relative">
-                        <CheckCircle2 className="w-4 h-4" />
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
+                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                        <CheckCircle2 className="w-4 h-4 text-success" />
                         Par Statut
                     </h3>
                     <div className="h-[220px] w-full">
@@ -662,10 +662,10 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
             {/* ========== ADVANCED TIMELINE SECTION ========== */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* ComposedChart - Timeline with cumulative line */}
-                <div className="glass-premium p-6 rounded-4xl border border-border/40 shadow-apple-sm lg:col-span-2 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
-                    <h3 className="text-xs font-black text-slate-500/80 uppercase tracking-widest mb-6 px-2 flex items-center gap-2 relative">
-                        <TrendingUp className="w-4 h-4" />
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium lg:col-span-2 relative overflow-hidden group transition-all duration-normal ease-apple">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-success/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
+                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                        <TrendingUp className="w-4 h-4 text-primary" />
                         Évolution (30 jours)
                     </h3>
                     <div className="h-[300px] w-full">
@@ -709,14 +709,14 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 </div>
 
                 {/* Activity Heatmap */}
-                <div className="glass-premium p-6 rounded-4xl border border-border/40 shadow-apple-sm relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5 opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
-                    <h3 className="text-xs font-black text-slate-500/80 uppercase tracking-widest mb-6 px-2 flex items-center gap-2 relative">
-                        <Activity className="w-4 h-4" />
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
+                    <div className="absolute inset-0 bg-gradient-to-br from-warning/5 via-transparent to-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
+                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                        <Activity className="w-4 h-4 text-warning" />
                         Activité (4 semaines)
                     </h3>
                     <div className="space-y-2">
-                        <div className="flex justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider px-1 mb-3">
+                        <div className="flex justify-between text-[9px] text-muted-foreground font-black uppercase tracking-widest px-1 mb-3">
                             <span>Dim</span>
                             <span>Lun</span>
                             <span>Mar</span>
@@ -730,10 +730,10 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 {week.days.map((day, di) => (
                                     <div
                                         key={di}
-                                        className={`flex-1 aspect-square rounded-lg ${getHeatColor(day.count)} transition-all duration-200 hover:scale-110 hover:shadow-md cursor-pointer relative group/cell`}
+                                        className={`flex-1 aspect-square rounded-lg ${getHeatColor(day.count)} transition-all duration-normal ease-apple hover:scale-110 hover:shadow-md cursor-pointer relative group/cell border border-border/10`}
                                         title={`${day.date.toLocaleDateString('fr-FR')}: ${day.count} incident(s)`}
                                     >
-                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[11px] px-2 py-1 rounded-md opacity-0 group-hover/cell:opacity-70 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-md text-foreground text-[10px] font-black px-2 py-1 rounded border border-border/40 shadow-premium opacity-0 group-hover/cell:opacity-100 transition-all duration-normal ease-apple whitespace-nowrap pointer-events-none z-10 translate-y-1 group-hover/cell:translate-y-0">
                                             {day.count} incident{day.count > 1 ? 's' : ''}
                                         </div>
                                     </div>
@@ -741,15 +741,15 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                             </div>
                         ))}
                     </div>
-                    <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-border/40">
-                        <span className="text-[11px] text-slate-400 font-medium">Moins</span>
-                        <div className="flex gap-1">
-                            <div className="w-3 h-3 rounded bg-slate-100 dark:bg-slate-800/50" />
-                            <div className="w-3 h-3 rounded bg-emerald-200 dark:bg-emerald-900/50" />
-                            <div className="w-3 h-3 rounded bg-amber-300 dark:bg-amber-500" />
-                            <div className="w-3 h-3 rounded bg-red-400 dark:bg-red-800/50" />
+                    <div className="flex items-center justify-center gap-3 mt-6 pt-4 border-t border-border/20">
+                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">Moins</span>
+                        <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded bg-muted/10 border border-border/10" />
+                            <div className="w-3 h-3 rounded bg-success/20 border border-success/20" />
+                            <div className="w-3 h-3 rounded bg-warning/40 border border-warning/20" />
+                            <div className="w-3 h-3 rounded bg-destructive/40 border border-destructive/20" />
                         </div>
-                        <span className="text-[11px] text-slate-400 font-medium">Plus</span>
+                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">Plus</span>
                     </div>
                 </div>
             </div>

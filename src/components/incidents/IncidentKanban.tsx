@@ -44,11 +44,11 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
 
     // Columns definition
     const COLUMNS = React.useMemo(() => [
-        { id: 'Nouveau', title: t('incidents.status.new'), color: 'bg-indigo-500' },
-        { id: 'Analyse', title: t('incidents.status.analysis'), color: 'bg-blue-500' },
-        { id: 'Contenu', title: t('incidents.status.containment'), color: 'bg-amber-500' },
-        { id: 'Résolu', title: t('incidents.status.resolved'), color: 'bg-emerald-500' },
-        { id: 'Fermé', title: t('incidents.status.closed'), color: 'bg-slate-500' }
+        { id: 'Nouveau', title: t('incidents.status.new'), statusColor: 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]' },
+        { id: 'Analyse', title: t('incidents.status.analysis'), statusColor: 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]' },
+        { id: 'Contenu', title: t('incidents.status.containment'), statusColor: 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]' },
+        { id: 'Résolu', title: t('incidents.status.resolved'), statusColor: 'bg-emerald-500 shadow-[0_0_8_rgba(16,185,129,0.4)]' },
+        { id: 'Fermé', title: t('incidents.status.closed'), statusColor: 'bg-slate-500 shadow-[0_0_8px_rgba(100,116,139,0.4)]' }
     ], [t]);
 
     const getSeverityLabel = (s: Criticality) => {
@@ -62,16 +62,16 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
     };
 
     return (
-        <div className="flex h-full gap-6 overflow-x-auto pb-6">
+        <div className="flex h-full gap-6 overflow-x-auto pb-6 custom-scrollbar px-1">
             {COLUMNS.map(column => (
-                <div key={column.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex flex-col h-full rounded-3xl bg-background/40 backdrop-blur-md border border-border/40">
+                <div key={column.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex flex-col h-full rounded-xl bg-[var(--glass-bg)] backdrop-blur-xl border border-border/40 shadow-premium">
                     {/* Column Header */}
-                    <div className="p-4 border-b border-white/20 flex items-center justify-between sticky top-0 bg-inherit rounded-t-2xl z-10 backdrop-blur-md">
+                    <div className="p-4 border-b border-border/20 flex items-center justify-between sticky top-0 bg-background/40 rounded-t-xl z-20 backdrop-blur-xl">
                         <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200 dark:text-white">{column.title}</h3>
+                            <div className={`w-3 h-3 rounded-full ${column.statusColor}`} />
+                            <h3 className="font-bold text-sm text-foreground uppercase tracking-wider">{column.title}</h3>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-secondary/50 text-xs font-bold text-slate-600 dark:text-muted-foreground border border-border/20">
+                        <span className="px-2.5 py-0.5 rounded-full bg-muted/10 text-[10px] font-black text-muted-foreground border border-border/40 transition-all duration-normal ease-apple">
                             {loading ? '-' : (groupedIncidents[column.id]?.length || 0)}
                         </span>
                     </div>
@@ -81,7 +81,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                         {loading ? (
                             // Loading Skeletons
                             Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="bg-white dark:bg-white/5 p-4 rounded-3xl border border-border/40 shadow-sm space-y-3">
+                                <div key={i} className="bg-background/40 p-4 rounded-xl border border-border/40 shadow-sm space-y-3">
                                     <div className="flex justify-between">
                                         <Skeleton className="h-4 w-16 rounded-full" />
                                         <Skeleton className="h-3 w-12 rounded" />
@@ -114,13 +114,13 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                             onSelect(incident);
                                         }
                                     }}
-                                    className="group relative bg-background/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-border/40 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden"
+                                    className="group relative bg-background/80 p-4 rounded-xl border border-border/40 shadow-premium hover:shadow-xl hover:scale-[1.02] transition-all duration-normal ease-apple cursor-pointer overflow-hidden ring-1 ring-transparent hover:ring-primary/20"
                                     role="button"
                                     tabIndex={0}
                                     aria-label={`Incident: ${incident.title}`}
                                 >
                                     {/* Actions Overlay */}
-                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-70 transition-opacity z-10">
+                                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-normal ease-apple z-10 translate-y-1 group-hover:translate-y-0">
                                         {canEdit && onEdit && (
                                             <CustomTooltip content={t('common.edit')}>
                                                 <button
@@ -129,7 +129,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                         e.stopPropagation();
                                                         onEdit(incident);
                                                     }}
-                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-brand-600 rounded-lg shadow-sm border border-border/40 dark:border-border/40"
+                                                    className="p-1.5 bg-background/90 text-muted-foreground hover:text-primary rounded-lg shadow-sm border border-border/40 transition-colors"
                                                 >
                                                     <Edit className="h-3.5 w-3.5" />
                                                 </button>
@@ -143,7 +143,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                         e.stopPropagation();
                                                         onDelete(incident.id);
                                                     }}
-                                                    className="p-1.5 bg-white/90 dark:bg-slate-900/90 text-slate-500 dark:text-slate-300 hover:text-red-600 rounded-lg shadow-sm border border-border/40 dark:border-border/40"
+                                                    className="p-1.5 bg-background/90 text-muted-foreground hover:text-destructive rounded-lg shadow-sm border border-border/40 transition-colors"
                                                 >
                                                     <Trash2 className="h-3.5 w-3.5" />
                                                 </button>
@@ -159,30 +159,32 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                         'info'
                                             }
                                             size="sm"
+                                            variant="soft"
+                                            className="font-bold"
                                         >
                                             {getSeverityLabel(incident.severity)}
                                         </Badge>
-                                        <span className="text-[11px] text-muted-foreground font-mono">
+                                        <span className="text-[10px] text-muted-foreground font-mono uppercase font-bold">
                                             {new Date(incident.dateReported).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                         </span>
                                     </div>
 
-                                    <h4 className="font-bold text-slate-900 dark:text-white text-sm leading-snug mb-2 line-clamp-2 group-hover:text-brand-600 transition-colors">
+                                    <h4 className="font-bold text-foreground text-sm leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors duration-normal ease-apple">
                                         {incident.title}
                                     </h4>
 
-                                    <div className="flex items-center justify-between mt-3 text-xs text-slate-500">
+                                    <div className="flex items-center justify-between mt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                         <div className="flex items-center gap-1.5">
                                             {incident.reporter?.includes('Agent') ? (
                                                 <>
-                                                    <div className="w-5 h-5 rounded-full bg-brand-50 flex items-center justify-center">
-                                                        <Bot className="w-3 h-3 text-brand-600" />
+                                                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 transition-colors group-hover:bg-primary/20">
+                                                        <Bot className="w-3 h-3 text-primary" />
                                                     </div>
-                                                    <span className="text-brand-600 font-medium">{t('onboarding.autoScan')}</span>
+                                                    <span className="text-primary">{t('onboarding.autoScan')}</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-[11px] font-bold">
+                                                    <div className="w-5 h-5 rounded-full bg-muted/10 flex items-center justify-center text-[10px] border border-border/40">
                                                         {incident.reporter?.charAt(0) || '?'}
                                                     </div>
                                                     <span className="truncate max-w-[80px]">{incident.reporter}</span>
@@ -190,7 +192,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                             )}
                                         </div>
                                         {incident.category && (
-                                            <span className="px-1.5 py-0.5 rounded-lg bg-secondary/30 border border-border/30 text-[11px]">
+                                            <span className="px-2 py-0.5 rounded-lg bg-muted/5 border border-border/40 tracking-widest transition-colors group-hover:border-border/60">
                                                 {incident.category}
                                             </span>
                                         )}
