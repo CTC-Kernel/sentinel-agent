@@ -6,12 +6,21 @@ license.workspace = true
 publish = false
 description = "Sentinel GRC endpoint compliance monitoring agent"
 
+[features]
+default = ["tray"]
+# Enable system tray GUI (macOS/Windows desktop mode)
+tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
+# Enable v2 desktop GUI features (Tauri-based)
+gui = ["agent-gui", "agent-persistence"]
+
 [dependencies]
 agent-common = { path = "../agent-common" }
 agent-network = { path = "../agent-network" }
 agent-scanner = { path = "../agent-scanner" }
 agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }
+agent-gui = { path = "../agent-gui", optional = true }
+agent-persistence = { path = "../agent-persistence", optional = true }
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
@@ -23,11 +32,11 @@ serde_json.workspace = true
 chrono.workspace = true
 reqwest.workspace = true
 hostname.workspace = true
-tray-icon.workspace = true
-muda.workspace = true
-image.workspace = true
-open.workspace = true
-tao.workspace = true
+tray-icon = { workspace = true, optional = true }
+muda = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+open = { workspace = true, optional = true }
+tao = { workspace = true, optional = true }
 directories.workspace = true
 
 [target.'cfg(windows)'.dependencies]
