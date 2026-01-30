@@ -166,6 +166,9 @@ pub struct SentinelApp {
 
     // Window visibility (close = hide).
     visible: bool,
+
+    // Flag to bypass "hide to tray" and actually quit.
+    quit_requested: bool,
 }
 
 impl SentinelApp {
@@ -198,6 +201,7 @@ impl SentinelApp {
             enrollment_tx,
             _tray: tray,
             visible: true,
+            quit_requested: false,
         }
     }
 
@@ -321,17 +325,22 @@ impl SentinelApp {
     }
 
     /// Handle tray menu actions.
-    fn process_tray_actions(&mut self) {
+    fn process_tray_actions(&mut self, ctx: &egui::Context) {
         for action in TrayBridge::poll_events() {
             match action {
                 TrayAction::ShowWindow => {
                     self.visible = true;
-                    // Request focus (egui/eframe doesn't directly expose this,
-                    // but setting visible will redraw).
+                }
+                TrayAction::RunCheck => {
+                    self.send_command(GuiCommand::RunCheck);
+                }
+                TrayAction::ForceSync => {
+                    self.send_command(GuiCommand::ForceSync);
                 }
                 TrayAction::Quit => {
-                    let _ = self.command_tx.send(GuiCommand::Shutdown);
-                    // eframe will exit on the next frame via ctx.send_viewport_cmd
+                    self.quit_requested = true;
+                    self.send_command(GuiCommand::Shutdown);
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 }
             }
         }
@@ -395,13 +404,16 @@ impl eframe::App for SentinelApp {
 
         // Process incoming events.
         self.process_events();
-        self.process_tray_actions();
+        self.process_tray_actions(ctx);
 
         // Handle close = hide (instead of quit).
         if ctx.input(|i| i.viewport().close_requested()) {
-            // Prevent actual close, hide instead.
-            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-            self.visible = false;
+            if !self.quit_requested {
+                // Prevent actual close, hide instead.
+                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+                self.visible = false;
+            }
+            // Else: let it close.
         }
 
         if !self.visible {
@@ -487,6 +499,7 @@ impl eframe::App for SentinelApp {
                 Page::Settings => {
                     if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
                         if matches!(cmd, GuiCommand::Shutdown) {
+                            self.quit_requested = true;
                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
                         self.send_command(cmd);

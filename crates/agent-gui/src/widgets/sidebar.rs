@@ -50,10 +50,10 @@ impl Sidebar {
                     Self::section_label(ui, "PILOTAGE");
                     
                     let main_items: &[(Page, &str, &str)] = &[
-                        (Page::Dashboard, "󰕒", "Tableau de bord"),
-                        (Page::Compliance, "󰄲", "Conformit\u{00e9}"),
-                        (Page::Software, "󰏗", "Logiciels"),
-                        (Page::Vulnerabilities, "󰒕", "Vuln\u{00e9}rabilit\u{00e9}s"),
+                        (Page::Dashboard, "⛁", "Tableau de bord"),
+                        (Page::Compliance, "✓", "Conformit\u{00e9}"),
+                        (Page::Software, "📦", "Logiciels"),
+                        (Page::Vulnerabilities, "☢", "Vuln\u{00e9}rabilit\u{00e9}s"),
                     ];
 
                     for (page, icon, label) in main_items {
@@ -66,9 +66,9 @@ impl Sidebar {
                     Self::section_label(ui, "SYS & NETWORK");
 
                     let sys_items: &[(Page, &str, &str)] = &[
-                        (Page::Network, "󰖩", "R\u{00e9}seau"),
-                        (Page::Sync, "󰑐", "Synchronisation"),
-                        (Page::Logs, "󰃬", "Journaux"),
+                        (Page::Network, "🌐", "R\u{00e9}seau"),
+                        (Page::Sync, "🔄", "Synchronisation"),
+                        (Page::Logs, "📋", "Journaux"),
                     ];
 
                     for (page, icon, label) in sys_items {
@@ -81,8 +81,8 @@ impl Sidebar {
                         ui.add_space(theme::SPACE_XL);
                         
                         let bottom_items: &[(Page, &str, &str)] = &[
-                            (Page::About, "󰋗", "\u{00c0} propos"),
-                            (Page::Settings, "󰒓", "Param\u{00e8}tres"),
+                            (Page::About, "ⓘ", "\u{00c0} propos"),
+                            (Page::Settings, "⚙", "Param\u{00e8}tres"),
                         ];
 
                         for (page, icon, label) in bottom_items {
@@ -127,49 +127,43 @@ impl Sidebar {
             egui::Color32::TRANSPARENT
         };
 
-        let response = ui.allocate_ui(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), |ui| {
-            let (rect, response) = ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), egui::Sense::click());
-            
-            if ui.is_rect_visible(rect) {
-                let _visuals = ui.style().interact(&response);
-                
-                // Background tint on hover or active
-                if is_current || response.hovered() {
-                    let fill = if is_current { bg_fill } else { theme::BG_ELEVATED };
-                    ui.painter().rect_filled(rect.shrink2(Vec2::new(8.0, 2.0)), CornerRadius::same(theme::BUTTON_ROUNDING), fill);
-                }
-
-                // Selected indicator (vertical bar)
-                if is_current {
-                    let bar_rect = egui::Rect::from_min_max(
-                        rect.left_top() + Vec2::new(4.0, 8.0),
-                        rect.left_bottom() + Vec2::new(7.0, -8.0),
-                    );
-                    ui.painter().rect_filled(bar_rect, CornerRadius::same(2), theme::ACCENT);
-                }
-
-                // Icon and label
-                ui.allocate_new_ui(egui::UiBuilder::new().max_rect(rect), |ui| {
-                    ui.horizontal_centered(|ui| {
-                        ui.add_space(20.0);
-                        // Using Nerd Font icons (placeholders here, but typically FontAwesome/etc)
-                        ui.label(
-                            egui::RichText::new(icon)
-                                .size(16.0)
-                                .color(if is_current { theme::ACCENT } else { theme::TEXT_TERTIARY }),
-                        );
-                        ui.add_space(8.0);
-                        ui.label(
-                            egui::RichText::new(label)
-                                .font(theme::font_body())
-                                .color(text_color),
-                        );
-                    });
-                });
+        let (rect, response) = ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), egui::Sense::click());
+        
+        if ui.is_rect_visible(rect) {
+            // Background tint on hover or active
+            if is_current || response.hovered() {
+                let fill = if is_current { bg_fill } else { theme::BG_ELEVATED.linear_multiply(0.5) };
+                ui.painter().rect_filled(rect.shrink2(Vec2::new(8.0, 4.0)), CornerRadius::same(theme::BUTTON_ROUNDING), fill);
             }
-            
-            response
-        }).inner;
+
+            // Selected indicator (vertical bar)
+            if is_current {
+                let bar_rect = egui::Rect::from_min_max(
+                    rect.left_top() + Vec2::new(4.0, 10.0),
+                    rect.left_bottom() + Vec2::new(7.0, -10.0),
+                );
+                ui.painter().rect_filled(bar_rect, CornerRadius::same(1), theme::ACCENT);
+            }
+
+            // Icon and label - placed manually to avoid interaction deadzones
+            let icon_pos = rect.left_top() + Vec2::new(20.0, 21.0);
+            ui.painter().text(
+                icon_pos,
+                egui::Align2::LEFT_CENTER,
+                icon,
+                egui::FontId::proportional(16.0),
+                if is_current { theme::ACCENT } else { theme::TEXT_TERTIARY },
+            );
+
+            let label_pos = rect.left_top() + Vec2::new(20.0 + 16.0 + 8.0, 21.0);
+            ui.painter().text(
+                label_pos,
+                egui::Align2::LEFT_CENTER,
+                label,
+                theme::font_body(),
+                text_color,
+            );
+        }
 
         response.clicked()
     }

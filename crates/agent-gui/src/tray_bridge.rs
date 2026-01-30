@@ -14,12 +14,16 @@ static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/icon_32x
 #[derive(Debug, Clone)]
 pub enum TrayAction {
     ShowWindow,
+    RunCheck,
+    ForceSync,
     Quit,
 }
 
 /// Tray icon menu item IDs.
 mod ids {
     pub const SHOW: &str = "tray_show";
+    pub const CHECK: &str = "tray_check";
+    pub const SYNC: &str = "tray_sync";
     pub const QUIT: &str = "tray_quit";
 }
 
@@ -32,13 +36,21 @@ impl TrayBridge {
     /// Create the tray icon and menu.
     pub fn new() -> Result<Self, String> {
         let show_item = MenuItem::with_id(ids::SHOW, "Ouvrir Sentinel Agent", true, None);
+        let check_item = MenuItem::with_id(ids::CHECK, "V\u{00e9}rifier la conformit\u{00e9}", true, None);
+        let sync_item = MenuItem::with_id(ids::SYNC, "Synchroniser les donn\u{00e9}es", true, None);
         let quit_item = MenuItem::with_id(ids::QUIT, "Quitter", true, None);
 
         let menu = Menu::new();
         menu.append(&show_item)
             .map_err(|e| format!("menu show: {}", e))?;
         menu.append(&PredefinedMenuItem::separator())
-            .map_err(|e| format!("menu sep: {}", e))?;
+            .map_err(|e| format!("menu sep1: {}", e))?;
+        menu.append(&check_item)
+            .map_err(|e| format!("menu check: {}", e))?;
+        menu.append(&sync_item)
+            .map_err(|e| format!("menu sync: {}", e))?;
+        menu.append(&PredefinedMenuItem::separator())
+            .map_err(|e| format!("menu sep2: {}", e))?;
         menu.append(&quit_item)
             .map_err(|e| format!("menu quit: {}", e))?;
 
@@ -67,6 +79,14 @@ impl TrayBridge {
                 ids::SHOW => {
                     debug!("Tray: show window requested");
                     actions.push(TrayAction::ShowWindow);
+                }
+                ids::CHECK => {
+                    debug!("Tray: run check requested");
+                    actions.push(TrayAction::RunCheck);
+                }
+                ids::SYNC => {
+                    debug!("Tray: force sync requested");
+                    actions.push(TrayAction::ForceSync);
                 }
                 ids::QUIT => {
                     info!("Tray: quit requested");
