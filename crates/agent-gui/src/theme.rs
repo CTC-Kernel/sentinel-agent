@@ -127,6 +127,67 @@ pub fn font_comex() -> FontId {
 // Style application
 // ============================================================================
 
+/// Load embedded icon font (Font Awesome 6 Solid) + system symbol fallback.
+pub fn configure_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+
+    // ── Embedded Font Awesome 6 Free Solid ──────────────────────────
+    static FA_SOLID: &[u8] = include_bytes!("../assets/fonts/fa-solid-900.ttf");
+    fonts.font_data.insert(
+        "fa_solid".to_owned(),
+        egui::FontData::from_static(FA_SOLID).into(),
+    );
+    // Add as fallback so FA codepoints (Private Use Area) resolve automatically.
+    if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+        family.push("fa_solid".to_owned());
+    }
+    if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
+        family.push("fa_solid".to_owned());
+    }
+
+    // ── System symbol fonts (for any remaining Unicode symbols) ─────
+    #[cfg(target_os = "macos")]
+    {
+        let paths = [
+            "/System/Library/Fonts/Apple Symbols.ttf",
+            "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+        ];
+        for path in &paths {
+            if let Ok(data) = std::fs::read(path) {
+                fonts.font_data.insert(
+                    "system_symbols".to_owned(),
+                    egui::FontData::from_owned(data).into(),
+                );
+                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+                    family.push("system_symbols".to_owned());
+                }
+                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
+                    family.push("system_symbols".to_owned());
+                }
+                break;
+            }
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(data) = std::fs::read("C:\\Windows\\Fonts\\seguisym.ttf") {
+            fonts.font_data.insert(
+                "system_symbols".to_owned(),
+                egui::FontData::from_owned(data).into(),
+            );
+            if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+                family.push("system_symbols".to_owned());
+            }
+            if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
+                family.push("system_symbols".to_owned());
+            }
+        }
+    }
+
+    ctx.set_fonts(fonts);
+}
+
 /// Apply the Sentinel dark theme to an egui context.
 pub fn apply_theme(ctx: &egui::Context) {
     let mut style = Style::default();

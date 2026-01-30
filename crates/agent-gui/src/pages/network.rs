@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -25,14 +26,14 @@ impl NetworkPage {
                 let card_gap = theme::SPACE_SM;
                 let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
                 let (alert_color, alert_icon) = if state.network_alerts > 0 {
-                    (theme::ERROR, "▲")
+                    (theme::ERROR, icons::WARNING)
                 } else {
-                    (theme::SUCCESS, "✓")
+                    (theme::SUCCESS, icons::CIRCLE_CHECK)
                 };
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = card_gap;
-                    Self::summary_card(ui, card_w, "INTERFACES", &state.network_interfaces.to_string(), theme::ACCENT, "◎");
-                    Self::summary_card(ui, card_w, "CONNEXIONS", &state.network_connections.to_string(), theme::ACCENT_LIGHT, "◆");
+                    Self::summary_card(ui, card_w, "INTERFACES", &state.network_interfaces.to_string(), theme::ACCENT, icons::WIFI);
+                    Self::summary_card(ui, card_w, "CONNEXIONS", &state.network_connections.to_string(), theme::ACCENT_LIGHT, icons::NETWORK);
                     Self::summary_card(ui, card_w, "ALERTES", &state.network_alerts.to_string(), alert_color, alert_icon);
                 });
 
@@ -64,14 +65,14 @@ impl NetworkPage {
                             });
                         } else {
                             if let Some(ref ip) = state.primary_ip {
-                                Self::detail_row(ui, "Adresse IP", ip, "→");
+                                Self::detail_row(ui, "Adresse IP", ip, icons::ARROW_RIGHT);
                             }
                             if let Some(ref mac) = state.primary_mac {
-                                Self::detail_row(ui, "Adresse MAC", mac, "→");
+                                Self::detail_row(ui, "Adresse MAC", mac, icons::ARROW_RIGHT);
                             }
                             ui.separator();
                             if let Some(ref ts) = state.last_network_scan {
-                                Self::detail_row(ui, "Dernier scan", &ts.format("%H:%M:%S").to_string(), "→");
+                                Self::detail_row(ui, "Dernier scan", &ts.format("%H:%M:%S").to_string(), icons::ARROW_RIGHT);
                             }
                         }
                     });
@@ -92,13 +93,13 @@ impl NetworkPage {
                         ui.vertical_centered(|ui| {
                             if state.network_alerts == 0 {
                                 ui.add_space(theme::SPACE_SM);
-                                ui.label(egui::RichText::new("✓").size(48.0).color(theme::SUCCESS.linear_multiply(0.4)));
+                                ui.label(egui::RichText::new(icons::CIRCLE_CHECK).size(48.0).color(theme::SUCCESS.linear_multiply(0.4)));
                                 ui.add_space(theme::SPACE_SM);
                                 ui.label(egui::RichText::new("AUCUNE MENACE").font(theme::font_small()).color(theme::SUCCESS).strong());
                                 ui.label(egui::RichText::new("Le trafic r\u{00e9}seau semble sain").font(theme::font_small()).color(theme::TEXT_TERTIARY));
                             } else {
                                 ui.add_space(theme::SPACE_SM);
-                                ui.label(egui::RichText::new("▲").size(48.0).color(theme::ERROR.linear_multiply(0.4)));
+                                ui.label(egui::RichText::new(icons::WARNING).size(48.0).color(theme::ERROR.linear_multiply(0.4)));
                                 ui.add_space(theme::SPACE_SM);
                                 ui.label(egui::RichText::new(format!("{} ALERTE(S)", state.network_alerts)).font(theme::font_small()).color(theme::ERROR).strong());
                                 ui.label(egui::RichText::new("Actions requises imm\u{00e9}diatement").font(theme::font_small()).color(theme::TEXT_TERTIARY));

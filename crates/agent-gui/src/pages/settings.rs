@@ -4,6 +4,7 @@ use egui::Ui;
 
 use crate::app::AppState;
 use crate::events::GuiCommand;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -32,9 +33,9 @@ impl SettingsPage {
 
                     ui.horizontal(|ui| {
                         let (label, cmd) = if state.is_paused {
-                            ("▶  REPRENDRE L'AGENT", GuiCommand::Resume)
+                            (format!("{}  REPRENDRE L'AGENT", icons::PLAY), GuiCommand::Resume)
                         } else {
-                            ("||  METTRE EN PAUSE", GuiCommand::Pause)
+                            (format!("{}  METTRE EN PAUSE", icons::STOP), GuiCommand::Pause)
                         };
 
                         let btn_color = if state.is_paused {
@@ -44,7 +45,7 @@ impl SettingsPage {
                         };
 
                         let btn = egui::Button::new(
-                            egui::RichText::new(label)
+                            egui::RichText::new(&label)
                                 .font(theme::font_body())
                                 .color(theme::TEXT_ON_ACCENT)
                                 .strong(),
@@ -61,7 +62,7 @@ impl SettingsPage {
                         ui.add_space(theme::SPACE);
 
                         let check_btn = egui::Button::new(
-                            egui::RichText::new("✓  V\u{00c9}RIFIER MAINTENANT")
+                            egui::RichText::new(format!("{}  V\u{00c9}RIFIER MAINTENANT", icons::CHECK))
                                 .font(theme::font_body())
                                 .color(theme::TEXT_ON_ACCENT)
                                 .strong(),
@@ -126,12 +127,12 @@ impl SettingsPage {
                             );
                             ui.add_space(theme::SPACE_MD);
 
-                            Self::setting_row(ui, "Serveur", &state.server_url, "→");
+                            Self::setting_row(ui, "Serveur", &state.server_url, icons::ARROW_RIGHT);
                             if let Some(ref id) = state.summary.agent_id {
-                                Self::setting_row(ui, "ID Agent", id, "→");
+                                Self::setting_row(ui, "ID Agent", id, icons::ARROW_RIGHT);
                             }
                             if let Some(ref org) = state.summary.organization {
-                                Self::setting_row(ui, "Organisation", org, "→");
+                                Self::setting_row(ui, "Organisation", org, icons::ARROW_RIGHT);
                             }
                         });
 
@@ -151,13 +152,13 @@ impl SettingsPage {
                                 ui,
                                 "Scan",
                                 &format!("{} sec", state.check_interval_secs),
-                                "→",
+                                icons::ARROW_RIGHT,
                             );
                             Self::setting_row(
                                 ui,
                                 "Heartbeat",
                                 &format!("{} sec", state.heartbeat_interval_secs),
-                                "→",
+                                icons::ARROW_RIGHT,
                             );
                         });
                     });
@@ -175,13 +176,13 @@ impl SettingsPage {
                             ui.add_space(theme::SPACE_MD);
 
                             if let Some(ref id) = state.summary.agent_id {
-                                let url = format!("https://app.sentinel-grc.com/agents/{}", id);
+                                let url = format!("https://app.cyber-threat-consulting.com/agents/{}", id);
 
                                 ui.label(egui::RichText::new("G\u{00e9}rez vos politiques et visualisez vos rapports d\u{00e9}taill\u{00e9}s en ligne.").font(theme::font_small()).color(theme::TEXT_SECONDARY));
                                 ui.add_space(theme::SPACE_MD);
 
                                 let btn = egui::Button::new(
-                                    egui::RichText::new("→  VOIR SUR LE PORTAIL WEB")
+                                    egui::RichText::new(format!("{}  VOIR SUR LE PORTAIL WEB", icons::EXTERNAL_LINK))
                                         .font(theme::font_body())
                                         .color(theme::TEXT_ON_ACCENT)
                                         .strong(),
@@ -214,7 +215,7 @@ impl SettingsPage {
                             ui.add_space(theme::SPACE_MD);
 
                             let quit_btn = egui::Button::new(
-                                egui::RichText::new("✕  QUITTER L'AGENT")
+                                egui::RichText::new(format!("{}  QUITTER L'AGENT", icons::XMARK))
                                     .font(theme::font_body())
                                     .color(theme::TEXT_ON_ACCENT)
                                     .strong(),
