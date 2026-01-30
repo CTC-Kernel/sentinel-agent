@@ -136,7 +136,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
         const trend = prev7Days > 0 ? Math.round(((last7Days - prev7Days) / prev7Days) * 100) : 0;
 
         return { total, open, critical, high, resolved, resolutionRate, nis2Pending, mttrHours, agentAlerts, agentErrors, agentOffline, trend, last7Days };
-    }, [incidents, agents]);
+    }, [incidents, agents, loading]);
 
     // ========== CHART DATA ==========
     // Severity Distribution

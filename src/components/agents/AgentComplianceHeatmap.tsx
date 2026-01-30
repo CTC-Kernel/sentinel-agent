@@ -9,7 +9,7 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
-import { SentinelAgent, AgentResult, AgentCheckResult } from '../../types/agent';
+import { SentinelAgent, AgentCheckResult } from '../../types/agent';
 import {
     Monitor, Apple, Server, Shield, CheckCircle2, XCircle,
     AlertCircle, Clock, ChevronRight, Info

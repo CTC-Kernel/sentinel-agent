@@ -16,14 +16,26 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
     const radarGradientId = React.useId();
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
     const [hoveredAxis, setHoveredAxis] = React.useState<string | null>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setMousePos({
-            x: ((e.clientX - rect.left) / rect.width) * 100,
-            y: ((e.clientY - rect.top) / rect.height) * 100,
-        });
-    };
+    React.useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!containerRef.current) return;
+            const rect = containerRef.current.getBoundingClientRect();
+            setMousePos({
+                x: ((e.clientX - rect.left) / rect.width) * 100,
+                y: ((e.clientY - rect.top) / rect.height) * 100,
+            });
+        };
+
+        const el = containerRef.current;
+        if (el) {
+            el.addEventListener('mousemove', handleMouseMove);
+            return () => el.removeEventListener('mousemove', handleMouseMove);
+        }
+    }, []);
+
+    const [mountTime] = React.useState(() => Date.now());
 
     const radarData = React.useMemo(() => {
         if (!agents || agents.length === 0) return [];
@@ -40,8 +52,8 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
         const latestVersion = '1.0.0';
         const upToDate = agents.filter(a => a.version === latestVersion).length;
 
-        const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
-        const supervised = agents.filter(a => new Date(a.lastHeartbeat) > tenMinAgo).length;
+        const tenMinAgo = mountTime - 10 * 60 * 1000;
+        const supervised = agents.filter(a => new Date(a.lastHeartbeat).getTime() > tenMinAgo).length;
 
         return [
             { subject: t('dashboard.agentMaturity.compliance'), A: avgCompliance, fullMark: 100 },
@@ -50,7 +62,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
             { subject: t('dashboard.agentMaturity.health'), A: Math.round((healthy / total) * 100), fullMark: 100 },
             { subject: t('dashboard.agentMaturity.monitoring'), A: Math.round((supervised / total) * 100), fullMark: 100 },
         ];
-    }, [agents, t]);
+    }, [agents, t, mountTime]);
 
     const totalScore = radarData.length > 0
         ? Math.round(radarData.reduce((acc, curr) => acc + curr.A, 0) / radarData.length)
@@ -72,14 +84,14 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
         return recommendations[subject] || "Maintenir la vigilance sur la flotte d'agents.";
     };
 
-    const blips = React.useMemo(() => {
+    const [blips] = React.useState(() => {
         return Array.from({ length: 6 }).map((_, i) => ({
             id: i,
             x: 40 + Math.random() * 20,
             y: 40 + Math.random() * 20,
             delay: Math.random() * 5
         }));
-    }, []);
+    });
 
     if (loading) {
         return (
@@ -93,8 +105,8 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
 
     return (
         <div
+            ref={containerRef}
             className="relative group/radar flex flex-col items-center pt-2 w-full h-full min-h-[420px] overflow-hidden select-none"
-            onMouseMove={handleMouseMove}
         >
             <div
                 className="absolute inset-0 opacity-20 pointer-events-none transition-transform duration-1000 ease-out"
@@ -113,6 +125,15 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
                     transform: `perspective(1000px) rotateX(${(mousePos.y - 50) / -15}deg) rotateY(${(mousePos.x - 50) / 15}deg)`,
                 }}
                 onClick={() => navigate('/agents')}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate('/agents');
+                    }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={t('agents.widget.viewDetails')}
             >
                 <div className="absolute inset-0 rounded-full border border-primary/10 animate-pulse" />
                 <div className="absolute inset-4 rounded-full border border-primary/5 animate-ping opacity-20" style={{ animationDuration: '4s' }} />
@@ -208,7 +229,15 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
 
             {worstMetric && (
                 <div className="w-[90%] mt-6 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 backdrop-blur-md group/insight cursor-pointer transition-all hover:translate-y-[-2px] hover:shadow-lg"
-                    onClick={() => navigate('/agents')}>
+                    onClick={() => navigate('/agents')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate('/agents');
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}>
                     <div className="flex items-start gap-3">
                         <div className="p-2 rounded-xl bg-primary/20 text-primary animate-pulse">
                             <BrainCircuit className="w-5 h-5" />
