@@ -5,7 +5,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_DIR/target/release"
-VERSION="1.0.0"
+# Extract version from Cargo.toml (single source of truth)
+VERSION=$(grep '^version' "$PROJECT_DIR/Cargo.toml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 
 echo "=== Building Sentinel Agent for Linux ==="
 echo "Project dir: $PROJECT_DIR"
