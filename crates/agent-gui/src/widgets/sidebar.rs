@@ -1,6 +1,6 @@
 //! Navigation sidebar widget.
 
-use egui::{CornerRadius, Frame, Margin, Stroke, Ui, Vec2};
+use egui::{CornerRadius, Margin, Stroke, Ui, Vec2};
 
 use crate::app::Page;
 use crate::theme;
@@ -13,15 +13,18 @@ impl Sidebar {
     pub fn show(ui: &mut Ui, current: &Page) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
-        Frame::new()
-            .fill(theme::BG_SIDEBAR)
-            .inner_margin(Margin::symmetric(8, 16))
-            .stroke(Stroke::new(0.5, theme::BORDER))
-            .show(ui, |ui| {
+        egui::Frame {
+            fill: theme::BG_SIDEBAR,
+            inner_margin: Margin::same(0),
+            stroke: Stroke::new(0.5, theme::BORDER),
+            ..Default::default()
+        }
+        .show(ui, |ui| {
                 ui.set_min_width(theme::SIDEBAR_WIDTH);
                 ui.set_max_width(theme::SIDEBAR_WIDTH);
 
-                // Logo / brand
+                // Logo / brand section
+                ui.add_space(theme::SPACE_XL);
                 ui.vertical_centered(|ui| {
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
@@ -31,77 +34,143 @@ impl Sidebar {
                             .strong(),
                     );
                     ui.label(
-                        egui::RichText::new("Agent GRC")
+                        egui::RichText::new("GRC AGENT")
                             .font(theme::font_small())
-                            .color(theme::TEXT_SECONDARY),
+                            .color(theme::TEXT_TERTIARY)
+                            .strong(),
                     );
-                    ui.add_space(theme::SPACE);
+                    ui.add_space(theme::SPACE_XL);
                 });
 
-                ui.separator();
-                ui.add_space(theme::SPACE_SM);
+                ui.vertical(|ui| {
+                    ui.set_width(theme::SIDEBAR_WIDTH);
+                    
+                    // Group: Principal
+                    ui.add_space(theme::SPACE_SM);
+                    Self::section_label(ui, "PILOTAGE");
+                    
+                    let main_items: &[(Page, &str, &str)] = &[
+                        (Page::Dashboard, "󰕒", "Tableau de bord"),
+                        (Page::Compliance, "󰄲", "Conformit\u{00e9}"),
+                        (Page::Software, "󰏗", "Logiciels"),
+                        (Page::Vulnerabilities, "󰒕", "Vuln\u{00e9}rabilit\u{00e9}s"),
+                    ];
 
-                // Navigation items
-                let items: &[(Page, &str, &str)] = &[
-                    (Page::Dashboard, "\u{1f3e0}", "Tableau de bord"),
-                    (Page::Compliance, "\u{2705}", "Conformit\u{00e9}"),
-                    (Page::Software, "\u{1f4e6}", "Logiciels"),
-                    (Page::Vulnerabilities, "\u{1f6e1}", "Vuln\u{00e9}rabilit\u{00e9}s"),
-                    (Page::Network, "\u{1f310}", "R\u{00e9}seau"),
-                    (Page::Sync, "\u{1f504}", "Synchronisation"),
-                    (Page::Logs, "\u{1f4cb}", "Journaux"),
-                ];
-
-                for (page, icon, label) in items {
-                    let is_current = current == page;
-                    if Self::nav_item(ui, icon, label, is_current) {
-                        selected = Some(page.clone());
+                    for (page, icon, label) in main_items {
+                        if Self::nav_item(ui, icon, label, current == page) {
+                            selected = Some(page.clone());
+                        }
                     }
-                }
 
-                ui.add_space(theme::SPACE_LG);
-                ui.separator();
-                ui.add_space(theme::SPACE_SM);
+                    ui.add_space(theme::SPACE);
+                    Self::section_label(ui, "SYS & NETWORK");
 
-                // Bottom items
-                let bottom_items: &[(Page, &str, &str)] = &[
-                    (Page::Settings, "\u{2699}\u{fe0f}", "Param\u{00e8}tres"),
-                    (Page::About, "\u{2139}\u{fe0f}", "\u{00c0} propos"),
-                ];
+                    let sys_items: &[(Page, &str, &str)] = &[
+                        (Page::Network, "󰖩", "R\u{00e9}seau"),
+                        (Page::Sync, "󰑐", "Synchronisation"),
+                        (Page::Logs, "󰃬", "Journaux"),
+                    ];
 
-                for (page, icon, label) in bottom_items {
-                    let is_current = current == page;
-                    if Self::nav_item(ui, icon, label, is_current) {
-                        selected = Some(page.clone());
+                    for (page, icon, label) in sys_items {
+                        if Self::nav_item(ui, icon, label, current == page) {
+                            selected = Some(page.clone());
+                        }
                     }
-                }
+
+                    ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
+                        ui.add_space(theme::SPACE_XL);
+                        
+                        let bottom_items: &[(Page, &str, &str)] = &[
+                            (Page::About, "󰋗", "\u{00c0} propos"),
+                            (Page::Settings, "󰒓", "Param\u{00e8}tres"),
+                        ];
+
+                        for (page, icon, label) in bottom_items {
+                            if Self::nav_item(ui, icon, label, current == page) {
+                                selected = Some(page.clone());
+                            }
+                        }
+                        
+                        ui.add_space(theme::SPACE_SM);
+                        ui.separator();
+                    });
+                });
             });
 
         selected
     }
 
+    fn section_label(ui: &mut Ui, text: &str) {
+        ui.add_space(theme::SPACE_XS);
+        ui.horizontal(|ui| {
+            ui.add_space(theme::SPACE_MD);
+            ui.label(
+                egui::RichText::new(text)
+                    .font(theme::font_small())
+                    .color(theme::TEXT_TERTIARY)
+                    .strong(),
+            );
+        });
+        ui.add_space(theme::SPACE_XS);
+    }
+
     fn nav_item(ui: &mut Ui, icon: &str, label: &str, is_current: bool) -> bool {
         let text_color = if is_current {
-            theme::ACCENT
+            theme::TEXT_PRIMARY
         } else {
             theme::TEXT_SECONDARY
         };
-        let bg = if is_current {
+        
+        let bg_fill = if is_current {
             theme::ACCENT.linear_multiply(0.12)
         } else {
             egui::Color32::TRANSPARENT
         };
 
-        let btn = egui::Button::new(
-            egui::RichText::new(format!("  {}  {}", icon, label))
-                .font(theme::font_body())
-                .color(text_color),
-        )
-        .fill(bg)
-        .corner_radius(CornerRadius::same(theme::BUTTON_ROUNDING))
-        .stroke(Stroke::NONE)
-        .min_size(Vec2::new(theme::SIDEBAR_WIDTH - theme::SPACE, 36.0));
+        let response = ui.allocate_ui(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), |ui| {
+            let (rect, response) = ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), egui::Sense::click());
+            
+            if ui.is_rect_visible(rect) {
+                let _visuals = ui.style().interact(&response);
+                
+                // Background tint on hover or active
+                if is_current || response.hovered() {
+                    let fill = if is_current { bg_fill } else { theme::BG_ELEVATED };
+                    ui.painter().rect_filled(rect.shrink2(Vec2::new(8.0, 2.0)), CornerRadius::same(theme::BUTTON_ROUNDING), fill);
+                }
 
-        ui.add(btn).clicked()
+                // Selected indicator (vertical bar)
+                if is_current {
+                    let bar_rect = egui::Rect::from_min_max(
+                        rect.left_top() + Vec2::new(4.0, 8.0),
+                        rect.left_bottom() + Vec2::new(7.0, -8.0),
+                    );
+                    ui.painter().rect_filled(bar_rect, CornerRadius::same(2), theme::ACCENT);
+                }
+
+                // Icon and label
+                ui.allocate_new_ui(egui::UiBuilder::new().max_rect(rect), |ui| {
+                    ui.horizontal_centered(|ui| {
+                        ui.add_space(20.0);
+                        // Using Nerd Font icons (placeholders here, but typically FontAwesome/etc)
+                        ui.label(
+                            egui::RichText::new(icon)
+                                .size(16.0)
+                                .color(if is_current { theme::ACCENT } else { theme::TEXT_TERTIARY }),
+                        );
+                        ui.add_space(8.0);
+                        ui.label(
+                            egui::RichText::new(label)
+                                .font(theme::font_body())
+                                .color(text_color),
+                        );
+                    });
+                });
+            }
+            
+            response
+        }).inner;
+
+        response.clicked()
     }
 }
