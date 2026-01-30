@@ -70,6 +70,8 @@ pub struct GuiCheckResult {
     pub score: Option<i32>,
     /// Summary message.
     pub message: Option<String>,
+    /// Detailed results as JSON.
+    pub details: Option<serde_json::Value>,
     /// When the check was last executed.
     pub executed_at: Option<DateTime<Utc>>,
     /// Applicable frameworks (e.g., "NIS2", "DORA").

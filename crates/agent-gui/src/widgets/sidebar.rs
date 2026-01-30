@@ -1,6 +1,6 @@
 //! Navigation sidebar widget.
 
-use egui::{CornerRadius, Margin, Stroke, Ui, Vec2};
+use egui::{CornerRadius, Margin, Ui, Vec2};
 
 use crate::app::Page;
 use crate::theme;
@@ -10,13 +10,12 @@ pub struct Sidebar;
 
 impl Sidebar {
     /// Render the sidebar. Returns the newly selected page, if any.
-    pub fn show(ui: &mut Ui, current: &Page) -> Option<Page> {
+    pub fn show(ui: &mut Ui, current: &Page, scanning: bool) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
         egui::Frame {
             fill: theme::BG_SIDEBAR,
             inner_margin: Margin::same(0),
-            stroke: Stroke::new(0.5, theme::BORDER),
             ..Default::default()
         }
         .show(ui, |ui| {
@@ -27,12 +26,20 @@ impl Sidebar {
                 ui.add_space(theme::SPACE_XL);
                 ui.vertical_centered(|ui| {
                     ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new("SENTINEL")
-                            .font(theme::font_title())
-                            .color(theme::ACCENT)
-                            .strong(),
-                    );
+                    ui.horizontal(|ui| {
+                        ui.add_space(ui.available_width() / 4.0); // Simple centering trick
+                        ui.label(
+                            egui::RichText::new("SENTINEL")
+                                .font(theme::font_title())
+                                .color(theme::ACCENT)
+                                .strong(),
+                        );
+                        if scanning {
+                            let t = ui.input(|i| i.time);
+                            let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32; // Pulse effect
+                            ui.label(egui::RichText::new("󰓦").size(16.0).color(theme::ACCENT.linear_multiply(alpha)));
+                        }
+                    });
                     ui.label(
                         egui::RichText::new("GRC AGENT")
                             .font(theme::font_small())

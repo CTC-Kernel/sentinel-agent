@@ -458,9 +458,10 @@ impl eframe::App for SentinelApp {
         // Sidebar
         egui::SidePanel::left("sidebar")
             .exact_width(theme::SIDEBAR_WIDTH)
-            .frame(egui::Frame::new().fill(theme::BG_SIDEBAR))
+            .frame(egui::Frame::new().fill(theme::BG_SIDEBAR).stroke(egui::Stroke::new(0.5, theme::BORDER)))
             .show(ctx, |ui| {
-                if let Some(new_page) = widgets::Sidebar::show(ui, &self.page) {
+                let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
+                if let Some(new_page) = widgets::Sidebar::show(ui, &self.page, scanning) {
                     self.page = new_page;
                 }
             });

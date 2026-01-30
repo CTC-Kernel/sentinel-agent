@@ -72,14 +72,12 @@ impl CompliancePage {
                     ui.add_space(theme::SPACE_MD);
 
                     if state.checks.is_empty() {
-                        ui.vertical_centered(|ui| {
-                            ui.add_space(theme::SPACE_LG);
-                            ui.label(
-                                egui::RichText::new("Aucune v\u{00e9}rification effectu\u{00e9}e")
-                                    .color(theme::TEXT_TERTIARY),
-                            );
-                            ui.add_space(theme::SPACE_LG);
-                        });
+                        widgets::empty_state(
+                            ui,
+                            "󰓗",
+                            "Aucune v\u{00e9}rification effectu\u{00e9}e",
+                            Some("Lancez une analyse pour v\u{00e9}rifier la conformit\u{00e9} de cet appareil."),
+                        );
                     } else {
                         // Table header
                         ui.horizontal(|ui| {
@@ -96,98 +94,140 @@ impl CompliancePage {
                         ui.add_space(theme::SPACE_SM);
 
                         for check in &state.checks {
-                            ui.horizontal(|ui| {
-                                ui.set_min_height(40.0);
-
-                                // Name
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(240.0, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
-                                        ui.vertical(|ui| {
-                                            ui.label(
-                                                egui::RichText::new(&check.name)
-                                                    .font(theme::font_body())
-                                                    .color(theme::TEXT_PRIMARY)
-                                                    .strong(),
-                                            );
-                                        });
-                                    },
-                                );
-
-                                // Category
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(140.0, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
-                                        ui.label(
-                                            egui::RichText::new(&check.category)
-                                                .font(theme::font_small())
-                                                .color(theme::TEXT_SECONDARY),
-                                        );
-                                    },
-                                );
-
-                                // Status badge
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(110.0, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
-                                        let (label, color) = Self::status_display(&check.status);
-                                        widgets::status_badge(ui, label, color);
-                                    },
-                                );
-
-                                // Severity
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(100.0, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
-                                        let color = theme::severity_color(&check.severity);
-                                        ui.horizontal(|ui| {
-                                            ui.painter().circle_filled(ui.available_rect_before_wrap().min + egui::vec2(6.0, 10.0), 3.0, color);
-                                            ui.add_space(14.0);
-                                            ui.label(
-                                                egui::RichText::new(&check.severity.to_uppercase())
-                                                    .font(theme::font_small())
-                                                    .color(color)
-                                                    .strong(),
-                                            );
-                                        });
-                                    },
-                                );
-
-                                // Score
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(60.0, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
-                                        if let Some(s) = check.score {
-                                            ui.label(
-                                                egui::RichText::new(format!("{:.0}%", s))
-                                                    .font(theme::font_body())
-                                                    .color(theme::score_color(s as f32))
-                                                    .strong(),
-                                            );
-                                        } else {
-                                            ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
-                                        }
-                                    },
-                                );
-
-                                // Frameworks
+                            let response = ui.vertical(|ui| {
                                 ui.horizontal(|ui| {
-                                    for fw in &check.frameworks {
-                                        ui.painter().rect_filled(
-                                            ui.available_rect_before_wrap().shrink2(egui::vec2(ui.available_width() - 40.0, 8.0)),
-                                            egui::CornerRadius::same(4),
-                                            theme::BG_ELEVATED,
-                                        );
-                                        ui.label(egui::RichText::new(fw).font(theme::font_small()).color(theme::TEXT_SECONDARY));
-                                        ui.add_space(theme::SPACE_XS);
-                                    }
+                                    ui.set_min_height(40.0);
+
+                                    // Name
+                                    ui.allocate_ui_with_layout(
+                                        egui::Vec2::new(240.0, 40.0),
+                                        egui::Layout::left_to_right(egui::Align::Center),
+                                        |ui| {
+                                            ui.vertical(|ui| {
+                                                ui.label(
+                                                    egui::RichText::new(&check.name)
+                                                        .font(theme::font_body())
+                                                        .color(theme::TEXT_PRIMARY)
+                                                        .strong(),
+                                                );
+                                            });
+                                        },
+                                    );
+
+                                    // Category
+                                    ui.allocate_ui_with_layout(
+                                        egui::Vec2::new(140.0, 40.0),
+                                        egui::Layout::left_to_right(egui::Align::Center),
+                                        |ui| {
+                                            ui.label(
+                                                egui::RichText::new(&check.category)
+                                                    .font(theme::font_small())
+                                                    .color(theme::TEXT_SECONDARY),
+                                            );
+                                        },
+                                    );
+
+                                    // Status badge
+                                    ui.allocate_ui_with_layout(
+                                        egui::Vec2::new(110.0, 40.0),
+                                        egui::Layout::left_to_right(egui::Align::Center),
+                                        |ui| {
+                                            let (label, color) = Self::status_display(&check.status);
+                                            widgets::status_badge(ui, label, color);
+                                        },
+                                    );
+
+                                    // Severity
+                                    ui.allocate_ui_with_layout(
+                                        egui::Vec2::new(100.0, 40.0),
+                                        egui::Layout::left_to_right(egui::Align::Center),
+                                        |ui| {
+                                            let color = theme::severity_color(&check.severity);
+                                            ui.horizontal(|ui| {
+                                                ui.painter().circle_filled(ui.available_rect_before_wrap().min + egui::vec2(6.0, 10.0), 3.0, color);
+                                                ui.add_space(14.0);
+                                                ui.label(
+                                                    egui::RichText::new(&check.severity.to_uppercase())
+                                                        .font(theme::font_small())
+                                                        .color(color)
+                                                        .strong(),
+                                                );
+                                            });
+                                        },
+                                    );
+
+                                    // Score
+                                    ui.allocate_ui_with_layout(
+                                        egui::Vec2::new(60.0, 40.0),
+                                        egui::Layout::left_to_right(egui::Align::Center),
+                                        |ui| {
+                                            if let Some(s) = check.score {
+                                                ui.label(
+                                                    egui::RichText::new(format!("{:.0}%", s))
+                                                        .font(theme::font_body())
+                                                        .color(theme::score_color(s as f32))
+                                                        .strong(),
+                                                );
+                                            } else {
+                                                ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
+                                            }
+                                        },
+                                    );
+
+                                    // Frameworks
+                                    ui.horizontal(|ui| {
+                                        for fw in &check.frameworks {
+                                            ui.label(
+                                                egui::RichText::new(fw)
+                                                    .font(theme::font_small())
+                                                    .color(theme::TEXT_SECONDARY)
+                                                    .background_color(theme::BG_ELEVATED),
+                                            );
+                                            ui.add_space(theme::SPACE_XS);
+                                        }
+                                    });
                                 });
+
+                                // Expandable detail area
+                                let id = ui.make_persistent_id(&check.check_id);
+                                let expanded = ui.memory(|mem| mem.data.get_temp::<bool>(id).unwrap_or(false));
+
+                                if expanded {
+                                    ui.add_space(theme::SPACE_XS);
+                                    ui.indent(id, |ui| {
+                                        ui.vertical(|ui| {
+                                            if let Some(msg) = &check.message {
+                                                ui.label(egui::RichText::new(msg).color(theme::TEXT_SECONDARY).font(theme::font_small()));
+                                            }
+                                            
+                                            // Handle details JSON (e.g. issues list)
+                                            if let Some(details) = &check.details {
+                                                if let Some(issues) = details.get("issues").and_then(|i| i.as_array()) {
+                                                    for (_idx, issue) in issues.iter().enumerate() {
+                                                        ui.horizontal(|ui| {
+                                                            ui.label(egui::RichText::new("•").color(theme::ERROR));
+                                                            ui.label(egui::RichText::new(issue.as_str().unwrap_or("Problème détecté")).color(theme::TEXT_SECONDARY).font(theme::font_small()));
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    });
+                                    ui.add_space(theme::SPACE_SM);
+                                }
                             });
+
+                            // Make the row clickable to toggle expansion
+                            let response = ui.interact(response.response.rect, ui.make_persistent_id(&format!("{}_interact", check.check_id)), egui::Sense::click());
+                            if response.clicked() {
+                                let id = ui.make_persistent_id(&check.check_id);
+                                let expanded = ui.memory(|mem| mem.data.get_temp::<bool>(id).unwrap_or(false));
+                                ui.memory_mut(|mem| mem.data.insert_temp(id, !expanded));
+                            }
+
+                            if response.hovered() {
+                                ui.painter().rect_filled(response.rect, egui::CornerRadius::same(4), theme::BG_ELEVATED.linear_multiply(0.3));
+                            }
 
                             ui.add_space(theme::SPACE_XS);
                             ui.separator();
