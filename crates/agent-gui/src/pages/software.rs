@@ -64,14 +64,12 @@ impl SoftwarePage {
                     ui.add_space(theme::SPACE_MD);
 
                     if state.software_packages.is_empty() {
-                        ui.vertical_centered(|ui| {
-                            ui.add_space(theme::SPACE_LG);
-                            ui.label(
-                                egui::RichText::new("Aucun logiciel recens\u{00e9}")
-                                    .color(theme::TEXT_TERTIARY),
-                            );
-                            ui.add_space(theme::SPACE_LG);
-                        });
+                        widgets::empty_state(
+                            ui,
+                            "󰏗",
+                            "Aucun logiciel recens\u{00e9}",
+                            Some("L'inventaire logiciel est en cours de constitution ou aucun paquet n'a \u{00e9}t\u{00e9} d\u{00e9}tect\u{00e9}."),
+                        );
                     } else {
                         // Table header
                         ui.horizontal(|ui| {

@@ -442,6 +442,11 @@ impl AgentRuntime {
             severity,
             score,
             message: common_result.message.clone(),
+            details: if common_result.details != serde_json::Value::Null {
+                Some(common_result.details.clone())
+            } else {
+                None
+            },
             executed_at: Some(common_result.executed_at),
             frameworks,
         }

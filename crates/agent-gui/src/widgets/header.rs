@@ -9,7 +9,7 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>) {
     ui.vertical(|ui| {
         ui.label(
             egui::RichText::new(title)
-                .font(theme::font_title())
+                .font(theme::font_comex())
                 .color(theme::TEXT_PRIMARY)
                 .strong(),
         );
