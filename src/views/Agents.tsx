@@ -6,8 +6,8 @@ import { useStore } from '../store';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { subscribeToAgents } from '../services/AgentService';
-import { SentinelAgent } from '../types/agent';
+import { subscribeToAgents, getAgentComplianceResults } from '../services/AgentService';
+import { SentinelAgent, AgentCheckResult } from '../types/agent';
 import {
     Download, Settings, Search, LayoutGrid, List, Shield, Package, Layers
 } from '../components/ui/Icons';
@@ -50,6 +50,7 @@ export const Agents: React.FC = () => {
     const [selectedAgent, setSelectedAgent] = useState<SentinelAgent | null>(null);
     const [isLiveViewOpen, setIsLiveViewOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
+    const [complianceResults, setComplianceResults] = useState<Map<string, AgentCheckResult[]>>(new Map());
 
     // Handle agent click to open live view
     const handleAgentClick = useCallback((agent: SentinelAgent) => {
@@ -81,6 +82,14 @@ export const Agents: React.FC = () => {
 
         return unsubscribe;
     }, [user?.organizationId]);
+
+    // Load compliance results for heatmap
+    useEffect(() => {
+        if (!user?.organizationId || agents.length === 0) return;
+        getAgentComplianceResults(user.organizationId).then(setComplianceResults).catch(() => {
+            // Non-critical, heatmap will show "unknown" states
+        });
+    }, [user?.organizationId, agents.length]);
 
     // Start tour
     useEffect(() => {
@@ -274,6 +283,7 @@ export const Agents: React.FC = () => {
                                 <motion.div variants={slideUpVariants}>
                                     <AgentComplianceHeatmap
                                         agents={filteredAgents}
+                                        results={complianceResults}
                                         onAgentClick={handleAgentClick}
                                         onCellClick={(agentId, checkId) => {
                                             // Find the agent and open live view

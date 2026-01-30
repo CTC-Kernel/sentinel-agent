@@ -18,6 +18,12 @@ export interface SentinelAgent {
     enrolledAt?: string;
     cpuPercent?: number;
     memoryBytes?: number;
+    memoryPercent?: number;
+    memoryTotalBytes?: number;
+    diskPercent?: number;
+    diskUsedBytes?: number;
+    diskTotalBytes?: number;
+    uptimeSeconds?: number;
     config?: AgentConfig;
     configVersion?: number;
     rulesVersion?: number;
@@ -31,6 +37,18 @@ export interface AgentConfig {
     offline_mode_days: number;
 }
 
+export interface AgentCheckResult {
+    id: string;
+    checkId: string;
+    status: 'pass' | 'fail' | 'error' | 'not_applicable';
+    framework?: string | null;
+    controlId?: string | null;
+    evidence?: Record<string, unknown>;
+    score?: number | null;
+    durationMs?: number;
+    timestamp?: string;
+}
+
 export interface AgentDetails extends SentinelAgent {
     enrolledWithToken?: string;
     selfCheckResult?: Record<string, unknown>;
@@ -41,6 +59,7 @@ export interface AgentDetails extends SentinelAgent {
         error: number;
         not_applicable: number;
     };
+    checkResults?: AgentCheckResult[];
     pendingCommandsCount: number;
     // Extended metrics from heartbeat
     memoryPercent?: number;

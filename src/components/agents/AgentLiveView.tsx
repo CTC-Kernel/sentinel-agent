@@ -117,18 +117,20 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
     const [activeTab, setActiveTab] = useState('metrics');
     const [realtimeData, setRealtimeData] = useState<AgentRealtimeData | null>(() => generateMockRealtimeData(agent));
     const [metricsHistory, setMetricsHistory] = useState<AgentRealtimeMetrics[]>(() => {
-        // Generate initial metrics history
+        // Generate initial metrics history using real agent data where available
         const now = new Date();
+        const baseCpu = agent.cpuPercent ?? 0;
+        const baseMem = agent.memoryPercent ?? 0;
+        const baseDisk = agent.diskPercent ?? 0;
         return Array.from({ length: 60 }, (_, i) => {
             const timestamp = new Date(now.getTime() - (59 - i) * 1000);
-            // Use deterministic variations based on index
-            const cpuVariation = ((i % 7) - 3) * 3;
-            const memVariation = ((i % 5) - 2) * 2;
+            const cpuVariation = ((i % 7) - 3) * 2;
+            const memVariation = ((i % 5) - 2) * 1;
             return {
-                cpuPercent: Math.max(0, Math.min(100, (agent.cpuPercent || 20) + cpuVariation)),
-                memoryPercent: Math.max(0, Math.min(100, 45 + memVariation)),
-                memoryBytes: agent.memoryBytes || 4 * 1024 * 1024 * 1024,
-                diskPercent: 65 + ((i % 3) - 1),
+                cpuPercent: Math.max(0, Math.min(100, baseCpu + cpuVariation)),
+                memoryPercent: Math.max(0, Math.min(100, baseMem + memVariation)),
+                memoryBytes: agent.memoryBytes || 0,
+                diskPercent: Math.max(0, Math.min(100, baseDisk + ((i % 3) - 1))),
                 networkInBytes: (i * 17389) % (1024 * 1024),
                 networkOutBytes: (i * 8731) % (512 * 1024),
                 timestamp: timestamp.toISOString(),
@@ -144,17 +146,22 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
         setRealtimeData(generateMockRealtimeData(agent));
     }, [agent]);
 
-    // Simulate real-time updates (in production: Firestore subscription)
+    // Simulate real-time metric updates using real agent base values
+    // TODO: Replace with Firestore real-time subscription when agent pushes live metrics
     useEffect(() => {
         if (!realtimeData) return;
+
+        const baseCpu = agent.cpuPercent ?? 0;
+        const baseMem = agent.memoryPercent ?? 0;
+        const baseDisk = agent.diskPercent ?? 0;
 
         const interval = setInterval(() => {
             const now = new Date();
             const newMetric: AgentRealtimeMetrics = {
-                cpuPercent: Math.max(0, Math.min(100, (agent.cpuPercent || 20) + (Math.random() - 0.5) * 15)),
-                memoryPercent: Math.max(0, Math.min(100, 45 + (Math.random() - 0.5) * 8)),
-                memoryBytes: agent.memoryBytes || 4 * 1024 * 1024 * 1024,
-                diskPercent: 65 + (Math.random() - 0.5) * 3,
+                cpuPercent: Math.max(0, Math.min(100, baseCpu + (Math.random() - 0.5) * 10)),
+                memoryPercent: Math.max(0, Math.min(100, baseMem + (Math.random() - 0.5) * 5)),
+                memoryBytes: agent.memoryBytes || 0,
+                diskPercent: Math.max(0, Math.min(100, baseDisk + (Math.random() - 0.5) * 2)),
                 networkInBytes: Math.floor(Math.random() * 1024 * 1024),
                 networkOutBytes: Math.floor(Math.random() * 512 * 1024),
                 timestamp: now.toISOString(),
@@ -174,7 +181,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [realtimeData, agent.cpuPercent, agent.memoryBytes]);
+    }, [realtimeData, agent.cpuPercent, agent.memoryPercent, agent.diskPercent, agent.memoryBytes]);
 
     // Manual refresh
     const handleRefresh = useCallback(() => {
@@ -330,8 +337,11 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     Dernière mise à jour: {lastRefresh.toLocaleTimeString('fr-FR')}
                 </span>
                 <span className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                    Données en temps réel
+                    <span className={cn(
+                        'w-1.5 h-1.5 rounded-full',
+                        isActive ? 'bg-success animate-pulse' : 'bg-muted-foreground'
+                    )} />
+                    {isActive ? 'Métriques basées sur le dernier heartbeat' : 'Agent hors ligne'}
                 </span>
             </div>
         </motion.div>

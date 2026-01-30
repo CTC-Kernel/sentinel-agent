@@ -9,7 +9,7 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
-import { SentinelAgent, AgentResult } from '../../types/agent';
+import { SentinelAgent, AgentResult, AgentCheckResult } from '../../types/agent';
 import {
     Monitor, Apple, Server, Shield, CheckCircle2, XCircle,
     AlertCircle, Clock, ChevronRight, Info
@@ -21,22 +21,25 @@ import { cn } from '../../lib/utils';
 
 interface AgentComplianceHeatmapProps {
     agents: SentinelAgent[];
-    results?: Map<string, AgentResult[]>; // agentId -> results
+    results?: Map<string, AgentCheckResult[]>; // agentId -> results
     onCellClick?: (agentId: string, checkId: string) => void;
     onAgentClick?: (agent: SentinelAgent) => void;
     maxAgentsDisplay?: number;
 }
 
-// Default compliance checks (based on common CIS/agent checks)
+// Compliance checks matching the 11 built-in agent checks
 const DEFAULT_CHECKS = [
-    { id: 'firewall', name: 'Firewall', category: 'Network' },
     { id: 'disk_encryption', name: 'Chiffrement Disque', category: 'Storage' },
-    { id: 'mfa', name: 'MFA Activé', category: 'Auth' },
+    { id: 'firewall', name: 'Firewall', category: 'Network' },
     { id: 'antivirus', name: 'Antivirus', category: 'Security' },
-    { id: 'updates', name: 'MAJ Système', category: 'Patches' },
-    { id: 'screensaver', name: 'Verrouillage Auto', category: 'Access' },
+    { id: 'mfa', name: 'MFA', category: 'Auth' },
     { id: 'password_policy', name: 'Politique MDP', category: 'Auth' },
-    { id: 'audit_logging', name: 'Journalisation', category: 'Audit' },
+    { id: 'system_updates', name: 'MAJ Système', category: 'Patches' },
+    { id: 'session_lock', name: 'Verrouillage', category: 'Access' },
+    { id: 'remote_access', name: 'Accès Distant', category: 'Network' },
+    { id: 'backup', name: 'Sauvegarde', category: 'Data' },
+    { id: 'admin_accounts', name: 'Comptes Admin', category: 'Auth' },
+    { id: 'obsolete_protocols', name: 'Protocoles Obs.', category: 'Network' },
 ];
 
 type CheckStatus = 'pass' | 'fail' | 'pending' | 'unknown';
@@ -93,39 +96,26 @@ const OSIcon: React.FC<{ os: SentinelAgent['os']; className?: string }> = ({ os,
     }
 };
 
-// Generate mock check status based on agent compliance score
+// Get check status from real results
 const getCheckStatus = (
     agent: SentinelAgent,
     checkId: string,
-    results?: AgentResult[]
+    results?: AgentCheckResult[]
 ): CheckStatus => {
-    // If we have actual results, use them
+    // Use actual results if available
     if (results && results.length > 0) {
         const result = results.find(r => r.checkId === checkId);
         if (result) {
             if (result.status === 'pass') return 'pass';
             if (result.status === 'fail') return 'fail';
-            return 'pending';
+            if (result.status === 'error') return 'pending';
+            return 'unknown';
         }
     }
 
-    // Otherwise, generate based on compliance score
-    if (agent.complianceScore === undefined || agent.complianceScore === null) {
-        return 'unknown';
-    }
-
-    // Deterministic based on agent id + check id
-    const hash = (agent.id + checkId).split('').reduce((a, b) => {
-        const charCode = b.charCodeAt(0);
-        return ((a << 5) - a) + charCode;
-    }, 0);
-
-    const threshold = agent.complianceScore / 100;
-    const rand = Math.abs(Math.sin(hash));
-
-    if (rand < threshold * 0.9) return 'pass';
-    if (rand < threshold * 1.1) return 'pending';
-    return 'fail';
+    // No result for this check — agent hasn't reported it yet
+    if (agent.status === 'offline') return 'unknown';
+    return 'unknown';
 };
 
 // Get status label for tooltip

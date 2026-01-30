@@ -15,6 +15,7 @@ import {
     AgentEnrollmentToken,
     AgentDetails,
     AgentResult,
+    AgentCheckResult,
     AgentConfig,
     AgentStatus,
     AgentMetricsHistory
@@ -68,6 +69,12 @@ function docToAgent(docId: string, data: Record<string, unknown>, organizationId
         enrolledAt,
         cpuPercent: data.cpuPercent as number | undefined,
         memoryBytes: data.memoryBytes as number | undefined,
+        memoryPercent: data.memoryPercent as number | undefined,
+        memoryTotalBytes: data.memoryTotalBytes as number | undefined,
+        diskPercent: data.diskPercent as number | undefined,
+        diskUsedBytes: data.diskUsedBytes as number | undefined,
+        diskTotalBytes: data.diskTotalBytes as number | undefined,
+        uptimeSeconds: data.uptimeSeconds as number | undefined,
         config: data.config as AgentConfig | undefined,
         configVersion: data.configVersion as number | undefined,
         rulesVersion: data.rulesVersion as number | undefined,
@@ -377,6 +384,34 @@ export async function getAgentMetricsHistory(
 }
 
 /**
+ * Get compliance check results for all agents (for heatmap)
+ */
+export async function getAgentComplianceResults(
+    organizationId: string
+): Promise<Map<string, AgentCheckResult[]>> {
+    try {
+        const getResultsFn = httpsCallable<
+            { organizationId: string },
+            { resultsByAgent: Record<string, AgentCheckResult[]> }
+        >(functions, 'getAgentComplianceResults');
+
+        const result = await getResultsFn({ organizationId });
+        const map = new Map<string, AgentCheckResult[]>();
+        for (const [agentId, results] of Object.entries(result.data.resultsByAgent)) {
+            map.set(agentId, results);
+        }
+        return map;
+    } catch (error) {
+        ErrorLogger.error(error, 'AgentService.getAgentComplianceResults', {
+            component: 'AgentService',
+            action: 'getAgentComplianceResults',
+            organizationId
+        });
+        return new Map();
+    }
+}
+
+/**
  * Agent download manifest type
  */
 export type AgentPlatform = 'macos' | 'windows' | 'linux_deb' | 'linux_rpm';
@@ -455,6 +490,7 @@ export const AgentService = {
     subscribeToTokens,
     getAgentDetails,
     getAgentMetricsHistory,
+    getAgentComplianceResults,
     deleteAgent,
     generateEnrollmentToken,
     revokeEnrollmentToken,

@@ -503,13 +503,58 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                         </div>
                                     </div>
 
-                                    <div className="p-4 rounded-3xl bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm flex items-start gap-3">
-                                        <Activity className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-bold">Analyse Détaillée</p>
-                                            <p className="opacity-80">Pour voir le détail des contrôles échoués, veuillez consulter le rapport de conformité complet dans le module Audit.</p>
+                                    {/* Individual Check Results */}
+                                    {agentDetails.checkResults && agentDetails.checkResults.length > 0 && (
+                                        <div className="p-5 rounded-2xl border border-border/40 dark:border-border/40">
+                                            <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+                                                <ShieldCheck className="w-4 h-4 text-brand-500" />
+                                                Détail des Contrôles ({agentDetails.checkResults.length})
+                                            </h3>
+                                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                                                {agentDetails.checkResults.map((result) => (
+                                                    <div
+                                                        key={result.id}
+                                                        className={cn(
+                                                            "flex items-center justify-between p-3 rounded-xl border transition-colors",
+                                                            result.status === 'pass'
+                                                                ? "bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/30"
+                                                                : result.status === 'fail'
+                                                                    ? "bg-red-50/50 dark:bg-red-900/10 border-red-200/50 dark:border-red-800/30"
+                                                                    : "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200/50 dark:border-amber-800/30"
+                                                        )}
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            {result.status === 'pass' ? (
+                                                                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                                            ) : result.status === 'fail' ? (
+                                                                <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                                                            ) : (
+                                                                <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                                            )}
+                                                            <div className="min-w-0">
+                                                                <span className="text-sm font-medium text-slate-900 dark:text-white truncate block">
+                                                                    {result.checkId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                                                </span>
+                                                                {result.durationMs !== undefined && result.durationMs > 0 && (
+                                                                    <span className="text-xs text-slate-400">{result.durationMs}ms</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <Badge className={cn(
+                                                            "text-xs font-bold",
+                                                            result.status === 'pass'
+                                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                                : result.status === 'fail'
+                                                                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                                                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                                        )}>
+                                                            {result.status === 'pass' ? 'Conforme' : result.status === 'fail' ? 'Non conforme' : result.status === 'error' ? 'Erreur' : 'N/A'}
+                                                        </Badge>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </motion.div>
                             )}
 

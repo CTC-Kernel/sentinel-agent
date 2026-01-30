@@ -37,9 +37,12 @@ exports.onAgentCreated = onDocumentCreated(
             let assetRef = null;
             let isNewAsset = false;
 
-            const existingByMachine = await db
-                .collection("assets")
-                .where("organizationId", "==", organizationId)
+            const assetsCollection = db
+                .collection("organizations")
+                .doc(organizationId)
+                .collection("assets");
+
+            const existingByMachine = await assetsCollection
                 .where("machineId", "==", machineId)
                 .limit(1)
                 .get();
@@ -48,9 +51,7 @@ exports.onAgentCreated = onDocumentCreated(
                 assetRef = existingByMachine.docs[0].ref;
                 console.log(`[CTC Engine] Found existing asset by machineId: ${assetRef.id}`);
             } else {
-                const existingByHostname = await db
-                    .collection("assets")
-                    .where("organizationId", "==", organizationId)
+                const existingByHostname = await assetsCollection
                     .where("name", "==", hostname)
                     .limit(1)
                     .get();
@@ -83,10 +84,11 @@ exports.onAgentCreated = onDocumentCreated(
             };
 
             if (!assetRef) {
-                // Create new Asset
-                const newAssetRef = db.collection("assets").doc();
+                // Create new Asset in org-scoped collection
+                const newAssetRef = assetsCollection.doc();
                 await newAssetRef.set({
                     ...assetData,
+                    id: newAssetRef.id,
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     description: `Asset generated automatically from Agent Enrollment (${os} ${osVersion})`
                 });
@@ -98,6 +100,11 @@ exports.onAgentCreated = onDocumentCreated(
                 await assetRef.set(assetData, { merge: true });
                 console.log(`[CTC Engine] Updated existing Asset: ${assetRef.id}`);
             }
+
+            // Link asset to agent (set linkedAssetId for vulnerability/report correlation)
+            await snapshot.ref.update({
+                linkedAssetId: assetRef.id,
+            });
 
             // 3. Auto-Linking (CTC Engine)
             // Only perform heavy auto-linking if it's a new asset or explicitly requested (future)
@@ -144,9 +151,10 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
     // Here we assume standard controls might exist with tags or predictable names.
     // We'll use a broad fetch logic purely for demonstration/MVP of CTC Engine.
 
-    const controlsSnap = await db.collection("controls")
-        .where("organizationId", "==", organizationId)
-        .where("scope", "array-contains", "Poste de travail") // Assuming specific scope
+    const controlsSnap = await db.collection("organizations")
+        .doc(organizationId)
+        .collection("controls")
+        .where("scope", "array-contains", "Poste de travail")
         .limit(20)
         .get();
 
@@ -170,8 +178,9 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
     // B. Link Standard Risks
     // e.g. "Malware", "Vol", "Perte"
     const riskKeywords = ["Malware", "Ransomware", "Vol", "Phishing"];
-    const risksSnap = await db.collection("risks")
-        .where("organizationId", "==", organizationId)
+    const risksSnap = await db.collection("organizations")
+        .doc(organizationId)
+        .collection("risks")
         .limit(50)
         .get();
 
@@ -190,8 +199,9 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
     // C. Link to Policies (Documents)
     // e.g. "Charte informatique", "PSSI"
     const docKeywords = ["Charte", "PSSI", "Sécurité"];
-    const docsSnap = await db.collection("documents")
-        .where("organizationId", "==", organizationId)
+    const docsSnap = await db.collection("organizations")
+        .doc(organizationId)
+        .collection("documents")
         .where("type", "==", "Politique")
         .limit(20)
         .get();
@@ -237,11 +247,15 @@ exports.onResultUploaded = onDocumentCreated(
         const { status, framework, controlId, hostname, machineId } = resultData;
 
         try {
-            // 1. Find Asset
+            // 1. Find Asset (org-scoped collection)
             let assetRef = null;
+            const orgAssetsCollection = db
+                .collection("organizations")
+                .doc(organizationId)
+                .collection("assets");
+
             // Try by machineId first
-            const assetSnap = await db.collection("assets")
-                .where("organizationId", "==", organizationId)
+            const assetSnap = await orgAssetsCollection
                 .where("machineId", "==", machineId)
                 .limit(1)
                 .get();
@@ -250,8 +264,7 @@ exports.onResultUploaded = onDocumentCreated(
                 assetRef = assetSnap.docs[0].ref;
             } else {
                 // Fallback hostname
-                const assetSnap2 = await db.collection("assets")
-                    .where("organizationId", "==", organizationId)
+                const assetSnap2 = await orgAssetsCollection
                     .where("name", "==", hostname)
                     .limit(1)
                     .get();
@@ -266,8 +279,12 @@ exports.onResultUploaded = onDocumentCreated(
             // 2. Handle Failed Checks -> Vulnerability / Incident
             if (status === 'fail' || status === 'error') {
                 // Check if Vulnerability already exists for this control/asset
-                const vulnSnap = await db.collection("vulnerabilities")
-                    .where("organizationId", "==", organizationId)
+                const vulnCollection = db
+                    .collection("organizations")
+                    .doc(organizationId)
+                    .collection("vulnerabilities");
+
+                const vulnSnap = await vulnCollection
                     .where("assetId", "==", assetRef.id)
                     .where("sourceId", "==", controlId)
                     .where("status", "==", "OPEN")
@@ -275,12 +292,12 @@ exports.onResultUploaded = onDocumentCreated(
                     .get();
 
                 if (vulnSnap.empty) {
-                    await db.collection("vulnerabilities").add({
+                    await vulnCollection.add({
                         organizationId,
                         assetId: assetRef.id,
                         title: `Compliance Failure: ${controlId}`,
                         description: `Agent ${hostname} failed check for ${controlId} (${framework})`,
-                        severity: "MEDIUM", // Default
+                        severity: "MEDIUM",
                         status: "OPEN",
                         source: "AGENT_COMPLIANCE",
                         sourceId: controlId,
