@@ -153,10 +153,17 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 </span>
                             </div>
                         )}
-                        {agent.memoryBytes !== undefined && (
+                        {(agent.memoryPercent !== undefined || agent.memoryBytes !== undefined) && (
                             <div className="flex items-center gap-1 text-muted-foreground">
                                 <HardDrive className="h-3 w-3" />
-                                <span>{formatBytes(agent.memoryBytes)}</span>
+                                <span className={cn(
+                                    agent.memoryPercent !== undefined && agent.memoryPercent > 85 ? 'text-destructive font-medium' :
+                                        agent.memoryPercent !== undefined && agent.memoryPercent > 70 ? 'text-warning' : ''
+                                )}>
+                                    {agent.memoryPercent !== undefined
+                                        ? `${agent.memoryPercent.toFixed(0)}%`
+                                        : formatBytes(agent.memoryBytes)}
+                                </span>
                             </div>
                         )}
                     </div>
@@ -295,13 +302,21 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">CPU</span>
                     </div>
 
-                    {/* Memory */}
+                    {/* Memory - show percentage like CPU, with used/total as sublabel */}
                     <div className="p-2 rounded-lg bg-muted/30">
                         <div className="flex items-center justify-center gap-1 mb-1">
                             <HardDrive className="h-3 w-3 text-muted-foreground" />
                         </div>
-                        <span className="text-sm font-bold text-foreground">
-                            {formatBytes(agent.memoryBytes)}
+                        <span className={cn(
+                            'text-sm font-bold',
+                            agent.memoryPercent !== undefined && agent.memoryPercent > 85 ? 'text-destructive' :
+                                agent.memoryPercent !== undefined && agent.memoryPercent > 70 ? 'text-warning' : 'text-foreground'
+                        )}>
+                            {agent.memoryPercent !== undefined
+                                ? `${agent.memoryPercent.toFixed(0)}%`
+                                : agent.memoryBytes !== undefined
+                                    ? formatBytes(agent.memoryBytes)
+                                    : '-'}
                         </span>
                         <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">RAM</span>
                     </div>

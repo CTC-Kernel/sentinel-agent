@@ -118,7 +118,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                 agentsWithScore.reduce((sum, a) => sum + (a.complianceScore || 0), 0) /
                 agentsWithScore.length
             )
-            : 0;
+            : null;
 
         // OS distribution
         const osDistribution = {
@@ -167,20 +167,19 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
         { name: 'Linux', value: stats.osDistribution.linux, color: OS_COLORS.linux },
     ].filter(d => d.value > 0), [stats.osDistribution]);
 
-    // Mock trend data for demo (in production, this would come from historical data)
+    // Trend data based on current score
+    // Shows current score as baseline - historical data requires metrics_history collection
     const trendData = useMemo(() => {
+        if (stats.avgScore === null) return [];
         const now = new Date();
-        // Use deterministic variations based on index for pure render
-        const variations = [-3, 2, -1, 4, -2, 1, 0];
         return Array.from({ length: 7 }, (_, i) => {
             const date = new Date(now);
             date.setDate(date.getDate() - (6 - i));
             const dayLabel = i === 6 ? 'Auj.' :
                 i === 5 ? 'Hier' :
                     date.toLocaleDateString('fr-FR', { weekday: 'short' });
-            // Simulated compliance trend (in production: real historical data)
-            const score = Math.max(60, Math.min(100, stats.avgScore + variations[i]));
-            return { day: dayLabel, score: Math.round(score) };
+            // Show current score as flat line (only today's value is real)
+            return { day: dayLabel, score: i === 6 ? stats.avgScore : null };
         });
     }, [stats.avgScore]);
 
@@ -313,10 +312,10 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                 <motion.div variants={slideUpVariants}>
                     <StatCard
                         label="Score Conformité"
-                        value={`${stats.avgScore}%`}
-                        sublabel="Moyenne de la flotte"
+                        value={stats.avgScore !== null ? `${stats.avgScore}%` : '-'}
+                        sublabel={stats.avgScore !== null ? 'Moyenne de la flotte' : 'Aucune donnée'}
                         icon={<Shield className="h-6 w-6" />}
-                        variant={stats.avgScore >= 80 ? 'success' : stats.avgScore >= 60 ? 'warning' : 'danger'}
+                        variant={stats.avgScore === null ? 'default' : stats.avgScore >= 80 ? 'success' : stats.avgScore >= 60 ? 'warning' : 'danger'}
                     />
                 </motion.div>
 
@@ -341,55 +340,58 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                 </motion.div>
             </motion.div>
 
-            {/* Compliance Trend Chart */}
-            <motion.div
-                variants={slideUpVariants}
-                className="glass-premium rounded-2xl p-6 border border-border/50"
-            >
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 className="text-sm font-bold text-foreground">Tendance Conformité</h3>
-                        <p className="text-xs text-muted-foreground">Score moyen sur 7 jours</p>
+            {/* Compliance Score Display */}
+            {stats.avgScore !== null && (
+                <motion.div
+                    variants={slideUpVariants}
+                    className="glass-premium rounded-2xl p-6 border border-border/50"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-sm font-bold text-foreground">Score Conformité Actuel</h3>
+                            <p className="text-xs text-muted-foreground">Basé sur les derniers résultats remontés</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="w-3 h-3 rounded-full bg-brand-500" />
+                            <span>Score conformité</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="w-3 h-3 rounded-full bg-brand-500" />
-                        <span>Score conformité</span>
+                    <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={trendData}>
+                                <defs>
+                                    <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.3} />
+                                        <stop offset="100%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis
+                                    dataKey="day"
+                                    {...CHART_STYLES.axis}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <YAxis
+                                    domain={[0, 100]}
+                                    {...CHART_STYLES.axis}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(v) => `${v}%`}
+                                />
+                                <Tooltip content={<ChartTooltip formatter={(v) => v !== null ? `${v}%` : 'Pas de données'} />} />
+                                <Area
+                                    type="monotone"
+                                    dataKey="score"
+                                    stroke={SENTINEL_PALETTE.primary}
+                                    strokeWidth={2}
+                                    fill="url(#scoreGradient)"
+                                    connectNulls={false}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
                     </div>
-                </div>
-                <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={trendData}>
-                            <defs>
-                                <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.3} />
-                                    <stop offset="100%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <XAxis
-                                dataKey="day"
-                                {...CHART_STYLES.axis}
-                                tickLine={false}
-                                axisLine={false}
-                            />
-                            <YAxis
-                                domain={[0, 100]}
-                                {...CHART_STYLES.axis}
-                                tickLine={false}
-                                axisLine={false}
-                                tickFormatter={(v) => `${v}%`}
-                            />
-                            <Tooltip content={<ChartTooltip formatter={(v) => `${v}%`} />} />
-                            <Area
-                                type="monotone"
-                                dataKey="score"
-                                stroke={SENTINEL_PALETTE.primary}
-                                strokeWidth={2}
-                                fill="url(#scoreGradient)"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-            </motion.div>
+                </motion.div>
+            )}
         </motion.div>
     );
 };
