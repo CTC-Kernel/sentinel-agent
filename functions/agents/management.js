@@ -170,12 +170,31 @@ exports.getAgentDetails = onCall(
         not_applicable: 0,
       };
 
+      // Collect individual results and deduplicate by checkId (keep latest)
+      const latestByCheckId = new Map();
       resultsSnapshot.docs.forEach((doc) => {
-        const status = doc.data().status;
+        const d = doc.data();
+        const status = d.status;
         if (resultsSummary[status] !== undefined) {
           resultsSummary[status]++;
         }
+        // Keep only the latest result per checkId
+        const checkId = d.checkId;
+        if (checkId && !latestByCheckId.has(checkId)) {
+          latestByCheckId.set(checkId, {
+            id: doc.id,
+            checkId,
+            status: d.status,
+            framework: d.framework || null,
+            controlId: d.controlId || null,
+            evidence: d.evidence || d.raw_data || {},
+            score: d.score ?? null,
+            durationMs: d.durationMs || 0,
+            timestamp: d.agentTimestamp || d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          });
+        }
       });
+      const checkResults = Array.from(latestByCheckId.values());
 
       // Get pending commands count
       const commandsSnapshot = await db
@@ -215,12 +234,94 @@ exports.getAgentDetails = onCall(
         rulesVersion: data.rulesVersion,
         selfCheckResult: data.selfCheckResult,
         resultsSummary,
+        checkResults,
         pendingCommandsCount: commandsSnapshot.size,
       };
     } catch (error) {
       console.error('Get agent details error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to get agent details');
+    }
+  }
+);
+
+/**
+ * Get latest compliance results for all agents in an organization (batch)
+ * Used by the compliance heatmap
+ */
+exports.getAgentComplianceResults = onCall(
+  {
+    region: 'europe-west1',
+    memory: '256MiB',
+  },
+  async (request) => {
+    const { auth } = request;
+    if (!auth) {
+      throw new HttpsError('unauthenticated', 'Authentication required');
+    }
+
+    const { organizationId } = request.data;
+    if (!organizationId) {
+      throw new HttpsError('invalid-argument', 'organizationId is required');
+    }
+
+    try {
+      const userDoc = await db.collection('users').doc(auth.uid).get();
+      if (!userDoc.exists) {
+        throw new HttpsError('permission-denied', 'User not found');
+      }
+      const userData = userDoc.data();
+      if (userData.organizationId !== organizationId && !userData.isAdmin) {
+        throw new HttpsError('permission-denied', 'Access denied');
+      }
+
+      // Get all agents
+      const agentsSnapshot = await db
+        .collection('organizations')
+        .doc(organizationId)
+        .collection('agents')
+        .get();
+
+      // For each agent, get latest results (in parallel)
+      const resultsByAgent = {};
+      const promises = agentsSnapshot.docs.map(async (agentDoc) => {
+        const resultsSnapshot = await db
+          .collection('organizations')
+          .doc(organizationId)
+          .collection('agents')
+          .doc(agentDoc.id)
+          .collection('results')
+          .orderBy('createdAt', 'desc')
+          .limit(20)
+          .get();
+
+        // Deduplicate by checkId (keep latest)
+        const latestByCheck = new Map();
+        resultsSnapshot.docs.forEach((doc) => {
+          const d = doc.data();
+          const checkId = d.checkId;
+          if (checkId && !latestByCheck.has(checkId)) {
+            latestByCheck.set(checkId, {
+              id: doc.id,
+              checkId,
+              status: d.status,
+              framework: d.framework || null,
+              controlId: d.controlId || null,
+              timestamp: d.agentTimestamp || d.createdAt?.toDate?.()?.toISOString() || null,
+            });
+          }
+        });
+
+        resultsByAgent[agentDoc.id] = Array.from(latestByCheck.values());
+      });
+
+      await Promise.all(promises);
+
+      return { resultsByAgent };
+    } catch (error) {
+      console.error('Get compliance results error:', error);
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError('internal', 'Failed to get compliance results');
     }
   }
 );

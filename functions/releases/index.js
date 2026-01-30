@@ -21,7 +21,7 @@ const bucket = getStorage().bucket('sentinel-grc-a8701.firebasestorage.app');
 const RELEASE_CONFIG = {
     agent: {
         currentVersion: '2.0.0',
-        releaseDate: '2026-01-29',
+        releaseDate: '2026-01-30',
         changelogUrl: 'https://github.com/CTC-Kernel/sentinel-agent/releases',
         platforms: {
             windows: {
