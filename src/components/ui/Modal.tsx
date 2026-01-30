@@ -68,9 +68,9 @@ export const Modal: React.FC<ModalProps> = ({
                                 as={Fragment}
                                 enter="ease-apple duration-normal"
                                 enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                enterTo="opacity-70 translate-y-0 sm:scale-100"
+                                enterTo="opacity-100 translate-y-0 sm:scale-100"
                                 leave="ease-in duration-fast"
-                                leaveFrom="opacity-70 translate-y-0 sm:scale-100"
+                                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                             >
                                 <Dialog.Panel className={`relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] text-left shadow-modal transition-all w-full border border-border/30 ${maxWidth}`}>
@@ -107,9 +107,9 @@ export const Modal: React.FC<ModalProps> = ({
                         as={Fragment}
                         enter="ease-out duration-300"
                         enterFrom="opacity-0"
-                        enterTo="opacity-70"
+                        enterTo="opacity-100"
                         leave="ease-in duration-200"
-                        leaveFrom="opacity-70"
+                        leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
                         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />

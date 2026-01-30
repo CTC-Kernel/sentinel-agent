@@ -117,9 +117,9 @@ export function RowActionsMenu({
               as={Fragment}
               enter="transition duration-100 ease-out"
               enterFrom="transform scale-95 opacity-0"
-              enterTo="transform scale-100 opacity-70"
+              enterTo="transform scale-100 opacity-100"
               leave="transition duration-75 ease-in"
-              leaveFrom="transform scale-100 opacity-70"
+              leaveFrom="transform scale-100 opacity-100"
               leaveTo="transform scale-95 opacity-0"
             >
               <Menu.Items
