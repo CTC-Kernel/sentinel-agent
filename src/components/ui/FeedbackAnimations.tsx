@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { appleEasing } from '../../utils/microInteractions';
 
@@ -23,25 +23,17 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   ...props
 }) => {
   const [isPressed, setIsPressed] = useState(false);
+  const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
 
-  const baseClasses = 'font-bold rounded-3xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
-
-  const variantClasses = {
-    primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-brand-500 shadow-lg shadow-brand-500/20',
-    secondary: 'bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
-    success: 'bg-success-600 hover:bg-success-700 text-white focus:ring-success-500 shadow-lg shadow-success-500/20'
-  };
-
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-5 py-2.5 text-sm',
-    lg: 'px-6 py-3 text-base'
-  };
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     setIsPressed(true);
-    setTimeout(() => setIsPressed(false), 200);
+    
+    // Clear previous timeouts
+    timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
+    timeoutRefs.current = [];
+
+    const pressTimeout = setTimeout(() => setIsPressed(false), 200);
+    timeoutRefs.current.push(pressTimeout);
 
     // Créer effet ripple
     const button = e.currentTarget;
@@ -56,9 +48,35 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     ripple.className = 'ripple';
 
     button.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 600);
+    
+    const rippleTimeout = setTimeout(() => {
+      ripple.remove();
+    }, 600);
+    timeoutRefs.current.push(rippleTimeout);
 
     onClick?.(e);
+  }, [onClick]);
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
+    };
+  }, []);
+
+  const baseClasses = 'font-bold rounded-3xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
+
+  const variantClasses = {
+    primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-brand-500 shadow-lg shadow-brand-500/20',
+    secondary: 'bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
+    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
+    success: 'bg-success-600 hover:bg-success-700 text-white focus:ring-success-500 shadow-lg shadow-success-500/20'
+  };
+
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-5 py-2.5 text-sm',
+    lg: 'px-6 py-3 text-base'
   };
 
   return (

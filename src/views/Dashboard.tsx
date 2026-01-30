@@ -68,6 +68,7 @@ export const DashboardWithQuickActions: React.FC = () => {
     const showGettingStarted = gettingStartedState !== 'closed';
 
     const [isEditing, setIsEditing] = useState(false);
+    const [isAddWidgetModalOpen, setIsAddWidgetModalOpen] = useState(false);
 
     const navigate = useNavigate();
 
@@ -235,7 +236,12 @@ export const DashboardWithQuickActions: React.FC = () => {
                         generateExecutiveReport={generateExecutiveReport}
                         isGeneratingReport={isGeneratingReport}
                         isEditing={isEditing}
-                        onToggleEdit={() => setIsEditing(!isEditing)}
+                        onToggleEdit={() => {
+                            if (!isEditing) {
+                                setIsAddWidgetModalOpen(true);
+                            }
+                            setIsEditing(!isEditing);
+                        }}
                         onShowGettingStarted={() => setGettingStartedState('expanded')}
                         isGettingStartedClosed={!showGettingStarted}
                         activeIncidentsCount={activeIncidentsCount}
@@ -276,6 +282,8 @@ export const DashboardWithQuickActions: React.FC = () => {
                                         incidents={activeIncidents}
                                         complianceScore={complianceScore}
                                         suppliers={allSuppliers}
+                                        isAddWidgetModalOpen={isAddWidgetModalOpen}
+                                        setIsAddWidgetModalOpen={setIsAddWidgetModalOpen}
                                     />
                                 );
                             }

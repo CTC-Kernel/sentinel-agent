@@ -71,7 +71,7 @@ export const Vulnerabilities: React.FC = () => {
 
     const filteredVulnerabilities = React.useMemo(() => {
         return vulnerabilities
-            .filter(v => v.source === 'agent')
+            .filter(v => v.source === 'agent') // Only show agent-reported vulnerabilities
             .filter(v => (v.title || '').toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));
     }, [vulnerabilities, filter]);
 
@@ -126,19 +126,20 @@ export const Vulnerabilities: React.FC = () => {
         }
     }, [location.state, loading, vulnerabilities, setActiveTab]);
 
-    // Auto-seed if empty
-    const initialSeedRef = React.useRef(false);
-    useEffect(() => {
-        if (!loadingData && vulnerabilities.length === 0 && !initialSeedRef.current) {
-            initialSeedRef.current = true;
-            // Attempt to seed
-            import('../services/ThreatFeedService').then(({ ThreatFeedService }) => {
-                ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo').catch(() => {
-                    // Silently handle threat seeding errors
-                });
-            });
-        }
-    }, [loadingData, vulnerabilities.length, user]);
+    // Auto-seed if empty - DISABLED to prevent NVD/CISA pollution
+    // Only agent-reported vulnerabilities should be shown on this page
+    // const initialSeedRef = React.useRef(false);
+    // useEffect(() => {
+    //     if (!loadingData && vulnerabilities.length === 0 && !initialSeedRef.current) {
+    //         initialSeedRef.current = true;
+    //         // Attempt to seed
+    //         import('../services/ThreatFeedService').then(({ ThreatFeedService }) => {
+    //             ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo').catch(() => {
+    //                 // Silently handle threat seeding errors
+    //             });
+    //         });
+    //     }
+    // }, [loadingData, vulnerabilities.length, user]);
 
     const handleCreate = useCallback(async (data: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
@@ -221,7 +222,7 @@ export const Vulnerabilities: React.FC = () => {
 
     const tabs = [
         { id: 'overview', label: t('common.overview'), icon: LayoutDashboard },
-        { id: 'list', label: t('vulnerabilities.list'), icon: ListIcon, count: vulnerabilities.length }
+        { id: 'list', label: t('vulnerabilities.list'), icon: ListIcon, count: filteredVulnerabilities.length }
     ];
 
     return (
@@ -279,7 +280,7 @@ export const Vulnerabilities: React.FC = () => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <VulnerabilityOverview vulnerabilities={vulnerabilities} loading={loading} />
+                        <VulnerabilityOverview vulnerabilities={filteredVulnerabilities} loading={loading} />
                     </motion.div>
                 ) : (
                     <motion.div

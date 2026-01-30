@@ -158,7 +158,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                     aria-label="Voir la compliance détaillée"
                 >
                     <div className="w-28 h-28">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={undefined}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"

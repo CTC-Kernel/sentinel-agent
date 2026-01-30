@@ -810,7 +810,40 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   return (
     <div className={`w-full h-full ${className}`} style={{ touchAction: 'none' }}>
-      <Canvas camera={{ position: [22, 12, 22], fov: 58 }} className="bg-slate-950" dpr={[1, 2]} gl={{ antialias: true }} style={{ width: '100%', height: '100%', touchAction: 'none' }}>
+      <Canvas 
+        camera={{ position: [22, 12, 22], fov: 58 }} 
+        className="bg-slate-950" 
+        dpr={[1, 2]} 
+        gl={{ 
+          antialias: true,
+          preserveDrawingBuffer: true,
+          powerPreference: "high-performance"
+        }} 
+        style={{ width: '100%', height: '100%', touchAction: 'none' }}
+        onCreated={(state) => {
+          // Handle WebGL context loss events
+          const gl = state.gl;
+          const canvas = gl.domElement;
+          
+          const handleContextLoss = (event: Event) => {
+            event.preventDefault();
+            ErrorLogger.warn('WebGL context lost', 'VoxelStudio.Canvas');
+          };
+          
+          const handleContextRestored = () => {
+            ErrorLogger.info('WebGL context restored', 'VoxelStudio.Canvas');
+          };
+          
+          canvas.addEventListener('webglcontextlost', handleContextLoss);
+          canvas.addEventListener('webglcontextrestored', handleContextRestored);
+          
+          // Cleanup function
+          return () => {
+            canvas.removeEventListener('webglcontextlost', handleContextLoss);
+            canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+          };
+        }}
+      >
         <fog attach="fog" args={['#020617', 40, 90]} />
         <VoxelErrorBoundary fallback={null}>
           <Suspense fallback={null}>

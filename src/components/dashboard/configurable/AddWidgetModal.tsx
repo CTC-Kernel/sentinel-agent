@@ -20,6 +20,7 @@ interface AddWidgetModalProps {
   onClose: () => void;
   onAdd: (widgetId: WidgetId) => void;
   currentWidgetIds: string[];
+  onReset?: () => void;
 }
 
 /**
@@ -62,33 +63,41 @@ function WidgetCard({
 }) {
   const { t } = useTranslation();
 
+  const handleClick = React.useCallback(() => {
+    if (!isDisabled) {
+      onAdd();
+    }
+  }, [onAdd, isDisabled]);
+
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+    if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
+      e.preventDefault();
+      onAdd();
+    }
+  }, [onAdd, isDisabled]);
+
   return (
     <button
       type="button"
       disabled={isDisabled}
-      onClick={onAdd}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onAdd();
-        }
-      }}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       className={cn(
         'p-4 rounded-3xl border transition-all text-left w-full',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
         isDisabled
           ? [
-              'opacity-70 cursor-not-allowed',
-              'bg-slate-50/50 dark:bg-slate-800/50',
-              'border-border/40 dark:border-slate-700',
-            ]
+            'opacity-70 cursor-not-allowed',
+            'bg-slate-50/50 dark:bg-slate-800/50',
+            'border-border/40 dark:border-slate-700',
+          ]
           : [
-              'cursor-pointer group',
-              'border-border/40 dark:border-slate-700',
-              'hover:border-brand-500 dark:hover:border-brand-400',
-              'bg-slate-50/50 dark:bg-slate-800/50',
-              'hover:bg-brand-50 dark:hover:bg-brand-900/30',
-            ]
+            'cursor-pointer group',
+            'border-border/40 dark:border-slate-700',
+            'hover:border-brand-500 dark:hover:border-brand-400',
+            'bg-slate-50/50 dark:bg-slate-800/50',
+            'hover:bg-brand-50 dark:hover:bg-brand-900/30',
+          ]
       )}
       aria-disabled={isDisabled}
       aria-label={`${t(titleKey)}${isDisabled ? ' - déjà ajouté' : ''}`}
@@ -100,10 +109,10 @@ function WidgetCard({
             isDisabled
               ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-600'
               : [
-                  'bg-white dark:bg-slate-800 text-brand-500 dark:text-brand-400',
-                  'group-hover:bg-brand-500 group-hover:text-white',
-                  'shadow-sm dark:shadow-none',
-                ]
+                'bg-white dark:bg-slate-800 text-brand-500 dark:text-brand-400',
+                'group-hover:bg-brand-500 group-hover:text-white',
+                'shadow-sm dark:shadow-none',
+              ]
           )}
         >
           <Plus className="w-5 h-5" />
@@ -151,6 +160,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
   onClose,
   onAdd,
   currentWidgetIds,
+  onReset,
 }) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -230,10 +240,10 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
     ];
   }, [widgetsWithCategories]);
 
-  const handleAddWidget = (widgetId: string) => {
+  const handleAddWidget = React.useCallback((widgetId: string) => {
     onAdd(widgetId as WidgetId);
     // Don't close modal to allow adding multiple widgets
-  };
+  }, [onAdd]);
 
   // Reset filters when modal closes
   const handleClose = () => {
@@ -283,13 +293,26 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                   {t('dashboard.customizeDashboard')}
                 </p>
               </div>
-              <button
-                onClick={handleClose}
-                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                aria-label={t('common.close')}
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                {onReset && (
+                  <button
+                    onClick={() => {
+                      onReset();
+                      handleClose();
+                    }}
+                    className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors border border-border/40"
+                  >
+                    {t('common.reset')}
+                  </button>
+                )}
+                <button
+                  onClick={handleClose}
+                  className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                  aria-label={t('common.close')}
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             {/* Search and filters */}
@@ -324,10 +347,10 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                       selectedCategory === key
                         ? 'bg-brand-500 text-white'
                         : [
-                            'bg-slate-100 dark:bg-slate-800',
-                            'text-slate-600 dark:text-slate-300',
-                            'hover:bg-slate-200 dark:hover:bg-slate-700',
-                          ]
+                          'bg-slate-100 dark:bg-slate-800',
+                          'text-slate-600 dark:text-slate-300',
+                          'hover:bg-slate-200 dark:hover:bg-slate-700',
+                        ]
                     )}
                   >
                     {key !== 'all' && CATEGORY_ICONS[key as WidgetCategory]}
@@ -414,8 +437,8 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                   <p className="text-sm opacity-70 mt-1">
                     {searchQuery
                       ? t('common.tryDifferentSearch', {
-                          defaultValue: 'Essayez une autre recherche',
-                        })
+                        defaultValue: 'Essayez une autre recherche',
+                      })
                       : 'Tous les widgets disponibles sont déjà affichés.'}
                   </p>
                 </div>

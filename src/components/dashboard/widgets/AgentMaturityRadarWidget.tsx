@@ -164,7 +164,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
                         {radarData.length === 0 ? (
                             <EmptyChartState variant="radar" message={t('agents.widget.title')} />
                         ) : (
-                            <ResponsiveContainer width="95%" height="95%">
+                            <ResponsiveContainer width="95%" height="95%" minWidth={0} minHeight={undefined}>
                                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                     <defs>
                                         <radialGradient id={`holoGradient-${radarGradientId}`}>

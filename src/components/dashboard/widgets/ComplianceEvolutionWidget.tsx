@@ -95,7 +95,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                 ) : (
                     /* FIXED: Explicit height to prevent collapse */
                     <div className="w-full h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={undefined}>
                             <AreaChart data={filteredData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

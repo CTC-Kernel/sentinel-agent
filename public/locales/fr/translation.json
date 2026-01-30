@@ -138,7 +138,10 @@
     "filters": "Filtres",
     "refresh": "Actualiser",
     "export": "Exporter",
-    "threat": "Menace",
+    "close": "Fermer",
+    "agents": "Agents",
+    "threat-intelligence": "Threat Intelligence",
+    "controls": "Contrôles",
     "vulnerability": "Vulnérabilité",
     "language": "Langue",
     "risks": "Risques",
@@ -575,7 +578,8 @@
       "INCIDENT_CREATE": "Incident déclaré",
       "INCIDENT_UPDATE": "Incident mis à jour",
       "INCIDENT_CLOSE": "Incident clôturé",
-      "CONTROL_UPDATE": "Contrôle mis à jour"
+      "CONTROL_UPDATE": "Contrôle mis à jour",
+      "CONTROLS_UPDATE": "Contrôles mis à jour"
     },
     "greetingMorning": "Bonjour",
     "greetingAfternoon": "Bon après-midi",
@@ -636,7 +640,11 @@
     "progression": "Progression",
     "activeIncidents": "Incidents Actifs",
     "addWidget": "Ajouter Widget",
+    "addWidgetToDashboard": "Ajouter à votre tableau de bord",
+    "customizeDashboard": "Personnaliser votre tableau de bord",
     "allTime": "Tout le temps",
+    "filterActivity": "Filtrer l'activité",
+    "CONTROLS_UPDATE": "Contrôles mis à jour",
     "allWidgetsAdded": "Tous widgets ajoutés",
     "assess": "Évaluer",
     "auditsStatus": "Statut des Audits",
@@ -4834,7 +4842,27 @@
   },
   "agents": {
     "widget": {
-      "title": "Maturité de la Flotte"
+      "title": "Maturité de la Flotte",
+      "subtitle": "Vue d'ensemble de la santé et de la conformité des agents",
+      "noAgents": "Aucun agent disponible",
+      "allHealthy": "Tous les agents sont en bonne santé",
+      "activeTooltip": "Agent actif et fonctionnel",
+      "offlineTooltip": "Agent hors ligne",
+      "errorTooltip": "Agent en erreur",
+      "machineCompliance": "Conformité machine",
+      "avgScore": "Score moyen",
+      "checkResults": "Résultats des vérifications",
+      "manage": "Gérer les agents",
+      "viewDetails": "Voir les détails"
+    },
+    "status": {
+      "active": "Actif",
+      "offline": "Hors ligne",
+      "error": "Erreur"
+    },
+    "checks": {
+      "pass": "OK",
+      "fail": "Échec"
     }
   }
 }

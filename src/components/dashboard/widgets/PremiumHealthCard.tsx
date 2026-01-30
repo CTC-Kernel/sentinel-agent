@@ -171,7 +171,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                         aria-label="Voir la compliance détaillée"
                     >
                         <div className="relative w-36 h-36">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={undefined}>
                                 <RadialBarChart
                                     cx="50%"
                                     cy="50%"
