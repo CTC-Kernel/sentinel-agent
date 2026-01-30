@@ -205,14 +205,16 @@ jobs:
 
       - name: Build MSI
         run: |
-          $version = "0.1.0"
+          $version = (Select-String -Path "Cargo.toml" -Pattern '^version\s*=\s*"(.+)"' | Select-Object -First 1).Matches.Groups[1].Value
           wix build -ext WixToolset.Util.wixext -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets" -o "sentinel-agent-$version.msi" wix/main.wxs
+          echo "MSI_VERSION=$version" >> $env:GITHUB_ENV
         shell: pwsh
 
       - name: Generate checksum
         run: |
-          $hash = Get-FileHash -Path "sentinel-agent-0.1.0.msi" -Algorithm SHA256
-          "$($hash.Hash.ToLower())  sentinel-agent-0.1.0.msi" | Out-File -FilePath "sentinel-agent-0.1.0.msi.sha256" -Encoding ASCII
+          $version = $env:MSI_VERSION
+          $hash = Get-FileHash -Path "sentinel-agent-$version.msi" -Algorithm SHA256
+          "$($hash.Hash.ToLower())  sentinel-agent-$version.msi" | Out-File -FilePath "sentinel-agent-$version.msi.sha256" -Encoding ASCII
         shell: pwsh
 
       - name: Upload MSI artifact
@@ -384,7 +386,7 @@ jobs:
         run: |
           APP_NAME="Sentinel Agent"
           APP_BUNDLE="target/release/$APP_NAME.app"
-          VERSION="1.0.0"
+          VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
 
           echo "=== Creating app bundle ==="
           rm -rf "$APP_BUNDLE"
