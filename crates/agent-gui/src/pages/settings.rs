@@ -89,6 +89,42 @@ impl SettingsPage {
 
             ui.add_space(theme::SPACE);
 
+            // Web app link
+            widgets::card(ui, |ui| {
+                ui.label(
+                    egui::RichText::new("Application web")
+                        .font(theme::font_heading())
+                        .color(theme::TEXT_PRIMARY),
+                );
+                ui.add_space(theme::SPACE_SM);
+
+                if let Some(ref id) = state.summary.agent_id {
+                    let url = format!("https://app.sentinel-grc.com/agents/{}", id);
+
+                    let btn = egui::Button::new(
+                        egui::RichText::new("Voir sur l'application web")
+                            .font(theme::font_body())
+                            .color(theme::TEXT_ON_ACCENT),
+                    )
+                    .fill(theme::ACCENT)
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+
+                    if ui.add(btn).clicked() {
+                        let _ = open::that(&url);
+                    }
+
+                    ui.add_space(theme::SPACE_XS);
+                    Self::setting_row(ui, "URL", &url);
+                } else {
+                    ui.label(
+                        egui::RichText::new("Agent non enregistr\u{00e9}")
+                            .color(theme::TEXT_TERTIARY),
+                    );
+                }
+            });
+
+            ui.add_space(theme::SPACE);
+
             // Intervals
             widgets::card(ui, |ui| {
                 ui.label(

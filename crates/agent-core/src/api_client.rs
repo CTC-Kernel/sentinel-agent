@@ -76,6 +76,13 @@ pub struct HeartbeatRequest {
     pub os_info: String,
     pub cpu_percent: f64,
     pub memory_bytes: u64,
+    pub memory_percent: f64,
+    pub memory_total_bytes: u64,
+    pub disk_percent: f64,
+    pub disk_used_bytes: u64,
+    pub disk_total_bytes: u64,
+    pub uptime_seconds: u64,
+    pub ip_address: Option<String>,
     pub last_check_at: Option<String>,
     pub compliance_score: Option<f64>,
     pub pending_sync_count: u32,
@@ -156,11 +163,23 @@ pub struct ResultResponse {
     pub acknowledged: bool,
 }
 
+/// Software entry for inventory upload.
+#[derive(Debug, Serialize)]
+pub struct SoftwareEntry {
+    pub name: String,
+    pub version: String,
+    pub vendor: Option<String>,
+}
+
 /// API client for Sentinel GRC server communication.
 pub struct ApiClient {
     client: Client,
     base_url: String,
     agent_id: Option<String>,
+    /// Client certificate for X-Agent-Certificate header authentication.
+    client_certificate: Option<String>,
+    /// Client private key for HMAC signature authentication.
+    client_key: Option<String>,
 }
 
 impl ApiClient {
@@ -199,6 +218,8 @@ impl ApiClient {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
             agent_id: config.agent_id.clone(),
+            client_certificate: config.client_certificate.clone(),
+            client_key: config.client_key.clone(),
         })
     }
 
@@ -210,6 +231,24 @@ impl ApiClient {
     /// Get the current agent ID.
     pub fn agent_id(&self) -> Option<&str> {
         self.agent_id.as_deref()
+    }
+
+    /// Set client credentials for authentication after enrollment.
+    pub fn set_credentials(&mut self, certificate: String, key: String) {
+        self.client_certificate = Some(certificate);
+        self.client_key = Some(key);
+    }
+
+    /// Add authentication headers to a request builder.
+    fn authenticate(
+        &self,
+        builder: reqwest::RequestBuilder,
+    ) -> reqwest::RequestBuilder {
+        if let Some(ref cert) = self.client_certificate {
+            builder.header("X-Agent-Certificate", cert)
+        } else {
+            builder
+        }
     }
 
     /// Enroll the agent with the server.
@@ -266,10 +305,9 @@ impl ApiClient {
         let url = format!("{}/v1/agents/{}/heartbeat", self.base_url, agent_id);
         debug!("Sending heartbeat to {}", url);
 
-        let response = self
-            .client
-            .post(&url)
-            .json(&request)
+        let builder = self.authenticate(self.client.post(&url).json(&request));
+
+        let response = builder
             .send()
             .await
             .map_err(|e| CommonError::network(format!("Heartbeat request failed: {}", e)))?;
@@ -310,9 +348,9 @@ impl ApiClient {
         let url = format!("{}/v1/agents/{}/config", self.base_url, agent_id);
         debug!("Fetching config from {}", url);
 
-        let response = self
-            .client
-            .get(&url)
+        let builder = self.authenticate(self.client.get(&url));
+
+        let response = builder
             .send()
             .await
             .map_err(|e| CommonError::network(format!("Config request failed: {}", e)))?;
@@ -353,10 +391,9 @@ impl ApiClient {
         let url = format!("{}/v1/agents/{}/results", self.base_url, agent_id);
         debug!("Uploading result to {}", url);
 
-        let response = self
-            .client
-            .post(&url)
-            .json(&request)
+        let builder = self.authenticate(self.client.post(&url).json(&request));
+
+        let response = builder
             .send()
             .await
             .map_err(|e| CommonError::network(format!("Result upload failed: {}", e)))?;
@@ -388,14 +425,33 @@ impl ApiClient {
         let url = format!("{}/v1/health", self.base_url);
         debug!("Health check at {}", url);
 
-        let response = self
-            .client
-            .get(&url)
+        let builder = self.authenticate(self.client.get(&url));
+
+        let response = builder
             .send()
             .await
             .map_err(|e| CommonError::network(format!("Health check failed: {}", e)))?;
 
         Ok(response.status().is_success())
+    }
+
+    /// Upload software inventory to the server.
+    pub async fn upload_software_inventory(
+        &self,
+        software: &[SoftwareEntry],
+    ) -> Result<serde_json::Value> {
+        let agent_id = self
+            .agent_id
+            .as_ref()
+            .ok_or_else(|| CommonError::validation("Agent ID not set"))?;
+
+        let payload = serde_json::json!({
+            "software": software,
+            "scan_timestamp": chrono::Utc::now().to_rfc3339(),
+        });
+
+        let url = format!("/v1/agents/{}/software", agent_id);
+        self.post(&url, &payload).await
     }
 
     /// Generic POST request with JSON body and response.
@@ -407,10 +463,9 @@ impl ApiClient {
         let url = format!("{}{}", self.base_url, path);
         debug!("POST {}", url);
 
-        let response = self
-            .client
-            .post(&url)
-            .json(body)
+        let builder = self.authenticate(self.client.post(&url).json(body));
+
+        let response = builder
             .send()
             .await
             .map_err(|e| CommonError::network(format!("POST request failed: {}", e)))?;
@@ -466,6 +521,13 @@ mod tests {
             os_info: "Linux 5.15".to_string(),
             cpu_percent: 25.5,
             memory_bytes: 1024 * 1024 * 512,
+            memory_percent: 45.2,
+            memory_total_bytes: 16 * 1024 * 1024 * 1024,
+            disk_percent: 62.5,
+            disk_used_bytes: 250 * 1024 * 1024 * 1024,
+            disk_total_bytes: 400 * 1024 * 1024 * 1024,
+            uptime_seconds: 3600,
+            ip_address: Some("192.168.1.100".to_string()),
             last_check_at: Some("2024-01-01T00:00:00Z".to_string()),
             compliance_score: Some(85.0),
             pending_sync_count: 0,
@@ -475,5 +537,12 @@ mod tests {
         let json = serde_json::to_string(&request).unwrap();
         assert!(json.contains("timestamp"));
         assert!(json.contains("cpu_percent"));
+        assert!(json.contains("memory_percent"));
+        assert!(json.contains("memory_total_bytes"));
+        assert!(json.contains("disk_percent"));
+        assert!(json.contains("disk_used_bytes"));
+        assert!(json.contains("disk_total_bytes"));
+        assert!(json.contains("uptime_seconds"));
+        assert!(json.contains("ip_address"));
     }
 }

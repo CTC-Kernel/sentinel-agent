@@ -8,7 +8,8 @@ use std::sync::mpsc;
 use eframe::egui;
 
 use crate::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary, GuiResourceUsage,
+    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary,
+    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
 };
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
@@ -26,6 +27,8 @@ use crate::widgets;
 pub enum Page {
     Dashboard,
     Compliance,
+    Software,
+    Vulnerabilities,
     Network,
     Sync,
     Logs,
@@ -52,6 +55,13 @@ pub struct AppState {
     pub checks: Vec<GuiCheckResult>,
     pub logs: Vec<GuiLogEntry>,
     pub policy: GuiPolicySummary,
+    pub vulnerability_summary: Option<GuiVulnerabilitySummary>,
+
+    // Software inventory
+    pub software_packages: Vec<GuiSoftwarePackage>,
+
+    // Vulnerability findings
+    pub vulnerability_findings: Vec<GuiVulnerabilityFinding>,
 
     // Network state
     pub network_interfaces: u32,
@@ -90,9 +100,12 @@ impl Default for AppState {
             },
             resources: GuiResourceUsage {
                 cpu_percent: 0.0,
-                memory_mb: 0,
+                memory_percent: 0.0,
+                memory_used_mb: 0,
+                memory_total_mb: 0,
                 disk_iops: 0,
                 uptime_secs: 0,
+                disk_percent: 0.0,
             },
             checks: Vec::new(),
             logs: Vec::new(),
@@ -103,6 +116,9 @@ impl Default for AppState {
                 errors: 0,
                 pending: 0,
             },
+            vulnerability_summary: None,
+            software_packages: Vec::new(),
+            vulnerability_findings: Vec::new(),
             network_interfaces: 0,
             network_connections: 0,
             network_alerts: 0,
@@ -191,7 +207,7 @@ impl SentinelApp {
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
                 .with_inner_size([1040.0, 700.0])
-                .with_min_inner_size([820.0, 520.0]),
+                .with_min_inner_size([720.0, 480.0]),
             ..Default::default()
         }
     }
@@ -263,6 +279,29 @@ impl SentinelApp {
                         self.state.sync_history.truncate(50);
                     }
                     self.state.sync_error = error;
+                }
+                AgentEvent::NetworkUpdate {
+                    interfaces_count,
+                    connections_count,
+                    alerts_count,
+                    primary_ip,
+                    primary_mac,
+                } => {
+                    self.state.network_interfaces = interfaces_count;
+                    self.state.network_connections = connections_count;
+                    self.state.network_alerts = alerts_count;
+                    self.state.primary_ip = primary_ip;
+                    self.state.primary_mac = primary_mac;
+                    self.state.last_network_scan = Some(chrono::Utc::now());
+                }
+                AgentEvent::VulnerabilityUpdate { summary } => {
+                    self.state.vulnerability_summary = Some(summary);
+                }
+                AgentEvent::SoftwareUpdate { packages } => {
+                    self.state.software_packages = packages;
+                }
+                AgentEvent::VulnerabilityFindings { findings } => {
+                    self.state.vulnerability_findings = findings;
                 }
                 AgentEvent::EnrollmentResult {
                     success,
@@ -427,6 +466,12 @@ impl eframe::App for SentinelApp {
                 }
                 Page::Compliance => {
                     pages::CompliancePage::show(ui, &self.state);
+                }
+                Page::Software => {
+                    pages::SoftwarePage::show(ui, &self.state);
+                }
+                Page::Vulnerabilities => {
+                    pages::VulnerabilitiesPage::show(ui, &self.state);
                 }
                 Page::Network => {
                     pages::NetworkPage::show(ui, &self.state);

@@ -45,6 +45,8 @@ impl Sidebar {
                 let items: &[(Page, &str, &str)] = &[
                     (Page::Dashboard, "\u{1f3e0}", "Tableau de bord"),
                     (Page::Compliance, "\u{2705}", "Conformit\u{00e9}"),
+                    (Page::Software, "\u{1f4e6}", "Logiciels"),
+                    (Page::Vulnerabilities, "\u{1f6e1}", "Vuln\u{00e9}rabilit\u{00e9}s"),
                     (Page::Network, "\u{1f310}", "R\u{00e9}seau"),
                     (Page::Sync, "\u{1f504}", "Synchronisation"),
                     (Page::Logs, "\u{1f4cb}", "Journaux"),

@@ -100,12 +100,34 @@ pub enum GuiCheckStatus {
 pub struct GuiResourceUsage {
     /// CPU usage percentage.
     pub cpu_percent: f64,
-    /// Memory usage in megabytes.
-    pub memory_mb: u64,
+    /// Memory usage percentage (0-100).
+    pub memory_percent: f64,
+    /// Memory currently used in megabytes.
+    pub memory_used_mb: u64,
+    /// Total memory available in megabytes.
+    pub memory_total_mb: u64,
     /// Disk I/O operations per second.
     pub disk_iops: u32,
     /// Uptime in seconds.
     pub uptime_secs: u64,
+    /// Disk usage percentage (0-100).
+    pub disk_percent: f64,
+}
+
+/// Vulnerability scan summary for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiVulnerabilitySummary {
+    /// Number of critical vulnerabilities.
+    pub critical: u32,
+    /// Number of high-severity vulnerabilities.
+    pub high: u32,
+    /// Number of medium-severity vulnerabilities.
+    pub medium: u32,
+    /// Number of low-severity vulnerabilities.
+    pub low: u32,
+    /// Timestamp of last vulnerability scan.
+    pub last_scan_at: Option<DateTime<Utc>>,
 }
 
 /// A log entry for GUI display (recent activity).
@@ -158,6 +180,46 @@ pub struct GuiPolicySummary {
     pub errors: u32,
     /// Number of policies not yet evaluated.
     pub pending: u32,
+}
+
+/// A software package entry for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiSoftwarePackage {
+    /// Package name.
+    pub name: String,
+    /// Installed version.
+    pub version: String,
+    /// Publisher / vendor.
+    pub publisher: Option<String>,
+    /// Installation date.
+    pub installed_at: Option<DateTime<Utc>>,
+    /// Whether the package is up to date.
+    pub up_to_date: bool,
+    /// Latest available version (if known).
+    pub latest_version: Option<String>,
+}
+
+/// A vulnerability finding for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiVulnerabilityFinding {
+    /// CVE identifier.
+    pub cve_id: String,
+    /// Affected software name.
+    pub affected_software: String,
+    /// Affected version.
+    pub affected_version: String,
+    /// Severity level (critical, high, medium, low).
+    pub severity: String,
+    /// CVSS score (0.0 - 10.0).
+    pub cvss_score: Option<f32>,
+    /// Short description.
+    pub description: String,
+    /// Whether a fix is available.
+    pub fix_available: bool,
+    /// Timestamp of discovery.
+    pub discovered_at: Option<DateTime<Utc>>,
 }
 
 #[cfg(test)]
