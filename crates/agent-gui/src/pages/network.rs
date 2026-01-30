@@ -22,46 +22,32 @@ impl NetworkPage {
                 ui.add_space(theme::SPACE_LG);
 
                 // Summary row
+                let card_gap = theme::SPACE_SM;
+                let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
+                let (alert_color, alert_icon) = if state.network_alerts > 0 {
+                    (theme::ERROR, "▲")
+                } else {
+                    (theme::SUCCESS, "✓")
+                };
                 ui.horizontal(|ui| {
-                    Self::summary_card(
-                        ui,
-                        "INTERFACES",
-                        &state.network_interfaces.to_string(),
-                        theme::ACCENT,
-                        "◎",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    Self::summary_card(
-                        ui,
-                        "CONNEXIONS",
-                        &state.network_connections.to_string(),
-                        theme::ACCENT_LIGHT,
-                        "◆",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    let (alert_color, alert_icon) = if state.network_alerts > 0 {
-                        (theme::ERROR, "▲")
-                    } else {
-                        (theme::SUCCESS, "✓")
-                    };
-                    Self::summary_card(
-                        ui,
-                        "ALERTES",
-                        &state.network_alerts.to_string(),
-                        alert_color,
-                        alert_icon,
-                    );
+                    ui.spacing_mut().item_spacing.x = card_gap;
+                    Self::summary_card(ui, card_w, "INTERFACES", &state.network_interfaces.to_string(), theme::ACCENT, "◎");
+                    Self::summary_card(ui, card_w, "CONNEXIONS", &state.network_connections.to_string(), theme::ACCENT_LIGHT, "◆");
+                    Self::summary_card(ui, card_w, "ALERTES", &state.network_alerts.to_string(), alert_color, alert_icon);
                 });
 
                 ui.add_space(theme::SPACE_LG);
 
                 let total_width = ui.available_width();
+                let col_gap = theme::SPACE;
+                let left_w = (total_width - col_gap) * 0.55;
+                let right_w = total_width - col_gap - left_w;
                 ui.horizontal_top(|ui| {
-                    let gap = theme::SPACE;
-                    let left_w = ((total_width - gap) * 0.55).max(200.0);
+                    ui.spacing_mut().item_spacing.x = col_gap;
+                    ui.vertical(|ui| {
+                    ui.set_width(left_w);
                     // Network status detail
                     widgets::card(ui, |ui| {
-                        ui.set_width(left_w);
                         ui.label(
                             egui::RichText::new("PARAM\u{00c8}TRES R\u{00c9}SEAU")
                                 .font(theme::font_small())
@@ -89,13 +75,12 @@ impl NetworkPage {
                             }
                         }
                     });
-
-                    ui.add_space(theme::SPACE);
+                    }); // end left vertical
 
                     // Security section
-                    let right_w = ((total_width - gap) * 0.45).max(160.0);
+                    ui.vertical(|ui| {
+                    ui.set_width(right_w);
                     widgets::card(ui, |ui| {
-                        ui.set_width(right_w);
                         ui.label(
                             egui::RichText::new("S\u{00c9}CURIT\u{00c9}")
                                 .font(theme::font_small())
@@ -120,32 +105,35 @@ impl NetworkPage {
                             }
                         });
                     });
+                    }); // end right vertical
                 });
-                
+
                 ui.add_space(theme::SPACE_XL);
             });
     }
 
-    fn summary_card(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) {
-        widgets::card(ui, |ui| {
-            ui.set_min_width(160.0);
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    ui.label(
-                        egui::RichText::new(value)
-                            .size(24.0)
-                            .color(color)
-                            .strong(),
-                    );
-                    ui.label(
-                        egui::RichText::new(label)
-                            .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
-                            .strong(),
-                    );
-                });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(egui::RichText::new(icon).size(28.0).color(color.linear_multiply(0.4)));
+    fn summary_card(ui: &mut Ui, width: f32, label: &str, value: &str, color: egui::Color32, icon: &str) {
+        ui.vertical(|ui| {
+            ui.set_width(width);
+            widgets::card(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.vertical(|ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .size(24.0)
+                                .color(color)
+                                .strong(),
+                        );
+                        ui.label(
+                            egui::RichText::new(label)
+                                .font(theme::font_small())
+                                .color(theme::TEXT_TERTIARY)
+                                .strong(),
+                        );
+                    });
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(egui::RichText::new(icon).size(28.0).color(color.linear_multiply(0.4)));
+                    });
                 });
             });
         });

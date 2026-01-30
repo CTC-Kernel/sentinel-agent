@@ -67,13 +67,10 @@ impl EnrollmentWizard {
     pub fn show(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let mut command = None;
 
-        egui::CentralPanel::default()
-            .frame(
-                egui::Frame::new()
-                    .fill(theme::BG_PRIMARY)
-                    .inner_margin(egui::Margin::same(32)),
-            )
-            .show_inside(ui, |ui| {
+        egui::Frame::new()
+            .fill(theme::BG_PRIMARY)
+            .inner_margin(egui::Margin::same(32))
+            .show(ui, |ui| {
                 ui.vertical_centered(|ui| {
                     // Step indicator
                     Self::step_indicator(ui, &self.step);

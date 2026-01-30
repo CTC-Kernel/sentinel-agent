@@ -28,38 +28,14 @@ impl VulnerabilitiesPage {
                 let medium = summary.map_or(0, |s| s.medium);
                 let low = summary.map_or(0, |s| s.low);
 
+                let card_gap = theme::SPACE_SM;
+                let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
                 ui.horizontal(|ui| {
-                    Self::summary_card(
-                        ui,
-                        "CRITIQUES",
-                        &critical.to_string(),
-                        if critical > 0 { theme::ERROR } else { theme::TEXT_TERTIARY },
-                        "■",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    Self::summary_card(
-                        ui,
-                        "\u{00c9}LEV\u{00c9}ES",
-                        &high.to_string(),
-                        if high > 0 { theme::WARNING } else { theme::TEXT_TERTIARY },
-                        "▲",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    Self::summary_card(
-                        ui,
-                        "MOYENNES",
-                        &medium.to_string(),
-                        if medium > 0 { theme::INFO } else { theme::TEXT_TERTIARY },
-                        "●",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    Self::summary_card(
-                        ui,
-                        "FAIBLES",
-                        &low.to_string(),
-                        theme::TEXT_TERTIARY,
-                        "○",
-                    );
+                    ui.spacing_mut().item_spacing.x = card_gap;
+                    Self::summary_card(ui, card_w, "CRITIQUES", &critical.to_string(), if critical > 0 { theme::ERROR } else { theme::TEXT_TERTIARY }, "■");
+                    Self::summary_card(ui, card_w, "ÉLEVÉES", &high.to_string(), if high > 0 { theme::WARNING } else { theme::TEXT_TERTIARY }, "▲");
+                    Self::summary_card(ui, card_w, "MOYENNES", &medium.to_string(), if medium > 0 { theme::INFO } else { theme::TEXT_TERTIARY }, "●");
+                    Self::summary_card(ui, card_w, "FAIBLES", &low.to_string(), theme::TEXT_TERTIARY, "○");
                 });
 
                 ui.add_space(theme::SPACE_LG);
@@ -180,26 +156,28 @@ impl VulnerabilitiesPage {
             });
     }
 
-    fn summary_card(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) {
-        widgets::card(ui, |ui| {
-            ui.set_min_width(140.0);
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    ui.label(
-                        egui::RichText::new(value)
-                            .size(24.0)
-                            .color(color)
-                            .strong(),
-                    );
-                    ui.label(
-                        egui::RichText::new(label)
-                            .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
-                            .strong(),
-                    );
-                });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(egui::RichText::new(icon).size(28.0).color(color.linear_multiply(0.4)));
+    fn summary_card(ui: &mut Ui, width: f32, label: &str, value: &str, color: egui::Color32, icon: &str) {
+        ui.vertical(|ui| {
+            ui.set_width(width);
+            widgets::card(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.vertical(|ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .size(24.0)
+                                .color(color)
+                                .strong(),
+                        );
+                        ui.label(
+                            egui::RichText::new(label)
+                                .font(theme::font_small())
+                                .color(theme::TEXT_TERTIARY)
+                                .strong(),
+                        );
+                    });
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(egui::RichText::new(icon).size(28.0).color(color.linear_multiply(0.4)));
+                    });
                 });
             });
         });

@@ -110,13 +110,14 @@ impl SettingsPage {
 
                 ui.add_space(theme::SPACE);
                 let total_width = ui.available_width();
+                let col_gap = theme::SPACE;
+                let col_w = (total_width - col_gap) * 0.5;
                 ui.horizontal_top(|ui| {
-                    let gap = theme::SPACE;
-                    let col_w = ((total_width - gap) * 0.5).max(200.0);
+                    ui.spacing_mut().item_spacing.x = col_gap;
                     ui.vertical(|ui| {
+                        ui.set_width(col_w);
                         // Connection info
                         widgets::card(ui, |ui| {
-                            ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("CONNEXION SERVEUR")
                                     .font(theme::font_small())
@@ -138,7 +139,6 @@ impl SettingsPage {
 
                         // Intervals
                         widgets::card(ui, |ui| {
-                           ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("INTERVALLES")
                                     .font(theme::font_small())
@@ -162,12 +162,10 @@ impl SettingsPage {
                         });
                     });
 
-                    ui.add_space(theme::SPACE);
-
                     ui.vertical(|ui| {
+                        ui.set_width(col_w);
                         // Web app link
                         widgets::card(ui, |ui| {
-                            ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("ACC\u{00c8}S CLOUD")
                                     .font(theme::font_small())
@@ -207,7 +205,6 @@ impl SettingsPage {
 
                         // Danger zone
                         widgets::card(ui, |ui| {
-                            ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("ZONE DANGEREUSE")
                                     .font(theme::font_small())
