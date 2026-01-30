@@ -2,6 +2,7 @@
 
 use egui::Ui;
 
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -34,7 +35,7 @@ impl AboutPage {
                     ui.vertical_centered(|ui| {
                         ui.add_space(theme::SPACE_LG);
                         ui.label(
-                            egui::RichText::new("◆")
+                            egui::RichText::new(icons::VULNERABILITIES)
                                 .size(48.0)
                                 .color(theme::ACCENT),
                         );
@@ -88,9 +89,9 @@ impl AboutPage {
                             "{} {}",
                             std::env::consts::OS,
                             std::env::consts::ARCH
-                        ), "→");
-                        Self::info_row(ui, "Runtime", "Rust v1.80+", "→");
-                        Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), "→");
+                        ), icons::ARROW_RIGHT);
+                        Self::info_row(ui, "Runtime", "Rust v1.80+", icons::ARROW_RIGHT);
+                        Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
                     });
                     }); // end left vertical
 
@@ -106,9 +107,9 @@ impl AboutPage {
                         );
                         ui.add_space(theme::SPACE_MD);
 
-                        Self::link_row(ui, "Site officiel", branding::WEBSITE, "→");
-                        Self::link_row(ui, "Documentation", branding::GUIDE, "→");
-                        Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), "→");
+                        Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
+                        Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
+                        Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), icons::ARROW_RIGHT);
                     });
                     }); // end right vertical
                 });

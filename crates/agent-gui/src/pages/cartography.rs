@@ -3,6 +3,7 @@
 use egui::{Color32, Pos2, Ui, Vec2};
 use crate::app::AppState;
 use crate::dto::GuiDiscoveredDevice;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -77,7 +78,7 @@ impl CartographyPage {
 
                         // Open 3D view button
                         let view3d_btn = egui::Button::new(
-                            egui::RichText::new("Voir en 3D \u{2197}")
+                            egui::RichText::new(format!("Voir en 3D {}", icons::EXTERNAL_LINK))
                                 .font(theme::font_small())
                                 .strong()
                                 .color(theme::TEXT_ON_ACCENT),
@@ -85,7 +86,7 @@ impl CartographyPage {
                         .fill(theme::SUCCESS.linear_multiply(0.8))
                         .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                         if ui.add(view3d_btn).clicked() {
-                            let _ = open::that("https://sentinel-grc-a8701.web.app/voxel");
+                            let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
                         }
                     });
                 });
@@ -280,7 +281,7 @@ impl CartographyPage {
                                         .color(theme::TEXT_PRIMARY),
                                 );
                                 ui.add_space(theme::SPACE_MD);
-                                if ui.small_button("\u{2715} Fermer").clicked() {
+                                if ui.small_button(&format!("{} Fermer", icons::XMARK)).clicked() {
                                     state.graph_selected_device = None;
                                 }
                             });

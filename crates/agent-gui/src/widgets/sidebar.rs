@@ -3,6 +3,7 @@
 use egui::{CornerRadius, Margin, Ui, Vec2};
 
 use crate::app::Page;
+use crate::icons;
 use crate::theme;
 
 /// Navigation sidebar.
@@ -27,11 +28,20 @@ impl Sidebar {
                     .show(ui, |ui| {
 
                 // Logo / brand section
-                ui.add_space(theme::SPACE_XL);
+                ui.add_space(theme::SPACE);
                 ui.vertical_centered(|ui| {
+                    // IA.png logo
+                    let logo = egui::Image::from_bytes(
+                        "bytes://ia_sidebar",
+                        include_bytes!("../../assets/IA.png"),
+                    )
+                    .max_width(56.0);
+                    ui.add(logo);
+
                     ui.add_space(theme::SPACE_SM);
+
                     ui.horizontal(|ui| {
-                        ui.add_space(ui.available_width() / 4.0); // Simple centering trick
+                        ui.add_space(ui.available_width() / 4.0);
                         ui.label(
                             egui::RichText::new("SENTINEL")
                                 .font(theme::font_title())
@@ -40,8 +50,8 @@ impl Sidebar {
                         );
                         if scanning {
                             let t = ui.input(|i| i.time);
-                            let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32; // Pulse effect
-                            ui.label(egui::RichText::new("●").size(10.0).color(theme::ACCENT.linear_multiply(alpha)));
+                            let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32;
+                            ui.label(egui::RichText::new(icons::CIRCLE).size(10.0).color(theme::ACCENT.linear_multiply(alpha)));
                         }
                     });
                     ui.label(
@@ -50,7 +60,7 @@ impl Sidebar {
                             .color(theme::TEXT_TERTIARY)
                             .strong(),
                     );
-                    ui.add_space(theme::SPACE_XL);
+                    ui.add_space(theme::SPACE_LG);
                 });
 
                 ui.vertical(|ui| {
@@ -61,10 +71,10 @@ impl Sidebar {
                     Self::section_label(ui, "PILOTAGE");
                     
                     let main_items: &[(Page, &str, &str)] = &[
-                        (Page::Dashboard, "■", "Tableau de bord"),
-                        (Page::Compliance, "✓", "Conformit\u{00e9}"),
-                        (Page::Software, "◆", "Logiciels"),
-                        (Page::Vulnerabilities, "▲", "Vuln\u{00e9}rabilit\u{00e9}s"),
+                        (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
+                        (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
+                        (Page::Software, icons::SOFTWARE, "Logiciels"),
+                        (Page::Vulnerabilities, icons::VULNERABILITIES, "Vuln\u{00e9}rabilit\u{00e9}s"),
                     ];
 
                     for (page, icon, label) in main_items {
@@ -77,11 +87,11 @@ impl Sidebar {
                     Self::section_label(ui, "SYS & NETWORK");
 
                     let sys_items: &[(Page, &str, &str)] = &[
-                        (Page::Network, "●", "R\u{00e9}seau"),
-                        (Page::Discovery, "◎", "Découverte"),
-                        (Page::Cartography, "◇", "Cartographie"),
-                        (Page::Sync, "↻", "Synchronisation"),
-                        (Page::Terminal, "▸", "Terminal"),
+                        (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
+                        (Page::Discovery, icons::DISCOVERY, "D\u{00e9}couverte"),
+                        (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
+                        (Page::Sync, icons::SYNC, "Synchronisation"),
+                        (Page::Terminal, icons::TERMINAL, "Terminal"),
                     ];
 
                     for (page, icon, label) in sys_items {
@@ -90,23 +100,31 @@ impl Sidebar {
                         }
                     }
 
-                    ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
-                        ui.add_space(theme::SPACE_XL);
+                    // Flexible spacer: push bottom items down when space allows,
+                    // but never overlap -- ScrollArea handles overflow.
+                    let bottom_height = 42.0 * 2.0 + theme::SPACE_SM + theme::SPACE_XL + 2.0;
+                    let remaining = ui.available_height() - bottom_height;
+                    if remaining > 0.0 {
+                        ui.add_space(remaining);
+                    } else {
+                        ui.add_space(theme::SPACE);
+                    }
 
-                        let bottom_items: &[(Page, &str, &str)] = &[
-                            (Page::About, "○", "\u{00c0} propos"),
-                            (Page::Settings, "◇", "Param\u{00e8}tres"),
-                        ];
+                    ui.separator();
+                    ui.add_space(theme::SPACE_SM);
 
-                        for (page, icon, label) in bottom_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
+                    let bottom_items: &[(Page, &str, &str)] = &[
+                        (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),
+                        (Page::About, icons::ABOUT, "\u{00c0} propos"),
+                    ];
+
+                    for (page, icon, label) in bottom_items {
+                        if Self::nav_item(ui, icon, label, current == page) {
+                            selected = Some(page.clone());
                         }
+                    }
 
-                        ui.add_space(theme::SPACE_SM);
-                        ui.separator();
-                    });
+                    ui.add_space(theme::SPACE_XL);
                 });
                 }); // end ScrollArea
             });
