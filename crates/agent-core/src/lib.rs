@@ -995,10 +995,10 @@ impl AgentRuntime {
             }
 
             // Serialize details to raw_data JSON string
-            if common_result.details != serde_json::Value::Null {
-                if let Ok(json_str) = serde_json::to_string(&common_result.details) {
-                    storage_result = storage_result.with_raw_data(json_str);
-                }
+            if common_result.details != serde_json::Value::Null
+                && let Ok(json_str) = serde_json::to_string(&common_result.details)
+            {
+                storage_result = storage_result.with_raw_data(json_str);
             }
 
             storage_result =

@@ -259,6 +259,7 @@ mod tests {
             severity: "high".to_string(),
             score: Some(100),
             message: Some("BitLocker enabled".to_string()),
+            details: None,
             executed_at: Some(Utc::now()),
             frameworks: vec!["NIS2".to_string(), "DORA".to_string()],
         };

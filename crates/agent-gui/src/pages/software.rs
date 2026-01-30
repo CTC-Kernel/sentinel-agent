@@ -36,7 +36,7 @@ impl SoftwarePage {
                         "TOTAL",
                         &total.to_string(),
                         theme::TEXT_PRIMARY,
-                        "󰏗",
+                        "◆",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -44,7 +44,7 @@ impl SoftwarePage {
                         "\u{00c0} JOUR",
                         &up_to_date.to_string(),
                         theme::SUCCESS,
-                        "󰄲",
+                        "✓",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -52,7 +52,7 @@ impl SoftwarePage {
                         "OBSOL\u{00c8}TES",
                         &outdated.to_string(),
                         if outdated > 0 { theme::WARNING } else { theme::TEXT_TERTIARY },
-                        "󰚰",
+                        "↑",
                     );
                 });
 
@@ -66,18 +66,24 @@ impl SoftwarePage {
                     if state.software_packages.is_empty() {
                         widgets::empty_state(
                             ui,
-                            "󰏗",
+                            "◆",
                             "Aucun logiciel recens\u{00e9}",
                             Some("L'inventaire logiciel est en cours de constitution ou aucun paquet n'a \u{00e9}t\u{00e9} d\u{00e9}tect\u{00e9}."),
                         );
                     } else {
+                        let tw = ui.available_width();
+                        let col_name = (tw * 0.28).max(100.0);
+                        let col_ver = (tw * 0.16).max(80.0);
+                        let col_pub = (tw * 0.20).max(80.0);
+                        let col_status = (tw * 0.16).max(80.0);
+
                         // Table header
                         ui.horizontal(|ui| {
                             ui.set_min_height(32.0);
-                            Self::table_header_cell(ui, "NOM DU LOGICIEL", 240.0);
-                            Self::table_header_cell(ui, "VERSION", 140.0);
-                            Self::table_header_cell(ui, "\u{00c9}DITEUR", 180.0);
-                            Self::table_header_cell(ui, "STATUT", 120.0);
+                            Self::table_header_cell(ui, "NOM DU LOGICIEL", col_name);
+                            Self::table_header_cell(ui, "VERSION", col_ver);
+                            Self::table_header_cell(ui, "\u{00c9}DITEUR", col_pub);
+                            Self::table_header_cell(ui, "STATUT", col_status);
                             ui.label(egui::RichText::new("MAJ DISPONIBLE").font(theme::font_small()).color(theme::TEXT_TERTIARY).strong());
                         });
                         ui.add_space(theme::SPACE_XS);
@@ -90,7 +96,7 @@ impl SoftwarePage {
 
                                 // Name
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(240.0, 40.0),
+                                    egui::Vec2::new(col_name, 40.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         ui.label(
@@ -104,7 +110,7 @@ impl SoftwarePage {
 
                                 // Version
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(140.0, 40.0),
+                                    egui::Vec2::new(col_ver, 40.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         ui.label(
@@ -117,7 +123,7 @@ impl SoftwarePage {
 
                                 // Publisher
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(180.0, 40.0),
+                                    egui::Vec2::new(col_pub, 40.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         let publisher = pkg
@@ -134,13 +140,13 @@ impl SoftwarePage {
 
                                 // Status badge
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(120.0, 40.0),
+                                    egui::Vec2::new(col_status, 40.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         if pkg.up_to_date {
-                                            widgets::status_badge(ui, "󰄲 \u{00c0} JOUR", theme::SUCCESS.linear_multiply(0.8));
+                                            widgets::status_badge(ui, "✓ \u{00c0} JOUR", theme::SUCCESS.linear_multiply(0.8));
                                         } else {
-                                            widgets::status_badge(ui, "󰚰 OBSOL\u{00c8}TE", theme::WARNING.linear_multiply(0.8));
+                                            widgets::status_badge(ui, "↑ OBSOL\u{00c8}TE", theme::WARNING.linear_multiply(0.8));
                                         }
                                     },
                                 );
@@ -150,7 +156,7 @@ impl SoftwarePage {
                                     if !pkg.up_to_date {
                                         ui.horizontal(|ui| {
                                             ui.label(
-                                                egui::RichText::new(format!("󰜮 {}", latest))
+                                                egui::RichText::new(format!("→ {}", latest))
                                                     .font(theme::font_mono())
                                                     .color(theme::ACCENT_LIGHT)
                                                     .strong(),

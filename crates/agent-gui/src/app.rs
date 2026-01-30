@@ -407,12 +407,10 @@ impl eframe::App for SentinelApp {
         self.process_tray_actions(ctx);
 
         // Handle close = hide (instead of quit).
-        if ctx.input(|i| i.viewport().close_requested()) {
-            if !self.quit_requested {
-                // Prevent actual close, hide instead.
-                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-                self.visible = false;
-            }
+        if ctx.input(|i| i.viewport().close_requested()) && !self.quit_requested {
+            // Prevent actual close, hide instead.
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            self.visible = false;
             // Else: let it close.
         }
 
@@ -512,6 +510,6 @@ impl eframe::App for SentinelApp {
             });
 
         // Request periodic repaint for event processing.
-        ctx.request_repaint_after(std::time::Duration::from_millis(250));
+        ctx.request_repaint_after(std::time::Duration::from_millis(100));
     }
 }

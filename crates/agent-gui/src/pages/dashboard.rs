@@ -19,10 +19,13 @@ impl DashboardPage {
                 ui.add_space(theme::SPACE_LG);
 
                 // Top row: status + compliance gauge (Grid layout)
+                let total_width = ui.available_width();
                 ui.horizontal_top(|ui| {
+                    let gap = theme::SPACE;
+                    let left_w = ((total_width - gap) * 0.6).max(200.0);
                     // Status card
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(320.0);
+                        ui.set_width(left_w);
                         ui.label(
                             egui::RichText::new("STATUT DE L'AGENT")
                                 .font(theme::font_small())
@@ -80,8 +83,9 @@ impl DashboardPage {
                     ui.add_space(theme::SPACE);
 
                     // Compliance gauge card
+                    let right_w = ((total_width - gap) * 0.4).max(160.0);
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(240.0);
+                        ui.set_width(right_w);
                         ui.vertical_centered(|ui| {
                             ui.label(
                                 egui::RichText::new("SCORE GLOBAL")
@@ -100,9 +104,11 @@ impl DashboardPage {
 
                 // Resource usage + Vulnerabilities row
                 ui.horizontal_top(|ui| {
+                    let gap = theme::SPACE;
+                    let res_w = ((total_width - gap) * 0.55).max(200.0);
                     // Resource usage
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(380.0);
+                        ui.set_width(res_w);
                         ui.label(
                             egui::RichText::new("RESSOURCES SYST\u{00c8}ME")
                                 .font(theme::font_small())
@@ -141,8 +147,9 @@ impl DashboardPage {
                     ui.add_space(theme::SPACE);
 
                     // Vulnerability summary
+                    let vuln_w = ((total_width - gap) * 0.45).max(160.0);
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(300.0);
+                        ui.set_width(vuln_w);
                         ui.label(
                             egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
                                 .font(theme::font_small())

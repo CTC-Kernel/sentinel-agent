@@ -25,14 +25,14 @@ impl LogsPage {
                 widgets::card(ui, |ui| {
                     ui.horizontal(|ui| {
                         ui.label(
-                            egui::RichText::new(format!("󰄐 {} entr\u{00e9}es r\u{00e9}centes", state.logs.len()))
+                            egui::RichText::new(format!("{} entr\u{00e9}es r\u{00e9}centes", state.logs.len()))
                                 .font(theme::font_body())
                                 .color(theme::TEXT_SECONDARY),
                         );
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             if ui
                                 .button(
-                                    egui::RichText::new("󰉋  OUVRIR LE DOSSIER")
+                                    egui::RichText::new("OUVRIR LE DOSSIER")
                                         .font(theme::font_small())
                                         .strong(),
                                 )

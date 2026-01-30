@@ -37,7 +37,7 @@ impl Sidebar {
                         if scanning {
                             let t = ui.input(|i| i.time);
                             let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32; // Pulse effect
-                            ui.label(egui::RichText::new("󰓦").size(16.0).color(theme::ACCENT.linear_multiply(alpha)));
+                            ui.label(egui::RichText::new("●").size(10.0).color(theme::ACCENT.linear_multiply(alpha)));
                         }
                     });
                     ui.label(
@@ -57,10 +57,10 @@ impl Sidebar {
                     Self::section_label(ui, "PILOTAGE");
                     
                     let main_items: &[(Page, &str, &str)] = &[
-                        (Page::Dashboard, "⛁", "Tableau de bord"),
+                        (Page::Dashboard, "■", "Tableau de bord"),
                         (Page::Compliance, "✓", "Conformit\u{00e9}"),
-                        (Page::Software, "📦", "Logiciels"),
-                        (Page::Vulnerabilities, "☢", "Vuln\u{00e9}rabilit\u{00e9}s"),
+                        (Page::Software, "◆", "Logiciels"),
+                        (Page::Vulnerabilities, "▲", "Vuln\u{00e9}rabilit\u{00e9}s"),
                     ];
 
                     for (page, icon, label) in main_items {
@@ -73,9 +73,9 @@ impl Sidebar {
                     Self::section_label(ui, "SYS & NETWORK");
 
                     let sys_items: &[(Page, &str, &str)] = &[
-                        (Page::Network, "🌐", "R\u{00e9}seau"),
-                        (Page::Sync, "🔄", "Synchronisation"),
-                        (Page::Logs, "📋", "Journaux"),
+                        (Page::Network, "●", "R\u{00e9}seau"),
+                        (Page::Sync, "↻", "Synchronisation"),
+                        (Page::Logs, "≡", "Journaux"),
                     ];
 
                     for (page, icon, label) in sys_items {
@@ -88,8 +88,8 @@ impl Sidebar {
                         ui.add_space(theme::SPACE_XL);
                         
                         let bottom_items: &[(Page, &str, &str)] = &[
-                            (Page::About, "ⓘ", "\u{00c0} propos"),
-                            (Page::Settings, "⚙", "Param\u{00e8}tres"),
+                            (Page::About, "○", "\u{00c0} propos"),
+                            (Page::Settings, "◇", "Param\u{00e8}tres"),
                         ];
 
                         for (page, icon, label) in bottom_items {
