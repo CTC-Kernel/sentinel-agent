@@ -391,6 +391,8 @@ impl SentinelApp {
             match action {
                 TrayAction::ShowWindow => {
                     self.visible = true;
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
                 }
                 TrayAction::RunCheck => {
                     self.send_command(GuiCommand::RunCheck);
@@ -467,12 +469,11 @@ impl eframe::App for SentinelApp {
         self.process_events();
         self.process_tray_actions(ctx);
 
-        // Handle close = hide (instead of quit).
+        // Handle close = hide to tray (instead of quit).
         if ctx.input(|i| i.viewport().close_requested()) && !self.quit_requested {
-            // Prevent actual close, hide instead.
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
             self.visible = false;
-            // Else: let it close.
         }
 
         if !self.visible {
