@@ -18,7 +18,7 @@ const {
   listEnrollmentTokens,
   revokeEnrollmentToken
 } = require('./tokens');
-const { listAgents, deleteAgent, getAgentDetails } = require('./management');
+const { listAgents, deleteAgent, getAgentDetails, getAgentComplianceResults } = require('./management');
 const { onAgentCreated, onResultUploaded } = require('./sync');
 const { agentApi } = require('./api');
 const {
@@ -84,6 +84,7 @@ module.exports = {
   listAgents,
   deleteAgent,
   getAgentDetails,
+  getAgentComplianceResults,
 
   // Software Inventory & CIS Benchmarks
   uploadSoftwareInventory,

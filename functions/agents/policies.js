@@ -624,8 +624,8 @@ function evaluateMembershipCriteria(agent, criteria) {
 
   switch (criteria.type) {
     case 'os':
-      return agent.osType?.toLowerCase() === criteria.value?.toLowerCase() ||
-             agent.osName?.toLowerCase().includes(criteria.value?.toLowerCase());
+      return agent.os?.toLowerCase() === criteria.value?.toLowerCase() ||
+             agent.os?.toLowerCase().includes(criteria.value?.toLowerCase());
 
     case 'hostname_pattern':
       try {
