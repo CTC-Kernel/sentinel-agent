@@ -94,6 +94,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/risks" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Risks /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/vulnerabilities" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Vulnerabilities /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/agents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Agents /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/agent-policies" element={<Navigate to="/agents" replace />} />
 
                 <Route path="/threat-library" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatRegistry /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatIntelligence /></AnimatedPage></RoleGuardComponent>} />

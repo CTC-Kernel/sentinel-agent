@@ -347,6 +347,62 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if false;
       }
+
+      // Software Inventory Subcollection
+      // Populated by Cloud Functions when agents upload software data
+      // Frontend reads for the software inventory tab
+      match /softwareInventory/{softwareId} {
+        allow read: if canRead(orgId);
+        // Created/Updated by Cloud Functions (Admin SDK) via agent API
+        allow create: if false;
+        allow update: if canWrite(orgId); // Allow admin to update authorization status
+        allow delete: if canDelete(orgId);
+      }
+
+      // CIS Baselines Subcollection
+      // Populated by Cloud Functions when agents upload CIS benchmark results
+      match /cisBaselines/{baselineId} {
+        allow read: if canRead(orgId);
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
+      }
+
+      // Agent Groups Subcollection
+      // Groups organize agents and link to policies
+      match /agentGroups/{groupId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canDelete(orgId);
+      }
+
+      // Agent Policies Subcollection
+      // Policies define configuration and rules for agent groups
+      match /agentPolicies/{policyId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canDelete(orgId);
+      }
+
+      // Software Authorization Requests
+      // Users request authorization for software, admins review
+      match /softwareAuthRequests/{requestId} {
+        allow read: if canRead(orgId);
+        allow create: if belongsToOrganization(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canDelete(orgId);
+      }
+
+      // Policy History Subcollection
+      // Tracks policy changes over time
+      match /policyHistory/{historyId} {
+        allow read: if canRead(orgId);
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
+      }
     }
 
     // Users collection

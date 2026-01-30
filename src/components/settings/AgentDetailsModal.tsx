@@ -302,7 +302,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             subtitle="Utilisation"
                                         />
                                         <RadialGauge
-                                            value={agentDetails.memoryPercent || (agentDetails.memoryBytes ? Math.round(agentDetails.memoryBytes / 1024 / 1024 / 1024 * 10) : 0)}
+                                            value={agentDetails.memoryPercent ?? (agentDetails.memoryBytes && agentDetails.memoryTotalBytes ? Math.round((agentDetails.memoryBytes / agentDetails.memoryTotalBytes) * 100) : 0)}
                                             label="RAM"
                                             color="text-purple-500"
                                             bgColor="bg-purple-500/10"

@@ -1215,6 +1215,62 @@
                     "order": "DESCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "softwareInventory",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "authorizationStatus",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "riskScore",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "softwareInventory",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "hasVulnerabilities",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "riskScore",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "cisBaselines",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "agentId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "complianceScore",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "cisBaselines",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "benchmarkId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "complianceScore",
+                    "order": "ASCENDING"
+                }
+            ]
         }
     ],
     "fieldOverrides": [
