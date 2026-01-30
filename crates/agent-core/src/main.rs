@@ -85,8 +85,18 @@ fn main() -> ExitCode {
         return run_as_service();
     }
 
-    // Initialize logging for CLI commands
-    init_logging(&cli.log_level);
+    // Determine if we'll launch the GUI (feature enabled + not headless).
+    // GUI mode defers logging init to use the terminal-aware tracing subscriber.
+    let gui_mode = cfg!(feature = "gui")
+        && match &cli.command {
+            None => true,
+            Some(Commands::Run { no_tray }) => !no_tray,
+            _ => false,
+        };
+
+    if !gui_mode {
+        init_logging(&cli.log_level);
+    }
 
     // Handle subcommands
     match cli.command {
@@ -96,8 +106,8 @@ fn main() -> ExitCode {
         Some(Commands::Start) => handle_start(),
         Some(Commands::Stop) => handle_stop(),
         Some(Commands::Status) => handle_status(),
-        Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray),
-        None => handle_run(cli.config, false), // Default: run with tray
+        Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray, &cli.log_level),
+        None => handle_run(cli.config, false, &cli.log_level),
     }
 }
 
@@ -330,7 +340,7 @@ fn handle_status() -> ExitCode {
 }
 
 /// Run in foreground mode.
-fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
+fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> ExitCode {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
@@ -389,7 +399,7 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
     // ── GUI mode: delegate enrollment + runtime to the GUI ──
     #[cfg(feature = "gui")]
     if !no_tray {
-        return run_with_gui(config, is_enrolled);
+        return run_with_gui(config, is_enrolled, log_level);
     }
 
     // ── Legacy / headless enrollment flow ──
@@ -556,10 +566,15 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
 /// The GUI handles enrollment (if not yet enrolled), dashboard, and all
 /// pages.  The agent runtime is spawned in a background thread.
 #[cfg(feature = "gui")]
-fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
+fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCode {
     use agent_gui::enrollment::EnrollmentCommand;
     use agent_gui::events::{AgentEvent, GuiCommand};
     use std::sync::mpsc;
+
+    // Initialize logging with the GUI terminal bridge.
+    // This installs a custom tracing layer that captures all tracing events
+    // and forwards them to the GUI terminal page.
+    let tracing_bridge = agent_core::init_logging_with_terminal(log_level);
 
     info!(
         "Starting Sentinel Agent with egui GUI (enrolled={})",
@@ -569,6 +584,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
     let (event_tx, event_rx) = mpsc::channel::<AgentEvent>();
     let (command_tx, command_rx) = mpsc::channel::<GuiCommand>();
     let (enrollment_tx, enrollment_rx) = mpsc::channel::<EnrollmentCommand>();
+
+    // Connect the tracing bridge so log events flow to the GUI terminal
+    tracing_bridge.set_sender(event_tx.clone());
 
     // Spawn background thread for runtime + enrollment
     let bg_event_tx = event_tx.clone();
@@ -724,6 +742,22 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
                         Ok(GuiCommand::ForceSync) => {
                             info!("GUI requested force sync");
                             handle.trigger_sync();
+                        }
+                        Ok(GuiCommand::StartDiscovery) => {
+                            info!("GUI requested network discovery");
+                            handle.trigger_discovery();
+                        }
+                        Ok(GuiCommand::StopDiscovery) => {
+                            info!("GUI requested discovery cancellation");
+                            handle.cancel_discovery();
+                        }
+                        Ok(GuiCommand::ProposeAsset {
+                            ip,
+                            hostname,
+                            device_type,
+                        }) => {
+                            info!("GUI proposed asset: {}", ip);
+                            handle.propose_asset(ip, hostname, device_type);
                         }
                         Ok(_) => {}
                         Err(mpsc::TryRecvError::Empty) => {

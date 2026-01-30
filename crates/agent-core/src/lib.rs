@@ -27,7 +27,7 @@ use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
 use agent_common::types::CheckSeverity;
-use agent_network::{NetworkManager, NetworkSecurityAlert, NetworkSnapshot};
+use agent_network::{DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot};
 use agent_scanner::{
     CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
     ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
@@ -46,7 +46,7 @@ use agent_storage::{
 use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService};
 use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use resources::ResourceMonitor;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
@@ -55,8 +55,9 @@ use tracing::{debug, info, warn};
 use agent_gui::events::AgentEvent;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiNotification,
-    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiDiscoveredDevice,
+    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding,
+    GuiVulnerabilitySummary,
 };
 
 /// Default vulnerability scan interval (6 hours).
@@ -67,6 +68,14 @@ const DEFAULT_SECURITY_SCAN_INTERVAL_SECS: u64 = 5 * 60;
 
 /// Shutdown signal for graceful termination.
 pub type ShutdownSignal = Arc<AtomicBool>;
+
+/// Data for a proposed asset from network discovery.
+#[derive(Debug, Clone)]
+pub struct ProposeAssetData {
+    pub ip: String,
+    pub hostname: Option<String>,
+    pub device_type: String,
+}
 
 /// Agent runtime managing the main execution loop.
 pub struct AgentRuntime {
@@ -96,6 +105,12 @@ pub struct AgentRuntime {
     force_check: Arc<AtomicBool>,
     /// Flag to trigger an immediate sync (from GUI).
     force_sync: Arc<AtomicBool>,
+    /// Flag to trigger a network discovery scan (from GUI).
+    force_discovery: Arc<AtomicBool>,
+    /// Flag to cancel a running discovery scan.
+    discovery_cancel: Arc<AtomicBool>,
+    /// Queue of discovered devices proposed as assets by the user.
+    pending_asset_proposals: Arc<Mutex<Vec<ProposeAssetData>>>,
     /// Encrypted database for check result storage and sync services.
     db: Option<Arc<Database>>,
     /// Authenticated mTLS client for sync services.
@@ -129,6 +144,12 @@ pub struct RuntimeHandle {
     force_check: Arc<AtomicBool>,
     /// Flag to trigger an immediate sync (heartbeat + upload).
     force_sync: Arc<AtomicBool>,
+    /// Flag to trigger a network discovery scan.
+    force_discovery: Arc<AtomicBool>,
+    /// Flag to cancel a running discovery scan.
+    discovery_cancel: Arc<AtomicBool>,
+    /// Queue of discovered devices proposed as assets.
+    pending_asset_proposals: Arc<Mutex<Vec<ProposeAssetData>>>,
 }
 
 impl RuntimeHandle {
@@ -175,6 +196,26 @@ impl RuntimeHandle {
     pub fn trigger_sync(&self) {
         info!("Immediate sync requested via handle");
         self.force_sync.store(true, Ordering::Release);
+    }
+
+    /// Trigger a network discovery scan.
+    pub fn trigger_discovery(&self) {
+        info!("Network discovery requested via handle");
+        self.discovery_cancel.store(false, Ordering::Release);
+        self.force_discovery.store(true, Ordering::Release);
+    }
+
+    /// Cancel a running network discovery scan.
+    pub fn cancel_discovery(&self) {
+        info!("Network discovery cancellation requested via handle");
+        self.discovery_cancel.store(true, Ordering::Release);
+    }
+
+    /// Propose a discovered device as an asset.
+    pub fn propose_asset(&self, ip: String, hostname: Option<String>, device_type: String) {
+        if let Ok(mut proposals) = self.pending_asset_proposals.lock() {
+            proposals.push(ProposeAssetData { ip, hostname, device_type });
+        }
     }
 
     /// Get a clone of the shutdown signal.
@@ -232,6 +273,9 @@ impl AgentRuntime {
             gui_event_tx: None,
             force_check: Arc::new(AtomicBool::new(false)),
             force_sync: Arc::new(AtomicBool::new(false)),
+            force_discovery: Arc::new(AtomicBool::new(false)),
+            discovery_cancel: Arc::new(AtomicBool::new(false)),
+            pending_asset_proposals: Arc::new(Mutex::new(Vec::new())),
             db: None,
             authenticated_client: None,
             check_registry,
@@ -462,6 +506,9 @@ impl AgentRuntime {
             scanning: self.scanning.clone(),
             force_check: self.force_check.clone(),
             force_sync: self.force_sync.clone(),
+            force_discovery: self.force_discovery.clone(),
+            discovery_cancel: self.discovery_cancel.clone(),
+            pending_asset_proposals: self.pending_asset_proposals.clone(),
         }
     }
 
@@ -1188,6 +1235,39 @@ impl AgentRuntime {
         Ok(())
     }
 
+    /// Upload a proposed asset (discovered device) to the server.
+    async fn upload_proposed_asset(&self, proposal: &ProposeAssetData) -> Result<(), CommonError> {
+        let api_client = self.api_client.read().await;
+        let client = api_client
+            .as_ref()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
+
+        let agent_id = client
+            .agent_id()
+            .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
+
+        let payload = serde_json::json!({
+            "ip": proposal.ip,
+            "hostname": proposal.hostname,
+            "device_type": proposal.device_type,
+            "source": "agent_discovery",
+        });
+
+        let url = format!("/v1/agents/{}/discovered-assets", agent_id);
+        let _response: serde_json::Value = client.post(&url, &payload).await?;
+
+        info!("Proposed discovered device {} as asset", proposal.ip);
+
+        #[cfg(feature = "gui")]
+        self.emit_notification(
+            "Actif proposé",
+            &format!("Appareil {} proposé comme actif", proposal.ip),
+            "info",
+        );
+
+        Ok(())
+    }
+
     /// Run the agent main loop.
     pub async fn run(&self) -> Result<(), CommonError> {
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
@@ -1736,6 +1816,108 @@ impl AgentRuntime {
                 {
                     self.emit_status_update(last_check_at, compliance_score);
                     self.emit_resource_update();
+                }
+            }
+
+            // Check for force_discovery flag (GUI network discovery)
+            #[cfg(feature = "gui")]
+            if self.force_discovery.swap(false, Ordering::AcqRel) {
+                info!("Network discovery scan triggered");
+                let cancel = self.discovery_cancel.clone();
+
+                if let Some(ref tx) = self.gui_event_tx {
+                    let tx = tx.clone();
+
+                    // Determine subnet from primary IP
+                    let subnet = {
+                        let network_manager = self.network_manager.read().await;
+                        match network_manager.collect_snapshot().await {
+                            Ok(snapshot) => snapshot
+                                .primary_ip
+                                .as_ref()
+                                .and_then(|ip| ip.parse::<std::net::Ipv4Addr>().ok())
+                                .map(|addr| {
+                                    let o = addr.octets();
+                                    format!("{}.{}.{}.0/24", o[0], o[1], o[2])
+                                })
+                                .unwrap_or_else(|| "192.168.1.0/24".to_string()),
+                            Err(_) => "192.168.1.0/24".to_string(),
+                        }
+                    };
+
+                    tokio::spawn(async move {
+                        let config = DiscoveryConfig::default();
+                        let discovery = NetworkDiscovery::new(config);
+
+                        // Link the external cancel flag to the discovery cancel handle
+                        let disc_cancel = discovery.cancel_handle();
+                        let cancel_watcher = cancel.clone();
+                        tokio::spawn(async move {
+                            loop {
+                                if cancel_watcher.load(Ordering::Relaxed) {
+                                    disc_cancel.store(true, Ordering::Relaxed);
+                                    break;
+                                }
+                                tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+                            }
+                        });
+
+                        let _ = tx.send(AgentEvent::DiscoveryProgress {
+                            phase: "Scan ARP en cours...".to_string(),
+                            progress: 0.1,
+                            devices_found: 0,
+                        });
+
+                        match discovery.scan(&subnet).await {
+                            Ok(result) => {
+                                let devices: Vec<GuiDiscoveredDevice> = result
+                                    .devices
+                                    .iter()
+                                    .map(|d| GuiDiscoveredDevice {
+                                        ip: d.ip.clone(),
+                                        mac: d.mac.clone(),
+                                        hostname: d.hostname.clone(),
+                                        vendor: d.vendor.clone(),
+                                        device_type: format!("{:?}", d.device_type),
+                                        open_ports: d.open_ports.clone(),
+                                        first_seen: d.first_seen,
+                                        last_seen: d.last_seen,
+                                        is_gateway: d.is_gateway,
+                                        subnet: d.subnet.clone(),
+                                    })
+                                    .collect();
+                                info!(
+                                    "Discovery complete: {} devices in {}ms",
+                                    devices.len(),
+                                    result.scan_duration_ms
+                                );
+                                let _ = tx.send(AgentEvent::DiscoveryUpdate { devices });
+                            }
+                            Err(e) => {
+                                warn!("Discovery scan failed: {}", e);
+                                let _ = tx.send(AgentEvent::DiscoveryProgress {
+                                    phase: format!("Erreur: {}", e),
+                                    progress: 0.0,
+                                    devices_found: 0,
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Check for pending asset proposals
+            {
+                let proposals: Vec<ProposeAssetData> = {
+                    match self.pending_asset_proposals.lock() {
+                        Ok(mut queue) => queue.drain(..).collect(),
+                        Err(_) => Vec::new(),
+                    }
+                };
+                for proposal in proposals {
+                    if let Err(e) = self.upload_proposed_asset(&proposal).await {
+                        warn!("Failed to propose asset {}: {}", proposal.ip, e);
+                    }
                 }
             }
 
