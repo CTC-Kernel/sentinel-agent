@@ -72,6 +72,14 @@ pub struct AgentConfig {
     /// Proxy configuration (optional).
     #[serde(default)]
     pub proxy: Option<ProxyConfig>,
+
+    /// Client certificate for mTLS authentication (loaded from DB, not serialized).
+    #[serde(skip)]
+    pub client_certificate: Option<String>,
+
+    /// Client private key for HMAC signature authentication (loaded from DB, not serialized).
+    #[serde(skip)]
+    pub client_key: Option<String>,
 }
 
 /// Proxy configuration.
@@ -136,6 +144,8 @@ impl Default for AgentConfig {
             ca_cert_path: None,
             enrollment_token: None,
             proxy: None,
+            client_certificate: None,
+            client_key: None,
         }
     }
 }
@@ -240,7 +250,16 @@ impl AgentConfig {
             PathBuf::from(r"C:\ProgramData\Sentinel\agent.json")
         }
 
-        #[cfg(not(windows))]
+        #[cfg(target_os = "macos")]
+        {
+            directories::BaseDirs::new()
+                .map(|dirs| dirs.data_dir().join("SentinelGRC").join("agent.json"))
+                .unwrap_or_else(|| {
+                    PathBuf::from("/Library/Application Support/SentinelGRC/agent.json")
+                })
+        }
+
+        #[cfg(all(not(windows), not(target_os = "macos")))]
         {
             PathBuf::from("/etc/sentinel/agent.json")
         }
@@ -391,6 +410,8 @@ mod tests {
                 username: Some("user".to_string()),
                 password: Some("pass".to_string()),
             }),
+            client_certificate: None,
+            client_key: None,
         };
 
         let json = serde_json::to_string(&config).unwrap();
@@ -517,7 +538,9 @@ mod tests {
         let path = AgentConfig::platform_config_path();
         #[cfg(windows)]
         assert!(path.to_string_lossy().contains("ProgramData"));
-        #[cfg(not(windows))]
+        #[cfg(target_os = "macos")]
+        assert!(path.to_string_lossy().contains("SentinelGRC"));
+        #[cfg(all(not(windows), not(target_os = "macos")))]
         assert!(path.to_string_lossy().contains("/etc/sentinel"));
     }
 

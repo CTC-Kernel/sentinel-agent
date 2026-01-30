@@ -40,6 +40,9 @@ pub const DB_FILE_NAME: &str = "agent.db";
 pub const CONFIG_FILE_NAME: &str = "agent.json";
 
 /// Default server URL (Firebase Cloud Functions).
+///
+/// This is the **API** endpoint used by the agent for enrollment, heartbeats,
+/// and data uploads.  It is *not* the web dashboard URL visible to end users.
 pub const DEFAULT_SERVER_URL: &str =
     "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi";
 

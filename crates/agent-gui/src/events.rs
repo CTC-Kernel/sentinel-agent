@@ -6,7 +6,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::dto::{AgentSummary, GuiCheckResult, GuiNotification, GuiResourceUsage};
+use crate::dto::{
+    AgentSummary, GuiCheckResult, GuiNotification, GuiResourceUsage, GuiSoftwarePackage,
+    GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+};
 
 /// Events emitted by the agent runtime for the GUI to consume.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,6 +46,19 @@ pub enum AgentEvent {
         /// Error message if sync failed.
         error: Option<String>,
     },
+    /// Network data updated.
+    NetworkUpdate {
+        /// Number of network interfaces.
+        interfaces_count: u32,
+        /// Number of active connections.
+        connections_count: u32,
+        /// Number of security alerts.
+        alerts_count: u32,
+        /// Primary IP address.
+        primary_ip: Option<String>,
+        /// Primary MAC address.
+        primary_mac: Option<String>,
+    },
     /// Enrollment completed (success or failure).
     EnrollmentResult {
         /// Whether enrollment succeeded.
@@ -51,6 +67,21 @@ pub enum AgentEvent {
         message: String,
         /// Agent ID if enrollment succeeded.
         agent_id: Option<String>,
+    },
+    /// Vulnerability scan results updated.
+    VulnerabilityUpdate {
+        /// Vulnerability summary.
+        summary: GuiVulnerabilitySummary,
+    },
+    /// Software inventory updated.
+    SoftwareUpdate {
+        /// List of installed software packages.
+        packages: Vec<GuiSoftwarePackage>,
+    },
+    /// Vulnerability findings updated.
+    VulnerabilityFindings {
+        /// List of vulnerability findings.
+        findings: Vec<GuiVulnerabilityFinding>,
     },
     /// Agent is shutting down.
     ShuttingDown,

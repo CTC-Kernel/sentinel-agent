@@ -25,16 +25,38 @@ pub mod tray;
 use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
+use agent_common::types::CheckSeverity;
 use agent_network::{NetworkManager, NetworkSecurityAlert, NetworkSnapshot};
 use agent_scanner::{
-    ScanType, SecurityMonitor, SecurityScanResult, VulnerabilityScanResult, VulnerabilityScanner,
+    CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
+    ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
+    VulnerabilityScanResult, VulnerabilityScanner,
+    checks::{
+        AdminAccountsCheck, AntivirusCheck, BackupCheck, DiskEncryptionCheck, FirewallCheck,
+        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, RemoteAccessCheck,
+        SessionLockCheck, SystemUpdatesCheck,
+    },
 };
+use agent_storage::{
+    CheckResult as StorageCheckResult, CheckResultsRepository, CheckRule as StorageCheckRule,
+    CheckRulesRepository, CheckStatus as StorageCheckStatus, Database,
+    Severity as StorageSeverity,
+};
+use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService};
 use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use resources::ResourceMonitor;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
+
+#[cfg(feature = "gui")]
+use agent_gui::events::AgentEvent;
+#[cfg(feature = "gui")]
+use agent_gui::dto::{
+    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiNotification,
+    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+};
 
 /// Default vulnerability scan interval (6 hours).
 const DEFAULT_VULN_SCAN_INTERVAL_SECS: u64 = 6 * 60 * 60;
@@ -66,6 +88,27 @@ pub struct AgentRuntime {
     vuln_scan_interval_secs: u64,
     /// Security scan interval in seconds.
     security_scan_interval_secs: u64,
+    /// Optional GUI event sender for pushing live data to the desktop UI.
+    #[cfg(feature = "gui")]
+    gui_event_tx: Option<std::sync::mpsc::Sender<AgentEvent>>,
+    /// Flag to trigger an immediate vulnerability check (from GUI).
+    force_check: Arc<AtomicBool>,
+    /// Flag to trigger an immediate sync (from GUI).
+    force_sync: Arc<AtomicBool>,
+    /// Encrypted database for check result storage and sync services.
+    db: Option<Arc<Database>>,
+    /// Authenticated mTLS client for sync services.
+    authenticated_client: Option<Arc<AuthenticatedClient>>,
+    /// Compliance check registry with all 11 checks.
+    check_registry: Arc<CheckRegistry>,
+    /// Compliance check execution interval in seconds.
+    compliance_check_interval_secs: u64,
+    /// Config sync service for downloading server configuration.
+    config_sync: RwLock<Option<ConfigSyncService>>,
+    /// Rule sync service for downloading check rules.
+    rule_sync: RwLock<Option<RuleSyncService>>,
+    /// Result uploader for uploading check results to SaaS.
+    result_uploader: RwLock<Option<ResultUploader>>,
 }
 
 /// A lightweight handle to the running agent that can be shared with the GUI
@@ -81,6 +124,10 @@ pub struct RuntimeHandle {
     paused: Arc<AtomicBool>,
     /// Whether the agent is currently scanning.
     scanning: Arc<AtomicBool>,
+    /// Flag to trigger an immediate vulnerability check.
+    force_check: Arc<AtomicBool>,
+    /// Flag to trigger an immediate sync (heartbeat + upload).
+    force_sync: Arc<AtomicBool>,
 }
 
 impl RuntimeHandle {
@@ -117,6 +164,18 @@ impl RuntimeHandle {
         self.scanning.load(Ordering::Acquire)
     }
 
+    /// Trigger an immediate vulnerability check.
+    pub fn trigger_check(&self) {
+        info!("Immediate check requested via handle");
+        self.force_check.store(true, Ordering::Release);
+    }
+
+    /// Trigger an immediate sync (heartbeat + upload).
+    pub fn trigger_sync(&self) {
+        info!("Immediate sync requested via handle");
+        self.force_sync.store(true, Ordering::Release);
+    }
+
     /// Get a clone of the shutdown signal.
     pub fn shutdown_signal(&self) -> ShutdownSignal {
         self.shutdown.clone()
@@ -131,11 +190,29 @@ impl AgentRuntime {
         let security_monitor = SecurityMonitor::new();
         let network_manager = NetworkManager::new();
 
+        // Register all 11 compliance checks
+        let mut registry = CheckRegistry::new();
+        registry.register(Arc::new(DiskEncryptionCheck::new()));
+        registry.register(Arc::new(FirewallCheck::new()));
+        registry.register(Arc::new(AntivirusCheck::new()));
+        registry.register(Arc::new(MfaCheck::new()));
+        registry.register(Arc::new(PasswordPolicyCheck::new()));
+        registry.register(Arc::new(SystemUpdatesCheck::new()));
+        registry.register(Arc::new(SessionLockCheck::new()));
+        registry.register(Arc::new(RemoteAccessCheck::new()));
+        registry.register(Arc::new(BackupCheck::new()));
+        registry.register(Arc::new(AdminAccountsCheck::new()));
+        registry.register(Arc::new(ObsoleteProtocolsCheck::new()));
+        let check_registry = Arc::new(registry);
+
+        info!("Registered {} compliance checks", check_registry.count());
         info!(
             "Initialized vulnerability scanner ({} scanners available)",
             vulnerability_scanner.scanner_count()
         );
         info!("Initialized network manager with smart scheduling");
+
+        let compliance_check_interval_secs = config.check_interval_secs;
 
         Self {
             config,
@@ -150,6 +227,223 @@ impl AgentRuntime {
             network_manager: RwLock::new(network_manager),
             vuln_scan_interval_secs: DEFAULT_VULN_SCAN_INTERVAL_SECS,
             security_scan_interval_secs: DEFAULT_SECURITY_SCAN_INTERVAL_SECS,
+            #[cfg(feature = "gui")]
+            gui_event_tx: None,
+            force_check: Arc::new(AtomicBool::new(false)),
+            force_sync: Arc::new(AtomicBool::new(false)),
+            db: None,
+            authenticated_client: None,
+            check_registry,
+            compliance_check_interval_secs,
+            config_sync: RwLock::new(None),
+            rule_sync: RwLock::new(None),
+            result_uploader: RwLock::new(None),
+        }
+    }
+
+    /// Set the database and create an authenticated client for sync services.
+    ///
+    /// This enables compliance result storage, config/rule sync, and result upload.
+    pub fn with_database(mut self, db: Arc<Database>) -> Self {
+        let auth_client = Arc::new(AuthenticatedClient::new(self.config.clone(), db.clone()));
+        self.db = Some(db);
+        self.authenticated_client = Some(auth_client);
+        self
+    }
+
+    /// Set the GUI event sender for pushing live data to the desktop UI.
+    #[cfg(feature = "gui")]
+    pub fn set_gui_event_tx(&mut self, tx: std::sync::mpsc::Sender<AgentEvent>) {
+        self.gui_event_tx = Some(tx);
+    }
+
+    /// Emit a GUI event (no-op if GUI feature is disabled or no sender set).
+    #[cfg(feature = "gui")]
+    fn emit_gui_event(&self, event: AgentEvent) {
+        if let Some(ref tx) = self.gui_event_tx {
+            let _ = tx.send(event);
+        }
+    }
+
+    /// Build and emit the current agent summary to the GUI.
+    #[cfg(feature = "gui")]
+    fn emit_status_update(
+        &self,
+        last_check_at: Option<chrono::DateTime<chrono::Utc>>,
+        compliance_score: Option<f64>,
+    ) {
+        let usage = self.resource_monitor.get_usage();
+        let hostname = hostname::get()
+            .map(|h| h.to_string_lossy().to_string())
+            .unwrap_or_else(|_| "unknown".to_string());
+
+        let status = if self.is_paused() {
+            GuiAgentStatus::Paused
+        } else if self.scanning.load(Ordering::Acquire) {
+            GuiAgentStatus::Scanning
+        } else if self.authenticated_client.is_none() {
+            GuiAgentStatus::Disconnected
+        } else {
+            GuiAgentStatus::Connected
+        };
+
+        let summary = AgentSummary {
+            status,
+            version: AGENT_VERSION.to_string(),
+            hostname,
+            agent_id: self.config.agent_id.clone(),
+            organization: None,
+            compliance_score: compliance_score.map(|s| s as f32),
+            last_check_at,
+            last_sync_at: None,
+            pending_sync_count: 0,
+            uptime_secs: usage.uptime_ms / 1000,
+        };
+
+        self.emit_gui_event(AgentEvent::StatusChanged { summary });
+    }
+
+    /// Emit resource usage update to the GUI.
+    #[cfg(feature = "gui")]
+    fn emit_resource_update(&self) {
+        let usage = self.resource_monitor.get_usage();
+        let sys = resources::get_system_resources();
+        self.emit_gui_event(AgentEvent::ResourceUpdate {
+            usage: GuiResourceUsage {
+                cpu_percent: sys.cpu_percent,
+                memory_percent: sys.memory_percent,
+                memory_used_mb: sys.memory_used_bytes / (1024 * 1024),
+                memory_total_mb: sys.memory_total_bytes / (1024 * 1024),
+                disk_iops: usage.disk_iops,
+                uptime_secs: usage.uptime_ms / 1000,
+                disk_percent: sys.disk_percent,
+            },
+        });
+    }
+
+    /// Emit a notification to the GUI.
+    #[cfg(feature = "gui")]
+    fn emit_notification(&self, title: &str, body: &str, severity: &str) {
+        self.emit_gui_event(AgentEvent::Notification {
+            notification: GuiNotification {
+                id: uuid::Uuid::new_v4(),
+                title: title.to_string(),
+                body: body.to_string(),
+                severity: severity.to_string(),
+                timestamp: chrono::Utc::now(),
+                read: false,
+                action: None,
+            },
+        });
+    }
+
+    /// Convert a `VulnerabilityScanResult` into a `Vec<GuiSoftwarePackage>` for the GUI.
+    ///
+    /// Each installed package is mapped to a `GuiSoftwarePackage`, with `up_to_date`
+    /// set to `false` when at least one vulnerability references that package.
+    #[cfg(feature = "gui")]
+    fn build_software_packages(
+        &self,
+        scan_result: &VulnerabilityScanResult,
+    ) -> Vec<GuiSoftwarePackage> {
+        // Count vulnerabilities per package name for up_to_date flag
+        let mut vuln_counts: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::new();
+        for v in &scan_result.vulnerabilities {
+            *vuln_counts.entry(v.package_name.clone()).or_insert(0) += 1;
+        }
+
+        scan_result
+            .packages
+            .iter()
+            .map(|pkg| {
+                let has_vulns = vuln_counts.contains_key(&pkg.name);
+                GuiSoftwarePackage {
+                    name: pkg.name.clone(),
+                    version: pkg.version.clone(),
+                    publisher: None,
+                    installed_at: None,
+                    up_to_date: !has_vulns,
+                    latest_version: None,
+                }
+            })
+            .collect()
+    }
+
+    /// Convert a `VulnerabilityScanResult` into a `Vec<GuiVulnerabilityFinding>` for the GUI.
+    #[cfg(feature = "gui")]
+    fn build_vulnerability_findings(
+        &self,
+        scan_result: &VulnerabilityScanResult,
+    ) -> Vec<GuiVulnerabilityFinding> {
+        scan_result
+            .vulnerabilities
+            .iter()
+            .map(|v| GuiVulnerabilityFinding {
+                cve_id: v.cve_id.clone().unwrap_or_else(|| "N/A".to_string()),
+                affected_software: v.package_name.clone(),
+                affected_version: v.installed_version.clone(),
+                severity: format!("{}", v.severity).to_lowercase(),
+                cvss_score: v.cvss_score,
+                description: v.description.clone(),
+                fix_available: v.available_version.is_some(),
+                discovered_at: Some(v.detected_at),
+            })
+            .collect()
+    }
+
+    /// Convert a `CheckExecutionResult` into a `GuiCheckResult` for display in the GUI.
+    ///
+    /// Looks up the check definition in the registry to populate human-readable
+    /// fields (name, category, severity, frameworks).
+    #[cfg(feature = "gui")]
+    fn execution_result_to_gui(&self, exec_result: &CheckExecutionResult) -> GuiCheckResult {
+        let common_result = &exec_result.result;
+        let check_id = &common_result.check_id;
+
+        // Look up check definition for display metadata
+        let (name, category, severity, frameworks) =
+            if let Some(check) = self.check_registry.get(check_id) {
+                let def = check.definition();
+                (
+                    def.name.clone(),
+                    format!("{:?}", def.category).to_lowercase(),
+                    format!("{:?}", def.severity).to_lowercase(),
+                    def.frameworks.clone(),
+                )
+            } else {
+                (
+                    check_id.clone(),
+                    "general".to_string(),
+                    "medium".to_string(),
+                    vec![],
+                )
+            };
+
+        let status = match common_result.status {
+            agent_common::types::CheckStatus::Pass => GuiCheckStatus::Pass,
+            agent_common::types::CheckStatus::Fail => GuiCheckStatus::Fail,
+            agent_common::types::CheckStatus::Error => GuiCheckStatus::Error,
+            agent_common::types::CheckStatus::Skipped => GuiCheckStatus::Skipped,
+            agent_common::types::CheckStatus::Pending => GuiCheckStatus::Pending,
+        };
+
+        let score = match common_result.status {
+            agent_common::types::CheckStatus::Pass => Some(100),
+            agent_common::types::CheckStatus::Fail => Some(0),
+            _ => None,
+        };
+
+        GuiCheckResult {
+            check_id: check_id.clone(),
+            name,
+            category,
+            status,
+            severity,
+            score,
+            message: common_result.message.clone(),
+            executed_at: Some(common_result.executed_at),
+            frameworks,
         }
     }
 
@@ -160,6 +454,8 @@ impl AgentRuntime {
             shutdown: self.shutdown.clone(),
             paused: self.paused.clone(),
             scanning: self.scanning.clone(),
+            force_check: self.force_check.clone(),
+            force_sync: self.force_sync.clone(),
         }
     }
 
@@ -254,8 +550,14 @@ impl AgentRuntime {
         Ok(())
     }
 
-    /// Send a heartbeat to the server.
-    async fn send_heartbeat(&self) -> Result<(), CommonError> {
+    /// Send a heartbeat to the server with real compliance data.
+    ///
+    /// Processes the server response: commands, config/rules sync triggers.
+    async fn send_heartbeat(
+        &self,
+        compliance_score: Option<f64>,
+        last_compliance_check: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -266,6 +568,9 @@ impl AgentRuntime {
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_else(|_| "unknown".to_string());
 
+        let pending_sync_count = self.get_pending_sync_count().await as u32;
+
+        let sys_res = resources::get_system_resources();
         let request = HeartbeatRequest {
             timestamp: chrono::Utc::now().to_rfc3339(),
             agent_version: AGENT_VERSION.to_string(),
@@ -274,24 +579,69 @@ impl AgentRuntime {
             os_info: format!("{} {}", std::env::consts::OS, get_os_version()),
             cpu_percent: usage.cpu_percent,
             memory_bytes: usage.memory_bytes,
-            last_check_at: None,    // TODO: Track last check time
-            compliance_score: None, // TODO: Track compliance score
-            pending_sync_count: 0,  // TODO: Track pending syncs
+            memory_percent: sys_res.memory_percent,
+            memory_total_bytes: sys_res.memory_total_bytes,
+            disk_percent: sys_res.disk_percent,
+            disk_used_bytes: sys_res.disk_used_bytes,
+            disk_total_bytes: sys_res.disk_total_bytes,
+            uptime_seconds: usage.uptime_ms / 1000,
+            ip_address: None,
+            last_check_at: last_compliance_check.map(|dt| dt.to_rfc3339()),
+            compliance_score,
+            pending_sync_count,
             self_check_result: None,
         };
 
         let response = client.send_heartbeat(request).await?;
 
-        // Handle commands if any
-        for cmd in response.commands {
-            info!("Received command: {} ({})", cmd.command_type, cmd.id);
-            // TODO: Execute commands
+        // Process server commands
+        for cmd in &response.commands {
+            match cmd.command_type.as_str() {
+                "force_sync" => {
+                    info!("Server command: force_sync ({})", cmd.id);
+                    self.force_sync.store(true, Ordering::Release);
+                }
+                "run_checks" => {
+                    info!("Server command: run_checks ({})", cmd.id);
+                    self.force_check.store(true, Ordering::Release);
+                }
+                "revoke" => {
+                    warn!("Server command: revoke agent credentials ({})", cmd.id);
+                    self.request_shutdown();
+                }
+                "diagnostics" => {
+                    info!("Server command: diagnostics ({})", cmd.id);
+                    // TODO: Collect and upload diagnostics
+                }
+                "update" => {
+                    info!("Server command: update ({})", cmd.id);
+                    // TODO: Trigger self-update
+                }
+                other => {
+                    warn!("Unknown server command: {} ({})", other, cmd.id);
+                }
+            }
         }
 
-        // Check if config/rules need refresh
-        if response.config_changed || response.rules_changed {
-            info!("Server indicates config or rules have changed");
-            // TODO: Fetch updated config/rules
+        // React to config changes
+        if response.config_changed {
+            info!("Server indicates configuration has changed, syncing...");
+            self.apply_config_changes().await;
+        }
+
+        // React to rules changes
+        if response.rules_changed {
+            info!("Server indicates rules have changed, syncing...");
+            let rule_sync = self.rule_sync.read().await;
+            if let Some(ref rule_sync) = *rule_sync {
+                match rule_sync.sync_rules().await {
+                    Ok(result) => info!(
+                        "Rule sync complete: {} rules synced",
+                        result.rules_synced
+                    ),
+                    Err(e) => warn!("Rule sync failed: {}", e),
+                }
+            }
         }
 
         Ok(())
@@ -365,7 +715,42 @@ impl AgentRuntime {
         let _response: serde_json::Value = client.post(&url, &payload).await?;
 
         info!("Uploaded {} vulnerability findings", vulnerabilities.len());
+
+        #[cfg(feature = "gui")]
+        self.emit_gui_event(AgentEvent::SyncStatus {
+            syncing: false,
+            pending_count: 0,
+            last_sync_at: Some(chrono::Utc::now()),
+            error: None,
+        });
+
         Ok(())
+    }
+
+    /// Upload software inventory from a vulnerability scan result.
+    async fn upload_software_from_scan(&self, scan_result: &VulnerabilityScanResult) {
+        if scan_result.packages.is_empty() {
+            debug!("No packages to upload for software inventory");
+            return;
+        }
+
+        let software: Vec<api_client::SoftwareEntry> = scan_result
+            .packages
+            .iter()
+            .map(|p| api_client::SoftwareEntry {
+                name: p.name.clone(),
+                version: p.version.clone(),
+                vendor: None,
+            })
+            .collect();
+
+        let api_client = self.api_client.read().await;
+        if let Some(ref client) = *api_client {
+            match client.upload_software_inventory(&software).await {
+                Ok(_) => info!("Uploaded software inventory: {} packages", software.len()),
+                Err(e) => warn!("Failed to upload software inventory: {}", e),
+            }
+        }
     }
 
     /// Run a security scan and upload incidents.
@@ -514,6 +899,255 @@ impl AgentRuntime {
         Ok(())
     }
 
+    /// Run all compliance checks, calculate score, store results in DB.
+    ///
+    /// Returns the execution results and the calculated compliance score.
+    async fn run_compliance_checks(&self) -> (Vec<CheckExecutionResult>, ComplianceScore) {
+        info!("Running compliance checks...");
+
+        let runner = CheckRunner::with_defaults(self.check_registry.clone());
+        let results = runner.run_all().await;
+
+        let summary = ScanSummary::from_results(&results, 0);
+        info!(
+            "Compliance checks complete: {} passed, {} failed, {} errors out of {} total",
+            summary.passed, summary.failed, summary.errors, summary.total_checks
+        );
+
+        // Build score inputs from results + check definitions
+        let score_inputs: Vec<CheckScoreInput> = results
+            .iter()
+            .map(|exec_result| {
+                let check_id = &exec_result.result.check_id;
+                let check = self.check_registry.get(check_id);
+                let (severity, category, frameworks) = match check {
+                    Some(c) => {
+                        let def = c.definition();
+                        (
+                            def.severity,
+                            format!("{:?}", def.category).to_lowercase(),
+                            def.frameworks.clone(),
+                        )
+                    }
+                    None => (
+                        CheckSeverity::Medium,
+                        "general".to_string(),
+                        vec![],
+                    ),
+                };
+                CheckScoreInput {
+                    result: exec_result.result.clone(),
+                    severity,
+                    category,
+                    frameworks,
+                }
+            })
+            .collect();
+
+        // Calculate weighted compliance score
+        let calculator = ScoreCalculator::new();
+        let score = calculator.calculate(&score_inputs);
+
+        info!(
+            "Compliance score: {:.1}% (passed: {}, failed: {}, errors: {})",
+            score.score, score.passed_count, score.failed_count, score.error_count
+        );
+
+        (results, score)
+    }
+
+    /// Store compliance check results in the local database.
+    async fn store_check_results(&self, results: &[CheckExecutionResult]) {
+        let db = match self.db {
+            Some(ref db) => db,
+            None => {
+                debug!("No database available, skipping check result storage");
+                return;
+            }
+        };
+
+        let repo = CheckResultsRepository::new(db);
+        let mut stored = 0;
+
+        for exec_result in results {
+            let common_result = &exec_result.result;
+
+            // Convert agent_common::types::CheckStatus to agent_storage::CheckStatus
+            let storage_status = match common_result.status {
+                agent_common::types::CheckStatus::Pass => StorageCheckStatus::Pass,
+                agent_common::types::CheckStatus::Fail => StorageCheckStatus::Fail,
+                agent_common::types::CheckStatus::Error => StorageCheckStatus::Error,
+                agent_common::types::CheckStatus::Skipped => StorageCheckStatus::Skip,
+                agent_common::types::CheckStatus::Pending => StorageCheckStatus::Skip,
+            };
+
+            // Build storage check result
+            let mut storage_result =
+                StorageCheckResult::new(&common_result.check_id, storage_status);
+
+            if let Some(ref msg) = common_result.message {
+                storage_result = storage_result.with_message(msg.clone());
+            }
+
+            // Serialize details to raw_data JSON string
+            if common_result.details != serde_json::Value::Null {
+                if let Ok(json_str) = serde_json::to_string(&common_result.details) {
+                    storage_result = storage_result.with_raw_data(json_str);
+                }
+            }
+
+            storage_result =
+                storage_result.with_duration_ms(common_result.duration_ms as i64);
+
+            match repo.insert(&storage_result).await {
+                Ok(_) => stored += 1,
+                Err(e) => warn!("Failed to store check result for {}: {}", common_result.check_id, e),
+            }
+        }
+
+        info!("Stored {} check results in database", stored);
+    }
+
+    /// Upload pending check results to the SaaS platform.
+    async fn upload_check_results(&self) {
+        let uploader = self.result_uploader.read().await;
+        if let Some(ref uploader) = *uploader {
+            match uploader.upload_pending().await {
+                Ok(result) => {
+                    if result.uploaded > 0 {
+                        info!("Uploaded {} check results to server", result.uploaded);
+                    }
+                }
+                Err(e) => warn!("Failed to upload check results: {}", e),
+            }
+        }
+    }
+
+    /// Initialize sync services after enrollment is verified.
+    async fn init_sync_services(&self) {
+        let (db, auth_client) = match (&self.db, &self.authenticated_client) {
+            (Some(db), Some(client)) => (db.clone(), client.clone()),
+            _ => {
+                debug!("Database or authenticated client not available, skipping sync service init");
+                return;
+            }
+        };
+
+        // Initialize config sync
+        let config_sync = ConfigSyncService::new(auth_client.clone(), db.clone());
+        *self.config_sync.write().await = Some(config_sync);
+
+        // Initialize rule sync
+        let rule_sync = RuleSyncService::new(auth_client.clone(), db.clone());
+        *self.rule_sync.write().await = Some(rule_sync);
+
+        // Initialize result uploader
+        let result_uploader = ResultUploader::new(auth_client.clone(), db.clone());
+        *self.result_uploader.write().await = Some(result_uploader);
+
+        info!("Initialized sync services (config, rules, results)");
+
+        // Seed built-in check rules so the FK constraint is satisfied
+        // even when rule sync fails (e.g. certificate error).
+        self.seed_builtin_check_rules().await;
+
+        // Initial rule sync (will overwrite built-in rules with server versions)
+        if let Some(ref rule_sync) = *self.rule_sync.read().await {
+            match rule_sync.sync_if_needed().await {
+                Ok(result) => info!(
+                    "Initial rule sync: {} rules synced (cache_hit: {})",
+                    result.rules_synced, result.cache_hit
+                ),
+                Err(e) => warn!("Initial rule sync failed: {}", e),
+            }
+        }
+    }
+
+    /// Pre-seed the check_rules table with the 11 built-in compliance checks.
+    ///
+    /// This ensures the FOREIGN KEY constraint on check_results.check_rule_id
+    /// is satisfied even when rule sync from the SaaS server fails.
+    async fn seed_builtin_check_rules(&self) {
+        let db = match self.db {
+            Some(ref db) => db,
+            None => return,
+        };
+
+        let repo = CheckRulesRepository::new(db);
+        let checks = self.check_registry.all();
+
+        let rules: Vec<StorageCheckRule> = checks
+            .iter()
+            .map(|check| {
+                let def = check.definition();
+                let severity = match def.severity {
+                    CheckSeverity::Critical => StorageSeverity::Critical,
+                    CheckSeverity::High => StorageSeverity::High,
+                    CheckSeverity::Medium => StorageSeverity::Medium,
+                    CheckSeverity::Low => StorageSeverity::Low,
+                    CheckSeverity::Info => StorageSeverity::Info,
+                };
+                StorageCheckRule::new(
+                    &def.id,
+                    &def.name,
+                    format!("{:?}", def.category).to_lowercase(),
+                    severity,
+                    &def.id,
+                    "builtin-1.0",
+                )
+                .with_description(&def.description)
+                .with_frameworks(def.frameworks.clone())
+            })
+            .collect();
+
+        match repo.upsert_batch(&rules).await {
+            Ok(count) => info!("Seeded {} built-in check rules into database", count),
+            Err(e) => warn!("Failed to seed built-in check rules: {}", e),
+        }
+    }
+
+    /// Apply configuration changes received from the server.
+    async fn apply_config_changes(&self) {
+        let config_sync = self.config_sync.read().await;
+        if let Some(ref config_sync) = *config_sync {
+            match config_sync.sync_config().await {
+                Ok(result) => {
+                    if result.changed {
+                        info!(
+                            "Config sync: {} added, {} updated, {} skipped",
+                            result.added, result.updated, result.skipped
+                        );
+
+                        // Apply heartbeat interval change if present
+                        if let Ok(Some(interval)) = config_sync
+                            .get_config::<u64>(agent_sync::config_keys::HEARTBEAT_INTERVAL_SECS)
+                            .await
+                        {
+                            let mut current = self.heartbeat_interval_secs.write().await;
+                            if *current != interval {
+                                info!("Heartbeat interval updated: {}s → {}s", *current, interval);
+                                *current = interval;
+                            }
+                        }
+                    } else {
+                        debug!("Config sync: no changes");
+                    }
+                }
+                Err(e) => warn!("Config sync failed: {}", e),
+            }
+        }
+    }
+
+    /// Get the count of pending sync items for the heartbeat.
+    async fn get_pending_sync_count(&self) -> i64 {
+        let uploader = self.result_uploader.read().await;
+        if let Some(ref uploader) = *uploader {
+            uploader.pending_count().await.unwrap_or(0)
+        } else {
+            0
+        }
+    }
+
     /// Upload network security alert to the server.
     async fn upload_network_alert(&self, alert: &NetworkSecurityAlert) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
@@ -573,7 +1207,11 @@ impl AgentRuntime {
 
         // Ensure we're enrolled
         match self.ensure_enrolled().await {
-            Ok(()) => info!("Agent enrollment verified"),
+            Ok(()) => {
+                info!("Agent enrollment verified");
+                // Initialize sync services now that we're enrolled
+                self.init_sync_services().await;
+            }
             Err(e) => {
                 warn!("Enrollment failed: {}. Running in offline mode.", e);
                 // Continue running in offline mode
@@ -588,11 +1226,35 @@ impl AgentRuntime {
             usage.memory_bytes / (1024 * 1024)
         );
 
+        // Compliance tracking variables
+        let mut compliance_score: Option<f64> = None;
+        let mut last_compliance_check_at: Option<chrono::DateTime<chrono::Utc>> = None;
+
+        // Emit initial GUI state
+        #[cfg(feature = "gui")]
+        {
+            self.emit_status_update(None, None);
+            self.emit_resource_update();
+        }
+
         // Track last operation times
         let mut last_heartbeat = std::time::Instant::now();
         let mut last_vuln_scan = std::time::Instant::now()
             .checked_sub(std::time::Duration::from_secs(self.vuln_scan_interval_secs))
             .unwrap_or_else(std::time::Instant::now);
+        // Compliance check timer: trigger immediately on first loop
+        let mut last_compliance_check_time = std::time::Instant::now()
+            .checked_sub(std::time::Duration::from_secs(
+                self.compliance_check_interval_secs,
+            ))
+            .unwrap_or_else(std::time::Instant::now);
+        // Certificate renewal timer (daily)
+        let mut last_cert_check = std::time::Instant::now();
+        let cert_check_interval_secs: u64 = 24 * 3600;
+        #[cfg(feature = "gui")]
+        let mut last_check_at: Option<chrono::DateTime<chrono::Utc>> = None;
+        #[cfg(feature = "gui")]
+        let mut last_gui_resource_update = std::time::Instant::now();
 
         let heartbeat_interval = *self.heartbeat_interval_secs.read().await;
 
@@ -653,40 +1315,99 @@ impl AgentRuntime {
         while !self.is_shutdown_requested() {
             let mut is_active = false;
 
-            // Check resource limits periodically
-            if !self.resource_monitor.check_limits(is_active) {
-                debug!("Resource limits check triggered warning");
-            }
+            // Check resource limits periodically (warnings are rate-limited inside check_limits)
+            self.resource_monitor.check_limits(is_active);
 
             // Send heartbeat if interval has passed
             if last_heartbeat.elapsed().as_secs() >= heartbeat_interval {
-                match self.send_heartbeat().await {
+                match self
+                    .send_heartbeat(compliance_score, last_compliance_check_at)
+                    .await
+                {
                     Ok(()) => {
                         debug!("Heartbeat sent successfully");
+                        #[cfg(feature = "gui")]
+                        self.emit_notification("Heartbeat", "Heartbeat envoyé avec succès", "info");
                     }
                     Err(e) => {
                         warn!("Failed to send heartbeat: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_notification("Heartbeat échoué", &format!("{}", e), "warning");
                     }
                 }
                 last_heartbeat = std::time::Instant::now();
+                // Update GUI with latest status and resources
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_resource_update();
+                }
             }
 
             // Run vulnerability scan if interval has passed
             if last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs {
                 is_active = true;
+                #[cfg(feature = "gui")]
+                {
+                    self.scanning.store(true, Ordering::Release);
+                    self.emit_status_update(last_check_at, compliance_score);
+                }
                 match self.run_vulnerability_scan().await {
                     Ok(result) => {
-                        if !result.vulnerabilities.is_empty() {
-                            info!(
-                                "Vulnerability scan found {} issues",
-                                result.vulnerabilities.len()
+                        let count = result.vulnerabilities.len();
+                        if count > 0 {
+                            info!("Vulnerability scan found {} issues", count);
+                        }
+                        // Upload full software inventory to server
+                        self.upload_software_from_scan(&result).await;
+                        #[cfg(feature = "gui")]
+                        {
+                            let severity = if count > 0 { "warning" } else { "info" };
+                            self.emit_notification(
+                                "Scan vulnérabilités terminé",
+                                &format!("{} vulnérabilités détectées sur {} paquets", count, result.packages_scanned),
+                                severity,
                             );
+                            // Emit vulnerability summary to GUI
+                            let mut critical = 0u32;
+                            let mut high = 0u32;
+                            let mut medium = 0u32;
+                            let mut low = 0u32;
+                            for v in &result.vulnerabilities {
+                                match v.severity {
+                                    agent_scanner::Severity::Critical => critical += 1,
+                                    agent_scanner::Severity::High => high += 1,
+                                    agent_scanner::Severity::Medium => medium += 1,
+                                    agent_scanner::Severity::Low => low += 1,
+                                }
+                            }
+                            self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
+                                summary: GuiVulnerabilitySummary {
+                                    critical,
+                                    high,
+                                    medium,
+                                    low,
+                                    last_scan_at: Some(chrono::Utc::now()),
+                                },
+                            });
+                            // Emit software inventory and vulnerability findings to GUI
+                            self.emit_gui_event(AgentEvent::SoftwareUpdate {
+                                packages: self.build_software_packages(&result),
+                            });
+                            self.emit_gui_event(AgentEvent::VulnerabilityFindings {
+                                findings: self.build_vulnerability_findings(&result),
+                            });
+                            last_check_at = Some(chrono::Utc::now());
                         }
                     }
                     Err(e) => {
                         warn!("Vulnerability scan failed: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_notification("Scan vulnérabilités échoué", &format!("{}", e), "error");
                     }
                 }
+                #[cfg(feature = "gui")]
+                self.scanning.store(false, Ordering::Release);
                 last_vuln_scan = std::time::Instant::now();
             }
 
@@ -695,11 +1416,18 @@ impl AgentRuntime {
                 is_active = true;
                 match self.run_security_scan().await {
                     Ok(result) => {
-                        if !result.incidents.is_empty() {
-                            warn!(
-                                "Security scan detected {} incident(s)!",
-                                result.incidents.len()
+                        let count = result.incidents.len();
+                        if count > 0 {
+                            warn!("Security scan detected {} incident(s)!", count);
+                            #[cfg(feature = "gui")]
+                            self.emit_notification(
+                                "Incidents de sécurité détectés",
+                                &format!("{} incident(s) détecté(s)", count),
+                                "error",
                             );
+                        } else {
+                            #[cfg(feature = "gui")]
+                            self.emit_notification("Scan sécurité", "Aucun incident détecté", "info");
                         }
                     }
                     Err(e) => {
@@ -714,6 +1442,14 @@ impl AgentRuntime {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::NetworkUpdate {
+                            interfaces_count: snapshot.interfaces.len() as u32,
+                            connections_count: snapshot.connections.len() as u32,
+                            alerts_count: 0,
+                            primary_ip: snapshot.primary_ip.clone(),
+                            primary_mac: snapshot.primary_mac.clone(),
+                        });
                         if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                             warn!("Failed to upload network snapshot: {}", e);
                         }
@@ -733,6 +1469,14 @@ impl AgentRuntime {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::NetworkUpdate {
+                            interfaces_count: snapshot.interfaces.len() as u32,
+                            connections_count: snapshot.connections.len() as u32,
+                            alerts_count: 0,
+                            primary_ip: snapshot.primary_ip.clone(),
+                            primary_mac: snapshot.primary_mac.clone(),
+                        });
                         // Only upload connections portion
                         if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                             warn!("Failed to upload network connections: {}", e);
@@ -751,16 +1495,32 @@ impl AgentRuntime {
             if last_network_security.elapsed() >= current_network_security_interval {
                 is_active = true;
                 match self.run_network_collection().await {
-                    Ok(snapshot) => match self.run_network_security_detection(&snapshot).await {
-                        Ok(alerts) => {
-                            for alert in alerts {
-                                if let Err(e) = self.upload_network_alert(&alert).await {
-                                    warn!("Failed to upload network alert: {}", e);
+                    Ok(snapshot) => {
+                        #[cfg(feature = "gui")]
+                        let mut alert_count: u32 = 0;
+                        match self.run_network_security_detection(&snapshot).await {
+                            Ok(alerts) => {
+                                #[cfg(feature = "gui")]
+                                { alert_count = alerts.len() as u32; }
+                                for alert in alerts {
+                                    if let Err(e) = self.upload_network_alert(&alert).await {
+                                        warn!("Failed to upload network alert: {}", e);
+                                    }
                                 }
                             }
+                            Err(e) => {
+                                warn!("Network security detection failed: {}", e);
+                            }
                         }
-                        Err(e) => warn!("Network security detection failed: {}", e),
-                    },
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::NetworkUpdate {
+                            interfaces_count: snapshot.interfaces.len() as u32,
+                            connections_count: snapshot.connections.len() as u32,
+                            alerts_count: alert_count,
+                            primary_ip: snapshot.primary_ip.clone(),
+                            primary_mac: snapshot.primary_mac.clone(),
+                        });
+                    }
                     Err(e) => {
                         warn!("Network collection for security scan failed: {}", e);
                     }
@@ -770,9 +1530,219 @@ impl AgentRuntime {
                 current_network_security_interval = network_manager.next_security_interval();
             }
 
+            // Run compliance checks if interval has passed
+            if last_compliance_check_time.elapsed().as_secs()
+                >= self.compliance_check_interval_secs
+            {
+                is_active = true;
+                #[cfg(feature = "gui")]
+                {
+                    self.scanning.store(true, Ordering::Release);
+                    self.emit_status_update(last_check_at, compliance_score);
+                }
+
+                let (check_results, score) = self.run_compliance_checks().await;
+                compliance_score = Some(score.score);
+                last_compliance_check_at = Some(chrono::Utc::now());
+
+                // Store in database and upload to server
+                self.store_check_results(&check_results).await;
+                self.upload_check_results().await;
+
+                #[cfg(feature = "gui")]
+                {
+                    // Emit individual check results to GUI
+                    for exec_result in &check_results {
+                        let gui_result = self.execution_result_to_gui(exec_result);
+                        self.emit_gui_event(AgentEvent::CheckCompleted {
+                            result: gui_result,
+                        });
+                    }
+                    last_check_at = Some(chrono::Utc::now());
+                    self.scanning.store(false, Ordering::Release);
+                    self.emit_notification(
+                        "Compliance vérifiée",
+                        &format!(
+                            "Score: {:.1}% ({} passés, {} échoués)",
+                            score.score, score.passed_count, score.failed_count
+                        ),
+                        if score.score >= 80.0 { "info" } else { "warning" },
+                    );
+                    self.emit_status_update(last_check_at, compliance_score);
+                }
+
+                last_compliance_check_time = std::time::Instant::now();
+            }
+
+            // Certificate renewal check (daily)
+            if last_cert_check.elapsed().as_secs() >= cert_check_interval_secs {
+                if let Some(ref auth_client) = self.authenticated_client {
+                    match auth_client.check_and_renew_if_needed().await {
+                        Ok(()) => {
+                            debug!("Certificate renewal check complete");
+                        }
+                        Err(e) => warn!("Certificate renewal check failed: {}", e),
+                    }
+                }
+                last_cert_check = std::time::Instant::now();
+            }
+
+            // Check for force_check flag (GUI "Vérifier maintenant" button)
+            if self.force_check.swap(false, Ordering::AcqRel) {
+                info!("Force check triggered");
+                is_active = true;
+                #[cfg(feature = "gui")]
+                {
+                    self.scanning.store(true, Ordering::Release);
+                    self.emit_status_update(last_check_at, compliance_score);
+                }
+
+                // Run vulnerability scan
+                match self.run_vulnerability_scan().await {
+                    Ok(result) => {
+                        let count = result.vulnerabilities.len();
+                        info!("Force vuln check: {} findings from {} packages", count, result.packages_scanned);
+                        self.upload_software_from_scan(&result).await;
+                        #[cfg(feature = "gui")]
+                        {
+                            self.emit_notification(
+                                "Scan vulnérabilités",
+                                &format!("{} vulnérabilités sur {} paquets", count, result.packages_scanned),
+                                if count > 0 { "warning" } else { "info" },
+                            );
+                            // Emit vulnerability summary to GUI
+                            let mut critical = 0u32;
+                            let mut high = 0u32;
+                            let mut medium = 0u32;
+                            let mut low = 0u32;
+                            for v in &result.vulnerabilities {
+                                match v.severity {
+                                    agent_scanner::Severity::Critical => critical += 1,
+                                    agent_scanner::Severity::High => high += 1,
+                                    agent_scanner::Severity::Medium => medium += 1,
+                                    agent_scanner::Severity::Low => low += 1,
+                                }
+                            }
+                            self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
+                                summary: GuiVulnerabilitySummary {
+                                    critical,
+                                    high,
+                                    medium,
+                                    low,
+                                    last_scan_at: Some(chrono::Utc::now()),
+                                },
+                            });
+                            // Emit software inventory and vulnerability findings to GUI
+                            self.emit_gui_event(AgentEvent::SoftwareUpdate {
+                                packages: self.build_software_packages(&result),
+                            });
+                            self.emit_gui_event(AgentEvent::VulnerabilityFindings {
+                                findings: self.build_vulnerability_findings(&result),
+                            });
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Force vuln check failed: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_notification("Scan vulnérabilités échoué", &format!("{}", e), "error");
+                    }
+                }
+
+                // Also run compliance checks
+                let (check_results, score) = self.run_compliance_checks().await;
+                compliance_score = Some(score.score);
+                last_compliance_check_at = Some(chrono::Utc::now());
+                self.store_check_results(&check_results).await;
+                self.upload_check_results().await;
+
+                #[cfg(feature = "gui")]
+                {
+                    // Emit individual check results to GUI
+                    for exec_result in &check_results {
+                        let gui_result = self.execution_result_to_gui(exec_result);
+                        self.emit_gui_event(AgentEvent::CheckCompleted {
+                            result: gui_result,
+                        });
+                    }
+                    last_check_at = Some(chrono::Utc::now());
+                    self.emit_notification(
+                        "Compliance vérifiée",
+                        &format!(
+                            "Score: {:.1}% ({} passés, {} échoués)",
+                            score.score, score.passed_count, score.failed_count
+                        ),
+                        if score.score >= 80.0 { "info" } else { "warning" },
+                    );
+                    self.scanning.store(false, Ordering::Release);
+                    self.emit_status_update(last_check_at, compliance_score);
+                }
+                last_vuln_scan = std::time::Instant::now();
+                last_compliance_check_time = std::time::Instant::now();
+            }
+
+            // Check for force_sync flag (GUI "Forcer la synchronisation" button)
+            if self.force_sync.swap(false, Ordering::AcqRel) {
+                info!("Force sync triggered");
+                #[cfg(feature = "gui")]
+                self.emit_gui_event(AgentEvent::SyncStatus {
+                    syncing: true,
+                    pending_count: 0,
+                    last_sync_at: None,
+                    error: None,
+                });
+
+                // Upload any pending check results first
+                self.upload_check_results().await;
+
+                match self
+                    .send_heartbeat(compliance_score, last_compliance_check_at)
+                    .await
+                {
+                    Ok(()) => {
+                        info!("Force sync heartbeat sent");
+                        #[cfg(feature = "gui")]
+                        {
+                            self.emit_notification("Synchronisation", "Données synchronisées avec succès", "info");
+                            self.emit_gui_event(AgentEvent::SyncStatus {
+                                syncing: false,
+                                pending_count: 0,
+                                last_sync_at: Some(chrono::Utc::now()),
+                                error: None,
+                            });
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Force sync heartbeat failed: {}", e);
+                        #[cfg(feature = "gui")]
+                        {
+                            self.emit_notification("Synchronisation échouée", &format!("{}", e), "error");
+                            self.emit_gui_event(AgentEvent::SyncStatus {
+                                syncing: false,
+                                pending_count: 0,
+                                last_sync_at: None,
+                                error: Some(format!("{}", e)),
+                            });
+                        }
+                    }
+                }
+                last_heartbeat = std::time::Instant::now();
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_resource_update();
+                }
+            }
+
             // Update resource limits check with active status
-            if is_active && !self.resource_monitor.check_limits(is_active) {
-                debug!("Resource limits exceeded during active scan");
+            if is_active {
+                self.resource_monitor.check_limits(is_active);
+            }
+
+            // Periodically push resource usage to the GUI (every 5 seconds)
+            #[cfg(feature = "gui")]
+            if last_gui_resource_update.elapsed().as_secs() >= 5 {
+                self.emit_resource_update();
+                last_gui_resource_update = std::time::Instant::now();
             }
 
             // Sleep for a short interval before checking shutdown again

@@ -77,3 +77,4 @@ pub use security::{
 pub use vulnerability::{
     ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
 };
+pub use vulnerability::package_scanner::InstalledPackage;
