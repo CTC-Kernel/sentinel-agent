@@ -22,6 +22,8 @@ pub struct HttpClient {
     client: Client,
     /// Base URL for API requests.
     base_url: String,
+    /// Client certificate for header-based auth (fallback when mTLS is unavailable).
+    auth_certificate: Option<String>,
 }
 
 impl HttpClient {
@@ -75,6 +77,62 @@ impl HttpClient {
         Ok(Self {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
+            auth_certificate: None,
+        })
+    }
+
+    /// Create a new HTTP client with header-based authentication.
+    ///
+    /// This client sends the certificate via `X-Agent-Certificate` header
+    /// instead of mTLS. Used as fallback when the stored certificate is not
+    /// in valid PEM format (e.g., base64-encoded JSON from enrollment).
+    pub fn with_header_auth(
+        config: &AgentConfig,
+        certificate: &str,
+    ) -> SyncResult<Self> {
+        debug!("Creating HTTP client with header-based auth (mTLS fallback)");
+
+        let mut builder = ClientBuilder::new()
+            .timeout(Duration::from_secs(HTTP_TIMEOUT_SECS))
+            .connect_timeout(Duration::from_secs(HTTP_CONNECT_TIMEOUT_SECS))
+            .min_tls_version(MIN_TLS_VERSION)
+            .user_agent(format!("{}/{}", AGENT_NAME, AGENT_VERSION));
+
+        if !config.tls_verify {
+            debug!("TLS verification disabled (development mode)");
+            builder = builder.danger_accept_invalid_certs(true);
+        }
+
+        if let Some(ref ca_path) = config.ca_cert_path {
+            debug!("Loading custom CA certificate from: {}", ca_path);
+            let ca_cert = std::fs::read(ca_path).map_err(|e| {
+                SyncError::Certificate(format!("Failed to read CA certificate: {}", e))
+            })?;
+            let cert = reqwest::Certificate::from_pem(&ca_cert)
+                .map_err(|e| SyncError::Certificate(format!("Invalid CA certificate: {}", e)))?;
+            builder = builder.add_root_certificate(cert);
+        }
+
+        if let Some(ref proxy_config) = config.proxy {
+            debug!("Configuring proxy: {}", proxy_config.url);
+            let mut proxy = reqwest::Proxy::all(&proxy_config.url)
+                .map_err(|e| SyncError::Config(format!("Invalid proxy URL: {}", e)))?;
+
+            if let (Some(user), Some(pass)) = (&proxy_config.username, &proxy_config.password) {
+                proxy = proxy.basic_auth(user, pass);
+            }
+
+            builder = builder.proxy(proxy);
+        }
+
+        let client = builder
+            .build()
+            .map_err(|e| SyncError::Config(format!("Failed to build HTTP client: {}", e)))?;
+
+        Ok(Self {
+            client,
+            base_url: config.server_url.trim_end_matches('/').to_string(),
+            auth_certificate: Some(certificate.to_string()),
         })
     }
 
@@ -139,6 +197,7 @@ impl HttpClient {
         Ok(Self {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
+            auth_certificate: None,
         })
     }
 
@@ -164,6 +223,15 @@ impl HttpClient {
         &self.client
     }
 
+    /// Apply header-based auth if configured (X-Agent-Certificate header).
+    fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+        if let Some(ref cert) = self.auth_certificate {
+            builder.header("X-Agent-Certificate", cert)
+        } else {
+            builder
+        }
+    }
+
     /// Send a POST request with JSON body.
     pub async fn post_json<T, R>(&self, path: &str, body: &T) -> SyncResult<R>
     where
@@ -173,12 +241,14 @@ impl HttpClient {
         let url = self.url(path);
         debug!("POST {}", url);
 
-        let response = self
+        let request = self
             .client
             .post(&url)
             .header(header::CONTENT_TYPE, "application/json")
             .header(header::ACCEPT, "application/json")
-            .json(body)
+            .json(body);
+
+        let response = self.apply_auth(request)
             .send()
             .await
             .map_err(|e| {
@@ -238,10 +308,12 @@ impl HttpClient {
         let url = self.url(path);
         debug!("GET {}", url);
 
-        let response = self
+        let request = self
             .client
             .get(&url)
-            .header(header::ACCEPT, "application/json")
+            .header(header::ACCEPT, "application/json");
+
+        let response = self.apply_auth(request)
             .send()
             .await
             .map_err(|e| {
@@ -282,7 +354,7 @@ impl HttpClient {
             request = request.header(header::IF_NONE_MATCH, etag);
         }
 
-        let response = request.send().await.map_err(|e| {
+        let response = self.apply_auth(request).send().await.map_err(|e| {
             if e.is_timeout() {
                 SyncError::Timeout
             } else if e.is_connect() {
@@ -339,7 +411,8 @@ impl HttpClient {
 
         debug!("Downloading from {}", full_url);
 
-        let response = self.client.get(&full_url).send().await.map_err(|e| {
+        let request = self.client.get(&full_url);
+        let response = self.apply_auth(request).send().await.map_err(|e| {
             if e.is_timeout() {
                 SyncError::Timeout
             } else if e.is_connect() {

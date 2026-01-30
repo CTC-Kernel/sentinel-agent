@@ -32,13 +32,13 @@ pub const INFO: Color32 = Color32::from_rgb(100, 210, 255);
 // ============================================================================
 
 /// Window / app background.
-pub const BG_PRIMARY: Color32 = Color32::from_rgb(28, 28, 30);
+pub const BG_PRIMARY: Color32 = Color32::from_rgb(18, 18, 20); // Deep obsidian
 /// Card / panel background.
-pub const BG_SECONDARY: Color32 = Color32::from_rgb(36, 36, 38);
+pub const BG_SECONDARY: Color32 = Color32::from_rgb(28, 28, 30); // Lighter obsidian
 /// Elevated surface (hover, modal).
-pub const BG_ELEVATED: Color32 = Color32::from_rgb(44, 44, 46);
+pub const BG_ELEVATED: Color32 = Color32::from_rgb(38, 38, 40);
 /// Sidebar background.
-pub const BG_SIDEBAR: Color32 = Color32::from_rgb(24, 24, 26);
+pub const BG_SIDEBAR: Color32 = Color32::from_rgb(14, 14, 16); // Very deep dark
 
 // ============================================================================
 // Text colors
@@ -162,13 +162,13 @@ pub fn apply_theme(ctx: &egui::Context) {
     visuals.widgets.noninteractive.bg_fill = BG_SECONDARY;
     visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, TEXT_SECONDARY);
     visuals.widgets.noninteractive.corner_radius = btn_rounding;
-    visuals.widgets.noninteractive.bg_stroke = Stroke::new(0.5, BORDER);
+    visuals.widgets.noninteractive.bg_stroke = Stroke::NONE; // Remove parasitic borders
 
     // Widgets hovered
     visuals.widgets.hovered.bg_fill = BG_ELEVATED;
     visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, TEXT_PRIMARY);
     visuals.widgets.hovered.corner_radius = btn_rounding;
-    visuals.widgets.hovered.bg_stroke = Stroke::new(0.6, ACCENT);
+    visuals.widgets.hovered.bg_stroke = Stroke::NONE; // Clean hover (shadow/tint only)
 
     // Widgets active
     visuals.widgets.active.bg_fill = ACCENT;
@@ -179,7 +179,7 @@ pub fn apply_theme(ctx: &egui::Context) {
     visuals.widgets.inactive.bg_fill = BG_ELEVATED;
     visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, TEXT_PRIMARY);
     visuals.widgets.inactive.corner_radius = btn_rounding;
-    visuals.widgets.inactive.bg_stroke = Stroke::new(0.5, BORDER);
+    visuals.widgets.inactive.bg_stroke = Stroke::NONE;
 
     // Selection
     visuals.selection.bg_fill = ACCENT.linear_multiply(0.2);
@@ -188,7 +188,7 @@ pub fn apply_theme(ctx: &egui::Context) {
     // Window
     visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
     visuals.window_shadow = premium_shadow(16, 80);
-    visuals.window_stroke = Stroke::new(0.5, BORDER);
+    visuals.window_stroke = Stroke::NONE; // Minimal borderless look
 
     // Misc
     visuals.popup_shadow = premium_shadow(8, 60);

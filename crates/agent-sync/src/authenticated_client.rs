@@ -324,7 +324,10 @@ impl AuthenticatedClient {
         self.refresh_client().await
     }
 
-    /// Refresh the mTLS client with current credentials.
+    /// Refresh the client with current credentials.
+    ///
+    /// Tries mTLS first, falls back to header-based auth (X-Agent-Certificate)
+    /// if the stored certificate is not in valid PEM format.
     async fn refresh_client(&self) -> SyncResult<HttpClient> {
         let credentials = self.load_credentials().await?;
 
@@ -344,13 +347,29 @@ impl AuthenticatedClient {
             );
         }
 
-        debug!("Creating mTLS client for agent {}", credentials.agent_id);
+        debug!("Creating authenticated client for agent {}", credentials.agent_id);
 
-        let client = HttpClient::with_mtls(
+        // Try mTLS first, fall back to header-based auth
+        let client = match HttpClient::with_mtls(
             &self.config,
             &credentials.client_certificate,
             &credentials.client_private_key,
-        )?;
+        ) {
+            Ok(client) => {
+                debug!("Using mTLS authentication");
+                client
+            }
+            Err(e) => {
+                warn!(
+                    "mTLS client creation failed ({}), falling back to header-based auth",
+                    e
+                );
+                HttpClient::with_header_auth(
+                    &self.config,
+                    &credentials.client_certificate,
+                )?
+            }
+        };
 
         // Cache the client and credentials
         {

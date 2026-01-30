@@ -28,7 +28,7 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
         });
     });
 
-    let (rect, _) = ui.allocate_exact_size(Vec2::new(full_width, bar_height), egui::Sense::hover());
+    let (rect, _) = ui.allocate_exact_size(Vec2::new(full_width, bar_height), egui::Sense::empty());
     let painter = ui.painter_at(rect);
     let rounding = CornerRadius::same(3);
 

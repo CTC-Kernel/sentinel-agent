@@ -11,7 +11,7 @@ use crate::theme;
 /// Returns the rect used so callers can position labels.
 pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
     let desired_size = Vec2::splat(radius * 2.0 + 16.0);
-    let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
+    let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::empty());
     let center = rect.center();
     let painter = ui.painter_at(rect);
 
