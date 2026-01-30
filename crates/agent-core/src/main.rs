@@ -374,6 +374,18 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
         .block_on(enrollment_manager.is_enrolled())
         .unwrap_or(false);
 
+    // If enrolled, load credentials from database into config so AgentRuntime can use them
+    if is_enrolled {
+        use agent_sync::CredentialsRepository;
+        let credentials_repo = CredentialsRepository::new(&db);
+        if let Ok(Some(creds)) = rt.block_on(credentials_repo.load()) {
+            config.agent_id = Some(creds.agent_id.to_string());
+            config.client_certificate = Some(creds.client_certificate.clone());
+            config.client_key = Some(creds.client_private_key.clone());
+            info!("Loaded agent credentials from database: {}", creds.agent_id);
+        }
+    }
+
     // ── GUI mode: delegate enrollment + runtime to the GUI ──
     #[cfg(feature = "gui")]
     if !no_tray {
@@ -403,6 +415,7 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
                 println!("Enrolling agent...");
                 match rt.block_on(enrollment_manager.ensure_enrolled()) {
                     Ok(creds) => {
+                        config.agent_id = Some(creds.agent_id.to_string());
                         println!("Enrollment successful! Agent ID: {}", creds.agent_id);
                     }
                     Err(e) => {
@@ -424,8 +437,9 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
         }
     }
 
-    // Create runtime with enrolled config
-    let runtime = AgentRuntime::new(config);
+    // Create runtime with enrolled config and database
+    let db = std::sync::Arc::new(db);
+    let runtime = AgentRuntime::new(config).with_database(db);
     let shutdown = runtime.shutdown_signal();
 
     // Set up Ctrl+C handler
@@ -585,14 +599,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
                             // Open DB and attempt enrollment
                             let result = enroll_with_config(&config).await;
                             match result {
-                                Ok(agent_id) => {
+                                Ok(enrollment) => {
+                                    config.agent_id = Some(enrollment.agent_id.clone());
+                                    config.client_certificate = Some(enrollment.client_certificate);
+                                    config.client_key = Some(enrollment.client_key);
                                     let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: true,
                                         message: format!(
                                             "Agent enrôlé avec succès.\nID: {}",
-                                            agent_id
+                                            enrollment.agent_id
                                         ),
-                                        agent_id: Some(agent_id),
+                                        agent_id: Some(enrollment.agent_id),
                                     });
                                     // Wait for Finish before starting runtime
                                     wait_for_finish(&enrollment_rx).await;
@@ -633,14 +650,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
 
                             let result = enroll_with_config(&config).await;
                             match result {
-                                Ok(agent_id) => {
+                                Ok(enrollment) => {
+                                    config.agent_id = Some(enrollment.agent_id.clone());
+                                    config.client_certificate = Some(enrollment.client_certificate);
+                                    config.client_key = Some(enrollment.client_key);
                                     let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: true,
                                         message: format!(
                                             "Agent enrôlé avec succès.\nID: {}",
-                                            agent_id
+                                            enrollment.agent_id
                                         ),
-                                        agent_id: Some(agent_id),
+                                        agent_id: Some(enrollment.agent_id),
                                     });
                                     wait_for_finish(&enrollment_rx).await;
                                     break;
@@ -667,7 +687,24 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
             }
 
             // ── Run the agent runtime ──
-            let runtime = AgentRuntime::new(config);
+            // Open database for sync services
+            let db_arc = {
+                use agent_storage::{Database, DatabaseConfig, KeyManager};
+                let db_config = DatabaseConfig::default();
+                match KeyManager::new().and_then(|km| Database::open(db_config, &km)) {
+                    Ok(db) => Some(std::sync::Arc::new(db)),
+                    Err(e) => {
+                        tracing::warn!("Failed to open database for sync services: {}", e);
+                        None
+                    }
+                }
+            };
+
+            let mut runtime = AgentRuntime::new(config);
+            if let Some(db) = db_arc {
+                runtime = runtime.with_database(db);
+            }
+            runtime.set_gui_event_tx(bg_event_tx);
             let handle = runtime.handle();
 
             // Spawn command processor
@@ -682,11 +719,11 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
                         }
                         Ok(GuiCommand::RunCheck) => {
                             info!("GUI requested check run");
-                            // TODO: trigger check
+                            handle.trigger_check();
                         }
                         Ok(GuiCommand::ForceSync) => {
                             info!("GUI requested force sync");
-                            // TODO: trigger sync
+                            handle.trigger_sync();
                         }
                         Ok(_) => {}
                         Err(mpsc::TryRecvError::Empty) => {
@@ -718,8 +755,16 @@ fn run_with_gui(config: AgentConfig, enrolled: bool) -> ExitCode {
 }
 
 /// Perform enrollment using the current config. Returns the agent ID on success.
+/// Enrollment result containing credentials needed by the runtime.
 #[cfg(feature = "gui")]
-async fn enroll_with_config(config: &AgentConfig) -> Result<String, String> {
+struct EnrollmentResult {
+    agent_id: String,
+    client_certificate: String,
+    client_key: String,
+}
+
+#[cfg(feature = "gui")]
+async fn enroll_with_config(config: &AgentConfig) -> Result<EnrollmentResult, String> {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
@@ -733,7 +778,11 @@ async fn enroll_with_config(config: &AgentConfig) -> Result<String, String> {
         .await
         .map_err(|e| e.to_string())?;
 
-    Ok(creds.agent_id.to_string())
+    Ok(EnrollmentResult {
+        agent_id: creds.agent_id.to_string(),
+        client_certificate: creds.client_certificate,
+        client_key: creds.client_private_key,
+    })
 }
 
 /// Wait for the user to click "Continuer" after successful enrollment.

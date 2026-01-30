@@ -63,6 +63,13 @@ impl DashboardPage {
                             &ts.format("%d/%m/%Y %H:%M").to_string(),
                         );
                     }
+
+                    if state.summary.uptime_secs > 0 {
+                        let uptime = state.summary.uptime_secs;
+                        let hours = uptime / 3600;
+                        let minutes = (uptime % 3600) / 60;
+                        Self::info_row(ui, "Uptime", &format!("{}h {:02}min", hours, minutes));
+                    }
                 });
 
                 ui.add_space(theme::SPACE);
@@ -98,9 +105,61 @@ impl DashboardPage {
                 widgets::resource_bar(
                     ui,
                     "M\u{00e9}moire",
-                    &format!("{} Mo", state.resources.memory_mb),
-                    (state.resources.memory_mb as f32 / 512.0).min(1.0),
+                    &format!(
+                        "{:.1}% ({} / {} Mo)",
+                        state.resources.memory_percent,
+                        state.resources.memory_used_mb,
+                        state.resources.memory_total_mb,
+                    ),
+                    (state.resources.memory_percent / 100.0) as f32,
                 );
+                ui.add_space(theme::SPACE_XS);
+                widgets::resource_bar(
+                    ui,
+                    "Disque",
+                    &format!("{:.1}%", state.resources.disk_percent),
+                    (state.resources.disk_percent / 100.0) as f32,
+                );
+            });
+
+            ui.add_space(theme::SPACE);
+
+            // Vulnerability summary
+            widgets::card(ui, |ui| {
+                ui.label(
+                    egui::RichText::new("Vuln\u{00e9}rabilit\u{00e9}s")
+                        .font(theme::font_heading())
+                        .color(theme::TEXT_PRIMARY),
+                );
+                ui.add_space(theme::SPACE_SM);
+
+                if let Some(ref vuln) = state.vulnerability_summary {
+                    ui.horizontal(|ui| {
+                        Self::vuln_count(ui, "Critique", vuln.critical, theme::ERROR);
+                        ui.add_space(theme::SPACE);
+                        Self::vuln_count(ui, "\u{00c9}lev\u{00e9}e", vuln.high, theme::WARNING);
+                        ui.add_space(theme::SPACE);
+                        Self::vuln_count(ui, "Moyenne", vuln.medium, theme::INFO);
+                        ui.add_space(theme::SPACE);
+                        Self::vuln_count(ui, "Faible", vuln.low, theme::TEXT_SECONDARY);
+                    });
+                    if let Some(ts) = vuln.last_scan_at {
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(
+                            egui::RichText::new(format!(
+                                "Dernier scan : {}",
+                                ts.format("%d/%m/%Y %H:%M")
+                            ))
+                            .font(theme::font_small())
+                            .color(theme::TEXT_TERTIARY),
+                        );
+                    }
+                } else {
+                    ui.label(
+                        egui::RichText::new("Aucun scan de vuln\u{00e9}rabilit\u{00e9}s effectu\u{00e9}")
+                            .color(theme::TEXT_TERTIARY),
+                    );
+                }
             });
 
             ui.add_space(theme::SPACE);
@@ -170,6 +229,21 @@ impl DashboardPage {
                     }
                 }
             });
+        });
+    }
+
+    fn vuln_count(ui: &mut Ui, label: &str, count: u32, color: egui::Color32) {
+        ui.vertical(|ui| {
+            ui.label(
+                egui::RichText::new(count.to_string())
+                    .font(theme::font_heading())
+                    .color(color),
+            );
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_small())
+                    .color(theme::TEXT_SECONDARY),
+            );
         });
     }
 

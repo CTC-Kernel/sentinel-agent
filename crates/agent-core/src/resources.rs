@@ -31,10 +31,10 @@ pub struct ResourceLimits {
 impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
-            // Realistic limits - 0.5% idle is too strict for any real-world process
-            max_cpu_idle: 3.0,                   // 3% idle is reasonable
-            max_cpu_active: 15.0,                // 15% during active scans
-            max_memory_bytes: 150 * 1024 * 1024, // 150 MB
+            // egui render loop + OpenGL poll uses 5-12% CPU on macOS even when idle
+            max_cpu_idle: 15.0,                  // 15% idle (egui+OpenGL render loop headroom)
+            max_cpu_active: 25.0,                // 25% during active scans
+            max_memory_bytes: 300 * 1024 * 1024, // 300 MB (egui+OpenGL context needs ~200MB)
             max_disk_iops: 50,
             max_startup_ms: 10000, // 10 seconds
         }
@@ -379,6 +379,85 @@ fn get_cpu_usage() -> f64 {
     0.0
 }
 
+/// System-wide CPU usage from /proc/stat (delta-based).
+#[cfg(target_os = "linux")]
+fn get_system_cpu() -> f64 {
+    use std::fs;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static LAST_TOTAL: AtomicU64 = AtomicU64::new(0);
+    static LAST_IDLE: AtomicU64 = AtomicU64::new(0);
+
+    if let Ok(content) = fs::read_to_string("/proc/stat") {
+        // First line: "cpu  user nice system idle iowait irq softirq steal ..."
+        if let Some(cpu_line) = content.lines().next() {
+            let parts: Vec<u64> = cpu_line
+                .split_whitespace()
+                .skip(1) // skip "cpu"
+                .filter_map(|s| s.parse().ok())
+                .collect();
+
+            if parts.len() >= 4 {
+                let total: u64 = parts.iter().sum();
+                // idle is index 3, iowait is index 4 (if present)
+                let idle = parts[3] + parts.get(4).copied().unwrap_or(0);
+
+                let prev_total = LAST_TOTAL.swap(total, Ordering::Relaxed);
+                let prev_idle = LAST_IDLE.swap(idle, Ordering::Relaxed);
+
+                if prev_total > 0 {
+                    let total_delta = total.saturating_sub(prev_total);
+                    let idle_delta = idle.saturating_sub(prev_idle);
+                    if total_delta > 0 {
+                        let busy = total_delta.saturating_sub(idle_delta);
+                        return (busy as f64 / total_delta as f64) * 100.0;
+                    }
+                }
+            }
+        }
+    }
+    0.0
+}
+
+#[cfg(target_os = "linux")]
+fn get_system_memory() -> (u64, u64) {
+    if let Ok(content) = std::fs::read_to_string("/proc/meminfo") {
+        let mut total = 0u64;
+        let mut available = 0u64;
+        for line in content.lines() {
+            if line.starts_with("MemTotal:") {
+                total = line.split_whitespace().nth(1)
+                    .and_then(|v| v.parse::<u64>().ok())
+                    .unwrap_or(0) * 1024; // kB to bytes
+            } else if line.starts_with("MemAvailable:") {
+                available = line.split_whitespace().nth(1)
+                    .and_then(|v| v.parse::<u64>().ok())
+                    .unwrap_or(0) * 1024;
+            }
+        }
+        let used = total.saturating_sub(available);
+        (total, used)
+    } else {
+        (0, 0)
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn get_disk_usage() -> (u64, u64) {
+    unsafe {
+        let mut stat: libc::statvfs = std::mem::zeroed();
+        let path = std::ffi::CString::new("/").unwrap();
+        if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
+            let total = stat.f_blocks as u64 * stat.f_frsize as u64;
+            let free = stat.f_bavail as u64 * stat.f_frsize as u64;
+            let used = total.saturating_sub(free);
+            (total, used)
+        } else {
+            (0, 0)
+        }
+    }
+}
+
 #[cfg(target_os = "linux")]
 fn get_disk_iops() -> u32 {
     use std::fs;
@@ -435,17 +514,148 @@ fn get_disk_iops() -> u32 {
     0
 }
 
+// ============ macOS Mach API FFI bindings ============
+
+#[cfg(target_os = "macos")]
+#[allow(non_camel_case_types)]
+mod mach_ffi {
+    //! Minimal FFI declarations for macOS Mach kernel APIs.
+    //! These are not exposed by the `libc` crate.
+
+    use libc::{c_int, c_uint};
+
+    // --- Mach basic types ---
+    pub type mach_port_t = c_uint;
+    pub type kern_return_t = c_int;
+    pub type task_flavor_t = c_uint;
+    pub type task_info_t = *mut c_int;
+    pub type mach_msg_type_number_t = c_uint;
+    pub type host_flavor_t = c_int;
+    pub type host_info64_t = *mut c_int;
+    pub type natural_t = c_uint;
+    pub type integer_t = c_int;
+    pub type processor_flavor_t = c_int;
+    pub type processor_info_array_t = *mut integer_t;
+
+    // --- Task info (for process memory) ---
+    pub const MACH_TASK_BASIC_INFO: task_flavor_t = 20;
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct mach_task_basic_info_data_t {
+        pub virtual_size: u64,
+        pub resident_size: u64,
+        pub resident_size_max: u64,
+        pub user_time: libc::timeval,
+        pub system_time: libc::timeval,
+        pub policy: c_int,
+        pub suspend_count: c_int,
+    }
+
+    pub const MACH_TASK_BASIC_INFO_COUNT: mach_msg_type_number_t =
+        (std::mem::size_of::<mach_task_basic_info_data_t>() / std::mem::size_of::<natural_t>())
+            as mach_msg_type_number_t;
+
+    // --- VM statistics (for system memory) ---
+    pub const HOST_VM_INFO64: host_flavor_t = 4;
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct vm_statistics64_data_t {
+        pub free_count: natural_t,
+        pub active_count: natural_t,
+        pub inactive_count: natural_t,
+        pub wire_count: natural_t,
+        pub zero_fill_count: u64,
+        pub reactivations: u64,
+        pub pageins: u64,
+        pub pageouts: u64,
+        pub faults: u64,
+        pub cow_faults: u64,
+        pub lookups: u64,
+        pub hits: u64,
+        pub purges: u64,
+        pub purgeable_count: natural_t,
+        pub speculative_count: natural_t,
+        pub decompressions: u64,
+        pub compressions: u64,
+        pub swapins: u64,
+        pub swapouts: u64,
+        pub compressor_page_count: natural_t,
+        pub throttled_count: natural_t,
+        pub external_page_count: natural_t,
+        pub internal_page_count: natural_t,
+        pub total_uncompressed_pages_in_compressor: u64,
+    }
+
+    pub const HOST_VM_INFO64_COUNT: mach_msg_type_number_t =
+        (std::mem::size_of::<vm_statistics64_data_t>() / std::mem::size_of::<natural_t>())
+            as mach_msg_type_number_t;
+
+    // --- CPU info (for system-wide CPU) ---
+    pub const PROCESSOR_CPU_LOAD_INFO: processor_flavor_t = 2;
+
+    pub const CPU_STATE_USER: usize = 0;
+    pub const CPU_STATE_SYSTEM: usize = 1;
+    pub const CPU_STATE_IDLE: usize = 2;
+    pub const CPU_STATE_NICE: usize = 3;
+    pub const CPU_STATE_MAX: usize = 4;
+
+    unsafe extern "C" {
+        pub fn mach_task_self() -> mach_port_t;
+        pub fn mach_host_self() -> mach_port_t;
+
+        pub fn task_info(
+            target_task: mach_port_t,
+            flavor: task_flavor_t,
+            task_info_out: task_info_t,
+            task_info_outCnt: *mut mach_msg_type_number_t,
+        ) -> kern_return_t;
+
+        pub fn host_statistics64(
+            host_priv: mach_port_t,
+            flavor: host_flavor_t,
+            host_info64_out: host_info64_t,
+            host_info64_outCnt: *mut mach_msg_type_number_t,
+        ) -> kern_return_t;
+
+        pub fn host_processor_info(
+            host: mach_port_t,
+            flavor: processor_flavor_t,
+            out_processor_count: *mut natural_t,
+            out_processor_info: *mut processor_info_array_t,
+            out_processor_infoCnt: *mut mach_msg_type_number_t,
+        ) -> kern_return_t;
+
+        pub fn vm_deallocate(
+            target_task: mach_port_t,
+            address: usize,
+            size: usize,
+        ) -> kern_return_t;
+    }
+}
+
+#[cfg(target_os = "macos")]
+use mach_ffi::*;
+
 // ============ macOS implementations ============
 
 #[cfg(target_os = "macos")]
 fn get_process_memory() -> u64 {
-    // Use getrusage to get memory info on macOS
-    // ru_maxrss is in bytes on macOS (unlike Linux where it's in KB)
+    // Use Mach task_info to get CURRENT resident memory (not peak).
+    // ru_maxrss from getrusage reports peak RSS which overstates usage.
     unsafe {
-        let mut rusage: libc::rusage = std::mem::zeroed();
-        if libc::getrusage(libc::RUSAGE_SELF, &mut rusage) == 0 {
-            // On macOS, ru_maxrss is already in bytes
-            return rusage.ru_maxrss as u64;
+        let task = mach_task_self();
+        let mut info: mach_task_basic_info_data_t = std::mem::zeroed();
+        let mut count = MACH_TASK_BASIC_INFO_COUNT;
+        let kr = task_info(
+            task,
+            MACH_TASK_BASIC_INFO,
+            &mut info as *mut _ as task_info_t,
+            &mut count,
+        );
+        if kr == libc::KERN_SUCCESS {
+            return info.resident_size as u64;
         }
     }
     0
@@ -498,6 +708,128 @@ fn get_cpu_usage() -> f64 {
     0.0
 }
 
+/// System-wide CPU usage via Mach `host_processor_info`.
+/// Returns the percentage of CPU time spent busy (user + system + nice)
+/// across all cores, averaged since the last call (delta-based).
+#[cfg(target_os = "macos")]
+fn get_system_cpu() -> f64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static LAST_TOTAL_TICKS: AtomicU64 = AtomicU64::new(0);
+    static LAST_IDLE_TICKS: AtomicU64 = AtomicU64::new(0);
+
+    unsafe {
+        let host = mach_host_self();
+        let mut num_cpus: natural_t = 0;
+        let mut info_array: processor_info_array_t = std::ptr::null_mut();
+        let mut info_count: mach_msg_type_number_t = 0;
+
+        let kr = host_processor_info(
+            host,
+            PROCESSOR_CPU_LOAD_INFO,
+            &mut num_cpus,
+            &mut info_array,
+            &mut info_count,
+        );
+
+        if kr != libc::KERN_SUCCESS || info_array.is_null() {
+            return 0.0;
+        }
+
+        // Sum ticks across all CPUs
+        let mut total_ticks: u64 = 0;
+        let mut idle_ticks: u64 = 0;
+
+        for i in 0..num_cpus as usize {
+            let base = i * CPU_STATE_MAX;
+            let user = *info_array.add(base + CPU_STATE_USER) as u64;
+            let system = *info_array.add(base + CPU_STATE_SYSTEM) as u64;
+            let idle = *info_array.add(base + CPU_STATE_IDLE) as u64;
+            let nice = *info_array.add(base + CPU_STATE_NICE) as u64;
+            total_ticks += user + system + idle + nice;
+            idle_ticks += idle;
+        }
+
+        // Free the Mach-allocated buffer
+        let alloc_size = (info_count as usize) * std::mem::size_of::<integer_t>();
+        vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
+
+        // Delta calculation
+        let prev_total = LAST_TOTAL_TICKS.swap(total_ticks, Ordering::Relaxed);
+        let prev_idle = LAST_IDLE_TICKS.swap(idle_ticks, Ordering::Relaxed);
+
+        if prev_total == 0 {
+            // First call — no delta yet
+            return 0.0;
+        }
+
+        let total_delta = total_ticks.saturating_sub(prev_total);
+        let idle_delta = idle_ticks.saturating_sub(prev_idle);
+
+        if total_delta == 0 {
+            return 0.0;
+        }
+
+        let busy_delta = total_delta.saturating_sub(idle_delta);
+        (busy_delta as f64 / total_delta as f64) * 100.0
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn get_system_memory() -> (u64, u64) {
+    unsafe {
+        // Total physical memory via sysctlbyname("hw.memsize")
+        let mut total: u64 = 0;
+        let mut size = std::mem::size_of::<u64>();
+        let name = b"hw.memsize\0";
+        libc::sysctlbyname(
+            name.as_ptr() as *const libc::c_char,
+            &mut total as *mut _ as *mut libc::c_void,
+            &mut size,
+            std::ptr::null_mut(),
+            0,
+        );
+
+        // VM page statistics via host_statistics64
+        let host = mach_host_self();
+        let mut vm_info: vm_statistics64_data_t = std::mem::zeroed();
+        let mut count = HOST_VM_INFO64_COUNT;
+        let kr = host_statistics64(
+            host,
+            HOST_VM_INFO64,
+            &mut vm_info as *mut _ as host_info64_t,
+            &mut count,
+        );
+        if kr == libc::KERN_SUCCESS {
+            let page_size = libc::sysconf(libc::_SC_PAGESIZE) as u64;
+            // "Used" = active + wired + compressor (excludes inactive, free, speculative)
+            let used = (vm_info.active_count as u64
+                + vm_info.wire_count as u64
+                + vm_info.compressor_page_count as u64)
+                * page_size;
+            (total, used)
+        } else {
+            (total, 0)
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn get_disk_usage() -> (u64, u64) {
+    unsafe {
+        let mut stat: libc::statvfs = std::mem::zeroed();
+        let path = std::ffi::CString::new("/").unwrap();
+        if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
+            let total = stat.f_blocks as u64 * stat.f_frsize as u64;
+            let free = stat.f_bavail as u64 * stat.f_frsize as u64;
+            let used = total.saturating_sub(free);
+            (total, used)
+        } else {
+            (0, 0)
+        }
+    }
+}
+
 #[cfg(target_os = "macos")]
 fn get_disk_iops() -> u32 {
     // macOS doesn't provide easy per-process I/O stats like Linux's /proc/self/io
@@ -526,6 +858,24 @@ fn get_process_memory() -> u64 {
 // ============ Windows implementations ============
 
 #[cfg(windows)]
+fn get_system_memory() -> (u64, u64) {
+    // Placeholder - would use GlobalMemoryStatusEx
+    (0, 0)
+}
+
+#[cfg(windows)]
+fn get_disk_usage() -> (u64, u64) {
+    // Placeholder - would use GetDiskFreeSpaceExW
+    (0, 0)
+}
+
+#[cfg(windows)]
+fn get_system_cpu() -> f64 {
+    // Placeholder - would use GetSystemTimes or NtQuerySystemInformation
+    0.0
+}
+
+#[cfg(windows)]
 fn get_disk_iops() -> u32 {
     // Windows implementation would use GetProcessIoCounters
     // Not implemented yet - returns 0
@@ -545,6 +895,21 @@ fn get_process_memory() -> u64 {
 #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
 fn get_cpu_usage() -> f64 {
     0.0
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_system_cpu() -> f64 {
+    0.0
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_system_memory() -> (u64, u64) {
+    (0, 0)
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_disk_usage() -> (u64, u64) {
+    (0, 0)
 }
 
 #[cfg(windows)]
@@ -607,6 +972,48 @@ fn get_cpu_usage() -> f64 {
     0.0
 }
 
+/// System-level resource information (CPU, memory total, disk usage).
+#[derive(Debug, Clone, Default)]
+pub struct SystemResources {
+    /// System-wide CPU usage percentage (all cores combined).
+    pub cpu_percent: f64,
+    pub memory_total_bytes: u64,
+    pub memory_used_bytes: u64,
+    pub memory_percent: f64,
+    pub disk_total_bytes: u64,
+    pub disk_used_bytes: u64,
+    pub disk_percent: f64,
+}
+
+/// Get system-level resource information (CPU, total memory, disk usage).
+pub fn get_system_resources() -> SystemResources {
+    let cpu_percent = get_system_cpu();
+    let memory = get_system_memory();
+    let disk = get_disk_usage();
+
+    let memory_percent = if memory.0 > 0 {
+        ((memory.1 as f64 / memory.0 as f64) * 100.0).clamp(0.0, 100.0)
+    } else {
+        0.0
+    };
+
+    let disk_percent = if disk.0 > 0 {
+        (disk.1 as f64 / disk.0 as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    SystemResources {
+        cpu_percent: cpu_percent.clamp(0.0, 100.0),
+        memory_total_bytes: memory.0,
+        memory_used_bytes: memory.1,
+        memory_percent,
+        disk_total_bytes: disk.0,
+        disk_used_bytes: disk.1,
+        disk_percent,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -614,9 +1021,9 @@ mod tests {
     #[test]
     fn test_resource_limits_default() {
         let limits = ResourceLimits::default();
-        assert!((limits.max_cpu_idle - 3.0).abs() < f64::EPSILON);
-        assert!((limits.max_cpu_active - 15.0).abs() < f64::EPSILON);
-        assert_eq!(limits.max_memory_bytes, 150 * 1024 * 1024);
+        assert!((limits.max_cpu_idle - 15.0).abs() < f64::EPSILON);
+        assert!((limits.max_cpu_active - 25.0).abs() < f64::EPSILON);
+        assert_eq!(limits.max_memory_bytes, 300 * 1024 * 1024);
         assert_eq!(limits.max_disk_iops, 50);
         assert_eq!(limits.max_startup_ms, 10000);
     }
@@ -637,7 +1044,7 @@ mod tests {
     fn test_resource_usage_exceeds_idle_limits() {
         let limits = ResourceLimits::default();
         let usage = ResourceUsage {
-            cpu_percent: 5.0, // Exceeds 3%
+            cpu_percent: 20.0, // Exceeds 15% idle limit
             memory_bytes: 50 * 1024 * 1024,
             disk_iops: 5,
             uptime_ms: 1000,
