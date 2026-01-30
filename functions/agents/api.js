@@ -368,6 +368,13 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
             os_info,
             cpu_percent,
             memory_bytes,
+            memory_percent,
+            memory_total_bytes,
+            disk_percent,
+            disk_used_bytes,
+            disk_total_bytes,
+            uptime_seconds,
+            ip_address,
             last_check_at,
             compliance_score,
             pending_sync_count,
@@ -381,7 +388,7 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
             version: agent_version || agentData.version,
             hostname: hostname || agentData.hostname,
             osInfo: os_info || agentData.osInfo,
-            ipAddress: req.ip || req.headers['x-forwarded-for'] || agentData.ipAddress,
+            ipAddress: ip_address || req.ip || req.headers['x-forwarded-for'] || agentData.ipAddress,
         };
 
         // Add optional metrics
@@ -390,6 +397,24 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
         }
         if (typeof memory_bytes === 'number') {
             updateData.memoryBytes = memory_bytes;
+        }
+        if (typeof memory_percent === 'number') {
+            updateData.memoryPercent = memory_percent;
+        }
+        if (typeof memory_total_bytes === 'number') {
+            updateData.memoryTotalBytes = memory_total_bytes;
+        }
+        if (typeof disk_percent === 'number') {
+            updateData.diskPercent = disk_percent;
+        }
+        if (typeof disk_used_bytes === 'number') {
+            updateData.diskUsedBytes = disk_used_bytes;
+        }
+        if (typeof disk_total_bytes === 'number') {
+            updateData.diskTotalBytes = disk_total_bytes;
+        }
+        if (typeof uptime_seconds === 'number') {
+            updateData.uptimeSeconds = uptime_seconds;
         }
         if (last_check_at) {
             updateData.lastCheckAt = last_check_at;
@@ -523,74 +548,158 @@ app.get('/v1/agents/:agentId/config', validateAgentAuth, async (req, res) => {
 });
 
 // ============================================================================
+// Agent Rules Download (SECURED with authentication middleware)
+// GET /v1/agents/:agentId/rules
+// ============================================================================
+app.get('/v1/agents/:agentId/rules', validateAgentAuth, async (req, res) => {
+    try {
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
+
+        // Get rules for this organization
+        const rulesSnapshot = await db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agentRules')
+            .where('enabled', '==', true)
+            .get();
+
+        const rules = rulesSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                name: data.name || doc.id,
+                description: data.description || null,
+                category: data.category || 'security',
+                severity: data.severity || 'medium',
+                enabled: true,
+                check_type: data.type || data.checkType || doc.id,
+                parameters: data.parameters || null,
+                frameworks: data.frameworks || [],
+                version: data.version || '1.0',
+                created_at: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+                updated_at: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            };
+        });
+
+        // Support ETag-based caching
+        const orgDoc = await db.collection('organizations').doc(organizationId).get();
+        const orgData = orgDoc.data() || {};
+        const etag = `"rules-v${orgData.agentRulesVersion || 1}"`;
+
+        // Check If-None-Match
+        const ifNoneMatch = req.get('If-None-Match');
+        if (ifNoneMatch && ifNoneMatch === etag) {
+            return res.status(304).end();
+        }
+
+        res.set('ETag', etag);
+        return res.status(200).json({
+            rules,
+            etag,
+            total_count: rules.length,
+        });
+    } catch (error) {
+        logger.error('Get rules error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
 // Agent Results Upload (SECURED with authentication middleware)
 // POST /v1/agents/:agentId/results
 // ============================================================================
 app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-        // Agent data already validated and attached by middleware
         const agentDoc = req.agentDoc;
         const agentData = req.agentData;
         const organizationId = agentData.organizationId;
 
-        const {
-            check_id,
-            framework,
-            control_id,
-            status,
-            evidence,
-            timestamp,
-            duration_ms,
-        } = req.body;
-
-        // Validate required fields
-        if (!check_id || !framework || !control_id || !status) {
-            return res.status(400).json({
-                error: 'check_id, framework, control_id, and status are required',
-            });
-        }
-
-        // Validate status
         const validStatuses = ['pass', 'fail', 'error', 'not_applicable'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({
-                error: `status must be one of: ${validStatuses.join(', ')}`,
-            });
+
+        // Support batch uploads from Rust agent: { results: [...], agent_id, timestamp }
+        const isBatch = Array.isArray(req.body.results);
+        const resultsToProcess = isBatch
+            ? req.body.results
+            : [req.body];
+
+        if (resultsToProcess.length === 0) {
+            return res.status(400).json({ error: 'No results provided' });
         }
 
-        // Create result document
-        const resultData = {
-            agentId,
-            checkId: check_id,
-            framework,
-            controlId: control_id,
-            status,
-            evidence: evidence || {},
-            agentTimestamp: timestamp || new Date().toISOString(),
-            durationMs: duration_ms || 0,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            hostname: agentData.hostname,
-            machineId: agentData.machineId,
-        };
-
-        const resultRef = await db
+        const resultsCollection = db
             .collection('organizations')
             .doc(organizationId)
             .collection('agents')
             .doc(agentId)
-            .collection('results')
-            .add(resultData);
+            .collection('results');
+
+        let accepted = 0;
+        let rejected = 0;
+        const rejectedIds = [];
+        const batch = db.batch();
+
+        for (const item of resultsToProcess) {
+            const checkId = item.check_id;
+            const status = item.status;
+
+            if (!checkId || !status) {
+                rejected++;
+                if (checkId) rejectedIds.push(checkId);
+                continue;
+            }
+
+            if (!validStatuses.includes(status)) {
+                rejected++;
+                rejectedIds.push(checkId);
+                continue;
+            }
+
+            const resultData = {
+                agentId,
+                checkId,
+                framework: item.framework || null,
+                controlId: item.control_id || null,
+                status,
+                evidence: item.evidence || item.raw_data || {},
+                score: typeof item.score === 'number' ? item.score : null,
+                proofHash: item.proof_hash || null,
+                agentTimestamp: item.executed_at || item.timestamp || new Date().toISOString(),
+                durationMs: item.duration_ms || 0,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                hostname: agentData.hostname,
+                machineId: agentData.machineId,
+            };
+
+            const docRef = resultsCollection.doc();
+            batch.set(docRef, resultData);
+            accepted++;
+        }
+
+        if (accepted > 0) {
+            await batch.commit();
+        }
 
         // Update agent's last check timestamp
         await agentDoc.ref.update({
             lastCheckAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        return res.status(201).json({
-            result_id: resultRef.id,
-            acknowledged: true,
-        });
+        if (isBatch) {
+            return res.status(201).json({
+                accepted,
+                rejected,
+                rejected_ids: rejectedIds,
+                timestamp: new Date().toISOString(),
+            });
+        } else {
+            // Legacy single-result response
+            return res.status(201).json({
+                result_id: 'batch',
+                acknowledged: true,
+            });
+        }
     } catch (error) {
         logger.error('Upload results error:', error);
         return res.status(500).json({ error: 'Internal server error' });

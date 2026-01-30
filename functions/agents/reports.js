@@ -429,7 +429,7 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
     filteredAgents = filteredAgents.filter(a => filters.statuses.includes(a.status));
   }
   if (filters.osTypes?.length) {
-    filteredAgents = filteredAgents.filter(a => filters.osTypes.includes(a.osType));
+    filteredAgents = filteredAgents.filter(a => filters.osTypes.includes(a.os));
   }
 
   // Get latest results for each agent
@@ -438,8 +438,9 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
     const resultsSnapshot = await db
       .collection('organizations')
       .doc(organizationId)
-      .collection('agentResults')
-      .where('agentId', '==', agent.id)
+      .collection('agents')
+      .doc(agent.id)
+      .collection('results')
       .orderBy('createdAt', 'desc')
       .limit(1)
       .get();
@@ -483,7 +484,7 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
   // By OS
   const osCounts = {};
   filteredAgents.forEach(agent => {
-    const os = agent.osType || 'unknown';
+    const os = agent.os || 'unknown';
     osCounts[os] = osCounts[os] || { count: 0, totalScore: 0 };
     osCounts[os].count++;
     const result = agentResults.find(ar => ar.agent.id === agent.id);
@@ -502,7 +503,7 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
   const agentDetails = agentResults.map(ar => ({
     agentId: ar.agent.id,
     hostname: ar.agent.hostname || ar.agent.name,
-    os: ar.agent.osType,
+    os: ar.agent.os,
     score: ar.result?.complianceScore || 0,
     status: (ar.result?.complianceScore || 0) >= 80 ? 'compliant' : 'non_compliant',
     lastCheck: ar.result?.createdAt || ar.agent.lastSeen,
@@ -554,7 +555,7 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
   // OS distribution
   const osCounts = {};
   agents.forEach(agent => {
-    const os = agent.osType || 'unknown';
+    const os = agent.os || 'unknown';
     osCounts[os] = (osCounts[os] || 0) + 1;
   });
 
@@ -567,7 +568,7 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
   // Version distribution
   const versionCounts = {};
   agents.forEach(agent => {
-    const version = agent.agentVersion || 'unknown';
+    const version = agent.version || 'unknown';
     versionCounts[version] = (versionCounts[version] || 0) + 1;
   });
 
@@ -655,8 +656,8 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
     agentList: agents.slice(0, 100).map(agent => ({
       agentId: agent.id,
       hostname: agent.hostname || agent.name,
-      os: agent.osType,
-      version: agent.agentVersion,
+      os: agent.os,
+      version: agent.version,
       status: agent.status,
       lastSeen: agent.lastSeen,
       uptime: 0,
