@@ -15,7 +15,7 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
             .layout_no_wrap(text.to_string(), theme::font_small(), theme::TEXT_ON_ACCENT);
     let text_size = galley.size();
     let desired = text_size + padding * 2.0;
-    let (rect, _) = ui.allocate_exact_size(desired, egui::Sense::hover());
+    let (rect, _) = ui.allocate_exact_size(desired, egui::Sense::empty());
     let painter = ui.painter_at(rect);
 
     painter.rect_filled(rect, CornerRadius::same(theme::BADGE_ROUNDING), color);
