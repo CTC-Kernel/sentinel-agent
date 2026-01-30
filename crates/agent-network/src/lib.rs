@@ -60,12 +60,14 @@
 
 pub mod collector;
 pub mod detection;
+pub mod discovery;
 pub mod error;
 pub mod sync;
 pub mod types;
 
 pub use collector::NetworkCollector;
 pub use detection::SecurityDetector;
+pub use discovery::{DiscoveryConfig, NetworkDiscovery};
 pub use error::{NetworkError, NetworkResult};
 pub use sync::{NetworkScheduler, ScheduledTask, SyncManager, TaskType};
 pub use types::*;
@@ -185,6 +187,22 @@ impl NetworkManager {
     /// Get mutable scheduler reference.
     pub fn scheduler_mut(&mut self) -> &mut NetworkScheduler {
         &mut self.scheduler
+    }
+
+    /// Discover devices on the given subnet using ARP, ping sweep, and classification.
+    pub async fn discover_devices(&self, subnet: &str) -> NetworkResult<DiscoveryResult> {
+        let discovery = NetworkDiscovery::new(DiscoveryConfig::default());
+        discovery.scan(subnet).await
+    }
+
+    /// Discover devices with a custom discovery configuration.
+    pub async fn discover_devices_with_config(
+        &self,
+        subnet: &str,
+        config: DiscoveryConfig,
+    ) -> NetworkResult<DiscoveryResult> {
+        let discovery = NetworkDiscovery::new(config);
+        discovery.scan(subnet).await
     }
 }
 

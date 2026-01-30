@@ -117,44 +117,66 @@ impl SyncPage {
 
                     if state.sync_history.is_empty() {
                         ui.vertical_centered(|ui| {
-                             ui.add_space(theme::SPACE_LG);
+                            ui.add_space(theme::SPACE_LG);
                             ui.label(
                                 egui::RichText::new("Aucun historique disponible")
                                     .color(theme::TEXT_TERTIARY),
                             );
-                             ui.add_space(theme::SPACE_LG);
+                            ui.add_space(theme::SPACE_LG);
                         });
                     } else {
-                        for entry in &state.sync_history {
-                            ui.horizontal(|ui| {
-                                ui.set_min_height(32.0);
-                                let (icon, color) = if entry.success {
-                                    ("✓", theme::SUCCESS)
-                                } else {
-                                    ("✕", theme::ERROR)
-                                };
-                                ui.label(
-                                    egui::RichText::new(icon)
-                                        .size(18.0)
-                                        .color(color),
-                                );
-                                ui.add_space(4.0);
-                                ui.label(
-                                    egui::RichText::new(
-                                        entry.timestamp.format("%H:%M:%S").to_string(),
-                                    )
-                                    .font(theme::font_mono())
-                                    .color(theme::TEXT_TERTIARY),
-                                );
-                                ui.add_space(8.0);
-                                ui.label(
-                                    egui::RichText::new(&entry.message)
-                                        .font(theme::font_body())
-                                        .color(theme::TEXT_PRIMARY),
-                                );
+                        use egui_extras::{Column, TableBuilder};
+
+                        let table = TableBuilder::new(ui)
+                            .striped(true)
+                            .resizable(true)
+                            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                            .column(Column::initial(32.0).at_least(24.0)) // Status icon
+                            .column(Column::initial(80.0).at_least(60.0)) // Time
+                            .column(Column::remainder()); // Message
+
+                        table
+                            .header(24.0, |mut header| {
+                                header.col(|ui| {
+                                    ui.strong("");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("HEURE");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("MESSAGE");
+                                });
+                            })
+                            .body(|body| {
+                                body.rows(32.0, state.sync_history.len(), |mut row| {
+                                    let entry = &state.sync_history[row.index()];
+                                    
+                                    row.col(|ui| {
+                                        let (icon, color) = if entry.success {
+                                            ("✓", theme::SUCCESS)
+                                        } else {
+                                            ("✕", theme::ERROR)
+                                        };
+                                        ui.label(egui::RichText::new(icon).size(18.0).color(color));
+                                    });
+                                    
+                                    row.col(|ui| {
+                                        ui.label(
+                                            egui::RichText::new(entry.timestamp.format("%H:%M:%S").to_string())
+                                                .font(theme::font_mono())
+                                                .color(theme::TEXT_TERTIARY),
+                                        );
+                                    });
+                                    
+                                    row.col(|ui| {
+                                        ui.label(
+                                            egui::RichText::new(&entry.message)
+                                                .font(theme::font_body())
+                                                .color(theme::TEXT_PRIMARY),
+                                        );
+                                    });
+                                });
                             });
-                            ui.separator();
-                        }
                     }
                 });
                 

@@ -31,7 +31,9 @@ pub enum Page {
     Vulnerabilities,
     Network,
     Sync,
-    Logs,
+    Terminal,
+    Discovery,
+    Cartography,
     Settings,
     About,
 }
@@ -75,6 +77,27 @@ pub struct AppState {
     pub sync_in_progress: bool,
     pub sync_error: Option<String>,
     pub sync_history: Vec<SyncHistoryEntry>,
+
+    // Terminal state
+    pub terminal_lines: std::collections::VecDeque<crate::events::TerminalLogEntry>,
+    pub terminal_auto_scroll: bool,
+    pub terminal_filter_level: usize, // 0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR
+    pub terminal_search: String,
+    pub terminal_event_count: u64,
+    pub terminal_error_count: u64,
+
+    // Discovery state
+    pub discovered_devices: Vec<crate::dto::GuiDiscoveredDevice>,
+    pub discovery_in_progress: bool,
+    pub discovery_progress: f32,
+    pub discovery_phase: String,
+    pub discovery_enabled: bool,
+
+    // Cartography state
+    pub graph_layout: Option<crate::pages::cartography::GraphLayout>,
+    pub graph_zoom: f32,
+    pub graph_pan: egui::Vec2,
+    pub graph_selected_device: Option<String>,
 
     // Settings state
     pub is_paused: bool,
@@ -125,9 +148,24 @@ impl Default for AppState {
             primary_ip: None,
             primary_mac: None,
             last_network_scan: None,
+            terminal_lines: std::collections::VecDeque::new(),
+            terminal_auto_scroll: true,
+            terminal_filter_level: 2, // INFO
+            terminal_search: String::new(),
+            terminal_event_count: 0,
+            terminal_error_count: 0,
             sync_in_progress: false,
             sync_error: None,
             sync_history: Vec::new(),
+            discovered_devices: Vec::new(),
+            discovery_in_progress: false,
+            discovery_progress: 0.0,
+            discovery_phase: String::new(),
+            discovery_enabled: false,
+            graph_layout: None,
+            graph_zoom: 1.0,
+            graph_pan: egui::Vec2::ZERO,
+            graph_selected_device: None,
             is_paused: false,
             server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
@@ -306,6 +344,29 @@ impl SentinelApp {
                 }
                 AgentEvent::VulnerabilityFindings { findings } => {
                     self.state.vulnerability_findings = findings;
+                }
+                AgentEvent::TerminalLog { entry } => {
+                    self.state.terminal_event_count += 1;
+                    if entry.level == "ERROR" {
+                        self.state.terminal_error_count += 1;
+                    }
+                    self.state.terminal_lines.push_back(entry);
+                    // Ring buffer: keep max 500 lines
+                    while self.state.terminal_lines.len() > 500 {
+                        self.state.terminal_lines.pop_front();
+                    }
+                }
+                AgentEvent::DiscoveryUpdate { devices } => {
+                    self.state.discovered_devices = devices;
+                    self.state.discovery_in_progress = false;
+                    self.state.discovery_progress = 1.0;
+                    self.state.discovery_phase = "Termin\u{00e9}".to_string();
+                    self.state.graph_layout = None; // Force graph re-layout
+                }
+                AgentEvent::DiscoveryProgress { phase, progress, devices_found: _ } => {
+                    self.state.discovery_phase = phase;
+                    self.state.discovery_progress = progress;
+                    // Don't reset devices here, they come in DiscoveryUpdate
                 }
                 AgentEvent::EnrollmentResult {
                     success,
@@ -492,8 +553,16 @@ impl eframe::App for SentinelApp {
                         self.send_command(cmd);
                     }
                 }
-                Page::Logs => {
-                    pages::LogsPage::show(ui, &self.state);
+                Page::Terminal => {
+                    pages::TerminalPage::show(ui, &mut self.state);
+                }
+                Page::Discovery => {
+                    if let Some(cmd) = pages::DiscoveryPage::show(ui, &mut self.state) {
+                        self.send_command(cmd);
+                    }
+                }
+                Page::Cartography => {
+                    pages::CartographyPage::show(ui, &mut self.state);
                 }
                 Page::Settings => {
                     if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {

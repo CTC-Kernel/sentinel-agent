@@ -379,3 +379,88 @@ pub struct ThreatIntelligence {
     /// Last update timestamp.
     pub last_updated: Option<DateTime<Utc>>,
 }
+
+// ============================================================================
+// Discovery Types
+// ============================================================================
+
+/// A device discovered on the local network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscoveredDevice {
+    /// IP address of the device.
+    pub ip: String,
+
+    /// MAC address (if resolved via ARP).
+    pub mac: Option<String>,
+
+    /// Hostname (if resolved via reverse DNS).
+    pub hostname: Option<String>,
+
+    /// Hardware vendor (resolved from MAC OUI).
+    pub vendor: Option<String>,
+
+    /// Classified device type.
+    pub device_type: DeviceType,
+
+    /// Open TCP ports found during probe.
+    pub open_ports: Vec<u16>,
+
+    /// When this device was first seen.
+    pub first_seen: DateTime<Utc>,
+
+    /// When this device was last seen.
+    pub last_seen: DateTime<Utc>,
+
+    /// Whether this device appears to be a gateway.
+    pub is_gateway: bool,
+
+    /// The subnet this device belongs to.
+    pub subnet: String,
+}
+
+/// Classification of a discovered network device.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum DeviceType {
+    Router,
+    Switch,
+    Server,
+    Workstation,
+    Printer,
+    IoT,
+    Phone,
+    Unknown,
+}
+
+impl std::fmt::Display for DeviceType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Router => write!(f, "router"),
+            Self::Switch => write!(f, "switch"),
+            Self::Server => write!(f, "server"),
+            Self::Workstation => write!(f, "workstation"),
+            Self::Printer => write!(f, "printer"),
+            Self::IoT => write!(f, "iot"),
+            Self::Phone => write!(f, "phone"),
+            Self::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+/// Result of a network discovery scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscoveryResult {
+    /// Devices found during the scan.
+    pub devices: Vec<DiscoveredDevice>,
+
+    /// Total scan duration in milliseconds.
+    pub scan_duration_ms: u64,
+
+    /// The subnet that was scanned.
+    pub subnet_scanned: String,
+
+    /// When the scan was performed.
+    pub timestamp: DateTime<Utc>,
+}

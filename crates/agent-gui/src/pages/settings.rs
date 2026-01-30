@@ -78,6 +78,37 @@ impl SettingsPage {
 
                 ui.add_space(theme::SPACE);
 
+
+                // Discovery toggle
+                widgets::card(ui, |ui| {
+                    ui.label(
+                        egui::RichText::new("D\u{00c9}COUVERTE R\u{00c9}SEAU")
+                            .font(theme::font_small())
+                            .color(theme::TEXT_TERTIARY)
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+
+                    ui.horizontal(|ui| {
+                        ui.label(
+                            egui::RichText::new("Activer la d\u{00e9}couverte r\u{00e9}seau automatique")
+                                .font(theme::font_body())
+                                .color(theme::TEXT_SECONDARY),
+                        );
+                        ui.add_space(theme::SPACE_MD);
+                        if ui.checkbox(&mut state.discovery_enabled, "").changed() {
+                            // State is already updated by checkbox
+                        }
+                    });
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new("Lorsque activ\u{00e9}, l'agent scanne p\u{00e9}riodiquement le r\u{00e9}seau local pour d\u{00e9}couvrir de nouveaux appareils.")
+                            .font(theme::font_small())
+                            .color(theme::TEXT_TERTIARY),
+                    );
+                });
+
+                ui.add_space(theme::SPACE);
                 let total_width = ui.available_width();
                 ui.horizontal_top(|ui| {
                     let gap = theme::SPACE;
