@@ -22,6 +22,10 @@ impl Sidebar {
                 ui.set_min_width(theme::SIDEBAR_WIDTH);
                 ui.set_max_width(theme::SIDEBAR_WIDTH);
 
+                egui::ScrollArea::vertical()
+                    .auto_shrink(egui::Vec2b::new(false, false))
+                    .show(ui, |ui| {
+
                 // Logo / brand section
                 ui.add_space(theme::SPACE_XL);
                 ui.vertical_centered(|ui| {
@@ -88,7 +92,7 @@ impl Sidebar {
 
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
                         ui.add_space(theme::SPACE_XL);
-                        
+
                         let bottom_items: &[(Page, &str, &str)] = &[
                             (Page::About, "○", "\u{00c0} propos"),
                             (Page::Settings, "◇", "Param\u{00e8}tres"),
@@ -99,11 +103,12 @@ impl Sidebar {
                                 selected = Some(page.clone());
                             }
                         }
-                        
+
                         ui.add_space(theme::SPACE_SM);
                         ui.separator();
                     });
                 });
+                }); // end ScrollArea
             });
 
         selected

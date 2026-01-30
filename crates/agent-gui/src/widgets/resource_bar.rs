@@ -11,7 +11,7 @@ use crate::theme;
 /// `fraction` is 0.0..=1.0.
 pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
     let bar_height = 6.0;
-    let full_width = ui.available_width().min(260.0);
+    let full_width = ui.available_width();
 
     ui.horizontal(|ui| {
         ui.label(

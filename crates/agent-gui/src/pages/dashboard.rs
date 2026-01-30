@@ -1,6 +1,6 @@
 //! Dashboard page -- main overview.
 
-use egui::{CornerRadius, Ui};
+use egui::Ui;
 
 use crate::app::AppState;
 use crate::dto::GuiAgentStatus;
@@ -18,14 +18,17 @@ impl DashboardPage {
                 widgets::page_header(ui, "Tableau de bord", Some("Vue d'ensemble de la conformit\u{00e9} et de la sant\u{00e8} de l'agent"));
                 ui.add_space(theme::SPACE_LG);
 
-                // Top row: status + compliance gauge (Grid layout)
+                // Top row: status + compliance gauge
                 let total_width = ui.available_width();
+                let gap = theme::SPACE;
+                let left_w = (total_width - gap) * 0.6;
+                let right_w = total_width - gap - left_w;
                 ui.horizontal_top(|ui| {
-                    let gap = theme::SPACE;
-                    let left_w = ((total_width - gap) * 0.6).max(200.0);
+                    ui.spacing_mut().item_spacing.x = gap;
+                    ui.vertical(|ui| {
+                    ui.set_width(left_w);
                     // Status card
                     widgets::card(ui, |ui| {
-                        ui.set_width(left_w);
                         ui.label(
                             egui::RichText::new("STATUT DE L'AGENT")
                                 .font(theme::font_small())
@@ -79,13 +82,12 @@ impl DashboardPage {
                             }
                         });
                     });
-
-                    ui.add_space(theme::SPACE);
+                    }); // end left vertical
 
                     // Compliance gauge card
-                    let right_w = ((total_width - gap) * 0.4).max(160.0);
+                    ui.vertical(|ui| {
+                    ui.set_width(right_w);
                     widgets::card(ui, |ui| {
-                        ui.set_width(right_w);
                         ui.vertical_centered(|ui| {
                             ui.label(
                                 egui::RichText::new("SCORE GLOBAL")
@@ -98,17 +100,20 @@ impl DashboardPage {
                             ui.add_space(theme::SPACE_SM);
                         });
                     });
+                    }); // end right vertical
                 });
 
                 ui.add_space(theme::SPACE_LG);
 
                 // Resource usage + Vulnerabilities row
+                let res_w = (total_width - gap) * 0.55;
+                let vuln_w = total_width - gap - res_w;
                 ui.horizontal_top(|ui| {
-                    let gap = theme::SPACE;
-                    let res_w = ((total_width - gap) * 0.55).max(200.0);
+                    ui.spacing_mut().item_spacing.x = gap;
+                    ui.vertical(|ui| {
+                    ui.set_width(res_w);
                     // Resource usage
                     widgets::card(ui, |ui| {
-                        ui.set_width(res_w);
                         ui.label(
                             egui::RichText::new("RESSOURCES SYST\u{00c8}ME")
                                 .font(theme::font_small())
@@ -143,13 +148,12 @@ impl DashboardPage {
                             (state.resources.disk_percent / 100.0) as f32,
                         );
                     });
-
-                    ui.add_space(theme::SPACE);
+                    }); // end resource vertical
 
                     // Vulnerability summary
-                    let vuln_w = ((total_width - gap) * 0.45).max(160.0);
+                    ui.vertical(|ui| {
+                    ui.set_width(vuln_w);
                     widgets::card(ui, |ui| {
-                        ui.set_width(vuln_w);
                         ui.label(
                             egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
                                 .font(theme::font_small())
@@ -184,6 +188,7 @@ impl DashboardPage {
                             });
                         }
                     });
+                    }); // end vuln vertical
                 });
 
                 ui.add_space(theme::SPACE_LG);
@@ -215,17 +220,12 @@ impl DashboardPage {
                                 };
                                 
                                 ui.add_space(4.0);
-                                ui.painter().rect_filled(
-                                    ui.available_rect_before_wrap().shrink2(egui::vec2(ui.available_width() - 32.0, 10.0)),
-                                    CornerRadius::same(2),
-                                    level_color.linear_multiply(0.2),
-                                );
-                                
                                 ui.label(
                                     egui::RichText::new(level_text)
                                         .font(theme::font_mono())
                                         .color(level_color)
-                                        .strong(),
+                                        .strong()
+                                        .background_color(level_color.linear_multiply(0.15)),
                                 );
                                 
                                 ui.add_space(8.0);

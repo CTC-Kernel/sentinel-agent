@@ -90,16 +90,17 @@ impl SyncPage {
 
                     if let Some(ref err) = state.sync_error {
                         ui.add_space(theme::SPACE_MD);
-                        ui.painter().rect_filled(
-                            ui.available_rect_before_wrap().shrink2(egui::vec2(0.0, 4.0)),
-                            egui::CornerRadius::same(4),
-                            theme::ERROR.linear_multiply(0.1),
-                        );
-                        ui.label(
-                            egui::RichText::new(format!("▲ ERREUR : {}", err))
-                                .font(theme::font_small())
-                                .color(theme::ERROR),
-                        );
+                        egui::Frame::new()
+                            .fill(theme::ERROR.linear_multiply(0.1))
+                            .corner_radius(egui::CornerRadius::same(4))
+                            .inner_margin(egui::Margin::symmetric(8, 4))
+                            .show(ui, |ui| {
+                                ui.label(
+                                    egui::RichText::new(format!("▲ ERREUR : {}", err))
+                                        .font(theme::font_small())
+                                        .color(theme::ERROR),
+                                );
+                            });
                     }
                 });
 
