@@ -70,16 +70,12 @@ impl VulnerabilitiesPage {
                     ui.add_space(theme::SPACE_MD);
 
                     if state.vulnerability_findings.is_empty() {
-                        ui.vertical_centered(|ui| {
-                            ui.add_space(theme::SPACE_LG);
-                            ui.label(
-                                egui::RichText::new(
-                                    "Aucune vuln\u{00e9}rabilit\u{00e9} d\u{00e9}tect\u{00e9}e",
-                                )
-                                .color(theme::TEXT_TERTIARY),
-                            );
-                            ui.add_space(theme::SPACE_LG);
-                        });
+                        widgets::empty_state(
+                            ui,
+                            "󰈻",
+                            "Aucune vuln\u{00e9}rabilit\u{00e9} d\u{00e9}tect\u{00e9}e",
+                            Some("Votre syst\u{00e8}me semble prot\u{00e9}g\u{00e9}. Les scans continus v\u{00e9}rifient les failles connues."),
+                        );
                     } else {
                         // Table header
                         ui.horizontal(|ui| {

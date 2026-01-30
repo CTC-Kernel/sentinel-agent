@@ -118,6 +118,11 @@ pub fn font_mono() -> FontId {
     FontId::new(13.0, egui::FontFamily::Monospace)
 }
 
+/// COMEX-ready header font (28px Extra-Bold/strong).
+pub fn font_comex() -> FontId {
+    FontId::new(28.0, egui::FontFamily::Proportional)
+}
+
 // ============================================================================
 // Style application
 // ============================================================================
