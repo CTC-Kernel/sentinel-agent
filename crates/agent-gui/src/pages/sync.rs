@@ -28,22 +28,22 @@ impl SyncPage {
                 widgets::card(ui, |ui| {
                     ui.horizontal(|ui| {
                         ui.label(
-                            egui::RichText::new("󰓾 \u{00c9}TAT DE LA CONNEXION")
+                            egui::RichText::new("\u{00c9}TAT DE LA CONNEXION")
                                 .font(theme::font_small())
                                 .color(theme::TEXT_TERTIARY)
                                 .strong(),
                         );
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             if state.sync_in_progress {
-                                widgets::status_badge(ui, "󱔐 SYNCHRONISATION...", theme::INFO);
+                                widgets::status_badge(ui, "↻ SYNCHRONISATION...", theme::INFO);
                             } else if state.summary.pending_sync_count > 0 {
                                 widgets::status_badge(
                                     ui,
-                                    &format!("󰚰 {} EN ATTENTE", state.summary.pending_sync_count),
+                                    &format!("↑ {} EN ATTENTE", state.summary.pending_sync_count),
                                     theme::WARNING,
                                 );
                             } else {
-                                widgets::status_badge(ui, "󰄲 \u{00c0} JOUR", theme::SUCCESS);
+                                widgets::status_badge(ui, "✓ \u{00c0} JOUR", theme::SUCCESS);
                             }
                         });
                     });
@@ -72,7 +72,7 @@ impl SyncPage {
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                              // Force sync button
                             let btn = egui::Button::new(
-                                egui::RichText::new("󰓾  SYNCHRONISER MAINTENANT")
+                                egui::RichText::new("↻  SYNCHRONISER MAINTENANT")
                                     .font(theme::font_body())
                                     .color(theme::TEXT_ON_ACCENT)
                                     .strong(),
@@ -96,7 +96,7 @@ impl SyncPage {
                             theme::ERROR.linear_multiply(0.1),
                         );
                         ui.label(
-                            egui::RichText::new(format!("󰀦 ERREUR : {}", err))
+                            egui::RichText::new(format!("▲ ERREUR : {}", err))
                                 .font(theme::font_small())
                                 .color(theme::ERROR),
                         );
@@ -129,9 +129,9 @@ impl SyncPage {
                             ui.horizontal(|ui| {
                                 ui.set_min_height(32.0);
                                 let (icon, color) = if entry.success {
-                                    ("󰄲", theme::SUCCESS)
+                                    ("✓", theme::SUCCESS)
                                 } else {
-                                    ("󰀦", theme::ERROR)
+                                    ("✕", theme::ERROR)
                                 };
                                 ui.label(
                                     egui::RichText::new(icon)

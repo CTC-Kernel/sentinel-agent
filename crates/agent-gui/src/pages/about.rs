@@ -34,7 +34,7 @@ impl AboutPage {
                     ui.vertical_centered(|ui| {
                         ui.add_space(theme::SPACE_LG);
                         ui.label(
-                            egui::RichText::new("󰒃")
+                            egui::RichText::new("◆")
                                 .size(48.0)
                                 .color(theme::ACCENT),
                         );
@@ -67,10 +67,13 @@ impl AboutPage {
 
                 ui.add_space(theme::SPACE);
 
+                let total_width = ui.available_width();
                 ui.horizontal_top(|ui| {
+                    let gap = theme::SPACE;
+                    let col_w = ((total_width - gap) * 0.5).max(200.0);
                     // System info
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(340.0);
+                        ui.set_width(col_w);
                         ui.label(
                             egui::RichText::new("SYST\u{00c8}ME")
                                 .font(theme::font_small())
@@ -83,16 +86,16 @@ impl AboutPage {
                             "{} {}",
                             std::env::consts::OS,
                             std::env::consts::ARCH
-                        ), "󰀵");
-                        Self::info_row(ui, "Runtime", "Rust v1.80+", "󱘗");
-                        Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), "󰏗");
+                        ), "→");
+                        Self::info_row(ui, "Runtime", "Rust v1.80+", "→");
+                        Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), "→");
                     });
 
                     ui.add_space(theme::SPACE);
 
                     // Links
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(340.0);
+                        ui.set_width(col_w);
                         ui.label(
                             egui::RichText::new("RESSOURCES")
                                 .font(theme::font_small())
@@ -101,9 +104,9 @@ impl AboutPage {
                         );
                         ui.add_space(theme::SPACE_MD);
 
-                        Self::link_row(ui, "Site officiel", branding::WEBSITE, "󰖟");
-                        Self::link_row(ui, "Documentation", branding::GUIDE, "󰈙");
-                        Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), "󰔓");
+                        Self::link_row(ui, "Site officiel", branding::WEBSITE, "→");
+                        Self::link_row(ui, "Documentation", branding::GUIDE, "→");
+                        Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), "→");
                     });
                 });
 

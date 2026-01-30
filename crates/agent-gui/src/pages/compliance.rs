@@ -29,7 +29,7 @@ impl CompliancePage {
                         "TOTAL",
                         &state.policy.total_policies.to_string(),
                         theme::TEXT_PRIMARY,
-                        "󰓗",
+                        "□",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -37,7 +37,7 @@ impl CompliancePage {
                         "CONFORME",
                         &state.policy.passing.to_string(),
                         theme::SUCCESS,
-                        "󰄲",
+                        "✓",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -45,7 +45,7 @@ impl CompliancePage {
                         "NON-CONFORME",
                         &state.policy.failing.to_string(),
                         theme::ERROR,
-                        "󰅙",
+                        "✕",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -53,7 +53,7 @@ impl CompliancePage {
                         "ERREURS",
                         &state.policy.errors.to_string(),
                         theme::WARNING,
-                        "󰀦",
+                        "▲",
                     );
                 });
 
@@ -74,19 +74,26 @@ impl CompliancePage {
                     if state.checks.is_empty() {
                         widgets::empty_state(
                             ui,
-                            "󰓗",
+                            "□",
                             "Aucune v\u{00e9}rification effectu\u{00e9}e",
                             Some("Lancez une analyse pour v\u{00e9}rifier la conformit\u{00e9} de cet appareil."),
                         );
                     } else {
+                        let tw = ui.available_width();
+                        let col_name = (tw * 0.28).max(120.0);
+                        let col_cat = (tw * 0.16).max(80.0);
+                        let col_status = (tw * 0.15).max(80.0);
+                        let col_sev = (tw * 0.14).max(70.0);
+                        let col_score = (tw * 0.09).max(40.0);
+
                         // Table header
                         ui.horizontal(|ui| {
                             ui.set_min_height(32.0);
-                            Self::table_header_cell(ui, "V\u{00c9}RIFICATION", 240.0);
-                            Self::table_header_cell(ui, "CAT\u{00c9}GORIE", 140.0);
-                            Self::table_header_cell(ui, "STATUT", 110.0);
-                            Self::table_header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}", 100.0);
-                            Self::table_header_cell(ui, "SCORE", 60.0);
+                            Self::table_header_cell(ui, "V\u{00c9}RIFICATION", col_name);
+                            Self::table_header_cell(ui, "CAT\u{00c9}GORIE", col_cat);
+                            Self::table_header_cell(ui, "STATUT", col_status);
+                            Self::table_header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}", col_sev);
+                            Self::table_header_cell(ui, "SCORE", col_score);
                             ui.label(egui::RichText::new("FRAMEWORKS").font(theme::font_small()).color(theme::TEXT_TERTIARY).strong());
                         });
                         ui.add_space(theme::SPACE_XS);
@@ -100,7 +107,7 @@ impl CompliancePage {
 
                                     // Name
                                     ui.allocate_ui_with_layout(
-                                        egui::Vec2::new(240.0, 40.0),
+                                        egui::Vec2::new(col_name, 40.0),
                                         egui::Layout::left_to_right(egui::Align::Center),
                                         |ui| {
                                             ui.vertical(|ui| {
@@ -116,7 +123,7 @@ impl CompliancePage {
 
                                     // Category
                                     ui.allocate_ui_with_layout(
-                                        egui::Vec2::new(140.0, 40.0),
+                                        egui::Vec2::new(col_cat, 40.0),
                                         egui::Layout::left_to_right(egui::Align::Center),
                                         |ui| {
                                             ui.label(
@@ -129,7 +136,7 @@ impl CompliancePage {
 
                                     // Status badge
                                     ui.allocate_ui_with_layout(
-                                        egui::Vec2::new(110.0, 40.0),
+                                        egui::Vec2::new(col_status, 40.0),
                                         egui::Layout::left_to_right(egui::Align::Center),
                                         |ui| {
                                             let (label, color) = Self::status_display(&check.status);
@@ -139,7 +146,7 @@ impl CompliancePage {
 
                                     // Severity
                                     ui.allocate_ui_with_layout(
-                                        egui::Vec2::new(100.0, 40.0),
+                                        egui::Vec2::new(col_sev, 40.0),
                                         egui::Layout::left_to_right(egui::Align::Center),
                                         |ui| {
                                             let color = theme::severity_color(&check.severity);
@@ -147,7 +154,7 @@ impl CompliancePage {
                                                 ui.painter().circle_filled(ui.available_rect_before_wrap().min + egui::vec2(6.0, 10.0), 3.0, color);
                                                 ui.add_space(14.0);
                                                 ui.label(
-                                                    egui::RichText::new(&check.severity.to_uppercase())
+                                                    egui::RichText::new(check.severity.to_uppercase())
                                                         .font(theme::font_small())
                                                         .color(color)
                                                         .strong(),
@@ -158,7 +165,7 @@ impl CompliancePage {
 
                                     // Score
                                     ui.allocate_ui_with_layout(
-                                        egui::Vec2::new(60.0, 40.0),
+                                        egui::Vec2::new(col_score, 40.0),
                                         egui::Layout::left_to_right(egui::Align::Center),
                                         |ui| {
                                             if let Some(s) = check.score {
@@ -201,14 +208,14 @@ impl CompliancePage {
                                             }
                                             
                                             // Handle details JSON (e.g. issues list)
-                                            if let Some(details) = &check.details {
-                                                if let Some(issues) = details.get("issues").and_then(|i| i.as_array()) {
-                                                    for (_idx, issue) in issues.iter().enumerate() {
-                                                        ui.horizontal(|ui| {
-                                                            ui.label(egui::RichText::new("•").color(theme::ERROR));
-                                                            ui.label(egui::RichText::new(issue.as_str().unwrap_or("Problème détecté")).color(theme::TEXT_SECONDARY).font(theme::font_small()));
-                                                        });
-                                                    }
+                                            if let Some(details) = &check.details
+                                                && let Some(issues) = details.get("issues").and_then(|i| i.as_array())
+                                            {
+                                                for issue in issues.iter() {
+                                                    ui.horizontal(|ui| {
+                                                        ui.label(egui::RichText::new("•").color(theme::ERROR));
+                                                        ui.label(egui::RichText::new(issue.as_str().unwrap_or("Problème détecté")).color(theme::TEXT_SECONDARY).font(theme::font_small()));
+                                                    });
                                                 }
                                             }
                                         });
@@ -218,7 +225,7 @@ impl CompliancePage {
                             });
 
                             // Make the row clickable to toggle expansion
-                            let response = ui.interact(response.response.rect, ui.make_persistent_id(&format!("{}_interact", check.check_id)), egui::Sense::click());
+                            let response = ui.interact(response.response.rect, ui.make_persistent_id(format!("{}_interact", check.check_id)), egui::Sense::click());
                             if response.clicked() {
                                 let id = ui.make_persistent_id(&check.check_id);
                                 let expanded = ui.memory(|mem| mem.data.get_temp::<bool>(id).unwrap_or(false));
