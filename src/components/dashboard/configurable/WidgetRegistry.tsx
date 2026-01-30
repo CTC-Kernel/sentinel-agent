@@ -20,6 +20,7 @@ import { SuppliersStatsWidget } from '../widgets/SuppliersStatsWidget';
 import { ContinuityPlansWidget } from '../widgets/ContinuityPlansWidget';
 import { NIS2DoraKPIWidget } from '../widgets/NIS2DoraKPIWidget';
 import { AgentStatusWidget } from '../widgets/AgentStatusWidget';
+import { AgentMaturityRadarWidget } from '../widgets/AgentMaturityRadarWidget';
 
 // Import Story 2-2 to 2-5 widgets
 import { ComplianceScoreWidget } from '../ComplianceScoreWidget';
@@ -249,6 +250,15 @@ export const WIDGET_REGISTRY: Record<string, {
         minColSpan: 1,
         minRowSpan: 1,
         titleKey: 'agents.widget.title'
+    },
+    'agent-maturity-radar': {
+        id: 'agent-maturity-radar',
+        component: AgentMaturityRadarWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.agentMaturityRadar'
     }
 };
 export type WidgetId = keyof typeof WIDGET_REGISTRY;

@@ -52,6 +52,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
         { id: 'history-1', widgetId: 'compliance-evolution', colSpan: 2 }, // Row 3 Left
         { id: 'activity-1', widgetId: 'recent-activity', colSpan: 1 }, // Row 3 Right
         { id: 'nis2-1', widgetId: 'nis2-dora-kpi', colSpan: 1 }, // Row 4
+        { id: 'agent-maturity-1', widgetId: 'agent-maturity-radar', colSpan: 1 }, // Row 4
     ];
 
     const { layout, updateLayout, resetLayout } = useDashboardPreferences(user?.uid, user?.organizationId, 'admin', defaultLayout);

@@ -467,6 +467,15 @@
     "suppliersStats": "Statistiques Fournisseurs",
     "continuityPlans": "Plans de Continuité",
     "rssiIncidents": "Incidents RSSI",
+    "agentMaturityRadar": "Maturité de la Flotte Agents",
+    "agentMaturity": {
+      "compliance": "Conformité",
+      "availability": "Disponibilité",
+      "modernity": "Modernité",
+      "health": "Santé Système",
+      "monitoring": "Supervision",
+      "fleetMaturity": "Maturité Flotte Agents"
+    },
     "widgets": {
       "stats-overview": {
         "description": "Vue globale des indicateurs clés."
@@ -548,6 +557,9 @@
       },
       "pm-progress": {
         "description": "État d'avancement global des projets."
+      },
+      "agent-maturity-radar": {
+        "description": "Vue 360° du niveau de maturité et de santé de la flotte d'agents."
       }
     },
     "actions": {
@@ -4818,6 +4830,11 @@
         "review": "Validation",
         "reviewDesc": "Vérifiez et créez la campagne"
       }
+    }
+  },
+  "agents": {
+    "widget": {
+      "title": "Maturité de la Flotte"
     }
   }
 }
