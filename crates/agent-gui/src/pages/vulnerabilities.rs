@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -32,10 +33,10 @@ impl VulnerabilitiesPage {
                 let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = card_gap;
-                    Self::summary_card(ui, card_w, "CRITIQUES", &critical.to_string(), if critical > 0 { theme::ERROR } else { theme::TEXT_TERTIARY }, "■");
-                    Self::summary_card(ui, card_w, "ÉLEVÉES", &high.to_string(), if high > 0 { theme::WARNING } else { theme::TEXT_TERTIARY }, "▲");
-                    Self::summary_card(ui, card_w, "MOYENNES", &medium.to_string(), if medium > 0 { theme::INFO } else { theme::TEXT_TERTIARY }, "●");
-                    Self::summary_card(ui, card_w, "FAIBLES", &low.to_string(), theme::TEXT_TERTIARY, "○");
+                    Self::summary_card(ui, card_w, "CRITIQUES", &critical.to_string(), if critical > 0 { theme::ERROR } else { theme::TEXT_TERTIARY }, icons::SEVERITY_CRITICAL);
+                    Self::summary_card(ui, card_w, "\u{00c9}LEV\u{00c9}ES", &high.to_string(), if high > 0 { theme::WARNING } else { theme::TEXT_TERTIARY }, icons::SEVERITY_HIGH);
+                    Self::summary_card(ui, card_w, "MOYENNES", &medium.to_string(), if medium > 0 { theme::INFO } else { theme::TEXT_TERTIARY }, icons::SEVERITY_MEDIUM);
+                    Self::summary_card(ui, card_w, "FAIBLES", &low.to_string(), theme::TEXT_TERTIARY, icons::SEVERITY_LOW);
                 });
 
                 ui.add_space(theme::SPACE_LG);
@@ -53,7 +54,7 @@ impl VulnerabilitiesPage {
                     if state.vulnerability_findings.is_empty() {
                         widgets::empty_state(
                             ui,
-                            "▲",
+                            icons::VULNERABILITIES,
                             "Aucune vulnérabilité détectée",
                             Some("Votre système semble protégé. Les scans continus vérifient les failles connues."),
                         );
@@ -143,7 +144,7 @@ impl VulnerabilitiesPage {
                                                     .color(theme::TEXT_SECONDARY),
                                             );
                                             if finding.fix_available {
-                                                widgets::status_badge(ui, "✓ CORRECTIF", theme::SUCCESS.linear_multiply(0.8));
+                                                widgets::status_badge(ui, &format!("{} CORRECTIF", icons::CHECK), theme::SUCCESS.linear_multiply(0.8));
                                             }
                                         });
                                     });

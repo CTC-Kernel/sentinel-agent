@@ -5,6 +5,67 @@
 
 use std::sync::mpsc;
 
+// ---------------------------------------------------------------------------
+// macOS: toggle Dock icon visibility when hiding/showing the window.
+// ---------------------------------------------------------------------------
+#[cfg(target_os = "macos")]
+mod macos_dock {
+    //! Toggle macOS Dock icon by changing NSApplication activation policy.
+    //!
+    //! objc_msgSend must NOT be declared variadic on ARM64 -- the ABI puts
+    //! variadic args on the stack, but the ObjC runtime expects registers.
+    //! We use typed function-pointer transmutes instead.
+
+    use std::ffi::c_void;
+
+    #[link(name = "AppKit", kind = "framework")]
+    unsafe extern "C" {}
+
+    unsafe extern "C" {
+        fn objc_getClass(name: *const u8) -> *mut c_void;
+        fn sel_registerName(name: *const u8) -> *mut c_void;
+        // Declared without args -- we transmute to the right signature.
+        fn objc_msgSend();
+    }
+
+    type MsgSend0 = unsafe extern "C" fn(*mut c_void, *mut c_void) -> *mut c_void;
+    type MsgSend1 = unsafe extern "C" fn(*mut c_void, *mut c_void, isize) -> *mut c_void;
+
+    fn send0() -> MsgSend0 {
+        unsafe { std::mem::transmute(objc_msgSend as *const ()) }
+    }
+    fn send1() -> MsgSend1 {
+        unsafe { std::mem::transmute(objc_msgSend as *const ()) }
+    }
+
+    unsafe fn set_activation_policy(policy: isize) {
+        unsafe {
+            let cls = objc_getClass(b"NSApplication\0".as_ptr());
+            let sel = sel_registerName(b"sharedApplication\0".as_ptr());
+            let app = send0()(cls, sel);
+            let sel = sel_registerName(b"setActivationPolicy:\0".as_ptr());
+            send1()(app, sel, policy);
+        }
+    }
+
+    /// Hide the app from the macOS Dock (Accessory policy).
+    pub fn hide_dock_icon() {
+        unsafe { set_activation_policy(1); }
+    }
+
+    /// Show the app in the macOS Dock (Regular policy) and activate it.
+    pub fn show_dock_icon() {
+        unsafe {
+            set_activation_policy(0);
+            let cls = objc_getClass(b"NSApplication\0".as_ptr());
+            let sel = sel_registerName(b"sharedApplication\0".as_ptr());
+            let app = send0()(cls, sel);
+            let sel = sel_registerName(b"activateIgnoringOtherApps:\0".as_ptr());
+            send1()(app, sel, 1);
+        }
+    }
+}
+
 use eframe::egui;
 
 use crate::dto::{
@@ -61,6 +122,7 @@ pub struct AppState {
 
     // Software inventory
     pub software_packages: Vec<GuiSoftwarePackage>,
+    pub macos_apps: Vec<crate::dto::GuiMacOsApp>,
 
     // Vulnerability findings
     pub vulnerability_findings: Vec<GuiVulnerabilityFinding>,
@@ -141,6 +203,7 @@ impl Default for AppState {
             },
             vulnerability_summary: None,
             software_packages: Vec::new(),
+            macos_apps: Vec::new(),
             vulnerability_findings: Vec::new(),
             network_interfaces: 0,
             network_connections: 0,
@@ -207,6 +270,10 @@ pub struct SentinelApp {
 
     // Flag to bypass "hide to tray" and actually quit.
     quit_requested: bool,
+
+    // Splash screen timing.
+    splash_start: std::time::Instant,
+    splash_done: bool,
 }
 
 impl SentinelApp {
@@ -240,6 +307,8 @@ impl SentinelApp {
             _tray: tray,
             visible: true,
             quit_requested: false,
+            splash_start: std::time::Instant::now(),
+            splash_done: false,
         }
     }
 
@@ -390,6 +459,8 @@ impl SentinelApp {
         for action in TrayBridge::poll_events() {
             match action {
                 TrayAction::ShowWindow => {
+                    #[cfg(target_os = "macos")]
+                    macos_dock::show_dock_icon();
                     self.visible = true;
                     ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
                     ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
@@ -461,7 +532,11 @@ impl eframe::App for SentinelApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply theme once.
         if !self.theme_applied {
+            theme::configure_fonts(ctx);
             theme::apply_theme(ctx);
+            egui_extras::install_image_loaders(ctx);
+            // Scan macOS native apps once
+            self.state.macos_apps = scan_macos_apps();
             self.theme_applied = true;
         }
 
@@ -469,11 +544,24 @@ impl eframe::App for SentinelApp {
         self.process_events();
         self.process_tray_actions(ctx);
 
+        // ── Splash screen (first ~2.5 seconds) ──
+        if !self.splash_done {
+            let elapsed = self.splash_start.elapsed().as_secs_f32();
+            if elapsed < 2.5 {
+                self.show_splash(ctx, elapsed);
+                ctx.request_repaint();
+                return;
+            }
+            self.splash_done = true;
+        }
+
         // Handle close = hide to tray (instead of quit).
         if ctx.input(|i| i.viewport().close_requested()) && !self.quit_requested {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
             ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
             self.visible = false;
+            #[cfg(target_os = "macos")]
+            macos_dock::hide_dock_icon();
         }
 
         if !self.visible {
@@ -582,4 +670,203 @@ impl eframe::App for SentinelApp {
         // Request periodic repaint for event processing.
         ctx.request_repaint_after(std::time::Duration::from_millis(100));
     }
+}
+
+impl SentinelApp {
+    /// Render the splash screen.
+    fn show_splash(&self, ctx: &egui::Context, elapsed: f32) {
+        // Fade in over 0.6s, hold, then fade out last 0.4s.
+        let alpha = if elapsed < 0.6 {
+            elapsed / 0.6
+        } else if elapsed > 2.1 {
+            1.0 - ((elapsed - 2.1) / 0.4).min(1.0)
+        } else {
+            1.0
+        };
+        let a = (alpha * 255.0) as u8;
+
+        egui::CentralPanel::default()
+            .frame(egui::Frame::new().fill(theme::BG_PRIMARY))
+            .show(ctx, |ui| {
+                let size = ui.available_size();
+                ui.allocate_new_ui(
+                    egui::UiBuilder::new().max_rect(egui::Rect::from_center_size(
+                        egui::pos2(size.x / 2.0, size.y / 2.0),
+                        egui::vec2(400.0, 360.0),
+                    )),
+                    |ui| {
+                        ui.vertical_centered(|ui| {
+                            // Logo image
+                            let logo = egui::Image::from_bytes(
+                                "bytes://ia_logo",
+                                include_bytes!("../assets/IA.png"),
+                            )
+                            .max_width(120.0)
+                            .tint(egui::Color32::from_white_alpha(a));
+                            ui.add(logo);
+
+                            ui.add_space(theme::SPACE_LG);
+
+                            // SENTINEL
+                            ui.label(
+                                egui::RichText::new("SENTINEL")
+                                    .font(egui::FontId::proportional(36.0))
+                                    .color(theme::ACCENT.linear_multiply(alpha))
+                                    .strong(),
+                            );
+
+                            ui.add_space(theme::SPACE_XS);
+
+                            // GRC AGENT
+                            ui.label(
+                                egui::RichText::new("GRC AGENT")
+                                    .font(theme::font_heading())
+                                    .color(egui::Color32::from_rgba_premultiplied(
+                                        theme::TEXT_TERTIARY.r(),
+                                        theme::TEXT_TERTIARY.g(),
+                                        theme::TEXT_TERTIARY.b(),
+                                        a,
+                                    )),
+                            );
+
+                            ui.add_space(theme::SPACE_XL);
+
+                            // Progress bar (animated)
+                            let bar_w = 200.0;
+                            let bar_h = 3.0;
+                            let (bar_rect, _) = ui.allocate_exact_size(
+                                egui::vec2(bar_w, bar_h),
+                                egui::Sense::empty(),
+                            );
+                            let painter = ui.painter_at(bar_rect);
+                            painter.rect_filled(
+                                bar_rect,
+                                egui::CornerRadius::same(2),
+                                egui::Color32::from_white_alpha(15),
+                            );
+                            let progress = (elapsed / 2.5).min(1.0);
+                            let fill_rect = egui::Rect::from_min_size(
+                                bar_rect.min,
+                                egui::vec2(bar_w * progress, bar_h),
+                            );
+                            painter.rect_filled(
+                                fill_rect,
+                                egui::CornerRadius::same(2),
+                                theme::ACCENT.linear_multiply(alpha),
+                            );
+
+                            ui.add_space(theme::SPACE_LG);
+
+                            // CYBER THREAT CONSULTING
+                            ui.label(
+                                egui::RichText::new("CYBER THREAT CONSULTING")
+                                    .font(theme::font_small())
+                                    .color(egui::Color32::from_rgba_premultiplied(
+                                        theme::TEXT_TERTIARY.r(),
+                                        theme::TEXT_TERTIARY.g(),
+                                        theme::TEXT_TERTIARY.b(),
+                                        a,
+                                    ))
+                                    .strong(),
+                            );
+                        });
+                    },
+                );
+            });
+    }
+}
+
+// ============================================================================
+// macOS native application scanner
+// ============================================================================
+
+/// Scan /Applications for .app bundles and extract metadata from Info.plist.
+fn scan_macos_apps() -> Vec<crate::dto::GuiMacOsApp> {
+    let mut apps = Vec::new();
+
+    #[cfg(target_os = "macos")]
+    {
+        use std::path::Path;
+
+        let apps_dir = Path::new("/Applications");
+        if let Ok(entries) = std::fs::read_dir(apps_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|e| e.to_str()) != Some("app") {
+                    continue;
+                }
+                let plist_path = path.join("Contents/Info.plist");
+                if !plist_path.exists() {
+                    continue;
+                }
+
+                // Parse Info.plist (XML plist)
+                let name = path
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("Unknown")
+                    .to_string();
+
+                let (version, bundle_id, publisher) =
+                    parse_info_plist(&plist_path).unwrap_or_default();
+
+                apps.push(crate::dto::GuiMacOsApp {
+                    name,
+                    version: if version.is_empty() { "--".to_string() } else { version },
+                    bundle_id: if bundle_id.is_empty() { "--".to_string() } else { bundle_id },
+                    publisher: if publisher.is_empty() { "--".to_string() } else { publisher },
+                    path: path.to_string_lossy().to_string(),
+                });
+            }
+        }
+    }
+
+    apps.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    apps
+}
+
+/// Parse an Info.plist file to extract version, bundle ID, and publisher.
+#[cfg(target_os = "macos")]
+fn parse_info_plist(path: &std::path::Path) -> Option<(String, String, String)> {
+    // Use /usr/bin/plutil to convert binary plist to XML, then parse.
+    let output = std::process::Command::new("/usr/bin/plutil")
+        .args(["-convert", "xml1", "-o", "-"])
+        .arg(path)
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let xml = String::from_utf8_lossy(&output.stdout);
+
+    fn extract_key(xml: &str, key: &str) -> String {
+        let needle = format!("<key>{}</key>", key);
+        if let Some(pos) = xml.find(&needle) {
+            let after = &xml[pos + needle.len()..];
+            // Skip whitespace and find the <string> tag
+            if let Some(start) = after.find("<string>") {
+                let val_start = start + "<string>".len();
+                if let Some(end) = after[val_start..].find("</string>") {
+                    return after[val_start..val_start + end].to_string();
+                }
+            }
+        }
+        String::new()
+    }
+
+    let version = extract_key(&xml, "CFBundleShortVersionString");
+    let bundle_id = extract_key(&xml, "CFBundleIdentifier");
+    // Try human-readable name first, fall back to copyright
+    let publisher = {
+        let name = extract_key(&xml, "CFBundleGetInfoString");
+        if name.is_empty() {
+            extract_key(&xml, "NSHumanReadableCopyright")
+        } else {
+            name
+        }
+    };
+
+    Some((version, bundle_id, publisher))
 }

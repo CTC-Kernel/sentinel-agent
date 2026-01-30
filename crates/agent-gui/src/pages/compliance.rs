@@ -4,6 +4,7 @@ use egui::Ui;
 
 use crate::app::AppState;
 use crate::dto::GuiCheckStatus;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -27,10 +28,10 @@ impl CompliancePage {
                 let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = card_gap;
-                    Self::summary_card(ui, card_w, "TOTAL", &state.policy.total_policies.to_string(), theme::TEXT_PRIMARY, "□");
-                    Self::summary_card(ui, card_w, "CONFORME", &state.policy.passing.to_string(), theme::SUCCESS, "✓");
-                    Self::summary_card(ui, card_w, "NON-CONFORME", &state.policy.failing.to_string(), theme::ERROR, "✕");
-                    Self::summary_card(ui, card_w, "ERREURS", &state.policy.errors.to_string(), theme::WARNING, "▲");
+                    Self::summary_card(ui, card_w, "TOTAL", &state.policy.total_policies.to_string(), theme::TEXT_PRIMARY, icons::SQUARE);
+                    Self::summary_card(ui, card_w, "CONFORME", &state.policy.passing.to_string(), theme::SUCCESS, icons::CIRCLE_CHECK);
+                    Self::summary_card(ui, card_w, "NON-CONFORME", &state.policy.failing.to_string(), theme::ERROR, icons::CIRCLE_XMARK);
+                    Self::summary_card(ui, card_w, "ERREURS", &state.policy.errors.to_string(), theme::WARNING, icons::WARNING);
                 });
 
                 ui.add_space(theme::SPACE_LG);
@@ -59,7 +60,7 @@ impl CompliancePage {
                     if state.checks.is_empty() {
                         widgets::empty_state(
                             ui,
-                            "□",
+                            icons::COMPLIANCE,
                             "Aucune vérification effectuée",
                             Some("Lancez une analyse pour vérifier la conformité de cet appareil."),
                         );

@@ -4,6 +4,7 @@ use egui::Ui;
 
 use crate::app::AppState;
 use crate::events::GuiCommand;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -35,15 +36,15 @@ impl SyncPage {
                         );
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             if state.sync_in_progress {
-                                widgets::status_badge(ui, "↻ SYNCHRONISATION...", theme::INFO);
+                                widgets::status_badge(ui, &format!("{} SYNCHRONISATION...", icons::SYNC), theme::INFO);
                             } else if state.summary.pending_sync_count > 0 {
                                 widgets::status_badge(
                                     ui,
-                                    &format!("↑ {} EN ATTENTE", state.summary.pending_sync_count),
+                                    &format!("{} {} EN ATTENTE", icons::ARROW_UP, state.summary.pending_sync_count),
                                     theme::WARNING,
                                 );
                             } else {
-                                widgets::status_badge(ui, "✓ \u{00c0} JOUR", theme::SUCCESS);
+                                widgets::status_badge(ui, &format!("{} \u{00c0} JOUR", icons::CHECK), theme::SUCCESS);
                             }
                         });
                     });
@@ -72,7 +73,7 @@ impl SyncPage {
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                              // Force sync button
                             let btn = egui::Button::new(
-                                egui::RichText::new("↻  SYNCHRONISER MAINTENANT")
+                                egui::RichText::new(format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC))
                                     .font(theme::font_body())
                                     .color(theme::TEXT_ON_ACCENT)
                                     .strong(),
@@ -96,7 +97,7 @@ impl SyncPage {
                             .inner_margin(egui::Margin::symmetric(8, 4))
                             .show(ui, |ui| {
                                 ui.label(
-                                    egui::RichText::new(format!("▲ ERREUR : {}", err))
+                                    egui::RichText::new(format!("{} ERREUR : {}", icons::WARNING, err))
                                         .font(theme::font_small())
                                         .color(theme::ERROR),
                                 );
@@ -154,9 +155,9 @@ impl SyncPage {
                                     
                                     row.col(|ui| {
                                         let (icon, color) = if entry.success {
-                                            ("✓", theme::SUCCESS)
+                                            (icons::CIRCLE_CHECK, theme::SUCCESS)
                                         } else {
-                                            ("✕", theme::ERROR)
+                                            (icons::CIRCLE_XMARK, theme::ERROR)
                                         };
                                         ui.label(egui::RichText::new(icon).size(18.0).color(color));
                                     });

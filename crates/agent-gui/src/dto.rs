@@ -202,6 +202,21 @@ pub struct GuiSoftwarePackage {
     pub latest_version: Option<String>,
 }
 
+/// A macOS native application entry for GUI display.
+#[derive(Debug, Clone, PartialEq)]
+pub struct GuiMacOsApp {
+    /// Application name (from Info.plist or folder name).
+    pub name: String,
+    /// Bundle version string.
+    pub version: String,
+    /// Bundle identifier (e.g. com.apple.Safari).
+    pub bundle_id: String,
+    /// Publisher / developer.
+    pub publisher: String,
+    /// Path on disk.
+    pub path: String,
+}
+
 /// A vulnerability finding for GUI display.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]

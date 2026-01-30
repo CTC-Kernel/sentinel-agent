@@ -8,6 +8,7 @@
 
 use egui::Ui;
 
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -194,8 +195,8 @@ impl EnrollmentWizard {
                 ui.label(
                     egui::RichText::new(
                         "Saisissez le token d'enr\u{00f4}lement fourni par votre administrateur.\n\
-                         Vous le trouverez dans Sentinel GRC \u{2192} Param\u{00e8}tres \
-                         \u{2192} Agents \u{2192} Enr\u{00f4}ler un Agent.",
+                         Vous le trouverez dans Sentinel GRC > Param\u{00e8}tres \
+                         > Agents > Enr\u{00f4}ler un Agent.",
                     )
                     .font(theme::font_small())
                     .color(theme::TEXT_SECONDARY),
@@ -293,7 +294,7 @@ impl EnrollmentWizard {
 
                 if success {
                     ui.label(
-                        egui::RichText::new("\u{2705}").font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new(icons::CIRCLE_CHECK).font(egui::FontId::proportional(48.0)).color(theme::SUCCESS),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -304,7 +305,7 @@ impl EnrollmentWizard {
                     );
                 } else {
                     ui.label(
-                        egui::RichText::new("\u{274c}").font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new(icons::CIRCLE_XMARK).font(egui::FontId::proportional(48.0)).color(theme::ERROR),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -390,7 +391,7 @@ impl EnrollmentWizard {
 
                 if i < steps.len() - 1 {
                     ui.label(
-                        egui::RichText::new(" \u{2192} ")
+                        egui::RichText::new(format!(" {} ", icons::ARROW_RIGHT))
                             .font(theme::font_small())
                             .color(theme::TEXT_TERTIARY),
                     );
