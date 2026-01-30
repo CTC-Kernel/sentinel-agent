@@ -23,38 +23,14 @@ impl CompliancePage {
                 ui.add_space(theme::SPACE_LG);
 
                 // Summary cards row
+                let card_gap = theme::SPACE_SM;
+                let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
                 ui.horizontal(|ui| {
-                    Self::summary_card(
-                        ui,
-                        "TOTAL",
-                        &state.policy.total_policies.to_string(),
-                        theme::TEXT_PRIMARY,
-                        "□",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    Self::summary_card(
-                        ui,
-                        "CONFORME",
-                        &state.policy.passing.to_string(),
-                        theme::SUCCESS,
-                        "✓",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    Self::summary_card(
-                        ui,
-                        "NON-CONFORME",
-                        &state.policy.failing.to_string(),
-                        theme::ERROR,
-                        "✕",
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    Self::summary_card(
-                        ui,
-                        "ERREURS",
-                        &state.policy.errors.to_string(),
-                        theme::WARNING,
-                        "▲",
-                    );
+                    ui.spacing_mut().item_spacing.x = card_gap;
+                    Self::summary_card(ui, card_w, "TOTAL", &state.policy.total_policies.to_string(), theme::TEXT_PRIMARY, "□");
+                    Self::summary_card(ui, card_w, "CONFORME", &state.policy.passing.to_string(), theme::SUCCESS, "✓");
+                    Self::summary_card(ui, card_w, "NON-CONFORME", &state.policy.failing.to_string(), theme::ERROR, "✕");
+                    Self::summary_card(ui, card_w, "ERREURS", &state.policy.errors.to_string(), theme::WARNING, "▲");
                 });
 
                 ui.add_space(theme::SPACE_LG);
@@ -234,26 +210,28 @@ impl CompliancePage {
             });
     }
 
-    fn summary_card(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) {
-        widgets::card(ui, |ui| {
-            ui.set_min_width(160.0);
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    ui.label(
-                        egui::RichText::new(value)
-                            .size(24.0)
-                            .color(color)
-                            .strong(),
-                    );
-                    ui.label(
-                        egui::RichText::new(label)
-                            .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
-                            .strong(),
-                    );
-                });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(egui::RichText::new(icon).size(28.0).color(color.linear_multiply(0.4)));
+    fn summary_card(ui: &mut Ui, width: f32, label: &str, value: &str, color: egui::Color32, icon: &str) {
+        ui.vertical(|ui| {
+            ui.set_width(width);
+            widgets::card(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.vertical(|ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .size(24.0)
+                                .color(color)
+                                .strong(),
+                        );
+                        ui.label(
+                            egui::RichText::new(label)
+                                .font(theme::font_small())
+                                .color(theme::TEXT_TERTIARY)
+                                .strong(),
+                        );
+                    });
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(egui::RichText::new(icon).size(28.0).color(color.linear_multiply(0.4)));
+                    });
                 });
             });
         });

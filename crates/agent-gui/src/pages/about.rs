@@ -68,12 +68,14 @@ impl AboutPage {
                 ui.add_space(theme::SPACE);
 
                 let total_width = ui.available_width();
+                let col_gap = theme::SPACE;
+                let col_w = (total_width - col_gap) * 0.5;
                 ui.horizontal_top(|ui| {
-                    let gap = theme::SPACE;
-                    let col_w = ((total_width - gap) * 0.5).max(200.0);
+                    ui.spacing_mut().item_spacing.x = col_gap;
+                    ui.vertical(|ui| {
+                    ui.set_width(col_w);
                     // System info
                     widgets::card(ui, |ui| {
-                        ui.set_width(col_w);
                         ui.label(
                             egui::RichText::new("SYST\u{00c8}ME")
                                 .font(theme::font_small())
@@ -90,12 +92,12 @@ impl AboutPage {
                         Self::info_row(ui, "Runtime", "Rust v1.80+", "→");
                         Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), "→");
                     });
-
-                    ui.add_space(theme::SPACE);
+                    }); // end left vertical
 
                     // Links
+                    ui.vertical(|ui| {
+                    ui.set_width(col_w);
                     widgets::card(ui, |ui| {
-                        ui.set_width(col_w);
                         ui.label(
                             egui::RichText::new("RESSOURCES")
                                 .font(theme::font_small())
@@ -108,6 +110,7 @@ impl AboutPage {
                         Self::link_row(ui, "Documentation", branding::GUIDE, "→");
                         Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), "→");
                     });
+                    }); // end right vertical
                 });
 
                 ui.add_space(theme::SPACE);
