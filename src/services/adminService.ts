@@ -100,7 +100,7 @@ export const AdminService = {
                 userCount: usersCount.data().count,
                 projectCount: projectsCount.data().count,
                 storageUsedBytes: null, // Unknown - requires cloud storage stats
-                lastActive: (null as any) // Unknown at this scope
+                lastActive: null // Unknown at this scope
             };
         } catch (error) {
             ErrorLogger.error(error as Error, 'AdminService.getTenantStats');

@@ -395,7 +395,7 @@ export class ImportService {
             "Prestataire TIC": s.isICTProvider ? 'OUI' : 'NON',
             "Fonction Critique": s.supportsCriticalFunction ? 'OUI' : 'NON',
             "Criticité DORA": s.doraCriticality || 'Aucun',
-            "Localisation Données": (s as any).dataLocation || 'N/A',
+            "Localisation Données": (s as Supplier & { dataLocation?: string }).dataLocation || 'N/A',
             "Date Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString() : ''
         }));
         this.downloadCSV(objectRows, `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`);
