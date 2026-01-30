@@ -69,6 +69,13 @@ export class ThreatFeedService {
     private static async fetchViaProxy(targetUrl: string): Promise<unknown> {
         // Validation basique de l'URL pour éviter des appels inutiles
         if (!targetUrl || !targetUrl.startsWith('http')) {
+            console.warn('[ThreatFeedService] Invalid URL provided:', targetUrl);
+            return { vulnerabilities: [], urls: [] };
+        }
+
+        // Si hors ligne, ne pas tenter de fetch
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            console.warn('[ThreatFeedService] Offline detected, skipping fetch');
             return { vulnerabilities: [], urls: [] };
         }
 
@@ -78,9 +85,11 @@ export class ThreatFeedService {
             // Type safe access to data
             const data = result.data as { vulnerabilities?: unknown[]; urls?: unknown[] };
             if (data) {
+                console.log('[ThreatFeedService] Firebase proxy success for:', targetUrl);
                 return data;
             }
-        } catch {
+        } catch (error) {
+            console.warn('[ThreatFeedService] Firebase proxy failed:', error instanceof Error ? error.message : String(error));
             // Continue to other methods if Firebase proxy fails
         }
 
@@ -93,6 +102,7 @@ export class ThreatFeedService {
 
         // Si hors ligne, ne pas tenter de fetch
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            console.warn('[ThreatFeedService] Offline detected, skipping fetch');
             return { vulnerabilities: [], urls: [] };
         }
 
@@ -113,13 +123,17 @@ export class ThreatFeedService {
             if (response.ok) {
                 const text = await response.text();
                 try {
-                    return JSON.parse(text);
+                    const data = JSON.parse(text);
+                    console.log('[ThreatFeedService] Direct fetch success for:', targetUrl);
+                    return data;
                 } catch {
                     // Si json parse fail, peut-être format invalid
+                    console.warn('[ThreatFeedService] JSON parse failed for direct fetch');
                     return { vulnerabilities: [], urls: [] };
                 }
             }
-        } catch {
+        } catch (error) {
+            console.warn('[ThreatFeedService] Direct fetch failed:', error instanceof Error ? error.message : String(error));
             // Continue to proxies if direct fetch fails
         }
 
@@ -141,18 +155,21 @@ export class ThreatFeedService {
                 if (response.ok) {
                     const text = await response.text();
                     try {
-                        return JSON.parse(text);
+                        const data = JSON.parse(text);
+                        console.log('[ThreatFeedService] Proxy success for:', targetUrl);
+                        return data;
                     } catch {
                         continue; // Try next proxy if JSON parsing fails
                     }
                 }
-            } catch {
+            } catch (error) {
+                console.warn('[ThreatFeedService] Proxy failed:', error instanceof Error ? error.message : String(error));
                 // Silent catch for individual proxy failures to keep trying others
-                // Only log if strictly necessary to avoid console noise
                 continue;
             }
         }
 
+        console.warn('[ThreatFeedService] All fetch methods failed for:', targetUrl);
         // Return empty structure instead of throwing to prevent app crash
         // Instead of throwing, we return empty to trigger fallback logic upstream if needed,
         // OR we can rely on the caller to handle empty results.
@@ -187,7 +204,8 @@ export class ThreatFeedService {
                 remediationPlan: v.requiredAction
             }));
 
-        } catch {
+        } catch (error) {
+            console.error('[ThreatFeedService] fetchCisaKev failed:', error instanceof Error ? error.message : String(error));
             return [];
         }
     }
@@ -221,7 +239,8 @@ export class ThreatFeedService {
                 coordinates: [(Math.random() * 360) - 180, (Math.random() * 160) - 80]
             }));
 
-        } catch {
+        } catch (error) {
+            console.error('[ThreatFeedService] fetchUrlHaus failed:', error instanceof Error ? error.message : String(error));
             return [];
         }
     }
