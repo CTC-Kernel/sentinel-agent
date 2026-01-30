@@ -11,7 +11,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { AgentConnection } from '../../types/agent';
-import { Search, Network, Filter, Globe, Server } from '../ui/Icons';
+import { Search, Network, Globe, Server } from '../ui/Icons';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
@@ -227,9 +227,14 @@ export const AgentNetworkConnections: React.FC<AgentNetworkConnectionsProps> = (
                 <div className="max-h-[400px] overflow-y-auto">
                     <AnimatePresence mode="popLayout">
                         {filteredConnections.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                                <Filter className="h-8 w-8 mb-2 opacity-30" />
-                                <span>{search || stateFilter !== 'all' ? 'Aucune connexion trouvée' : 'Aucune connexion active'}</span>
+                            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+                                <Network className="h-8 w-8 opacity-30" />
+                                <span>{search || stateFilter !== 'all' ? 'Aucune connexion trouvée' : 'Connexions réseau non disponibles'}</span>
+                                {!search && stateFilter === 'all' && (
+                                    <span className="text-xs opacity-70">
+                                        La collecte des connexions sera disponible dans une prochaine version
+                                    </span>
+                                )}
                             </div>
                         ) : (
                             filteredConnections.map((connection, index) => (

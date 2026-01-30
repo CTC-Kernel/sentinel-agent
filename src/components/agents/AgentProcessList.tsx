@@ -271,8 +271,14 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                 <div className="max-h-[400px] overflow-y-auto">
                     <AnimatePresence mode="popLayout">
                         {filteredProcesses.length === 0 ? (
-                            <div className="flex items-center justify-center py-12 text-muted-foreground">
-                                {search ? 'Aucun processus trouvé' : 'Aucun processus actif'}
+                            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+                                <Activity className="h-8 w-8 opacity-30" />
+                                <span>{search ? 'Aucun processus trouvé' : 'Liste des processus non disponible'}</span>
+                                {!search && (
+                                    <span className="text-xs opacity-70">
+                                        La collecte des processus sera disponible dans une prochaine version
+                                    </span>
+                                )}
                             </div>
                         ) : (
                             filteredProcesses.map((process, index) => (

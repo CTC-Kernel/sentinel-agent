@@ -11,7 +11,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
-import { SentinelAgent, AgentRealtimeData, AgentRealtimeMetrics, AgentProcess, AgentConnection } from '../../types/agent';
+import { SentinelAgent, AgentRealtimeData, AgentRealtimeMetrics } from '../../types/agent';
 import { AgentMetricsChart } from './AgentMetricsChart';
 import { AgentProcessList } from './AgentProcessList';
 import { AgentNetworkConnections } from './AgentNetworkConnections';
@@ -53,59 +53,27 @@ const formatLastSeen = (dateStr: string): string => {
     });
 };
 
-// Generate mock real-time data for demo purposes
-// In production, this would come from Firestore real-time subscription
-const generateMockRealtimeData = (agent: SentinelAgent): AgentRealtimeData => {
+// Build real-time data from actual agent heartbeat values
+// Processes and connections are not yet collected from agents
+const buildRealtimeDataFromAgent = (agent: SentinelAgent): AgentRealtimeData => {
     const now = new Date();
 
-    // Generate 60 data points for 1 minute of data
-    const metricsHistory: AgentRealtimeMetrics[] = Array.from({ length: 60 }, (_, i) => {
-        const timestamp = new Date(now.getTime() - (59 - i) * 1000);
-        return {
-            cpuPercent: Math.max(0, Math.min(100, (agent.cpuPercent || 20) + (Math.random() - 0.5) * 20)),
-            memoryPercent: Math.max(0, Math.min(100, 45 + (Math.random() - 0.5) * 10)),
-            memoryBytes: agent.memoryBytes || 4 * 1024 * 1024 * 1024,
-            diskPercent: 65 + (Math.random() - 0.5) * 5,
-            networkInBytes: Math.floor(Math.random() * 1024 * 1024),
-            networkOutBytes: Math.floor(Math.random() * 512 * 1024),
-            timestamp: timestamp.toISOString(),
-        };
-    });
-
-    // Generate mock processes
-    const processes: AgentProcess[] = [
-        { pid: 1, name: 'systemd', cpuPercent: 0.1, memoryBytes: 12 * 1024 * 1024, memoryPercent: 0.3, status: 'running', user: 'root' },
-        { pid: 234, name: 'sentinel-agent', cpuPercent: 2.5, memoryBytes: 85 * 1024 * 1024, memoryPercent: 2.1, status: 'running', user: 'sentinel' },
-        { pid: 567, name: 'nginx', cpuPercent: 0.8, memoryBytes: 45 * 1024 * 1024, memoryPercent: 1.1, status: 'running', user: 'www-data' },
-        { pid: 890, name: 'postgres', cpuPercent: 5.2, memoryBytes: 256 * 1024 * 1024, memoryPercent: 6.4, status: 'running', user: 'postgres' },
-        { pid: 1234, name: 'node', cpuPercent: 12.3, memoryBytes: 512 * 1024 * 1024, memoryPercent: 12.8, status: 'running', user: 'app' },
-        { pid: 1567, name: 'redis-server', cpuPercent: 1.1, memoryBytes: 128 * 1024 * 1024, memoryPercent: 3.2, status: 'running', user: 'redis' },
-        { pid: 1890, name: 'docker', cpuPercent: 3.4, memoryBytes: 200 * 1024 * 1024, memoryPercent: 5.0, status: 'running', user: 'root' },
-        { pid: 2123, name: 'sshd', cpuPercent: 0.0, memoryBytes: 8 * 1024 * 1024, memoryPercent: 0.2, status: 'sleeping', user: 'root' },
-        { pid: 2456, name: 'cron', cpuPercent: 0.0, memoryBytes: 4 * 1024 * 1024, memoryPercent: 0.1, status: 'sleeping', user: 'root' },
-        { pid: 2789, name: 'rsyslogd', cpuPercent: 0.2, memoryBytes: 16 * 1024 * 1024, memoryPercent: 0.4, status: 'running', user: 'syslog' },
-    ];
-
-    // Generate mock connections
-    const connections: AgentConnection[] = [
-        { id: '1', protocol: 'tcp', localAddress: '0.0.0.0', localPort: 443, remoteAddress: '', remotePort: 0, state: 'LISTEN', processName: 'nginx', pid: 567 },
-        { id: '2', protocol: 'tcp', localAddress: '0.0.0.0', localPort: 80, remoteAddress: '', remotePort: 0, state: 'LISTEN', processName: 'nginx', pid: 567 },
-        { id: '3', protocol: 'tcp', localAddress: '192.168.1.100', localPort: 443, remoteAddress: '203.0.113.50', remotePort: 52341, state: 'ESTABLISHED', processName: 'nginx', pid: 567 },
-        { id: '4', protocol: 'tcp', localAddress: '192.168.1.100', localPort: 443, remoteAddress: '198.51.100.25', remotePort: 48123, state: 'ESTABLISHED', processName: 'nginx', pid: 567 },
-        { id: '5', protocol: 'tcp', localAddress: '127.0.0.1', localPort: 5432, remoteAddress: '', remotePort: 0, state: 'LISTEN', processName: 'postgres', pid: 890 },
-        { id: '6', protocol: 'tcp', localAddress: '127.0.0.1', localPort: 5432, remoteAddress: '127.0.0.1', remotePort: 41234, state: 'ESTABLISHED', processName: 'postgres', pid: 890 },
-        { id: '7', protocol: 'tcp', localAddress: '0.0.0.0', localPort: 6379, remoteAddress: '', remotePort: 0, state: 'LISTEN', processName: 'redis-server', pid: 1567 },
-        { id: '8', protocol: 'tcp', localAddress: '192.168.1.100', localPort: 22, remoteAddress: '10.0.0.5', remotePort: 59012, state: 'ESTABLISHED', processName: 'sshd', pid: 2123 },
-        { id: '9', protocol: 'tcp', localAddress: '192.168.1.100', localPort: 49532, remoteAddress: 'api.sentinel-grc.com', remotePort: 443, state: 'ESTABLISHED', processName: 'sentinel-agent', pid: 234 },
-        { id: '10', protocol: 'udp', localAddress: '0.0.0.0', localPort: 68, remoteAddress: '', remotePort: 0, state: 'LISTEN', processName: 'dhclient', pid: 456 },
-    ];
+    const currentMetric: AgentRealtimeMetrics = {
+        cpuPercent: agent.cpuPercent ?? 0,
+        memoryPercent: agent.memoryPercent ?? 0,
+        memoryBytes: agent.memoryBytes ?? 0,
+        diskPercent: agent.diskPercent ?? 0,
+        networkInBytes: 0,
+        networkOutBytes: 0,
+        timestamp: now.toISOString(),
+    };
 
     return {
         agentId: agent.id,
-        metrics: metricsHistory[metricsHistory.length - 1],
-        processes,
-        connections,
-        lastUpdate: now.toISOString(),
+        metrics: currentMetric,
+        processes: [],      // Not yet collected by the agent
+        connections: [],    // Not yet collected by the agent
+        lastUpdate: agent.lastHeartbeat || now.toISOString(),
     };
 };
 
@@ -115,27 +83,22 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
     className
 }) => {
     const [activeTab, setActiveTab] = useState('metrics');
-    const [realtimeData, setRealtimeData] = useState<AgentRealtimeData | null>(() => generateMockRealtimeData(agent));
+    const [realtimeData, setRealtimeData] = useState<AgentRealtimeData | null>(() => buildRealtimeDataFromAgent(agent));
     const [metricsHistory, setMetricsHistory] = useState<AgentRealtimeMetrics[]>(() => {
-        // Generate initial metrics history using real agent data where available
+        // Initialize with a single real data point from the last heartbeat
+        // Historical data would require fetching from metrics_history collection
         const now = new Date();
-        const baseCpu = agent.cpuPercent ?? 0;
-        const baseMem = agent.memoryPercent ?? 0;
-        const baseDisk = agent.diskPercent ?? 0;
-        return Array.from({ length: 60 }, (_, i) => {
-            const timestamp = new Date(now.getTime() - (59 - i) * 1000);
-            const cpuVariation = ((i % 7) - 3) * 2;
-            const memVariation = ((i % 5) - 2) * 1;
-            return {
-                cpuPercent: Math.max(0, Math.min(100, baseCpu + cpuVariation)),
-                memoryPercent: Math.max(0, Math.min(100, baseMem + memVariation)),
-                memoryBytes: agent.memoryBytes || 0,
-                diskPercent: Math.max(0, Math.min(100, baseDisk + ((i % 3) - 1))),
-                networkInBytes: (i * 17389) % (1024 * 1024),
-                networkOutBytes: (i * 8731) % (512 * 1024),
-                timestamp: timestamp.toISOString(),
-            };
-        });
+        const currentMetric: AgentRealtimeMetrics = {
+            cpuPercent: agent.cpuPercent ?? 0,
+            memoryPercent: agent.memoryPercent ?? 0,
+            memoryBytes: agent.memoryBytes ?? 0,
+            diskPercent: agent.diskPercent ?? 0,
+            networkInBytes: 0,
+            networkOutBytes: 0,
+            timestamp: now.toISOString(),
+        };
+        // Start with single point; new points added on each heartbeat refresh
+        return [currentMetric];
     });
     const [loading, _setLoading] = useState(false);
     void _setLoading; // Reserved for future use with real-time data loading
@@ -143,49 +106,42 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
 
     // Update data when agent changes
     useEffect(() => {
-        setRealtimeData(generateMockRealtimeData(agent));
+        setRealtimeData(buildRealtimeDataFromAgent(agent));
     }, [agent]);
 
-    // Simulate real-time metric updates using real agent base values
-    // TODO: Replace with Firestore real-time subscription when agent pushes live metrics
+    // Update metrics when agent heartbeat data changes (real data from Firestore subscription)
     useEffect(() => {
         if (!realtimeData) return;
 
-        const baseCpu = agent.cpuPercent ?? 0;
-        const baseMem = agent.memoryPercent ?? 0;
-        const baseDisk = agent.diskPercent ?? 0;
+        const now = new Date();
+        const newMetric: AgentRealtimeMetrics = {
+            cpuPercent: agent.cpuPercent ?? 0,
+            memoryPercent: agent.memoryPercent ?? 0,
+            memoryBytes: agent.memoryBytes ?? 0,
+            diskPercent: agent.diskPercent ?? 0,
+            networkInBytes: 0,
+            networkOutBytes: 0,
+            timestamp: now.toISOString(),
+        };
 
-        const interval = setInterval(() => {
-            const now = new Date();
-            const newMetric: AgentRealtimeMetrics = {
-                cpuPercent: Math.max(0, Math.min(100, baseCpu + (Math.random() - 0.5) * 10)),
-                memoryPercent: Math.max(0, Math.min(100, baseMem + (Math.random() - 0.5) * 5)),
-                memoryBytes: agent.memoryBytes || 0,
-                diskPercent: Math.max(0, Math.min(100, baseDisk + (Math.random() - 0.5) * 2)),
-                networkInBytes: Math.floor(Math.random() * 1024 * 1024),
-                networkOutBytes: Math.floor(Math.random() * 512 * 1024),
-                timestamp: now.toISOString(),
-            };
+        setMetricsHistory(prev => {
+            const updated = [...prev, newMetric];
+            // Keep last 60 entries for chart history
+            return updated.slice(-60);
+        });
 
-            setMetricsHistory(prev => {
-                const updated = [...prev, newMetric];
-                // Keep last 60 entries (1 minute at 1 sample/sec)
-                return updated.slice(-60);
-            });
-
-            setRealtimeData(prev => prev ? {
-                ...prev,
-                metrics: newMetric,
-                lastUpdate: now.toISOString(),
-            } : null);
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [realtimeData, agent.cpuPercent, agent.memoryPercent, agent.diskPercent, agent.memoryBytes]);
+        setRealtimeData(prev => prev ? {
+            ...prev,
+            metrics: newMetric,
+            lastUpdate: agent.lastHeartbeat || now.toISOString(),
+        } : null);
+    // Only re-run when agent data actually changes (new heartbeat)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [agent.cpuPercent, agent.memoryPercent, agent.diskPercent, agent.memoryBytes, agent.lastHeartbeat]);
 
     // Manual refresh
     const handleRefresh = useCallback(() => {
-        const data = generateMockRealtimeData(agent);
+        const data = buildRealtimeDataFromAgent(agent);
         setRealtimeData(data);
         setLastRefresh(new Date());
     }, [agent]);
@@ -283,7 +239,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             >
                                 <Cpu className="h-4 w-4" />
                                 <span className="hidden sm:inline">Processus</span>
-                                {realtimeData && (
+                                {realtimeData && realtimeData.processes.length > 0 && (
                                     <Badge status="neutral" className="text-[11px] ml-1">
                                         {realtimeData.processes.length}
                                     </Badge>
@@ -295,7 +251,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             >
                                 <Network className="h-4 w-4" />
                                 <span className="hidden sm:inline">Réseau</span>
-                                {realtimeData && (
+                                {realtimeData && realtimeData.connections.length > 0 && (
                                     <Badge status="neutral" className="text-[11px] ml-1">
                                         {realtimeData.connections.length}
                                     </Badge>
@@ -341,7 +297,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                         'w-1.5 h-1.5 rounded-full',
                         isActive ? 'bg-success animate-pulse' : 'bg-muted-foreground'
                     )} />
-                    {isActive ? 'Métriques basées sur le dernier heartbeat' : 'Agent hors ligne'}
+                    {isActive ? 'Données du dernier heartbeat (intervalle ~60s)' : 'Agent hors ligne — dernières données connues'}
                 </span>
             </div>
         </motion.div>
