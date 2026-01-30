@@ -11,6 +11,19 @@ use crate::dto::{
     GuiVulnerabilityFinding, GuiVulnerabilitySummary,
 };
 
+/// A single terminal log entry captured from the tracing subsystem.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TerminalLogEntry {
+    /// Timestamp of the log event.
+    pub timestamp: DateTime<Utc>,
+    /// Log level (TRACE, DEBUG, INFO, WARN, ERROR).
+    pub level: String,
+    /// Module / target that emitted the log.
+    pub target: String,
+    /// Human-readable message.
+    pub message: String,
+}
+
 /// Events emitted by the agent runtime for the GUI to consume.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -83,6 +96,25 @@ pub enum AgentEvent {
         /// List of vulnerability findings.
         findings: Vec<GuiVulnerabilityFinding>,
     },
+    /// A tracing log event captured for the terminal view.
+    TerminalLog {
+        /// The captured log entry.
+        entry: TerminalLogEntry,
+    },
+    /// Discovery results updated.
+    DiscoveryUpdate {
+        /// Discovered devices.
+        devices: Vec<crate::dto::GuiDiscoveredDevice>,
+    },
+    /// Discovery scan progress.
+    DiscoveryProgress {
+        /// Current phase description.
+        phase: String,
+        /// Progress percentage (0.0-1.0).
+        progress: f32,
+        /// Number of devices found so far.
+        devices_found: usize,
+    },
     /// Agent is shutting down.
     ShuttingDown,
 }
@@ -110,6 +142,19 @@ pub enum GuiCommand {
     },
     /// Request shutdown.
     Shutdown,
+    /// Start network discovery scan.
+    StartDiscovery,
+    /// Stop network discovery scan.
+    StopDiscovery,
+    /// Propose a discovered device as an asset.
+    ProposeAsset {
+        /// IP address.
+        ip: String,
+        /// Hostname if resolved.
+        hostname: Option<String>,
+        /// Device type classification.
+        device_type: String,
+    },
 }
 
 #[cfg(test)]

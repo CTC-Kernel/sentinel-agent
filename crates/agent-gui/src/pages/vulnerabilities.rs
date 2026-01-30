@@ -66,59 +66,66 @@ impl VulnerabilitiesPage {
 
                 // Vulnerability findings table
                 widgets::card(ui, |ui| {
-                    ui.label(egui::RichText::new("FAILLES D\u{00c9}TECT\u{00c9}ES").font(theme::font_small()).color(theme::TEXT_TERTIARY).strong());
+                    ui.label(
+                        egui::RichText::new("FAILLES DÉTECTÉES")
+                            .font(theme::font_small())
+                            .color(theme::TEXT_TERTIARY)
+                            .strong(),
+                    );
                     ui.add_space(theme::SPACE_MD);
 
                     if state.vulnerability_findings.is_empty() {
                         widgets::empty_state(
                             ui,
                             "▲",
-                            "Aucune vuln\u{00e9}rabilit\u{00e9} d\u{00e9}tect\u{00e9}e",
-                            Some("Votre syst\u{00e8}me semble prot\u{00e9}g\u{00e9}. Les scans continus v\u{00e9}rifient les failles connues."),
+                            "Aucune vulnérabilité détectée",
+                            Some("Votre système semble protégé. Les scans continus vérifient les failles connues."),
                         );
                     } else {
-                        let tw = ui.available_width();
-                        let col_cve = (tw * 0.18).max(80.0);
-                        let col_soft = (tw * 0.22).max(100.0);
-                        let col_sev = (tw * 0.14).max(70.0);
-                        let col_cvss = (tw * 0.08).max(40.0);
+                        use egui_extras::{Column, TableBuilder};
 
-                        // Table header
-                        ui.horizontal(|ui| {
-                            ui.set_min_height(32.0);
-                            Self::table_header_cell(ui, "CVE", col_cve);
-                            Self::table_header_cell(ui, "LOGICIEL", col_soft);
-                            Self::table_header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}", col_sev);
-                            Self::table_header_cell(ui, "CVSS", col_cvss);
-                            ui.label(egui::RichText::new("DESCRIPTION").font(theme::font_small()).color(theme::TEXT_TERTIARY).strong());
-                        });
-                        ui.add_space(theme::SPACE_XS);
-                        ui.separator();
-                        ui.add_space(theme::SPACE_SM);
+                        let table = TableBuilder::new(ui)
+                            .striped(true)
+                            .resizable(true)
+                            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                            .column(Column::initial(100.0).at_least(80.0)) // CVE
+                            .column(Column::initial(150.0).range(100.0..=300.0).at_least(100.0)) // Software
+                            .column(Column::initial(100.0).at_least(70.0)) // Severity
+                            .column(Column::initial(60.0).at_least(40.0)) // CVSS
+                            .column(Column::remainder()); // Description
 
-                        for finding in &state.vulnerability_findings {
-                            ui.horizontal(|ui| {
-                                ui.set_min_height(42.0);
-
-                                // CVE ID
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_cve, 42.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
+                        table
+                            .header(28.0, |mut header| {
+                                header.col(|ui| {
+                                    ui.strong("CVE");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("LOGICIEL");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("SÉVÉRITÉ");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("CVSS");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("DESCRIPTION / CORRECTIF");
+                                });
+                            })
+                            .body(|body| {
+                                body.rows(48.0, state.vulnerability_findings.len(), |mut row| {
+                                    let finding = &state.vulnerability_findings[row.index()];
+                                    
+                                    row.col(|ui| {
                                         ui.label(
                                             egui::RichText::new(&finding.cve_id)
                                                 .font(theme::font_mono())
                                                 .color(theme::ACCENT_LIGHT)
                                                 .strong(),
                                         );
-                                    },
-                                );
-
-                                // Affected software
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_soft, 42.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
+                                    });
+                                    
+                                    row.col(|ui| {
                                         ui.vertical(|ui| {
                                             ui.label(
                                                 egui::RichText::new(&finding.affected_software)
@@ -132,25 +139,14 @@ impl VulnerabilitiesPage {
                                                     .color(theme::TEXT_TERTIARY),
                                             );
                                         });
-                                    },
-                                );
-
-                                // Severity badge
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_sev, 42.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
-                                        let (label, color) =
-                                            Self::severity_display(&finding.severity);
+                                    });
+                                    
+                                    row.col(|ui| {
+                                        let (label, color) = Self::severity_display(&finding.severity);
                                         widgets::status_badge(ui, label, color);
-                                    },
-                                );
-
-                                // CVSS score
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_cvss, 42.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
+                                    });
+                                    
+                                    row.col(|ui| {
                                         if let Some(s) = finding.cvss_score {
                                             ui.label(
                                                 egui::RichText::new(format!("{:.1}", s))
@@ -161,26 +157,22 @@ impl VulnerabilitiesPage {
                                         } else {
                                             ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
                                         }
-                                    },
-                                );
-
-                                // Description (takes remaining space) + fix badge inline
-                                ui.vertical(|ui| {
-                                    ui.label(
-                                        egui::RichText::new(&finding.description)
-                                            .font(theme::font_small())
-                                            .color(theme::TEXT_SECONDARY),
-                                    );
-                                    if finding.fix_available {
-                                        widgets::status_badge(ui, "✓ CORRECTIF", theme::SUCCESS.linear_multiply(0.8));
-                                    }
+                                    });
+                                    
+                                    row.col(|ui| {
+                                        ui.vertical(|ui| {
+                                            ui.label(
+                                                egui::RichText::new(&finding.description)
+                                                    .font(theme::font_small())
+                                                    .color(theme::TEXT_SECONDARY),
+                                            );
+                                            if finding.fix_available {
+                                                widgets::status_badge(ui, "✓ CORRECTIF", theme::SUCCESS.linear_multiply(0.8));
+                                            }
+                                        });
+                                    });
                                 });
                             });
-
-                            ui.add_space(theme::SPACE_XS);
-                            ui.separator();
-                            ui.add_space(theme::SPACE_XS);
-                        }
                     }
                 });
                 
@@ -213,20 +205,6 @@ impl VulnerabilitiesPage {
         });
     }
 
-    fn table_header_cell(ui: &mut Ui, text: &str, width: f32) {
-        ui.allocate_ui_with_layout(
-            egui::Vec2::new(width, 28.0),
-            egui::Layout::left_to_right(egui::Align::Center),
-            |ui| {
-                ui.label(
-                    egui::RichText::new(text)
-                        .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
-                        .strong(),
-                );
-            },
-        );
-    }
 
     fn severity_display(severity: &str) -> (&'static str, egui::Color32) {
         match severity {

@@ -74,8 +74,10 @@ impl Sidebar {
 
                     let sys_items: &[(Page, &str, &str)] = &[
                         (Page::Network, "●", "R\u{00e9}seau"),
+                        (Page::Discovery, "◎", "Découverte"),
+                        (Page::Cartography, "◇", "Cartographie"),
                         (Page::Sync, "↻", "Synchronisation"),
-                        (Page::Logs, "≡", "Journaux"),
+                        (Page::Terminal, "▸", "Terminal"),
                     ];
 
                     for (page, icon, label) in sys_items {

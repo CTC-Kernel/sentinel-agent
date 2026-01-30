@@ -224,6 +224,32 @@ pub struct GuiVulnerabilityFinding {
     pub discovered_at: Option<DateTime<Utc>>,
 }
 
+/// Discovered network device for display in the Discovery and Cartography pages.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GuiDiscoveredDevice {
+    /// IP address.
+    pub ip: String,
+    /// MAC address.
+    pub mac: Option<String>,
+    /// Hostname (reverse DNS).
+    pub hostname: Option<String>,
+    /// Hardware vendor (OUI lookup).
+    pub vendor: Option<String>,
+    /// Device type classification.
+    pub device_type: String,
+    /// Open TCP ports.
+    pub open_ports: Vec<u16>,
+    /// When first seen.
+    pub first_seen: chrono::DateTime<chrono::Utc>,
+    /// When last seen.
+    pub last_seen: chrono::DateTime<chrono::Utc>,
+    /// Whether device is a gateway.
+    pub is_gateway: bool,
+    /// Subnet this device belongs to.
+    pub subnet: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

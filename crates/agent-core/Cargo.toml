@@ -7,7 +7,7 @@ publish = false
 description = "Sentinel GRC endpoint compliance monitoring agent"
 
 [features]
-default = ["tray"]
+default = ["tray", "gui"]
 # Enable system tray GUI (macOS/Windows desktop mode)
 tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
 # Enable v2 desktop GUI features (Tauri-based)
