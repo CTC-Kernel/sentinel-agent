@@ -7,7 +7,9 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_DIR/target/release"
 APP_NAME="Sentinel Agent"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
-VERSION="${VERSION:-1.0.0}"  # Use VERSION env var or default to 1.0.0
+# Extract version from Cargo.toml (single source of truth) unless overridden
+CARGO_VERSION=$(grep '^version' "$PROJECT_DIR/Cargo.toml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+VERSION="${VERSION:-$CARGO_VERSION}"
 
 echo "=== Building Sentinel Agent for macOS ==="
 echo "Project dir: $PROJECT_DIR"
