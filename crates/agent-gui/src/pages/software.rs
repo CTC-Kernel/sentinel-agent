@@ -60,120 +60,108 @@ impl SoftwarePage {
 
                 // Software table
                 widgets::card(ui, |ui| {
-                    ui.label(egui::RichText::new("INVENTAIRE LOGICIEL").font(theme::font_small()).color(theme::TEXT_TERTIARY).strong());
+                    ui.label(
+                        egui::RichText::new("INVENTAIRE LOGICIEL")
+                            .font(theme::font_small())
+                            .color(theme::TEXT_TERTIARY)
+                            .strong(),
+                    );
                     ui.add_space(theme::SPACE_MD);
 
                     if state.software_packages.is_empty() {
                         widgets::empty_state(
                             ui,
                             "◆",
-                            "Aucun logiciel recens\u{00e9}",
-                            Some("L'inventaire logiciel est en cours de constitution ou aucun paquet n'a \u{00e9}t\u{00e9} d\u{00e9}tect\u{00e9}."),
+                            "Aucun logiciel recensé",
+                            Some("L'inventaire logiciel est en cours de constitution ou aucun paquet n'a été détecté."),
                         );
                     } else {
-                        let tw = ui.available_width();
-                        let col_name = (tw * 0.28).max(100.0);
-                        let col_ver = (tw * 0.16).max(80.0);
-                        let col_pub = (tw * 0.20).max(80.0);
-                        let col_status = (tw * 0.16).max(80.0);
+                        use egui_extras::{Column, TableBuilder};
 
-                        // Table header
-                        ui.horizontal(|ui| {
-                            ui.set_min_height(32.0);
-                            Self::table_header_cell(ui, "NOM DU LOGICIEL", col_name);
-                            Self::table_header_cell(ui, "VERSION", col_ver);
-                            Self::table_header_cell(ui, "\u{00c9}DITEUR", col_pub);
-                            Self::table_header_cell(ui, "STATUT", col_status);
-                            ui.label(egui::RichText::new("MAJ DISPONIBLE").font(theme::font_small()).color(theme::TEXT_TERTIARY).strong());
-                        });
-                        ui.add_space(theme::SPACE_XS);
-                        ui.separator();
-                        ui.add_space(theme::SPACE_SM);
+                        let table = TableBuilder::new(ui)
+                            .striped(true)
+                            .resizable(true)
+                            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                            .column(Column::initial(150.0).range(100.0..=400.0).at_least(100.0)) // Name
+                            .column(Column::initial(100.0).at_least(80.0)) // Version
+                            .column(Column::initial(120.0).at_least(100.0)) // Publisher
+                            .column(Column::initial(100.0).at_least(80.0)) // Status
+                            .column(Column::remainder()); // Latest version
 
-                        for pkg in &state.software_packages {
-                            ui.horizontal(|ui| {
-                                ui.set_min_height(40.0);
-
-                                // Name
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_name, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
+                        table
+                            .header(28.0, |mut header| {
+                                header.col(|ui| {
+                                    ui.strong("NOM DU LOGICIEL");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("VERSION");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("ÉDITEUR");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("STATUT");
+                                });
+                                header.col(|ui| {
+                                    ui.strong("MAJ DISPONIBLE");
+                                });
+                            })
+                            .body(|body| {
+                                body.rows(40.0, state.software_packages.len(), |mut row| {
+                                    let pkg = &state.software_packages[row.index()];
+                                    
+                                    row.col(|ui| {
                                         ui.label(
                                             egui::RichText::new(&pkg.name)
                                                 .font(theme::font_body())
                                                 .color(theme::TEXT_PRIMARY)
                                                 .strong(),
                                         );
-                                    },
-                                );
-
-                                // Version
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_ver, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
+                                    });
+                                    
+                                    row.col(|ui| {
                                         ui.label(
                                             egui::RichText::new(&pkg.version)
                                                 .font(theme::font_mono())
                                                 .color(theme::TEXT_SECONDARY),
                                         );
-                                    },
-                                );
-
-                                // Publisher
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_pub, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
-                                        let publisher = pkg
-                                            .publisher
-                                            .as_deref()
-                                            .unwrap_or("--");
+                                    });
+                                    
+                                    row.col(|ui| {
+                                        let publisher = pkg.publisher.as_deref().unwrap_or("--");
                                         ui.label(
                                             egui::RichText::new(publisher)
                                                 .font(theme::font_small())
                                                 .color(theme::TEXT_TERTIARY),
                                         );
-                                    },
-                                );
-
-                                // Status badge
-                                ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(col_status, 40.0),
-                                    egui::Layout::left_to_right(egui::Align::Center),
-                                    |ui| {
+                                    });
+                                    
+                                    row.col(|ui| {
                                         if pkg.up_to_date {
-                                            widgets::status_badge(ui, "✓ \u{00c0} JOUR", theme::SUCCESS.linear_multiply(0.8));
+                                            widgets::status_badge(ui, "✓ À JOUR", theme::SUCCESS.linear_multiply(0.8));
                                         } else {
-                                            widgets::status_badge(ui, "↑ OBSOL\u{00c8}TE", theme::WARNING.linear_multiply(0.8));
+                                            widgets::status_badge(ui, "↑ OBSOLÈTE", theme::WARNING.linear_multiply(0.8));
                                         }
-                                    },
-                                );
-
-                                // Latest version
-                                if let Some(latest) = &pkg.latest_version {
-                                    if !pkg.up_to_date {
-                                        ui.horizontal(|ui| {
-                                            ui.label(
-                                                egui::RichText::new(format!("→ {}", latest))
-                                                    .font(theme::font_mono())
-                                                    .color(theme::ACCENT_LIGHT)
-                                                    .strong(),
-                                            );
-                                        });
-                                    } else {
-                                        ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
-                                    }
-                                } else {
-                                    ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
-                                }
+                                    });
+                                    
+                                    row.col(|ui| {
+                                        if let Some(latest) = &pkg.latest_version {
+                                            if !pkg.up_to_date {
+                                                ui.label(
+                                                    egui::RichText::new(format!("→ {}", latest))
+                                                        .font(theme::font_mono())
+                                                        .color(theme::ACCENT_LIGHT)
+                                                        .strong(),
+                                                );
+                                            } else {
+                                                ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
+                                            }
+                                        } else {
+                                            ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
+                                        }
+                                    });
+                                });
                             });
-
-                            ui.add_space(theme::SPACE_XS);
-                            ui.separator();
-                            ui.add_space(theme::SPACE_XS);
-                        }
                     }
                 });
                 
@@ -206,18 +194,4 @@ impl SoftwarePage {
         });
     }
 
-    fn table_header_cell(ui: &mut Ui, text: &str, width: f32) {
-        ui.allocate_ui_with_layout(
-            egui::Vec2::new(width, 28.0),
-            egui::Layout::left_to_right(egui::Align::Center),
-            |ui| {
-                ui.label(
-                    egui::RichText::new(text)
-                        .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
-                        .strong(),
-                );
-            },
-        );
-    }
 }

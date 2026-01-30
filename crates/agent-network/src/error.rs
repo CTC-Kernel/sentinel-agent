@@ -51,6 +51,10 @@ pub enum NetworkError {
     /// Sync error.
     #[error("Sync error: {0}")]
     Sync(String),
+
+    /// Discovery error.
+    #[error("Discovery error: {0}")]
+    Discovery(String),
 }
 
 impl NetworkError {

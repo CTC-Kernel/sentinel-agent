@@ -18,6 +18,7 @@ pub mod api_client;
 pub mod cleanup;
 pub mod resources;
 pub mod service;
+pub mod tracing_layer;
 
 #[cfg(feature = "tray")]
 pub mod tray;
@@ -1881,6 +1882,28 @@ pub fn init_logging(log_level: &str) {
         .with(fmt::layer())
         .with(filter)
         .init();
+}
+
+/// Initialize logging with the GUI terminal bridge.
+///
+/// Returns the [`GuiTracingBridge`] so the caller can later set the GUI
+/// event sender via [`GuiTracingBridge::set_sender`].
+#[cfg(feature = "gui")]
+pub fn init_logging_with_terminal(log_level: &str) -> tracing_layer::GuiTracingBridge {
+    use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+
+    let bridge = tracing_layer::GuiTracingBridge::new();
+    let gui_layer = tracing_layer::GuiTracingLayer::new(&bridge);
+
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
+
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(gui_layer)
+        .with(filter)
+        .init();
+
+    bridge
 }
 
 #[cfg(test)]
