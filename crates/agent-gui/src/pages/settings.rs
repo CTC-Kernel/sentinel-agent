@@ -31,10 +31,10 @@ impl SettingsPage {
                     ui.add_space(theme::SPACE_MD);
 
                     ui.horizontal(|ui| {
-                        let (label, cmd, icon) = if state.is_paused {
-                            ("  REPRENDRE L'AGENT", GuiCommand::Resume, "󰐊")
+                        let (label, cmd) = if state.is_paused {
+                            ("▶  REPRENDRE L'AGENT", GuiCommand::Resume)
                         } else {
-                            ("  METTRE EN PAUSE", GuiCommand::Pause, "󰏤")
+                            ("||  METTRE EN PAUSE", GuiCommand::Pause)
                         };
 
                         let btn_color = if state.is_paused {
@@ -44,7 +44,7 @@ impl SettingsPage {
                         };
 
                         let btn = egui::Button::new(
-                            egui::RichText::new(format!("{} {}", icon, label))
+                            egui::RichText::new(label)
                                 .font(theme::font_body())
                                 .color(theme::TEXT_ON_ACCENT)
                                 .strong(),
@@ -61,7 +61,7 @@ impl SettingsPage {
                         ui.add_space(theme::SPACE);
 
                         let check_btn = egui::Button::new(
-                            egui::RichText::new("󰄲  V\u{00c9}RIFIER MAINTENANT")
+                            egui::RichText::new("✓  V\u{00c9}RIFIER MAINTENANT")
                                 .font(theme::font_body())
                                 .color(theme::TEXT_ON_ACCENT)
                                 .strong(),
@@ -78,11 +78,14 @@ impl SettingsPage {
 
                 ui.add_space(theme::SPACE);
 
+                let total_width = ui.available_width();
                 ui.horizontal_top(|ui| {
+                    let gap = theme::SPACE;
+                    let col_w = ((total_width - gap) * 0.5).max(200.0);
                     ui.vertical(|ui| {
                         // Connection info
                         widgets::card(ui, |ui| {
-                            ui.set_min_width(340.0);
+                            ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("CONNEXION SERVEUR")
                                     .font(theme::font_small())
@@ -91,12 +94,12 @@ impl SettingsPage {
                             );
                             ui.add_space(theme::SPACE_MD);
 
-                            Self::setting_row(ui, "Serveur", &state.server_url, "󰖩");
+                            Self::setting_row(ui, "Serveur", &state.server_url, "→");
                             if let Some(ref id) = state.summary.agent_id {
-                                Self::setting_row(ui, "ID Agent", id, "󰇧");
+                                Self::setting_row(ui, "ID Agent", id, "→");
                             }
                             if let Some(ref org) = state.summary.organization {
-                                Self::setting_row(ui, "Organisation", org, "󰓗");
+                                Self::setting_row(ui, "Organisation", org, "→");
                             }
                         });
 
@@ -104,7 +107,7 @@ impl SettingsPage {
 
                         // Intervals
                         widgets::card(ui, |ui| {
-                           ui.set_min_width(340.0);
+                           ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("INTERVALLES")
                                     .font(theme::font_small())
@@ -117,13 +120,13 @@ impl SettingsPage {
                                 ui,
                                 "Scan",
                                 &format!("{} sec", state.check_interval_secs),
-                                "󰄐",
+                                "→",
                             );
                             Self::setting_row(
                                 ui,
                                 "Heartbeat",
                                 &format!("{} sec", state.heartbeat_interval_secs),
-                                "󰓾",
+                                "→",
                             );
                         });
                     });
@@ -133,7 +136,7 @@ impl SettingsPage {
                     ui.vertical(|ui| {
                         // Web app link
                         widgets::card(ui, |ui| {
-                            ui.set_min_width(340.0);
+                            ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("ACC\u{00c8}S CLOUD")
                                     .font(theme::font_small())
@@ -149,7 +152,7 @@ impl SettingsPage {
                                 ui.add_space(theme::SPACE_MD);
 
                                 let btn = egui::Button::new(
-                                    egui::RichText::new("󰖟  VOIR SUR LE PORTAIL WEB")
+                                    egui::RichText::new("→  VOIR SUR LE PORTAIL WEB")
                                         .font(theme::font_body())
                                         .color(theme::TEXT_ON_ACCENT)
                                         .strong(),
@@ -173,7 +176,7 @@ impl SettingsPage {
 
                         // Danger zone
                         widgets::card(ui, |ui| {
-                            ui.set_min_width(340.0);
+                            ui.set_width(col_w);
                             ui.label(
                                 egui::RichText::new("ZONE DANGEREUSE")
                                     .font(theme::font_small())
@@ -183,7 +186,7 @@ impl SettingsPage {
                             ui.add_space(theme::SPACE_MD);
 
                             let quit_btn = egui::Button::new(
-                                egui::RichText::new("󰗼  QUITTER L'AGENT")
+                                egui::RichText::new("✕  QUITTER L'AGENT")
                                     .font(theme::font_body())
                                     .color(theme::TEXT_ON_ACCENT)
                                     .strong(),

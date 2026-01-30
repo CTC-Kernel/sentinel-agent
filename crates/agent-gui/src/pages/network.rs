@@ -28,7 +28,7 @@ impl NetworkPage {
                         "INTERFACES",
                         &state.network_interfaces.to_string(),
                         theme::ACCENT,
-                        "󰖩",
+                        "◎",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -36,13 +36,13 @@ impl NetworkPage {
                         "CONNEXIONS",
                         &state.network_connections.to_string(),
                         theme::ACCENT_LIGHT,
-                        "󰌘",
+                        "◆",
                     );
                     ui.add_space(theme::SPACE_SM);
                     let (alert_color, alert_icon) = if state.network_alerts > 0 {
-                        (theme::ERROR, "󰀦")
+                        (theme::ERROR, "▲")
                     } else {
-                        (theme::SUCCESS, "󰄲")
+                        (theme::SUCCESS, "✓")
                     };
                     Self::summary_card(
                         ui,
@@ -55,10 +55,13 @@ impl NetworkPage {
 
                 ui.add_space(theme::SPACE_LG);
 
+                let total_width = ui.available_width();
                 ui.horizontal_top(|ui| {
+                    let gap = theme::SPACE;
+                    let left_w = ((total_width - gap) * 0.55).max(200.0);
                     // Network status detail
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(400.0);
+                        ui.set_width(left_w);
                         ui.label(
                             egui::RichText::new("PARAM\u{00c8}TRES R\u{00c9}SEAU")
                                 .font(theme::font_small())
@@ -75,14 +78,14 @@ impl NetworkPage {
                             });
                         } else {
                             if let Some(ref ip) = state.primary_ip {
-                                Self::detail_row(ui, "Adresse IP", ip, "󰩟");
+                                Self::detail_row(ui, "Adresse IP", ip, "→");
                             }
                             if let Some(ref mac) = state.primary_mac {
-                                Self::detail_row(ui, "Adresse MAC", mac, "󰇧");
+                                Self::detail_row(ui, "Adresse MAC", mac, "→");
                             }
                             ui.separator();
                             if let Some(ref ts) = state.last_network_scan {
-                                Self::detail_row(ui, "Dernier scan", &ts.format("%H:%M:%S").to_string(), "󰄐");
+                                Self::detail_row(ui, "Dernier scan", &ts.format("%H:%M:%S").to_string(), "→");
                             }
                         }
                     });
@@ -90,8 +93,9 @@ impl NetworkPage {
                     ui.add_space(theme::SPACE);
 
                     // Security section
+                    let right_w = ((total_width - gap) * 0.45).max(160.0);
                     widgets::card(ui, |ui| {
-                        ui.set_min_width(300.0);
+                        ui.set_width(right_w);
                         ui.label(
                             egui::RichText::new("S\u{00c9}CURIT\u{00c9}")
                                 .font(theme::font_small())
@@ -103,13 +107,13 @@ impl NetworkPage {
                         ui.vertical_centered(|ui| {
                             if state.network_alerts == 0 {
                                 ui.add_space(theme::SPACE_SM);
-                                ui.label(egui::RichText::new("󰄲").size(48.0).color(theme::SUCCESS.linear_multiply(0.4)));
+                                ui.label(egui::RichText::new("✓").size(48.0).color(theme::SUCCESS.linear_multiply(0.4)));
                                 ui.add_space(theme::SPACE_SM);
-                                ui.label(egui::RichText::new("AUCNE MENACE").font(theme::font_small()).color(theme::SUCCESS).strong());
+                                ui.label(egui::RichText::new("AUCUNE MENACE").font(theme::font_small()).color(theme::SUCCESS).strong());
                                 ui.label(egui::RichText::new("Le trafic r\u{00e9}seau semble sain").font(theme::font_small()).color(theme::TEXT_TERTIARY));
                             } else {
                                 ui.add_space(theme::SPACE_SM);
-                                ui.label(egui::RichText::new("󰀦").size(48.0).color(theme::ERROR.linear_multiply(0.4)));
+                                ui.label(egui::RichText::new("▲").size(48.0).color(theme::ERROR.linear_multiply(0.4)));
                                 ui.add_space(theme::SPACE_SM);
                                 ui.label(egui::RichText::new(format!("{} ALERTE(S)", state.network_alerts)).font(theme::font_small()).color(theme::ERROR).strong());
                                 ui.label(egui::RichText::new("Actions requises imm\u{00e9}diatement").font(theme::font_small()).color(theme::TEXT_TERTIARY));

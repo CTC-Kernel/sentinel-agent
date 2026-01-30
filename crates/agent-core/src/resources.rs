@@ -448,8 +448,8 @@ fn get_disk_usage() -> (u64, u64) {
         let mut stat: libc::statvfs = std::mem::zeroed();
         let path = std::ffi::CString::new("/").unwrap();
         if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
-            let total = stat.f_blocks as u64 * stat.f_frsize as u64;
-            let free = stat.f_bavail as u64 * stat.f_frsize as u64;
+            let total = stat.f_blocks as u64 * stat.f_frsize;
+            let free = stat.f_bavail as u64 * stat.f_frsize;
             let used = total.saturating_sub(free);
             (total, used)
         } else {
@@ -655,7 +655,7 @@ fn get_process_memory() -> u64 {
             &mut count,
         );
         if kr == libc::KERN_SUCCESS {
-            return info.resident_size as u64;
+            return info.resident_size;
         }
     }
     0
@@ -820,8 +820,8 @@ fn get_disk_usage() -> (u64, u64) {
         let mut stat: libc::statvfs = std::mem::zeroed();
         let path = std::ffi::CString::new("/").unwrap();
         if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
-            let total = stat.f_blocks as u64 * stat.f_frsize as u64;
-            let free = stat.f_bavail as u64 * stat.f_frsize as u64;
+            let total = stat.f_blocks as u64 * stat.f_frsize;
+            let free = stat.f_bavail as u64 * stat.f_frsize;
             let used = total.saturating_sub(free);
             (total, used)
         } else {

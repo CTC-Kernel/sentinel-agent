@@ -34,7 +34,7 @@ impl VulnerabilitiesPage {
                         "CRITIQUES",
                         &critical.to_string(),
                         if critical > 0 { theme::ERROR } else { theme::TEXT_TERTIARY },
-                        "󰈻",
+                        "■",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -42,7 +42,7 @@ impl VulnerabilitiesPage {
                         "\u{00c9}LEV\u{00c9}ES",
                         &high.to_string(),
                         if high > 0 { theme::WARNING } else { theme::TEXT_TERTIARY },
-                        "󰀦",
+                        "▲",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -50,7 +50,7 @@ impl VulnerabilitiesPage {
                         "MOYENNES",
                         &medium.to_string(),
                         if medium > 0 { theme::INFO } else { theme::TEXT_TERTIARY },
-                        "󰋗",
+                        "●",
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::summary_card(
@@ -58,7 +58,7 @@ impl VulnerabilitiesPage {
                         "FAIBLES",
                         &low.to_string(),
                         theme::TEXT_TERTIARY,
-                        "󰌢",
+                        "○",
                     );
                 });
 
@@ -72,22 +72,25 @@ impl VulnerabilitiesPage {
                     if state.vulnerability_findings.is_empty() {
                         widgets::empty_state(
                             ui,
-                            "󰈻",
+                            "▲",
                             "Aucune vuln\u{00e9}rabilit\u{00e9} d\u{00e9}tect\u{00e9}e",
                             Some("Votre syst\u{00e8}me semble prot\u{00e9}g\u{00e9}. Les scans continus v\u{00e9}rifient les failles connues."),
                         );
                     } else {
+                        let tw = ui.available_width();
+                        let col_cve = (tw * 0.18).max(80.0);
+                        let col_soft = (tw * 0.22).max(100.0);
+                        let col_sev = (tw * 0.14).max(70.0);
+                        let col_cvss = (tw * 0.08).max(40.0);
+
                         // Table header
                         ui.horizontal(|ui| {
                             ui.set_min_height(32.0);
-                            Self::table_header_cell(ui, "CVE", 140.0);
-                            Self::table_header_cell(ui, "LOGICIEL", 180.0);
-                            Self::table_header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}", 100.0);
-                            Self::table_header_cell(ui, "CVSS", 60.0);
+                            Self::table_header_cell(ui, "CVE", col_cve);
+                            Self::table_header_cell(ui, "LOGICIEL", col_soft);
+                            Self::table_header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}", col_sev);
+                            Self::table_header_cell(ui, "CVSS", col_cvss);
                             ui.label(egui::RichText::new("DESCRIPTION").font(theme::font_small()).color(theme::TEXT_TERTIARY).strong());
-                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                Self::table_header_cell(ui, "CORRECTIF", 100.0);
-                            });
                         });
                         ui.add_space(theme::SPACE_XS);
                         ui.separator();
@@ -99,7 +102,7 @@ impl VulnerabilitiesPage {
 
                                 // CVE ID
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(140.0, 42.0),
+                                    egui::Vec2::new(col_cve, 42.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         ui.label(
@@ -113,7 +116,7 @@ impl VulnerabilitiesPage {
 
                                 // Affected software
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(180.0, 42.0),
+                                    egui::Vec2::new(col_soft, 42.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         ui.vertical(|ui| {
@@ -134,7 +137,7 @@ impl VulnerabilitiesPage {
 
                                 // Severity badge
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(100.0, 42.0),
+                                    egui::Vec2::new(col_sev, 42.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         let (label, color) =
@@ -145,14 +148,14 @@ impl VulnerabilitiesPage {
 
                                 // CVSS score
                                 ui.allocate_ui_with_layout(
-                                    egui::Vec2::new(60.0, 42.0),
+                                    egui::Vec2::new(col_cvss, 42.0),
                                     egui::Layout::left_to_right(egui::Align::Center),
                                     |ui| {
                                         if let Some(s) = finding.cvss_score {
                                             ui.label(
                                                 egui::RichText::new(format!("{:.1}", s))
                                                     .font(theme::font_body())
-                                                    .color(theme::score_color(s * 10.0)) // Heuristic
+                                                    .color(theme::score_color(s * 10.0))
                                                     .strong(),
                                             );
                                         } else {
@@ -161,22 +164,17 @@ impl VulnerabilitiesPage {
                                     },
                                 );
 
-                                // Correctif (Aligned Right)
-                                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                    ui.set_width(100.0);
+                                // Description (takes remaining space) + fix badge inline
+                                ui.vertical(|ui| {
+                                    ui.label(
+                                        egui::RichText::new(&finding.description)
+                                            .font(theme::font_small())
+                                            .color(theme::TEXT_SECONDARY),
+                                    );
                                     if finding.fix_available {
-                                        widgets::status_badge(ui, "󰋙 OUI", theme::SUCCESS.linear_multiply(0.8));
-                                    } else {
-                                        ui.label(egui::RichText::new("AUCUN").font(theme::font_small()).color(theme::TEXT_TERTIARY));
+                                        widgets::status_badge(ui, "✓ CORRECTIF", theme::SUCCESS.linear_multiply(0.8));
                                     }
                                 });
-
-                                // Description (Takes remaining space)
-                                ui.label(
-                                    egui::RichText::new(&finding.description)
-                                        .font(theme::font_small())
-                                        .color(theme::TEXT_SECONDARY),
-                                );
                             });
 
                             ui.add_space(theme::SPACE_XS);
