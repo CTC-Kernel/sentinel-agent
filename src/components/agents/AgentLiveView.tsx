@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { SentinelAgent, AgentRealtimeData, AgentRealtimeMetrics } from '../../types/agent';
+import { AgentService } from '../../services/AgentService';
 import { AgentMetricsChart } from './AgentMetricsChart';
 import { AgentProcessList } from './AgentProcessList';
 import { AgentNetworkConnections } from './AgentNetworkConnections';
@@ -84,25 +85,37 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
 }) => {
     const [activeTab, setActiveTab] = useState('metrics');
     const [realtimeData, setRealtimeData] = useState<AgentRealtimeData | null>(() => buildRealtimeDataFromAgent(agent));
-    const [metricsHistory, setMetricsHistory] = useState<AgentRealtimeMetrics[]>(() => {
-        // Initialize with a single real data point from the last heartbeat
-        // Historical data would require fetching from metrics_history collection
-        const now = new Date();
-        const currentMetric: AgentRealtimeMetrics = {
-            cpuPercent: agent.cpuPercent ?? 0,
-            memoryPercent: agent.memoryPercent ?? 0,
-            memoryBytes: agent.memoryBytes ?? 0,
-            diskPercent: agent.diskPercent ?? 0,
-            networkInBytes: 0,
-            networkOutBytes: 0,
-            timestamp: now.toISOString(),
-        };
-        // Start with single point; new points added on each heartbeat refresh
-        return [currentMetric];
-    });
-    const [loading, _setLoading] = useState(false);
-    void _setLoading; // Reserved for future use with real-time data loading
+    const [metricsHistory, setMetricsHistory] = useState<AgentRealtimeMetrics[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(true);
     const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+    // Fetch metrics history on mount
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (!agent.id || !agent.organizationId) return;
+            try {
+                setHistoryLoading(true);
+                const history = await AgentService.getAgentMetricsHistory(agent.organizationId, agent.id, 1);
+                if (history && history.metrics) {
+                    // Map AgentMetricPoint to AgentRealtimeMetrics
+                    const mappedMetrics: AgentRealtimeMetrics[] = history.metrics.map(m => ({
+                        ...m,
+                        diskPercent: m.diskPercent,
+                        networkInBytes: undefined, // Network history not currently collected
+                        networkOutBytes: undefined,
+                        timestamp: m.timestamp
+                    }));
+                    setMetricsHistory(mappedMetrics);
+                }
+            } catch (error) {
+                console.error('Failed to fetch agent metrics history:', error);
+            } finally {
+                setHistoryLoading(false);
+            }
+        };
+
+        fetchHistory();
+    }, [agent.id, agent.organizationId]);
 
     // Update data when agent changes
     useEffect(() => {
@@ -135,8 +148,8 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
             metrics: newMetric,
             lastUpdate: agent.lastHeartbeat || now.toISOString(),
         } : null);
-    // Only re-run when agent data actually changes (new heartbeat)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // Only re-run when agent data actually changes (new heartbeat)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agent.cpuPercent, agent.memoryPercent, agent.diskPercent, agent.memoryBytes, agent.lastHeartbeat]);
 
     // Manual refresh
@@ -265,21 +278,21 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             <TabsContent value="metrics" className="mt-0 h-full">
                                 <AgentMetricsChart
                                     metrics={metricsHistory}
-                                    loading={loading}
+                                    loading={historyLoading}
                                 />
                             </TabsContent>
 
                             <TabsContent value="processes" className="mt-0 h-full">
                                 <AgentProcessList
                                     processes={realtimeData?.processes || []}
-                                    loading={loading}
+                                    loading={historyLoading}
                                 />
                             </TabsContent>
 
                             <TabsContent value="network" className="mt-0 h-full">
                                 <AgentNetworkConnections
                                     connections={realtimeData?.connections || []}
-                                    loading={loading}
+                                    loading={historyLoading}
                                 />
                             </TabsContent>
                         </AnimatePresence>

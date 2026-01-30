@@ -147,9 +147,9 @@ export interface AgentRealtimeMetrics {
     cpuPercent: number;
     memoryPercent: number;
     memoryBytes: number;
-    diskPercent: number;
-    networkInBytes: number;
-    networkOutBytes: number;
+    diskPercent?: number;
+    networkInBytes?: number;
+    networkOutBytes?: number;
     timestamp: string;
 }
 

@@ -143,8 +143,8 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                                             ...initialData,
                                             ...getValues(),
                                             id: (initialData as Partial<IncidentFormData> & { id?: string })?.id || 'new',
-                                            organizationId: 'current', // dummy
-                                            reporter: 'current', // dummy
+                                            organizationId: useStore.getState().organization?.id || 'current',
+                                            reporter: useStore.getState().user?.uid || 'current',
                                             dateReported: getValues('dateReported') || new Date().toISOString(),
                                             // Ensure other required fields are present for type satisfaction if needed, though they might be optional in Partial
                                         } as Incident}

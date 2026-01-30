@@ -25,7 +25,8 @@ interface AgentMetricsChartProps {
 }
 
 // Format bytes to human readable
-const formatBytes = (bytes: number): string => {
+const formatBytes = (bytes: number | undefined): string => {
+    if (bytes === undefined) return 'N/A';
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -157,13 +158,13 @@ export const AgentMetricsChart: React.FC<AgentMetricsChartProps> = ({
                 />
                 <MetricCard
                     label="Disque"
-                    value={currentMetrics ? `${currentMetrics.diskPercent.toFixed(1)}%` : '-'}
+                    value={currentMetrics?.diskPercent !== undefined ? `${currentMetrics.diskPercent.toFixed(1)}%` : 'N/A'}
                     icon={<Activity className="h-5 w-5" />}
                     color={SENTINEL_PALETTE.secondary}
                 />
                 <MetricCard
                     label="Réseau"
-                    value={currentMetrics ? `↓${formatBytes(currentMetrics.networkInBytes)}/s` : '-'}
+                    value={currentMetrics?.networkInBytes !== undefined ? `↓${formatBytes(currentMetrics.networkInBytes)}/s` : 'N/A'}
                     icon={<Network className="h-5 w-5" />}
                     color={SENTINEL_PALETTE.info}
                 />

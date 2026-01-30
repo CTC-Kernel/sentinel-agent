@@ -168,18 +168,24 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
     ].filter(d => d.value > 0), [stats.osDistribution]);
 
     // Trend data based on current score
-    // Shows current score as baseline - historical data requires metrics_history collection
+    // Historical trends will be available once the fleet metrics collection is fully implemented
     const trendData = useMemo(() => {
         if (stats.avgScore === null) return [];
         const now = new Date();
+        // Currently we only have the "now" point. 
+        // Showing a flat line with "Pas d'historique" inTooltip is better than simulated growth.
         return Array.from({ length: 7 }, (_, i) => {
             const date = new Date(now);
             date.setDate(date.getDate() - (6 - i));
             const dayLabel = i === 6 ? 'Auj.' :
                 i === 5 ? 'Hier' :
                     date.toLocaleDateString('fr-FR', { weekday: 'short' });
-            // Show current score as flat line (only today's value is real)
-            return { day: dayLabel, score: i === 6 ? stats.avgScore : null };
+
+            return {
+                day: dayLabel,
+                score: i === 6 ? stats.avgScore : null,
+                isPlaceholder: i < 6
+            };
         });
     }, [stats.avgScore]);
 

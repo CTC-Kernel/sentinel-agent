@@ -95,14 +95,12 @@ export const AdminService = {
             // Count projects (mock heuristic for usage)
             const projectsCount = await getCountFromServer(query(collection(db, 'projects'), where('organizationId', '==', orgId)));
 
-            // Get storage usage (Simulated or fetched from a dedicated stats document if available)
-            const storageUsedBytes = 0; // Placeholder
 
             return {
                 userCount: usersCount.data().count,
                 projectCount: projectsCount.data().count,
-                storageUsedBytes,
-                lastActive: new Date().toISOString() // Placeholder
+                storageUsedBytes: null, // Unknown - requires cloud storage stats
+                lastActive: (null as any) // Unknown at this scope
             };
         } catch (error) {
             ErrorLogger.error(error as Error, 'AdminService.getTenantStats');

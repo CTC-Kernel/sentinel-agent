@@ -10,6 +10,8 @@ import {
     subscribeToCISBaselines,
     getSoftwareStats,
 } from '../services/SoftwareInventoryService';
+import { subscribeToAgents } from '../services/AgentService';
+import { SentinelAgent } from '../types/agent';
 import {
     SoftwareInventoryEntry,
     SoftwareInventoryStats,
@@ -38,6 +40,7 @@ import {
     LayoutGrid,
     List,
     ChevronDown,
+    Users,
 } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -298,10 +301,12 @@ export const SoftwareInventory: React.FC = () => {
     const [software, setSoftware] = useState<SoftwareInventoryEntry[]>([]);
     const [cisBaselines, setCISBaselines] = useState<CISBaseline[]>([]);
     const [stats, setStats] = useState<SoftwareInventoryStats | null>(null);
+    const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+    const [displayMode, setDisplayMode] = useState<'software' | 'agent'>('software');
     const [activeTab, setActiveTab] = useState<TabType>('inventory');
 
     // Filters
@@ -353,6 +358,23 @@ export const SoftwareInventory: React.FC = () => {
 
         return unsubscribe;
     }, [user?.organizationId, authFilters, riskFilters, categoryFilters, vulnFilter, searchQuery]);
+
+    // Subscribe to agents
+    useEffect(() => {
+        if (!user?.organizationId) return;
+
+        const unsubscribe = subscribeToAgents(
+            user.organizationId,
+            (agentList) => {
+                setAgents(agentList);
+            },
+            (error) => {
+                ErrorLogger.error(error, 'SoftwareInventory.subscribeToAgents');
+            }
+        );
+
+        return unsubscribe;
+    }, [user?.organizationId]);
 
     // Subscribe to CIS baselines
     useEffect(() => {
@@ -566,26 +588,53 @@ export const SoftwareInventory: React.FC = () => {
                         )}
                     </div>
 
-                    {/* View Mode Toggle */}
-                    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                        <Button
-                            variant={viewMode === 'table' ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('table')}
-                            className="h-8 w-8 p-0"
-                            title="Vue tableau"
-                        >
-                            <List className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('grid')}
-                            className="h-8 w-8 p-0"
-                            title="Vue grille"
-                        >
-                            <LayoutGrid className="h-4 w-4" />
-                        </Button>
+                    {/* View Mode and Display Mode Toggle */}
+                    <div className="flex items-center gap-4">
+                        {activeTab === 'inventory' && (
+                            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                                <Button
+                                    variant={displayMode === 'software' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setDisplayMode('software')}
+                                    className="h-8 px-3 text-xs gap-2"
+                                    title="Vue par logiciel"
+                                >
+                                    <Package className="h-3.5 w-3.5" />
+                                    Logiciels
+                                </Button>
+                                <Button
+                                    variant={displayMode === 'agent' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setDisplayMode('agent')}
+                                    className="h-8 px-3 text-xs gap-2"
+                                    title="Vue par agent"
+                                >
+                                    <Users className="h-3.5 w-3.5" />
+                                    Agents
+                                </Button>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                            <Button
+                                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('table')}
+                                className="h-8 w-8 p-0"
+                                title="Vue tableau"
+                            >
+                                <List className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('grid')}
+                                className="h-8 w-8 p-0"
+                                title="Vue grille"
+                            >
+                                <LayoutGrid className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 </motion.div>
 
@@ -594,7 +643,9 @@ export const SoftwareInventory: React.FC = () => {
                     <motion.div variants={slideUpVariants}>
                         <SoftwareTable
                             software={filteredSoftware}
+                            agents={agents}
                             viewMode={viewMode}
+                            displayMode={displayMode}
                             onSoftwareClick={handleSoftwareClick}
                             loading={loading}
                         />

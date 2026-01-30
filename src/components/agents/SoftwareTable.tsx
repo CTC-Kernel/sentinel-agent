@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SentinelAgent } from '../../types/agent';
 import {
     SoftwareInventoryEntry,
     getRiskLevelColor,
@@ -18,6 +19,8 @@ import {
     ExternalLink,
     Shield,
     ArrowUpDown,
+    Users,
+    ChevronRight,
 } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
@@ -25,7 +28,9 @@ import { cn } from '../../utils/cn';
 
 interface SoftwareTableProps {
     software: SoftwareInventoryEntry[];
+    agents?: SentinelAgent[];
     viewMode: 'table' | 'grid';
+    displayMode?: 'software' | 'agent';
     onSoftwareClick: (software: SoftwareInventoryEntry) => void;
     loading?: boolean;
 }
@@ -376,10 +381,128 @@ const SortHeader: React.FC<{
     );
 };
 
+// Agent Group Component
+const AgentGroup: React.FC<{
+    agent: SentinelAgent;
+    software: SoftwareInventoryEntry[];
+    onSoftwareClick: (sw: SoftwareInventoryEntry) => void;
+    viewMode: 'table' | 'grid';
+}> = ({ agent, software, onSoftwareClick, viewMode }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    return (
+        <div className="glass-premium rounded-2xl overflow-hidden border border-border/40 mb-4">
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className={cn(
+                    "w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors",
+                    isExpanded && "bg-muted/20 border-b border-border/40"
+                )}
+            >
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                        <Users className="h-5 w-5" />
+                    </div>
+                    <div className="text-left">
+                        <h3 className="font-bold text-slate-900 dark:text-white">
+                            {agent.name || agent.hostname || agent.id.slice(0, 8)}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                            {agent.os} • {agent.ipAddress} • {software.length} logiciel{software.length > 1 ? 's' : ''}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    {agent.status === 'active' && (
+                        <Badge status="success" className="text-[10px] h-5">En ligne</Badge>
+                    )}
+                    <ChevronDown className={cn(
+                        "h-5 w-5 text-muted-foreground transition-transform duration-300",
+                        isExpanded && "rotate-180"
+                    )} />
+                </div>
+            </button>
+
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="p-4 bg-muted/5">
+                            {viewMode === 'grid' ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {software.map((sw: SoftwareInventoryEntry) => (
+                                        <SoftwareCard
+                                            key={sw.id}
+                                            software={sw}
+                                            onClick={() => onSoftwareClick(sw)}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="text-xs text-muted-foreground border-b border-border/40">
+                                                <th className="px-4 py-2 text-left">Nom</th>
+                                                <th className="px-4 py-2 text-left">Vendor</th>
+                                                <th className="px-4 py-2 text-left">Version</th>
+                                                <th className="px-4 py-2 text-left">Risque</th>
+                                                <th className="px-4 py-2 w-10"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {software.map((sw: SoftwareInventoryEntry) => {
+                                                const latestVersion = sw.versions.find(v => v.isLatest);
+                                                return (
+                                                    <tr
+                                                        key={sw.id}
+                                                        onClick={() => onSoftwareClick(sw)}
+                                                        className="group cursor-pointer hover:bg-muted/30 transition-colors"
+                                                    >
+                                                        <td className="px-4 py-2 font-medium text-sm">
+                                                            {sw.name}
+                                                        </td>
+                                                        <td className="px-4 py-2 text-xs text-muted-foreground">
+                                                            {sw.vendor}
+                                                        </td>
+                                                        <td className="px-4 py-2">
+                                                            <code className="text-xs bg-muted px-2 py-0.5 rounded">
+                                                                {latestVersion?.version || '-'}
+                                                            </code>
+                                                        </td>
+                                                        <td className="px-4 py-2">
+                                                            <span className={cn('text-xs font-semibold', getRiskLevelColor(sw.riskLevel))}>
+                                                                {sw.riskScore}/100
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-2">
+                                                            <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 // Main Component
 export const SoftwareTable: React.FC<SoftwareTableProps> = ({
     software,
+    agents = [],
     viewMode,
+    displayMode = 'software',
     onSoftwareClick,
     loading = false,
 }) => {
@@ -435,6 +558,16 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
         });
     }, [software, sortField, sortDirection]);
 
+    // Group software by agent
+    const softwareByAgent = useMemo(() => {
+        if (displayMode !== 'agent' || agents.length === 0) return [];
+
+        return agents.map((agent) => ({
+            agent,
+            software: software.filter((sw) => sw.agentIds.includes(agent.id))
+        })).filter((group) => group.software.length > 0);
+    }, [software, agents, displayMode]);
+
     if (loading) {
         return <LoadingSkeleton viewMode={viewMode} />;
     }
@@ -443,10 +576,26 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
         return <EmptyState />;
     }
 
+    if (displayMode === 'agent') {
+        return (
+            <div className="space-y-4">
+                {softwareByAgent.map((group) => (
+                    <AgentGroup
+                        key={group.agent.id}
+                        agent={group.agent}
+                        software={group.software}
+                        onSoftwareClick={onSoftwareClick}
+                        viewMode={viewMode}
+                    />
+                ))}
+            </div>
+        );
+    }
+
     if (viewMode === 'grid') {
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {sortedSoftware.map((sw) => (
+                {sortedSoftware.map((sw: SoftwareInventoryEntry) => (
                     <SoftwareCard
                         key={sw.id}
                         software={sw}
@@ -523,7 +672,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedSoftware.map((sw) => (
+                        {sortedSoftware.map((sw: SoftwareInventoryEntry) => (
                             <SoftwareRow
                                 key={sw.id}
                                 software={sw}
@@ -540,7 +689,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
             <div className="px-4 py-3 border-t bg-muted/20 flex items-center justify-between text-sm text-muted-foreground">
                 <span>{software.length} logiciel{software.length > 1 ? 's' : ''}</span>
                 <span>
-                    {software.reduce((sum, sw) => sum + sw.agentCount, 0)} installations totales
+                    {software.reduce((sum, sw: SoftwareInventoryEntry) => sum + sw.agentCount, 0)} installations totales
                 </span>
             </div>
         </div>
