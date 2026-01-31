@@ -290,6 +290,16 @@
       "createFailed": "Échec de la création",
       "updateFailed": "Échec de la mise à jour",
       "deleteFailed": "Échec de la suppression"
+    },
+    "ui": {
+      "close": "Fermer",
+      "loading": "Chargement...",
+      "unsavedChanges": {
+        "title": "Modifications non sauvegardées",
+        "message": "Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?",
+        "continue": "Continuer l'édition",
+        "discard": "Quitter sans sauvegarder"
+      }
     }
   },
   "admin": {
@@ -4596,6 +4606,7 @@
   "training": {
     "title": "Formation & Sensibilisation",
     "subtitle": "Gérez les formations et la sensibilisation cyber de votre organisation.",
+    "dashboard_tab": "Tableau de Bord",
     "catalog": "Catalogue des formations",
     "campaigns": "Campagnes",
     "myCourses": "Mes formations",

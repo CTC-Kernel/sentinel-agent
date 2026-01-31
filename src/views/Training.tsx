@@ -119,7 +119,7 @@ export const Training: React.FC = () => {
 
   // Tabs configuration
   const tabs: Tab[] = [
-    { id: 'dashboard', label: t('training.dashboard'), icon: LayoutDashboard, adminOnly: true },
+    { id: 'dashboard', label: t('training.dashboard_tab'), icon: LayoutDashboard, adminOnly: true },
     { id: 'catalog', label: t('training.catalog'), icon: BookOpen, adminOnly: true },
     { id: 'my-training', label: t('training.myCourses'), icon: User },
     { id: 'campaigns', label: t('training.campaigns'), icon: Megaphone, adminOnly: true },

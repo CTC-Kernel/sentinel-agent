@@ -55,6 +55,16 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
   const [respondentEmail, setRespondentEmail] = useState<string>(supplier.contactEmail || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Compute dirty state
+  const isDirty = useMemo(() => {
+    return (
+      selectedTemplateId !== '' ||
+      dueDate !== undefined ||
+      reviewCycle !== '' ||
+      respondentEmail !== (supplier.contactEmail || '')
+    );
+  }, [selectedTemplateId, dueDate, reviewCycle, respondentEmail, supplier.contactEmail]);
+
   // Get template preview
   const selectedTemplatePreview = useMemo<TemplatePreview | null>(() => {
     if (!selectedTemplateId) return null;
@@ -183,10 +193,15 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
     }
   };
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
     <Drawer
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
+      hasUnsavedChanges={isDirty}
       title={
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-border/40 dark:border-white/5">
@@ -369,7 +384,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
 
         {/* Actions */}
         <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40">
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={handleClose}>
             {t('common.cancel', 'Cancel')}
           </Button>
           <Button

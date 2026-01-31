@@ -42,7 +42,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
     const [editingRole, setEditingRole] = useState<CustomRole | null>(null);
 
     const roleSchema = React.useMemo(() => createRoleSchema(t), [t]);
-    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<RoleFormData>({
+    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting, isDirty } } = useForm<RoleFormData>({
         resolver: zodResolver(roleSchema),
         defaultValues: {
             name: '',
@@ -178,6 +178,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 title={editingRole ? t('team.roles.editRole', { defaultValue: 'Modifier le rôle' }) : t('team.roles.newRoleDrawer', { defaultValue: 'Nouveau rôle' })}
                 subtitle={t('team.roles.drawerSubtitle', { defaultValue: "Définissez les permissions d'accès." })}
                 width="max-w-6xl"
+                hasUnsavedChanges={isDirty}
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">

@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from './Icons';
 import { Button } from './button';
+import { useStore } from '../../store';
 
 interface ModalProps {
     isOpen: boolean;
@@ -24,8 +25,9 @@ export const Modal: React.FC<ModalProps> = ({
     maxWidth = 'max-w-4xl',
     initialFocus,
     hasUnsavedChanges = false,
-    unsavedChangesMessage = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?'
+    unsavedChangesMessage
 }) => {
+    const { t } = useStore();
     const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
 
     const handleClose = React.useCallback(() => {
@@ -84,7 +86,7 @@ export const Modal: React.FC<ModalProps> = ({
                                                 variant="ghost"
                                                 size="icon"
                                                 className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white"
-                                                aria-label="Fermer"
+                                                aria-label={t('common.ui.close')}
                                             >
                                                 <X className="w-5 h-5" aria-hidden="true" />
                                             </Button>
@@ -135,10 +137,10 @@ export const Modal: React.FC<ModalProps> = ({
                                         </div>
                                         <div className="flex-1">
                                             <Dialog.Title className="text-lg font-semibold text-foreground">
-                                                Modifications non sauvegardées
+                                                {t('common.ui.unsavedChanges.title')}
                                             </Dialog.Title>
                                             <p className="mt-2 text-sm text-muted-foreground">
-                                                {unsavedChangesMessage}
+                                                {unsavedChangesMessage || t('common.ui.unsavedChanges.message')}
                                             </p>
                                         </div>
                                     </div>
@@ -147,13 +149,13 @@ export const Modal: React.FC<ModalProps> = ({
                                             variant="ghost"
                                             onClick={handleCancelClose}
                                         >
-                                            Continuer l'édition
+                                            {t('common.ui.unsavedChanges.continue')}
                                         </Button>
                                         <Button
                                             variant="destructive"
                                             onClick={handleConfirmClose}
                                         >
-                                            Quitter sans sauvegarder
+                                            {t('common.ui.unsavedChanges.discard')}
                                         </Button>
                                     </div>
                                 </Dialog.Panel>

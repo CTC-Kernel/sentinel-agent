@@ -14,6 +14,15 @@ export const INCIDENT_STATUSES = [
 export type IncidentStatus = typeof INCIDENT_STATUSES[number];
 
 /**
+ * DORA Incident Reporting Timelines (Article 19)
+ */
+export const DORA_REPORTING_TIMELINES = {
+    INITIAL_NOTIFICATION: 4 * 60 * 60 * 1000,   // 4 hours (Major ICT incidents)
+    INTERMEDIATE_REPORT: 72 * 60 * 60 * 1000,   // 72 hours
+    FINAL_REPORT: 30 * 24 * 60 * 60 * 1000      // 1 month
+} as const;
+
+/**
  * Supplier incident status (French)
  */
 export const SUPPLIER_INCIDENT_STATUSES = [

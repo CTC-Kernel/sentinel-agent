@@ -8,17 +8,14 @@ import {
     QueryConstraint,
     doc,
     getDoc,
-    addDoc,
-    updateDoc,
-    deleteDoc,
     WithFieldValue,
     UpdateData
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
-import { sanitizeData } from '../utils/dataSanitizer';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { MockDataService } from '../services/mockDataService';
+import { useFirestoreService } from './useFirestoreService';
 
 interface UseFirestoreOptions {
     realtime?: boolean;
@@ -98,6 +95,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     const [realtimeFailed, setRealtimeFailed] = useState(false);
 
     const queryClient = useQueryClient();
+    const { addDocument, updateDocument, deleteDocument } = useFirestoreService();
 
     const constraintsKey = useMemo(() => {
         // JSON.stringify is unreliable for Firestore QueryConstraint objects.
@@ -230,15 +228,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     const addMutation = useMutation({
         mutationKey: ['firestore', 'add', collectionName],
         mutationFn: async (newData: WithFieldValue<DocumentData>) => {
-            if (demoMode) return "mock-id-" + Date.now();
-            try {
-                const docRef = await addDoc(collection(db, collectionName), sanitizeData(newData));
-                return docRef.id;
-            } catch (_err) {
-                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
-                if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
-                throw errorObj;
-            }
+            return await addDocument(collectionName, newData);
         },
         onSuccess: async () => {
             if (!realtime) {
@@ -250,15 +240,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     const updateMutation = useMutation({
         mutationKey: ['firestore', 'update', collectionName],
         mutationFn: async ({ id, data }: { id: string, data: UpdateData<DocumentData> }) => {
-            if (demoMode) return;
-            try {
-                const docRef = doc(db, collectionName, id);
-                await updateDoc(docRef, data);
-            } catch (_err) {
-                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
-                if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
-                throw errorObj;
-            }
+            await updateDocument(collectionName, id, data);
         },
         onSuccess: async () => {
             if (!realtime) {
@@ -270,15 +252,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     const removeMutation = useMutation({
         mutationKey: ['firestore', 'remove', collectionName],
         mutationFn: async (id: string) => {
-            if (demoMode) return;
-            try {
-                const docRef = doc(db, collectionName, id);
-                await deleteDoc(docRef);
-            } catch (_err) {
-                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
-                if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
-                throw errorObj;
-            }
+            await deleteDocument(collectionName, id);
         },
         onSuccess: async () => {
             if (!realtime) {

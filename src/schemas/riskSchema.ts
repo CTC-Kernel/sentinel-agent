@@ -36,7 +36,7 @@ export const riskSchema = z.object({
     treatmentStatus: z.enum(TREATMENT_STATUSES).optional(),
 
     treatment: z.object({
-        strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']).optional(),
+        strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']),
         description: z.string().trim().optional(),
         ownerId: z.string().optional(),
         dueDate: z.string().optional(),

@@ -143,6 +143,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
 
                 await onUpdate({
                     treatment: {
+                        strategy: risk.treatment?.strategy || risk.strategy || 'Atténuer',
                         ...risk.treatment,
                         measures: newMeasures
                     }

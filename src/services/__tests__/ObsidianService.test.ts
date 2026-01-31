@@ -100,6 +100,7 @@ describe('ObsidianService', () => {
         it('includes treatment plan details when available', () => {
             const risk = createRisk({
                 treatment: {
+                    strategy: 'Atténuer',
                     status: 'Planifié',
                     dueDate: '2024-12-31',
                     description: 'Implement WAF'

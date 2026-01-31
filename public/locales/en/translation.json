@@ -290,6 +290,16 @@
       "createFailed": "Creation failed",
       "updateFailed": "Update failed",
       "deleteFailed": "Deletion failed"
+    },
+    "ui": {
+      "close": "Close",
+      "loading": "Loading...",
+      "unsavedChanges": {
+        "title": "Unsaved Changes",
+        "message": "You have unsaved changes. Are you sure you want to leave?",
+        "continue": "Continue Editing",
+        "discard": "Leave without Saving"
+      }
     }
   },
   "validation": {
@@ -4619,7 +4629,7 @@
   "training": {
     "title": "Training & Awareness",
     "subtitle": "Manage cyber training and awareness for your organization.",
-    "dashboard": "Training Dashboard",
+    "dashboard_tab": "Training Dashboard",
     "catalog": "Course Catalog",
     "myCourses": "My Courses",
     "campaigns": "Campaigns",
@@ -4694,26 +4704,6 @@
       "confirmAndAssign": "Confirm and assign",
       "confirmTitle": "Confirm assignment",
       "confirmDesc": "You are about to assign \"{{course}}\" to {{count}} user(s)."
-    },
-    "campaign": {
-      "create": "Create campaign",
-      "name": "Campaign name",
-      "startDate": "Start date",
-      "endDate": "End date",
-      "scope": "Scope",
-      "scopeAll": "Entire organization",
-      "scopeDepartment": "By department",
-      "scopeRole": "By role",
-      "courses": "Included courses",
-      "recurrence": "Recurrence",
-      "recurrenceEnabled": "Enable recurrence",
-      "frequency": {
-        "monthly": "Monthly",
-        "quarterly": "Quarterly",
-        "yearly": "Yearly"
-      },
-      "launch": "Launch campaign",
-      "progress": "Progress"
     },
     "stats": {
       "total": "Total trainings",

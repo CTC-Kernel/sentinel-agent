@@ -1,0 +1,12 @@
+src/components/risks/RiskAIAssistant.tsx(145,21): error TS2322: Type '{ measures: string[]; strategy?: "Accepter" | "Atténuer" | "Transférer" | "Éviter" | undefined; description?: string; ownerId?: string; dueDate?: string; completedDate?: string; status?: TreatmentStatus; slaStatus?: "On Track" | "At Risk" | "Breached"; estimatedCost?: number; }' is not assignable to type 'RiskTreatment'.
+  Types of property 'strategy' are incompatible.
+    Type '"Accepter" | "Atténuer" | "Transférer" | "Éviter" | undefined' is not assignable to type '"Accepter" | "Atténuer" | "Transférer" | "Éviter"'.
+      Type 'undefined' is not assignable to type '"Accepter" | "Atténuer" | "Transférer" | "Éviter"'.
+src/services/__tests__/ObsidianService.test.ts(102,17): error TS2741: Property 'strategy' is missing in type '{ status: "Planifié"; dueDate: string; description: string; }' but required in type 'RiskTreatment'.
+src/views/Risks.tsx(252,46): error TS2345: Argument of type '{ aiAnalysis: { type: string; response: Record<string, unknown>; timestamp: string; } | undefined; probability: Risk["probability"]; impact: Risk["impact"]; residualProbability: Risk["probability"]; ... 22 more ...; isSecureStorage?: boolean | undefined; }' is not assignable to parameter of type 'Partial<Risk>'.
+  Types of property 'treatment' are incompatible.
+    Type '{ strategy?: "Accepter" | "Atténuer" | "Transférer" | "Éviter" | undefined; description?: string | undefined; ownerId?: string | undefined; dueDate?: string | undefined; completedDate?: string | undefined; status?: "En cours" | ... 3 more ... | undefined; slaStatus?: "On Track" | ... 2 more ... | undefined; estimate...' is not assignable to type 'RiskTreatment | undefined'.
+      Type '{ strategy?: "Accepter" | "Atténuer" | "Transférer" | "Éviter" | undefined; description?: string | undefined; ownerId?: string | undefined; dueDate?: string | undefined; completedDate?: string | undefined; status?: "En cours" | ... 3 more ... | undefined; slaStatus?: "On Track" | ... 2 more ... | undefined; estimate...' is not assignable to type 'RiskTreatment'.
+        Types of property 'strategy' are incompatible.
+          Type '"Accepter" | "Atténuer" | "Transférer" | "Éviter" | undefined' is not assignable to type '"Accepter" | "Atténuer" | "Transférer" | "Éviter"'.
+            Type 'undefined' is not assignable to type '"Accepter" | "Atténuer" | "Transférer" | "Éviter"'.

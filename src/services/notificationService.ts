@@ -188,11 +188,21 @@ export class NotificationService {
     }
 
     /**
-     * Mark notification as read
+     * Mark notification as read with organization verification
      */
-    static async markAsRead(notificationId: string): Promise<void> {
+    static async markAsRead(notificationId: string, organizationId: string): Promise<void> {
         try {
-            await updateDoc(doc(db, 'notifications', notificationId), {
+            const docRef = doc(db, 'notifications', notificationId);
+            const snap = await getDoc(docRef);
+
+            if (!snap.exists() || snap.data()?.organizationId !== organizationId) {
+                ErrorLogger.warn('Unauthorized notification access attempt', 'NotificationService.markAsRead', {
+                    metadata: { notificationId, organizationId }
+                });
+                return;
+            }
+
+            await updateDoc(docRef, {
                 read: true,
             });
         } catch (error) {
@@ -203,11 +213,12 @@ export class NotificationService {
     /**
      * Mark all notifications as read for a user
      */
-    static async markAllAsRead(userId: string): Promise<void> {
+    static async markAllAsRead(userId: string, organizationId: string): Promise<void> {
         try {
             const q = query(
                 collection(db, 'notifications'),
                 where('userId', '==', userId),
+                where('organizationId', '==', organizationId),
                 where('read', '==', false)
             );
 

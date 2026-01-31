@@ -522,7 +522,7 @@ describe('NotificationService', () => {
         it('should mark a notification as read', async () => {
             const { updateDoc, doc } = await import('firebase/firestore');
 
-            await NotificationService.markAsRead('notif-123');
+            await NotificationService.markAsRead('notif-123', 'org-456');
 
             expect(doc).toHaveBeenCalledWith(expect.anything(), 'notifications', 'notif-123');
             expect(updateDoc).toHaveBeenCalledWith(expect.anything(), { read: true });
@@ -534,7 +534,7 @@ describe('NotificationService', () => {
 
             vi.mocked(updateDoc).mockRejectedValueOnce(new Error('Update failed'));
 
-            await NotificationService.markAsRead('notif-123');
+            await NotificationService.markAsRead('notif-123', 'org-456');
 
             expect(ErrorLogger.error).toHaveBeenCalled();
         });
@@ -552,7 +552,7 @@ describe('NotificationService', () => {
                 ]
             } as never);
 
-            await NotificationService.markAllAsRead('user-123');
+            await NotificationService.markAllAsRead('user-123', 'org-456');
 
             expect(updateDoc).toHaveBeenCalledTimes(3);
         });
@@ -572,7 +572,7 @@ describe('NotificationService', () => {
                 .mockResolvedValueOnce(undefined)
                 .mockRejectedValueOnce(new Error('Update failed'));
 
-            await NotificationService.markAllAsRead('user-123');
+            await NotificationService.markAllAsRead('user-123', 'org-456');
 
             // Should log error for failed update
             expect(ErrorLogger.error).toHaveBeenCalled();
@@ -584,7 +584,7 @@ describe('NotificationService', () => {
 
             vi.mocked(getDocs).mockRejectedValueOnce(new Error('Query failed'));
 
-            await NotificationService.markAllAsRead('user-123');
+            await NotificationService.markAllAsRead('user-123', 'org-456');
 
             expect(ErrorLogger.error).toHaveBeenCalled();
         });

@@ -230,10 +230,14 @@ export const PrivacyService = {
 
     async createRequest(request: Omit<PrivacyRequest, 'id'>, user: UserProfile): Promise<string> {
         try {
+            const now = new Date();
+            const deadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
             const requestData = {
                 ...sanitizeData(request),
                 createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+                updatedAt: serverTimestamp(),
+                deadline: deadline.toISOString()
             };
 
             const docRef = await addDoc(collection(db, 'privacy_requests'), requestData);

@@ -353,8 +353,7 @@ export const AnnotationMarker: React.FC<AnnotationMarkerProps> = React.memo(({
     }
   });
 
-  // @ts-expect-error: react-spring types for group
-  const AnimatedGroup = animated.group;
+  const AnimatedGroup = animated('group' as any) as any;
 
   return (
     <group position={[annotation.position.x, annotation.position.y, annotation.position.z]}>

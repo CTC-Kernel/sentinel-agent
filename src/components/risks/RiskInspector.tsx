@@ -14,7 +14,7 @@ import { RelationshipGraph } from '../RelationshipGraph';
 import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { TimelineView } from '../shared/TimelineView';
-import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
+import { Risk, RiskTreatment, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
 import { integrationService } from '../../services/integrationService';
 import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
@@ -181,7 +181,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const handleRiskFormSubmit = React.useCallback((data: import('../../schemas/riskSchema').RiskFormData) => handleLocalUpdate(data as unknown as Partial<Risk>), [handleLocalUpdate]);
 
     const handleAIAssistantUpdate = React.useCallback((updates: Partial<Risk>) => risk && handleLocalUpdate({ ...risk, ...updates } as Risk), [handleLocalUpdate, risk]);
-    const handleTreatmentUpdate = React.useCallback((treatment: Partial<Risk['treatment']>) => handleLocalUpdate({ treatment }), [handleLocalUpdate]);
+    const handleTreatmentUpdate = React.useCallback((treatment: RiskTreatment) => handleLocalUpdate({ treatment }), [handleLocalUpdate]);
 
     const handleNavigateToProject = React.useCallback(() => risk && navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk]);
     const handleNavigateToAudit = React.useCallback(() => risk && navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk]);

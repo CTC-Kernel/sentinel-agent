@@ -247,11 +247,16 @@ export const Risks: React.FC = () => {
 
     const handleFormSubmit = useCallback(async (data: RiskFormData) => {
         const calculatedValues = RiskCalculator.parseRiskValues(data);
-        const cleanedData = { ...data, ...calculatedValues, aiAnalysis: data.aiAnalysis || undefined };
+        const cleanedData: Partial<Risk> = {
+            ...data,
+            ...calculatedValues,
+            aiAnalysis: data.aiAnalysis || undefined
+        };
+
         if (editingRisk) {
             await updateRisk(editingRisk.id, cleanedData, editingRisk);
         } else {
-            const result = await createRisk(cleanedData as Risk);
+            const result = await createRisk(cleanedData);
             if (typeof result === 'string') {
                 pendingSelectId.current = result;
             }

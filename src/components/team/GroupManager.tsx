@@ -35,7 +35,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
     const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
 
     const groupSchema = React.useMemo(() => createGroupSchema(t), [t]);
-    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<GroupFormData>({
+    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting, isDirty } } = useForm<GroupFormData>({
         resolver: zodResolver(groupSchema),
         defaultValues: {
             name: '',
@@ -168,6 +168,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                 title={editingGroup ? t('team.groups.editGroup', { defaultValue: 'Modifier le groupe' }) : t('team.groups.newGroupDrawer', { defaultValue: 'Nouveau groupe' })}
                 subtitle={t('team.groups.drawerSubtitle', { defaultValue: 'Gérez les membres de cette équipe.' })}
                 width="max-w-6xl"
+                hasUnsavedChanges={isDirty}
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
