@@ -32,7 +32,7 @@ interface UseSecureFormOptions<T extends Record<string, unknown>> {
     allowHTML?: boolean;
   };
   onError?: (error: Error) => void;
-  t?: (key: string, options?: { defaultValue?: string; [key: string]: any }) => string;
+  t?: (key: string, options?: { defaultValue?: string; seconds?: number; size?: number } & Record<string, string | number>) => string;
 }
 
 interface UseSecureFormReturn<T> {
@@ -293,7 +293,7 @@ interface UseSecureFormWithZodOptions<T extends Record<string, unknown>> {
   onSubmit: (values: T) => Promise<void> | void;
   rateLimitOperation?: string;
   onError?: (error: Error) => void;
-  t?: (key: string, options?: { defaultValue?: string; [key: string]: any }) => string;
+  t?: (key: string, options?: { defaultValue?: string; seconds?: number; size?: number } & Record<string, string | number>) => string;
 }
 
 export function useSecureFormWithZod<T extends Record<string, unknown>>({
@@ -338,7 +338,7 @@ interface UseSecureFileUploadOptions {
   allowedTypes?: string[]; // ['image/png', 'image/jpeg', 'application/pdf']
   onUpload: (file: File) => Promise<void>;
   rateLimitOperation?: string;
-  t?: (key: string, options?: { defaultValue?: string; [key: string]: any }) => string;
+  t?: (key: string, options?: { defaultValue?: string; seconds?: number; size?: number } & Record<string, string | number>) => string;
 }
 
 export function useSecureFileUpload({
