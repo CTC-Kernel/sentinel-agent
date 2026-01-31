@@ -32,6 +32,7 @@ interface UseSecureFormOptions<T extends Record<string, unknown>> {
     allowHTML?: boolean;
   };
   onError?: (error: Error) => void;
+  t?: (key: string, options?: { defaultValue?: string; [key: string]: any }) => string;
 }
 
 interface UseSecureFormReturn<T> {
@@ -54,14 +55,16 @@ export function useSecureForm<T extends Record<string, unknown>>({
   validate,
   rateLimitOperation = 'api',
   sanitizationOptions = {},
-  onError
+  onError,
+  t: tProp
 }: UseSecureFormOptions<T>): UseSecureFormReturn<T> {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addToast, t } = useStore();
+  const { addToast, t: tStore } = useStore();
   const user = useStore(state => state.user);
+  const t = tProp || tStore;
 
   /**
    * Sanitize une valeur selon son type
@@ -290,6 +293,7 @@ interface UseSecureFormWithZodOptions<T extends Record<string, unknown>> {
   onSubmit: (values: T) => Promise<void> | void;
   rateLimitOperation?: string;
   onError?: (error: Error) => void;
+  t?: (key: string, options?: { defaultValue?: string; [key: string]: any }) => string;
 }
 
 export function useSecureFormWithZod<T extends Record<string, unknown>>({
@@ -297,7 +301,8 @@ export function useSecureFormWithZod<T extends Record<string, unknown>>({
   initialValues = {},
   onSubmit,
   rateLimitOperation = 'api',
-  onError
+  onError,
+  t: tProp
 }: UseSecureFormWithZodOptions<T>) {
   const validateWithZod = useCallback((values: Record<string, unknown>) => {
     const result = schema.safeParse(values);
@@ -319,7 +324,8 @@ export function useSecureFormWithZod<T extends Record<string, unknown>>({
     onSubmit,
     validate: validateWithZod,
     rateLimitOperation,
-    onError
+    onError,
+    t: tProp
   });
 }
 
@@ -332,18 +338,21 @@ interface UseSecureFileUploadOptions {
   allowedTypes?: string[]; // ['image/png', 'image/jpeg', 'application/pdf']
   onUpload: (file: File) => Promise<void>;
   rateLimitOperation?: string;
+  t?: (key: string, options?: { defaultValue?: string; [key: string]: any }) => string;
 }
 
 export function useSecureFileUpload({
   maxSize = 10 * 1024 * 1024, // 10MB par défaut
   allowedTypes = [],
   onUpload,
-  rateLimitOperation = 'file_upload'
+  rateLimitOperation = 'file_upload',
+  t: tProp
 }: UseSecureFileUploadOptions) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { addToast, t } = useStore();
+  const { addToast, t: tStore } = useStore();
   const user = useStore(state => state.user);
+  const t = tProp || tStore;
 
   const handleUpload = useCallback(async (file: File) => {
     setError(null);

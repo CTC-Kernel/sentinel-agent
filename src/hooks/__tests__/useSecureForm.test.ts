@@ -10,6 +10,16 @@ import { useSecureForm, useSecureFormWithZod, useSecureFileUpload } from '../use
 // Mock dependencies
 const mockAddToast = vi.fn();
 const mockUser = { uid: 'user-123', email: 'test@example.com' };
+const mockT = vi.fn((key, options) => {
+  if (options?.defaultValue) {
+    let result = options.defaultValue;
+    if (options.seconds) {
+      result = result.replace('{{seconds}}', options.seconds.toString());
+    }
+    return result;
+  }
+  return key;
+});
 
 vi.mock('../../store', () => ({
     useStore: vi.fn((selector) => {
@@ -60,6 +70,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: 'Test', email: 'test@example.com' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -75,6 +86,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: '' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -90,6 +102,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: '' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -112,6 +125,7 @@ describe('useSecureForm', () => {
                 initialValues: { name: '' },
                 onSubmit: vi.fn(),
                 validate,
+                t: mockT,
             })
         );
 
@@ -128,6 +142,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: '' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -143,6 +158,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: '' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -159,6 +175,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: 'Initial' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -187,6 +204,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: 'Test' },
                 onSubmit,
+                t: mockT,
             })
         );
 
@@ -196,7 +214,7 @@ describe('useSecureForm', () => {
 
         expect(onSubmit).not.toHaveBeenCalled();
         expect(mockAddToast).toHaveBeenCalledWith(
-            'Trop de requêtes. Veuillez patienter 5 secondes.',
+            'Trop de requêtes. Veuillez patienter 5 seconde(s).',
             'error'
         );
     });
@@ -210,6 +228,7 @@ describe('useSecureForm', () => {
                 initialValues: { name: '' },
                 onSubmit,
                 validate,
+                t: mockT,
             })
         );
 
@@ -232,6 +251,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: 'Test' },
                 onSubmit,
+                t: mockT,
             })
         );
 
@@ -251,6 +271,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: 'Test' },
                 onSubmit,
+                t: mockT,
             })
         );
 
@@ -271,6 +292,7 @@ describe('useSecureForm', () => {
                 initialValues: { name: 'Test' },
                 onSubmit,
                 onError,
+                t: mockT,
             })
         );
 
@@ -288,6 +310,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: 'Test' },
                 onSubmit,
+                t: mockT,
             })
         );
 
@@ -310,6 +333,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { query: "'; DROP TABLE users;--" },
                 onSubmit,
+                t: mockT,
             })
         );
 
@@ -333,6 +357,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { path: '../../../etc/passwd' },
                 onSubmit,
+                t: mockT,
             })
         );
 
@@ -352,6 +377,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { name: '' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -380,6 +406,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { tags: [] as string[] },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -395,6 +422,7 @@ describe('useSecureForm', () => {
             useSecureForm({
                 initialValues: { metadata: {} as Record<string, unknown> },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -430,6 +458,7 @@ describe('useSecureFormWithZod', () => {
                 schema: mockSchema,
                 initialValues: { email: 'invalid' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -456,6 +485,7 @@ describe('useSecureFormWithZod', () => {
                 schema: mockSchema,
                 initialValues: { email: 'valid@example.com' },
                 onSubmit: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -485,6 +515,7 @@ describe('useSecureFormWithZod', () => {
                 schema: mockSchema,
                 initialValues: { address: { city: '' } },
                 onSubmit,
+                t: mockT,
             })
         );
 
@@ -512,6 +543,7 @@ describe('useSecureFileUpload', () => {
         const { result } = renderHook(() =>
             useSecureFileUpload({
                 onUpload: vi.fn(),
+                t: mockT,
             })
         );
 
@@ -526,7 +558,7 @@ describe('useSecureFileUpload', () => {
 
         const onUpload = vi.fn();
         const { result } = renderHook(() =>
-            useSecureFileUpload({ onUpload })
+            useSecureFileUpload({ onUpload, t: mockT })
         );
 
         const file = new File(['content'], 'test.txt', { type: 'text/plain' });
@@ -545,6 +577,7 @@ describe('useSecureFileUpload', () => {
             useSecureFileUpload({
                 onUpload,
                 maxSize: 1024, // 1KB
+                t: mockT,
             })
         );
 
@@ -566,6 +599,7 @@ describe('useSecureFileUpload', () => {
             useSecureFileUpload({
                 onUpload,
                 allowedTypes: ['image/png', 'image/jpeg'],
+                t: mockT,
             })
         );
 
@@ -582,7 +616,7 @@ describe('useSecureFileUpload', () => {
     it('should upload file successfully', async () => {
         const onUpload = vi.fn().mockResolvedValue(undefined);
         const { result } = renderHook(() =>
-            useSecureFileUpload({ onUpload })
+            useSecureFileUpload({ onUpload, t: mockT })
         );
 
         const file = new File(['content'], 'test.txt', { type: 'text/plain' });
@@ -601,7 +635,7 @@ describe('useSecureFileUpload', () => {
         vi.mocked(InputSanitizer.sanitizeFilename).mockReturnValue('sanitized_file.txt');
 
         const { result } = renderHook(() =>
-            useSecureFileUpload({ onUpload })
+            useSecureFileUpload({ onUpload, t: mockT })
         );
 
         const file = new File(['content'], '../dangerous/file.txt', { type: 'text/plain' });
@@ -619,7 +653,7 @@ describe('useSecureFileUpload', () => {
     it('should handle upload error', async () => {
         const onUpload = vi.fn().mockRejectedValue(new Error('Upload failed'));
         const { result } = renderHook(() =>
-            useSecureFileUpload({ onUpload })
+            useSecureFileUpload({ onUpload, t: mockT })
         );
 
         const file = new File(['content'], 'test.txt', { type: 'text/plain' });
@@ -638,6 +672,7 @@ describe('useSecureFileUpload', () => {
             useSecureFileUpload({
                 onUpload,
                 allowedTypes: ['image/png'],
+                t: mockT,
             })
         );
 
@@ -656,6 +691,7 @@ describe('useSecureFileUpload', () => {
             useSecureFileUpload({
                 onUpload,
                 allowedTypes: [],
+                t: mockT,
             })
         );
 

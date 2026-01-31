@@ -29,10 +29,12 @@ vi.mock('react-hotkeys-hook', () => ({
 // Mock store
 const mockToggleTheme = vi.fn();
 const mockAddToast = vi.fn();
+const mockT = vi.fn((key, options) => options?.defaultValue || key);
 vi.mock('../../store', () => ({
     useStore: () => ({
         toggleTheme: mockToggleTheme,
-        addToast: mockAddToast
+        addToast: mockAddToast,
+        t: mockT
     })
 }));
 

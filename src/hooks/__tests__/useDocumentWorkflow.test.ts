@@ -23,10 +23,12 @@ vi.mock('../../services/DocumentWorkflowService', () => ({
 
 // Mock store
 const mockAddToast = vi.fn();
+const mockT = vi.fn((key, options) => options?.defaultValue || key);
 vi.mock('../../store', () => ({
     useStore: () => ({
         user: { uid: 'user-1', email: 'test@example.com', displayName: 'Test User' },
-        addToast: mockAddToast
+        addToast: mockAddToast,
+        t: mockT
     })
 }));
 

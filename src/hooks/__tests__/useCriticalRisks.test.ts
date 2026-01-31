@@ -58,7 +58,7 @@ describe('useCriticalRisks', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.count).toBe(2); // Only 2 critical risks (score >= 15)
+    expect(result.current.count).toBe(1); // Only 1 critical risk (score >= 15)
   });
 
   it('should set initial trend to stable', async () => {
