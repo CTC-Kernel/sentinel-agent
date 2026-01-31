@@ -1038,7 +1038,10 @@ exports.updateAnomalyStats = onSchedule({
     logger.info('Starting anomaly stats update');
 
     try {
-        const orgsSnapshot = await db.collection('organizations').get();
+        const orgsSnapshot = await db.collection('organizations').limit(100).get();
+        if (orgsSnapshot.size >= 100) {
+            logger.warn('updateAnomalyStats: org query limit of 100 reached, some orgs may be skipped');
+        }
 
         for (const orgDoc of orgsSnapshot.docs) {
             const organizationId = orgDoc.id;

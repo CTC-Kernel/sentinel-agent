@@ -545,10 +545,10 @@ exports.approveJoinRequest = onCall({
     const requestData = requestSnap.data();
 
     const callerId = request.auth.uid;
-    const callerSnap = await db.collection('users').doc(callerId).get();
-    const callerData = callerSnap.data();
+    const callerToken = request.auth.token;
 
-    if (callerData.organizationId !== requestData.organizationId || callerData.role !== 'admin') {
+    // SECURITY: Use token claims instead of Firestore doc for role/org check
+    if (callerToken.organizationId !== requestData.organizationId || callerToken.role !== 'admin') {
         const orgSnap = await db.collection('organizations').doc(requestData.organizationId).get();
         if (!orgSnap.exists || orgSnap.data().ownerId !== callerId) {
             throw new HttpsError('permission-denied', 'You must be an admin of the organization to approve requests.');
@@ -619,10 +619,10 @@ exports.rejectJoinRequest = onCall({
     const requestData = requestSnap.data();
 
     const callerId = request.auth.uid;
-    const callerSnap = await db.collection('users').doc(callerId).get();
-    const callerData = callerSnap.data();
+    const callerToken = request.auth.token;
 
-    if (callerData.organizationId !== requestData.organizationId || callerData.role !== 'admin') {
+    // SECURITY: Use token claims instead of Firestore doc for role/org check
+    if (callerToken.organizationId !== requestData.organizationId || callerToken.role !== 'admin') {
         const orgSnap = await db.collection('organizations').doc(requestData.organizationId).get();
         if (!orgSnap.exists || orgSnap.data().ownerId !== callerId) {
             throw new HttpsError('permission-denied', 'You must be an admin of the organization to reject requests.');
