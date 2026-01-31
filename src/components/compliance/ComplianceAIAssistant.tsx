@@ -8,9 +8,10 @@ import { ErrorLogger } from '../../services/errorLogger';
 interface ComplianceAIAssistantProps {
     control: Control;
     onApplyPolicy: (text: string) => void;
+    canEdit?: boolean;
 }
 
-export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ control, onApplyPolicy }) => {
+export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ control, onApplyPolicy, canEdit = true }) => {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [response, setResponse] = useState<string | null>(null);
@@ -60,14 +61,18 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
                         <Lightbulb className="w-4 h-4 mr-3 text-warning" />
                         Comprendre ce contrôle
                     </button>
-                    <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Suggérer des preuves avec l'IA">
-                        <FileText className="w-4 h-4 mr-3 text-info" />
-                        Suggérer des preuves
-                    </button>
-                    <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Générer une politique avec l'IA">
-                        <Sparkles className="w-4 h-4 mr-3 text-violet-500" />
-                        Générer une politique
-                    </button>
+                    {canEdit && (
+                        <>
+                            <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Suggérer des preuves avec l'IA">
+                                <FileText className="w-4 h-4 mr-3 text-info" />
+                                Suggérer des preuves
+                            </button>
+                            <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Générer une politique avec l'IA">
+                                <Sparkles className="w-4 h-4 mr-3 text-violet-500" />
+                                Générer une politique
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
 

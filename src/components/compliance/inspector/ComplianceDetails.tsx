@@ -78,6 +78,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             <ComplianceAIAssistant
                 control={control}
                 onApplyPolicy={(policy) => handleJustificationChange(justification ? justification + '\n\n' + policy : policy)}
+                canEdit={canEdit}
             />
 
             {/* Status & Assignment */}
@@ -100,21 +101,21 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                 };
                                 const label = statusLabels[s] || s;
                                 return (
-                                <Button
-                                    key={s}
-                                    aria-label={t('compliance.changeStatusTo', { defaultValue: 'Changer le statut à', status: label })}
-                                    aria-pressed={control.status === s}
-                                    onClick={async () => {
-                                        await handleStatusChange(control, s);
-                                        toast.success(t('compliance.statusUpdated', { defaultValue: 'Statut mis à jour' }));
-                                    }}
-                                    disabled={updating}
-                                    variant={control.status === s ? 'default' : 'outline'}
-                                    className={`h-auto py-2 text-[11px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-brand-600 hover:bg-brand-700' : 'text-slate-600 dark:text-slate-300'}`}
-                                >
-                                    {updating && control.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                                    {label}
-                                </Button>
+                                    <Button
+                                        key={s}
+                                        aria-label={t('compliance.changeStatusTo', { defaultValue: 'Changer le statut à', status: label })}
+                                        aria-pressed={control.status === s}
+                                        onClick={async () => {
+                                            await handleStatusChange(control, s);
+                                            toast.success(t('compliance.statusUpdated', { defaultValue: 'Statut mis à jour' }));
+                                        }}
+                                        disabled={updating}
+                                        variant={control.status === s ? 'default' : 'outline'}
+                                        className={`h-auto py-2 text-[11px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-brand-600 hover:bg-brand-700' : 'text-slate-600 dark:text-slate-300'}`}
+                                    >
+                                        {updating && control.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                        {label}
+                                    </Button>
                                 );
                             })}
                         </div>

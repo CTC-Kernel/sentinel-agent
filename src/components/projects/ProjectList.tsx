@@ -237,7 +237,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 <DataTable
                     columns={columns}
                     data={projects}
-                    selectable={true}
+                    selectable={canEdit}
                     onBulkDelete={onBulkDelete}
                     onRowClick={onSelect}
                     searchable={false}

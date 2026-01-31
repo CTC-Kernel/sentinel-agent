@@ -69,7 +69,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-premium rounded-2xl border border-border/40 dark:border-white/5">
             <div className="flex items-center gap-4">
                 <p className="text-sm text-slate-600 dark:text-muted-foreground font-medium">
-                    {startItem} {t('pagination.to', { defaultValue: 'à' })} {endItem} {t('pagination.of', { defaultValue: 'sur' })} {totalItems}
+                    {startItem} {t('common.pagination.to', { defaultValue: 'à' })} {endItem} {t('common.pagination.of', { defaultValue: 'sur' })} {totalItems}
                 </p>
 
                 {showItemsPerPage && onItemsPerPageChange && (
@@ -78,7 +78,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                             htmlFor="items-per-page"
                             className="text-sm text-slate-600 dark:text-slate-300 font-medium"
                         >
-                            {t('pagination.show', { defaultValue: 'Afficher :' })}
+                            {t('common.pagination.show', { defaultValue: 'Afficher :' })}
                         </label>
                         <div className="relative">
                             <select

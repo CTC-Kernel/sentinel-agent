@@ -531,13 +531,15 @@ export const Documents: React.FC = () => {
                                                                         </button>
                                                                     )}
                                                                 </Menu.Item>
-                                                                <Menu.Item>
-                                                                    {({ active }) => (
-                                                                        <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                                            <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
-                                                                        </button>
-                                                                    )}
-                                                                </Menu.Item>
+                                                                {canCreate && (
+                                                                    <Menu.Item>
+                                                                        {({ active }) => (
+                                                                            <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                                                <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
+                                                                            </button>
+                                                                        )}
+                                                                    </Menu.Item>
+                                                                )}
                                                             </div>
                                                         </Menu.Items>
                                                     </Transition>

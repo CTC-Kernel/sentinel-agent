@@ -57,9 +57,9 @@ export const AuditsList: React.FC<AuditsListProps> = ({
     const { t } = useStore();
 
     const columns = useMemo<ColumnDef<Audit>[]>(() => [
-        {
+        ...(canDelete ? [{
             id: 'select',
-            header: ({ table }) => {
+            header: ({ table }: { table: any }) => {
                 const isAllSelected = table.getIsAllPageRowsSelected();
                 const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
                     const allIds = audits.map(a => a.id);
@@ -73,7 +73,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                     </div>
                 );
             },
-            cell: ({ row }) => {
+            cell: ({ row }: { row: any }) => {
                 const isSelected = selectedIds.includes(row.original.id);
                 const handleSelectRow = (e: React.ChangeEvent<HTMLInputElement>) => {
                     if (e.target.checked) {
@@ -92,7 +92,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             },
             enableSorting: false,
             enableHiding: false,
-        },
+        }] : []),
         {
             accessorKey: 'name',
             header: t('audits.list.columns.audit', { defaultValue: 'Audit' }),

@@ -454,7 +454,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
             onClick={onClose}
           />
           <motion.aside
@@ -462,7 +462,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
-            className="fixed inset-y-0 right-0 w-[400px] z-[100001] flex flex-col"
+            className="absolute inset-y-0 right-0 w-[400px] z-[100001] flex flex-col"
             style={{
               background: 'rgba(15, 23, 42, 0.95)',
               backdropFilter: 'blur(24px)',
@@ -470,212 +470,212 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
               boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
             }}
           >
-      {/* Header */}
-      <div className="p-5 border-b border-border/40 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20">
-              <AlertTriangle className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Anomalies</h2>
-              <p className="text-xs text-white/50">
-                {activeAnomalies.length} detectee{activeAnomalies.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Severity Badges */}
-        <div className="flex gap-2 mt-4">
-          {(['critical', 'high', 'medium', 'low'] as VoxelAnomalySeverity[]).map(
-            (severity) => {
-              const count = severityCounts[severity];
-              const config = SEVERITY_CONFIG[severity];
-              return (
+            {/* Header */}
+            <div className="p-5 border-b border-border/40 shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+                    <AlertTriangle className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">Anomalies</h2>
+                    <p className="text-xs text-white/50">
+                      {activeAnomalies.length} detectee{activeAnomalies.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
                 <button
-                  key={severity}
-                  onClick={() => toggleSeverityFilter(severity)}
-                  className={`
+                  onClick={onClose}
+                  className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Severity Badges */}
+              <div className="flex gap-2 mt-4">
+                {(['critical', 'high', 'medium', 'low'] as VoxelAnomalySeverity[]).map(
+                  (severity) => {
+                    const count = severityCounts[severity];
+                    const config = SEVERITY_CONFIG[severity];
+                    return (
+                      <button
+                        key={severity}
+                        onClick={() => toggleSeverityFilter(severity)}
+                        className={`
                     flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
                     ${severityFilter.includes(severity) ? config.bgColor + ' ring-1 ring-white/20' : 'bg-white/5'}
                     ${config.color}
                   `}
-                >
-                  {severity === 'critical' && <AlertOctagon className="h-3 w-3" />}
-                  {severity === 'high' && <AlertTriangle className="h-3 w-3" />}
-                  {severity === 'medium' && <AlertCircle className="h-3 w-3" />}
-                  {severity === 'low' && <Info className="h-3 w-3" />}
-                  {count}
-                </button>
-              );
-            }
-          )}
-        </div>
-      </div>
+                      >
+                        {severity === 'critical' && <AlertOctagon className="h-3 w-3" />}
+                        {severity === 'high' && <AlertTriangle className="h-3 w-3" />}
+                        {severity === 'medium' && <AlertCircle className="h-3 w-3" />}
+                        {severity === 'low' && <Info className="h-3 w-3" />}
+                        {count}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
 
-      {/* Toolbar */}
-      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2 shrink-0">
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`
+            {/* Toolbar */}
+            <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`
             flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors
             ${showFilters || typeFilter.length > 0 ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}
           `}
-        >
-          <Filter className="h-3 w-3" />
-          Filtres
-          {typeFilter.length > 0 && (
-            <span className="bg-brand-500 text-white px-1.5 rounded-full text-[11px]">
-              {typeFilter.length}
-            </span>
-          )}
-          {showFilters ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        </button>
+              >
+                <Filter className="h-3 w-3" />
+                Filtres
+                {typeFilter.length > 0 && (
+                  <span className="bg-brand-500 text-white px-1.5 rounded-full text-[11px]">
+                    {typeFilter.length}
+                  </span>
+                )}
+                {showFilters ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
 
-        <div className="flex-1" />
+              <div className="flex-1" />
 
-        <button
-          onClick={() => setShowHelp(!showHelp)}
-          className={`p-1.5 rounded-lg transition-colors ${showHelp ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
-          title="Aide"
-        >
-          <Info className="h-4 w-4" />
-        </button>
+              <button
+                onClick={() => setShowHelp(!showHelp)}
+                className={`p-1.5 rounded-lg transition-colors ${showHelp ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+                title="Aide"
+              >
+                <Info className="h-4 w-4" />
+              </button>
 
-        {onRefresh && (
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-            title="Actualiser"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-        )}
-
-        {onOpenAlertConfig && (
-          <button
-            onClick={onOpenAlertConfig}
-            className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white transition-colors"
-            title="Configuration des alertes"
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-
-      {/* Help Content */}
-      <AnimatePresence>
-        {showHelp && <AnomalyHelpContent onClose={() => setShowHelp(false)} />}
-      </AnimatePresence>
-
-      {/* Type Filters */}
-      <AnimatePresence>
-        {showFilters && availableTypes.length > 0 && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-5 py-3 border-b border-border/40 bg-white/5 overflow-hidden"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-white/50">Filtrer par type</span>
-              {(severityFilter.length > 0 || typeFilter.length > 0) && (
+              {onRefresh && (
                 <button
-                  onClick={clearFilters}
-                  className="text-[11px] text-brand-400 hover:text-brand-300"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                  title="Actualiser"
                 >
-                  Effacer tout
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
+              )}
+
+              {onOpenAlertConfig && (
+                <button
+                  onClick={onOpenAlertConfig}
+                  className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white transition-colors"
+                  title="Configuration des alertes"
+                >
+                  <Settings className="h-4 w-4" />
                 </button>
               )}
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {availableTypes.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => toggleTypeFilter(type)}
-                  className={`
+
+            {/* Help Content */}
+            <AnimatePresence>
+              {showHelp && <AnomalyHelpContent onClose={() => setShowHelp(false)} />}
+            </AnimatePresence>
+
+            {/* Type Filters */}
+            <AnimatePresence>
+              {showFilters && availableTypes.length > 0 && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="px-5 py-3 border-b border-border/40 bg-white/5 overflow-hidden"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/50">Filtrer par type</span>
+                    {(severityFilter.length > 0 || typeFilter.length > 0) && (
+                      <button
+                        onClick={clearFilters}
+                        className="text-[11px] text-brand-400 hover:text-brand-300"
+                      >
+                        Effacer tout
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableTypes.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => toggleTypeFilter(type)}
+                        className={`
                     px-2 py-1 rounded text-[11px] transition-colors
                     ${typeFilter.includes(type) ? 'bg-brand-500 text-white' : 'bg-white/10 text-white/60 hover:text-white'}
                   `}
+                      >
+                        {ANOMALY_TYPE_LABELS[type] || type}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Bulk Actions */}
+            {selectedIds.size > 0 && (
+              <div className="px-5 py-3 border-b border-border/40 bg-brand-50 flex items-center gap-2">
+                <button
+                  onClick={handleSelectAll}
+                  className="text-xs text-brand-400 hover:text-brand-300"
                 >
-                  {ANOMALY_TYPE_LABELS[type] || type}
+                  {selectedIds.size === filteredAnomalies.length ? 'Désélectionner tout' : 'Sélectionner tout'}
                 </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Bulk Actions */}
-      {selectedIds.size > 0 && (
-        <div className="px-5 py-3 border-b border-border/40 bg-brand-50 flex items-center gap-2">
-          <button
-            onClick={handleSelectAll}
-            className="text-xs text-brand-400 hover:text-brand-300"
-          >
-            {selectedIds.size === filteredAnomalies.length ? 'Désélectionner tout' : 'Sélectionner tout'}
-          </button>
-          <span className="text-xs text-white/40">|</span>
-          <span className="text-xs text-white/60">
-            {selectedIds.size} sélectionné{selectedIds.size !== 1 ? 's' : ''}
-          </span>
-          <div className="flex-1" />
-          {onResolve && (
-            <button
-              onClick={handleBulkResolve}
-              className="px-3 py-1 text-xs bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
-            >
-              Résoudre tout
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Anomaly List */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-3">
-        <AnimatePresence mode="popLayout">
-          {filteredAnomalies.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12"
-            >
-              <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
-                <Check className="h-8 w-8 text-green-500" />
+                <span className="text-xs text-white/40">|</span>
+                <span className="text-xs text-white/60">
+                  {selectedIds.size} sélectionné{selectedIds.size !== 1 ? 's' : ''}
+                </span>
+                <div className="flex-1" />
+                {onResolve && (
+                  <button
+                    onClick={handleBulkResolve}
+                    className="px-3 py-1 text-xs bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
+                  >
+                    Résoudre tout
+                  </button>
+                )}
               </div>
-              <p className="text-white/60 text-sm">Aucune anomalie detectee</p>
-              <p className="text-white/40 text-xs mt-1">
-                {severityFilter.length > 0 || typeFilter.length > 0
-                  ? 'Essayez de modifier les filtres'
-                  : 'Votre systeme est sain'}
-              </p>
-            </motion.div>
-          ) : (
-            filteredAnomalies.map((anomaly) => (
-              <AnomalyItem
-                key={anomaly.id}
-                anomaly={anomaly}
-                node={nodes.get(anomaly.nodeId)}
-                isSelected={selectedIds.has(anomaly.id)}
-                onSelect={handleSelect}
-                onFocus={onFocusNode}
-                onResolve={onResolve ? () => onResolve(anomaly.id) : undefined}
-                onDismiss={onDismiss ? () => onDismiss(anomaly.id, '') : undefined}
-                onCreateTask={onCreateTask}
-              />
-            ))
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.aside>
+            )}
+
+            {/* Anomaly List */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-3">
+              <AnimatePresence mode="popLayout">
+                {filteredAnomalies.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-12"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
+                      <Check className="h-8 w-8 text-green-500" />
+                    </div>
+                    <p className="text-white/60 text-sm">Aucune anomalie detectee</p>
+                    <p className="text-white/40 text-xs mt-1">
+                      {severityFilter.length > 0 || typeFilter.length > 0
+                        ? 'Essayez de modifier les filtres'
+                        : 'Votre systeme est sain'}
+                    </p>
+                  </motion.div>
+                ) : (
+                  filteredAnomalies.map((anomaly) => (
+                    <AnomalyItem
+                      key={anomaly.id}
+                      anomaly={anomaly}
+                      node={nodes.get(anomaly.nodeId)}
+                      isSelected={selectedIds.has(anomaly.id)}
+                      onSelect={handleSelect}
+                      onFocus={onFocusNode}
+                      onResolve={onResolve ? () => onResolve(anomaly.id) : undefined}
+                      onDismiss={onDismiss ? () => onDismiss(anomaly.id, '') : undefined}
+                      onCreateTask={onCreateTask}
+                    />
+                  ))
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>

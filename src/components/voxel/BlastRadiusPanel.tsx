@@ -509,7 +509,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
             onClick={onClose}
           />
           <motion.aside
@@ -517,7 +517,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
-            className="fixed inset-y-0 right-0 w-[420px] z-[100001] flex flex-col"
+            className="absolute inset-y-0 right-0 w-[420px] z-[100001] flex flex-col"
             style={{
               background: 'rgba(15, 23, 42, 0.95)',
               backdropFilter: 'blur(24px)',
@@ -525,410 +525,410 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
             }}
           >
-      {/* Header */}
-      <div className="p-5 border-b border-border/40 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-purple-500 to-brand-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <Activity className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Blast Radius</h2>
-              <p className="text-xs text-white/50">
-                {mode === 'blast-radius' ? 'Simulation d\'impact' : mode === 'root-cause' ? 'Analyse cause racine' : 'Scenario What-If'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Source node info */}
-        {sourceNode && (
-          <div className="mt-4 p-3 bg-white/5 rounded-3xl border border-border/40">
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-purple-400" />
-              <span className="text-xs text-white/50">Noeud source</span>
-            </div>
-            <div className="mt-1 flex items-center gap-2">
-              <span className="text-sm font-medium text-white">{sourceNode.label || sourceNodeId}</span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-                {NODE_TYPE_LABELS[sourceNode.type]}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Stats Grid */}
-      {affectedNodes.length > 0 && (
-        <div className="p-5 border-b border-border/40 shrink-0">
-          <div className="grid grid-cols-2 gap-3">
-            <StatsCard
-              label="Noeuds impactes"
-              value={stats.totalAffected}
-              icon={Layers}
-              color="text-brand-400"
-              delta={whatIfResult?.affectedNodesDelta}
-              delay={0}
-            />
-            <StatsCard
-              label="Impact total"
-              value={stats.totalImpact.toFixed(1)}
-              icon={Activity}
-              color="text-purple-400"
-              delta={whatIfResult ? parseFloat(whatIfResult.impactDelta.toFixed(1)) : undefined}
-              delay={0.1}
-            />
-            <StatsCard
-              label="Profondeur max"
-              value={stats.maxDepth}
-              icon={GitBranch}
-              color="text-info"
-              delay={0.2}
-            />
-            <div className={`rounded-3xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <BarChart3 className={`h-4 w-4 ${businessImpactColors.text}`} />
-                <span className="text-xs text-white/50">Impact metier</span>
-              </div>
-              <span className={`text-xl font-bold uppercase ${businessImpactColors.text}`}>
-                {businessImpact}
-              </span>
-            </div>
-          </div>
-
-          {/* Impact distribution */}
-          <div className="mt-3 flex gap-2">
-            {[
-              { label: 'Critique', count: stats.criticalCount, color: IMPACT_COLORS.critical },
-              { label: 'Eleve', count: stats.highCount, color: IMPACT_COLORS.high },
-              { label: 'Moyen', count: stats.mediumCount, color: IMPACT_COLORS.medium },
-              { label: 'Faible', count: stats.lowCount, color: IMPACT_COLORS.low },
-            ].map(({ label, count, color }) => (
-              <div
-                key={label}
-                className={`flex-1 px-2 py-1.5 rounded-lg ${color.bg} ${color.border} border text-center`}
-              >
-                <div className={`text-lg font-bold ${color.text}`}>{count}</div>
-                <div className="text-[11px] text-white/40">{label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Type breakdown */}
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {Object.entries(stats.byType).map(([type, count]) => {
-              if (count === 0) return null;
-              const Icon = NODE_TYPE_ICONS[type as VoxelNodeType];
-              return (
+            {/* Header */}
+            <div className="p-5 border-b border-border/40 shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-purple-500 to-brand-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">Blast Radius</h2>
+                    <p className="text-xs text-white/50">
+                      {mode === 'blast-radius' ? 'Simulation d\'impact' : mode === 'root-cause' ? 'Analyse cause racine' : 'Scenario What-If'}
+                    </p>
+                  </div>
+                </div>
                 <button
-                  key={type}
-                  onClick={() => setFilterType(filterType === type ? 'all' : type as VoxelNodeType)}
-                  className={`
+                  onClick={onClose}
+                  className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Source node info */}
+              {sourceNode && (
+                <div className="mt-4 p-3 bg-white/5 rounded-3xl border border-border/40">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-4 w-4 text-purple-400" />
+                    <span className="text-xs text-white/50">Noeud source</span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-sm font-medium text-white">{sourceNode.label || sourceNodeId}</span>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+                      {NODE_TYPE_LABELS[sourceNode.type]}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Stats Grid */}
+            {affectedNodes.length > 0 && (
+              <div className="p-5 border-b border-border/40 shrink-0">
+                <div className="grid grid-cols-2 gap-3">
+                  <StatsCard
+                    label="Noeuds impactes"
+                    value={stats.totalAffected}
+                    icon={Layers}
+                    color="text-brand-400"
+                    delta={whatIfResult?.affectedNodesDelta}
+                    delay={0}
+                  />
+                  <StatsCard
+                    label="Impact total"
+                    value={stats.totalImpact.toFixed(1)}
+                    icon={Activity}
+                    color="text-purple-400"
+                    delta={whatIfResult ? parseFloat(whatIfResult.impactDelta.toFixed(1)) : undefined}
+                    delay={0.1}
+                  />
+                  <StatsCard
+                    label="Profondeur max"
+                    value={stats.maxDepth}
+                    icon={GitBranch}
+                    color="text-info"
+                    delay={0.2}
+                  />
+                  <div className={`rounded-3xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <BarChart3 className={`h-4 w-4 ${businessImpactColors.text}`} />
+                      <span className="text-xs text-white/50">Impact metier</span>
+                    </div>
+                    <span className={`text-xl font-bold uppercase ${businessImpactColors.text}`}>
+                      {businessImpact}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Impact distribution */}
+                <div className="mt-3 flex gap-2">
+                  {[
+                    { label: 'Critique', count: stats.criticalCount, color: IMPACT_COLORS.critical },
+                    { label: 'Eleve', count: stats.highCount, color: IMPACT_COLORS.high },
+                    { label: 'Moyen', count: stats.mediumCount, color: IMPACT_COLORS.medium },
+                    { label: 'Faible', count: stats.lowCount, color: IMPACT_COLORS.low },
+                  ].map(({ label, count, color }) => (
+                    <div
+                      key={label}
+                      className={`flex-1 px-2 py-1.5 rounded-lg ${color.bg} ${color.border} border text-center`}
+                    >
+                      <div className={`text-lg font-bold ${color.text}`}>{count}</div>
+                      <div className="text-[11px] text-white/40">{label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Type breakdown */}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {Object.entries(stats.byType).map(([type, count]) => {
+                    if (count === 0) return null;
+                    const Icon = NODE_TYPE_ICONS[type as VoxelNodeType];
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => setFilterType(filterType === type ? 'all' : type as VoxelNodeType)}
+                        className={`
                     flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] transition-colors
                     ${filterType === type ? 'bg-brand-100 text-brand-300' : 'bg-white/5 text-white/60 hover:bg-white/10'}
                   `}
+                      >
+                        <Icon className="h-3 w-3" />
+                        {NODE_TYPE_LABELS[type as VoxelNodeType]}: {count}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Toolbar */}
+            <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2 shrink-0">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher..."
+                  className="w-full bg-white/5 border border-border/40 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+
+              {/* Sort */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
+              >
+                <option value="impact">Impact</option>
+                <option value="depth">Profondeur</option>
+                <option value="type">Type</option>
+              </select>
+
+              {/* Help toggle */}
+              <button
+                onClick={() => setShowHelp(!showHelp)}
+                className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+                title="Aide"
+              >
+                <Info className="h-4 w-4" />
+              </button>
+
+              {/* Config toggle */}
+              <button
+                onClick={() => setShowConfig(!showConfig)}
+                className={`p-2 rounded-lg transition-colors ${showConfig ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+              >
+                <Sliders className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Help Content */}
+            <AnimatePresence>
+              {showHelp && <BlastRadiusHelpContent onClose={() => setShowHelp(false)} />}
+            </AnimatePresence>
+
+            {/* Config Panel */}
+            <AnimatePresence>
+              {showConfig && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="px-5 py-3 border-b border-border/40 overflow-hidden"
                 >
-                  <Icon className="h-3 w-3" />
-                  {NODE_TYPE_LABELS[type as VoxelNodeType]}: {count}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                  <ConfigPanel config={config} onSetConfig={onSetConfig} />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-      {/* Toolbar */}
-      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2 shrink-0">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher..."
-            className="w-full bg-white/5 border border-border/40 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
-          />
-        </div>
-
-        {/* Sort */}
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
-        >
-          <option value="impact">Impact</option>
-          <option value="depth">Profondeur</option>
-          <option value="type">Type</option>
-        </select>
-
-        {/* Help toggle */}
-        <button
-          onClick={() => setShowHelp(!showHelp)}
-          className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
-          title="Aide"
-        >
-          <Info className="h-4 w-4" />
-        </button>
-
-        {/* Config toggle */}
-        <button
-          onClick={() => setShowConfig(!showConfig)}
-          className={`p-2 rounded-lg transition-colors ${showConfig ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
-        >
-          <Sliders className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Help Content */}
-      <AnimatePresence>
-        {showHelp && <BlastRadiusHelpContent onClose={() => setShowHelp(false)} />}
-      </AnimatePresence>
-
-      {/* Config Panel */}
-      <AnimatePresence>
-        {showConfig && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-5 py-3 border-b border-border/40 overflow-hidden"
-          >
-            <ConfigPanel config={config} onSetConfig={onSetConfig} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* What-If Toggle */}
-      <div className="px-5 py-3 border-b border-border/40 shrink-0">
-        <button
-          onClick={() => setShowWhatIf(!showWhatIf)}
-          className={`
+            {/* What-If Toggle */}
+            <div className="px-5 py-3 border-b border-border/40 shrink-0">
+              <button
+                onClick={() => setShowWhatIf(!showWhatIf)}
+                className={`
             w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors
             ${showWhatIf ? 'bg-brand-100 text-brand-400' : 'bg-white/5 text-white/70 hover:bg-white/10'}
           `}
-        >
-          <span className="flex items-center gap-2 text-sm font-medium">
-            <GitBranch className="h-4 w-4" />
-            Scenario What-If
-          </span>
-          {showWhatIf ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
-
-        <AnimatePresence>
-          {showWhatIf && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="mt-3 overflow-hidden"
-            >
-              <WhatIfBuilder onApply={onApplyWhatIf} nodes={allNodes} />
-              {whatIfScenario && (
-                <button
-                  onClick={onClearWhatIf}
-                  className="mt-2 w-full px-3 py-2 text-xs text-white/60 hover:text-white bg-white/5 rounded-lg"
-                >
-                  Effacer le scenario
-                </button>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Affected Nodes List */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-2">
-        <AnimatePresence mode="popLayout">
-          {filteredNodes.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12"
-            >
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                <Activity className="h-8 w-8 text-white/30" />
-              </div>
-              <p className="text-white/60 text-sm">
-                {sourceNodeId ? 'Aucun nœud impacté' : 'Sélectionnez un nœud source'}
-              </p>
-              <p className="text-white/40 text-xs mt-1">
-                {sourceNodeId
-                  ? 'Ajustez la configuration pour étendre la simulation'
-                  : 'Cliquez sur un nœud dans la vue 3D'}
-              </p>
-            </motion.div>
-          ) : (
-            filteredNodes.map((node) => (
-              <AffectedNodeItem
-                key={node.nodeId}
-                node={node}
-                isSelected={selectedNodeId === node.nodeId}
-                onSelect={() => setSelectedNodeId(selectedNodeId === node.nodeId ? null : node.nodeId)}
-                onFocus={() => onFocusNode(node.nodeId)}
-              />
-            ))
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Footer Actions */}
-      <div className="p-5 border-t border-border/40 shrink-0 space-y-3">
-        {/* What-If comparison summary with animations */}
-        {whatIfResult && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className={`p-4 rounded-3xl border ${whatIfResult.impactDelta < 0
-                ? 'bg-green-50 dark:bg-green-900/30 border-green-500/30'
-                : 'bg-brand-50 border-brand-300'
-              }`}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring' }}
               >
-                {whatIfResult.impactDelta < 0 ? (
-                  <Check className="h-4 w-4 text-green-400" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 text-amber-400" />
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <GitBranch className="h-4 w-4" />
+                  Scenario What-If
+                </span>
+                {showWhatIf ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+
+              <AnimatePresence>
+                {showWhatIf && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="mt-3 overflow-hidden"
+                  >
+                    <WhatIfBuilder onApply={onApplyWhatIf} nodes={allNodes} />
+                    {whatIfScenario && (
+                      <button
+                        onClick={onClearWhatIf}
+                        className="mt-2 w-full px-3 py-2 text-xs text-white/60 hover:text-white bg-white/5 rounded-lg"
+                      >
+                        Effacer le scenario
+                      </button>
+                    )}
+                  </motion.div>
                 )}
-              </motion.div>
-              <span className={`text-xs font-medium ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-brand-400'
-                }`}>
-                {whatIfResult.impactDelta < 0 ? 'Amelioration detectee !' : 'Comparaison What-If'}
-              </span>
+              </AnimatePresence>
             </div>
 
-            {/* Main delta display */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex items-center justify-center gap-3 mb-3"
-            >
-              <motion.div
-                animate={whatIfResult.impactDelta < 0 ? { rotate: [0, -10, 0] } : {}}
-                transition={{ delay: 0.5, duration: 0.5 }}
-              >
-                {whatIfResult.impactDelta < 0 ? (
-                  <TrendingDown className="h-8 w-8 text-green-400" />
+            {/* Affected Nodes List */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-2">
+              <AnimatePresence mode="popLayout">
+                {filteredNodes.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-12"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                      <Activity className="h-8 w-8 text-white/30" />
+                    </div>
+                    <p className="text-white/60 text-sm">
+                      {sourceNodeId ? 'Aucun nœud impacté' : 'Sélectionnez un nœud source'}
+                    </p>
+                    <p className="text-white/40 text-xs mt-1">
+                      {sourceNodeId
+                        ? 'Ajustez la configuration pour étendre la simulation'
+                        : 'Cliquez sur un nœud dans la vue 3D'}
+                    </p>
+                  </motion.div>
                 ) : (
-                  <TrendingUp className="h-8 w-8 text-red-400" />
+                  filteredNodes.map((node) => (
+                    <AffectedNodeItem
+                      key={node.nodeId}
+                      node={node}
+                      isSelected={selectedNodeId === node.nodeId}
+                      onSelect={() => setSelectedNodeId(selectedNodeId === node.nodeId ? null : node.nodeId)}
+                      onFocus={() => onFocusNode(node.nodeId)}
+                    />
+                  ))
                 )}
-              </motion.div>
-              <div className="text-center">
+              </AnimatePresence>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-5 border-t border-border/40 shrink-0 space-y-3">
+              {/* What-If comparison summary with animations */}
+              {whatIfResult && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className={`text-2xl font-bold ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-red-400'
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                  className={`p-4 rounded-3xl border ${whatIfResult.impactDelta < 0
+                    ? 'bg-green-50 dark:bg-green-900/30 border-green-500/30'
+                    : 'bg-brand-50 border-brand-300'
                     }`}
                 >
-                  {whatIfResult.impactDelta > 0 ? '+' : ''}
-                  {(Math.abs(whatIfResult.impactDelta) * 100).toFixed(0)}%
+                  <div className="flex items-center gap-2 mb-3">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, type: 'spring' }}
+                    >
+                      {whatIfResult.impactDelta < 0 ? (
+                        <Check className="h-4 w-4 text-green-400" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-amber-400" />
+                      )}
+                    </motion.div>
+                    <span className={`text-xs font-medium ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-brand-400'
+                      }`}>
+                      {whatIfResult.impactDelta < 0 ? 'Amelioration detectee !' : 'Comparaison What-If'}
+                    </span>
+                  </div>
+
+                  {/* Main delta display */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center justify-center gap-3 mb-3"
+                  >
+                    <motion.div
+                      animate={whatIfResult.impactDelta < 0 ? { rotate: [0, -10, 0] } : {}}
+                      transition={{ delay: 0.5, duration: 0.5 }}
+                    >
+                      {whatIfResult.impactDelta < 0 ? (
+                        <TrendingDown className="h-8 w-8 text-green-400" />
+                      ) : (
+                        <TrendingUp className="h-8 w-8 text-red-400" />
+                      )}
+                    </motion.div>
+                    <div className="text-center">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className={`text-2xl font-bold ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-red-400'
+                          }`}
+                      >
+                        {whatIfResult.impactDelta > 0 ? '+' : ''}
+                        {(Math.abs(whatIfResult.impactDelta) * 100).toFixed(0)}%
+                      </motion.div>
+                      <div className="text-[11px] text-white/50">
+                        {whatIfResult.impactDelta < 0 ? 'Reduction d\'impact' : 'Augmentation d\'impact'}
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Details grid */}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="p-2 bg-white/5 rounded-lg"
+                    >
+                      <div className={`text-sm font-bold ${whatIfResult.impactDelta > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {whatIfResult.impactDelta > 0 ? '+' : ''}{whatIfResult.impactDelta.toFixed(2)}
+                      </div>
+                      <div className="text-[11px] text-white/40">Impact</div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                      className="p-2 bg-white/5 rounded-lg"
+                    >
+                      <div className="text-sm font-bold text-yellow-400">
+                        {whatIfResult.newlyAffected.length}
+                      </div>
+                      <div className="text-[11px] text-white/40">Nouveaux</div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 }}
+                      className="p-2 bg-white/5 rounded-lg"
+                    >
+                      <div className="text-sm font-bold text-green-400">
+                        {whatIfResult.noLongerAffected.length}
+                      </div>
+                      <div className="text-[11px] text-white/40">Proteges</div>
+                    </motion.div>
+                  </div>
+
+                  {/* Success message for significant improvements */}
+                  {whatIfResult.impactDelta < -0.2 && whatIfResult.noLongerAffected.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ delay: 0.8 }}
+                      className="mt-3 p-2 bg-green-500/20 rounded-lg flex items-center gap-2"
+                    >
+                      <Shield className="h-4 w-4 text-green-400" />
+                      <span className="text-xs text-green-300">
+                        Excellente mitigation ! {whatIfResult.noLongerAffected.length} elements proteges.
+                      </span>
+                    </motion.div>
+                  )}
                 </motion.div>
-                <div className="text-[11px] text-white/50">
-                  {whatIfResult.impactDelta < 0 ? 'Reduction d\'impact' : 'Augmentation d\'impact'}
-                </div>
+              )}
+
+              {/* Export buttons */}
+              <div className="flex gap-2">
+                {onExportPdf && (
+                  <button
+                    onClick={onExportPdf}
+                    disabled={affectedNodes.length === 0}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-500 hover:bg-brand-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Export PDF
+                  </button>
+                )}
+                {onExportCsv && (
+                  <button
+                    onClick={onExportCsv}
+                    disabled={affectedNodes.length === 0}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors border border-border/40"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export CSV
+                  </button>
+                )}
               </div>
-            </motion.div>
 
-            {/* Details grid */}
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="p-2 bg-white/5 rounded-lg"
+              {/* Clear button */}
+              <button
+                onClick={onClearResults}
+                className="w-full px-4 py-2 text-sm text-white/50 hover:text-white hover:bg-white/5 rounded-3xl transition-colors"
               >
-                <div className={`text-sm font-bold ${whatIfResult.impactDelta > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {whatIfResult.impactDelta > 0 ? '+' : ''}{whatIfResult.impactDelta.toFixed(2)}
-                </div>
-                <div className="text-[11px] text-white/40">Impact</div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="p-2 bg-white/5 rounded-lg"
-              >
-                <div className="text-sm font-bold text-yellow-400">
-                  {whatIfResult.newlyAffected.length}
-                </div>
-                <div className="text-[11px] text-white/40">Nouveaux</div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="p-2 bg-white/5 rounded-lg"
-              >
-                <div className="text-sm font-bold text-green-400">
-                  {whatIfResult.noLongerAffected.length}
-                </div>
-                <div className="text-[11px] text-white/40">Proteges</div>
-              </motion.div>
+                Effacer les resultats
+              </button>
             </div>
-
-            {/* Success message for significant improvements */}
-            {whatIfResult.impactDelta < -0.2 && whatIfResult.noLongerAffected.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                transition={{ delay: 0.8 }}
-                className="mt-3 p-2 bg-green-500/20 rounded-lg flex items-center gap-2"
-              >
-                <Shield className="h-4 w-4 text-green-400" />
-                <span className="text-xs text-green-300">
-                  Excellente mitigation ! {whatIfResult.noLongerAffected.length} elements proteges.
-                </span>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-
-        {/* Export buttons */}
-        <div className="flex gap-2">
-          {onExportPdf && (
-            <button
-              onClick={onExportPdf}
-              disabled={affectedNodes.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-500 hover:bg-brand-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors"
-            >
-              <FileText className="h-4 w-4" />
-              Export PDF
-            </button>
-          )}
-          {onExportCsv && (
-            <button
-              onClick={onExportCsv}
-              disabled={affectedNodes.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors border border-border/40"
-            >
-              <Download className="h-4 w-4" />
-              Export CSV
-            </button>
-          )}
-        </div>
-
-        {/* Clear button */}
-        <button
-          onClick={onClearResults}
-          className="w-full px-4 py-2 text-sm text-white/50 hover:text-white hover:bg-white/5 rounded-3xl transition-colors"
-        >
-          Effacer les resultats
-        </button>
-      </div>
           </motion.aside>
         </>
       )}

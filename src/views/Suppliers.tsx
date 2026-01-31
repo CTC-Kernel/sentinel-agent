@@ -669,7 +669,7 @@ export const Suppliers: React.FC = () => {
                                 <DataTable
                                     columns={columns}
                                     data={filteredSuppliers}
-                                    selectable={true}
+                                    selectable={canEdit}
                                     onBulkDelete={handleBulkDelete}
                                     onRowClick={setSelectedSupplier}
                                     searchable={false}

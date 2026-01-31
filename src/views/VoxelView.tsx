@@ -27,6 +27,7 @@ import {
   Target,
   Info,
   Shield,
+  Box,
 } from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth';
@@ -716,7 +717,7 @@ export const VoxelView: React.FC = () => {
   }
 
   return (
-    <div className="relative w-[calc(100%+3rem)] md:w-[calc(100%+4rem)] h-[calc(100vh-4.5rem)] bg-slate-950 overflow-hidden -mx-6 md:-mx-8 -mt-6 md:-mt-8 -mb-24">
+    <div className="relative w-full h-full bg-slate-950 overflow-hidden">
       <SEO title="CTC Engine" description="Visualisation 3D de l'écosystème de sécurité" />
 
       {/* Main 3D Container */}
@@ -762,11 +763,7 @@ export const VoxelView: React.FC = () => {
             </button>
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-brand-50 ring-1 ring-white/10 shadow-lg relative overflow-hidden group">
-                <img
-                  src="/images/tableau-de-bord.png"
-                  alt="VOXEL"
-                  className="w-6 h-6 object-contain relative z-10 transition-transform duration-500 group-hover:scale-110"
-                />
+                <Box className="w-6 h-6 text-brand-500 relative z-10 transition-transform duration-500 group-hover:scale-110" />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-sm font-bold text-white tracking-tight">CTC Engine</h1>

@@ -414,7 +414,7 @@ export function TimeMachine({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
             onClick={onClose}
             role="presentation"
             aria-hidden="true"
@@ -424,7 +424,7 @@ export function TimeMachine({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
-            className="fixed inset-y-0 right-0 w-[400px] z-[100001] flex flex-col"
+            className="absolute inset-y-0 right-0 w-[400px] z-[100001] flex flex-col"
             style={{
               background: 'rgba(15, 23, 42, 0.95)',
               backdropFilter: 'blur(24px)',

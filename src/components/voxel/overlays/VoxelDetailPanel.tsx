@@ -696,7 +696,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
           {/* Backdrop */}
           <motion.div
             key="backdrop"
-            className="fixed inset-0 z-[100000] bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 z-[100000] bg-black/40 backdrop-blur-sm"
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
@@ -707,7 +707,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
           {/* Panel */}
           <motion.div
             key="panel"
-            className="fixed right-0 top-0 bottom-0 w-96 z-[100001] flex flex-col"
+            className="absolute right-0 top-0 bottom-0 w-96 z-[100001] flex flex-col"
             variants={panelVariants}
             initial="hidden"
             animate="visible"

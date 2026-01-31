@@ -131,7 +131,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/homologation/:dossierId" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><HomologationDossierDetail /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />
-                <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelView /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage className="!p-0 !pb-0 !min-h-0 !h-full !max-w-none"><VoxelView /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/voxel" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelPage /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/notifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Notifications /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/search" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Search /></AnimatedPage></RoleGuardComponent>} />

@@ -1,5 +1,10 @@
 {
   "common": {
+    "pagination": {
+      "to": "à",
+      "of": "sur",
+      "show": "Afficher :"
+    },
     "all": "Tous",
     "save": "Enregistrer",
     "next": "Suivant",
@@ -17,8 +22,13 @@
     "selectTemplate": "Choisir un modèle...",
     "addStep": "Ajouter une étape",
     "importCsv": "Importer CSV",
+    "skipToMainContent": "Aller au contenu principal",
+    "information": "Information",
+    "inProgress": "En cours",
     "update": "Mettre à jour",
     "recoveryTasks": "Tâches de Reprise",
+    "access-review": "Revue des Accès",
+    "ctc-engine": "Moteur CTC",
     "ctcEngine": "Moteur CTC",
     "governance": "Gouvernance",
     "riskManagement": "Gestion des Risques",
@@ -43,6 +53,8 @@
     "projects": "Projets",
     "operations": "Opérations",
     "training": "Formation & Sensibilisation",
+    "reports": "Rapports",
+    "vulnerabilities": "Vulnérabilités",
     "retry": "Réessayer",
     "back": "Retour",
     "closeMenu": "Fermer le menu",
@@ -475,6 +487,22 @@
       "audits": "Audits",
       "other": "Autre"
     },
+    "dailyTip": "Conseil du jour",
+    "nextDeadline": "Prochaine échéance",
+    "securityTips": [
+      "Changez vos mots de passe régulièrement",
+      "Activez l'authentification à deux facteurs",
+      "Ne partagez jamais vos identifiants",
+      "Verrouillez votre session en quittant votre poste",
+      "Méfiez-vous des emails suspects (phishing)",
+      "Mettez à jour vos logiciels régulièrement",
+      "Sauvegardez vos données critiques",
+      "Utilisez un gestionnaire de mots de passe",
+      "Ne branchez pas de clés USB inconnues",
+      "Signalez tout incident de sécurité",
+      "Chiffrez vos données sensibles",
+      "Respectez la politique de sécurité"
+    ],
     "statsOverview": "Vue globale des indicateurs clés",
     "maturityRadar": "Niveau de maturité par domaine",
     "complianceProgress": "Progression Conformité",
@@ -948,6 +976,36 @@
       "members": "Membres",
       "roles": "Rôles & Permissions",
       "groups": "Groupes"
+    },
+    "groups": {
+      "title": "Groupes Utilisateurs",
+      "subtitle": "Créez des équipes pour organiser vos collaborateurs.",
+      "newGroup": "Nouveau Groupe",
+      "emptyTitle": "Aucun groupe",
+      "emptyDescription": "Créez des groupes pour organiser vos collaborateurs en équipes.",
+      "createGroup": "Créer un groupe",
+      "newGroupDrawer": "Nouveau groupe",
+      "drawerSubtitle": "Gérez les membres de cette équipe.",
+      "validation": {
+        "nameRequired": "Nom requis (min 2 caractères)",
+        "nameTooLong": "Nom trop long",
+        "descriptionTooLong": "Description trop longue"
+      },
+      "form": {
+        "name": "Nom du groupe",
+        "namePlaceholder": "ex: Équipe Sécurité",
+        "descriptionPlaceholder": "Description du groupe..."
+      },
+      "members": "Membres du groupe",
+      "deleteTitle": "Supprimer le groupe ?",
+      "deleteMessage": "Cette action est irréversible. Les utilisateurs ne seront pas supprimés, mais le groupe disparaîtra.",
+      "toast": {
+        "updated": "Groupe mis à jour",
+        "created": "Groupe créé",
+        "createdEmpty": "Groupe créé. Ajoutez des membres pour commencer.",
+        "deleted": "Groupe supprimé"
+      },
+      "editGroup": "Modifier le groupe"
     },
     "stats": {
       "activityRate": "Taux d'Activité",
@@ -1657,6 +1715,9 @@
     "toastDeclared": "Incident déclaré",
     "toastDeleted": "Incident supprimé",
     "toastBulkDeleted": "Incidents supprimés",
+    "author": "Auteur",
+    "criticalOpen": "Critiques Ouverts",
+    "noActive": "Aucun incident actif",
     "toastUpdated": "Incident mis à jour",
     "toastImport": "Import SIEM réussi",
     "toastSim": "Simulation lancée",
@@ -4906,6 +4967,57 @@
     "checks": {
       "pass": "OK",
       "fail": "Échec"
+    },
+    "generateReport": "Générer un rapport (bientôt)",
+    "tabs": {
+      "supervision": "Supervision",
+      "policies": "Politiques",
+      "softwareInventory": "Inventaire Logiciels",
+      "anomalies": "Anomalies",
+      "baselines": "Baselines",
+      "reports": "Rapports"
+    },
+    "filter": {
+      "all": "Tous",
+      "active": "Actifs",
+      "offline": "Hors ligne",
+      "error": "Erreur"
+    },
+    "viewMode": {
+      "grid": "Vue grille",
+      "compact": "Vue liste"
+    },
+    "reports": {
+      "title": "Rapports Agent",
+      "description": "Générez des rapports de conformité, santé de la flotte et inventaire logiciel."
+    },
+    "policies": {
+      "noConflict": "aucun conflit",
+      "distribution": "Distribution des politiques",
+      "inheritanceModel": "Modèle d'héritage des politiques",
+      "priorityLow": "Priorité basse",
+      "priorityMedium": "Priorité moyenne",
+      "priorityHigh": "Priorité haute"
+    }
+  },
+  "policies": {
+    "noPolicies": "Aucune politique",
+    "noPoliciesDesc": "Créez une politique pour configurer vos agents.",
+    "createPolicy": "Créer une politique"
+  },
+  "software": {
+    "filter": {
+      "vulnerable": "Vulnérables"
+    },
+    "displayMode": {
+      "software": "Vue par logiciel",
+      "softwareLabel": "Logiciels",
+      "agent": "Vue par agent",
+      "agentLabel": "Agents"
+    },
+    "viewMode": {
+      "table": "Vue tableau",
+      "grid": "Vue grille"
     }
   },
   "notFound": {
