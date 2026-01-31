@@ -18,8 +18,10 @@ import {
 } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
+import { Button } from '../components/ui/button';
+import { Tooltip } from '../components/ui/Tooltip';
 import { PageHeader } from '../components/ui/PageHeader';
-import { GlassCard } from '../components/ui/GlassCard';
+import { PremiumCard } from '../components/ui/PremiumCard';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Spinner } from '../components/ui/Spinner';
@@ -186,13 +188,13 @@ export const EbiosAnalyses: React.FC = () => {
             />
           }
           actions={
-            <button
+            <Button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/25 transition-all"
+              className="shadow-lg shadow-brand-500/25"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 mr-2" />
               {t('ebios.newAnalysis')}
-            </button>
+            </Button>
           }
         />
 
@@ -248,7 +250,7 @@ export const EbiosAnalyses: React.FC = () => {
             variants={staggerContainerVariants}
             initial="hidden"
             animate="visible"
-            className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             <AnimatePresence>
               {filteredAnalyses.map((analysis) => (
@@ -257,27 +259,31 @@ export const EbiosAnalyses: React.FC = () => {
                   variants={slideUpVariants}
                   layout
                 >
-                  <GlassCard
-                    hoverEffect
-                    className="relative cursor-pointer"
+                  <PremiumCard
+                    glass
+                    glow
+                    hover
+                    className="relative cursor-pointer h-full flex flex-col"
                     onClick={() => navigate(`/ebios/${analysis.id}`)}
                   >
                     {/* Action Menu */}
-                    <div className="absolute top-4 right-4">
-                      <button
-                        onClick={(e) => {
+                    <div className="absolute top-4 right-4 z-20">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           setActionMenuOpen(actionMenuOpen === analysis.id ? null : analysis.id);
                         }}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
                         <MoreVertical className="w-5 h-5 text-muted-foreground" />
-                      </button>
+                      </Button>
 
                       {actionMenuOpen === analysis.id && (
-                        <div className="absolute right-0 top-full mt-1 w-48 py-1 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 z-10">
+                        <div className="absolute right-0 top-full mt-1 w-48 py-1 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 z-30">
                           <button
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
                               handleDuplicateAnalysis(analysis);
                               setActionMenuOpen(null);
@@ -317,66 +323,80 @@ export const EbiosAnalyses: React.FC = () => {
                     </div>
 
                     {/* Content */}
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-5 mb-6">
                       <ProgressRing
                         progress={analysis.completionPercentage}
-                        size={60}
-                        strokeWidth={5}
+                        size={56}
+                        strokeWidth={4}
+                        className="text-brand-500"
                       />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 dark:text-white truncate pr-8">
+                      <div className="flex-1 min-w-0 pt-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                            getStatusColor(analysis.status)
+                          )}>
+                            {getStatusLabel(analysis.status)}
+                          </span>
+                          {analysis.sector && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500">
+                              {analysis.sector}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-lg text-slate-900 dark:text-white truncate pr-8 leading-tight">
                           {analysis.name}
                         </h3>
                         {analysis.description && (
-                          <p className="text-sm text-slate-500 dark:text-slate-300 mt-1 line-clamp-2">
+                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                             {analysis.description}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    {/* Status & Workshop */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-medium",
-                        getStatusColor(analysis.status)
-                      )}>
-                        {getStatusLabel(analysis.status)}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {t('ebios.workshop')} {analysis.currentWorkshop}/5
-                      </span>
-                    </div>
+                    {/* Spacer to push footer down */}
+                    <div className="flex-1" />
 
-                    {/* Workshop Progress Bar */}
-                    <div className="mt-3 flex gap-1">
-                      {[1, 2, 3, 4, 5].map((num) => {
-                        const workshop = analysis.workshops[num as 1 | 2 | 3 | 4 | 5];
-                        return (
-                          <div
-                            key={num}
-                            className={cn(
-                              "flex-1 h-1.5 rounded-full",
-                              workshop.status === 'validated' ? "bg-violet-500" :
-                                workshop.status === 'completed' ? "bg-success-text" :
-                                  workshop.status === 'in_progress' ? "bg-brand-500" :
-                                    "bg-slate-200 dark:bg-slate-700"
-                            )}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString() })}</span>
-                      {analysis.sector && (
-                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
-                          {analysis.sector}
+                    {/* Workshop Progress Section */}
+                    <div className="bg-slate-50 dark:bg-slate-900/50 -mx-6 -mb-6 p-4 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                          <ShieldCheck className="w-3.5 h-3.5 text-brand-500" />
+                          {t('ebios.cycle')}
                         </span>
-                      )}
+                        <span className="text-xs font-medium text-slate-400">
+                          {analysis.currentWorkshop}/5
+                        </span>
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        {[1, 2, 3, 4, 5].map((num) => {
+                          const workshop = analysis.workshops[num as 1 | 2 | 3 | 4 | 5];
+                          const label = t(`ebios.workshops.w${num}`);
+                          const isCompleted = workshop.status === 'completed' || workshop.status === 'validated';
+                          const isActive = workshop.status === 'in_progress';
+
+                          return (
+                            <Tooltip key={num} content={`${label} - ${t(`ebios.status.${workshop.status}`)}`}>
+                              <div
+                                className={cn(
+                                  "flex-1 h-2 rounded-full transition-all duration-300",
+                                  isCompleted ? "bg-brand-500 shadow-[0_0_8px_rgba(var(--brand-500),0.4)]" :
+                                    isActive ? "bg-brand-500/40 animate-pulse" :
+                                      "bg-slate-200 dark:bg-slate-700"
+                                )}
+                              />
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between text-[10px] text-slate-400">
+                        <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString() })}</span>
+                      </div>
                     </div>
-                  </GlassCard>
+                  </PremiumCard>
                 </motion.div>
               ))}
             </AnimatePresence>

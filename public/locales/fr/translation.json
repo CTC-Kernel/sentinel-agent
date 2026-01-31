@@ -312,7 +312,11 @@
         "continue": "Continuer l'édition",
         "discard": "Quitter sans sauvegarder"
       }
-    }
+    },
+    "ebios": "EBIOS",
+    "ue1UQIKZB3E5FfI9Helb": "EBIOS",
+    "switchLanguage": "Switch to English",
+    "giveFeedback": "Donner un avis"
   },
   "admin": {
     "dashboard": "Tableau de Bord Super Admin",
@@ -529,6 +533,7 @@
       "monitoring": "Supervision",
       "fleetMaturity": "Maturité Flotte Agents"
     },
+    "alreadyAdded": "déjà ajouté",
     "widgets": {
       "stats-overview": {
         "description": "Vue globale des indicateurs clés."
@@ -613,6 +618,9 @@
       },
       "agent-maturity-radar": {
         "description": "Vue 360° du niveau de maturité et de santé de la flotte d'agents."
+      },
+      "agent-status": {
+        "description": "Ajouter à votre tableau de bord"
       }
     },
     "actions": {
@@ -2519,6 +2527,7 @@
     "warrantyExp": "Exp. Garantie",
     "lifecycle": {
       "title": "Maintenance & Cycle de Vie",
+      "timelineTitle": "Timeline du cycle de vie",
       "status": "État de l'Actif",
       "maintenance": "Maintenance",
       "history": "Historique de Maintenance",
@@ -2550,6 +2559,10 @@
     }
   },
   "ebios": {
+    "ai": {
+      "title": "Assistant IA EBIOS RM",
+      "subtitle": "Atelier"
+    },
     "stats": {
       "total": "Total Analyses",
       "inProgress": "En cours",
@@ -2595,6 +2608,7 @@
     "workshop4ComingSoon": "L'atelier 4 (Scénarios Opérationnels) sera disponible prochainement",
     "workshop5ComingSoon": "L'atelier 5 (Traitement du Risque) sera disponible prochainement",
     "status": {
+      "not_started": "Non commencé",
       "draft": "Brouillon",
       "inProgress": "En cours",
       "completed": "Terminée",
@@ -3325,7 +3339,25 @@
       "riskSources": "Sources de risque",
       "strategicScenarios": "Scénarios stratégiques",
       "operationalScenarios": "Scénarios opérationnels",
-      "treatmentItems": "Actions de traitement"
+      "treatmentItems": "Actions de traitement",
+      "cycle": "Cycle EBIOS",
+      "stats": {
+        "maturity": "Maturité Socle",
+        "riskSources": "Sources de Risque",
+        "scenarios": "Scénarios",
+        "treatmentRate": "Taux de Traitement"
+      },
+      "workshops": {
+        "w1": "Atelier 1 : Socle de Sécurité",
+        "w2": "Atelier 2 : Sources de Risque",
+        "w3": "Atelier 3 : Scénarios Stratégiques",
+        "w4": "Atelier 4 : Scénarios Opérationnels",
+        "w5": "Atelier 5 : Traitement du Risque",
+        "w34": "Scénarios Strat. & Ops."
+      },
+      "status": {
+        "validated": "Validé"
+      }
     }
   },
   "otImport": {
@@ -4976,6 +5008,7 @@
       "subtitle": "Vue d'ensemble de la santé et de la conformité des agents",
       "noAgents": "Aucun agent disponible",
       "allHealthy": "Tous les agents sont en bonne santé",
+      "someOffline": "Certains agents sont hors ligne",
       "activeTooltip": "Agent actif et fonctionnel",
       "offlineTooltip": "Agent hors ligne",
       "errorTooltip": "Agent en erreur",
