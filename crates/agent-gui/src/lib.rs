@@ -26,6 +26,8 @@ pub mod theme;
 pub mod tray_bridge;
 #[cfg(feature = "render")]
 pub mod widgets;
+#[cfg(feature = "render")]
+pub mod export;
 
 #[cfg(feature = "render")]
 pub use app::SentinelApp;

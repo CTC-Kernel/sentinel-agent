@@ -11,21 +11,21 @@ use egui::{
 // Brand colors (Premium Palette)
 // ============================================================================
 
-/// Primary accent (Sentinel blue - Apple San Francisco style).
-pub const ACCENT: Color32 = Color32::from_rgb(10, 132, 255);
-/// Secondary accent (lighter blue).
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(100, 210, 255);
+/// Primary accent (Sentinel brand blue – aligned with web app).
+pub const ACCENT: Color32 = Color32::from_rgb(74, 127, 199); // #4a7fc7
+/// Secondary accent (lighter brand blue).
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(96, 144, 249); // brand-400
 /// Accent hover state.
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(64, 156, 255);
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(82, 140, 210);
 
-/// Success green.
-pub const SUCCESS: Color32 = Color32::from_rgb(48, 209, 88);
-/// Warning amber.
-pub const WARNING: Color32 = Color32::from_rgb(255, 159, 10);
-/// Error red.
-pub const ERROR: Color32 = Color32::from_rgb(255, 69, 58);
-/// Info blue.
-pub const INFO: Color32 = Color32::from_rgb(100, 210, 255);
+/// Success teal-green (web app dark mode).
+pub const SUCCESS: Color32 = Color32::from_rgb(77, 184, 138); // #4db88a
+/// Warning amber (web app dark mode).
+pub const WARNING: Color32 = Color32::from_rgb(217, 160, 61); // #d9a03d
+/// Error red (web app dark mode).
+pub const ERROR: Color32 = Color32::from_rgb(224, 96, 96); // #e06060
+/// Info cyan-blue (web app dark mode).
+pub const INFO: Color32 = Color32::from_rgb(75, 163, 204); // #4ba3cc
 
 // ============================================================================
 // Surface colors (Deep Dark Theme)
@@ -310,7 +310,7 @@ pub fn status_color(status: &str) -> Color32 {
 pub fn severity_color(severity: &str) -> Color32 {
     match severity {
         "critical" => ERROR,
-        "high" => Color32::from_rgb(255, 100, 80),
+        "high" => Color32::from_rgb(200, 127, 26), // #c87f1a – web app risk amber
         "medium" => WARNING,
         "low" => INFO,
         "info" => TEXT_SECONDARY,

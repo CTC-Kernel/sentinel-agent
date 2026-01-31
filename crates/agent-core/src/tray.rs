@@ -443,8 +443,8 @@ impl AgentTray {
 // Icon Management
 // ============================================================================
 
-/// Embedded icon data (32x32 PNG).
-static ICON_32_PNG: &[u8] = include_bytes!("../../../assets/icons/png/icon_32x32.png");
+/// Embedded icon data (44x44 PNG – macOS menu bar @2x Retina template).
+static ICON_32_PNG: &[u8] = include_bytes!("../../../assets/icons/png/tray_44.png");
 
 /// Create an icon for the given status.
 fn create_icon(_status: AgentTrayStatus) -> Result<Icon, TrayError> {

@@ -95,6 +95,7 @@ pub enum Page {
     Terminal,
     Discovery,
     Cartography,
+    Notifications,
     Settings,
     About,
 }
@@ -134,6 +135,9 @@ pub struct AppState {
     pub primary_ip: Option<String>,
     pub primary_mac: Option<String>,
     pub last_network_scan: Option<chrono::DateTime<chrono::Utc>>,
+    pub network_interface_list: Vec<crate::dto::GuiNetworkInterface>,
+    pub network_connection_list: Vec<crate::dto::GuiNetworkConnection>,
+    pub network_connection_search: String,
 
     // Sync state
     pub sync_in_progress: bool,
@@ -166,6 +170,27 @@ pub struct AppState {
     pub server_url: String,
     pub check_interval_secs: u64,
     pub heartbeat_interval_secs: u64,
+    pub log_level: u8,    // 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE
+    pub dark_mode: bool,
+
+    // Software page tab state (0=Packages, 1=Applications)
+    pub software_active_tab: u8,
+
+    // Search/filter state per page
+    pub compliance_search: String,
+    pub compliance_status_filter: Option<u8>, // None=all, 0=pass, 1=fail, 2=error
+    pub compliance_group_by: u8,              // 0=none, 1=category, 2=framework
+    pub vulnerability_search: String,
+    pub vulnerability_severity_filter: Option<String>,
+    pub software_search: String,
+    pub discovery_search: String,
+
+    // Notifications
+    pub notifications: Vec<crate::dto::GuiNotification>,
+    pub unread_notification_count: u32,
+
+    // Compliance trending
+    pub previous_compliance_score: Option<f32>,
 }
 
 impl Default for AppState {
@@ -211,6 +236,9 @@ impl Default for AppState {
             primary_ip: None,
             primary_mac: None,
             last_network_scan: None,
+            network_interface_list: Vec::new(),
+            network_connection_list: Vec::new(),
+            network_connection_search: String::new(),
             terminal_lines: std::collections::VecDeque::new(),
             terminal_auto_scroll: true,
             terminal_filter_level: 2, // INFO
@@ -233,6 +261,19 @@ impl Default for AppState {
             server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
+            log_level: 2, // INFO
+            dark_mode: true,
+            software_active_tab: 0,
+            compliance_search: String::new(),
+            compliance_status_filter: None,
+            compliance_group_by: 0,
+            vulnerability_search: String::new(),
+            vulnerability_severity_filter: None,
+            software_search: String::new(),
+            discovery_search: String::new(),
+            notifications: Vec::new(),
+            unread_notification_count: 0,
+            previous_compliance_score: None,
         }
     }
 }
@@ -318,8 +359,22 @@ impl SentinelApp {
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
                 .with_inner_size([1040.0, 700.0])
-                .with_min_inner_size([720.0, 480.0]),
+                .with_min_inner_size([720.0, 480.0])
+                .with_icon(Self::load_app_icon()),
             ..Default::default()
+        }
+    }
+
+    /// Decode embedded PNG app icon into egui IconData.
+    fn load_app_icon() -> egui::IconData {
+        static ICON_PNG: &[u8] = include_bytes!("../assets/app-icon.png");
+        let img = image::load_from_memory(ICON_PNG).expect("embedded app icon is valid PNG");
+        let rgba = img.to_rgba8();
+        let (w, h) = rgba.dimensions();
+        egui::IconData {
+            rgba: rgba.into_raw(),
+            width: w,
+            height: h,
         }
     }
 
@@ -404,6 +459,13 @@ impl SentinelApp {
                     self.state.primary_ip = primary_ip;
                     self.state.primary_mac = primary_mac;
                     self.state.last_network_scan = Some(chrono::Utc::now());
+                }
+                AgentEvent::NetworkDetailUpdate {
+                    interfaces,
+                    connections,
+                } => {
+                    self.state.network_interface_list = interfaces;
+                    self.state.network_connection_list = connections;
                 }
                 AgentEvent::VulnerabilityUpdate { summary } => {
                     self.state.vulnerability_summary = Some(summary);
@@ -609,62 +671,88 @@ impl eframe::App for SentinelApp {
             .frame(egui::Frame::new().fill(theme::BG_SIDEBAR).stroke(egui::Stroke::new(0.5, theme::BORDER)))
             .show(ctx, |ui| {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
-                if let Some(new_page) = widgets::Sidebar::show(ui, &self.page, scanning) {
+                if let Some(new_page) = widgets::Sidebar::show(ui, &self.page, scanning, self.state.unread_notification_count) {
                     self.page = new_page;
                 }
             });
 
-        // Content area
+        // Content area – ScrollArea is here so the scrollbar sits at the
+        // window edge while content keeps a 24 px right margin.
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
                     .fill(theme::BG_PRIMARY)
-                    .inner_margin(egui::Margin::same(24)),
+                    .inner_margin(egui::Margin {
+                        left: 24,
+                        right: 0,
+                        top: 24,
+                        bottom: 24,
+                    }),
             )
-            .show(ctx, |ui| match self.page {
-                Page::Dashboard => {
-                    pages::DashboardPage::show(ui, &self.state);
-                }
-                Page::Compliance => {
-                    pages::CompliancePage::show(ui, &self.state);
-                }
-                Page::Software => {
-                    pages::SoftwarePage::show(ui, &self.state);
-                }
-                Page::Vulnerabilities => {
-                    pages::VulnerabilitiesPage::show(ui, &self.state);
-                }
-                Page::Network => {
-                    pages::NetworkPage::show(ui, &self.state);
-                }
-                Page::Sync => {
-                    if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
-                        self.send_command(cmd);
-                    }
-                }
-                Page::Terminal => {
-                    pages::TerminalPage::show(ui, &mut self.state);
-                }
-                Page::Discovery => {
-                    if let Some(cmd) = pages::DiscoveryPage::show(ui, &mut self.state) {
-                        self.send_command(cmd);
-                    }
-                }
-                Page::Cartography => {
-                    pages::CartographyPage::show(ui, &mut self.state);
-                }
-                Page::Settings => {
-                    if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
-                        if matches!(cmd, GuiCommand::Shutdown) {
-                            self.quit_requested = true;
-                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                        }
-                        self.send_command(cmd);
-                    }
-                }
-                Page::About => {
-                    pages::AboutPage::show(ui);
-                }
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical()
+                    .auto_shrink(egui::Vec2b::new(false, false))
+                    .show(ui, |ui| {
+                        egui::Frame::new()
+                            .inner_margin(egui::Margin {
+                                left: 0,
+                                right: 24,
+                                top: 0,
+                                bottom: 0,
+                            })
+                            .show(ui, |ui| {
+                                match self.page {
+                                    Page::Dashboard => {
+                                        if let Some(cmd) = pages::DashboardPage::show(ui, &self.state) {
+                                            self.send_command(cmd);
+                                        }
+                                    }
+                                    Page::Compliance => {
+                                        pages::CompliancePage::show(ui, &mut self.state);
+                                    }
+                                    Page::Software => {
+                                        pages::SoftwarePage::show(ui, &mut self.state);
+                                    }
+                                    Page::Vulnerabilities => {
+                                        pages::VulnerabilitiesPage::show(ui, &mut self.state);
+                                    }
+                                    Page::Network => {
+                                        pages::NetworkPage::show(ui, &mut self.state);
+                                    }
+                                    Page::Sync => {
+                                        if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
+                                            self.send_command(cmd);
+                                        }
+                                    }
+                                    Page::Terminal => {
+                                        pages::TerminalPage::show(ui, &mut self.state);
+                                    }
+                                    Page::Discovery => {
+                                        if let Some(cmd) = pages::DiscoveryPage::show(ui, &mut self.state) {
+                                            self.send_command(cmd);
+                                        }
+                                    }
+                                    Page::Cartography => {
+                                        pages::CartographyPage::show(ui, &mut self.state);
+                                    }
+                                    Page::Notifications => {
+                                        pages::NotificationsPage::show(ui, &mut self.state);
+                                    }
+                                    Page::Settings => {
+                                        if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
+                                            if matches!(cmd, GuiCommand::Shutdown) {
+                                                self.quit_requested = true;
+                                                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                            }
+                                            self.send_command(cmd);
+                                        }
+                                    }
+                                    Page::About => {
+                                        pages::AboutPage::show(ui);
+                                    }
+                                }
+                            });
+                    });
             });
 
         // Request periodic repaint for event processing.

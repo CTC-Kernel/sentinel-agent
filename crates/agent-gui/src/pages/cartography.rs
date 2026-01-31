@@ -26,291 +26,287 @@ pub struct CartographyPage;
 
 impl CartographyPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) {
-        egui::ScrollArea::vertical()
-            .auto_shrink(egui::Vec2b::new(false, false))
-            .show(ui, |ui| {
-                ui.add_space(theme::SPACE_MD);
-                widgets::page_header(
-                    ui,
-                    "Cartographie R\u{00e9}seau",
-                    Some("Visualisation topologique des appareils d\u{00e9}couverts"),
+        ui.add_space(theme::SPACE_MD);
+        widgets::page_header(
+            ui,
+            "Cartographie R\u{00e9}seau",
+            Some("Visualisation topologique des appareils d\u{00e9}couverts"),
+        );
+        ui.add_space(theme::SPACE_LG);
+
+        // Controls bar
+        widgets::card(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(
+                    egui::RichText::new(format!(
+                        "{} n\u{0153}ud(s)",
+                        state.discovered_devices.len()
+                    ))
+                    .font(theme::font_body())
+                    .color(theme::TEXT_SECONDARY),
                 );
+
                 ui.add_space(theme::SPACE_LG);
 
-                // Controls bar
-                widgets::card(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "{} n\u{0153}ud(s)",
-                                state.discovered_devices.len()
-                            ))
-                            .font(theme::font_body())
-                            .color(theme::TEXT_SECONDARY),
-                        );
-
-                        ui.add_space(theme::SPACE_LG);
-
-                        // Reset layout button
-                        let reset_btn = egui::Button::new(
-                            egui::RichText::new("R\u{00e9}initialiser")
-                                .font(theme::font_small())
-                                .color(theme::TEXT_ON_ACCENT),
-                        )
-                        .fill(theme::ACCENT.linear_multiply(0.7))
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                        if ui.add(reset_btn).clicked() {
-                            state.graph_layout = None; // Force re-layout
-                            state.graph_zoom = 1.0;
-                            state.graph_pan = Vec2::ZERO;
-                        }
-
-                        ui.add_space(theme::SPACE_MD);
-
-                        // Zoom controls
-                        ui.label(
-                            egui::RichText::new(format!("Zoom: {:.0}%", state.graph_zoom * 100.0))
-                                .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY),
-                        );
-
-                        ui.add_space(theme::SPACE_LG);
-
-                        // Open 3D view button
-                        let view3d_btn = egui::Button::new(
-                            egui::RichText::new(format!("Voir en 3D {}", icons::EXTERNAL_LINK))
-                                .font(theme::font_small())
-                                .strong()
-                                .color(theme::TEXT_ON_ACCENT),
-                        )
-                        .fill(theme::SUCCESS.linear_multiply(0.8))
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                        if ui.add(view3d_btn).clicked() {
-                            let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
-                        }
-                    });
-                });
+                // Reset layout button
+                let reset_btn = egui::Button::new(
+                    egui::RichText::new("R\u{00e9}initialiser")
+                        .font(theme::font_small())
+                        .color(theme::TEXT_ON_ACCENT),
+                )
+                .fill(theme::ACCENT.linear_multiply(0.7))
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(reset_btn).clicked() {
+                    state.graph_layout = None; // Force re-layout
+                    state.graph_zoom = 1.0;
+                    state.graph_pan = Vec2::ZERO;
+                }
 
                 ui.add_space(theme::SPACE_MD);
 
-                if state.discovered_devices.is_empty() {
-                    // Empty state
-                    widgets::card(ui, |ui| {
-                        ui.vertical_centered(|ui| {
-                            ui.add_space(theme::SPACE_XL * 3.0);
-                            ui.label(
-                                egui::RichText::new("Aucun appareil \u{00e0} afficher")
-                                    .font(theme::font_heading())
-                                    .color(theme::TEXT_TERTIARY),
-                            );
-                            ui.add_space(theme::SPACE_SM);
-                            ui.label(
-                                egui::RichText::new(
-                                    "Lancez une d\u{00e9}couverte r\u{00e9}seau pour g\u{00e9}n\u{00e9}rer la cartographie",
-                                )
-                                .font(theme::font_body())
-                                .color(theme::TEXT_TERTIARY),
-                            );
-                            ui.add_space(theme::SPACE_XL * 3.0);
-                        });
-                    });
-                    return;
-                }
-
-                // Build graph layout if needed
-                let devices = state.discovered_devices.clone();
-                let layout = state.graph_layout.get_or_insert_with(|| {
-                    build_initial_layout(&devices)
-                });
-
-                // Run force simulation
-                run_force_simulation(layout);
-
-                // Graph viewport
-                let canvas_size = egui::Vec2::new(ui.available_width(), 500.0);
-                let (response, painter) = ui.allocate_painter(canvas_size, egui::Sense::click_and_drag());
-                let rect = response.rect;
-
-                // Dark background
-                painter.rect_filled(
-                    rect,
-                    egui::CornerRadius::same(theme::CARD_ROUNDING),
-                    Color32::from_rgb(12, 12, 14),
+                // Zoom controls
+                ui.label(
+                    egui::RichText::new(format!("Zoom: {:.0}%", state.graph_zoom * 100.0))
+                        .font(theme::font_small())
+                        .color(theme::TEXT_TERTIARY),
                 );
 
-                // Handle pan
-                if response.dragged() {
-                    state.graph_pan += response.drag_delta();
+                ui.add_space(theme::SPACE_LG);
+
+                // Open 3D view button
+                let view3d_btn = egui::Button::new(
+                    egui::RichText::new(format!("Voir en 3D {}", icons::EXTERNAL_LINK))
+                        .font(theme::font_small())
+                        .strong()
+                        .color(theme::TEXT_ON_ACCENT),
+                )
+                .fill(theme::SUCCESS.linear_multiply(0.8))
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(view3d_btn).clicked() {
+                    let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
                 }
+            });
+        });
 
-                // Handle zoom via scroll
-                let scroll = ui.input(|i| i.smooth_scroll_delta.y);
-                if scroll != 0.0 {
-                    state.graph_zoom = (state.graph_zoom + scroll * 0.002).clamp(0.3, 3.0);
-                }
+        ui.add_space(theme::SPACE_MD);
 
-                let center = rect.center().to_vec2() + state.graph_pan;
-                let zoom = state.graph_zoom;
-
-                // Draw edges
-                for edge in &layout.edges {
-                    if edge.source < layout.nodes.len() && edge.target < layout.nodes.len() {
-                        let p1 = Pos2::new(
-                            layout.nodes[edge.source].pos.x * zoom + center.x,
-                            layout.nodes[edge.source].pos.y * zoom + center.y,
-                        );
-                        let p2 = Pos2::new(
-                            layout.nodes[edge.target].pos.x * zoom + center.x,
-                            layout.nodes[edge.target].pos.y * zoom + center.y,
-                        );
-                        painter.line_segment(
-                            [p1, p2],
-                            egui::Stroke::new(1.0, theme::BORDER.linear_multiply(0.5)),
-                        );
-                    }
-                }
-
-                // Draw nodes
-                for (i, node) in layout.nodes.iter().enumerate() {
-                    let screen_pos = Pos2::new(
-                        node.pos.x * zoom + center.x,
-                        node.pos.y * zoom + center.y,
+        if state.discovered_devices.is_empty() {
+            // Empty state
+            widgets::card(ui, |ui| {
+                ui.vertical_centered(|ui| {
+                    ui.add_space(theme::SPACE_XL * 3.0);
+                    ui.label(
+                        egui::RichText::new("Aucun appareil \u{00e0} afficher")
+                            .font(theme::font_heading())
+                            .color(theme::TEXT_TERTIARY),
                     );
-
-                    if !rect.contains(screen_pos) {
-                        continue;
-                    }
-
-                    let color = device_type_color(&node.device.device_type);
-                    let radius = if node.device.is_gateway { 10.0 } else { 7.0 } * zoom;
-
-                    // Glow effect for selected
-                    let is_selected = state.graph_selected_device.as_ref() == Some(&node.device.ip);
-                    if is_selected {
-                        painter.circle_filled(screen_pos, radius + 4.0, color.linear_multiply(0.3));
-                    }
-
-                    // Node circle
-                    painter.circle_filled(screen_pos, radius, color);
-                    painter.circle_stroke(screen_pos, radius, egui::Stroke::new(1.0, Color32::from_white_alpha(40)));
-
-                    // Label
-                    let label = node.device.hostname.as_deref().unwrap_or(&node.device.ip);
-                    painter.text(
-                        Pos2::new(screen_pos.x, screen_pos.y + radius + 10.0),
-                        egui::Align2::CENTER_TOP,
-                        label,
-                        theme::font_small(),
-                        theme::TEXT_SECONDARY,
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        egui::RichText::new(
+                            "Lancez une d\u{00e9}couverte r\u{00e9}seau pour g\u{00e9}n\u{00e9}rer la cartographie",
+                        )
+                        .font(theme::font_body())
+                        .color(theme::TEXT_TERTIARY),
                     );
+                    ui.add_space(theme::SPACE_XL * 3.0);
+                });
+            });
+            return;
+        }
 
-                    // Click detection
-                    let click_rect = egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.5));
-                    if response.clicked() {
-                        if let Some(pointer_pos) = response.interact_pointer_pos() {
-                            if click_rect.contains(pointer_pos) {
-                                state.graph_selected_device = Some(node.device.ip.clone());
-                            }
-                        }
-                    }
+        // Build graph layout if needed
+        let devices = state.discovered_devices.clone();
+        let layout = state.graph_layout.get_or_insert_with(|| {
+            build_initial_layout(&devices)
+        });
 
-                    // Tooltip on hover
-                    if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos()) {
-                        if click_rect.contains(hover_pos) {
-                            egui::show_tooltip_at_pointer(ui.ctx(), ui.layer_id(), ui.id().with(format!("node_{}", i)), |ui: &mut egui::Ui| {
-                                ui.label(egui::RichText::new(&node.device.ip).strong());
-                                if let Some(ref h) = node.device.hostname {
-                                    ui.label(format!("Hostname: {}", h));
-                                }
-                                if let Some(ref v) = node.device.vendor {
-                                    ui.label(format!("Vendor: {}", v));
-                                }
-                                ui.label(format!("Type: {}", node.device.device_type));
-                                if !node.device.open_ports.is_empty() {
-                                    ui.label(format!(
-                                        "Ports: {}",
-                                        node.device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
-                                    ));
-                                }
-                            });
-                        }
+        // Run force simulation
+        run_force_simulation(layout);
+
+        // Graph viewport
+        let canvas_size = egui::Vec2::new(ui.available_width(), 500.0);
+        let (response, painter) = ui.allocate_painter(canvas_size, egui::Sense::click_and_drag());
+        let rect = response.rect;
+
+        // Dark background
+        painter.rect_filled(
+            rect,
+            egui::CornerRadius::same(theme::CARD_ROUNDING),
+            Color32::from_rgb(12, 12, 14),
+        );
+
+        // Handle pan
+        if response.dragged() {
+            state.graph_pan += response.drag_delta();
+        }
+
+        // Handle zoom via scroll
+        let scroll = ui.input(|i| i.smooth_scroll_delta.y);
+        if scroll != 0.0 {
+            state.graph_zoom = (state.graph_zoom + scroll * 0.002).clamp(0.3, 3.0);
+        }
+
+        let center = rect.center().to_vec2() + state.graph_pan;
+        let zoom = state.graph_zoom;
+
+        // Draw edges
+        for edge in &layout.edges {
+            if edge.source < layout.nodes.len() && edge.target < layout.nodes.len() {
+                let p1 = Pos2::new(
+                    layout.nodes[edge.source].pos.x * zoom + center.x,
+                    layout.nodes[edge.source].pos.y * zoom + center.y,
+                );
+                let p2 = Pos2::new(
+                    layout.nodes[edge.target].pos.x * zoom + center.x,
+                    layout.nodes[edge.target].pos.y * zoom + center.y,
+                );
+                painter.line_segment(
+                    [p1, p2],
+                    egui::Stroke::new(1.0, theme::BORDER.linear_multiply(0.5)),
+                );
+            }
+        }
+
+        // Draw nodes
+        for (i, node) in layout.nodes.iter().enumerate() {
+            let screen_pos = Pos2::new(
+                node.pos.x * zoom + center.x,
+                node.pos.y * zoom + center.y,
+            );
+
+            if !rect.contains(screen_pos) {
+                continue;
+            }
+
+            let color = device_type_color(&node.device.device_type);
+            let radius = if node.device.is_gateway { 10.0 } else { 7.0 } * zoom;
+
+            // Glow effect for selected
+            let is_selected = state.graph_selected_device.as_ref() == Some(&node.device.ip);
+            if is_selected {
+                painter.circle_filled(screen_pos, radius + 4.0, color.linear_multiply(0.3));
+            }
+
+            // Node circle
+            painter.circle_filled(screen_pos, radius, color);
+            painter.circle_stroke(screen_pos, radius, egui::Stroke::new(1.0, Color32::from_white_alpha(40)));
+
+            // Label
+            let label = node.device.hostname.as_deref().unwrap_or(&node.device.ip);
+            painter.text(
+                Pos2::new(screen_pos.x, screen_pos.y + radius + 10.0),
+                egui::Align2::CENTER_TOP,
+                label,
+                theme::font_small(),
+                theme::TEXT_SECONDARY,
+            );
+
+            // Click detection
+            let click_rect = egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.5));
+            if response.clicked() {
+                if let Some(pointer_pos) = response.interact_pointer_pos() {
+                    if click_rect.contains(pointer_pos) {
+                        state.graph_selected_device = Some(node.device.ip.clone());
                     }
                 }
+            }
 
-                // Legend
+            // Tooltip on hover
+            if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos()) {
+                if click_rect.contains(hover_pos) {
+                    egui::show_tooltip_at_pointer(ui.ctx(), ui.layer_id(), ui.id().with(format!("node_{}", i)), |ui: &mut egui::Ui| {
+                        ui.label(egui::RichText::new(&node.device.ip).strong());
+                        if let Some(ref h) = node.device.hostname {
+                            ui.label(format!("Hostname: {}", h));
+                        }
+                        if let Some(ref v) = node.device.vendor {
+                            ui.label(format!("Vendor: {}", v));
+                        }
+                        ui.label(format!("Type: {}", node.device.device_type));
+                        if !node.device.open_ports.is_empty() {
+                            ui.label(format!(
+                                "Ports: {}",
+                                node.device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
+                            ));
+                        }
+                    });
+                }
+            }
+        }
+
+        // Legend
+        ui.add_space(theme::SPACE_MD);
+        widgets::card(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(
+                    egui::RichText::new("L\u{00e9}gende:")
+                        .font(theme::font_small())
+                        .strong()
+                        .color(theme::TEXT_SECONDARY),
+                );
+                ui.add_space(theme::SPACE_MD);
+                for (label, color) in &[
+                    ("Routeur", theme::ACCENT),
+                    ("Serveur", theme::SUCCESS),
+                    ("Poste", theme::TEXT_PRIMARY),
+                    ("Imprimante", theme::TEXT_TERTIARY),
+                    ("IoT", theme::WARNING),
+                    ("Inconnu", theme::TEXT_SECONDARY),
+                ] {
+                    let (dot_rect, _) = ui.allocate_exact_size(egui::Vec2::splat(8.0), egui::Sense::hover());
+                    ui.painter().circle_filled(dot_rect.center(), 4.0, *color);
+                    ui.label(
+                        egui::RichText::new(*label)
+                            .font(theme::font_small())
+                            .color(theme::TEXT_SECONDARY),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                }
+            });
+        });
+
+        // Detail panel for selected device
+        if let Some(ref selected_ip) = state.graph_selected_device.clone() {
+            if let Some(device) = state.discovered_devices.iter().find(|d| &d.ip == selected_ip) {
                 ui.add_space(theme::SPACE_MD);
                 widgets::card(ui, |ui| {
                     ui.horizontal(|ui| {
                         ui.label(
-                            egui::RichText::new("L\u{00e9}gende:")
-                                .font(theme::font_small())
+                            egui::RichText::new(&device.ip)
+                                .font(theme::font_heading())
                                 .strong()
-                                .color(theme::TEXT_SECONDARY),
+                                .color(theme::TEXT_PRIMARY),
                         );
                         ui.add_space(theme::SPACE_MD);
-                        for (label, color) in &[
-                            ("Routeur", theme::ACCENT),
-                            ("Serveur", theme::SUCCESS),
-                            ("Poste", theme::TEXT_PRIMARY),
-                            ("Imprimante", theme::TEXT_TERTIARY),
-                            ("IoT", theme::WARNING),
-                            ("Inconnu", theme::TEXT_SECONDARY),
-                        ] {
-                            let (dot_rect, _) = ui.allocate_exact_size(egui::Vec2::splat(8.0), egui::Sense::hover());
-                            ui.painter().circle_filled(dot_rect.center(), 4.0, *color);
-                            ui.label(
-                                egui::RichText::new(*label)
-                                    .font(theme::font_small())
-                                    .color(theme::TEXT_SECONDARY),
-                            );
-                            ui.add_space(theme::SPACE_SM);
+                        if ui.small_button(&format!("{} Fermer", icons::XMARK)).clicked() {
+                            state.graph_selected_device = None;
                         }
                     });
-                });
-
-                // Detail panel for selected device
-                if let Some(ref selected_ip) = state.graph_selected_device.clone() {
-                    if let Some(device) = state.discovered_devices.iter().find(|d| &d.ip == selected_ip) {
-                        ui.add_space(theme::SPACE_MD);
-                        widgets::card(ui, |ui| {
-                            ui.horizontal(|ui| {
-                                ui.label(
-                                    egui::RichText::new(&device.ip)
-                                        .font(theme::font_heading())
-                                        .strong()
-                                        .color(theme::TEXT_PRIMARY),
-                                );
-                                ui.add_space(theme::SPACE_MD);
-                                if ui.small_button(&format!("{} Fermer", icons::XMARK)).clicked() {
-                                    state.graph_selected_device = None;
-                                }
-                            });
-                            ui.add_space(theme::SPACE_SM);
-                            if let Some(ref h) = device.hostname {
-                                ui.label(format!("Hostname: {}", h));
-                            }
-                            if let Some(ref mac) = device.mac {
-                                ui.label(format!("MAC: {}", mac));
-                            }
-                            if let Some(ref v) = device.vendor {
-                                ui.label(format!("Vendor: {}", v));
-                            }
-                            ui.label(format!("Type: {}", device.device_type));
-                            if device.is_gateway {
-                                ui.label(egui::RichText::new("Passerelle d\u{00e9}tect\u{00e9}e").color(theme::ACCENT));
-                            }
-                            if !device.open_ports.is_empty() {
-                                ui.label(format!(
-                                    "Ports ouverts: {}",
-                                    device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
-                                ));
-                            }
-                        });
+                    ui.add_space(theme::SPACE_SM);
+                    if let Some(ref h) = device.hostname {
+                        ui.label(format!("Hostname: {}", h));
                     }
-                }
+                    if let Some(ref mac) = device.mac {
+                        ui.label(format!("MAC: {}", mac));
+                    }
+                    if let Some(ref v) = device.vendor {
+                        ui.label(format!("Vendor: {}", v));
+                    }
+                    ui.label(format!("Type: {}", device.device_type));
+                    if device.is_gateway {
+                        ui.label(egui::RichText::new("Passerelle d\u{00e9}tect\u{00e9}e").color(theme::ACCENT));
+                    }
+                    if !device.open_ports.is_empty() {
+                        ui.label(format!(
+                            "Ports ouverts: {}",
+                            device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
+                        ));
+                    }
+                });
+            }
+        }
 
-                ui.add_space(theme::SPACE_XL);
-            });
+        ui.add_space(theme::SPACE_XL);
     }
 }
 
