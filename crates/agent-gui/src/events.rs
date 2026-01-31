@@ -7,8 +7,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::dto::{
-    AgentSummary, GuiCheckResult, GuiNotification, GuiResourceUsage, GuiSoftwarePackage,
-    GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+    AgentSummary, GuiCheckResult, GuiNetworkConnection, GuiNetworkInterface, GuiNotification,
+    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
 };
 
 /// A single terminal log entry captured from the tracing subsystem.
@@ -71,6 +71,13 @@ pub enum AgentEvent {
         primary_ip: Option<String>,
         /// Primary MAC address.
         primary_mac: Option<String>,
+    },
+    /// Detailed network data (interfaces + connections) for the Network page.
+    NetworkDetailUpdate {
+        /// Network interfaces.
+        interfaces: Vec<GuiNetworkInterface>,
+        /// Active network connections.
+        connections: Vec<GuiNetworkConnection>,
     },
     /// Enrollment completed (success or failure).
     EnrollmentResult {
@@ -154,6 +161,16 @@ pub enum GuiCommand {
         hostname: Option<String>,
         /// Device type classification.
         device_type: String,
+    },
+    /// Update the check interval.
+    UpdateCheckInterval {
+        /// New interval in seconds.
+        interval_secs: u64,
+    },
+    /// Set the log level.
+    SetLogLevel {
+        /// Log level (0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE).
+        level: u8,
     },
 }
 

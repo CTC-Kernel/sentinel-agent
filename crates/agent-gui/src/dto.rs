@@ -265,6 +265,42 @@ pub struct GuiDiscoveredDevice {
     pub subnet: String,
 }
 
+/// A network interface for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiNetworkInterface {
+    /// Interface name (e.g. "en0").
+    pub name: String,
+    /// MAC address.
+    pub mac_address: Option<String>,
+    /// IPv4 addresses assigned.
+    pub ipv4_addresses: Vec<String>,
+    /// Interface status (up/down).
+    pub status: String,
+    /// Interface type (ethernet, wifi, loopback, etc.).
+    pub interface_type: String,
+}
+
+/// A network connection for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiNetworkConnection {
+    /// Protocol (TCP/UDP).
+    pub protocol: String,
+    /// Local address.
+    pub local_address: String,
+    /// Local port.
+    pub local_port: u16,
+    /// Remote address.
+    pub remote_address: Option<String>,
+    /// Remote port.
+    pub remote_port: Option<u16>,
+    /// Connection state (ESTABLISHED, LISTEN, etc.).
+    pub state: String,
+    /// Process name.
+    pub process_name: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

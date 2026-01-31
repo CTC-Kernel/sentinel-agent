@@ -37,30 +37,26 @@ pub struct TerminalPage;
 
 impl TerminalPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) {
-        egui::ScrollArea::vertical()
-            .auto_shrink(egui::Vec2b::new(false, false))
-            .show(ui, |ui| {
-                ui.add_space(theme::SPACE_MD);
-                widgets::page_header(
-                    ui,
-                    "Terminal",
-                    Some("Flux temps-r\u{00e9}el de l'activit\u{00e9} de l'agent"),
-                );
-                ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_MD);
+        widgets::page_header(
+            ui,
+            "Terminal",
+            Some("Flux temps-r\u{00e9}el de l'activit\u{00e9} de l'agent"),
+        );
+        ui.add_space(theme::SPACE_LG);
 
-                // ── Stats bar ──
-                Self::stats_bar(ui, state);
-                ui.add_space(theme::SPACE_MD);
+        // ── Stats bar ──
+        Self::stats_bar(ui, state);
+        ui.add_space(theme::SPACE_MD);
 
-                // ── Filter bar ──
-                Self::filter_bar(ui, state);
-                ui.add_space(theme::SPACE_MD);
+        // ── Filter bar ──
+        Self::filter_bar(ui, state);
+        ui.add_space(theme::SPACE_MD);
 
-                // ── Terminal viewport ──
-                Self::terminal_viewport(ui, state);
+        // ── Terminal viewport ──
+        Self::terminal_viewport(ui, state);
 
-                ui.add_space(theme::SPACE_XL);
-            });
+        ui.add_space(theme::SPACE_XL);
     }
 
     // ------------------------------------------------------------------

@@ -16,48 +16,70 @@ enum SoftwareTab {
     Applications,
 }
 
-static mut ACTIVE_TAB: SoftwareTab = SoftwareTab::Packages;
-
 impl SoftwarePage {
-    pub fn show(ui: &mut Ui, state: &AppState) {
-        egui::ScrollArea::vertical()
-            .auto_shrink(egui::Vec2b::new(false, false))
-            .show(ui, |ui| {
-                ui.add_space(theme::SPACE_MD);
-                widgets::page_header(
-                    ui,
-                    "Logiciels",
-                    Some("Inventaire complet des applications install\u{00e9}es et suivi des versions"),
-                );
-                ui.add_space(theme::SPACE_LG);
+    pub fn show(ui: &mut Ui, state: &mut AppState) {
+        ui.add_space(theme::SPACE_MD);
+        widgets::page_header(
+            ui,
+            "Logiciels",
+            Some("Inventaire complet des applications install\u{00e9}es et suivi des versions"),
+        );
+        ui.add_space(theme::SPACE_LG);
 
-                // Tab bar
-                let active = unsafe { ACTIVE_TAB };
-                ui.horizontal(|ui| {
-                    if Self::tab_button(ui, &format!("{} Paquets", icons::SOFTWARE), active == SoftwareTab::Packages) {
-                        unsafe { ACTIVE_TAB = SoftwareTab::Packages; }
-                    }
-                    ui.add_space(theme::SPACE_SM);
-                    if Self::tab_button(ui, &format!("{} Applications", icons::CUBE), active == SoftwareTab::Applications) {
-                        unsafe { ACTIVE_TAB = SoftwareTab::Applications; }
-                    }
-                });
+        // Tab bar
+        let active = if state.software_active_tab == 1 {
+            SoftwareTab::Applications
+        } else {
+            SoftwareTab::Packages
+        };
+        ui.horizontal(|ui| {
+            if Self::tab_button(ui, &format!("{} Paquets", icons::SOFTWARE), active == SoftwareTab::Packages) {
+                state.software_active_tab = 0;
+            }
+            ui.add_space(theme::SPACE_SM);
+            if Self::tab_button(ui, &format!("{} Applications", icons::CUBE), active == SoftwareTab::Applications) {
+                state.software_active_tab = 1;
+            }
+        });
 
-                ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_LG);
 
-                let active = unsafe { ACTIVE_TAB };
-                match active {
-                    SoftwareTab::Packages => Self::show_packages(ui, state),
-                    SoftwareTab::Applications => Self::show_macos_apps(ui, state),
-                }
+        // Search filter bar (shared for both tabs)
+        let search_lower = state.software_search.to_lowercase();
 
-                ui.add_space(theme::SPACE_XL);
-            });
+        match active {
+            SoftwareTab::Packages => Self::show_packages(ui, state, &search_lower),
+            SoftwareTab::Applications => Self::show_macos_apps(ui, state, &search_lower),
+        }
+
+        ui.add_space(theme::SPACE_XL);
     }
 
-    // ── Tab: Paquets (Homebrew) ──────────────────────────────────────
+    // -- Tab: Paquets (Homebrew) --
 
-    fn show_packages(ui: &mut Ui, state: &AppState) {
+    fn show_packages(ui: &mut Ui, state: &mut AppState, search_lower: &str) {
+        // Filter
+        let filtered: Vec<usize> = state
+            .software_packages
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| {
+                if search_lower.is_empty() {
+                    return true;
+                }
+                let haystack = format!(
+                    "{} {} {}",
+                    p.name.to_lowercase(),
+                    p.version.to_lowercase(),
+                    p.publisher.as_deref().unwrap_or("").to_lowercase(),
+                );
+                haystack.contains(search_lower)
+            })
+            .map(|(i, _)| i)
+            .collect();
+
+        let result_count = filtered.len();
+
         // Summary cards
         let total = state.software_packages.len() as u32;
         let up_to_date = state
@@ -76,7 +98,31 @@ impl SoftwarePage {
             Self::summary_card(ui, card_w, "OBSOL\u{00c8}TES", &outdated.to_string(), if outdated > 0 { theme::WARNING } else { theme::TEXT_TERTIARY }, icons::ARROW_UP);
         });
 
-        ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_MD);
+
+        widgets::SearchFilterBar::new(&mut state.software_search, "Rechercher (nom, version, \u{00e9}diteur)...")
+            .result_count(result_count)
+            .show(ui);
+
+        ui.add_space(theme::SPACE_SM);
+
+        // CSV export
+        ui.horizontal(|ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let export_btn = egui::Button::new(
+                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                        .font(theme::font_small())
+                        .color(theme::TEXT_SECONDARY),
+                )
+                .fill(theme::BG_ELEVATED)
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(export_btn).clicked() {
+                    Self::export_packages_csv(state, &filtered);
+                }
+            });
+        });
+
+        ui.add_space(theme::SPACE_SM);
 
         // Packages table
         widgets::card(ui, |ui| {
@@ -88,12 +134,12 @@ impl SoftwarePage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            if state.software_packages.is_empty() {
+            if filtered.is_empty() {
                 widgets::empty_state(
                     ui,
                     icons::SOFTWARE,
-                    "Aucun paquet recens\u{00e9}",
-                    Some("L'inventaire logiciel est en cours de constitution ou aucun paquet n'a \u{00e9}t\u{00e9} d\u{00e9}tect\u{00e9}."),
+                    "Aucun paquet correspondant",
+                    Some("Modifiez votre recherche ou aucun paquet n'a \u{00e9}t\u{00e9} d\u{00e9}tect\u{00e9}."),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -117,8 +163,8 @@ impl SoftwarePage {
                         header.col(|ui| { ui.strong("MAJ DISPONIBLE"); });
                     })
                     .body(|body| {
-                        body.rows(40.0, state.software_packages.len(), |mut row| {
-                            let pkg = &state.software_packages[row.index()];
+                        body.rows(40.0, filtered.len(), |mut row| {
+                            let pkg = &state.software_packages[filtered[row.index()]];
                             row.col(|ui| {
                                 ui.label(egui::RichText::new(&pkg.name).font(theme::font_body()).color(theme::TEXT_PRIMARY).strong());
                             });
@@ -153,9 +199,29 @@ impl SoftwarePage {
         });
     }
 
-    // ── Tab: Applications (macOS native) ─────────────────────────────
+    // -- Tab: Applications (macOS native) --
 
-    fn show_macos_apps(ui: &mut Ui, state: &AppState) {
+    fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_lower: &str) {
+        let filtered: Vec<usize> = state
+            .macos_apps
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| {
+                if search_lower.is_empty() {
+                    return true;
+                }
+                let haystack = format!(
+                    "{} {} {}",
+                    a.name.to_lowercase(),
+                    a.version.to_lowercase(),
+                    a.publisher.to_lowercase(),
+                );
+                haystack.contains(search_lower)
+            })
+            .map(|(i, _)| i)
+            .collect();
+
+        let result_count = filtered.len();
         let total = state.macos_apps.len() as u32;
 
         let card_gap = theme::SPACE_SM;
@@ -167,7 +233,31 @@ impl SoftwarePage {
             Self::summary_card(ui, card_w, "R\u{00c9}PERTOIRE", "/Applications", theme::TEXT_SECONDARY, icons::DATABASE);
         });
 
-        ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_MD);
+
+        widgets::SearchFilterBar::new(&mut state.software_search, "Rechercher (nom, version, \u{00e9}diteur)...")
+            .result_count(result_count)
+            .show(ui);
+
+        ui.add_space(theme::SPACE_SM);
+
+        // CSV export
+        ui.horizontal(|ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let export_btn = egui::Button::new(
+                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                        .font(theme::font_small())
+                        .color(theme::TEXT_SECONDARY),
+                )
+                .fill(theme::BG_ELEVATED)
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(export_btn).clicked() {
+                    Self::export_apps_csv(state, &filtered);
+                }
+            });
+        });
+
+        ui.add_space(theme::SPACE_SM);
 
         widgets::card(ui, |ui| {
             ui.label(
@@ -178,12 +268,12 @@ impl SoftwarePage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            if state.macos_apps.is_empty() {
+            if filtered.is_empty() {
                 widgets::empty_state(
                     ui,
                     icons::CUBE,
-                    "Aucune application d\u{00e9}tect\u{00e9}e",
-                    Some("Le scan du r\u{00e9}pertoire /Applications n'a trouv\u{00e9} aucune application."),
+                    "Aucune application correspondante",
+                    Some("Modifiez votre recherche."),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -192,10 +282,10 @@ impl SoftwarePage {
                     .striped(true)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(180.0).range(120.0..=400.0).at_least(120.0)) // Name
-                    .column(Column::initial(90.0).at_least(70.0))  // Version
-                    .column(Column::initial(200.0).at_least(140.0)) // Bundle ID
-                    .column(Column::remainder()); // Publisher
+                    .column(Column::initial(180.0).range(120.0..=400.0).at_least(120.0))
+                    .column(Column::initial(90.0).at_least(70.0))
+                    .column(Column::initial(200.0).at_least(140.0))
+                    .column(Column::remainder());
 
                 table
                     .header(28.0, |mut header| {
@@ -205,8 +295,8 @@ impl SoftwarePage {
                         header.col(|ui| { ui.strong("\u{00c9}DITEUR"); });
                     })
                     .body(|body| {
-                        body.rows(36.0, state.macos_apps.len(), |mut row| {
-                            let app = &state.macos_apps[row.index()];
+                        body.rows(36.0, filtered.len(), |mut row| {
+                            let app = &state.macos_apps[filtered[row.index()]];
                             row.col(|ui| {
                                 ui.label(egui::RichText::new(&app.name).font(theme::font_body()).color(theme::TEXT_PRIMARY).strong());
                             });
@@ -230,7 +320,51 @@ impl SoftwarePage {
         });
     }
 
-    // ── Shared helpers ───────────────────────────────────────────────
+    // -- CSV export helpers --
+
+    fn export_packages_csv(state: &AppState, indices: &[usize]) {
+        let headers = &["nom", "version", "editeur", "a_jour", "derniere_version"];
+        let rows: Vec<Vec<String>> = indices
+            .iter()
+            .map(|&i| {
+                let p = &state.software_packages[i];
+                vec![
+                    p.name.clone(),
+                    p.version.clone(),
+                    p.publisher.clone().unwrap_or_default(),
+                    if p.up_to_date { "Oui" } else { "Non" }.to_string(),
+                    p.latest_version.clone().unwrap_or_default(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("logiciels_paquets.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
+    }
+
+    fn export_apps_csv(state: &AppState, indices: &[usize]) {
+        let headers = &["nom", "version", "bundle_id", "editeur", "chemin"];
+        let rows: Vec<Vec<String>> = indices
+            .iter()
+            .map(|&i| {
+                let a = &state.macos_apps[i];
+                vec![
+                    a.name.clone(),
+                    a.version.clone(),
+                    a.bundle_id.clone(),
+                    a.publisher.clone(),
+                    a.path.clone(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("logiciels_apps.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
+    }
+
+    // -- Shared helpers --
 
     fn tab_button(ui: &mut Ui, label: &str, active: bool) -> bool {
         let text_color = if active { theme::TEXT_ON_ACCENT } else { theme::TEXT_SECONDARY };

@@ -11,7 +11,7 @@ pub struct Sidebar;
 
 impl Sidebar {
     /// Render the sidebar. Returns the newly selected page, if any.
-    pub fn show(ui: &mut Ui, current: &Page, scanning: bool) -> Option<Page> {
+    pub fn show(ui: &mut Ui, current: &Page, scanning: bool, unread_notifications: u32) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
         egui::Frame {
@@ -60,25 +60,63 @@ impl Sidebar {
                             .color(theme::TEXT_TERTIARY)
                             .strong(),
                     );
+
+                    // Bell badge with unread count
+                    if unread_notifications > 0 {
+                        ui.add_space(theme::SPACE_SM);
+                        ui.horizontal(|ui| {
+                            ui.add_space(theme::SIDEBAR_WIDTH / 2.0 - 30.0);
+                            let bell_response = ui.label(
+                                egui::RichText::new(icons::BELL)
+                                    .size(16.0)
+                                    .color(theme::WARNING),
+                            );
+                            // Draw count badge
+                            let badge_text = if unread_notifications > 9 {
+                                "9+".to_string()
+                            } else {
+                                unread_notifications.to_string()
+                            };
+                            let badge_rect = egui::Rect::from_min_size(
+                                bell_response.rect.right_top() + egui::vec2(-4.0, -4.0),
+                                egui::vec2(16.0, 16.0),
+                            );
+                            ui.painter().rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
+                            ui.painter().text(
+                                badge_rect.center(),
+                                egui::Align2::CENTER_CENTER,
+                                &badge_text,
+                                egui::FontId::proportional(9.0),
+                                theme::TEXT_ON_ACCENT,
+                            );
+                        });
+                    }
+
                     ui.add_space(theme::SPACE_LG);
                 });
 
                 ui.vertical(|ui| {
                     ui.set_width(theme::SIDEBAR_WIDTH);
-                    
+
                     // Group: Principal
                     ui.add_space(theme::SPACE_SM);
                     Self::section_label(ui, "PILOTAGE");
-                    
+
                     let main_items: &[(Page, &str, &str)] = &[
                         (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
                         (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
                         (Page::Software, icons::SOFTWARE, "Logiciels"),
                         (Page::Vulnerabilities, icons::VULNERABILITIES, "Vuln\u{00e9}rabilit\u{00e9}s"),
+                        (Page::Notifications, icons::BELL, "Notifications"),
                     ];
 
                     for (page, icon, label) in main_items {
-                        if Self::nav_item(ui, icon, label, current == page) {
+                        let badge = if *page == Page::Notifications && unread_notifications > 0 {
+                            Some(unread_notifications)
+                        } else {
+                            None
+                        };
+                        if Self::nav_item_with_badge(ui, icon, label, current == page, badge) {
                             selected = Some(page.clone());
                         }
                     }
@@ -147,12 +185,16 @@ impl Sidebar {
     }
 
     fn nav_item(ui: &mut Ui, icon: &str, label: &str, is_current: bool) -> bool {
+        Self::nav_item_with_badge(ui, icon, label, is_current, None)
+    }
+
+    fn nav_item_with_badge(ui: &mut Ui, icon: &str, label: &str, is_current: bool, badge: Option<u32>) -> bool {
         let text_color = if is_current {
             theme::TEXT_PRIMARY
         } else {
             theme::TEXT_SECONDARY
         };
-        
+
         let bg_fill = if is_current {
             theme::ACCENT.linear_multiply(0.12)
         } else {
@@ -160,7 +202,7 @@ impl Sidebar {
         };
 
         let (rect, response) = ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), egui::Sense::click());
-        
+
         if ui.is_rect_visible(rect) {
             // Background tint on hover or active
             if is_current || response.hovered() {
@@ -195,6 +237,23 @@ impl Sidebar {
                 theme::font_body(),
                 text_color,
             );
+
+            // Badge
+            if let Some(count) = badge {
+                if count > 0 {
+                    let badge_text = if count > 9 { "9+".to_string() } else { count.to_string() };
+                    let badge_center = rect.right_center() + Vec2::new(-24.0, 0.0);
+                    let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(20.0, 16.0));
+                    ui.painter().rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
+                    ui.painter().text(
+                        badge_center,
+                        egui::Align2::CENTER_CENTER,
+                        &badge_text,
+                        egui::FontId::proportional(10.0),
+                        theme::TEXT_ON_ACCENT,
+                    );
+                }
+            }
         }
 
         response.clicked()
