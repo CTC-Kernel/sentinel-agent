@@ -14,6 +14,13 @@ const admin = require('firebase-admin');
 
 const db = admin.firestore();
 
+/**
+ * Escape special regex characters to prevent ReDoS attacks
+ */
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // ============================================================================
 // Constants
 // ============================================================================
@@ -55,7 +62,7 @@ const SEVERITY_LEVELS = {
  * Calculate mean of values
  */
 function calculateMean(values) {
-    if (values.length === 0) return 0;
+    if (!values || values.length === 0) return null;
     return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
@@ -63,8 +70,8 @@ function calculateMean(values) {
  * Calculate standard deviation
  */
 function calculateStdDev(values) {
-    if (values.length === 0) return 0;
     const mean = calculateMean(values);
+    if (mean === null) return null;
     const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
     return Math.sqrt(squaredDiffs.reduce((sum, v) => sum + v, 0) / values.length);
 }
@@ -73,7 +80,7 @@ function calculateStdDev(values) {
  * Calculate percentile
  */
 function calculatePercentile(values, percentile) {
-    if (values.length === 0) return 0;
+    if (!values || values.length === 0) return 0;
     const sorted = [...values].sort((a, b) => a - b);
     const index = (percentile / 100) * (sorted.length - 1);
     const lower = Math.floor(index);
@@ -111,12 +118,12 @@ function getSeverityFromDeviation(deviation) {
  */
 function buildMetricBaseline(metric, values) {
     const sorted = [...values].sort((a, b) => a - b);
-    const mean = calculateMean(values);
+    const mean = calculateMean(values) ?? 0;
 
     return {
         metric,
         mean,
-        stdDev: calculateStdDev(values),
+        stdDev: calculateStdDev(values) ?? 0,
         min: sorted[0] || 0,
         max: sorted[sorted.length - 1] || 0,
         median: calculatePercentile(values, 50),
@@ -142,10 +149,10 @@ function calculateHourlyPattern(metric, dataPoints) {
     }
 
     const hourlyMeans = hourlyData.map(values =>
-        values.length > 0 ? calculateMean(values) : 0
+        values.length > 0 ? (calculateMean(values) ?? 0) : 0
     );
     const hourlyStdDevs = hourlyData.map(values =>
-        values.length > 0 ? calculateStdDev(values) : 0
+        values.length > 0 ? (calculateStdDev(values) ?? 0) : 0
     );
 
     // Find peak and trough
@@ -166,7 +173,8 @@ function calculateHourlyPattern(metric, dataPoints) {
     }
 
     // Pattern is significant if variance between hours is > 20%
-    const overallMean = calculateMean(hourlyMeans.filter(v => v > 0));
+    const filteredHourlyMeans = hourlyMeans.filter(v => v > 0);
+    const overallMean = filteredHourlyMeans.length > 0 ? (calculateMean(filteredHourlyMeans) ?? 0) : 0;
     const isSignificant = overallMean > 0 && (maxMean - minMean) / overallMean > 0.2;
 
     return {
@@ -194,10 +202,10 @@ function calculateWeeklyPattern(metric, dataPoints) {
     }
 
     const dailyMeans = dailyData.map(values =>
-        values.length > 0 ? calculateMean(values) : 0
+        values.length > 0 ? (calculateMean(values) ?? 0) : 0
     );
     const dailyStdDevs = dailyData.map(values =>
-        values.length > 0 ? calculateStdDev(values) : 0
+        values.length > 0 ? (calculateStdDev(values) ?? 0) : 0
     );
 
     // Find peak and trough
@@ -217,7 +225,8 @@ function calculateWeeklyPattern(metric, dataPoints) {
         }
     }
 
-    const overallMean = calculateMean(dailyMeans.filter(v => v > 0));
+    const filteredDailyMeans = dailyMeans.filter(v => v > 0);
+    const overallMean = filteredDailyMeans.length > 0 ? (calculateMean(filteredDailyMeans) ?? 0) : 0;
     const isSignificant = overallMean > 0 && (maxMean - minMean) / overallMean > 0.15;
 
     return {
@@ -318,10 +327,26 @@ function detectProcessAnomalies(agent, baseline, currentProcesses, thresholdConf
     }
 
     const knownProcessNames = new Set(baseline.knownProcesses.map(p => p.name));
-    const ignorePatterns = (thresholdConfig.processDetection.ignorePatterns || [])
-        .map(p => new RegExp(p, 'i'));
-    const alertPatterns = (thresholdConfig.processDetection.alertPatterns || [])
-        .map(p => new RegExp(p, 'i'));
+    const ignorePatterns = [];
+    for (const p of (thresholdConfig.processDetection.ignorePatterns || [])) {
+        try {
+            if (p.length > 200) continue;
+            ignorePatterns.push(new RegExp(escapeRegExp(p), 'i'));
+        } catch (e) {
+            logger.warn('Invalid regex pattern in anomaly config', { pattern: p });
+            continue;
+        }
+    }
+    const alertPatterns = [];
+    for (const p of (thresholdConfig.processDetection.alertPatterns || [])) {
+        try {
+            if (p.length > 200) continue;
+            alertPatterns.push(new RegExp(escapeRegExp(p), 'i'));
+        } catch (e) {
+            logger.warn('Invalid regex pattern in anomaly config', { pattern: p });
+            continue;
+        }
+    }
 
     for (const process of currentProcesses) {
         // Skip if known
@@ -332,7 +357,7 @@ function detectProcessAnomalies(agent, baseline, currentProcesses, thresholdConf
 
         // Skip system processes if configured
         if (thresholdConfig.processDetection.ignoreSystemProcesses &&
-            process.user === 'SYSTEM' || process.user === 'root') {
+            (process.user === 'SYSTEM' || process.user === 'root')) {
             continue;
         }
 
@@ -391,10 +416,26 @@ function detectConnectionAnomalies(agent, baseline, currentConnections, threshol
     const knownConnections = new Set(
         baseline.knownConnections.map(c => `${c.remotePattern}:${c.remotePort}`)
     );
-    const trustedPatterns = (thresholdConfig.connectionDetection.trustedPatterns || [])
-        .map(p => new RegExp(p, 'i'));
-    const suspiciousPatterns = (thresholdConfig.connectionDetection.suspiciousPatterns || [])
-        .map(p => new RegExp(p, 'i'));
+    const trustedPatterns = [];
+    for (const p of (thresholdConfig.connectionDetection.trustedPatterns || [])) {
+        try {
+            if (p.length > 200) continue;
+            trustedPatterns.push(new RegExp(escapeRegExp(p), 'i'));
+        } catch (e) {
+            logger.warn('Invalid regex pattern in anomaly config', { pattern: p });
+            continue;
+        }
+    }
+    const suspiciousPatterns = [];
+    for (const p of (thresholdConfig.connectionDetection.suspiciousPatterns || [])) {
+        try {
+            if (p.length > 200) continue;
+            suspiciousPatterns.push(new RegExp(escapeRegExp(p), 'i'));
+        } catch (e) {
+            logger.warn('Invalid regex pattern in anomaly config', { pattern: p });
+            continue;
+        }
+    }
     const suspiciousPorts = new Set(thresholdConfig.connectionDetection.suspiciousPorts || []);
 
     for (const conn of currentConnections) {
@@ -477,6 +518,12 @@ exports.recalculateAgentBaseline = onCall({
         throw new HttpsError('invalid-argument', 'organizationId and agentId are required.');
     }
 
+    const userDoc = await db.collection('users').doc(request.auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+        throw new HttpsError('permission-denied', 'Access denied to this organization');
+    }
+
     try {
         // Get agent info
         const agentDoc = await db
@@ -501,9 +548,10 @@ exports.recalculateAgentBaseline = onCall({
         const metricsSnapshot = await db
             .collection('organizations')
             .doc(organizationId)
-            .collection('agentMetrics')
-            .where('agentId', '==', agentId)
-            .where('timestamp', '>=', startDate.toISOString())
+            .collection('agents')
+            .doc(agentId)
+            .collection('metrics_history')
+            .where('timestamp', '>=', startDate)
             .orderBy('timestamp', 'asc')
             .get();
 
@@ -601,7 +649,7 @@ exports.recalculateAgentBaseline = onCall({
         const knownConnections = Array.from(connectionMap.values());
 
         // Calculate stability score
-        const avgDataPoints = calculateMean(metrics.map(m => m.dataPoints));
+        const avgDataPoints = calculateMean(metrics.map(m => m.dataPoints)) ?? 0;
         const stabilityScore = Math.min(100, Math.round((avgDataPoints / (windowDays * 24)) * 100));
         const isStable = stabilityScore >= 70;
 
@@ -673,6 +721,12 @@ exports.runAnomalyDetection = onCall({
 
     if (!organizationId) {
         throw new HttpsError('invalid-argument', 'organizationId is required.');
+    }
+
+    const userDoc = await db.collection('users').doc(request.auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+        throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {
@@ -830,8 +884,11 @@ exports.scheduledAnomalyDetection = onSchedule({
     logger.info('Starting scheduled anomaly detection');
 
     try {
-        // Get all organizations with agents
-        const orgsSnapshot = await db.collection('organizations').get();
+        // Get all organizations with agents (limited to prevent runaway)
+        const orgsSnapshot = await db.collection('organizations').limit(100).get();
+        if (orgsSnapshot.size >= 100) {
+            logger.warn('scheduledAnomalyDetection: org query limit of 100 reached, some orgs may be skipped');
+        }
 
         for (const orgDoc of orgsSnapshot.docs) {
             const organizationId = orgDoc.id;
@@ -892,7 +949,10 @@ exports.dailyBaselineRecalculation = onSchedule({
     logger.info('Starting daily baseline recalculation');
 
     try {
-        const orgsSnapshot = await db.collection('organizations').get();
+        const orgsSnapshot = await db.collection('organizations').limit(100).get();
+        if (orgsSnapshot.size >= 100) {
+            logger.warn('dailyBaselineRecalculation: org query limit of 100 reached, some orgs may be skipped');
+        }
 
         for (const orgDoc of orgsSnapshot.docs) {
             const organizationId = orgDoc.id;
@@ -918,9 +978,10 @@ exports.dailyBaselineRecalculation = onSchedule({
                     const metricsSnapshot = await db
                         .collection('organizations')
                         .doc(organizationId)
-                        .collection('agentMetrics')
-                        .where('agentId', '==', agentId)
-                        .where('timestamp', '>=', startDate.toISOString())
+                        .collection('agents')
+                        .doc(agentId)
+                        .collection('metrics_history')
+                        .where('timestamp', '>=', startDate)
                         .orderBy('timestamp', 'asc')
                         .get();
 
@@ -982,11 +1043,13 @@ exports.updateAnomalyStats = onSchedule({
         for (const orgDoc of orgsSnapshot.docs) {
             const organizationId = orgDoc.id;
 
-            // Get all anomalies
+            // Get anomalies from last 30 days only
+            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
             const anomaliesSnapshot = await db
                 .collection('organizations')
                 .doc(organizationId)
                 .collection('agentAnomalies')
+                .where('detectedAt', '>=', thirtyDaysAgo.toISOString())
                 .get();
 
             if (anomaliesSnapshot.empty) continue;

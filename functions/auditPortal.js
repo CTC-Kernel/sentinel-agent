@@ -242,8 +242,18 @@ exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request
     const db = admin.firestore();
 
     try {
+        // SECURITY: Extract only expected fields to prevent mass assignment
+        // Block organizationId, createdAt, status, id from user input
+        const { title, description, severity, category, recommendation, evidence, controlRef, riskRef } = finding || {};
         const findingData = {
-            ...finding,
+            title: title || '',
+            description: description || '',
+            severity: severity || 'medium',
+            category: category || '',
+            recommendation: recommendation || '',
+            evidence: evidence || '',
+            controlRef: controlRef || null,
+            riskRef: riskRef || null,
             auditId: shareData.auditId,
             organizationId: shareData.organizationId,
             createdBy: 'external_auditor', // Marker
@@ -278,12 +288,26 @@ exports.portal_updateStatus = onCall({ enforceAppCheck: false }, async (request)
         throw new HttpsError('permission-denied', 'Certification permission denied');
     }
 
+    // SECURITY: Validate status against allowed values to prevent mass assignment
+    const allowedStatuses = ['En cours', 'Terminé', 'Certifié', 'In Progress', 'Completed', 'Certified'];
+    if (!status || !allowedStatuses.includes(status)) {
+        throw new HttpsError('invalid-argument', 'Invalid status value');
+    }
+
+    // SECURITY: Extract only expected fields from certificationData
+    const sanitizedCertificationData = certificationData ? {
+        certifiedBy: certificationData.certifiedBy || null,
+        certifiedAt: certificationData.certifiedAt || null,
+        comments: certificationData.comments || null,
+        signature: certificationData.signature || null
+    } : null;
+
     const db = admin.firestore();
 
     try {
         await db.collection('audits').doc(shareData.auditId).update({
             status: status,
-            certificationData: certificationData || null,
+            certificationData: sanitizedCertificationData,
             lastExternalUpdate: new Date().toISOString()
         });
 

@@ -9,10 +9,9 @@
  * - Tokens: Enrollment token management
  */
 
-const { enrollAgent } = require('./enrollment');
-const { agentHeartbeat, getAgentStatus, getAgentMetricsHistory } = require('./heartbeat');
-const { uploadResults, getAgentResults } = require('./results');
-const { getAgentConfig, updateAgentConfig } = require('./config');
+const { getAgentStatus, getAgentMetricsHistory } = require('./heartbeat');
+const { getAgentResults } = require('./results');
+const { updateAgentConfig } = require('./config');
 const {
   generateEnrollmentToken,
   listEnrollmentTokens,
@@ -22,12 +21,6 @@ const { listAgents, deleteAgent, getAgentDetails, getAgentComplianceResults } = 
 const { onAgentCreated, onResultUploaded } = require('./sync');
 const { agentApi } = require('./api');
 const {
-  uploadSoftwareInventory,
-  uploadCISResults,
-  getAuthorizedSoftware,
-  getCISBenchmarks,
-} = require('./software');
-const {
   recalculateAgentBaseline,
   runAnomalyDetection,
   scheduledAnomalyDetection,
@@ -35,8 +28,8 @@ const {
   updateAnomalyStats,
 } = require('./anomalyDetection');
 const {
-  deployPolicy,
-  rollbackPolicy,
+  deployAgentPolicy,
+  rollbackAgentPolicy,
   getEffectivePolicy,
   autoAssignAgentsToGroups,
   onAgentUpdated,
@@ -59,20 +52,14 @@ module.exports = {
   onAgentCreated,
   onResultUploaded,
 
-  // Enrollment
-  enrollAgent,
-
-  // Heartbeat & Status
-  agentHeartbeat,
+  // Heartbeat & Status (onCall only)
   getAgentStatus,
   getAgentMetricsHistory,
 
-  // Results
-  uploadResults,
+  // Results (onCall only)
   getAgentResults,
 
-  // Configuration
-  getAgentConfig,
+  // Configuration (onCall only)
   updateAgentConfig,
 
   // Token Management
@@ -86,12 +73,6 @@ module.exports = {
   getAgentDetails,
   getAgentComplianceResults,
 
-  // Software Inventory & CIS Benchmarks
-  uploadSoftwareInventory,
-  uploadCISResults,
-  getAuthorizedSoftware,
-  getCISBenchmarks,
-
   // Anomaly Detection
   recalculateAgentBaseline,
   runAnomalyDetection,
@@ -100,8 +81,8 @@ module.exports = {
   updateAnomalyStats,
 
   // Policy Management (Sprint 9)
-  deployPolicy,
-  rollbackPolicy,
+  deployAgentPolicy,
+  rollbackAgentPolicy,
   getEffectivePolicy,
   autoAssignAgentsToGroups,
   onAgentUpdated,

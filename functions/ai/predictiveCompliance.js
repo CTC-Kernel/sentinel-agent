@@ -277,7 +277,7 @@ const generateCompliancePredictions = onCall({
     const { organizationId } = request.data;
     const tokenOrgId = request.auth.token.organizationId;
 
-    if (tokenOrgId && tokenOrgId !== organizationId) {
+    if (!tokenOrgId || tokenOrgId !== organizationId) {
         throw new HttpsError('permission-denied', 'Access denied.');
     }
 
@@ -457,7 +457,7 @@ const generateRecommendedActions = onCall({
     const { organizationId } = request.data;
     const tokenOrgId = request.auth.token.organizationId;
 
-    if (tokenOrgId && tokenOrgId !== organizationId) {
+    if (!tokenOrgId || tokenOrgId !== organizationId) {
         throw new HttpsError('permission-denied', 'Access denied.');
     }
 

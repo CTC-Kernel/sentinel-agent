@@ -20,9 +20,8 @@ exports.createOrganization = onCall({
     memory: '512MiB',
     timeoutSeconds: 120,
     region: 'europe-west1',
-    // Allow authenticated requests even if App Check token is missing/invalid
-    // This prevents "request was not authenticated" errors
-    enforceAppCheck: false
+    // SECURITY: Enforce App Check to prevent abuse of organization creation
+    enforceAppCheck: true
 }, async (request) => {
     const { getWelcomeEmailHtml } = require('../services/emailTemplates');
 
@@ -381,11 +380,22 @@ exports.submitKioskAsset = onCall({
     timeoutSeconds: 60,
     region: 'europe-west1'
 }, async (request) => {
+    // SECURITY: Require authentication
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'Authentication required');
+    }
+
     const data = request.data;
     const { orgId, name, serialNumber, hardwareType, hardware, notes, userId, projectId, kioskToken } = data;
 
     if (!orgId || !name || !serialNumber) {
         throw new HttpsError('invalid-argument', 'Missing required fields (orgId, name, serialNumber).');
+    }
+
+    // SECURITY: Verify organizationId matches the user's token claims
+    const tokenOrgId = request.auth.token.organizationId;
+    if (tokenOrgId && tokenOrgId !== orgId) {
+        throw new HttpsError('permission-denied', 'Organization mismatch with authenticated user');
     }
 
     const db = admin.firestore();

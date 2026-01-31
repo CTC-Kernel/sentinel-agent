@@ -10,6 +10,8 @@ const { logger } = require('firebase-functions');
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
+const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
 
 // Import vulnerability and incident handlers
 const { uploadVulnerabilities } = require('./vulnerabilities');
@@ -23,6 +25,29 @@ const {
 } = require('./software');
 
 const db = admin.firestore();
+
+// Simple rate limiter
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX = 120; // requests per window
+
+function rateLimit(key, max = RATE_LIMIT_MAX) {
+    const now = Date.now();
+    const entry = rateLimitMap.get(key) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
+    if (now > entry.resetAt) {
+        entry.count = 0;
+        entry.resetAt = now + RATE_LIMIT_WINDOW;
+    }
+    entry.count++;
+    rateLimitMap.set(key, entry);
+    // Clean old entries periodically
+    if (rateLimitMap.size > 10000) {
+        for (const [k, v] of rateLimitMap) {
+            if (now > v.resetAt) rateLimitMap.delete(k);
+        }
+    }
+    return entry.count > max;
+}
 
 // Express app for agent API
 const app = express();
@@ -45,15 +70,22 @@ app.use(cors({
         return callback(new Error('CORS not allowed'), false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Agent-ID', 'X-Agent-Certificate', 'X-Agent-Signature', 'X-Request-Timestamp'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Agent-ID', 'X-Agent-Certificate', 'X-Agent-Signature', 'X-Request-Timestamp', 'X-Organization-Id'],
 }));
 
 app.use(express.json({ limit: '1mb' }));
 
+// Rate limiting middleware for all API requests
+app.use((req, res, next) => {
+    if (rateLimit(`api:${req.ip}`, 120)) {
+        return res.status(429).json({ error: 'Rate limit exceeded' });
+    }
+    next();
+});
+
 // ============================================================================
 // Agent Authentication Middleware (FIXED: Added certificate/signature validation)
 // ============================================================================
-const crypto = require('crypto');
 
 /**
  * Validates agent certificate or HMAC signature
@@ -71,18 +103,11 @@ async function validateAgentAuth(req, res, next) {
         return res.status(400).json({ error: 'Agent ID is required' });
     }
 
-    // Find agent
-    const agentQuery = await db
-        .collectionGroup('agents')
-        .where('id', '==', agentId)
-        .limit(1)
-        .get();
-
-    if (agentQuery.empty) {
-        return res.status(404).json({ error: 'Agent not found' });
-    }
-
-    const agentDoc = agentQuery.docs[0];
+    // Find agent using direct path (avoids cross-tenant collectionGroup leak)
+    const orgId = req.headers['x-organization-id'];
+    if (!orgId) return res.status(401).json({ error: 'Missing organization ID' });
+    const agentDoc = await db.doc(`organizations/${orgId}/agents/${agentId}`).get();
+    if (!agentDoc.exists) return res.status(401).json({ error: 'Agent not found' });
     const agentData = agentDoc.data();
 
     // Attach agent data to request for downstream handlers
@@ -98,10 +123,12 @@ async function validateAgentAuth(req, res, next) {
         }
 
         // Compare certificates (constant-time comparison to prevent timing attacks)
-        const certMatch = crypto.timingSafeEqual(
-            Buffer.from(providedCert),
-            Buffer.from(storedCert)
-        );
+        const certBuf = Buffer.from(providedCert);
+        const storedBuf = Buffer.from(storedCert);
+        if (certBuf.length !== storedBuf.length) {
+            return res.status(401).json({ error: 'Invalid agent certificate' });
+        }
+        const certMatch = crypto.timingSafeEqual(certBuf, storedBuf);
 
         if (!certMatch) {
             logger.warn(`Invalid certificate for agent ${agentId}`);
@@ -141,10 +168,14 @@ async function validateAgentAuth(req, res, next) {
 
         // Constant-time comparison
         try {
-            const sigMatch = crypto.timingSafeEqual(
-                Buffer.from(providedSignature, 'hex'),
-                Buffer.from(expectedSignature, 'hex')
-            );
+            const sigBuf = Buffer.from(providedSignature, 'hex');
+            const expectedBuf = Buffer.from(expectedSignature, 'hex');
+            if (sigBuf.length !== expectedBuf.length) {
+                logger.warn(`Invalid signature length for agent ${agentId}`);
+                await logFailedAuthAttempt(agentData.organizationId, agentId, 'invalid_signature', req.ip);
+                return res.status(401).json({ error: 'Invalid request signature' });
+            }
+            const sigMatch = crypto.timingSafeEqual(sigBuf, expectedBuf);
 
             if (!sigMatch) {
                 logger.warn(`Invalid signature for agent ${agentId}`);
@@ -188,15 +219,16 @@ async function logFailedAuthAttempt(organizationId, agentId, reason, ipAddress) 
     }
 }
 
-// Offline threshold: 3 missed heartbeats (3 minutes with 60s interval)
-const OFFLINE_THRESHOLD_MS = 3 * 60 * 1000;
-
 // ============================================================================
 // Agent Enrollment
 // POST /v1/agents/enroll
 // ============================================================================
 app.post('/v1/agents/enroll', async (req, res) => {
     try {
+        if (rateLimit(req.ip, 10)) { // 10 enrollments per minute per IP
+            return res.status(429).json({ error: 'Too many requests' });
+        }
+
         const {
             enrollment_token,
             hostname,
@@ -217,6 +249,11 @@ app.post('/v1/agents/enroll', async (req, res) => {
             });
         }
 
+        // Input length validation
+        if (hostname.length > 255 || os.length > 64 || (os_version && os_version.length > 128) || machine_id.length > 256) {
+            return res.status(400).json({ error: 'Field value too long' });
+        }
+
         // Find and validate the enrollment token
         const tokensSnapshot = await db
             .collectionGroup('enrollmentTokens')
@@ -231,6 +268,7 @@ app.post('/v1/agents/enroll', async (req, res) => {
 
         const tokenDoc = tokensSnapshot.docs[0];
         const tokenData = tokenDoc.data();
+        const tokenRef = tokenDoc.ref;
 
         // Check expiration
         const expiresAt = tokenData.expiresAt?.toDate?.() || new Date(tokenData.expiresAt);
@@ -238,12 +276,28 @@ app.post('/v1/agents/enroll', async (req, res) => {
             return res.status(401).json({ error: 'Enrollment token has expired' });
         }
 
-        // Check usage limit
-        if (tokenData.maxUses && tokenData.usedCount >= tokenData.maxUses) {
-            return res.status(401).json({ error: 'Enrollment token usage limit reached' });
+        // Atomic check+increment for usage limit (race condition fix)
+        const tokenValidation = await db.runTransaction(async (transaction) => {
+            const tokenSnap = await transaction.get(tokenRef);
+            if (!tokenSnap.exists) throw new Error('Token not found');
+            const tData = tokenSnap.data();
+            if (tData.revoked) {
+                throw new Error('Token has been revoked');
+            }
+            if (tData.maxUses && tData.usedCount >= tData.maxUses) {
+                return { valid: false, error: 'Enrollment token usage limit reached' };
+            }
+            transaction.update(tokenRef, {
+                usedCount: admin.firestore.FieldValue.increment(1),
+                lastUsedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            return { valid: true, data: tData };
+        });
+        if (!tokenValidation.valid) {
+            return res.status(401).json({ error: tokenValidation.error });
         }
 
-        const organizationId = tokenData.organizationId;
+        const organizationId = tokenValidation.data.organizationId;
 
         // Check if agent with same machine_id already exists
         const existingAgent = await db
@@ -255,22 +309,15 @@ app.post('/v1/agents/enroll', async (req, res) => {
             .get();
 
         if (!existingAgent.empty) {
-            // Return existing agent credentials
-            const existingData = existingAgent.docs[0].data();
             return res.status(200).json({
                 agent_id: existingAgent.docs[0].id,
                 organization_id: organizationId,
-                server_certificate: existingData.serverCertificate || '',
-                client_certificate: existingData.clientCertificate || '',
-                client_key: existingData.clientKey || '',
-                certificate_expires_at: existingData.certificateExpiresAt || '',
-                config: existingData.config || getDefaultAgentConfig(),
-                message: 'Agent already enrolled',
+                status: 'already_enrolled',
+                message: 'Agent already registered with this machine_id',
             });
         }
 
         // Generate new agent ID
-        const { v4: uuidv4 } = require('uuid');
         const agentId = uuidv4();
 
         // Generate certificates (simplified - in production use proper PKI)
@@ -294,7 +341,7 @@ app.post('/v1/agents/enroll', async (req, res) => {
             lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
             enrolledAt: admin.firestore.FieldValue.serverTimestamp(),
             enrolledWithToken: tokenDoc.id,
-            ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
+            ipAddress: req.ip || '',
             organizationId,
             serverCertificate,
             clientCertificate,
@@ -313,11 +360,7 @@ app.post('/v1/agents/enroll', async (req, res) => {
             .doc(agentId)
             .set(agentData);
 
-        // Update token usage count
-        await tokenDoc.ref.update({
-            usedCount: admin.firestore.FieldValue.increment(1),
-            lastUsedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        // Token usage count already updated in transaction above
 
         // Log enrollment
         await db.collection('organizations').doc(organizationId).collection('auditLogs').add({
@@ -387,8 +430,8 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
             status: 'active',
             version: agent_version || agentData.version,
             hostname: hostname || agentData.hostname,
-            osInfo: os_info || agentData.osInfo,
-            ipAddress: ip_address || req.ip || req.headers['x-forwarded-for'] || agentData.ipAddress,
+            osVersion: os_info || agentData.osVersion,
+            ipAddress: ip_address || req.ip || agentData.ipAddress,
         };
 
         // Add optional metrics
@@ -419,9 +462,7 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
         if (last_check_at) {
             updateData.lastCheckAt = last_check_at;
         }
-        if (typeof compliance_score === 'number') {
-            updateData.complianceScore = compliance_score;
-        }
+        // compliance_score intentionally NOT accepted from agent - calculated server-side only
         if (typeof pending_sync_count === 'number') {
             updateData.pendingSyncCount = pending_sync_count;
         }
@@ -445,6 +486,7 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
             .get();
 
         const commands = [];
+        const cmdBatch = db.batch();
         for (const cmdDoc of commandsSnapshot.docs) {
             const cmd = cmdDoc.data();
             commands.push({
@@ -452,11 +494,14 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
                 type: cmd.type,
                 payload: cmd.payload || {},
             });
-            // Mark as delivered
-            await cmdDoc.ref.update({
+            // Mark as delivered atomically
+            cmdBatch.update(cmdDoc.ref, {
                 status: 'delivered',
                 deliveredAt: admin.firestore.FieldValue.serverTimestamp(),
             });
+        }
+        if (commands.length > 0) {
+            await cmdBatch.commit();
         }
 
         // Check if config or rules have changed
@@ -606,6 +651,21 @@ app.get('/v1/agents/:agentId/rules', validateAgentAuth, async (req, res) => {
 });
 
 // ============================================================================
+// Check ID Normalization
+// ============================================================================
+
+/**
+ * Normalize check IDs to use consistent underscore format.
+ * Converts hyphens to underscores and lowercases for consistency.
+ * Frontend expects: mfa_enabled, disk_encryption, firewall_active, etc.
+ */
+function normalizeCheckId(checkId) {
+    if (!checkId || typeof checkId !== 'string') return checkId;
+    // Convert hyphens to underscores for consistency
+    return checkId.toLowerCase().replace(/-/g, '_');
+}
+
+// ============================================================================
 // Agent Results Upload (SECURED with authentication middleware)
 // POST /v1/agents/:agentId/results
 // ============================================================================
@@ -638,10 +698,12 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
         let accepted = 0;
         let rejected = 0;
         const rejectedIds = [];
-        const batch = db.batch();
+        const BATCH_LIMIT = 400;
+        let batch = db.batch();
+        let opCount = 0;
 
         for (const item of resultsToProcess) {
-            const checkId = item.check_id;
+            const checkId = normalizeCheckId(item.check_id);
             const status = item.status;
 
             if (!checkId || !status) {
@@ -657,10 +719,11 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
             }
 
             const resultData = {
+                organizationId,
                 agentId,
                 checkId,
                 framework: item.framework || null,
-                controlId: item.control_id || null,
+                controlId: normalizeCheckId(item.control_id) || null,
                 status,
                 evidence: item.evidence || item.raw_data || {},
                 score: typeof item.score === 'number' ? item.score : null,
@@ -675,9 +738,16 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
             const docRef = resultsCollection.doc();
             batch.set(docRef, resultData);
             accepted++;
+            opCount++;
+
+            if (opCount >= BATCH_LIMIT) {
+                await batch.commit();
+                batch = db.batch();
+                opCount = 0;
+            }
         }
 
-        if (accepted > 0) {
+        if (opCount > 0) {
             await batch.commit();
         }
 
@@ -713,7 +783,6 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
 app.post('/v1/agents/:agentId/logs', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-        const agentDoc = req.agentDoc;
         const agentData = req.agentData;
         const organizationId = agentData.organizationId;
 
@@ -745,11 +814,18 @@ app.post('/v1/agents/:agentId/logs', validateAgentAuth, async (req, res) => {
         });
 
         // Store individual entries (limit to 100 per upload to avoid write limits)
+        const allowedLogFields = ['level', 'message', 'timestamp', 'source', 'category'];
         const entriesToStore = entries.slice(0, 100);
         for (const entry of entriesToStore) {
+            const sanitizedEntry = {};
+            for (const key of allowedLogFields) {
+                if (entry[key] !== undefined) {
+                    sanitizedEntry[key] = typeof entry[key] === 'string' ? entry[key].slice(0, 2000) : entry[key];
+                }
+            }
             const entryRef = logsCollection.doc(uploadRef.id).collection('entries').doc();
             batch.set(entryRef, {
-                ...entry,
+                ...sanitizedEntry,
                 storedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
         }
@@ -775,11 +851,22 @@ app.post('/v1/agents/:agentId/logs', validateAgentAuth, async (req, res) => {
 app.post('/v1/agents/:agentId/diagnostics', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-        const agentDoc = req.agentDoc;
         const agentData = req.agentData;
         const organizationId = agentData.organizationId;
 
         const diagnosticData = req.body;
+
+        // Sanitize diagnostic data with explicit field whitelist
+        const allowedDiagFields = ['cpuInfo', 'memoryInfo', 'diskInfo', 'networkInfo', 'osInfo', 'errors', 'warnings', 'status'];
+        const sanitizedData = {};
+        for (const key of allowedDiagFields) {
+            if (diagnosticData[key] !== undefined) {
+                const val = JSON.stringify(diagnosticData[key]);
+                if (val.length <= 10000) { // 10KB per field max
+                    sanitizedData[key] = diagnosticData[key];
+                }
+            }
+        }
 
         // Store diagnostic result
         const diagnosticRef = await db
@@ -789,7 +876,7 @@ app.post('/v1/agents/:agentId/diagnostics', validateAgentAuth, async (req, res) 
             .doc(agentId)
             .collection('diagnostics')
             .add({
-                ...diagnosticData,
+                ...sanitizedData,
                 receivedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
@@ -812,11 +899,10 @@ app.post('/v1/agents/:agentId/diagnostics', validateAgentAuth, async (req, res) 
 app.post('/v1/agents/:agentId/vulnerabilities', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-        const agentDoc = req.agentDoc;
         const agentData = req.agentData;
 
         // Delegate to vulnerability handler
-        return await uploadVulnerabilities(req, res, agentId, agentDoc, agentData);
+        return await uploadVulnerabilities(req, res, agentId, req.agentDoc, agentData);
     } catch (error) {
         logger.error('Vulnerabilities upload error:', error);
         return res.status(500).json({ error: 'Internal server error' });
@@ -830,11 +916,10 @@ app.post('/v1/agents/:agentId/vulnerabilities', validateAgentAuth, async (req, r
 app.post('/v1/agents/:agentId/incidents', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-        const agentDoc = req.agentDoc;
         const agentData = req.agentData;
 
         // Delegate to incident handler
-        return await reportIncident(req, res, agentId, agentDoc, agentData);
+        return await reportIncident(req, res, agentId, req.agentDoc, agentData);
     } catch (error) {
         logger.error('Incident report error:', error);
         return res.status(500).json({ error: 'Internal server error' });
@@ -968,7 +1053,6 @@ app.post('/v1/agents/:agentId/network', validateAgentAuth, async (req, res) => {
 app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, res) => {
     try {
         const { agentId } = req.params;
-        const agentDoc = req.agentDoc;
         const agentData = req.agentData;
         const organizationId = agentData.organizationId;
 
@@ -997,6 +1081,10 @@ app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, re
             'Medium': 'medium',
             'High': 'high',
             'Critical': 'critical',
+            'low': 'low',
+            'medium': 'medium',
+            'high': 'high',
+            'critical': 'critical',
         };
 
         // Create network alert document
@@ -1004,12 +1092,12 @@ app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, re
             agentId,
             organizationId,
             alertType: alert_type,
-            severity: severityMap[severity] || severity.toLowerCase(),
+            severity: severityMap[severity] || String(severity || 'medium').toLowerCase(),
             title,
             description: description || '',
             connection: connection || null,
             evidence: evidence || {},
-            confidence: confidence || 0,
+            confidence: Math.min(100, Math.max(0, Number(confidence) || 0)),
             detectedAt: detected_at || new Date().toISOString(),
             iocsMatched: iocs_matched || [],
             hostname: agentData.hostname,
@@ -1175,8 +1263,6 @@ app.get('/v1/agents/tokens/validate', async (req, res) => {
         if (tokenData.revoked) {
             return res.status(200).json({
                 valid: false,
-                reason: 'revoked',
-                organization_id: tokenData.organizationId,
             });
         }
 
@@ -1185,9 +1271,6 @@ app.get('/v1/agents/tokens/validate', async (req, res) => {
         if (expiresAt < new Date()) {
             return res.status(200).json({
                 valid: false,
-                reason: 'expired',
-                expires_at: expiresAt.toISOString(),
-                organization_id: tokenData.organizationId,
             });
         }
 
@@ -1195,10 +1278,6 @@ app.get('/v1/agents/tokens/validate', async (req, res) => {
         if (tokenData.maxUses && tokenData.usedCount >= tokenData.maxUses) {
             return res.status(200).json({
                 valid: false,
-                reason: 'usage_limit_reached',
-                max_uses: tokenData.maxUses,
-                used_count: tokenData.usedCount,
-                organization_id: tokenData.organizationId,
             });
         }
 
@@ -1344,12 +1423,37 @@ app.post('/v1/agents/:agentId/re-enroll', validateAgentAuth, async (req, res) =>
 });
 
 // ============================================================================
+// Firebase Auth Middleware (for frontend-facing endpoints)
+// ============================================================================
+async function validateFirebaseAuth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    try {
+        const token = authHeader.split('Bearer ')[1];
+        const decoded = await admin.auth().verifyIdToken(token);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ error: 'Invalid authentication token' });
+    }
+}
+
+// ============================================================================
 // QR Code Generation for Enrollment Token
 // POST /v1/organizations/:orgId/enrollment-tokens/:tokenId/qr
 // ============================================================================
-app.post('/v1/organizations/:orgId/enrollment-tokens/:tokenId/qr', async (req, res) => {
+app.post('/v1/organizations/:orgId/enrollment-tokens/:tokenId/qr', validateFirebaseAuth, async (req, res) => {
     try {
         const { orgId, tokenId } = req.params;
+
+        // Verify org membership
+        const userDoc = await db.collection('users').doc(req.user.uid).get();
+        const userData = userDoc.data();
+        if (!userData || userData.organizationId !== orgId) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
 
         // Validate the token exists and belongs to the organization
         const tokenRef = db
@@ -1387,7 +1491,8 @@ app.post('/v1/organizations/:orgId/enrollment-tokens/:tokenId/qr', async (req, r
 
         // Build the QR payload - this is what the agent scans
         const serverUrl = process.env.AGENT_SERVER_URL
-            || 'https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi';
+            || process.env.FUNCTIONS_URL
+            || `https://${process.env.GCLOUD_PROJECT ? 'europe-west1-' + process.env.GCLOUD_PROJECT : 'europe-west1-sentinel-grc-a8701'}.cloudfunctions.net/agentApi`;
 
         const qrPayload = {
             version: 1,
@@ -1510,8 +1615,6 @@ function getDefaultAgentConfig() {
  * NOTE: In production, replace with proper PKI using Cloud KMS
  */
 function generatePlaceholderCert(type, agentId = '') {
-    const crypto = require('crypto');
-
     logger.warn('Using self-signed certificates. For production, implement proper PKI with Cloud KMS.');
 
     const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
@@ -1541,7 +1644,6 @@ function generatePlaceholderCert(type, agentId = '') {
 }
 
 function generatePlaceholderKey() {
-    const crypto = require('crypto');
     const { privateKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: 2048,
         privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
@@ -1555,7 +1657,6 @@ exports.agentApi = onRequest(
         region: 'europe-west1',
         memory: '256MiB',
         timeoutSeconds: 60,
-        cors: true,
     },
     app
 );
