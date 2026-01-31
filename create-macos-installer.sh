@@ -177,7 +177,7 @@ POSTINSTALL
 chmod +x "$BUILD_DIR/postinstall"
 
 # Create distribution definition
-echo -e "${YELLOW}Creating distribution definition...${N}"
+echo -e "${YELLOW}Creating distribution definition...${NC}"
 cat > "$BUILD_DIR/distribution.xml" << 'DISTXML'
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1.0">
@@ -353,7 +353,7 @@ cat > "$BUILD_DIR/conclusion.html" << 'CONCLUSIONHTML'
 CONCLUSIONHTML
 
 # Create background image (simple gradient)
-echo -e "${YELLOW}Creating background image...${NC}
+echo -e "${YELLOW}Creating background image...${NC}"
 cat > "$BUILD_DIR/background.png" << 'EOF'
 iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==
 EOF
@@ -389,7 +389,7 @@ echo "Version: $VERSION"
 echo "Identifier: $IDENTIFIER"
 
 # Verify package
-echo -e "${YELLOW}Verifying package...${N}"
+echo -e "${YELLOW}Verifying package...${NC}"
 pkgutil --expand "$PKG_DIR/SentinelAgent-$VERSION.pkg" "$BUILD_DIR/expanded"
 
 if [[ $? -eq 0 ]]; then

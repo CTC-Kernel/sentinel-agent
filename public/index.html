@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel GRC Agent - Téléchargement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .downloads {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .download-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .download-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .download-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .download-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .secondary-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .info-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .features {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 40px;
+        }
+        
+        .features h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-item {
+            text-align: center;
+        }
+        
+        .feature-item i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .feature-item p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .instructions {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 40px;
+        }
+        
+        .instructions h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .version-info {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            margin-top: 40px;
+        }
+        
+        .icon {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .downloads {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="icon">🛡️</span>Sentinel GRC Agent</h1>
+            <p>Solution de monitoring de conformité pour entreprises</p>
+        </div>
+        
+        <div class="downloads">
+            <div class="download-card">
+                <h3>📦 Package Auto-Extractible</h3>
+                <p>Installation complète en un clic. Contient tous les fichiers nécessaires pour un déploiement rapide et sans configuration complexe.</p>
+                <a href="SentinelAgent_SelfExtract_2.0.0.zip" class="download-btn">Télécharger .zip</a>
+                <a href="#instructions" class="download-btn info-btn">Instructions</a>
+            </div>
+            
+            <div class="download-card">
+                <h3>🍎 Package macOS Natif</h3>
+                <p>Package .pkg officiel pour macOS avec interface d'installation native et configuration automatique.</p>
+                <a href="SentinelAgent-2.0.0.pkg" class="download-btn">Télécharger .pkg</a>
+                <a href="#instructions" class="download-btn info-btn">Instructions</a>
+            </div>
+            
+            <div class="download-card">
+                <h3>🚀 Scripts d'Installation</h3>
+                <p>Scripts d'installation avancés pour déploiement en masse et contournement des restrictions Apple.</p>
+                <a href="install-client.sh" class="download-btn">install-client.sh</a>
+                <a href="deploy-client.sh" class="download-btn secondary-btn">deploy-client.sh</a>
+                <a href="client-installer.applescript" class="download-btn info-btn">Installer GUI</a>
+            </div>
+            
+            <div class="download-card">
+                <h3>📚 Documentation</h3>
+                <p>Guide complet de déploiement et configuration pour les administrateurs et clients finaux.</p>
+                <a href="CLIENT_DEPLOYMENT.md" class="download-btn info-btn">Déploiement Client</a>
+                <a href="SECURITY_INSTALLATION.md" class="download-btn secondary-btn">Sécurité macOS</a>
+            </div>
+            
+            <div class="download-card">
+                <h3>🔒 Outils de Sécurité</h3>
+                <p>Scripts spécialisés pour gérer les avertissements Gatekeeper et vérifications de sécurité.</p>
+                <a href="install-macos-secure.sh" class="download-btn">Installation Sécurisée</a>
+                <a href="handle-gatekeeper.applescript" class="download-btn secondary-btn">Assistant Gatekeeper</a>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2>🌟 Caractéristiques Principales</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="icon">🔓</div>
+                    <h4>Contournement Apple</h4>
+                    <p>Bypass complet de Gatekeeper et notarisation pour déploiement entreprise</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🚀</div>
+                    <h4>Installation One-Click</h4>
+                    <p>Déploiement rapide sans configuration complexe</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🎒</div>
+                    <h4>Mode Portable</h4>
+                    <p>Option sans installation ni droits administrateurs</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🔒</div>
+                    <h4>Sécurisé</h4>
+                    <p>Vérifications d'intégrité et scan de sécurité intégrés</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">📱</div>
+                    <h4>Interface Graphique</h4>
+                    <p>Installateur GUI professionnel pour les utilisateurs</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🎯</div>
+                    <h4>Monitoring GRC</h4>
+                    <p>Surveillance de conformité et audit en temps réel</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions" id="instructions">
+            <h2>📖 Instructions d'Installation</h2>
+            <ol>
+                <li><strong>Téléchargez</strong> le package auto-extractible (recommandé)</li>
+                <li><strong>Décompressez</strong> le fichier .zip sur votre bureau</li>
+                <li><strong>Double-cliquez</strong> sur <code>INSTALL.command</code></li>
+                <li><strong>Suivez</strong> les instructions à l'écran</li>
+                <li><strong>Lancez</strong> Sentinel Agent depuis Applications ou Desktop</li>
+                <li><strong>Enrollez</strong> l'agent avec votre token depuis le dashboard</li>
+            </ol>
+            
+            <h3>🔧 Installation Alternative</h3>
+            <p>Pour une installation manuelle ou avancée :</p>
+            <ol>
+                <li>Ouvrez Terminal</li>
+                <li>Naviguez vers le dossier téléchargé</li>
+                <li>Exécutez : <code>./install-client.sh</code></li>
+                <li>Suivez les instructions interactives</li>
+            </ol>
+            
+            <h3>⚠️  Note de Sécurité</h3>
+            <p>Ce logiciel n'est pas signé par Apple, ce qui déclenche Gatekeeper. C'est normal pour les logiciels d'entreprise. Le package inclut des vérifications de sécurité et d'intégrité pour garantir la fiabilité de l'installation.</p>
+        </div>
+        
+        <div class="version-info">
+            <p>Version 2.0.0 | Dernière mise à jour : 1er Février 2026 | Développé par Cyber Threat Consulting</p>
+        </div>
+    </div>
+</body>
+</html>
