@@ -183,9 +183,13 @@ describe('useReferenceData', () => {
     describe('disabled state', () => {
         it('disables fetching when user has no organizationId', () => {
             vi.doMock('../../store', () => ({
-                useStore: () => ({
-                    user: null
-                })
+                useStore: () => ({user: null,
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }})
             }));
 
             // The hook should handle missing user gracefully

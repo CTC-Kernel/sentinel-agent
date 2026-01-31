@@ -55,9 +55,13 @@ const mockUser = {
 };
 
 vi.mock('../../store', () => ({
-    useStore: () => ({
-        user: mockUser
-    })
+    useStore: () => ({user: mockUser,
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }})
 }));
 
 // Mock permissions

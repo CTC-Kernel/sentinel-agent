@@ -41,9 +41,13 @@ vi.mock('../../../hooks/useAuth', () => ({
 
 // Mock store
 vi.mock('../../../store', () => ({
-  useStore: () => ({
-    language: 'fr',
-  }),
+  useStore: () => ({language: 'fr',,
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }}),
 }));
 
 // Mock useDashboardPreferences

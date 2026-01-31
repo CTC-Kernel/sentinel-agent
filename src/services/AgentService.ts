@@ -44,7 +44,7 @@ function computeAgentStatus(lastHeartbeat: Date | null): AgentStatus {
  * Validate and normalize agent metrics for reliability
  * Logs anomalous values for debugging
  */
-function validateAgentMetrics(data: any): any {
+function validateAgentMetrics(data: Record<string, unknown>): Record<string, unknown> {
     const validated = { ...data };
     
     // Validate CPU - log if value exceeds 100% (indicates agent bug)
@@ -106,11 +106,11 @@ function docToAgent(docId: string, data: Record<string, unknown>, organizationId
             ? validatedData.lastCheckAt.toDate().toISOString()
             : (validatedData.lastCheckAt as string | null | undefined) ?? null,
         enrolledAt,
-        cpuPercent: validatedData.cpuPercent,
+        cpuPercent: validatedData.cpuPercent as number | undefined,
         memoryBytes: validatedData.memoryBytes as number | undefined,
-        memoryPercent: validatedData.memoryPercent,
+        memoryPercent: validatedData.memoryPercent as number | undefined,
         memoryTotalBytes: validatedData.memoryTotalBytes as number | undefined,
-        diskPercent: validatedData.diskPercent,
+        diskPercent: validatedData.diskPercent as number | undefined,
         diskUsedBytes: validatedData.diskUsedBytes as number | undefined,
         diskTotalBytes: validatedData.diskTotalBytes as number | undefined,
         uptimeSeconds: validatedData.uptimeSeconds as number | undefined,

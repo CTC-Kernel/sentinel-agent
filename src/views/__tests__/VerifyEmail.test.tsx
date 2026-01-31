@@ -21,7 +21,13 @@ vi.mock('react-router-dom', async () => {
 // Mock store
 vi.mock('../../store', () => ({
     useStore: () => ({
-        user: { email: 'test@example.com', emailVerified: false }
+        user: { email: 'test@example.com', emailVerified: false },
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }
     })
 }));
 

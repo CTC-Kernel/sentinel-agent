@@ -157,9 +157,13 @@ describe.skip('useVoxels', () => {
     describe('no user organization', () => {
         it('returns empty data when no organizationId', async () => {
             vi.doMock('../../store', () => ({
-                useStore: () => ({
-                    user: null
-                })
+                useStore: () => ({user: null,
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }})
             }));
 
             // Without orgId, data should remain empty

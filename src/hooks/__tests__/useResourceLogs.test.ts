@@ -25,7 +25,13 @@ vi.mock('../../firebase', () => ({
 // Mock store
 vi.mock('../../store', () => ({
     useStore: () => ({
-        user: { organizationId: 'org-123' }
+        user: { organizationId: 'org-123' },
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }
     })
 }));
 

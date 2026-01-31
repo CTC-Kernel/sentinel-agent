@@ -22,7 +22,8 @@ vi.mock('react-i18next', () => ({
 vi.mock('../../store', () => ({
     useStore: () => ({
         user: { uid: 'user-1', organizationId: 'org-1' },
-        t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue || key
+        t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue || key,
+        addToast: vi.fn()
     })
 }));
 

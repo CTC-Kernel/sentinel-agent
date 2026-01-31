@@ -21,7 +21,13 @@ vi.mock('../../../services/aiService', () => ({
 const mockAddToast = vi.fn();
 vi.mock('../../../store', () => ({
     useStore: () => ({
-        addToast: mockAddToast
+        addToast: mockAddToast,
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }
     })
 }));
 

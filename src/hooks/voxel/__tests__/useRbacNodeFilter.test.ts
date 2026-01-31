@@ -18,10 +18,14 @@ import type { UserProfile } from '@/types';
 // Mock the store
 const mockUser = vi.fn();
 vi.mock('@/store', () => ({
-  useStore: () => ({
-    user: mockUser(),
-    customRoles: [],
-  }),
+  useStore: () => ({user: mockUser(),
+    customRoles: [],,
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) {
+                return (options as { defaultValue?: string }).defaultValue || key;
+            }
+            return key;
+        }}),
 }));
 
 // Mock hasPermission to simulate different permission scenarios
