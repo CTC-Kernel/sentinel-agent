@@ -26,6 +26,9 @@ import {
     MobileCheckResult,
 } from './mobileComplianceChecks';
 
+// Constants
+const API_BASE_URL = 'https://europe-west1-sentinel-grc-v2-prod.cloudfunctions.net/agentApi';
+
 const STORAGE_KEYS = {
     AGENT_ID: '@sentinel/agent_id',
     LAST_HEARTBEAT: '@sentinel/last_heartbeat',
@@ -378,7 +381,64 @@ export async function sendHeartbeatAndCheck(runChecks = true): Promise<{
             }
         }
 
-        // Update agent document
+        // Prepare heartbeat data for API call
+        const heartbeatData = {
+            timestamp: new Date().toISOString(),
+            agent_version: deviceInfo.appVersion,
+            status: 'online',
+            hostname: deviceInfo.deviceName,
+            os_info: deviceInfo.osVersion,
+            cpu_percent: 0, // Mobile doesn't provide CPU metrics
+            memory_bytes: 0, // Mobile doesn't provide memory metrics
+            memory_percent: 0,
+            memory_total_bytes: 0,
+            disk_percent: 0,
+            disk_used_bytes: 0,
+            disk_total_bytes: 0,
+            uptime_seconds: 0,
+            ip_address: 'unknown', // Mobile doesn't provide IP
+            last_check_at: runChecks ? new Date().toISOString() : null,
+            compliance_score: complianceScore || null,
+            pending_sync_count: 0,
+            self_check_result: runChecks ? { checks: checkResults } : null,
+        };
+
+        // Call the heartbeat API with proper headers
+        const apiResponse = await fetch(`${API_BASE_URL}/v1/agents/${agentId}/heartbeat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Organization-Id': organizationId,
+                'X-Agent-ID': agentId,
+            },
+            body: JSON.stringify(heartbeatData),
+        });
+
+        if (!apiResponse.ok) {
+            const errorText = await apiResponse.text();
+            console.error('Heartbeat API error:', {
+                status: apiResponse.status,
+                statusText: apiResponse.statusText,
+                body: errorText,
+                agentId,
+                organizationId
+            });
+            
+            // Specific handling for 401 Unauthorized (Missing organization ID)
+            if (apiResponse.status === 401) {
+                return { 
+                    success: false, 
+                    error: 'Erreur d\'authentification : ID d\'organisation manquant ou invalide' 
+                };
+            }
+            
+            // Fallback to direct Firestore update if API fails
+            console.warn('API failed, falling back to direct Firestore update');
+        } else {
+            console.log('Heartbeat sent successfully via API');
+        }
+
+        // Always update local Firestore document for mobile-specific data
         const updateData: Record<string, unknown> = {
             lastHeartbeat: serverTimestamp(),
             osVersion: deviceInfo.osVersion,
@@ -399,7 +459,7 @@ export async function sendHeartbeatAndCheck(runChecks = true): Promise<{
         return {
             success: true,
             complianceScore,
-            checkResults,
+            checkResults: runChecks ? checkResults : undefined,
         };
     } catch (error) {
         console.error('Heartbeat error:', error);
