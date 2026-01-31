@@ -8,6 +8,7 @@
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 
 // ============================================================================
@@ -376,9 +377,22 @@ const seedNIS2Framework = onCall(
         .where('frameworkId', '==', frameworkId)
         .get();
 
-      const batch = db.batch();
-      existingReqs.docs.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
+      // SECURITY: Chunk deletes to stay within Firestore batch limit of 500
+      const BATCH_LIMIT = 450;
+      let deleteBatch = db.batch();
+      let deleteOpCount = 0;
+      for (const doc of existingReqs.docs) {
+        deleteBatch.delete(doc.ref);
+        deleteOpCount++;
+        if (deleteOpCount >= BATCH_LIMIT) {
+          await deleteBatch.commit();
+          deleteBatch = db.batch();
+          deleteOpCount = 0;
+        }
+      }
+      if (deleteOpCount > 0) {
+        await deleteBatch.commit();
+      }
 
       // Create requirements in batches
       const batchSize = 20;
@@ -408,8 +422,8 @@ const seedNIS2Framework = onCall(
         message: `NIS2 framework seeded with ${NIS2_REQUIREMENTS.length} requirements`,
       };
     } catch (error) {
-      console.error('Error seeding NIS2 framework:', error);
-      throw new HttpsError("internal", `Failed to seed NIS2 framework: ${error.message}`);
+      logger.error('Error seeding NIS2 framework:', error);
+      throw new HttpsError("internal", 'An internal error occurred while seeding NIS2 framework.');
     }
   }
 );

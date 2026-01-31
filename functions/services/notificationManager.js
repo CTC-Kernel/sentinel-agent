@@ -138,7 +138,7 @@ class NotificationManager {
         try {
             const docsSnap = await db.collection('documents')
                 .where('organizationId', '==', orgId)
-                .where('status', 'in', ['published', 'draft']) // Only relevant statuses
+                .where('status', 'in', ['Brouillon', 'Publié']) // Only relevant statuses
                 .where('nextReviewDate', '<=', today)
                 .get();
 

@@ -7,6 +7,7 @@
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { KeyManagementServiceClient } = require('@google-cloud/kms');
@@ -127,7 +128,7 @@ async function encryptDocument(db, storage, kmsClient, keyPath, doc) {
       encryptedSize: ciphertext.length,
     };
   } catch (error) {
-    console.error(`Error encrypting document ${doc.id}:`, error);
+    logger.error(`Error encrypting document ${doc.id}:`, error);
 
     // Update document with error status
     try {
@@ -139,7 +140,7 @@ async function encryptDocument(db, storage, kmsClient, keyPath, doc) {
         'encryption.retryCount': FieldValue.increment(1),
       });
     } catch (updateError) {
-      console.error('Failed to update error status:', updateError);
+      logger.error('Failed to update error status:', updateError);
     }
 
     return { id: doc.id, status: 'error', error: error.message };
@@ -172,12 +173,18 @@ exports.migrateDocuments = onCall(
       throw new HttpsError('invalid-argument', 'organizationId required');
     }
 
+    // SECURITY: Verify caller can only access their own organization
+    const callerOrgId = request.auth.token.organizationId;
+    if (callerOrgId !== organizationId && request.auth.token.role !== 'super_admin') {
+      throw new HttpsError('permission-denied', 'Cross-org access denied');
+    }
+
     const db = getFirestore();
     const storage = getStorage();
     const kmsClient = new KeyManagementServiceClient();
     const keyPath = getKeyPath();
 
-    console.log(`Starting migration for org ${organizationId}, dryRun=${dryRun}, limit=${limit}`);
+    logger.log(`Starting migration for org ${organizationId}, dryRun=${dryRun}, limit=${limit}`);
 
     // Query unencrypted documents
     const docsQuery = db
@@ -292,7 +299,7 @@ exports.scheduledDocumentMigration = onSchedule(
     const kmsClient = new KeyManagementServiceClient();
     const keyPath = getKeyPath();
 
-    console.log('Starting scheduled document migration');
+    logger.log('Starting scheduled document migration');
 
     // Get all organizations
     const orgsSnapshot = await db.collection('organizations').get();
@@ -330,7 +337,7 @@ exports.scheduledDocumentMigration = onSchedule(
       }
     }
 
-    console.log('Migration complete:', totalResults);
+    logger.log('Migration complete:', totalResults);
 
     // Store migration report
     await db.collection('system_logs').add({
@@ -356,6 +363,12 @@ exports.getMigrationStatus = onCall(
     const { organizationId } = request.data;
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId required');
+    }
+
+    // SECURITY: Verify caller can only access their own organization
+    const callerOrgId = request.auth.token.organizationId;
+    if (callerOrgId !== organizationId && request.auth.token.role !== 'super_admin') {
+      throw new HttpsError('permission-denied', 'Cross-org access denied');
     }
 
     const db = getFirestore();

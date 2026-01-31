@@ -101,7 +101,7 @@ const detectOrphanControls = async (db, organizationId) => {
     // Find orphan controls
     controlsSnap.forEach(doc => {
         const control = doc.data();
-        if (!linkedControlIds.has(doc.id) && control.status !== 'inactive') {
+        if (!linkedControlIds.has(doc.id) && control.status !== 'Inactif') {
             anomalies.push(createAnomaly(
                 'orphan_control',
                 doc.id,
@@ -161,7 +161,7 @@ const detectStaleAssessments = async (db, organizationId) => {
     // Check control assessments
     const controlsSnap = await db.collection('controls')
         .where('organizationId', '==', organizationId)
-        .where('status', '!=', 'inactive')
+        .where('status', '!=', 'Inactif')
         .get();
 
     controlsSnap.forEach(doc => {
@@ -242,7 +242,7 @@ const detectComplianceDrift = async (db, organizationId) => {
 
     const controlsSnap = await db.collection('controls')
         .where('organizationId', '==', organizationId)
-        .where('status', '!=', 'inactive')
+        .where('status', '!=', 'Inactif')
         .get();
 
     controlsSnap.forEach(doc => {
@@ -602,7 +602,7 @@ exports.detectAnomaliesOnDemand = onCall({
         };
     } catch (error) {
         logger.error("On-demand anomaly detection failed:", error);
-        throw new HttpsError('internal', `Detection failed: ${error.message}`);
+        throw new HttpsError('internal', 'An internal error occurred during anomaly detection.');
     }
 });
 
@@ -657,7 +657,7 @@ exports.getAnomalies = onCall({
         };
     } catch (error) {
         logger.error("Failed to fetch anomalies:", error);
-        throw new HttpsError('internal', `Failed to fetch anomalies: ${error.message}`);
+        throw new HttpsError('internal', 'An internal error occurred while fetching anomalies.');
     }
 });
 
@@ -718,7 +718,7 @@ exports.updateAnomalyStatus = onCall({
     } catch (error) {
         if (error instanceof HttpsError) throw error;
         logger.error("Failed to update anomaly:", error);
-        throw new HttpsError('internal', `Failed to update anomaly: ${error.message}`);
+        throw new HttpsError('internal', 'An internal error occurred while updating anomaly.');
     }
 });
 
@@ -813,7 +813,7 @@ exports.convertAnomalyToIncident = onCall({
     } catch (error) {
         if (error instanceof HttpsError) throw error;
         logger.error("Failed to convert anomaly to incident:", error);
-        throw new HttpsError('internal', `Remediation failed: ${error.message}`);
+        throw new HttpsError('internal', 'An internal error occurred during remediation.');
     }
 });
 

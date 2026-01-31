@@ -711,7 +711,7 @@ exports.deleteUserAccount = onCall({
 
         // 4. Anonymize comments (keep content but remove author identity)
         logger.info(`[GDPR] Anonymizing comments for ${uid}`);
-        await anonymizeUserComments(db, uid);
+        await anonymizeUserComments(db, uid, organizationId);
 
         // 5. Anonymize ownership references in organization data
         if (organizationId) {
@@ -864,10 +864,11 @@ async function anonymizeCollectionData(db, collectionName, fieldName, userId, an
 /**
  * Helper: Anonymize comments - replace author info with generic "Utilisateur supprimé"
  */
-async function anonymizeUserComments(db, userId) {
+async function anonymizeUserComments(db, userId, organizationId) {
     const batchSize = 500;
     while (true) {
         const snap = await db.collectionGroup('comments')
+            .where('organizationId', '==', organizationId)
             .where('authorId', '==', userId)
             .limit(batchSize)
             .get();

@@ -166,6 +166,11 @@ exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) 
     const db = admin.firestore();
 
     try {
+        // SECURITY: Validate organizationId BEFORE accessing any document data
+        if (!shareData.organizationId) {
+            throw new HttpsError('failed-precondition', 'Share missing organization context');
+        }
+
         // Fetch Audit
         const auditDoc = await db.collection('audits').doc(shareData.auditId).get();
         if (!auditDoc.exists) throw new HttpsError('not-found', 'Audit not found');
@@ -173,6 +178,11 @@ exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) 
         // Fetch Scope (Risks, Controls, Findings) - Limit sensitive data
         // For MVP, we fetch basic details
         const audit = auditDoc.data();
+
+        // SECURITY: Verify the audit belongs to the same organization as the share token
+        if (audit.organizationId !== shareData.organizationId) {
+            throw new HttpsError('permission-denied', 'Organization mismatch');
+        }
 
         // Sanitize Audit Data for External Viewer
         const sanitizedAudit = {

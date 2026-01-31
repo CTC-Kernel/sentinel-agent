@@ -20,7 +20,7 @@ if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 450;
 
 /**
  * Calculate document expiry date based on creation date and retention days
@@ -600,13 +600,25 @@ exports.getRetentionHistory = onCall(
       throw new HttpsError('permission-denied', 'Insufficient permissions');
     }
 
+    const organizationId = request.auth.token.organizationId;
+    if (!organizationId && userRole !== 'super_admin') {
+      throw new HttpsError('failed-precondition', 'No organization context found');
+    }
+
     const { limit = 10 } = request.data;
 
     const db = admin.firestore();
 
     try {
-      const logsSnap = await db.collection('system_logs')
-        .where('type', 'in', ['retention_engine_run', 'retention_engine_manual', 'retention_engine_error'])
+      let query = db.collection('system_logs')
+        .where('type', 'in', ['retention_engine_run', 'retention_engine_manual', 'retention_engine_error']);
+
+      // Non-super_admin users can only see logs for their organization
+      if (userRole !== 'super_admin') {
+        query = query.where('organizationId', '==', organizationId);
+      }
+
+      const logsSnap = await query
         .orderBy('timestamp', 'desc')
         .limit(Math.min(limit, 100))
         .get();
