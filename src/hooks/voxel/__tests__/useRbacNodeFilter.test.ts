@@ -19,7 +19,7 @@ import type { UserProfile } from '@/types';
 const mockUser = vi.fn();
 vi.mock('@/store', () => ({
   useStore: () => ({user: mockUser(),
-    customRoles: [],,
+    customRoles: [],
         t: (key: string, options?: Record<string, unknown>) => {
             if (options && 'defaultValue' in options) {
                 return (options as { defaultValue?: string }).defaultValue || key;

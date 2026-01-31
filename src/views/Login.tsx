@@ -232,7 +232,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
                             <AnimatePresence mode="popLayout">
                                 <motion.form
-                                    key={isLogin ? 'login' : 'register' || 'unknown'}
+                                    key={isLogin ? 'login' : 'register'}
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}

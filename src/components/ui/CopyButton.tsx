@@ -140,7 +140,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
                 {!iconOnly && (
                     <AnimatePresence mode="popLayout">
                         <motion.span
-                            key={copied ? 'copied' : 'copy' || 'unknown'}
+                            key={copied ? 'copied' : 'copy'}
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -5 }}
