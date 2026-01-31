@@ -1,6 +1,7 @@
 import React from 'react';
 import { Control } from '../../types';
 import { CheckCircle2, AlertTriangle, ShieldAlert } from '../ui/Icons';
+import { useLocale } from '../../hooks/useLocale';
 
 interface ComplianceScorecardProps {
     controls: Control[];
@@ -8,15 +9,16 @@ interface ComplianceScorecardProps {
 }
 
 export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ controls, trend }) => {
+    const { t } = useLocale();
     // Group controls by domain (assuming code starts with A.5, A.6 etc or similar)
     // For ISO 27001:2022, domains are 5, 6, 7, 8.
     // Let's try to parse the domain from the code (e.g., "5.1" -> Domain 5)
 
     const domains = [
-        { id: '5', name: 'Organisationnelle', color: 'bg-blue-500' },
-        { id: '6', name: 'Personnes', color: 'bg-purple-500' },
-        { id: '7', name: 'Physique', color: 'bg-emerald-500' },
-        { id: '8', name: 'Technologique', color: 'bg-orange-500' }
+        { id: '5', name: t('compliance.domains.organizational', { defaultValue: 'Organisationnelle' }), color: 'bg-blue-500' },
+        { id: '6', name: t('compliance.domains.people', { defaultValue: 'Personnes' }), color: 'bg-purple-500' },
+        { id: '7', name: t('compliance.domains.physical', { defaultValue: 'Physique' }), color: 'bg-emerald-500' },
+        { id: '8', name: t('compliance.domains.technological', { defaultValue: 'Technologique' }), color: 'bg-orange-500' }
     ];
 
     const stats = controls.length > 0 ? domains.map(domain => {
@@ -55,8 +57,8 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
             <div className="space-y-5">
                 {controls.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center opacity-70">
-                        <p className="text-sm font-bold text-foreground">Aucune donnée</p>
-                        <p className="text-xs text-muted-foreground">Importez des contrôles pour voir le score.</p>
+                        <p className="text-sm font-bold text-foreground">{t('compliance.noData', { defaultValue: 'Aucune donnée' })}</p>
+                        <p className="text-xs text-muted-foreground">{t('compliance.importControls', { defaultValue: 'Importez des contrôles pour voir le score.' })}</p>
                     </div>
                 ) : (
                     stats.map(stat => (
@@ -79,15 +81,15 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
             <div className="mt-6 pt-6 border-t border-border/60 flex gap-4 overflow-x-auto no-scrollbar">
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    {controls.filter(c => c.status === 'Implémenté').length} Implémentés
+                    {controls.filter(c => c.status === 'Implémenté').length} {t('compliance.status.implemented', { defaultValue: 'Implémentés' })}
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    {controls.filter(c => c.status === 'Partiel').length} Partiels
+                    {controls.filter(c => c.status === 'Partiel').length} {t('compliance.status.partial', { defaultValue: 'Partiels' })}
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <ShieldAlert className="h-4 w-4 text-red-500" />
-                    {controls.filter(c => c.status === 'Non commencé').length} À faire
+                    {controls.filter(c => c.status === 'Non commencé').length} {t('compliance.status.todo', { defaultValue: 'À faire' })}
                 </div>
             </div>
         </div>

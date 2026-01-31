@@ -7,6 +7,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { useStore } from '../../store';
 import { toast } from '@/lib/toast';
 import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
+import { Loader2 } from '../ui/Icons';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface CreateActivityFormProps {
@@ -24,14 +25,14 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
     onSubmit,
     onCancel
 }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
 
     const handleFormSubmit = async (data: ProcessingActivityFormData) => {
         await onSubmit(data);
         clearDraft();
     };
 
-    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useZodForm<typeof processingActivitySchema>({
+    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors, isSubmitting } } = useZodForm<typeof processingActivitySchema>({
         schema: processingActivitySchema,
         mode: 'onChange',
         defaultValues: {
@@ -163,8 +164,11 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
             </div>
 
             <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border">
-                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-muted-foreground hover:bg-muted rounded-3xl transition-colors">Annuler</button>
-                <button aria-label="Save creation" type="submit" className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-3xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-primary/30">Enregistrer</button>
+                <button aria-label="Cancel creation" type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-muted-foreground hover:bg-muted rounded-3xl transition-colors">{t('common.cancel', { defaultValue: 'Annuler' })}</button>
+                <button aria-label="Save creation" type="submit" disabled={isSubmitting} className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-3xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {t('common.save', { defaultValue: 'Enregistrer' })}
+                </button>
             </div>
         </form>
     );

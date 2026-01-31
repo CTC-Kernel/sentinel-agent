@@ -86,6 +86,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 onClick={onEdit}
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Modifier le document"
                                 className="text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                                 title="Modifier"
                             >

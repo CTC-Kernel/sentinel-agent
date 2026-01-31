@@ -97,8 +97,8 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                         </button>
                     )}
 
-                    <CustomTooltip content={t('audits.inspector.generateReport')}>
-                        <button type="button" onClick={() => generateAuditReport([])} disabled={isGeneratingReport} aria-label={t('audits.inspector.generateReport')} className="p-2.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors text-slate-500 dark:text-slate-300 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <CustomTooltip content={isGeneratingReport ? t('audits.inspector.generatingReport', { defaultValue: 'Génération en cours...' }) : t('audits.inspector.generateReport')}>
+                        <button type="button" onClick={() => generateAuditReport([])} disabled={isGeneratingReport} aria-label={isGeneratingReport ? t('audits.inspector.generatingReport', { defaultValue: 'Génération en cours...' }) : t('audits.inspector.generateReport', { defaultValue: 'Générer le rapport' })} className="p-2.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-colors text-slate-500 dark:text-slate-300 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                             {isGeneratingReport ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
                         </button>
                     </CustomTooltip>

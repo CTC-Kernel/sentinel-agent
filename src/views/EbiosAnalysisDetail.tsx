@@ -43,6 +43,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
 
   // Track changes for auto-save
   type WorkshopDataType = Workshop1Data | Workshop2Data | Workshop3Data | Workshop4Data | Workshop5Data;
@@ -271,10 +272,16 @@ export const EbiosAnalysisDetail: React.FC = () => {
     toast.success(t('common.saved'));
   }, [saveChanges, t]);
 
-  // Complete analysis handler
-  const handleCompleteAnalysis = useCallback(async () => {
+  // Complete analysis handler - shows confirmation first
+  const handleCompleteAnalysis = useCallback(() => {
+    setShowCompleteConfirm(true);
+  }, []);
+
+  // Actual completion after confirmation
+  const handleConfirmComplete = useCallback(async () => {
     if (!analysis || !organizationId || !user?.uid) return;
 
+    setShowCompleteConfirm(false);
     try {
       await EbiosService.updateAnalysis(
         organizationId,
@@ -452,16 +459,46 @@ export const EbiosAnalysisDetail: React.FC = () => {
   }
 
   return (
-    <EbiosWizard
-      analysis={analysis}
-      onWorkshopChange={handleWorkshopChange}
-      onSave={handleManualSave}
-      onComplete={analysis.currentWorkshop === 5 ? handleCompleteAnalysis : undefined}
-      isSaving={saving}
-      hasUnsavedChanges={hasUnsavedChanges}
-    >
-      {renderWorkshopContent}
-    </EbiosWizard>
+    <>
+      <EbiosWizard
+        analysis={analysis}
+        onWorkshopChange={handleWorkshopChange}
+        onSave={handleManualSave}
+        onComplete={analysis.currentWorkshop === 5 ? handleCompleteAnalysis : undefined}
+        isSaving={saving}
+        hasUnsavedChanges={hasUnsavedChanges}
+      >
+        {renderWorkshopContent}
+      </EbiosWizard>
+
+      {/* Confirmation dialog before completing the analysis */}
+      {showCompleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-xl max-w-md w-full space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              {t('ebios.confirmComplete') || 'Finaliser l\'analyse'}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Voulez-vous finaliser cette analyse EBIOS RM ? Cette action marquera l'analyse comme terminee.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowCompleteConfirm(false)}
+                className="px-4 py-2 rounded-2xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleConfirmComplete}
+                className="px-4 py-2 rounded-2xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/20 transition-all"
+              >
+                {t('ebios.complete') || 'Finaliser'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

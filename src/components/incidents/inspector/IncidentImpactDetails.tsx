@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Incident, Asset, BusinessProcess, Risk } from '../../../types';
 import { Server, Activity, AlertTriangle } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
@@ -16,6 +17,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
     processes,
     risks
 }) => {
+    const navigate = useNavigate();
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
@@ -30,7 +32,13 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                             {(() => {
                                 const asset = assets.find(a => a.id === incident.affectedAssetId);
                                 return asset ? (
-                                    <div className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40">
+                                    <div
+                                        onClick={() => navigate(`/assets?id=${asset.id}`)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/assets?id=${asset.id}`); } }}
+                                        className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-brand-500/30 transition-all"
+                                    >
                                         <span className="font-medium text-foreground">{asset.name}</span>
                                         <Badge status="neutral" size="sm" variant="soft">{asset.type}</Badge>
                                     </div>
@@ -55,7 +63,13 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                             {(() => {
                                 const proc = processes.find(p => p.id === incident.affectedProcessId);
                                 return proc ? (
-                                    <div className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40">
+                                    <div
+                                        onClick={() => navigate(`/continuity?id=${proc.id}`)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/continuity?id=${proc.id}`); } }}
+                                        className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-brand-500/30 transition-all"
+                                    >
                                         <span className="font-medium text-foreground">{proc.name}</span>
                                     </div>
                                 ) : <p className="text-sm text-muted-foreground italic">Processus introuvable</p>;
@@ -79,7 +93,13 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                             {(() => {
                                 const risk = risks.find(r => r.id === incident.relatedRiskId);
                                 return risk ? (
-                                    <div className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40">
+                                    <div
+                                        onClick={() => navigate(`/risks?id=${risk.id}`)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/risks?id=${risk.id}`); } }}
+                                        className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-brand-500/30 transition-all"
+                                    >
                                         <div className="flex flex-col">
                                             <span className="font-medium text-foreground">{risk.threat}</span>
                                             <span className="text-xs text-muted-foreground">{risk.scenario}</span>

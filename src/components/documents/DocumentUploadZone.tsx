@@ -46,24 +46,35 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
         );
     }
 
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/*',
+        'text/plain',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+
     return (
         <div className="mb-4">
             <div className="block text-sm font-medium mb-1 dark:text-muted-foreground">Fichier (Optionnel)</div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                Formats accept&eacute;s : PDF, Word (.doc, .docx), Excel (.xls, .xlsx), Images (JPG, PNG, etc.), Texte (.txt) &mdash; Max {maxSizeMB}Mo
+            </p>
             <FileUploader
                 onUploadComplete={(url, name, hash, _isSecure, size, type) => onUploadSuccess(url, name, type || 'application/octet-stream', size || 0, hash)}
                 category={storagePath}
                 maxSizeMB={maxSizeMB}
-                allowedTypes={[
-                    'application/pdf',
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'image/*',
-                    'text/plain',
-                    'application/vnd.ms-excel',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                ]}
+                allowedTypes={allowedTypes}
             />
-            <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">PDF, Word, Excel, Images (Max {maxSizeMB}Mo)</p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+                {['PDF', 'DOC', 'DOCX', 'XLS', 'XLSX', 'TXT', 'JPG', 'PNG'].map(ext => (
+                    <span key={ext} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        .{ext.toLowerCase()}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 };

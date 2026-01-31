@@ -4,12 +4,13 @@ import { db } from '../../firebase';
 import { Control, Risk, SoAVersion, SoAControlSnapshot, Framework } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
-import { Download, AlertTriangle, FileText, Save, History, Clock, User, ChevronRight, X } from '../ui/Icons';
+import { Download, AlertTriangle, FileText, Save, History, Clock, User, ChevronRight, X, Loader2 } from '../ui/Icons';
 import { useStore } from '../../store';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useLocale } from '@/hooks/useLocale';
 
 interface SoAViewProps {
     controls: Control[];
@@ -25,7 +26,9 @@ interface SoAViewProps {
 
 export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = 'ISO27001', handlers, onSeed }) => {
     const { user, addToast } = useStore();
+    const { t } = useLocale();
     const [versions, setVersions] = useState<SoAVersion[]>([]);
+    const [exportingPdf, setExportingPdf] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [savingVersion, setSavingVersion] = useState(false);
     const [loadingVersions, setLoadingVersions] = useState(false);
@@ -69,7 +72,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
     // Save current state as a new version
     const saveVersion = async () => {
         if (!user?.organizationId || !user?.uid) {
-            addToast('Erreur: utilisateur non connecté', 'error');
+            addToast(t('soa.errorNotConnected', { defaultValue: 'Erreur: utilisateur non connecté' }), 'error');
             return;
         }
 
@@ -99,11 +102,11 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             const versionsRef = collection(db, 'organizations', user.organizationId, 'soaVersions');
             await addDoc(versionsRef, newVersion);
 
-            addToast('Version SoA sauvegardée', 'success');
+            addToast(t('soa.versionSaved', { defaultValue: 'Version SoA sauvegardée' }), 'success');
             await loadVersions(); // Refresh the list
         } catch (error) {
             ErrorLogger.error(error, 'SoAView.saveVersion');
-            addToast('Erreur lors de la sauvegarde', 'error');
+            addToast(t('soa.saveError', { defaultValue: 'Erreur lors de la sauvegarde' }), 'error');
         } finally {
             setSavingVersion(false);
         }

@@ -204,10 +204,60 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
     }
   }, []);
 
-  const handleDownloadCertificate = useCallback((_assignment: TrainingAssignment) => {
-    // TODO: Implement certificate generation/download
-    toast.info(t('training.certificate.comingSoon'));
-  }, [t]);
+  const handleDownloadCertificate = useCallback((assignment: TrainingAssignment) => {
+    const course = getCourse(assignment.courseId);
+    const courseName = course?.title || assignment.courseId;
+    const userName = user?.displayName || user?.email || '';
+    const completedDate = assignment.completedAt
+      ? assignment.completedAt.toDate().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+      : new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Generate a client-side certificate via a printable window
+    // TODO: Replace with Cloud Function PDF generation (e.g., functions/generateCertificate) for production use
+    const certWindow = window.open('', '_blank');
+    if (!certWindow) {
+      toast.error(t('training.errors.updateFailed'));
+      return;
+    }
+
+    certWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Certificat - ${courseName}</title>
+        <style>
+          @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f8fafc; }
+          .cert { width: 800px; padding: 60px; border: 3px solid #1e40af; border-radius: 24px; background: white; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+          .cert h1 { font-size: 32px; color: #1e40af; margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase; }
+          .cert .subtitle { color: #64748b; font-size: 14px; margin-bottom: 40px; }
+          .cert .name { font-size: 28px; font-weight: 700; color: #0f172a; margin: 24px 0 8px; }
+          .cert .course { font-size: 20px; color: #334155; margin-bottom: 32px; }
+          .cert .date { color: #64748b; font-size: 14px; margin-top: 40px; }
+          .cert .divider { width: 120px; height: 2px; background: #1e40af; margin: 24px auto; }
+        </style>
+      </head>
+      <body>
+        <div class="cert">
+          <h1>Certificat de Formation</h1>
+          <p class="subtitle">Sentinel GRC - Conformite NIS2</p>
+          <div class="divider"></div>
+          <p style="color:#64748b;">Ce certificat atteste que</p>
+          <p class="name">${userName}</p>
+          <p style="color:#64748b;">a complete avec succes la formation</p>
+          <p class="course">${courseName}</p>
+          <div class="divider"></div>
+          <p class="date">Date de completion : ${completedDate}</p>
+        </div>
+        <script>window.onload = function() { window.print(); };</script>
+      </body>
+      </html>
+    `);
+    certWindow.document.close();
+
+    toast.success(t('training.success.assignmentCompleted'));
+  }, [getCourse, user, t]);
 
   // Filter buttons config
   const filterButtons: { value: FilterType; label: string; icon: React.ElementType<{ className?: string }>; count: number }[] = [

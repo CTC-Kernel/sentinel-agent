@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useMemo, useState } from 'react';
+import React, { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { cn } from '../lib/utils';
 import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/SEO';
@@ -49,6 +49,7 @@ const Assets: React.FC = () => {
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const pendingSelectId = useRef<string | null>(null);
 
     // Dependencies and Loading Logic...
     // (Preserve existing lines 48-58)
@@ -116,6 +117,17 @@ const Assets: React.FC = () => {
             }, { replace: true });
         }
     }, [inspectorOpen, deepLinkAssetId, setSearchParams, loading]);
+
+    // Auto-open inspector on newly created asset
+    React.useEffect(() => {
+        if (!pendingSelectId.current || loading) return;
+        const created = assets.find(a => a.id === pendingSelectId.current);
+        if (created) {
+            pendingSelectId.current = null;
+            setSelectedAsset(created);
+            setInspectorOpen(true);
+        }
+    }, [assets, loading]);
 
     // Filtering Logic
     const deferredQuery = useDeferredValue(activeFilters.query);
@@ -276,6 +288,9 @@ const Assets: React.FC = () => {
         const result = await createAsset(data, null);
         if (result.success) {
             toast.success(t('assets.createSuccess'));
+            if (result.id) {
+                pendingSelectId.current = result.id;
+            }
             return result.id || true;
         } else if (result.error === 'LIMIT_REACHED') {
             toast.error(t('assets.limitReachedError')); // "Upgrade plan..."

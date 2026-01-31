@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Notification } from '../../types/notification';
 import { cn } from '../../utils/cn';
 import { Bell, AlertTriangle, CheckCircle, Info, XCircle, Clock } from '../ui/Icons';
@@ -36,10 +37,47 @@ const getBgColor = (type: Notification['type'], read: boolean) => {
     }
 };
 
+const resolveNavigationLink = (notification: Notification): string | null => {
+    if (notification.link) return notification.link;
+    if (notification.actionPayload?.type === 'navigate' && notification.actionPayload.destination) {
+        return notification.actionPayload.destination;
+    }
+    const meta = notification.metadata;
+    if (meta) {
+        const resourceType = meta.resourceType as string | undefined;
+        const resourceId = meta.resourceId as string | undefined;
+        const routeMap: Record<string, string> = {
+            risk: '/risks',
+            incident: '/incidents',
+            audit: '/audits',
+            asset: '/assets',
+            compliance: '/compliance',
+            control: '/compliance',
+            continuity: '/continuity',
+            vulnerability: '/vulnerabilities',
+        };
+        if (resourceType && routeMap[resourceType]) {
+            return resourceId ? `${routeMap[resourceType]}?id=${resourceId}` : routeMap[resourceType];
+        }
+    }
+    return null;
+};
+
 export const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onRead }) => {
+    const navigate = useNavigate();
+
+    const resolvedLink = resolveNavigationLink(notification);
+
     const handleRead = () => {
         if (!notification.read) {
             onRead(notification.id);
+        }
+    };
+
+    const handleClick = () => {
+        handleRead();
+        if (resolvedLink && !notification.link) {
+            navigate(resolvedLink);
         }
     };
 
@@ -82,15 +120,23 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
         );
     }
 
+    if (resolvedLink) {
+        return (
+            <Link to={resolvedLink} onClick={handleRead} className="block mb-2">
+                {Content}
+            </Link>
+        );
+    }
+
     return (
         <div
-            onClick={handleRead}
+            onClick={handleClick}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    handleRead();
+                    handleClick();
                 }
             }}
             className="cursor-pointer mb-2"

@@ -6,6 +6,7 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { Tooltip as CustomTooltip } from '../../components/ui/Tooltip';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { AgentVerificationIndicator } from './AgentVerificationBadge';
+import { useLocale } from '@/hooks/useLocale';
 
 interface ComplianceListProps {
     controls: Control[];
@@ -103,6 +104,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
     onSelectControl,
     filter
 }) => {
+    const { t } = useLocale();
     const [expandedDomains, setExpandedDomains] = useState<string[]>([]);
 
     const toggleDomain = (domainId: string) => {
@@ -154,8 +156,8 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
         return (
             <EmptyState
                 icon={ShieldAlert}
-                title="Aucun contrôle trouvé"
-                description={filter ? "Aucun contrôle ne correspond à votre recherche." : "Les contrôles n'ont pas été chargés."}
+                title={t('compliance.noControlsFound', { defaultValue: 'Aucun contrôle trouvé' })}
+                description={filter ? t('compliance.noControlsMatchSearch', { defaultValue: 'Aucun contrôle ne correspond à votre recherche.' }) : t('compliance.controlsNotLoaded', { defaultValue: 'Les contrôles n\'ont pas été chargés.' })}
             />
         );
     }
@@ -187,6 +189,8 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                             }}
                             role="button"
                             tabIndex={0}
+                            aria-expanded={!!isExpanded}
+                            aria-label={t('compliance.toggleDomain', { defaultValue: `${domain.id} - ${domain.title}` })}
                             className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-5 flex-1 min-w-0">
@@ -201,7 +205,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                             <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 w-full md:w-auto pl-[4.25rem] md:pl-0">
                                 <div className="w-full md:w-40">
                                     <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-muted-foreground mb-1.5">
-                                        <span>Progression</span>
+                                        <span>{t('compliance.progress', { defaultValue: 'Progression' })}</span>
                                         <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
                                     </div>
                                     <div className="w-full bg-slate-100 dark:bg-slate-800/50 rounded-full h-2 overflow-hidden shadow-inner">
@@ -273,7 +277,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                         <CustomTooltip content="Preuve obligatoire manquante">
                                                             <span className="flex items-center text-warning-text bg-warning-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-warning-border/30">
                                                                 <AlertTriangle className="h-3 w-3 mr-1.5" />
-                                                                Manquante
+                                                                {t('compliance.missing', { defaultValue: 'Manquante' })}
                                                             </span>
                                                         </CustomTooltip>
                                                     ) : null}

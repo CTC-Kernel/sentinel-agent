@@ -18,6 +18,7 @@ import {
   BarChart3,
 } from '../ui/Icons';
 import type { ControlEffectivenessAssessment, DomainScore } from '../../types/ebios';
+import { useLocale } from '@/hooks/useLocale';
 
 interface ControlEffectivenessManagerProps {
   assessments: ControlEffectivenessAssessment[];
@@ -34,6 +35,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
   error,
   onAssessControl
 }) => {
+  const { t } = useLocale();
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
 
   // Group controls by domain
@@ -89,6 +91,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
             <motion.button
               key={domain.id}
               onClick={() => setSelectedDomain(selectedDomain === domain.id ? null : domain.id)}
+              aria-label={`${domain.id} - ${domain.title} - ${t('compliance.maturityLevel', { defaultValue: 'Niveau de maturité' })} ${maturityLevel}`}
               className={cn(
                 "p-4 rounded-2xl border-2 text-left transition-all",
                 selectedDomain === domain.id
@@ -115,7 +118,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
               <p className="text-xs text-slate-500 dark:text-slate-300 mb-3 line-clamp-1">{domain.description}</p>
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">{assessedCount}/{controls.length} évalués</span>
+                <span className="text-slate-500 dark:text-slate-400">{assessedCount}/{controls.length} {t('compliance.assessed', { defaultValue: 'évalués' })}</span>
                 <span className={cn(
                   "font-medium",
                   avgEffectiveness >= 60 ? 'text-emerald-600 dark:text-emerald-400' :
@@ -182,6 +185,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
   assessments,
   onAssessControl
 }) => {
+  const { t } = useLocale();
   const domainInfo = ISO_DOMAINS.find(d => d.id === domain);
 
   const getControlAssessment = (code: string) => {
@@ -197,7 +201,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{domain} - {domainInfo?.title}</h3>
-            <p className="text-sm text-slate-500">{controls.length} contrôles</p>
+            <p className="text-sm text-slate-500">{controls.length} {t('compliance.controls', { defaultValue: 'contrôles' })}</p>
           </div>
         </div>
       </div>
@@ -255,7 +259,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
                   onClick={() => onAssessControl(control)}
                 >
                   <Plus className="w-3 h-3 mr-1" />
-                  Évaluer
+                  {t('compliance.assess', { defaultValue: 'Évaluer' })}
                 </Button>
               )}
             </div>

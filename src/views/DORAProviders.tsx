@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 import { Button } from '../components/ui/button';
@@ -31,6 +32,7 @@ interface DORAProvidersProps {
 
 export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false }) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -104,11 +106,11 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                             <div className="flex items-center gap-3">
                                 <Button
                                     variant="outline"
-                                    onClick={() => window.open('/#/suppliers', '_blank')}
+                                    onClick={() => navigate('/suppliers')}
                                     className="flex items-center"
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Retour Fournisseurs
+                                    {t('dora.providers.backToSuppliers', 'Retour Fournisseurs')}
                                 </Button>
                                 <div>
                                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -171,7 +173,11 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <button
+                        type="button"
+                        onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
+                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
+                    >
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-brand-50 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <Globe className="w-6 h-6 text-brand-600 dark:text-brand-400" />
@@ -181,9 +187,13 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.totalProviders')}</p>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <button
+                        type="button"
+                        onClick={() => { setCategoryFilter('critical'); setComplianceFilter(''); setSearchTerm(''); }}
+                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
+                    >
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-error-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <AlertTriangle className="w-6 h-6 text-error-text" />
@@ -193,9 +203,13 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.criticalProviders')}</p>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <button
+                        type="button"
+                        onClick={() => { setCategoryFilter(''); setComplianceFilter(false); setSearchTerm(''); }}
+                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
+                    >
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-warning-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <FileText className="w-6 h-6 text-warning-text" />
@@ -205,9 +219,13 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.expiringContracts')}</p>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
+                    <button
+                        type="button"
+                        onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
+                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
+                    >
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-info-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
                                 <Shield className="w-6 h-6 text-info-text" />
@@ -219,7 +237,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('dora.stats.nonEuProviders')}</p>
                             </div>
                         </div>
-                    </div>
+                    </button>
                 </div>
 
                 {/* Filters */}

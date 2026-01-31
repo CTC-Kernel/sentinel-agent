@@ -44,6 +44,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
         const file = e.target.files[0];
         setUploadingFindingId(findingId);
         try {
+            // TODO: Implement proper Cloud Storage upload
             const fakeUrl = URL.createObjectURL(file);
             await onUploadEvidence(findingId, fakeUrl, file.name);
         } catch (error) {

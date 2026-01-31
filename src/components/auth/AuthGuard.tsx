@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { PremiumCard } from '../ui/PremiumCard';
 import { MasterpieceBackground } from '../ui/MasterpieceBackground';
-import { AlertCircle, RefreshCw, LogOut, Mail } from 'lucide-react';
+import { AlertCircle, RefreshCw, LogOut, Mail, Send } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingScreen } from '../ui/LoadingScreen';
+import { sendEmailVerification } from 'firebase/auth';
+import { auth } from '../../firebase';
+import { toast } from '../../lib/toast';
 
 interface AuthGuardProps {
     children: React.ReactNode;
@@ -18,6 +21,33 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
     const { user, loading, firebaseUser, error, profileError, claimsSynced, logout } = useAuth();
 
     const location = useLocation();
+
+    // Resend verification email state
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resendLoading, setResendLoading] = useState(false);
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const timer = setInterval(() => {
+            setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [resendCooldown]);
+
+    const handleResendEmail = useCallback(async () => {
+        if (!auth.currentUser || resendCooldown > 0) return;
+        setResendLoading(true);
+        try {
+            await sendEmailVerification(auth.currentUser);
+            toast.success(t('auth.verificationSent') || 'Email de vérification envoyé !');
+            setResendCooldown(60);
+        } catch (err) {
+            toast.error(t('auth.errors.generic') || 'Impossible d\'envoyer l\'email. Réessayez plus tard.');
+            void err;
+        } finally {
+            setResendLoading(false);
+        }
+    }, [resendCooldown, t]);
 
     // Bypass auth in test mode (NEVER in production builds)
     if (!import.meta.env.PROD && (import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true')) {
@@ -63,6 +93,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
                             >
                                 <RefreshCw className="w-4 h-4 mr-2" />
                                 {t('auth.iVerified')}
+                            </button>
+                            <button
+                                onClick={handleResendEmail}
+                                disabled={resendCooldown > 0 || resendLoading}
+                                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-3xl text-sm transition-all shadow-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            >
+                                <Send className="w-4 h-4 mr-2" />
+                                {resendCooldown > 0
+                                    ? `${t('auth.resendEmail') || 'Renvoyer l\'email'} (${resendCooldown}s)`
+                                    : (t('auth.resendEmail') || 'Renvoyer l\'email')}
                             </button>
                             <button
                                 onClick={() => logout()}

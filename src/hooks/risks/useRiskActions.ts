@@ -60,7 +60,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             if (result.success) {
                 toast.success(t('common.riskCreated'));
                 onRefresh();
-                return true;
+                return result.id || true;
             } else {
                 toast.error(result.error || t('common.error'));
                 return false;

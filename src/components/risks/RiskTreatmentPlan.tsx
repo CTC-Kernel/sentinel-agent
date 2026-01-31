@@ -44,6 +44,9 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         return 'On Track';
     };
 
+    // Warning confirmation for accepting critical risks
+    const [showAcceptWarning, setShowAcceptWarning] = useState(false);
+
     // Control search and filter state
     const [controlSearch, setControlSearch] = useState('');
     const [frameworkFilter, setFrameworkFilter] = useState<string>('');
@@ -239,7 +242,15 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                             <select
                                 id="risk-strategy"
                                 value={treatment.strategy}
-                                onChange={(e) => handleChange('strategy', e.target.value)}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === 'Accepter' && risk.score >= 16) {
+                                        setShowAcceptWarning(true);
+                                    } else {
+                                        setShowAcceptWarning(false);
+                                    }
+                                    handleChange('strategy', value);
+                                }}
                                 className="w-full appearance-none rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
                             >
                                 <option value="Atténuer">Atténuer (Réduire)</option>
@@ -249,6 +260,34 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                             </select>
                             <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
                         </div>
+                        {showAcceptWarning && (
+                            <div className="mt-2 p-3 rounded-2xl border border-red-200 dark:border-red-900/40 bg-red-50/80 dark:bg-red-900/20 flex items-start gap-2.5">
+                                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                <div className="space-y-2">
+                                    <p className="text-xs font-bold text-red-700 dark:text-red-400">
+                                        Attention : accepter un risque critique (score {risk.score}) necessite une validation de la direction. Confirmer ?
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => setShowAcceptWarning(false)}
+                                            className="text-xs h-7 px-3 rounded-xl text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30"
+                                        >
+                                            Confirmer l'acceptation
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => { handleChange('strategy', 'Atténuer'); setShowAcceptWarning(false); }}
+                                            className="text-xs h-7 px-3 rounded-xl"
+                                        >
+                                            Annuler
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
 

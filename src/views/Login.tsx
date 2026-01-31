@@ -16,6 +16,7 @@ import { useZodForm } from '../hooks/useZodForm';
 import { loginSchema, registerSchema, resetPasswordSchema, LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schemas/authSchema';
 import { useAuthActions } from '../hooks/useAuthActions';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { toast } from '../lib/toast';
 
 // Google SVG optimized
 const GoogleIcon = () => (
@@ -77,6 +78,15 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
         e.preventDefault();
         await handleMfaVerification(mfaCode);
     };
+
+    // Show session expired message if redirected after timeout
+    useEffect(() => {
+        const expired = sessionStorage.getItem('session_expired');
+        if (expired) {
+            sessionStorage.removeItem('session_expired');
+            toast.info(t('auth.sessionExpired', { defaultValue: 'Votre session a expiré. Veuillez vous reconnecter.' }));
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Clear errors when switching modes (this is safe - clearErrors is from react-hook-form)
     useEffect(() => {
@@ -283,7 +293,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                                         checked={privacyAccepted}
                                                         onChange={(e) => setPrivacyAccepted(e.target.checked)}
                                                         className="peer sr-only"
-                                                        aria-label={t('auth.privacyConsent') || 'Accepter la politique de confidentialité'}
+                                                        aria-label={t('auth.privacyConsent', { defaultValue: 'Accepter la politique de confidentialité' })}
                                                     />
                                                     <div className="w-5 h-5 rounded-md border-2 border-muted peer-checked:border-success peer-checked:bg-success transition-colors flex items-center justify-center">
                                                         {privacyAccepted && (
@@ -297,17 +307,17 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <Shield className="w-4 h-4 text-success" />
                                                         <span className="text-sm font-bold text-success">
-                                                            {t('auth.privacyTitle') || 'Protection de vos données'}
+                                                            {t('auth.privacyTitle', { defaultValue: 'Protection de vos données' })}
                                                         </span>
                                                     </div>
                                                     <p className="text-xs text-muted-foreground leading-relaxed">
-                                                        {t('auth.privacyNotice') || 'En créant un compte, j\'accepte la '}
+                                                        {t('auth.privacyNotice', { defaultValue: 'En créant un compte, j\'accepte la ' })}
                                                         <button
                                                             type="button"
                                                             onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
                                                             className="text-success font-bold hover:underline"
                                                         >
-                                                            {t('auth.footer.privacy') || 'Politique de confidentialité'}
+                                                            {t('auth.footer.privacy', { defaultValue: 'Politique de confidentialité' })}
                                                         </button>
                                                         {' '}et les{' '}
                                                         <button
@@ -315,7 +325,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                                             onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
                                                             className="text-success font-bold hover:underline"
                                                         >
-                                                            {t('auth.footer.terms') || 'CGU'}
+                                                            {t('auth.footer.terms', { defaultValue: 'CGU' })}
                                                         </button>.
                                                     </p>
                                                 </div>

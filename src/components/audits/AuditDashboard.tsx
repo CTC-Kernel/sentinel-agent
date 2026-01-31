@@ -4,6 +4,7 @@ import { Audit, Finding } from '../../types';
 import { CheckCircle2 } from '../ui/Icons';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { staggerContainerVariants } from '../ui/animationVariants';
+import { useStore } from '../../store';
 
 // Sub-components
 import { AuditCharts } from './dashboard/AuditCharts';

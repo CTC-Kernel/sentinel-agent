@@ -26,6 +26,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     const { user } = useStore();
     const { t } = useTranslation();
     const [trend, setTrend] = useState<number | undefined>(undefined);
+    const [trendError, setTrendError] = useState<string | null>(null);
 
     const totalControls = controls.length;
 
@@ -43,6 +44,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 }
             } catch (error) {
                 ErrorLogger.error(error, 'ComplianceDashboard.fetchTrend');
+                setTrendError(t('compliance.dashboard.trendError', 'Impossible de charger la tendance'));
             }
         };
         fetchTrend();
@@ -62,7 +64,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                         {[1, 2, 3].map(i => (
-                            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+                            <Skeleton key={`skeleton-${i}`} className="h-24 w-full rounded-2xl" />
                         ))}
                     </div>
                 </div>
@@ -70,7 +72,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Charts Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="glass-premium p-4 sm:p-6 rounded-3xl h-[350px] border border-border/40">
+                        <div key={`skeleton-${i}`} className="glass-premium p-4 sm:p-6 rounded-3xl h-[350px] border border-border/40">
                             <Skeleton className="h-6 w-48 mb-6" />
                             <Skeleton className="h-full w-full rounded-2xl" />
                         </div>
@@ -97,6 +99,13 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
     return (
         <div className="space-y-6 w-full min-w-0">
+            {/* Trend Error Banner */}
+            {trendError && (
+                <div className="p-3 rounded-2xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
+                    <span>{trendError}</span>
+                </div>
+            )}
+
             {/* Summary Card */}
             <ComplianceScoreCard
                 controls={controls}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Menu, Transition } from '@headlessui/react';
@@ -83,6 +83,7 @@ export const Suppliers: React.FC = () => {
 
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const pendingSelectId = useRef<string | null>(null);
 
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isExportingDORA, setIsExportingDORA] = useState(false);
@@ -169,6 +170,16 @@ export const Suppliers: React.FC = () => {
         }
     }, [selectedSupplier, deepLinkSupplierId, setSearchParams, loadingSuppliers]);
 
+    // Auto-open inspector on newly created supplier
+    useEffect(() => {
+        if (!pendingSelectId.current || loadingSuppliers) return;
+        const created = suppliersRaw.find(s => s.id === pendingSelectId.current);
+        if (created) {
+            pendingSelectId.current = null;
+            setSelectedSupplier(created);
+        }
+    }, [suppliersRaw, loadingSuppliers]);
+
     // Filtering & Memoization
     const filteredSuppliers = useMemo(() => {
         if (!suppliersRaw) return [];
@@ -206,7 +217,10 @@ export const Suppliers: React.FC = () => {
     const handleCreate = useCallback(async (data: SupplierFormData) => {
         setIsSubmitting(true);
         try {
-            await addSupplier(data); // Assuming addSupplier takes SupplierFormData (checked hook, it takes Partial<Supplier>)
+            const newId = await addSupplier(data); // Assuming addSupplier takes SupplierFormData (checked hook, it takes Partial<Supplier>)
+            if (newId) {
+                pendingSelectId.current = newId;
+            }
             setCreationMode(false);
             setActiveTab('suppliers');
         } finally {

@@ -8,9 +8,10 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
 import { Drawer } from '../ui/Drawer';
 import { Button } from '../ui/button';
-import { Mail, Link, ShieldCheck, Loader2, Copy, Building } from '../ui/Icons';
+import { Mail, Link, ShieldCheck, Loader2, Copy, Building, CheckCircle } from '../ui/Icons';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
+import { useStore } from '../../store';
 
 interface ShareAuditDrawerProps {
     isOpen: boolean;
@@ -28,8 +29,10 @@ const shareSchema = z.object({
 type ShareFormData = z.infer<typeof shareSchema>;
 
 export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onClose, auditId, auditName }) => {
+    const { t } = useStore();
     const [isLoading, setIsLoading] = useState(false);
     const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
     const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<ShareFormData>({
         resolver: zodResolver(shareSchema),
@@ -50,7 +53,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
             if (response.success) {
                 const baseUrl = window.location.origin + '/#';
                 setGeneratedLink(`${baseUrl}${response.link}`);
-                toast.success('Lien généré avec succès');
+                toast.success(t('audits.share.linkGenerated', { defaultValue: 'Lien généré avec succès' }));
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ShareAuditDrawer.generate', 'LINK_GEN_FAILED');
@@ -62,7 +65,9 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
     const copyLink = () => {
         if (generatedLink) {
             navigator.clipboard.writeText(generatedLink);
-            toast.success('Lien copié !');
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+            toast.success(t('common.linkCopied', { defaultValue: 'Lien copié !' }));
         }
     };
 
@@ -83,7 +88,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
         <Drawer
             isOpen={isOpen}
             onClose={handleClose}
-            title="Partager l'audit"
+            title={t('audits.share.title', { defaultValue: "Partager l'audit" })}
             subtitle={auditName}
             width="max-w-md"
         >
@@ -95,45 +100,51 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-semibold text-brand-900 dark:text-brand-100 mb-1">Accès Auditeur Externe</h4>
+                                <h4 className="text-sm font-semibold text-brand-900 dark:text-brand-100 mb-1">{t('audits.share.externalAccess', { defaultValue: 'Accès Auditeur Externe' })}</h4>
                                 <p className="text-sm text-brand-700 dark:text-brand-400 leading-relaxed">
-                                    Invitez un auditeur externe ou un organisme de certification à accéder à cet audit via un portail sécurisé.
+                                    {t('audits.share.externalAccessDesc', { defaultValue: 'Invitez un auditeur externe ou un organisme de certification à accéder à cet audit via un portail sécurisé.' })}
                                 </p>
                             </div>
                         </div>
 
-                        <FloatingLabelInput
-                            label="Email de l'auditeur"
-                            {...register('email')}
-                            error={errors.email?.message}
-                            icon={Mail}
-                            placeholder="auditeur@certif.com"
-                        />
+                        <div>
+                            <FloatingLabelInput
+                                label={t('audits.share.auditorEmail', { defaultValue: "Email de l'auditeur" })}
+                                {...register('email')}
+                                error={errors.email?.message}
+                                icon={Mail}
+                                placeholder="auditeur@certif.com"
+                            />
+                            {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>}
+                        </div>
 
-                        <FloatingLabelInput
-                            label="Organisation"
-                            {...register('organization')}
-                            error={errors.organization?.message}
-                            icon={Building}
-                            placeholder="Ex: Bureau Veritas"
-                        />
+                        <div>
+                            <FloatingLabelInput
+                                label={t('audits.share.organization', { defaultValue: 'Organisation' })}
+                                {...register('organization')}
+                                error={errors.organization?.message}
+                                icon={Building}
+                                placeholder="Ex: Bureau Veritas"
+                            />
+                            {errors.organization && <span className="text-red-500 text-xs mt-1">{errors.organization.message}</span>}
+                        </div>
 
                         <div className="space-y-2">
                             <CustomSelect
                                 options={expiryOptions}
                                 value={String(watch('expiryDays'))}
                                 onChange={(val) => setValue('expiryDays', Number(val))}
-                                label="Durée d'accès"
+                                label={t('audits.share.accessDuration', { defaultValue: "Durée d'accès" })}
                             />
                         </div>
 
                         <div className="pt-4 flex justify-end gap-3">
                             <Button type="button" variant="outline" onClick={handleClose}>
-                                Annuler
+                                {t('common.cancel', { defaultValue: 'Annuler' })}
                             </Button>
                             <Button type="submit" disabled={isLoading} className="bg-brand-600 hover:bg-brand-700 text-white">
                                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Link className="w-4 h-4 mr-2" />}
-                                Générer le lien
+                                {t('audits.share.generateLink', { defaultValue: 'Générer le lien' })}
                             </Button>
                         </div>
                     </form>
@@ -143,9 +154,9 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
                             <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 dark:bg-emerald-800 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 dark:text-emerald-300 shadow-sm">
                                 <ShieldCheck className="w-8 h-8" />
                             </div>
-                            <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100 mb-2">Accès sécurisé généré !</h3>
+                            <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100 mb-2">{t('audits.share.accessGenerated', { defaultValue: 'Accès sécurisé généré !' })}</h3>
                             <p className="text-sm text-emerald-700 dark:text-emerald-400">
-                                Un lien unique a été créé. Partagez-le avec votre auditeur.<br />Ce lien expirera automatiquement dans {watch('expiryDays')} jours.
+                                {t('audits.share.accessGeneratedDesc', { defaultValue: `Un lien unique a été créé. Partagez-le avec votre auditeur. Ce lien expirera automatiquement dans ${watch('expiryDays')} jours.`, days: watch('expiryDays') })}
                             </p>
                         </div>
 
@@ -158,14 +169,14 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
                                     </p>
                                 </div>
                                 <Button size="sm" onClick={copyLink} className="shrink-0 bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 gap-2">
-                                    <Copy className="w-4 h-4" />
-                                    Copier
+                                    {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                                    {copied ? t('common.copied', { defaultValue: 'Copié !' }) : t('common.copy', { defaultValue: 'Copier' })}
                                 </Button>
                             </div>
                         </div>
 
                         <Button onClick={handleClose} variant="outline" className="w-full">
-                            Fermer
+                            {t('common.close', { defaultValue: 'Fermer' })}
                         </Button>
                     </div>
                 )}

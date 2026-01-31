@@ -131,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const intervalId = setInterval(() => {
             if (Date.now() - lastActivityRef.current > IDLE_TIMEOUT) {
                 ErrorLogger.info('Session timed out due to inactivity', 'AuthContext.sessionTimeout');
+                sessionStorage.setItem('session_expired', 'true');
                 logout();
             }
         }, CHECK_INTERVAL);

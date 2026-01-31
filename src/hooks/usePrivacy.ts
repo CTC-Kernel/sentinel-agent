@@ -7,7 +7,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { PrivacyService } from '../services/PrivacyService';
 
 export function usePrivacy() {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
 
     // Data State
     const [activities, setActivities] = useState<ProcessingActivity[]>([]);
@@ -141,7 +141,7 @@ export function usePrivacy() {
                 updatedAt: ''
             };
             await PrivacyService.createActivity(newActivity, user);
-            addToast("Traitement ajouté", "success");
+            addToast(t('privacy.toast.activityCreated', { defaultValue: 'Traitement ajouté' }), "success");
             setShowCreateModal(false);
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.create');
@@ -153,7 +153,7 @@ export function usePrivacy() {
         try {
             await PrivacyService.updateActivity(selectedActivity.id, data, user);
             setIsEditing(false);
-            addToast("Traitement mis à jour", "success");
+            addToast(t('privacy.toast.activityUpdated', { defaultValue: 'Traitement mis à jour' }), "success");
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.update');
         }
@@ -164,7 +164,7 @@ export function usePrivacy() {
         try {
             await PrivacyService.deleteActivity(id, name, user);
             if (selectedActivity?.id === id) setSelectedActivity(null);
-            addToast("Traitement supprimé", "success");
+            addToast(t('privacy.toast.activityDeleted', { defaultValue: 'Traitement supprimé' }), "success");
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.delete');
         }
@@ -211,9 +211,9 @@ export function usePrivacy() {
             if (toImport.length > 0) {
                 try {
                     await PrivacyService.importActivities(toImport, user);
-                    addToast(`${toImport.length} traitements importés`, "success");
+                    addToast(t('privacy.toast.activitiesImported', { defaultValue: `${toImport.length} traitements importés`, count: toImport.length }), "success");
                 } catch {
-                    addToast("Erreur import CSV", "error");
+                    addToast(t('privacy.toast.importError', { defaultValue: 'Erreur import CSV' }), "error");
                 }
             }
         };
@@ -224,7 +224,7 @@ export function usePrivacy() {
         if (!user) return;
         try {
             const responseId = await PrivacyService.startDPIA(activity, user);
-            addToast("Dossier DPIA créé", "success");
+            addToast(t('privacy.toast.dpiaCreated', { defaultValue: 'Dossier DPIA créé' }), "success");
             setViewingAssessmentId(responseId);
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.startDPIA');

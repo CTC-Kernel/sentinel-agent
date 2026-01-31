@@ -7,8 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { Tooltip } from '../ui/Tooltip';
+import { useLocale } from '../../hooks/useLocale';
 
 export const NotificationCenter: React.FC = () => {
+    const { t } = useLocale();
     const {
         notifications,
         unreadCount,
@@ -58,7 +60,7 @@ export const NotificationCenter: React.FC = () => {
                         <div className="p-4 border-b border-border/40 dark:border-border/40 flex items-center justify-between bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 shrink-0">
                             <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
                             <div className="flex gap-2">
-                                <Tooltip content={filter === 'unread' ? 'Afficher tout' : 'Filtrer les non-lus'}>
+                                <Tooltip content={filter === 'unread' ? t('notifications.showAll', { defaultValue: 'Afficher tout' }) : t('notifications.filterUnread', { defaultValue: 'Filtrer les non-lus' })}>
                                     <button
                                         onClick={() => setFilter(f => f === 'all' ? 'unread' : 'all')}
                                         className={cn(
@@ -69,7 +71,7 @@ export const NotificationCenter: React.FC = () => {
                                         )}
                                     >
                                         <Filter className="h-3.5 w-3.5" />
-                                        {filter === 'unread' ? 'Non-lus' : 'Tout'}
+                                        {filter === 'unread' ? t('notifications.unreadLabel', { defaultValue: 'Non-lus' }) : t('notifications.allLabel', { defaultValue: 'Tout' })}
                                     </button>
                                 </Tooltip>
                                 <Tooltip content="Tout marquer comme lu">
@@ -86,7 +88,7 @@ export const NotificationCenter: React.FC = () => {
                         {/* Content */}
                         <div className="overflow-y-auto flex-1 p-2 min-h-[200px] sm:min-h-[300px]">
                             {loading ? (
-                                <div className="flex items-center justify-center h-48 space-x-2">
+                                <div className="flex items-center justify-center h-48 space-x-2" aria-live="polite" aria-label={t('common.loading', { defaultValue: 'Chargement en cours' })}>
                                     <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                                     <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                                     <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce"></div>
@@ -98,7 +100,7 @@ export const NotificationCenter: React.FC = () => {
                                     </div>
                                     <p className="text-slate-900 dark:text-white font-medium mb-1">Aucune notification</p>
                                     <p className="text-xs text-slate-500 dark:text-slate-300 max-w-[200px]">
-                                        {filter === 'unread' ? "Vous êtes à jour ! Tout a été lu." : "C'est calme par ici..."}
+                                        {filter === 'unread' ? t('notifications.allRead', { defaultValue: "Vous êtes à jour ! Tout a été lu." }) : t('notifications.noNotifications', { defaultValue: "C'est calme par ici..." })}
                                     </p>
                                 </div>
                             ) : (

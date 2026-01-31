@@ -123,7 +123,7 @@ export const Notifications: React.FC = () => {
                                         <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1 leading-relaxed">
                                             {notif.message}
                                         </p>
-                                        {notif.link && (
+                                        {notif.link && notif.link.startsWith('/') && (
                                             <a
                                                 href={notif.link}
                                                 className="inline-flex items-center mt-3 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline group/link"

@@ -214,6 +214,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
             }
             refreshAudits();
             addToast("Audit planifié et notifié", "success");
+            return docRef.id;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAudits.handleCreateAudit', 'CREATE_FAILED');
             throw error;

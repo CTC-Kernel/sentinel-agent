@@ -53,7 +53,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
         if (!request?.id || !user) return;
         setIsHolding(true);
         try {
-            await PrivacyService.updateRequest(request.id, { status: 'On Hold' as string }, user as UserProfile);
+            await PrivacyService.updateRequest(request.id, { status: 'On Hold' }, user as UserProfile);
             toast.success('Demande mise en attente');
             onRequestUpdated?.({ ...request, status: 'On Hold' });
         } catch {

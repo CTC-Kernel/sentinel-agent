@@ -13,6 +13,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { toast } from '@/lib/toast';
+import { useLocale } from '../../hooks/useLocale';
 import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
 interface DocumentFormProps {
@@ -47,11 +48,12 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     onDirtyChange
 }) => {
     const { addToast } = useStore();
+    const { t } = useLocale();
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string>(initialData?.url || '');
     const [uploadedFileHash, setUploadedFileHash] = useState<string>(initialData?.hash || '');
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(initialData?.isSecure || false);
 
-    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors, isDirty } } = useZodForm<typeof documentSchema>({
+    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors, isDirty, isSubmitting } } = useZodForm<typeof documentSchema>({
         schema: documentSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -93,7 +95,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
 
     const onInvalid = (errors: FieldErrors<DocumentFormData>) => {
         const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        toast.error(t('documents.form.invalid', { defaultValue: 'Formulaire invalide' }) + `. ${t('documents.form.fieldsInError', { defaultValue: 'Champs en erreur' })} : ${missingFields}`);
     };
 
     const folderId = useWatch({ control, name: 'folderId' });
@@ -405,7 +407,8 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 </Button>
                 <Button
                     type="submit"
-                    isLoading={isLoading}
+                    isLoading={isLoading || isSubmitting}
+                    disabled={isLoading || isSubmitting}
                     className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-primary/20 font-bold"
                 >
                     {initialData ? 'Enregistrer' : 'Créer'}

@@ -7,6 +7,7 @@ import { Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../../ty
 import { ShieldAlert } from '../ui/Icons';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { useStore } from '../../store';
+import { useLocale } from '../../hooks/useLocale';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/button';
@@ -42,6 +43,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     onDirtyChange
 }) => {
     const { addToast } = useStore();
+    const { t } = useLocale();
     const { register, handleSubmit, setValue, control, getValues, watch, reset, formState: { errors, isDirty } } = useZodForm<typeof incidentSchema>({
         schema: incidentSchema,
         mode: 'onChange',
@@ -83,7 +85,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
 
     const onInvalid = (fieldErrors: FieldErrors<IncidentFormData>) => {
         const missingFields = Object.keys(fieldErrors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        toast.error(t('incidents.form.invalid', { defaultValue: 'Formulaire invalide' }) + `. ${t('incidents.form.fieldsInError', { defaultValue: 'Champs en erreur' })} : ${missingFields}`);
         scrollToFirstError(fieldErrors);
     };
 
@@ -105,7 +107,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
         const relatedProcesses = processes.filter(p => p.supportingAssetIds?.includes(affectedAssetId));
         if (relatedProcesses.length === 1) {
             setValue('affectedProcessId', relatedProcesses[0].id, { shouldDirty: true });
-            addToast(`Processus lié suggéré : ${relatedProcesses[0].name}`, 'info');
+            addToast(t('incidents.form.suggestedProcess', { defaultValue: 'Processus li\u00e9 sugg\u00e9r\u00e9' }) + ` : ${relatedProcesses[0].name}`, 'info');
         }
     }, [affectedAssetId, processes, setValue, getValues, addToast]);
 

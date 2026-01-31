@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 // React Router imports removed as handled by hooks
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -50,6 +50,7 @@ export const Audits: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
+    const pendingSelectId = useRef<string | null>(null);
 
     // Optimized Data Fetching
     const needsDependencies = creationMode || !!editingAudit || !!selectedAudit;
@@ -90,6 +91,16 @@ export const Audits: React.FC = () => {
             setCreationMode(true);
         }
     });
+
+    // Auto-open inspector on newly created audit
+    React.useEffect(() => {
+        if (!pendingSelectId.current || loading) return;
+        const created = audits.find(a => a.id === pendingSelectId.current);
+        if (created) {
+            pendingSelectId.current = null;
+            setSelectedAudit(created);
+        }
+    }, [audits, loading]);
 
     const tabs = [
         { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },
@@ -163,7 +174,10 @@ export const Audits: React.FC = () => {
         if (editingAudit) {
             await handleUpdateAudit(editingAudit.id, data);
         } else {
-            await handleCreateAudit(data);
+            const newId = await handleCreateAudit(data);
+            if (newId) {
+                pendingSelectId.current = newId;
+            }
         }
         setCreationMode(false);
         setEditingAudit(null);

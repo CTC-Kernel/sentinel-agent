@@ -25,7 +25,7 @@ export interface PrivacyRequest {
     requestType: 'Access' | 'Deletion' | 'Rectification' | 'Portability' | 'Restriction' | 'Objection';
     dataSubject: string; // Name of the person
     email: string;
-    status: 'New' | 'Verifying' | 'Processing' | 'Review' | 'Completed' | 'Rejected';
+    status: 'New' | 'Verifying' | 'Processing' | 'Review' | 'Completed' | 'Rejected' | 'On Hold';
     submissionDate: string;
     dueDate: string;
     priority: 'Low' | 'Medium' | 'High';

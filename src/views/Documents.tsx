@@ -72,7 +72,7 @@ const DocumentGridSkeleton = ({ count = 6 }) => (
 );
 
 export const Documents: React.FC = () => {
-    const { t } = useStore();
+    const { t, addToast } = useStore();
     const { user, claimsSynced, loading: authLoading } = useAuth();
     const { users: usersList } = useTeamManagement(claimsSynced);
     const location = useLocation();
@@ -183,7 +183,6 @@ export const Documents: React.FC = () => {
 
     // --- Effects ---
     // URL Params for Deep Linking
-    // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkDocId = searchParams.get('id');
     const deepLinkAction = searchParams.get('action');
@@ -260,13 +259,28 @@ export const Documents: React.FC = () => {
     }), [documents, deferredFilter, selectedFolderId, categoryFilter, isDigitalSafeMode]);
 
     // --- Handlers (Moved here to access filteredDocuments) ---
-    const handleDeleteFolderClick = React.useCallback(async (id: string) => {
-        await handleDeleteFolder(id, folders, documents, selectedFolderId, setSelectedFolderId);
-    }, [handleDeleteFolder, folders, documents, selectedFolderId]);
+    const handleDeleteFolderClick = React.useCallback((id: string) => {
+        setConfirmData({
+            isOpen: true,
+            title: t('documents.deleteFolderTitle', { defaultValue: 'Supprimer le dossier' }),
+            message: t('documents.deleteFolderMessage', { defaultValue: 'Voulez-vous vraiment supprimer ce dossier ? Les documents qu\'il contient seront déplacés à la racine.' }),
+            onConfirm: async () => {
+                setConfirmData(prev => ({ ...prev, loading: true }));
+                try {
+                    await handleDeleteFolder(id, folders, documents, selectedFolderId, setSelectedFolderId);
+                } finally {
+                    setConfirmData(prev => ({ ...prev, isOpen: false, loading: false }));
+                }
+            },
+            closeOnConfirm: false,
+            loading: false
+        });
+    }, [handleDeleteFolder, folders, documents, selectedFolderId, setConfirmData, t]);
 
     const handleExportClick = React.useCallback(() => {
         handleExportCSV(filteredDocuments);
-    }, [handleExportCSV, filteredDocuments]);
+        addToast(t('documents.exportSuccess', { defaultValue: 'Documents export\u00e9s avec succ\u00e8s' }), 'success');
+    }, [handleExportCSV, filteredDocuments, addToast, t]);
 
     const handleDigitalSafeToggle = React.useCallback(() => {
         setIsDigitalSafeMode(prev => !prev);

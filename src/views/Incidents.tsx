@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { cn } from '../lib/utils';
 
 import { Menu, Transition } from '@headlessui/react';
@@ -75,6 +75,7 @@ export const Incidents: React.FC = () => {
     const [severityFilter, setSeverityFilter] = useState('');
     const [activeTab, setActiveTab] = usePersistedState<string>('incidents-active-tab', 'overview');
     const [isFormDirty, setIsFormDirty] = useState(false);
+    const pendingSelectId = useRef<string | null>(null);
 
     // Optimized Data Hooks
     const {
@@ -154,10 +155,23 @@ export const Incidents: React.FC = () => {
 
     const handleImportCsvFile = React.useCallback(async (file: File) => {
         if (!file) return;
+        // File size check to prevent UI freeze (max 5MB / ~50k rows)
+        const MAX_CSV_SIZE = 5 * 1024 * 1024;
+        if (file.size > MAX_CSV_SIZE) {
+            const { addToast } = useStore.getState();
+            addToast(t('incidents.csvTooLarge', { defaultValue: 'Le fichier CSV est trop volumineux (max 5 Mo). Veuillez r\u00e9duire le nombre de lignes.' }), 'error');
+            return;
+        }
         const text = await file.text();
+        const lineCount = text.split('\n').filter(l => l.trim()).length;
+        if (lineCount > 10000) {
+            const { addToast } = useStore.getState();
+            addToast(t('incidents.csvTooManyRows', { defaultValue: 'Le fichier contient trop de lignes (max 10 000). Veuillez le d\u00e9couper.' }), 'error');
+            return;
+        }
         await importIncidents(text);
         setCsvImportOpen(false);
-    }, [importIncidents]);
+    }, [importIncidents, t]);
 
     const { exportCSV } = useIncidentExport();
     const handleExportCSV = useCallback(() => exportCSV(incidents), [exportCSV, incidents]);
@@ -221,6 +235,16 @@ export const Incidents: React.FC = () => {
         }
     }, [selectedIncident, deepLinkIncidentId, setSearchParams, loading]);
 
+    // Auto-open inspector on newly created incident
+    useEffect(() => {
+        if (!pendingSelectId.current || loading) return;
+        const created = sortedIncidents.find(i => i.id === pendingSelectId.current);
+        if (created) {
+            pendingSelectId.current = null;
+            setSelectedIncident(created);
+        }
+    }, [sortedIncidents, loading]);
+
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
@@ -236,7 +260,10 @@ export const Incidents: React.FC = () => {
         if (!user?.organizationId || (!canEditResource(user, 'Incident') && !hasPermission(user, 'Incident', 'create'))) return;
         setIsSubmitting(true);
         try {
-            await addIncident(data);
+            const newId = await addIncident(data);
+            if (newId) {
+                pendingSelectId.current = newId;
+            }
             setIsFormDirty(false);
             setCreationMode(false);
         } catch (error) {

@@ -32,6 +32,7 @@ export const OrganizationSettings: React.FC = () => {
     const [subLoading, setSubLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [updatingUserIds, setUpdatingUserIds] = useState<Set<string>>(new Set());
+    const [updateError, setUpdateError] = useState<string | null>(null);
 
     // Transfer Modal
     const [confirmTransferData, setConfirmTransferData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
@@ -83,6 +84,7 @@ export const OrganizationSettings: React.FC = () => {
         if (!hasPermission(user, 'Settings', 'manage') || !user?.organizationId) return;
 
         setSavingOrg(true);
+        setUpdateError(null);
         try {
             await updateOrganization(sanitizeData({
                 name: data.orgName,
@@ -106,6 +108,8 @@ export const OrganizationSettings: React.FC = () => {
             await logAction(user, 'UPDATE', 'Organization', `Mise à jour organisation: ${data.orgName}`);
             addToast(t('settings.orgUpdated'), "success");
         } catch (_e) {
+            const errorMessage = _e instanceof Error ? _e.message : t('settings.errors.updateFailed', { defaultValue: 'La mise à jour a échoué. Veuillez réessayer.' });
+            setUpdateError(errorMessage);
             ErrorLogger.handleErrorWithToast(_e, 'OrganizationSettings.handleUpdateOrg', 'UPDATE_FAILED');
         } finally {
             setSavingOrg(false);
@@ -315,6 +319,12 @@ export const OrganizationSettings: React.FC = () => {
 
                     <div className="relative z-10 p-6">
                         <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-6">
+                            {updateError && (
+                                <div className="bg-error-bg border border-error-border/40 rounded-2xl p-4 flex items-center gap-3">
+                                    <span className="text-error-text text-sm font-medium">{updateError}</span>
+                                    <button type="button" onClick={() => setUpdateError(null)} className="ml-auto text-error-text hover:opacity-70 transition-opacity text-xs font-bold">&times;</button>
+                                </div>
+                            )}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <FloatingLabelInput
                                     label={t('settings.orgName')}

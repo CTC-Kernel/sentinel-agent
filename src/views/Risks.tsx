@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { LayoutDashboard, List, Grid3x3, Target, Scale, Calculator, Siren } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
@@ -67,6 +67,7 @@ export const Risks: React.FC = () => {
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
     const [isFormDirty, setIsFormDirty] = useState(false);
+    const pendingSelectId = useRef<string | null>(null);
 
     // 2. Dependency Fetches (Lazy Loading)
     const shouldFetchDetails = creationMode || !!editingRisk || !!selectedRisk;
@@ -187,6 +188,16 @@ export const Risks: React.FC = () => {
         }
     });
 
+    // Auto-open inspector on newly created risk
+    useEffect(() => {
+        if (!pendingSelectId.current || loading) return;
+        const created = risks.find(r => r.id === pendingSelectId.current);
+        if (created) {
+            pendingSelectId.current = null;
+            setSelectedRisk(created);
+        }
+    }, [risks, loading]);
+
     useEffect(() => {
         const state = location.state as { createForAsset?: string; assetName?: string } | null;
         if (state?.createForAsset && !creationMode) {
@@ -239,7 +250,10 @@ export const Risks: React.FC = () => {
         if (editingRisk) {
             await updateRisk(editingRisk.id, cleanedData, editingRisk);
         } else {
-            await createRisk(cleanedData as Risk);
+            const result = await createRisk(cleanedData as Risk);
+            if (typeof result === 'string') {
+                pendingSelectId.current = result;
+            }
         }
         setIsFormDirty(false);
         setCreationMode(false);

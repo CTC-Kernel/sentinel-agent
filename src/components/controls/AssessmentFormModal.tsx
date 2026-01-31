@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { PremiumCard } from '../ui/PremiumCard';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
@@ -11,6 +12,9 @@ import {
     X,
     Save,
     Calendar,
+    AlertTriangle,
+    CheckCircle,
+    ArrowRight,
 } from '../ui/Icons';
 
 const ASSESSMENT_METHODS = [
@@ -43,6 +47,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     onSubmit
 }) => {
     const { t } = useStore();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         controlCode: control?.code || '',
         effectivenessScore: 50,
@@ -51,6 +56,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
         nextAssessmentDate: ''
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [submittedScore, setSubmittedScore] = useState<number | null>(null);
 
     // Accessibility: Handle keyboard escape to close modal
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -78,10 +84,27 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                 notes: formData.notes || undefined,
                 nextAssessmentDate: formData.nextAssessmentDate || undefined
             });
+            setSubmittedScore(formData.effectivenessScore);
         } finally {
             setIsSaving(false);
         }
     };
+
+    // Find next control in the list for "assess next" flow
+    const getNextControl = useCallback(() => {
+        if (!formData.controlCode || controls.length === 0) return null;
+        const currentIndex = controls.findIndex(c => c.code === formData.controlCode);
+        if (currentIndex === -1 || currentIndex >= controls.length - 1) return null;
+        return controls[currentIndex + 1];
+    }, [formData.controlCode, controls]);
+
+    const handleAssessNext = useCallback(() => {
+        const next = getNextControl();
+        if (next) {
+            setFormData(prev => ({ ...prev, controlCode: next.code, effectivenessScore: 50, notes: '', nextAssessmentDate: '' }));
+            setSubmittedScore(null);
+        }
+    }, [getNextControl]);
 
     return (
         <motion.div
@@ -123,6 +146,68 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                         </button>
                     </div>
 
+                    {submittedScore !== null ? (
+                        <div className="space-y-5">
+                            {submittedScore < 60 ? (
+                                /* Non-compliant / partially compliant follow-up */
+                                <div className="p-5 rounded-3xl border border-warning-border bg-warning-bg/30 space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 rounded-2xl bg-warning-bg">
+                                            <AlertTriangle className="w-5 h-5 text-warning-text" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                                                {t('compliance.assessment.nonCompliantTitle') || 'Non-conformite detectee'}
+                                            </h4>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                                Voulez-vous creer un plan d'action pour corriger cette non-conformite ?
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Button
+                                            onClick={() => { navigate('/action-plans?from=assessment&control=' + encodeURIComponent(formData.controlCode)); onClose(); }}
+                                            className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20 flex-1"
+                                        >
+                                            <ArrowRight className="w-4 h-4 mr-2" />
+                                            {t('compliance.assessment.createActionPlan') || 'Creer un plan d\'action'}
+                                        </Button>
+                                        <Button variant="ghost" onClick={onClose} className="rounded-2xl">
+                                            {t('common.close') || 'Fermer'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Compliant success follow-up */
+                                <div className="p-5 rounded-3xl border border-green-200 dark:border-green-900/40 bg-green-50/30 dark:bg-green-900/10 space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 rounded-2xl bg-success-bg">
+                                            <CheckCircle className="w-5 h-5 text-success-text" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                                                {t('compliance.assessment.compliantTitle') || 'Evaluation enregistree'}
+                                            </h4>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                                {t('compliance.assessment.compliantMessage') || 'Le controle est conforme. Evaluation sauvegardee avec succes.'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        {getNextControl() && (
+                                            <Button onClick={handleAssessNext} className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20 flex-1">
+                                                <ArrowRight className="w-4 h-4 mr-2" />
+                                                {t('compliance.assessment.assessNext') || 'Evaluer le controle suivant'}
+                                            </Button>
+                                        )}
+                                        <Button variant="ghost" onClick={onClose} className="rounded-2xl">
+                                            {t('common.close') || 'Fermer'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Control Selection */}
                         <div>
@@ -235,6 +320,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             </Button>
                         </div>
                     </form>
+                    )}
                 </PremiumCard>
             </motion.div>
         </motion.div>

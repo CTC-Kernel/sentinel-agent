@@ -144,26 +144,26 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     // Salutation intelligente basée sur l'heure
     const getGreeting = () => {
         const hour = currentTime.getHours();
-        if (hour >= 5 && hour < 12) return t('dashboard.greetingMorning') || 'Bonjour';
-        if (hour >= 12 && hour < 18) return t('dashboard.greetingAfternoon') || 'Bon après-midi';
-        if (hour >= 18 && hour < 22) return t('dashboard.greetingEvening') || 'Bonsoir';
-        return t('dashboard.greetingNight') || 'Bonne nuit';
+        if (hour >= 5 && hour < 12) return t('dashboard.greetingMorning', { defaultValue: 'Bonjour' });
+        if (hour >= 12 && hour < 18) return t('dashboard.greetingAfternoon', { defaultValue: 'Bon après-midi' });
+        if (hour >= 18 && hour < 22) return t('dashboard.greetingEvening', { defaultValue: 'Bonsoir' });
+        return t('dashboard.greetingNight', { defaultValue: 'Bonne nuit' });
     };
 
     // Conseils sécurité du jour (rotatif basé sur le jour de l'année)
     const securityTips = [
-        { tip: "Activez l'authentification à deux facteurs sur tous vos comptes critiques.", icon: "shield" },
-        { tip: "Vérifiez régulièrement les accès et permissions de vos utilisateurs.", icon: "users" },
-        { tip: "Sauvegardez vos données sensibles et testez vos restaurations.", icon: "database" },
-        { tip: "Mettez à jour vos systèmes dès qu'un correctif de sécurité est disponible.", icon: "refresh" },
-        { tip: "Formez vos équipes à reconnaître les tentatives de phishing.", icon: "mail" },
-        { tip: "Documentez vos procédures de réponse aux incidents.", icon: "file" },
-        { tip: "Auditez vos logs de sécurité au moins une fois par semaine.", icon: "search" },
-        { tip: "Chiffrez les données sensibles au repos et en transit.", icon: "lock" },
-        { tip: "Testez régulièrement vos plans de continuité d'activité.", icon: "activity" },
-        { tip: "Limitez les privilèges administrateurs au strict nécessaire.", icon: "key" },
-        { tip: "Surveillez les comportements anormaux sur votre réseau.", icon: "eye" },
-        { tip: "Effectuez des tests de pénétration au moins une fois par an.", icon: "target" },
+        { tip: t('dashboard.securityTips.0', { defaultValue: "Activez l'authentification à deux facteurs sur tous vos comptes critiques." }), icon: "shield" },
+        { tip: t('dashboard.securityTips.1', { defaultValue: "Vérifiez régulièrement les accès et permissions de vos utilisateurs." }), icon: "users" },
+        { tip: t('dashboard.securityTips.2', { defaultValue: "Sauvegardez vos données sensibles et testez vos restaurations." }), icon: "database" },
+        { tip: t('dashboard.securityTips.3', { defaultValue: "Mettez à jour vos systèmes dès qu'un correctif de sécurité est disponible." }), icon: "refresh" },
+        { tip: t('dashboard.securityTips.4', { defaultValue: "Formez vos équipes à reconnaître les tentatives de phishing." }), icon: "mail" },
+        { tip: t('dashboard.securityTips.5', { defaultValue: "Documentez vos procédures de réponse aux incidents." }), icon: "file" },
+        { tip: t('dashboard.securityTips.6', { defaultValue: "Auditez vos logs de sécurité au moins une fois par semaine." }), icon: "search" },
+        { tip: t('dashboard.securityTips.7', { defaultValue: "Chiffrez les données sensibles au repos et en transit." }), icon: "lock" },
+        { tip: t('dashboard.securityTips.8', { defaultValue: "Testez régulièrement vos plans de continuité d'activité." }), icon: "activity" },
+        { tip: t('dashboard.securityTips.9', { defaultValue: "Limitez les privilèges administrateurs au strict nécessaire." }), icon: "key" },
+        { tip: t('dashboard.securityTips.10', { defaultValue: "Surveillez les comportements anormaux sur votre réseau." }), icon: "eye" },
+        { tip: t('dashboard.securityTips.11', { defaultValue: "Effectuez des tests de pénétration au moins une fois par an." }), icon: "target" },
     ];
     const dayOfYear = Math.floor((currentTime.getTime() - new Date(currentTime.getFullYear(), 0, 0).getTime()) / 86400000);
     const todayTip = securityTips[dayOfYear % securityTips.length];
@@ -221,7 +221,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     <div className="mb-4">
                         {/* Welcome Text with Shiny Effect */}
                         <h2 className="text-2xl sm:text-3xl font-bold font-display text-foreground tracking-tight mb-3">
-                            {t(welcomeKey).split(',')[0]}, <ShinyText speed={3} className="text-foreground">{user?.displayName || 'Utilisateur'}</ShinyText>
+                            {t(welcomeKey).split(',')[0]}, <ShinyText speed={3} className="text-foreground">{user?.displayName || t('common.user', { defaultValue: 'Utilisateur' })}</ShinyText>
                         </h2>
                         <p className="text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed">
                             {t(subtitleKey1)}
@@ -317,7 +317,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <div className="absolute inset-0 flex items-center justify-center relative z-10 p-3">
                                             <img
                                                 src="/images/pilotage.png"
-                                                alt="Pilotage"
+                                                alt="Sentinel GRC Dashboard"
                                                 className="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(var(--brand-500-rgb),0.3)] animate-pulse-subtle"
                                             />
                                         </div>
@@ -357,7 +357,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     transition={{ delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                                 >
                                     <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
-                                        {getGreeting()}, <span className="text-slate-700 dark:text-slate-200 font-semibold">{user?.displayName || 'Utilisateur'}</span>
+                                        {getGreeting()}, <span className="text-slate-700 dark:text-slate-200 font-semibold">{user?.displayName || t('common.user', { defaultValue: 'Utilisateur' })}</span>
                                     </p>
                                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-display text-slate-900 dark:text-white tracking-tight leading-none">
                                         {organizationName || user?.organizationName || t('sidebar.dashboard')}
@@ -499,7 +499,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                                                Conseil du jour
+                                                {t('dashboard.dailyTip', { defaultValue: 'Conseil du jour' })}
                                             </span>
                                             <Sparkles className="h-3 w-3 text-slate-600 dark:text-slate-600" />
                                         </div>
@@ -523,13 +523,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         {nextDeadline ? (
                                             <Target className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                                         ) : (
-                                            <Check className="h-5 w-5 text-success" />
+                                            <Calendar className="h-5 w-5 text-muted-foreground" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-600">
-                                                Prochaine échéance
+                                                {t('dashboard.nextDeadline', { defaultValue: 'Prochaine échéance' })}
                                             </span>
                                         </div>
                                         {nextDeadline ? (
@@ -546,7 +546,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             </div>
                                         ) : (
                                             <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                                                Aucune échéance à venir
+                                                {t('dashboard.noUpcomingDeadline', { defaultValue: 'Aucune échéance à venir' })}
                                             </p>
                                         )}
                                     </div>

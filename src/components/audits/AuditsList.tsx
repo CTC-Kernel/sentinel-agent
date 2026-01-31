@@ -7,6 +7,7 @@ import { Edit, Trash2, Copy } from '../ui/Icons';
 import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
 import { EmptyState } from '../ui/EmptyState';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { useStore } from '../../store';
 
 interface AuditsListProps {
     audits: Audit[];
@@ -53,6 +54,7 @@ const getAuditTypeStyles = (type: string) => {
 export const AuditsList: React.FC<AuditsListProps> = ({
     audits, isLoading, onEdit, onDelete, onDuplicate, onOpen, canEdit, canDelete, selectedIds = [], onSelect, users, duplicatingIds = new Set(),
 }) => {
+    const { t } = useStore();
 
     const columns = useMemo<ColumnDef<Audit>[]>(() => [
         {
@@ -156,7 +158,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             accessorKey: 'findingsCount',
             header: 'Écarts',
             cell: ({ row }) => {
-                const count = row.original.findingsCount || 0;
+                const count = (row.original.findings || []).filter((f: { status: string }) => f.status === 'Ouvert').length;
                 return (
                     <div className={`flex items-center gap-1.5 ${count > 0 ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-slate-500'}`}>
                         <AlertOctagon className="w-4 h-4" />
@@ -204,7 +206,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                 );
             }
         }
-    ], [canEdit, canDelete, onEdit, onDelete, onDuplicate, onOpen, onSelect, selectedIds, audits, users, duplicatingIds]);
+    ], [canEdit, canDelete, onEdit, onDelete, onDuplicate, onOpen, onSelect, selectedIds, audits, users, duplicatingIds, t]);
 
     return (
         <DataTable
@@ -214,8 +216,8 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             emptyState={
                 <EmptyState
                     icon={ClipboardCheck}
-                    title="Aucun audit trouvé"
-                    description="Aucun audit ne correspond à vos critères."
+                    title={t('audits.list.emptyTitle', { defaultValue: 'Aucun audit trouvé' })}
+                    description={t('audits.list.emptyDescription', { defaultValue: 'Aucun audit ne correspond à vos critères.' })}
                 // No action button here as creation is usually in the page header
                 />
             }

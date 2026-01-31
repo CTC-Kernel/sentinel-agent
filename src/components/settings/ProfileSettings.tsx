@@ -30,18 +30,27 @@ export const ProfileSettings: React.FC = () => {
     const [breachCheckLoading, setBreachCheckLoading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showMfaDisableConfirm, setShowMfaDisableConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Mock MFA Toggle
     const handleToggleMfa = async () => {
         if (!user) return;
-        // In real impl, this would trigger a flow (QR Code scan, etc.)
-        // For now, simply toggle the boolean in the user profile via updateUser
         const newStatus = !user.mfaEnabled;
+        // If disabling MFA, show confirmation first
+        if (!newStatus) {
+            setShowMfaDisableConfirm(true);
+            return;
+        }
+        await performMfaToggle(newStatus);
+    };
+
+    const performMfaToggle = async (newStatus: boolean) => {
+        if (!user) return;
         try {
             await updateUser(user.uid, { mfaEnabled: newStatus });
             setUser({ ...user, mfaEnabled: newStatus });
-            addToast(newStatus ? "MFA activé avec succès" : "MFA désactivé", "success");
+            addToast(newStatus ? t('settings.mfaEnabled', { defaultValue: "MFA activé avec succès" }) : t('settings.mfaDisabled', { defaultValue: "MFA désactivé" }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ProfileSettings.handleToggleMfa', 'UPDATE_FAILED');
         }
@@ -88,7 +97,10 @@ export const ProfileSettings: React.FC = () => {
     };
 
     const handleCheckBreach = async () => {
-        if (!user?.email) return;
+        if (!user?.email) {
+            addToast(t('settings.emailRequired', { defaultValue: "Une adresse email est requise pour vérifier les fuites de données." }), "error");
+            return;
+        }
         if (!user.hasHibpKey) {
             addToast(t('settings.hibpKeyRequired'), "info");
             return;
@@ -301,8 +313,6 @@ export const ProfileSettings: React.FC = () => {
                                 />
                             </div>
                         </div>
-
-                        <div className="border-t border-border/40 dark:border-border/40 my-6"></div>
 
                         <div className="border-t border-border/40 dark:border-border/40 my-6"></div>
 

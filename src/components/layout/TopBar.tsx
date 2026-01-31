@@ -163,7 +163,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                             data-tour="theme-toggle"
                             onClick={handleThemeToggle}
                             disabled={isTogglingTheme}
-                            className={`p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400 ${isTogglingTheme ? 'opacity-50 cursor-wait' : ''}`}
+                            className={`p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400 ${isTogglingTheme ? 'opacity-50 cursor-wait animate-pulse' : ''}`}
                             aria-label="Toggle Theme"
                         >
                             {isTogglingTheme ? <Spinner size="sm" /> : (theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />)}
@@ -206,7 +206,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                         className="w-full flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
                                     >
                                         <Globe className="h-4 w-4 mr-3 text-muted-foreground" />
-                                        {language === 'fr' ? 'Switch to English' : 'Passer en Français'}
+                                        {t('common.switchLanguage', { defaultValue: language === 'fr' ? 'Switch to English' : 'Passer en Français' })}
                                     </button>
                                     <Link
                                         to="/settings"
@@ -238,7 +238,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                         className="w-full flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
                                     >
                                         <MessageSquare className="h-4 w-4 mr-3 text-muted-foreground" />
-                                        Donner un avis
+                                        {t('common.giveFeedback', { defaultValue: 'Donner un avis' })}
                                     </button>
                                 </div>
                                 <div className="h-px bg-border/40 mx-2"></div>

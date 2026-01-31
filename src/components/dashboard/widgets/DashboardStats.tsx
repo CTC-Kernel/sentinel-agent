@@ -9,6 +9,8 @@ import { useAIGemini } from '../../../hooks/useAIGemini';
 import { useAIAnalysisPersistence } from '../../../hooks/dashboard/useAIAnalysisPersistence';
 import { Link } from 'react-router-dom';
 import { AI_PROMPTS } from '../../../config/prompts';
+import { useLocale } from '../../../hooks/useLocale';
+import { Tooltip } from '../../ui/Tooltip';
 
 interface DashboardStatsProps {
     stats: {
@@ -34,6 +36,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     topRisks,
     activeIncidents
 }) => {
+    const { t } = useLocale();
     // Fallback if prop is missing but exists in stats
     const effectiveComplianceScore = complianceScore ?? stats.compliance ?? 0;
     const { generateContent, loading: aiLoading } = useAIGemini();
@@ -107,29 +110,31 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
-                                    Sentinel AI Analysis
+                                    {t('dashboard.aiAnalysis.title', { defaultValue: 'Sentinel AI Analysis' })}
                                 </h3>
                                 <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                                    Synthèse de posture temps réel
+                                    {t('dashboard.aiAnalysis.subtitle', { defaultValue: 'Synthèse de posture temps réel' })}
                                 </p>
                             </div>
                         </div>
                         {/* Manual Refresh Button */}
-                        <button
-                            onClick={handleManualRefresh}
-                            disabled={aiLoading || !aiSummary}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 hover:text-brand-500 disabled:bg-slate-200 disabled:text-slate-600 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-600 dark:disabled:border-slate-600 group/refresh"
-                            title="Actualiser l'analyse"
-                        >
-                            <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin text-brand-500' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />
-                        </button>
+                        <Tooltip content={aiLoading ? t('dashboard.aiAnalysis.loading', { defaultValue: 'Analyse de vos données en cours...' }) : !aiSummary ? t('dashboard.aiAnalysis.noDataToRefresh', { defaultValue: 'Aucune analyse disponible à actualiser' }) : t('dashboard.aiAnalysis.refresh', { defaultValue: 'Actualiser l\'analyse' })} position="bottom">
+                            <button
+                                onClick={handleManualRefresh}
+                                disabled={aiLoading || !aiSummary}
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 hover:text-brand-500 disabled:bg-slate-200 disabled:text-slate-600 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-600 dark:disabled:border-slate-600 group/refresh"
+                                aria-label={t('dashboard.aiAnalysis.refresh', { defaultValue: 'Actualiser l\'analyse' })}
+                            >
+                                <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin text-brand-500' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />
+                            </button>
+                        </Tooltip>
                     </div>
 
                     <div className="relative z-10 min-h-[100px]">
                         {aiLoading && !aiSummary ? (
                             <div className="flex flex-col items-center justify-center h-full gap-3 py-4">
                                 <Sparkles className="w-6 h-6 text-brand-500 animate-pulse" />
-                                <span className="text-xs font-medium text-muted-foreground animate-pulse">Analyse de vos données en cours...</span>
+                                <span className="text-xs font-medium text-muted-foreground animate-pulse">{t('dashboard.aiAnalysis.loading', { defaultValue: 'Analyse de vos données en cours...' })}</span>
                             </div>
                         ) : aiSummary ? (
                             <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
@@ -156,7 +161,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-sm text-muted-foreground italic">Données insuffisantes pour l'analyse.</p>
+                            <p className="text-sm text-muted-foreground italic">{t('dashboard.aiAnalysis.insufficientData', { defaultValue: "Données insuffisantes pour l'analyse." })}</p>
                         )}
                     </div>
                 </div>

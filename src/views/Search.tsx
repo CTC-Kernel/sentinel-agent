@@ -167,11 +167,59 @@ export const Search: React.FC = () => {
 
             <div className="space-y-4">
                 {queryText.length > 1 && results.length === 0 && !loading ? (
-                    <EmptyState
-                        icon={SearchIcon}
-                        title="Aucun résultat"
-                        description={`Aucun élément ne correspond à "${queryText}"`}
-                    />
+                    <div className="space-y-6">
+                        <EmptyState
+                            icon={SearchIcon}
+                            title="Aucun résultat"
+                            description={`Aucun élément ne correspond à "${queryText}"`}
+                        />
+                        <div className="glass-premium p-6 rounded-3xl border border-border/40 space-y-4">
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                Essayez avec des termes différents, ou parcourez directement les sections :
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <button
+                                    onClick={() => navigate('/risks')}
+                                    className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-white/60 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60 hover:border-brand-200 dark:hover:border-brand-900 transition-all group text-left"
+                                >
+                                    <div className="p-2.5 rounded-xl bg-orange-50 dark:bg-orange-900/20 group-hover:scale-110 transition-transform">
+                                        <AlertTriangle className="h-5 w-5 text-orange-500" />
+                                    </div>
+                                    <div>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Parcourir les risques</span>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Registre des risques</p>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
+                                </button>
+                                <button
+                                    onClick={() => navigate('/assets')}
+                                    className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-white/60 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60 hover:border-brand-200 dark:hover:border-brand-900 transition-all group text-left"
+                                >
+                                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:scale-110 transition-transform">
+                                        <ShieldCheck className="h-5 w-5 text-blue-500" />
+                                    </div>
+                                    <div>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Voir les actifs</span>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Inventaire des actifs</p>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
+                                </button>
+                                <button
+                                    onClick={() => navigate('/compliance')}
+                                    className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-white/60 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60 hover:border-brand-200 dark:hover:border-brand-900 transition-all group text-left"
+                                >
+                                    <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 group-hover:scale-110 transition-transform">
+                                        <FileText className="h-5 w-5 text-emerald-500" />
+                                    </div>
+                                    <div>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Consulter les controles</span>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Cadre de conformite</p>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 ) : (
                     results.map((result) => (
                         <div

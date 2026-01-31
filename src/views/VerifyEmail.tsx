@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
-import { Mail, RefreshCw, LogOut, CheckCircle2 } from '../components/ui/Icons';
+import { Mail, RefreshCw, LogOut, CheckCircle2, AlertCircle } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { toast } from '../lib/toast';
 
 import { useNavigate } from 'react-router-dom';
 
 export const VerifyEmail: React.FC = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
+    const [notVerifiedMsg, setNotVerifiedMsg] = useState(false);
     const { sendVerificationEmail, checkEmailVerification, logout } = useAuthActions();
 
     useEffect(() => {
@@ -35,10 +37,17 @@ export const VerifyEmail: React.FC = () => {
 
     const handleCheckVerification = async () => {
         setLoading(true);
+        setNotVerifiedMsg(false);
         try {
-            await checkEmailVerification();
+            const verified = await checkEmailVerification();
+            if (verified) {
+                toast.success(t('auth.emailVerified') || 'Email vérifié avec succès !');
+                navigate('/');
+            } else {
+                setNotVerifiedMsg(true);
+            }
         } catch {
-            // Error handled in hook
+            setNotVerifiedMsg(true);
         } finally {
             setLoading(false);
         }
@@ -68,6 +77,12 @@ export const VerifyEmail: React.FC = () => {
                     {emailSent && (
                         <div className="w-full mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-100 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-green-600">
                             <CheckCircle2 className="h-4 w-4" /> Email envoyé ! Vérifiez vos spams.
+                        </div>
+                    )}
+
+                    {notVerifiedMsg && (
+                        <div className="w-full mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700/30 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-yellow-700 dark:text-yellow-400">
+                            <AlertCircle className="h-4 w-4" /> {t('auth.emailNotYetVerified') || 'Email non encore vérifié. Vérifiez votre boîte de réception.'}
                         </div>
                     )}
 
