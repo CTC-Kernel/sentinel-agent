@@ -47,7 +47,8 @@
     <Property Id="ENROLLMENTTOKEN" Secure="yes" />
 
     <!-- UI Extension for custom dialogs -->
-    <ui:WixUI Id="WixUI_InstallDirEnroll" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <ui:WixUI Id="WixUI_InstallDir" />
 
     <!-- Custom UI sequence to add enrollment dialog -->
     <UI>
