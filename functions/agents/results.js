@@ -3,6 +3,7 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 
 const db = admin.firestore();
@@ -109,7 +110,7 @@ exports.getAgentResults = onCall(
         lastId: results.length > 0 ? results[results.length - 1].id : null,
       };
     } catch (error) {
-      console.error('Get agent results error:', error);
+      logger.error('Get agent results error:', error);
       throw new HttpsError('internal', 'Failed to get agent results');
     }
   }

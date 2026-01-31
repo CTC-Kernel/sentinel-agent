@@ -3,6 +3,7 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 
 const db = admin.firestore();
@@ -55,10 +56,16 @@ exports.getAgentStatus = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { agentId, organizationId } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { agentId } = request.data;
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
@@ -99,7 +106,7 @@ exports.getAgentStatus = onCall(
         enrolledAt: data.enrolledAt?.toDate?.().toISOString(),
       };
     } catch (error) {
-      console.error('Get agent status error:', error);
+      logger.error('Get agent status error:', error);
       throw new HttpsError('internal', 'Failed to get agent status');
     }
   }
@@ -120,11 +127,17 @@ exports.getAgentMetricsHistory = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { agentId, organizationId, hours } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { agentId, hours } = request.data;
     const safeHours = Math.min(Number(hours) || 24, 168);
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
@@ -164,7 +177,7 @@ exports.getAgentMetricsHistory = onCall(
         lastUpdated: new Date().toISOString(),
       };
     } catch (error) {
-      console.error('Get agent metrics history error:', error);
+      logger.error('Get agent metrics history error:', error);
       throw new HttpsError('internal', 'Failed to get agent metrics history');
     }
   }

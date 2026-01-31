@@ -6,9 +6,21 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const { getFirestore } = require('firebase-admin/firestore');
 
 const DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';
+
+/**
+ * Sanitize CSV cell to prevent formula injection
+ */
+function sanitizeCSVCell(value) {
+    const str = String(value || '');
+    if (/^[=+\-@\t\r]/.test(str)) {
+        return "'" + str;
+    }
+    return str;
+}
 
 /**
  * Get audit trail for a specific document
@@ -112,7 +124,7 @@ exports.getDocumentAuditTrail = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Get document audit trail error:', error);
+      logger.error('Get document audit trail error:', error);
       throw new HttpsError('internal', 'Failed to retrieve audit trail');
     }
   }
@@ -203,7 +215,7 @@ exports.getUserAuditTrail = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Get user audit trail error:', error);
+      logger.error('Get user audit trail error:', error);
       throw new HttpsError('internal', 'Failed to retrieve user audit trail');
     }
   }
@@ -307,7 +319,7 @@ exports.getOrganizationAuditTrail = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Get organization audit trail error:', error);
+      logger.error('Get organization audit trail error:', error);
       throw new HttpsError('internal', 'Failed to retrieve organization audit trail');
     }
   }
@@ -414,16 +426,16 @@ exports.exportAuditTrail = onCall(
 
         for (const entry of entries) {
           const row = [
-            entry.id,
-            entry.documentId,
-            entry.action,
-            entry.userId,
-            entry.userEmail,
-            entry.timestamp,
-            entry.ipAddress,
-            entry.userAgent,
-            `"${entry.details.replace(/"/g, '""')}"`,
-            entry.integrityHash,
+            sanitizeCSVCell(entry.id),
+            sanitizeCSVCell(entry.documentId),
+            sanitizeCSVCell(entry.action),
+            sanitizeCSVCell(entry.userId),
+            sanitizeCSVCell(entry.userEmail),
+            sanitizeCSVCell(entry.timestamp),
+            sanitizeCSVCell(entry.ipAddress),
+            sanitizeCSVCell(entry.userAgent),
+            `"${sanitizeCSVCell(entry.details).replace(/"/g, '""')}"`,
+            sanitizeCSVCell(entry.integrityHash),
           ];
           csvRows.push(row.join(','));
         }
@@ -459,7 +471,7 @@ exports.exportAuditTrail = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Export audit trail error:', error);
+      logger.error('Export audit trail error:', error);
       throw new HttpsError('internal', 'Failed to export audit trail');
     }
   }
@@ -587,7 +599,7 @@ exports.getAuditStatistics = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Get audit statistics error:', error);
+      logger.error('Get audit statistics error:', error);
       throw new HttpsError('internal', 'Failed to retrieve audit statistics');
     }
   }

@@ -121,7 +121,14 @@ class AccountService {
         const batchSize = 500;
         const q = db.collection(collectionName).where('organizationId', '==', organizationId);
 
+        let iterations = 0;
+        const MAX_ITERATIONS = 100;
         while (true) {
+            if (iterations++ >= MAX_ITERATIONS) {
+                logger.warn(`deleteCollectionData: Max iterations reached for collection ${collectionName}, stopping`);
+                break;
+            }
+
             const snapshot = await q.limit(batchSize).get();
             if (snapshot.empty) break;
 
@@ -138,13 +145,20 @@ class AccountService {
      */
     static async deleteCollectionGroupData(db, collectionName, organizationId) {
         // Needs index on organizationId for the subcollection
-        // If index is missing, this might fail or be empty. 
+        // If index is missing, this might fail or be empty.
         // We catch errors to avoid blocking the main flow.
         try {
             const batchSize = 500;
             const q = db.collectionGroup(collectionName).where('organizationId', '==', organizationId);
 
+            let iterations = 0;
+            const MAX_ITERATIONS = 100;
             while (true) {
+                if (iterations++ >= MAX_ITERATIONS) {
+                    logger.warn(`deleteCollectionGroupData: Max iterations reached for collectionGroup ${collectionName}, stopping`);
+                    break;
+                }
+
                 const snapshot = await q.limit(batchSize).get();
                 if (snapshot.empty) break;
 

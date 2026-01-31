@@ -394,14 +394,13 @@ exports.scheduledRetentionEngine = onSchedule(
 
       return totalResults;
     } catch (error) {
-      logger.error('Retention engine failed:', error);
+      logger.error('Retention engine failed:', { error: error.message, stack: error.stack });
 
-      // Log failure
+      // Log failure - use generic details to avoid leaking stack traces in Firestore
       await db.collection('system_logs').add({
         type: 'retention_engine_error',
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        error: error.message,
-        stack: error.stack,
+        details: error.message || 'Retention engine error',
       });
 
       throw error;

@@ -3,6 +3,7 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 
 const db = admin.firestore();
@@ -101,7 +102,7 @@ exports.updateAgentConfig = onCall(
 
       return { success: true };
     } catch (error) {
-      console.error('Update agent config error:', error);
+      logger.error('Update agent config error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to update agent config');
     }
