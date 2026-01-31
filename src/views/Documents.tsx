@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useMemo, useState, useCallback } from 'react';
+import React, { useDeferredValue, useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { SEO } from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -127,6 +127,7 @@ export const Documents: React.FC = () => {
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [templateData, setTemplateData] = useState<DocumentTemplate | null>(null);
     const [isFormDirty, setIsFormDirty] = useState(false);
+    const pendingSelectId = useRef<string | null>(null);
 
     // Tabs configuration
     const tabs = useMemo(() => [
@@ -226,6 +227,17 @@ export const Documents: React.FC = () => {
         }
     }, [selectedDocument, deepLinkDocId, setSearchParams, loading]);
 
+    // Auto-open inspector on newly created document
+    useEffect(() => {
+        if (!pendingSelectId.current || loading) return;
+        const created = documents.find(d => d.id === pendingSelectId.current);
+        if (created) {
+            pendingSelectId.current = null;
+            setSelectedDocument(created);
+            setActiveTab('documents');
+        }
+    }, [documents, loading, setSelectedDocument, setActiveTab]);
+
     // Handle Voxel/Link Navigation (Legacy/State based)
     React.useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string };
@@ -259,11 +271,11 @@ export const Documents: React.FC = () => {
     }), [documents, deferredFilter, selectedFolderId, categoryFilter, isDigitalSafeMode]);
 
     // --- Handlers (Moved here to access filteredDocuments) ---
-    const handleDeleteFolderClick = React.useCallback((id: string) => {
+    const handleDeleteFolderClick = React.useCallback(async (id: string) => {
         setConfirmData({
             isOpen: true,
             title: t('documents.deleteFolderTitle', { defaultValue: 'Supprimer le dossier' }),
-            message: t('documents.deleteFolderMessage', { defaultValue: 'Voulez-vous vraiment supprimer ce dossier ? Les documents qu\'il contient seront déplacés à la racine.' }),
+            message: t('documents.deleteFolderMessage', { defaultValue: 'Voulez-vous vraiment supprimer ce dossier ? Les documents qu\'il contient seront d\u00e9plac\u00e9s \u00e0 la racine.' }),
             onConfirm: async () => {
                 setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
@@ -335,8 +347,11 @@ export const Documents: React.FC = () => {
                 setIsEditing(false);
             }
         } else {
-            const success = await handleCreate(data);
-            if (success) {
+            const result = await handleCreate(data);
+            if (result) {
+                if (typeof result === 'string') {
+                    pendingSelectId.current = result;
+                }
                 setIsFormDirty(false);
                 setShowCreateModal(false);
             }

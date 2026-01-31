@@ -44,7 +44,7 @@ const AgentsSkeleton: React.FC = () => (
 
 // Main Agents View Component
 export const Agents: React.FC = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const navigate = useNavigate();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -83,13 +83,13 @@ export const Agents: React.FC = () => {
             },
             (error) => {
                 ErrorLogger.error(error, 'Agents.subscribeToAgents');
-                setError('Erreur de chargement des donnees');
+                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
                 setLoading(false);
             }
         );
 
         return unsubscribe;
-    }, [user?.organizationId, retryCount]);
+    }, [user?.organizationId, retryCount, t]);
 
     // Load compliance results for heatmap
     useEffect(() => {
@@ -142,7 +142,7 @@ export const Agents: React.FC = () => {
                 <AlertTriangle className="h-12 w-12 text-destructive" />
                 <p className="text-lg font-medium">{error}</p>
                 <Button onClick={() => { setError(null); setLoading(true); setRetryCount(c => c + 1); }} variant="outline">
-                    Reessayer
+                    {t('common.retry', { defaultValue: 'Reessayer' })}
                 </Button>
             </div>
         );
@@ -161,13 +161,13 @@ export const Agents: React.FC = () => {
                     <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
                         <Shield className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Aucun agent enrôlé</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t('agents.noAgents', { defaultValue: 'Aucun agent enrôlé' })}</h3>
                     <p className="text-muted-foreground max-w-md mb-6">
                         Déployez Sentinel Agent sur vos endpoints pour commencer la supervision de conformité en temps réel.
                     </p>
                     <Button onClick={() => navigate('/settings?tab=agents')}>
                         <Download className="h-4 w-4 mr-2" />
-                        {"Configurer l'enrôlement"}
+                        {t('agents.configureEnrollment', { defaultValue: "Configurer l'enrôlement" })}
                     </Button>
                 </div>
             </>
@@ -356,10 +356,10 @@ export const Agents: React.FC = () => {
                                                         forceSync: true,
                                                         requestedAt: new Date().toISOString(),
                                                     } as Record<string, unknown> as Partial<import('../types/agent').AgentConfig>);
-                                                    toast.success('Synchronisation demandee', `L'agent "${agent.name || agent.hostname}" va se synchroniser.`);
+                                                    toast.success(t('agents.syncRequested', { defaultValue: 'Synchronisation demandee' }), `L'agent "${agent.name || agent.hostname}" va se synchroniser.`);
                                                     ErrorLogger.debug(`Agent action: ${agent.id} refresh`, 'Agents');
                                                 } catch (error) {
-                                                    toast.error('Erreur', 'Impossible de synchroniser l\'agent.');
+                                                    toast.error(t('common.error', { defaultValue: 'Erreur' }), t('agents.syncError', { defaultValue: 'Impossible de synchroniser l\'agent.' }));
                                                     ErrorLogger.error(error as Error, 'Agents.refreshAgent');
                                                 }
                                                 break;
@@ -426,7 +426,7 @@ export const Agents: React.FC = () => {
                                 {`Générez des rapports de conformité, santé de la flotte et inventaire logiciel.`}
                             </p>
                             <Button onClick={() => {
-                                toast.info('Génération en cours', 'Le rapport de conformité sera disponible sous peu.');
+                                toast.info(t('agents.reportGenerating', { defaultValue: 'Génération en cours' }), t('agents.reportGeneratingDesc', { defaultValue: 'Le rapport de conformité sera disponible sous peu.' }));
                                 ErrorLogger.debug('Report generation requested', 'Agents.reports');
                             }}>
                                 {`Générer un rapport`}
@@ -449,9 +449,9 @@ export const Agents: React.FC = () => {
                             <Button variant="destructive" onClick={async () => {
                                 try {
                                     await AgentService.deleteAgent(deleteConfirm.agent.organizationId, deleteConfirm.agent.id);
-                                    toast.success('Agent supprime', `L'agent "${deleteConfirm.agent.name || deleteConfirm.agent.hostname}" a ete supprime.`);
+                                    toast.success(t('agents.agentDeleted', { defaultValue: 'Agent supprime' }), `L'agent "${deleteConfirm.agent.name || deleteConfirm.agent.hostname}" a ete supprime.`);
                                 } catch (err) {
-                                    toast.error('Erreur', 'Impossible de supprimer l\'agent.');
+                                    toast.error(t('common.error', { defaultValue: 'Erreur' }), t('agents.deleteError', { defaultValue: 'Impossible de supprimer l\'agent.' }));
                                     ErrorLogger.error(err as Error, 'Agents.deleteAgent');
                                 }
                                 setDeleteConfirm(null);

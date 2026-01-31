@@ -178,8 +178,8 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                             onClick={() => setShowUserMenu(!showUserMenu)}
                         >
                             <div className="hidden sm:flex flex-col items-end mr-1">
-                                <span className="text-sm font-bold text-foreground leading-none">{user?.displayName}</span>
-                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
+                                <span className="text-sm font-bold text-foreground leading-none">{user?.displayName || t('common.user', { defaultValue: 'Utilisateur' })}</span>
+                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mt-0.5">{user?.role || t('common.defaultRole', { defaultValue: 'Utilisateur' })}</span>
                             </div>
                             <div className="relative">
                                 <img
@@ -233,7 +233,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                         {t('settings.plansAndBilling')}
                                     </Link>
                                     <button
-                                        aria-label="Donner un avis"
+                                        aria-label={t('common.giveFeedback', { defaultValue: 'Donner un avis' })}
                                         onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
                                         className="w-full flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
                                     >

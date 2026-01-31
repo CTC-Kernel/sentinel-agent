@@ -382,7 +382,8 @@ export const useComplianceActions = (user: UserProfile | null) => {
             toast.success("Risque créé avec succès");
             logAction(user, 'CREATE_RISK', 'risk', `Created risk ${riskData.threat}`, undefined, ref.id);
             return ref.id;
-        } catch {
+        } catch (error) {
+            ErrorLogger.error(error, 'useComplianceActions.createRisk');
             toast.error("Erreur lors de la création du risque");
             return null;
         } finally {
@@ -414,7 +415,8 @@ export const useComplianceActions = (user: UserProfile | null) => {
             toast.success("Audit planifié avec succès");
             logAction(user, 'CREATE_AUDIT', 'audit', `Created audit ${auditData.name}`, undefined, ref.id);
             return ref.id;
-        } catch {
+        } catch (error) {
+            ErrorLogger.error(error, 'useComplianceActions.createAudit');
             toast.error("Erreur lors de la création de l'audit");
             return null;
         } finally {

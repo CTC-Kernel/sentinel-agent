@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { Control, UserProfile, Asset, Supplier, Risk, Project, Document, Finding, Framework } from '../../types';
 import { ScrollableTabs } from '../../components/ui/ScrollableTabs';
-import { Loader2, Link, FileText, Paperclip, MessageSquare } from '../../components/ui/Icons';
+import { Skeleton } from '../../components/ui/Skeleton';
+import { Loader2, Link, FileText, Paperclip, MessageSquare, ChevronRight } from '../../components/ui/Icons';
 import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 import { TimelineView } from '../shared/TimelineView';
 import { ComplianceDetails } from './inspector/ComplianceDetails';
@@ -64,8 +65,19 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
 
     const { updating, handleLinkProject } = handlers;
 
+    const isLinkedItemsLoading = handlers.updating;
+
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900/50">
+            {/* Breadcrumb Context */}
+            <div className="px-4 sm:px-6 py-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 border-b border-border/40 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                <span>{control.framework || 'ISO27001'}</span>
+                <ChevronRight className="h-3 w-3" />
+                <span className="font-medium text-slate-700 dark:text-slate-300">{control.code}</span>
+                <ChevronRight className="h-3 w-3" />
+                <span className="truncate max-w-[200px]">{control.name}</span>
+            </div>
+
             {/* Tabs Header */}
             <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10 border-b border-border/40 dark:border-white/5">
                 {linkingToProjectId && (
@@ -131,16 +143,26 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                 )}
 
                 {activeTab === 'linkedItems' && (
-                    <ComplianceLinkedItems
-                        control={control}
-                        canEdit={canEdit}
-                        assets={assets}
-                        suppliers={suppliers}
-                        projects={projects}
-                        risks={risks}
-                        findings={findings}
-                        handlers={handlers}
-                    />
+                    isLinkedItemsLoading ? (
+                        <div className="space-y-4 max-w-3xl mx-auto">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Skeleton className="h-48 rounded-3xl" />
+                                <Skeleton className="h-48 rounded-3xl" />
+                            </div>
+                            <Skeleton className="h-32 rounded-3xl" />
+                        </div>
+                    ) : (
+                        <ComplianceLinkedItems
+                            control={control}
+                            canEdit={canEdit}
+                            assets={assets}
+                            suppliers={suppliers}
+                            projects={projects}
+                            risks={risks}
+                            findings={findings}
+                            handlers={handlers}
+                        />
+                    )
                 )}
 
                 {activeTab === 'comments' && (

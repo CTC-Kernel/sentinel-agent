@@ -206,7 +206,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                 );
             }
         }
-    ], [canEdit, canDelete, onEdit, onDelete, onDuplicate, onOpen, onSelect, selectedIds, audits, users, duplicatingIds, t]);
+    ], [canEdit, canDelete, onEdit, onDelete, onDuplicate, onOpen, onSelect, selectedIds, audits, users, duplicatingIds]);
 
     return (
         <DataTable

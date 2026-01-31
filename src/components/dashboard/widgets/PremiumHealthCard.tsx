@@ -17,8 +17,6 @@ import {
     ShieldCheck,
     AlertTriangle,
     Activity,
-    TrendingUp,
-    TrendingDown,
     ArrowRight,
     Zap
 } from '../../ui/Icons';
@@ -71,13 +69,6 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
         { name: 'Élevés', value: stats.highRisks - stats.criticalRisks, fill: SENTINEL_PALETTE.warning },
         { name: 'Autres', value: Math.max(0, stats.totalRisks - stats.highRisks), fill: SENTINEL_PALETTE.info }
     ].filter(d => d.value > 0), [stats]);
-
-    // Trend calculation (mock - in real app would come from historical data)
-    const complianceTrend = useMemo(() => {
-        if (effectiveCompliance >= 70) return 'up';
-        if (effectiveCompliance >= 50) return 'stable';
-        return 'down';
-    }, [effectiveCompliance]);
 
     if (loading) {
         return (
@@ -139,20 +130,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        {complianceTrend === 'up' && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-success-bg text-success-600 dark:text-success-400 text-xs font-bold">
-                                <TrendingUp className="w-3.5 h-3.5" />
-                                En progression
-                            </div>
-                        )}
-                        {complianceTrend === 'down' && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50 text-red-600 dark:text-red-400 text-xs font-bold">
-                                <TrendingDown className="w-3.5 h-3.5" />
-                                Attention
-                            </div>
-                        )}
-                    </div>
+                    <div className="flex items-center gap-2" />
                 </div>
 
                 <div className="flex flex-col lg:flex-row items-center gap-6">

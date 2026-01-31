@@ -96,7 +96,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                     ) : displayActivity.map((log, i) => (
                         <div
                             key={`activity-${i}`}
-                            className={`relative group ${log.resourceId ? 'rounded-xl' : ''}`}
+                            className={`relative group ${log.resourceId ? 'rounded-xl cursor-pointer' : 'rounded-xl opacity-60 cursor-default'}`}
                         >
                             {log.resourceId && (
                                 <button

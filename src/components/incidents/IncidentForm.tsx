@@ -16,6 +16,25 @@ import { RichTextEditor } from '../ui/RichTextEditor';
 import { PLAYBOOKS, INCIDENT_STATUSES, NOTIFICATION_STATUSES } from '../../data/incidentConstants';
 import { NIS2DeadlineTimer } from './NIS2DeadlineTimer';
 import { Incident } from '../../types';
+import { ErrorLogger } from '../../services/errorLogger';
+
+// Error boundary for NIS2DeadlineTimer date calculations
+class NIS2TimerErrorBoundary extends React.Component<{ children: React.ReactNode; fallback: React.ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+    componentDidCatch(error: Error) {
+        ErrorLogger.error(error, 'NIS2DeadlineTimer.dateCalculation');
+    }
+    render() {
+        if (this.state.hasError) return this.props.fallback;
+        return this.props.children;
+    }
+}
 
 interface IncidentFormProps {
     onSubmit: SubmitHandler<IncidentFormData>;
@@ -109,7 +128,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
             setValue('affectedProcessId', relatedProcesses[0].id, { shouldDirty: true });
             addToast(t('incidents.form.suggestedProcess', { defaultValue: 'Processus li\u00e9 sugg\u00e9r\u00e9' }) + ` : ${relatedProcesses[0].name}`, 'info');
         }
-    }, [affectedAssetId, processes, setValue, getValues, addToast]);
+    }, [affectedAssetId, processes, setValue, getValues, addToast, t]);
 
     return (
         <form id="incident-form" onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="space-y-6">
@@ -140,17 +159,22 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                         {isSignificant && (
                             <div className="animate-fade-in pl-8 space-y-4 mt-4">
                                 <div className="bg-muted/10 p-4 rounded-xl">
-                                    <NIS2DeadlineTimer
-                                        incident={{
-                                            ...initialData,
-                                            ...getValues(),
-                                            id: (initialData as Partial<IncidentFormData> & { id?: string })?.id || 'new',
-                                            organizationId: useStore.getState().organization?.id || 'current',
-                                            reporter: useStore.getState().user?.uid || 'current',
-                                            dateReported: getValues('dateReported') || new Date().toISOString(),
-                                            // Ensure other required fields are present for type satisfaction if needed, though they might be optional in Partial
-                                        } as Incident}
-                                    />
+                                    <NIS2TimerErrorBoundary fallback={
+                                        <div className="text-sm text-muted-foreground p-3 bg-warning-bg rounded-lg border border-warning-border/30">
+                                            {t('incidents.form.nis2TimerError', { defaultValue: 'Impossible de calculer les d\u00e9lais NIS 2. V\u00e9rifiez les dates saisies.' })}
+                                        </div>
+                                    }>
+                                        <NIS2DeadlineTimer
+                                            incident={{
+                                                ...initialData,
+                                                ...getValues(),
+                                                id: (initialData as Partial<IncidentFormData> & { id?: string })?.id || 'new',
+                                                organizationId: useStore.getState().organization?.id || 'current',
+                                                reporter: useStore.getState().user?.uid || 'current',
+                                                dateReported: getValues('dateReported') || new Date().toISOString(),
+                                            } as Incident}
+                                        />
+                                    </NIS2TimerErrorBoundary>
                                 </div>
 
                                 <Controller

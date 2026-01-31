@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
 import { where, collection, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -28,7 +28,7 @@ export interface UseAuditsOptions {
 }
 
 export const useAudits = (options: UseAuditsOptions = {}) => {
-    const { user, addToast, demoMode } = useStore();
+    const { user, addToast, demoMode, t } = useStore();
     const canEdit = canEditResource(user, 'Audit');
     const canDelete = canDeleteResource(user, 'Audit');
 
@@ -166,6 +166,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
     const risks = useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
 
     // --- Local State ---
+    const isSubmittingRef = useRef(false);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [auditFindings, setAuditFindings] = useState<Finding[]>([]);
     const [auditChecklist, setAuditChecklist] = useState<AuditChecklist | null>(null);
@@ -187,6 +188,8 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
 
     const handleCreateAudit = async (data: Partial<Audit>, preSelectedProjectId?: string | null) => {
         if (!canEdit || !user?.organizationId) return;
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
         try {
             const cleanData = sanitizeData(data);
             const newDocData = {
@@ -218,6 +221,8 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAudits.handleCreateAudit', 'CREATE_FAILED');
             throw error;
+        } finally {
+            isSubmittingRef.current = false;
         }
     };
 
@@ -290,8 +295,9 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
             // Actually, let's just accept the multiple toasts or refine later.
             // Better: update handleDeleteAudit to take options.
             // But let's simple iterate for now to minimize risk.
-        } catch {
-            // handled inside
+        } catch (error) {
+            ErrorLogger.error(error, 'useAudits.bulkDeleteAudits');
+            addToast(t('audits.errors.bulkDeleteFailed') || 'Erreur lors de la suppression', 'error');
         }
     };
 

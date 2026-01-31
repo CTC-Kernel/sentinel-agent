@@ -95,7 +95,7 @@ export const Risks: React.FC = () => {
 
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
-        exportCSV, setIsGeneratingReport,
+        exportCSV, setIsGeneratingReport, isGeneratingReport,
         importRisks, checkDependencies,
         bulkCreateRisks,
         submitting
@@ -195,8 +195,9 @@ export const Risks: React.FC = () => {
         if (created) {
             pendingSelectId.current = null;
             setSelectedRisk(created);
+            setActiveTab('list');
         }
-    }, [risks, loading]);
+    }, [risks, loading, setActiveTab]);
 
     useEffect(() => {
         const state = location.state as { createForAsset?: string; assetName?: string } | null;
@@ -216,7 +217,7 @@ export const Risks: React.FC = () => {
 
     const handleDelete = useCallback(async (risk: { id: string, name: string }) => {
         if (!canEditResource(user as UserProfile, 'Risk')) {
-            toast.error("Permission refusée");
+            toast.error(t('errors.permissionDenied') || 'Permission refusée');
             return;
         }
         const { hasDependencies, dependencies } = await checkDependencies(risk.id);
@@ -261,6 +262,7 @@ export const Risks: React.FC = () => {
     }, [editingRisk, updateRisk, createRisk]);
 
     const handleCommonExport = useCallback(async () => {
+        if (isGeneratingReport) return;
         setIsGeneratingReport(true);
         try {
             await PdfService.generateRiskExecutiveReport(filteredRisks, {
@@ -276,7 +278,7 @@ export const Risks: React.FC = () => {
         } finally {
             setIsGeneratingReport(false);
         }
-    }, [filteredRisks, t, user, setIsGeneratingReport]);
+    }, [filteredRisks, t, user, setIsGeneratingReport, isGeneratingReport]);
 
     const handleExportExcel = useCallback(async () => {
         try {
@@ -354,8 +356,8 @@ export const Risks: React.FC = () => {
 
     const tabs = useMemo(() => [
         { id: 'overview', label: t('risks.overview'), icon: LayoutDashboard },
-        { id: 'context', label: 'Contexte', icon: Target },
-        { id: 'ebios', label: 'EBIOS RM', icon: Scale },
+        { id: 'context', label: t('risks.context') || 'Contexte', icon: Target },
+        { id: 'ebios', label: t('risks.ebios') || 'EBIOS RM', icon: Scale },
         { id: 'list', label: t('risks.registry'), icon: List },
         { id: 'financial', label: t('risks.financial') || 'Risques Financiers', icon: Calculator },
         { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },

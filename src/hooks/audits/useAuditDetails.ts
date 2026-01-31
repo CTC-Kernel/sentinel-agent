@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { collection, addDoc, updateDoc, doc, deleteDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
@@ -20,6 +20,7 @@ export const useAuditDetails = (
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
+    const isSubmittingRef = useRef(false);
 
     // Fetch details when an audit is selected
     const fetchDetails = useCallback(async () => {
@@ -42,6 +43,8 @@ export const useAuditDetails = (
 
     const handleAddFinding = async (data: Partial<Finding>) => {
         if (!selectedAudit || !user?.organizationId) return;
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
         try {
             const cleanData = sanitizeData(data);
             await addDoc(collection(db, 'findings'), {
@@ -58,6 +61,8 @@ export const useAuditDetails = (
             addToast("Constat ajouté", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAuditDetails.handleAddFinding', 'CREATE_FAILED');
+        } finally {
+            isSubmittingRef.current = false;
         }
     };
 
@@ -280,6 +285,18 @@ export const useAuditDetails = (
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.pack', 'UNKNOWN_ERROR'); }
     };
 
+    const changeAuditStatus = async (newStatus: string) => {
+        if (!selectedAudit || !user?.organizationId) return;
+        setIsValidating(true);
+        try {
+            await updateDoc(doc(db, 'audits', selectedAudit.id), { status: newStatus, updatedAt: serverTimestamp(), updatedBy: user.uid });
+            await logAction(user, 'UPDATE', 'Audit', `Statut audit modifié: ${selectedAudit.name} → ${newStatus}`);
+            addToast(`Statut mis à jour: ${newStatus}`, "success");
+            refreshAudits();
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.changeStatus', 'UPDATE_FAILED'); }
+        finally { setIsValidating(false); }
+    };
+
     const validateAudit = async () => {
         if (!selectedAudit || !user?.organizationId) return;
         if (selectedAudit.createdBy === user?.uid) {
@@ -323,7 +340,7 @@ export const useAuditDetails = (
         handleAddFinding, handleDeleteFinding,
         generateChecklist, handleChecklistAnswer, markAllConform,
         handleEvidenceUploadForFinding,
-        generateAuditReport, handleExportPack, validateAudit, updateAuditDetails,
+        generateAuditReport, handleExportPack, validateAudit, changeAuditStatus, updateAuditDetails,
         isGeneratingReport, isValidating
     };
 };

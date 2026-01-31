@@ -32,7 +32,7 @@ export const EmptyState = ({
     };
 
     return (
-        <div className={cn(
+        <section aria-label={title} className={cn(
             "glass-premium flex flex-col items-center justify-center p-8 text-center min-h-[400px] border border-border/40",
             className
         )}>
@@ -58,6 +58,8 @@ export const EmptyState = ({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="mb-6 relative"
+                    role="img"
+                    aria-label={title}
                 >
                     <div className={cn(
                         "w-20 h-20 rounded-4xl flex items-center justify-center shadow-sm backdrop-blur-sm",
@@ -87,6 +89,6 @@ export const EmptyState = ({
                     </div>
                 )}
             </motion.div>
-        </div>
+        </section>
     );
 };

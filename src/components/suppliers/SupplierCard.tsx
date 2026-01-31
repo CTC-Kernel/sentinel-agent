@@ -40,7 +40,8 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
         <button
             onClick={() => onClick(supplier)}
             onKeyDown={handleKeyDown}
-            className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left"
+            aria-label={`${supplier.name} - ${supplier.category} - ${supplier.criticality}`}
+            className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="relative z-10 flex flex-col h-full">
@@ -92,7 +93,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
                                         );
                                         return getUserAvatarUrl(contactUser?.photoURL, contactUser?.role || 'user');
                                     })()}
-                                    alt={supplier.contactName}
+                                    alt={`Avatar de ${supplier.contactName}`}
                                     className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
                                     onError={(e) => {
                                         const target = e.target as HTMLImageElement;

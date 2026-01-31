@@ -230,7 +230,7 @@ exports.onOrganizationDeleted = onDocumentDeleted({
 }, async (event) => {
     const orgId = event.params.orgId;
     const db = admin.firestore();
-    const batch = db.batch();
+    const MAX_BATCH_SIZE = 450;
 
     logger.info(`Organization ${orgId} deleted. Starting cascading cleanup...`);
 
@@ -240,20 +240,33 @@ exports.onOrganizationDeleted = onDocumentDeleted({
 
         usersSnap.forEach(doc => {
             deletePromises.push(admin.auth().deleteUser(doc.id).catch(e => logger.warn(`Failed to delete auth user ${doc.id}`, e)));
-            batch.delete(doc.ref);
+        });
+
+        // Collect all document refs to delete
+        const allRefs = [];
+
+        usersSnap.forEach(doc => {
+            allRefs.push(doc.ref);
         });
 
         const commonCollections = ['risks', 'incidents', 'assets', 'documents', 'projects', 'audits'];
 
         for (const col of commonCollections) {
             const snap = await db.collection(col).where('organizationId', '==', orgId).get();
-            snap.forEach(doc => batch.delete(doc.ref));
+            snap.forEach(doc => allRefs.push(doc.ref));
         }
 
-        await batch.commit();
+        // Split into multiple batches of max 450 operations each
+        for (let i = 0; i < allRefs.length; i += MAX_BATCH_SIZE) {
+            const chunk = allRefs.slice(i, i + MAX_BATCH_SIZE);
+            const batch = db.batch();
+            chunk.forEach(ref => batch.delete(ref));
+            await batch.commit();
+        }
+
         await Promise.all(deletePromises);
 
-        logger.info(`Cascading cleanup for ${orgId} complete.`);
+        logger.info(`Cascading cleanup for ${orgId} complete. Deleted ${allRefs.length} documents.`);
 
     } catch (error) {
         logger.error(`Cascading delete failed for ${orgId}`, error);
@@ -495,12 +508,12 @@ exports.searchCompany = onCall({
 
 /**
  * Validate VAT (VIES Proxy)
+ * TODO: Implement VIES VAT validation service
  */
 exports.validateVat = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
     region: 'europe-west1'
 }, async (request) => {
-    const { vatNumber } = request.data;
-    throw new HttpsError('unimplemented', 'VIES Validation service not configured.');
+    throw new HttpsError('unimplemented', 'VIES Validation service not yet configured.');
 });

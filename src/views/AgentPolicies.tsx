@@ -130,7 +130,7 @@ interface AgentPoliciesProps {
 }
 
 export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [groups, setGroups] = useState<AgentGroup[]>([]);
     const [policies, setPolicies] = useState<AgentPolicy[]>([]);
     const [conflicts, setConflicts] = useState<PolicyConflict[]>([]);
@@ -158,7 +158,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
             },
             (error: Error) => {
                 ErrorLogger.error(error, 'AgentPolicies.subscribeToGroups');
-                setError('Erreur de chargement des donnees');
+                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
             }
         );
         unsubscribers.push(unsubGroups);
@@ -172,7 +172,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
             },
             (error: Error) => {
                 ErrorLogger.error(error, 'AgentPolicies.subscribeToPolicies');
-                setError('Erreur de chargement des donnees');
+                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
                 setLoading(false);
             }
         );
@@ -181,7 +181,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
         return () => {
             unsubscribers.forEach(unsub => unsub());
         };
-    }, [user?.organizationId, retryCount]);
+    }, [user?.organizationId, retryCount, t]);
 
     // Initialize defaults if needed
     useEffect(() => {
@@ -205,13 +205,13 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
             } catch (error) {
                 initInFlightRef.current = false; // Allow retry
                 ErrorLogger.error(error, 'AgentPolicies.initializeDefaults');
-                setError('Erreur de chargement des donnees');
+                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
             }
         };
 
         initInFlightRef.current = true;
         initializeIfNeeded();
-    }, [user?.organizationId, user?.uid, loading, groups.length, policies.length, isInitialized]);
+    }, [user?.organizationId, user?.uid, loading, groups.length, policies.length, isInitialized, t]);
 
     // Detect policy conflicts
     useEffect(() => {
@@ -258,7 +258,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
         return (
             <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
                 <Shield className="h-12 w-12 text-muted-foreground" />
-                <p className="text-lg font-medium">Accès refusé</p>
+                <p className="text-lg font-medium">{t('common.accessDenied', { defaultValue: 'Accès refusé' })}</p>
                 <p className="text-sm text-muted-foreground">
                     Vous n&apos;avez pas les permissions nécessaires pour accéder aux politiques agents.
                 </p>
@@ -286,7 +286,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                     setIsInitialized(false);
                     setRetryCount(prev => prev + 1);
                 }} variant="outline">
-                    Reessayer
+                    {t('common.retry', { defaultValue: 'Reessayer' })}
                 </Button>
             </div>
         );

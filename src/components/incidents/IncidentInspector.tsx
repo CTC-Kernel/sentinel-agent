@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Incident, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
@@ -44,6 +44,17 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     const [activeTab, setActiveTab] = useState('details');
     const [isEditing, setIsEditing] = useState(false);
     const [isFormDirty, setIsFormDirty] = useState(false);
+    const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+
+    const handleStatusChange = useCallback(async (newStatus: string) => {
+        if (!incident || isStatusUpdating) return;
+        setIsStatusUpdating(true);
+        try {
+            await onUpdate({ ...incident, status: newStatus } as IncidentFormData);
+        } finally {
+            setIsStatusUpdating(false);
+        }
+    }, [incident, onUpdate, isStatusUpdating]);
 
     // Reset editing state and dirty state when incident changes or closes
     React.useEffect(() => {
@@ -136,7 +147,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                 <div className="space-y-6">
                     {activeTab === 'details' && (
                         <div className="space-y-6 sm:space-y-8">
-                            <IncidentGeneralDetails incident={incident} />
+                            <IncidentGeneralDetails incident={incident} onStatusChange={canEdit ? handleStatusChange : undefined} isUpdating={isStatusUpdating} />
                             <IncidentImpactDetails
                                 incident={incident}
                                 assets={assets}

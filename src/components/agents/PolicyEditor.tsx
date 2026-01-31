@@ -393,9 +393,13 @@ const PolicyForm: React.FC<{
                         <Input
                             id="policyName"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => { setName(e.target.value); setErrors(prev => prev.filter(e => e !== 'Le nom est requis')); }}
                             placeholder="Nom de la politique"
+                            className={cn(errors.includes('Le nom est requis') && 'border-destructive ring-destructive/20')}
                         />
+                        {errors.includes('Le nom est requis') && (
+                            <p className="text-destructive text-xs mt-1">Le nom est requis</p>
+                        )}
                     </div>
                     <div>
                         <label htmlFor="policyDescription" className="text-sm font-medium mb-1 block">Description</label>
@@ -817,7 +821,14 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                 onSelectPolicy?.(null);
             }
         } catch (error) {
-            toast.error('Erreur', 'Impossible de supprimer la politique.');
+            const err = error as Error & { code?: string };
+            if (err.code === 'permission-denied' || err.message?.includes('permission')) {
+                toast.error('Accès refusé', 'Vous n\'avez pas les permissions pour supprimer cette politique.');
+            } else if (err.message?.includes('network') || err.message?.includes('timeout') || err.message?.includes('unavailable')) {
+                toast.error('Erreur réseau', 'Vérifiez votre connexion et réessayez.');
+            } else {
+                toast.error('Erreur', 'Impossible de supprimer la politique.');
+            }
             ErrorLogger.error(error as Error, 'PolicyEditor.deletePolicy');
         } finally {
             setDeleteConfirm(null);

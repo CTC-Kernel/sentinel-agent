@@ -18,7 +18,20 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
     const closedFindings = findings.filter(f => f.status === 'Fermé').length;
     const totalFindings = findings.length;
 
-    const completionRate = totalFindings > 0 ? Math.round((closedFindings / totalFindings) * 100) : 100;
+    const completionRate = totalFindings > 0 ? Math.round((closedFindings / totalFindings) * 100) : 0;
+
+    // Health score weighted by finding severity
+    const healthScore = (() => {
+        const openList = findings.filter(f => f.status === 'Ouvert');
+        if (openList.length === 0) return 100;
+        const penalty = openList.reduce((acc, f) => {
+            if (f.type === 'Majeure') return acc + 20;
+            if (f.type === 'Mineure') return acc + 10;
+            if (f.type === 'Observation') return acc + 5;
+            return acc + 2; // Opportunité or other
+        }, 0);
+        return Math.max(0, 100 - penalty);
+    })();
 
     const findingsByType = [
         { name: 'Majeure', value: findings.filter(f => f.type === 'Majeure').length, color: FINDING_COLORS.majeure },
@@ -39,12 +52,12 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                     <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">Santé de l'audit</h4>
                     <div className="flex items-end gap-2 relative z-10">
                         <span className="text-4xl font-black text-slate-900 dark:text-white">
-                            {100 - (openFindings * 10)}%
+                            {healthScore}%
                         </span>
                         <span className="text-sm text-slate-500 dark:text-slate-300 mb-1 font-medium">Score estimé</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 relative z-10">
-                        Basé sur la sévérité des écarts ouverts.
+                        Pondéré par sévérité : Majeure (-20), Mineure (-10), Observation (-5).
                     </p>
                 </PremiumCard>
 

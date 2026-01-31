@@ -145,7 +145,7 @@ function WidgetCard({
             </span>
             {isDisabled && (
               <span className="text-xs text-muted-foreground dark:text-slate-600">
-                (déjà ajouté)
+                ({t('dashboard.alreadyAdded', { defaultValue: 'déjà ajouté' })})
               </span>
             )}
           </div>
@@ -439,7 +439,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                       ? t('common.tryDifferentSearch', {
                         defaultValue: 'Essayez une autre recherche',
                       })
-                      : 'Tous les widgets disponibles sont déjà affichés.'}
+                      : t('dashboard.allWidgetsDisplayed', { defaultValue: 'Tous les widgets disponibles sont déjà affichés.' })}
                   </p>
                 </div>
               )}

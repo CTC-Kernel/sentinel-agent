@@ -266,10 +266,11 @@ const Assets: React.FC = () => {
     const handleFilterChange = React.useCallback((filter: { type: string; value: string } | null) => {
         if (filter?.type === 'criticality') {
             setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
+            setActiveTab('assets');
         } else if (filter === null) {
             setActiveFilters(prev => ({ ...prev, criticality: undefined }));
         }
-    }, []);
+    }, [setActiveTab]);
 
     // CRUD Handlers for Inspector
     const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => {

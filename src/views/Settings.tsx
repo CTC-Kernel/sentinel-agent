@@ -41,6 +41,20 @@ const Settings: React.FC = () => {
         }
     }, [searchParams, activeTab, setActiveTab, setSearchParams]);
 
+    const AccessDenied = () => (
+        <div className="flex flex-col items-center justify-center p-12 text-center min-h-[300px]">
+            <div className="w-16 h-16 bg-warning-bg rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-warning-text" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v.01M12 9v3m-7 6h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                {t('settings.accessDenied', { defaultValue: "Accès refusé" })}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-muted-foreground max-w-md">
+                {t('settings.accessDeniedDesc', { defaultValue: "Vous n'avez pas les permissions nécessaires pour accéder à cette section. Contactez votre administrateur pour obtenir l'accès." })}
+            </p>
+        </div>
+    );
+
     const renderContent = () => {
         switch (activeTab) {
             case 'profile': return <ProfileSettings />;
@@ -49,19 +63,19 @@ const Settings: React.FC = () => {
             case 'organization':
                 return hasPermission(user, 'Settings', 'manage')
                     ? <OrganizationSettings />
-                    : <ProfileSettings />;
+                    : <AccessDenied />;
             case 'system':
                 return hasPermission(user, 'Settings', 'read')
                     ? <SystemSettings />
-                    : <ProfileSettings />;
+                    : <AccessDenied />;
             case 'frameworks':
                 return hasPermission(user, 'Settings', 'manage')
                     ? <FrameworkSettings />
-                    : <ProfileSettings />;
+                    : <AccessDenied />;
             case 'partners':
                 return hasPermission(user, 'Partner', 'manage')
                     ? <PartnerManagement />
-                    : <ProfileSettings />;
+                    : <AccessDenied />;
             case 'integrations': return <IntegrationSettings />;
             case 'agents': return <AgentManagement />;
             default: return <ProfileSettings />;

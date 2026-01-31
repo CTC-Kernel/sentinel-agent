@@ -93,7 +93,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
         const critical = incidents.filter(i => i.severity === Criticality.CRITICAL && i.status !== 'Fermé' && i.status !== 'Résolu').length;
         const high = incidents.filter(i => i.severity === Criticality.HIGH && i.status !== 'Fermé' && i.status !== 'Résolu').length;
         const resolved = incidents.filter(i => i.status === 'Résolu' || i.status === 'Fermé').length;
-        const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 100;
+        const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
 
         // NIS2 significant incidents pending notification
         const nis2Pending = incidents.filter(i => i.isSignificant && i.notificationStatus === 'Pending').length;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -120,6 +120,7 @@ export const Compliance: React.FC = () => {
     const [generatingDossier, setGeneratingDossier] = useState(false);
     const [showAssessmentForm, setShowAssessmentForm] = useState(false);
     const [selectedEffControl, setSelectedEffControl] = useState<{ code: string; name: string } | null>(null);
+    const deepLinkProcessedRef = useRef(false);
 
     const {
         assessments,
@@ -211,6 +212,7 @@ export const Compliance: React.FC = () => {
             const control = filteredControls.find((c: Control) => c.id === deepLinkControlId);
 
             if (control) {
+                deepLinkProcessedRef.current = true;
                 flushSync(() => {
                     handleSelectControl(control);
                 });
@@ -223,7 +225,10 @@ export const Compliance: React.FC = () => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!isDrawerOpen && deepLinkControlId) {
+        // Only clean up params after the drawer has been opened and then closed
+        // (not on initial render before deep link is processed)
+        if (!isDrawerOpen && deepLinkControlId && deepLinkProcessedRef.current) {
+            deepLinkProcessedRef.current = false;
             setSearchParams(params => {
                 params.delete('id');
                 return params;
@@ -443,7 +448,8 @@ export const Compliance: React.FC = () => {
                                         </Button>
                                         <Button
                                             variant="secondary"
-                                            onClick={() => toast.info(t('compliance.exportInfo'))}
+                                            onClick={() => toast.info(t('compliance.exportComingSoon', { defaultValue: 'Export des contrôles - Fonctionnalité bientôt disponible' }))}
+                                            title={t('compliance.exportComingSoon', { defaultValue: 'Bientôt disponible' })}
                                         >
                                             <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
                                         </Button>

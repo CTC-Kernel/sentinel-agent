@@ -12,7 +12,7 @@ interface MaturityRadarWidgetProps {
     referential?: string; // e.g. "ISO 27001", "DORA", etc.
 }
 
-export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate, referential = "ISO 27001" }) => {
+export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate, referential = "" }) => {
     const radarGradientId = React.useId();
     const totalScore = radarData.length > 0
         ? Math.round(radarData.reduce((acc, curr) => acc + curr.A, 0) / radarData.length)
@@ -106,7 +106,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
             {/* Premium Goal Gauge */}
             <div className="w-[85%] max-w-[280px] relative mt-2 group/gauge">
                 <div className="flex justify-between items-end mb-2">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Objectif Conformité {referential}</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Objectif Conformité{referential ? ` ${referential}` : ''}</span>
                     <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-purple-500">
                         {totalScore}%
                     </span>

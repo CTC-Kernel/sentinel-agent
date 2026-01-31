@@ -176,12 +176,21 @@ export const SystemSettings: React.FC = () => {
                         </div>
                     </div>
                     <div className="relative z-10 p-2">
-                        <DataTable
-                            columns={columns}
-                            data={auditLogs}
-                            loading={loadingLogs}
-                            className="bg-transparent border-none"
-                        />
+                        {loadingLogs ? (
+                            <div className="space-y-3 p-4 animate-pulse">
+                                <div className="h-10 bg-muted/50 rounded-lg" />
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <div key={i} className="h-12 bg-muted/30 rounded-lg" />
+                                ))}
+                            </div>
+                        ) : (
+                            <DataTable
+                                columns={columns}
+                                data={auditLogs}
+                                loading={loadingLogs}
+                                className="bg-transparent border-none"
+                            />
+                        )}
                     </div>
                 </PremiumCard>
             )}

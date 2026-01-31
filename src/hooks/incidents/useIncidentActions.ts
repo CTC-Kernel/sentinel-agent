@@ -7,7 +7,7 @@ import { NotificationService } from '../../services/notificationService';
 import { hybridService } from '../../services/hybridService';
 import { IncidentService } from '../../services/incidentService';
 import { Incident, Criticality, UserProfile } from '../../types';
-import { IncidentStatus, isValidIncidentTransition } from '../../types/incidents';
+import { IncidentStatus, isValidIncidentTransition, VALID_INCIDENT_TRANSITIONS } from '../../types/incidents';
 import { IncidentFormData, incidentSchema } from '../../schemas/incidentSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { SecurityEvent } from '../../services/integrationService';
@@ -110,8 +110,10 @@ export const useIncidentActions = () => {
                     data.status as IncidentStatus
                 );
                 if (!isValid) {
+                    const validTargets = VALID_INCIDENT_TRANSITIONS[currentIncident.status as IncidentStatus] || [];
+                    const validList = validTargets.length > 0 ? validTargets.join(', ') : t('incidents.noValidTransitions', { defaultValue: 'aucune' });
                     addToast(
-                        `Transition de statut invalide: ${currentIncident.status} → ${data.status}`,
+                        `${t('incidents.invalidTransition', { defaultValue: 'Transition de statut invalide' })}: ${currentIncident.status} \u2192 ${data.status}. ${t('incidents.validTransitions', { defaultValue: 'Transitions possibles' })}: ${validList}`,
                         "error"
                     );
                     setLoading(false);

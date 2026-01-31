@@ -44,13 +44,12 @@ export const Search: React.FC = () => {
     };
 
     const handleNavigate = (item: SearchResult) => {
-        const state = { fromVoxel: true, voxelSelectedId: item.id, voxelSelectedType: item.type };
-        switch (item.type) {
-            case 'asset': navigate('/assets', { state }); break;
-            case 'risk': navigate('/risks', { state }); break;
-            case 'document': navigate('/documents', { state }); break;
-            case 'project': navigate('/projects', { state }); break;
-        }
+        const routes: Record<string, string> = {
+            asset: '/assets', risk: '/risks', document: '/documents',
+            project: '/projects', incident: '/incidents', supplier: '/suppliers', audit: '/audits'
+        };
+        const route = routes[item.type] || '/';
+        navigate(`${route}?id=${item.id}`);
     };
 
     const handleAdvancedSearch = (filters: SearchFilters) => {

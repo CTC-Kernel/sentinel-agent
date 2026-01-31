@@ -7,10 +7,11 @@ import { RiskResidualChart } from './RiskResidualChart';
 import { RiskTreatmentChart } from './RiskTreatmentChart';
 import {
     RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend,
-    ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Sector
+    Sector
 } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../theme/chartTheme';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 interface RiskDashboardProps {
     risks: Risk[];
@@ -56,13 +57,13 @@ const renderActiveShape = (props: any) => {
 export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
     const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
-    // Calculate metrics
+    // Calculate metrics using centralized RISK_THRESHOLDS
     const metrics = useMemo(() => {
         const total = risks.length;
-        const critical = risks.filter(r => r.score >= 10).length;
-        const high = risks.filter(r => r.score >= 7 && r.score < 10).length;
-        const medium = risks.filter(r => r.score >= 4 && r.score < 7).length;
-        const low = risks.filter(r => r.score < 4).length;
+        const critical = risks.filter(r => r.score >= RISK_THRESHOLDS.CRITICAL).length;
+        const high = risks.filter(r => r.score >= RISK_THRESHOLDS.HIGH && r.score < RISK_THRESHOLDS.CRITICAL).length;
+        const medium = risks.filter(r => r.score >= RISK_THRESHOLDS.MEDIUM && r.score < RISK_THRESHOLDS.HIGH).length;
+        const low = risks.filter(r => r.score < RISK_THRESHOLDS.MEDIUM).length;
 
         const treated = risks.filter(r => r.strategy && r.strategy !== 'Accepter').length;
         const treatmentRate = total > 0 ? Math.round((treated / total) * 100) : 0;
@@ -81,17 +82,6 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
         { name: 'Moyen', value: metrics.medium, color: SEVERITY_COLORS.medium },
         { name: 'Faible', value: metrics.low, color: SEVERITY_COLORS.low }
     ].filter(d => d.value > 0), [metrics]);
-
-    // Risk evolution trend based on actual metrics
-    const evolutionData = useMemo(() => {
-        const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
-        return months.map((name, i) => ({
-            name,
-            inherent: Math.max(0, metrics.avgScore - (i * 0.3) + (i % 2) * 0.5),
-            residual: Math.max(0, metrics.avgResidual - (i * 0.2) + (i % 3) * 0.25),
-            target: 3
-        }));
-    }, [metrics]);
 
     // Gauge data for RadialBarChart
     const gaugeData = [
@@ -121,14 +111,6 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     <linearGradient id="reductionGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={SENTINEL_PALETTE.success} />
                         <stop offset="100%" stopColor="#10b981" />
-                    </linearGradient>
-                    <linearGradient id="inherentAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0.05} />
-                    </linearGradient>
-                    <linearGradient id="residualAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0.05} />
                     </linearGradient>
                 </defs>
             </svg>
@@ -347,77 +329,6 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 <RiskTreatmentChart risks={risks} />
             </motion.div>
 
-            {/* Row 2: Risk Evolution Chart (Full Width) */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="glass-premium p-8 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
-            >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-
-                <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div className="p-2 bg-brand-50 rounded-3xl">
-                        <TrendingUp className="h-5 w-5 text-brand-500" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg text-foreground">Évolution du Risque</h3>
-                        <p className="text-xs text-muted-foreground">Comparaison risque inhérent vs résiduel</p>
-                    </div>
-                </div>
-
-                <div className="h-[280px] w-full relative z-10">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={evolutionData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
-                            <XAxis
-                                dataKey="name"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }}
-                            />
-                            <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                                domain={[0, 'auto']}
-                            />
-                            <Tooltip content={<ChartTooltip />} />
-                            <Legend
-                                iconType="circle"
-                                iconSize={10}
-                                formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1">{value}</span>}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="inherent"
-                                name="Risque Inhérent"
-                                fill="url(#inherentAreaGradient)"
-                                stroke={SEVERITY_COLORS.critical}
-                                strokeWidth={2}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="residual"
-                                name="Risque Résiduel"
-                                fill="url(#residualAreaGradient)"
-                                stroke={SENTINEL_PALETTE.success}
-                                strokeWidth={2}
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="target"
-                                name="Objectif"
-                                stroke={SENTINEL_PALETTE.primary}
-                                strokeWidth={2}
-                                strokeDasharray="8 4"
-                                dot={false}
-                            />
-                        </ComposedChart>
-                    </ResponsiveContainer>
-                </div>
-            </motion.div>
-
             {/* Inherent vs Residual (Full Width) */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -462,7 +373,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Liste des risques critiques">
                         {risks
-                            .filter(r => r.score >= 10)
+                            .filter(r => r.score >= RISK_THRESHOLDS.CRITICAL)
                             .sort((a, b) => b.score - a.score)
                             .slice(0, 6)
                             .map((risk, index) => (

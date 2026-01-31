@@ -483,7 +483,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Use selectors to ensure components re-render when store updates
     const storeUser = useStore(s => s.user);
-    const storeIsAdmin = useStore(s => s.user?.role === 'admin');
+    const storeIsAdmin = useStore(s => s.user?.role === 'admin' || s.user?.role === 'super_admin');
 
     const value = {
         user: storeUser,

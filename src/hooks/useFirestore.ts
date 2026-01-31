@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { MockDataService } from '../services/mockDataService';
 
@@ -231,7 +232,7 @@ export const useFirestoreCollection = <T = DocumentData>(
         mutationFn: async (newData: WithFieldValue<DocumentData>) => {
             if (demoMode) return "mock-id-" + Date.now();
             try {
-                const docRef = await addDoc(collection(db, collectionName), newData);
+                const docRef = await addDoc(collection(db, collectionName), sanitizeData(newData));
                 return docRef.id;
             } catch (_err) {
                 const errorObj = _err instanceof Error ? _err : new Error(String(_err));

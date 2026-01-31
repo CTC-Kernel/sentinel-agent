@@ -406,9 +406,9 @@ export const ProfileSettings: React.FC = () => {
                         {/* Application Settings (Demo Mode) */}
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Mode Démo</h3>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.demoMode.title', { defaultValue: 'Mode Démo' })}</h3>
                                 <p className="text-sm text-slate-500 dark:text-muted-foreground">
-                                    Activez le mode démo pour explorer l'application avec des données fictives complètes.
+                                    {t('settings.demoMode.description', { defaultValue: "Activez le mode démo pour explorer l'application avec des données fictives complètes." })}
                                 </p>
                             </div>
                             <div className="flex items-center gap-4 p-4 rounded-3xl bg-brand-50 dark:bg-white/5 border border-border/40">
@@ -416,14 +416,13 @@ export const ProfileSettings: React.FC = () => {
                                     checked={demoMode}
                                     onChange={() => {
                                         toggleDemoMode();
-                                        addToast(demoMode ? "Mode Démo désactivé" : "Mode Démo activé", "info");
+                                        addToast(demoMode ? t('settings.demoMode.disabled', { defaultValue: "Mode Démo désactivé" }) : t('settings.demoMode.enabled', { defaultValue: "Mode Démo activé" }), "info");
                                     }}
                                 />
                                 <div className="flex-1">
-                                    <h4 className="font-medium text-slate-900 dark:text-white">Activer le Mode Démo</h4>
+                                    <h4 className="font-medium text-slate-900 dark:text-white">{t('settings.demoMode.enable', { defaultValue: 'Activer le Mode Démo' })}</h4>
                                     <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                                        Ceci remplacera temporairement vos données par des données de démonstration.
-                                        Aucune donnée réelle ne sera modifiée.
+                                        {t('settings.demoMode.replaceData', { defaultValue: "Ceci remplacera temporairement vos données par des données de démonstration. Aucune donnée réelle ne sera modifiée." })}
                                     </p>
                                 </div>
                             </div>
@@ -533,6 +532,19 @@ export const ProfileSettings: React.FC = () => {
                 type="danger"
                 confirmText={t('common.delete')}
                 loading={isDeleting}
+            />
+
+            <ConfirmModal
+                isOpen={showMfaDisableConfirm}
+                onClose={() => setShowMfaDisableConfirm(false)}
+                onConfirm={async () => {
+                    await performMfaToggle(false);
+                    setShowMfaDisableConfirm(false);
+                }}
+                title={t('settings.disableMFATitle', { defaultValue: "Désactiver l'authentification à deux facteurs" })}
+                message={t('settings.disableMFAMessage', { defaultValue: "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ? Votre compte sera moins sécurisé." })}
+                type="danger"
+                confirmText={t('settings.disableMFAConfirm', { defaultValue: "Désactiver" })}
             />
         </div>
     );

@@ -117,20 +117,30 @@ export const SecuritySettings: React.FC = () => {
                 </div>
                 <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="p-6 space-y-6 flex-1 flex flex-col justify-between">
                     <div className="space-y-6">
-                        <FloatingLabelInput
-                            label={t('settings.newPassword')}
-                            type="password"
-                            {...passwordForm.register('newPassword')}
-                            error={passwordForm.formState.errors.newPassword?.message}
-                            autoComplete="new-password"
-                        />
-                        <FloatingLabelInput
-                            label={t('settings.confirmPassword')}
-                            type="password"
-                            {...passwordForm.register('confirmPassword')}
-                            error={passwordForm.formState.errors.confirmPassword?.message}
-                            autoComplete="new-password"
-                        />
+                        <div>
+                            <FloatingLabelInput
+                                label={t('settings.newPassword')}
+                                type="password"
+                                {...passwordForm.register('newPassword')}
+                                error={passwordForm.formState.errors.newPassword?.message}
+                                autoComplete="new-password"
+                            />
+                            {passwordForm.formState.errors.newPassword?.message && (
+                                <p className="text-destructive text-xs mt-1">{passwordForm.formState.errors.newPassword.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <FloatingLabelInput
+                                label={t('settings.confirmPassword')}
+                                type="password"
+                                {...passwordForm.register('confirmPassword')}
+                                error={passwordForm.formState.errors.confirmPassword?.message}
+                                autoComplete="new-password"
+                            />
+                            {passwordForm.formState.errors.confirmPassword?.message && (
+                                <p className="text-destructive text-xs mt-1">{passwordForm.formState.errors.confirmPassword.message}</p>
+                            )}
+                        </div>
                     </div>
                     <Button
                         type="submit"

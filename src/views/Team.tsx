@@ -35,7 +35,7 @@ import { Upload } from '../components/ui/Icons';
 
 const Team: React.FC = () => {
     const { t } = useTranslation();
-    const { user } = useStore();
+    const { user, addToast } = useStore();
     const { claimsSynced, loading: authLoading } = useAuth();
     const [activeTab, setActiveTab] = usePersistedState<'members' | 'roles' | 'groups'>('team_active_tab', 'members');
     const [filter, setFilter] = useState('');
@@ -120,29 +120,33 @@ const Team: React.FC = () => {
     }, [selectedUser, updateUser]);
 
     const initiateDelete = React.useCallback(async (u: UserProfile) => {
-        if (!u.isPending) {
-            const dependencies = await checkDependencies(u.uid);
-            if (dependencies.length > 0) {
-                setConfirmData({
-                    isOpen: true,
-                    title: "Impossible de supprimer",
-                    message: `Cet utilisateur possède des éléments liés : ${dependencies.join(', ')}. Réassignez-les avant de supprimer.`,
-                    onConfirm: () => setConfirmData(prev => ({ ...prev, isOpen: false }))
-                });
-                return;
+        try {
+            if (!u.isPending) {
+                const dependencies = await checkDependencies(u.uid);
+                if (dependencies.length > 0) {
+                    setConfirmData({
+                        isOpen: true,
+                        title: "Impossible de supprimer",
+                        message: `Cet utilisateur possède des éléments liés : ${dependencies.join(', ')}. Réassignez-les avant de supprimer.`,
+                        onConfirm: () => setConfirmData(prev => ({ ...prev, isOpen: false }))
+                    });
+                    return;
+                }
             }
-        }
 
-        setConfirmData({
-            isOpen: true,
-            title: t('team.delete.title'),
-            message: t('team.delete.message', { name: u.displayName }),
-            onConfirm: async () => {
-                await deleteUser(u);
-                setConfirmData(prev => ({ ...prev, isOpen: false }));
-            }
-        });
-    }, [checkDependencies, t, deleteUser]);
+            setConfirmData({
+                isOpen: true,
+                title: t('team.delete.title'),
+                message: t('team.delete.message', { name: u.displayName }),
+                onConfirm: async () => {
+                    await deleteUser(u);
+                    setConfirmData(prev => ({ ...prev, isOpen: false }));
+                }
+            });
+        } catch {
+            addToast(t('team.delete.error', { defaultValue: "Erreur lors de la préparation de la suppression." }), 'error');
+        }
+    }, [checkDependencies, t, deleteUser, addToast]);
 
     const handleApproveRequest = React.useCallback(async (req: JoinRequest) => {
         await approveRequest(req);
@@ -310,9 +314,9 @@ const Team: React.FC = () => {
                     type="button"
                     aria-label={t('team.tabs.roles')}
                     onClick={handleRolesTab}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'roles'
-                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'
+                    className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'roles'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-apple-sm'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'
                         }`}
                 >
                     {t('team.tabs.roles')}
@@ -321,9 +325,9 @@ const Team: React.FC = () => {
                     type="button"
                     aria-label={t('team.tabs.groups')}
                     onClick={handleGroupsTab}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
-                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'
+                    className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'groups'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-apple-sm'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'
                         }`}
                 >
                     {t('team.tabs.groups')}
@@ -385,11 +389,11 @@ const Team: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {/* Pending Join Requests Section */}
-                        {joinRequests.length > 0 && (
+                        {joinRequests.length > 0 ? (
                             <div className="col-span-full mb-4">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
                                     <UserPlus className="h-5 w-5 mr-2 text-brand-500" />
-                                    Demandes d'accès ({joinRequests.length})
+                                    {t('team.joinRequests.title', { defaultValue: "Demandes d'accès" })} ({joinRequests.length})
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {joinRequests.map(req => (
@@ -397,6 +401,12 @@ const Team: React.FC = () => {
                                     ))}
                                 </div>
                                 <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-10 opacity-60" />
+                            </div>
+                        ) : (
+                            <div className="col-span-full mb-4">
+                                <p className="text-sm text-muted-foreground text-center py-4">
+                                    {t('team.joinRequests.empty', { defaultValue: "Aucune demande d'accès en attente." })}
+                                </p>
                             </div>
                         )}
 

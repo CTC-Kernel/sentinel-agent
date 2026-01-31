@@ -4,6 +4,7 @@ import { useStore } from '../../store';
 import { Document } from '../../types';
 import { FileText, CheckCircle2, Clock, ArrowRight } from '../ui/Icons';
 import { motion } from 'framer-motion';
+import { useLocale } from '../../hooks/useLocale';
 
 interface ApprovalsWidgetProps {
     documents: Document[];
@@ -11,6 +12,7 @@ interface ApprovalsWidgetProps {
 
 export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) => {
     const { user } = useStore();
+    const { t } = useLocale();
     const navigate = useNavigate();
 
     const pendingApprovals = documents.filter(doc =>
@@ -44,7 +46,7 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
                         <CheckCircle2 className="h-5 w-5" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-foreground">Approbations</h3>
+                        <h3 className="text-lg font-bold text-foreground">{t('dashboard.approvals', { defaultValue: 'Approbations' })}</h3>
                         <p className="text-xs font-medium text-warning dark:text-warning">{pendingApprovals.length} document(s) à revoir</p>
                     </div>
                 </div>

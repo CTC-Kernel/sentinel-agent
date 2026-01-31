@@ -347,7 +347,11 @@ exports.getSsoSettings = onCall({
     }
 
     const token = request.auth.token;
-    const organizationId = request.auth.token.organizationId || request.data?.organizationId;
+    // SECURITY: Non-super_admin users ALWAYS use their token organizationId
+    // Only super_admin can specify a different organizationId via request data
+    const organizationId = (token.superAdmin === true && request.data?.organizationId)
+        ? request.data.organizationId
+        : token.organizationId;
 
     if (!organizationId) {
         throw new HttpsError('invalid-argument', 'Organization ID is required.');

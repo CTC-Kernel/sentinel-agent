@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { collection, addDoc, deleteDoc, updateDoc, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
@@ -13,9 +13,12 @@ import { hasPermission } from '../utils/permissions';
 export const useContinuity = () => {
     const { user, addToast, t } = useStore();
     const [loading, setLoading] = useState(false);
+    const isSubmittingRef = useRef(false);
 
     const addProcess = useCallback(async (data: BusinessProcessFormData) => {
         if (!user?.organizationId) return;
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
 
         // SECURITY: Authorization check
         if (!hasPermission(user, 'BusinessProcess', 'create')) {
@@ -37,7 +40,7 @@ export const useContinuity = () => {
                 lastTestDate: null
             };
 
-            const docRef = await addDoc(collection(db, 'business_processes'), newProcess);
+            const docRef = await addDoc(collection(db, 'business_processes'), sanitizeData(newProcess));
             await logAction(user, 'CREATE', 'BusinessProcess', `Created process: ${data.name}`);
             addToast(t('continuity.toastCreated'), 'success');
             return { id: docRef.id, ...newProcess };
@@ -46,6 +49,7 @@ export const useContinuity = () => {
             throw error;
         } finally {
             setLoading(false);
+            isSubmittingRef.current = false;
         }
     }, [user, addToast, t]);
 
@@ -72,10 +76,10 @@ export const useContinuity = () => {
 
         setLoading(true);
         try {
-            await updateDoc(doc(db, 'business_processes', id), {
+            await updateDoc(doc(db, 'business_processes', id), sanitizeData({
                 ...data,
                 updatedAt: serverTimestamp()
-            });
+            }));
             await logAction(user, 'UPDATE', 'BusinessProcess', `Updated process: ${data.name || id}`);
             addToast(t('continuity.toastUpdated'), 'success');
         } catch (error) {
@@ -122,6 +126,8 @@ export const useContinuity = () => {
 
     const addDrill = useCallback(async (data: Partial<BcpDrill>) => {
         if (!user?.organizationId) return;
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
 
         // SECURITY: Authorization check
         if (!hasPermission(user, 'BcpDrill', 'create')) {
@@ -143,7 +149,7 @@ export const useContinuity = () => {
                 organizationId: user.organizationId,
                 createdAt: serverTimestamp()
             };
-            batch.set(drillRef, newDrill);
+            batch.set(drillRef, sanitizeData(newDrill));
 
             // 2. Update Process lastTestDate if applicable
             if (data.processId) {
@@ -163,6 +169,7 @@ export const useContinuity = () => {
             throw error;
         } finally {
             setLoading(false);
+            isSubmittingRef.current = false;
         }
     }, [user, addToast, t]);
 
@@ -189,10 +196,10 @@ export const useContinuity = () => {
 
         setLoading(true);
         try {
-            await updateDoc(doc(db, 'bcp_drills', id), {
+            await updateDoc(doc(db, 'bcp_drills', id), sanitizeData({
                 ...data,
                 updatedAt: serverTimestamp()
-            });
+            }));
             addToast(t('continuity.toastDrillUpdated'), 'success');
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'useContinuity.updateDrill', 'UPDATE_FAILED');
@@ -313,7 +320,7 @@ export const useContinuity = () => {
                 updatedAt: serverTimestamp(),
                 status: data.status || 'Planned'
             };
-            const docRef = await addDoc(collection(db, 'tlpt_campaigns'), newCampaign);
+            const docRef = await addDoc(collection(db, 'tlpt_campaigns'), sanitizeData(newCampaign));
             await logAction(user, 'CREATE', 'TlptCampaign', `Created TLPT Campaign: ${data.name}`);
             addToast("Campagne TLPT créée", 'success');
             return { id: docRef.id, ...newCampaign };
@@ -348,10 +355,10 @@ export const useContinuity = () => {
 
         setLoading(true);
         try {
-            await updateDoc(doc(db, 'tlpt_campaigns', id), {
+            await updateDoc(doc(db, 'tlpt_campaigns', id), sanitizeData({
                 ...data,
                 updatedAt: serverTimestamp()
-            });
+            }));
             addToast("Campagne mise à jour", 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useContinuity.updateTlptCampaign', 'UPDATE_FAILED');
@@ -418,7 +425,7 @@ export const useContinuity = () => {
                 lastTestedAt: null
             };
 
-            const docRef = await addDoc(collection(db, 'recovery_plans'), newPlan);
+            const docRef = await addDoc(collection(db, 'recovery_plans'), sanitizeData(newPlan));
             await logAction(user, 'CREATE', 'RecoveryPlan', `Created PRA: ${data.title}`);
             addToast("Plan de reprise créé", 'success');
             return { id: docRef.id, ...newPlan };
@@ -453,10 +460,10 @@ export const useContinuity = () => {
 
         setLoading(true);
         try {
-            await updateDoc(doc(db, 'recovery_plans', id), {
+            await updateDoc(doc(db, 'recovery_plans', id), sanitizeData({
                 ...data,
                 updatedAt: serverTimestamp()
-            });
+            }));
             await logAction(user, 'UPDATE', 'RecoveryPlan', `Updated PRA: ${data.title || id}`);
             addToast("Plan de reprise mis à jour", 'success');
         } catch (error) {

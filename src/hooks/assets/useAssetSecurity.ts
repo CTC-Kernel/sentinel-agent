@@ -7,6 +7,7 @@ import { useStore } from '../../store';
 import { Asset, Vulnerability, Risk } from '../../types';
 import { logAction } from '../../services/logger';
 import { ErrorLogger } from '../../services/errorLogger';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 interface ShodanResult {
     ip_str?: string;
@@ -84,7 +85,7 @@ export function useAssetSecurity(asset: Asset | null) {
                 updatedAt: new Date().toISOString()
             };
 
-            await addDoc(collection(db, 'risks'), newRisk);
+            await addDoc(collection(db, 'risks'), sanitizeData(newRisk));
             await logAction(user, 'CREATE', 'Risk', `Création automatique risque pour ${vuln.cveId}`);
             addToast("Risque créé depuis la vulnérabilité", "success");
         } catch (e) {

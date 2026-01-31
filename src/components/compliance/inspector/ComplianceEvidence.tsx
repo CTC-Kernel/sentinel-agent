@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Control, Document } from '../../../types';
 import { Button } from '../../ui/button';
 import { CustomSelect } from '../../ui/CustomSelect';
-import { FileText, Paperclip, ExternalLink, X, Upload } from '../../ui/Icons';
+import { Skeleton } from '../../ui/Skeleton';
+import { ConfirmModal } from '../../ui/ConfirmModal';
+import { FileText, Paperclip, ExternalLink, X, Upload, Loader2 } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { formatDate } from '@/utils/date';
+import { useLocale } from '@/hooks/useLocale';
 
 interface ComplianceEvidenceProps {
     control: Control;
@@ -24,10 +27,44 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
     documents,
     handlers
 }) => {
+    const { t } = useLocale();
     const { updating, handleLinkDocument, handleUnlinkDocument, onUploadEvidence } = handlers;
+    const [unlinkTarget, setUnlinkTarget] = useState<string | null>(null);
+    const [linkingDocId, setLinkingDocId] = useState<string | null>(null);
 
     // Safe array access
     const safeDocuments = documents ?? [];
+    const isDocumentsLoading = !documents;
+
+    const handleConfirmUnlink = async () => {
+        if (unlinkTarget) {
+            await handleUnlinkDocument(control, unlinkTarget);
+            setUnlinkTarget(null);
+        }
+    };
+
+    const handleLinkWithLoading = async (docId: string) => {
+        setLinkingDocId(docId);
+        try {
+            await handleLinkDocument(control, docId);
+        } finally {
+            setLinkingDocId(null);
+        }
+    };
+
+    if (isDocumentsLoading) {
+        return (
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
+                    <Skeleton className="h-6 w-48 mb-6" />
+                    <div className="space-y-3">
+                        <Skeleton className="h-16 rounded-3xl" />
+                        <Skeleton className="h-16 rounded-3xl" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">
@@ -63,8 +100,8 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                                         <ExternalLink className="h-4 w-4" />
                                     </a>
                                     {canEdit && (
-                                        <Button variant="ghost" size="icon" aria-label="Délier le document" onClick={() => handleUnlinkDocument(control, docId)} className="h-8 w-8 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                                            <X className="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" aria-label={t('compliance.unlinkDocument', { defaultValue: 'Délier le document' })} onClick={() => setUnlinkTarget(docId)} disabled={updating} className="h-8 w-8 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                            {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                                         </Button>
                                     )}
                                 </div>
@@ -72,23 +109,50 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                         );
                     })}
                     {(!control.evidenceIds || control.evidenceIds.length === 0) && (
-                        <EmptyState icon={Paperclip} title="Aucune preuve" description="Liez des documents pour prouver la conformité." compact />
+                        <div>
+                            <EmptyState icon={Paperclip} title={t('compliance.noEvidence', { defaultValue: 'Aucune preuve' })} description={t('compliance.linkDocumentsForCompliance', { defaultValue: 'Liez des documents pour prouver la conformité.' })} compact />
+                            {canEdit && (
+                                <div className="flex justify-center mt-4">
+                                    <Button
+                                        onClick={() => onUploadEvidence(control)}
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-xs font-bold"
+                                    >
+                                        <Upload className="h-3 w-3 mr-1.5" />
+                                        {t('compliance.addEvidence', { defaultValue: 'Ajouter une preuve' })}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
 
                 {canEdit && (
                     <div className="mt-6 pt-6 border-t border-border/40 dark:border-white/5">
                         <CustomSelect
-                            label="Ajouter une preuve existante"
+                            label={t('compliance.addExistingEvidence', { defaultValue: 'Ajouter une preuve existante' })}
                             value=""
-                            onChange={(val) => handleLinkDocument(control, val as string)}
+                            onChange={(val) => handleLinkWithLoading(val as string)}
                             options={safeDocuments.filter(d => !control.evidenceIds?.includes(d.id)).map(d => ({ value: d.id, label: d.title }))}
-                            placeholder="Sélectionner un document..."
-                            disabled={updating}
+                            placeholder={t('compliance.selectDocument', { defaultValue: 'Sélectionner un document...' })}
+                            disabled={updating || !!linkingDocId}
                         />
                     </div>
                 )}
             </div>
+
+            {/* Unlink Confirmation Dialog */}
+            <ConfirmModal
+                isOpen={!!unlinkTarget}
+                onClose={() => setUnlinkTarget(null)}
+                onConfirm={handleConfirmUnlink}
+                title={t('compliance.unlinkEvidenceTitle', { defaultValue: 'Délier la preuve' })}
+                message={t('compliance.unlinkEvidenceMessage', { defaultValue: 'Êtes-vous sûr de vouloir délier ce document ? Le document ne sera pas supprimé.' })}
+                confirmText={t('compliance.unlinkConfirm', { defaultValue: 'Délier' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
+                type="warning"
+            />
         </div>
     );
 };

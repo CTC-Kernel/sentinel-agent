@@ -113,50 +113,58 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
     };
 
     // Export PDF (current or selected version)
-    const exportPDF = (versionData?: SoAVersion) => {
-        const doc = new jsPDF();
-        const isHistorical = !!versionData;
-        const title = isHistorical
-            ? `Statement of Applicability (SoA) - ${versionData.framework} - v${versionData.version}`
-            : `Statement of Applicability (SoA) - ${framework}`;
+    const exportPDF = async (versionData?: SoAVersion) => {
+        setExportingPdf(true);
+        try {
+            const doc = new jsPDF();
+            const isHistorical = !!versionData;
+            const title = isHistorical
+                ? `Statement of Applicability (SoA) - ${versionData.framework} - v${versionData.version}`
+                : `Statement of Applicability (SoA) - ${framework}`;
 
-        doc.text(title, 14, 20);
+            doc.text(title, 14, 20);
 
-        if (isHistorical && versionData) {
-            doc.setFontSize(10);
-            doc.text(`Généré le: ${new Date(versionData.generatedAt).toLocaleDateString('fr-FR')}`, 14, 28);
-            doc.text(`Par: ${versionData.generatedByName}`, 14, 34);
+            if (isHistorical && versionData) {
+                doc.setFontSize(10);
+                doc.text(`Généré le: ${new Date(versionData.generatedAt).toLocaleDateString('fr-FR')}`, 14, 28);
+                doc.text(`Par: ${versionData.generatedByName}`, 14, 34);
+            }
+
+            const dataSource = isHistorical && versionData
+                ? versionData.controlsSnapshot.map(c => [
+                    c.code,
+                    c.name,
+                    c.applicability,
+                    c.justification || '-',
+                    c.status,
+                    c.risksCount.toString()
+                ])
+                : controls.map(c => [
+                    c.code,
+                    c.name,
+                    c.applicability || (c.status === 'Non applicable' ? 'Non applicable' : 'Applicable'),
+                    c.justification || '-',
+                    c.status,
+                    (c.relatedRiskIds?.length || 0).toString()
+                ]);
+
+            autoTable(doc, {
+                startY: isHistorical ? 42 : 30,
+                head: [['Code', 'Nom', 'Applicabilité', 'Justification', 'Statut', 'Risques']],
+                body: dataSource,
+            });
+
+            const filename = isHistorical
+                ? `SoA_${versionData?.framework}_v${versionData?.version}.pdf`
+                : 'SoA_Report.pdf';
+            doc.save(filename);
+            addToast(t('soa.exportSuccess', { defaultValue: 'Export SoA généré avec succès' }), 'success');
+        } catch (error) {
+            ErrorLogger.error(error, 'SoAView.exportPDF');
+            addToast(t('soa.exportError', { defaultValue: 'Erreur lors de l\'export PDF' }), 'error');
+        } finally {
+            setExportingPdf(false);
         }
-
-        const dataSource = isHistorical && versionData
-            ? versionData.controlsSnapshot.map(c => [
-                c.code,
-                c.name,
-                c.applicability,
-                c.justification || '-',
-                c.status,
-                c.risksCount.toString()
-            ])
-            : controls.map(c => [
-                c.code,
-                c.name,
-                c.applicability || (c.status === 'Non applicable' ? 'Non applicable' : 'Applicable'),
-                c.justification || '-',
-                c.status,
-                (c.relatedRiskIds?.length || 0).toString()
-            ]);
-
-        autoTable(doc, {
-            startY: isHistorical ? 42 : 30,
-            head: [['Code', 'Nom', 'Applicabilité', 'Justification', 'Statut', 'Risques']],
-            body: dataSource,
-        });
-
-        const filename = isHistorical
-            ? `SoA_${versionData?.framework}_v${versionData?.version}.pdf`
-            : 'SoA_Report.pdf';
-        doc.save(filename);
-        addToast('Export SoA généré', 'success');
     };
 
     // Display data (current or selected historical version)
@@ -231,9 +239,9 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                             {savingVersion ? 'Sauvegarde...' : 'Sauvegarder version'}
                         </Button>
                     )}
-                    <Button variant="outline" onClick={() => exportPDF(selectedVersion || undefined)}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Exporter SoA (PDF)
+                    <Button variant="outline" onClick={() => exportPDF(selectedVersion || undefined)} disabled={exportingPdf}>
+                        {exportingPdf ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                        {t('soa.exportPdf', { defaultValue: 'Exporter SoA (PDF)' })}
                     </Button>
                 </div>
             </div>

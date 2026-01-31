@@ -11,7 +11,7 @@ import { useZodForm } from '../../hooks/useZodForm';
 import { toast } from '@/lib/toast';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
-import { LayoutGrid, FileText, Activity, Layers, History, Search, Shield } from '../ui/Icons';
+import { LayoutGrid, FileText, Activity, Layers, History, Search, Shield, AlertTriangle } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -343,6 +343,23 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Form Error Summary */}
+                {Object.keys(errors).length > 0 && (
+                    <div className="p-4 bg-error/10 border border-error/20 rounded-xl animate-fade-in" role="alert">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-error/20 rounded-lg"><AlertTriangle className="h-5 w-5 text-error" /></div>
+                            <div>
+                                <p className="font-bold text-error text-sm">{t('validation.formErrors', 'Erreurs de validation')}</p>
+                                <ul className="text-xs text-muted-foreground mt-1 list-disc ml-4">
+                                    {Object.entries(errors).map(([field, error]) => (
+                                        <li key={field}>{String(error?.message || field)}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Draft Recovery Banner */}
                 {showDraftRecoveryBanner && (
                     <div className="p-4 bg-warning/10 border border-warning/20 rounded-xl flex items-center justify-between animate-fade-in">

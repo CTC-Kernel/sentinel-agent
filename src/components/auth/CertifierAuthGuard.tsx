@@ -26,7 +26,7 @@ export const CertifierAuthGuard: React.FC<CertifierAuthGuardProps> = ({ children
                 // User is authenticated - verify they have certifier or admin role
                 try {
                     const tokenResult = await authUser.getIdTokenResult();
-                    if (tokenResult.claims.role !== 'certifier' && tokenResult.claims.role !== 'admin') {
+                    if (tokenResult.claims.role !== 'certifier' && tokenResult.claims.role !== 'admin' && tokenResult.claims.role !== 'super_admin') {
                         // Not a certifier - redirect to home
                         navigate('/', { replace: true });
                         setIsLoading(false);

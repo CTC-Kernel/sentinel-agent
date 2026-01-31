@@ -5,6 +5,8 @@ import { CustomSelect } from '../../ui/CustomSelect';
 import { User, Loader2, X, Plus, Layers } from '../../ui/Icons';
 import { ComplianceAIAssistant } from '../ComplianceAIAssistant';
 import { FRAMEWORKS } from '../../../data/frameworks';
+import { useLocale } from '@/hooks/useLocale';
+import { toast } from '@/lib/toast';
 
 interface ComplianceDetailsProps {
     control: Control;
@@ -30,6 +32,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
     handlers,
     onDirtyChange
 }) => {
+    const { t } = useLocale();
     const { updating, handleStatusChange, handleAssign, updateJustification, handleMapFramework, handleUnmapFramework } = handlers;
 
     // Get available frameworks for mapping (exclude primary and already mapped)
@@ -63,6 +66,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             setIsSaving(true);
             try {
                 await updateJustification(control, justification);
+                toast.success(t('compliance.justificationSaved', { defaultValue: 'Justification enregistrée' }));
             } finally {
                 setIsSaving(false);
             }
@@ -87,7 +91,10 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                     key={s}
                                     aria-label={`Changer le statut à ${s}`}
                                     aria-pressed={control.status === s}
-                                    onClick={() => handleStatusChange(control, s)}
+                                    onClick={async () => {
+                                        await handleStatusChange(control, s);
+                                        toast.success(t('compliance.statusUpdated', { defaultValue: 'Statut mis à jour' }));
+                                    }}
                                     disabled={updating}
                                     variant={control.status === s ? 'default' : 'outline'}
                                     className={`h-auto py-2 text-[11px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-brand-600 hover:bg-brand-700' : 'text-slate-600 dark:text-slate-300'}`}
@@ -207,8 +214,23 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                             maxLength={2000}
                             disabled={!canEdit || updating || isSaving}
                         />
-                        <div className="text-[11px] text-right text-muted-foreground mt-1">
-                            {justification.length}/2000
+                        <div className="flex items-center justify-between mt-1">
+                            <div className="text-[11px] text-muted-foreground">
+                                {justification.length}/2000
+                            </div>
+                            {justification !== (control.justification || '') && (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={saveJustification}
+                                    disabled={isSaving || updating}
+                                    className="text-xs"
+                                >
+                                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                    {isSaving ? t('common.saving', { defaultValue: 'Enregistrement...' }) : t('common.save', { defaultValue: 'Enregistrer' })}
+                                </Button>
+                            )}
                         </div>
                     </>
                 ) : (

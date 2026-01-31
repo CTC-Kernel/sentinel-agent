@@ -210,9 +210,9 @@ export class OnboardingService {
                     organizationId: user.organizationId,
                     createdAt: serverTimestamp(),
                     lifecycleStatus: 'En service',
-                    confidentiality: 'Medium',
-                    integrity: 'Medium',
-                    availability: 'Medium',
+                    confidentiality: 'Moyenne',
+                    integrity: 'Moyenne',
+                    availability: 'Moyenne',
                     owner: user.displayName || 'Admin'
                 }));
             });

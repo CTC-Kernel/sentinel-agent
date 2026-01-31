@@ -55,19 +55,19 @@ service firebase.storage {
     // SECURITY: Fixed path traversal vulnerability by using {fileName} instead of {allPaths=**}
     match /avatars/{userId}/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId && isValidFileSize(5);
+      allow write: if isAuthenticated() && request.auth.uid == userId && isValidFileSize(5) && request.resource.contentType.matches('image/.*');
     }
     
     // Documents - Restricted write
     match /documents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(10);
+      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(10) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*');
     }
     
     // Audit evidence - Restricted write
     match /evidence/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteSensitive() && isValidFileSize(20);
+      allow write: if belongsToOrg(orgId) && canWriteSensitive() && isValidFileSize(20) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*');
     }
     
     // Incident attachments - Restricted write

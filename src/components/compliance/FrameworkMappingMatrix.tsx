@@ -10,6 +10,7 @@ import { FRAMEWORKS } from '../../data/frameworks';
 import { Check, AlertTriangle, ChevronDown, ChevronUp, Layers } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';
+import { useLocale } from '@/hooks/useLocale';
 
 interface FrameworkMappingMatrixProps {
     controls: Control[];
@@ -31,6 +32,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
     enabledFrameworks,
     onControlClick
 }) => {
+    const { t } = useLocale();
     const [expandedFramework, setExpandedFramework] = useState<Framework | null>(null);
     const [showGapsOnly, setShowGapsOnly] = useState(false);
 
@@ -100,10 +102,10 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
             <div className="glass-premium p-12 text-center border border-border/40 rounded-3xl">
                 <Layers className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    Aucun contrôle disponible
+                    {t('compliance.noControlsAvailable', { defaultValue: 'Aucun contrôle disponible' })}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-muted-foreground">
-                    Ajoutez des contrôles pour voir la matrice de mapping.
+                    {t('compliance.addControlsForMapping', { defaultValue: 'Ajoutez des contrôles pour voir la matrice de mapping.' })}
                 </p>
             </div>
         );

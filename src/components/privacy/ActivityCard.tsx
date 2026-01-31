@@ -4,6 +4,7 @@ import { Fingerprint, Scale, GlobeLock, Clock, CheckCircle2, Trash2 } from '../u
 import { slideUpVariants } from '../ui/animationVariants';
 import { ProcessingActivity } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
+import { useStore } from '../../store';
 
 interface ActivityCardProps {
     activity: ProcessingActivity;
@@ -13,6 +14,7 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }: ActivityCardProps) => {
+    const { t } = useStore();
     const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
     return (
         <motion.div
@@ -42,29 +44,29 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
 
             <div className="space-y-3 pt-5 border-t border-dashed border-border/40 dark:border-border/40">
                 <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />Base Légale</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />{t('privacy.card.legalBasis', { defaultValue: 'Base Légale' })}</span>
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg">{activity.legalBasis}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><GlobeLock className="h-3 w-3 mr-1.5" />Catégories</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><GlobeLock className="h-3 w-3 mr-1.5" />{t('privacy.card.categories', { defaultValue: 'Catégories' })}</span>
                     <span className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate max-w-[150px]">
                         {activity.dataCategories.length > 0 ? activity.dataCategories.join(', ') : '-'}
                     </span>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />Conservation</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />{t('privacy.card.retention', { defaultValue: 'Conservation' })}</span>
                     <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">{activity.retentionPeriod}</span>
                 </div>
             </div>
 
             {activity.hasDPIA && (
                 <div className="mt-5 flex items-center justify-center bg-purple-50 dark:bg-purple-900/20 py-2 rounded-3xl text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-900/30">
-                    <CheckCircle2 className="h-3 w-3 mr-1.5" /> DPIA Effectué
+                    <CheckCircle2 className="h-3 w-3 mr-1.5" /> {t('privacy.card.dpiaCompleted', { defaultValue: 'DPIA Effectué' })}
                 </div>
             )}
 
             {canEdit && (
-                <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
+                <div className="absolute top-6 right-6 flex gap-2 opacity-70 md:opacity-0 md:group-hover:opacity-70 transition-opacity">
                     <button
                         aria-label="Delete"
                         onClick={(e) => { e.stopPropagation(); setShowConfirmDelete(true); }}
@@ -79,11 +81,11 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
                 isOpen={showConfirmDelete}
                 onClose={() => setShowConfirmDelete(false)}
                 onConfirm={() => onDelete(activity.id, activity.name)}
-                title="Supprimer l'activité de traitement"
-                message={`Êtes-vous sûr de vouloir supprimer "${activity.name}" ?`}
+                title={t('privacy.card.deleteTitle', { defaultValue: "Supprimer l'activité de traitement" })}
+                message={t('privacy.card.deleteMessage', { defaultValue: `Êtes-vous sûr de vouloir supprimer "${activity.name}" ?`, name: activity.name })}
                 type="danger"
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
             />
         </motion.div>
     );

@@ -55,6 +55,9 @@ const resolveNavigationLink = (notification: Notification): string | null => {
             control: '/compliance',
             continuity: '/continuity',
             vulnerability: '/vulnerabilities',
+            supplier: '/suppliers',
+            document: '/documents',
+            project: '/projects',
         };
         if (resourceType && routeMap[resourceType]) {
             return resourceId ? `${routeMap[resourceType]}?id=${resourceId}` : routeMap[resourceType];

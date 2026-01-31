@@ -7,6 +7,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
+import { useStore } from '../../store';
 
 import { Skeleton } from '../ui/Skeleton';
 
@@ -17,6 +18,7 @@ interface FindingsListProps {
 }
 
 export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit, loading }) => {
+    const { t } = useStore();
     const [filter, setFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
@@ -64,8 +66,8 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
             <div className="mt-8">
                 <EmptyState
                     icon={CheckCircle2}
-                    title="Aucun constat"
-                    description="Bravo ! Aucun constat n'a été relevé dans vos audits pour le moment."
+                    title={t('audits.findings.emptyTitle', { defaultValue: 'Aucun constat' })}
+                    description={t('audits.findings.emptyDescription', { defaultValue: "Bravo ! Aucun constat n'a été relevé dans vos audits pour le moment." })}
                 />
             </div>
         );
@@ -76,7 +78,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
             <PremiumPageControl
                 searchQuery={filter}
                 onSearchChange={setFilter}
-                searchPlaceholder="Rechercher un constat..."
+                searchPlaceholder={t('audits.findings.searchPlaceholder', { defaultValue: 'Rechercher un constat...' })}
                 actions={
                     <div className="flex gap-2">
                         {['Majeure', 'Mineure', 'Observation', 'Opportunité'].map(type => (
@@ -121,7 +123,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                             ) : filteredFindings.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-300 text-sm">
-                                        Aucun résultat trouvé pour cette recherche.
+                                        {t('audits.findings.noResults', { defaultValue: 'Aucun résultat trouvé pour cette recherche.' })}
                                     </td>
                                 </tr>
                             ) : (

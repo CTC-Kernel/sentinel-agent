@@ -10,6 +10,7 @@ import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 import { PrivacyDetails } from './inspector/PrivacyDetails';
 import { PrivacyData } from './inspector/PrivacyData';
 import { PrivacyLinks } from './inspector/PrivacyLinks';
+import { useStore } from '../../store';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 export type InspectorTab = 'details' | 'data' | 'links' | 'history' | 'comments';
@@ -41,6 +42,8 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
     handleStartDPIA,
     handleViewDPIA
 }) => {
+    const { t } = useStore();
+
     if (!selectedActivity) return null;
 
     // Watch forms
@@ -53,11 +56,11 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
             <div className="px-4 sm:px-8 border-b border-border/40 dark:border-white/5 bg-white/30 dark:bg-white/5">
                 <ScrollableTabs
                     tabs={[
-                        { id: 'details', label: 'Fiche Registre', icon: LayoutDashboard },
-                        { id: 'data', label: 'Données', icon: FileSpreadsheet },
-                        { id: 'links', label: 'Liens (Actifs/Risques)', icon: Shield },
-                        { id: 'history', label: 'Historique', icon: History },
-                        { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                        { id: 'details', label: t('privacy.tabs.details', { defaultValue: 'Fiche Registre' }), icon: LayoutDashboard },
+                        { id: 'data', label: t('privacy.tabs.data', { defaultValue: 'Données' }), icon: FileSpreadsheet },
+                        { id: 'links', label: t('privacy.tabs.links', { defaultValue: 'Liens (Actifs/Risques)' }), icon: Shield },
+                        { id: 'history', label: t('privacy.tabs.history', { defaultValue: 'Historique' }), icon: History },
+                        { id: 'comments', label: t('privacy.tabs.comments', { defaultValue: 'Discussion' }), icon: MessageSquare },
                     ]}
                     activeTab={inspectorTab}
                     onTabChange={(id) => setInspectorTab(id as InspectorTab)}
@@ -74,7 +77,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                         <FloatingLabelInput label="Nom" {...editActivityForm.register('name')} />
                                     </div>
                                     <div>
-                                        <div className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Responsable</div>
+                                        <div className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">{t('privacy.fields.manager', { defaultValue: 'Responsable' })}</div>
                                         <CustomSelect
                                             value={watchedManagerId || ''}
                                             onChange={(val) => {
@@ -93,7 +96,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label htmlFor="legalBasis" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Base Légale</label>
+                                        <label htmlFor="legalBasis" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">{t('privacy.fields.legalBasis', { defaultValue: 'Base Légale' })}</label>
                                         <CustomSelect
                                             id="legalBasis"
                                             value={watchedLegalBasis}
@@ -102,7 +105,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="status" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">Statut</label>
+                                        <label htmlFor="status" className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2">{t('privacy.fields.status', { defaultValue: 'Statut' })}</label>
                                         <CustomSelect
                                             id="status"
                                             value={watchedStatus}
@@ -169,7 +172,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                             </div>
                         ))}
                         {activityHistory.length === 0 && (
-                            <div className="text-center py-4 text-slate-500 dark:text-slate-300 text-sm">Aucun historique disponible.</div>
+                            <div className="text-center py-4 text-slate-500 dark:text-slate-300 text-sm">{t('privacy.history.empty', { defaultValue: 'Aucun historique disponible.' })}</div>
                         )}
                     </div>
                 )}

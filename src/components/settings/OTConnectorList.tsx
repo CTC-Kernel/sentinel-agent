@@ -33,6 +33,7 @@ import { Badge } from '../ui/Badge';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useToast } from '../../hooks/useToast';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 import {
   OTConnectorService,
   getRelativeTime,
@@ -99,10 +100,11 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       const data = await OTConnectorService.getConnectors(organization.id);
       setConnectors(data);
     } catch (error) {
+      ErrorLogger.error(error, 'OTConnectorList.loadConnectors');
       toast({
         variant: 'destructive',
         title: t('otConnector.errors.loadFailed', 'Failed to load connectors'),
-        description: error instanceof Error ? error.message : 'Unknown error'
+        description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     } finally {
       setLoading(false);
@@ -133,10 +135,11 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       }
       await loadConnectors();
     } catch (error) {
+      ErrorLogger.error(error, 'OTConnectorList.handleToggleStatus');
       toast({
         variant: 'destructive',
         title: t('otConnector.errors.statusFailed', 'Failed to update status'),
-        description: error instanceof Error ? error.message : 'Unknown error'
+        description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     }
   }, [organization?.id, loadConnectors, t, toast]);
@@ -153,10 +156,11 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       });
       await loadConnectors();
     } catch (error) {
+      ErrorLogger.error(error, 'OTConnectorList.handleDelete');
       toast({
         variant: 'destructive',
         title: t('otConnector.errors.deleteFailed', 'Failed to delete'),
-        description: error instanceof Error ? error.message : 'Unknown error'
+        description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     } finally {
       setDeleteTarget(null);
@@ -181,10 +185,11 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       await new Promise(resolve => setTimeout(resolve, 2000));
       await loadConnectors();
     } catch (error) {
+      ErrorLogger.error(error, 'OTConnectorList.handleManualSync');
       toast({
         variant: 'destructive',
         title: t('otConnector.errors.syncFailed', 'Sync failed'),
-        description: error instanceof Error ? error.message : 'Unknown error'
+        description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     } finally {
       setSyncing(prev => ({ ...prev, [connector.id]: false }));

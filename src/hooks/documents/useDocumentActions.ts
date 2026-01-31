@@ -68,15 +68,16 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
             // Create initial version
             if (docData.url) {
-                await addDoc(collection(db, 'document_versions'), {
+                await addDoc(collection(db, 'document_versions'), sanitizeData({
                     documentId: docRef.id,
+                    organizationId: user.organizationId,
                     version: data.version,
                     url: docData.url,
                     hash: docData.hash,
                     uploadedBy: user.uid,
                     uploadedAt: serverTimestamp(),
                     changeLog: 'Création initiale'
-                });
+                }));
             }
 
             await AuditLogService.logCreate(
@@ -135,15 +136,16 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
             // Create new version if version number or file changed
             if (data.version !== currentDoc.version || newUrl !== currentDoc.url) {
-                await addDoc(collection(db, 'document_versions'), {
+                await addDoc(collection(db, 'document_versions'), sanitizeData({
                     documentId: id,
+                    organizationId: user.organizationId,
                     version: data.version,
                     url: newUrl || '',
                     hash: updates.hash || '',
                     uploadedBy: user?.uid,
                     uploadedAt: serverTimestamp(),
                     changeLog: 'Mise à jour'
-                });
+                }));
             }
 
             await AuditLogService.logUpdate(

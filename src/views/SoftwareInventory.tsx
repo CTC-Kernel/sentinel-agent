@@ -308,7 +308,7 @@ type TabType = 'inventory' | 'cis';
 
 // Main SoftwareInventory View Component
 export const SoftwareInventory: React.FC = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [software, setSoftware] = useState<SoftwareInventoryEntry[]>([]);
     const [cisBaselines, setCISBaselines] = useState<CISBaseline[]>([]);
     const [stats, setStats] = useState<SoftwareInventoryStats | null>(null);
@@ -363,7 +363,7 @@ export const SoftwareInventory: React.FC = () => {
             },
             (error) => {
                 ErrorLogger.error(error, 'SoftwareInventory.subscribeToSoftwareInventory');
-                setError('Erreur de chargement des donnees');
+                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
                 setLoading(false);
             },
             {
@@ -375,7 +375,7 @@ export const SoftwareInventory: React.FC = () => {
         );
 
         return unsubscribe;
-    }, [user?.organizationId, authFilters, riskFilters, categoryFilters, vulnFilter, retryCount]);
+    }, [user?.organizationId, authFilters, riskFilters, categoryFilters, vulnFilter, retryCount, t]);
 
     // Subscribe to agents
     useEffect(() => {
@@ -483,7 +483,7 @@ export const SoftwareInventory: React.FC = () => {
                 <AlertTriangle className="h-12 w-12 text-destructive" />
                 <p className="text-lg font-medium">{error}</p>
                 <Button onClick={() => { setError(null); setLoading(true); setRetryCount(c => c + 1); }} variant="outline">
-                    Reessayer
+                    {t('common.retry', { defaultValue: 'Reessayer' })}
                 </Button>
             </div>
         );
@@ -525,7 +525,7 @@ export const SoftwareInventory: React.FC = () => {
                                 className="gap-2"
                                 onClick={() => {
                                     const BOM = '\uFEFF';
-                                    const headers = ['Nom', 'Editeur', 'Categorie', 'Risque', 'Score', 'Agents', 'Autorisation', 'Vulnerabilites'].join(';');
+                                    const headers = [t('common.name', { defaultValue: 'Nom' }), t('software.vendor', { defaultValue: 'Editeur' }), t('software.category', { defaultValue: 'Categorie' }), t('software.risk', { defaultValue: 'Risque' }), t('software.score', { defaultValue: 'Score' }), t('software.agents', { defaultValue: 'Agents' }), t('software.authorization', { defaultValue: 'Autorisation' }), t('software.vulnerabilities', { defaultValue: 'Vulnerabilites' })].join(';');
                                     const rows = filteredSoftware.map(sw =>
                                         [
                                             sanitizeCSVValue(sw.name),
@@ -708,6 +708,14 @@ export const SoftwareInventory: React.FC = () => {
                             displayMode={displayMode}
                             onSoftwareClick={handleSoftwareClick}
                             loading={loading}
+                            hasActiveFilters={!!searchQuery || authFilters.length > 0 || riskFilters.length > 0 || categoryFilters.length > 0 || vulnFilter !== undefined}
+                            onClearFilters={() => {
+                                setSearchQuery('');
+                                setAuthFilters([]);
+                                setRiskFilters([]);
+                                setCategoryFilters([]);
+                                setVulnFilter(undefined);
+                            }}
                         />
                     </motion.div>
                 ) : (
@@ -859,7 +867,7 @@ export const SoftwareInventory: React.FC = () => {
                                                 setAuthorizingId(selectedSoftware.id);
                                                 try {
                                                     await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'authorized', user.uid);
-                                                    toast.success('Logiciel autorise', `"${selectedSoftware.name}" a ete autorise avec succes.`);
+                                                    toast.success(t('software.authorized', { defaultValue: 'Logiciel autorise' }), `"${selectedSoftware.name}" a ete autorise avec succes.`);
                                                     setSelectedSoftware(null);
                                                     setIsDrawerOpen(false);
                                                 } catch (err) {
@@ -886,7 +894,7 @@ export const SoftwareInventory: React.FC = () => {
                                                 setAuthorizingId(selectedSoftware.id);
                                                 try {
                                                     await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'blocked', user.uid);
-                                                    toast.success('Logiciel bloque', `"${selectedSoftware.name}" a ete bloque avec succes.`);
+                                                    toast.success(t('software.blocked', { defaultValue: 'Logiciel bloque' }), `"${selectedSoftware.name}" a ete bloque avec succes.`);
                                                     setSelectedSoftware(null);
                                                     setIsDrawerOpen(false);
                                                 } catch (err) {
@@ -945,7 +953,7 @@ export const SoftwareInventory: React.FC = () => {
                                             setAuthorizingId(selectedSoftware.id);
                                             try {
                                                 await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'pending', user.uid);
-                                                toast.success('Logiciel debloque', `"${selectedSoftware.name}" a ete debloque avec succes.`);
+                                                toast.success(t('software.unblocked', { defaultValue: 'Logiciel debloque' }), `"${selectedSoftware.name}" a ete debloque avec succes.`);
                                                 setSelectedSoftware(null);
                                                 setIsDrawerOpen(false);
                                             } catch (err) {

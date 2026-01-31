@@ -13,6 +13,7 @@ import { hasPermission } from '../utils/permissions';
 export const useVulnerabilities = () => {
     const { user, addToast, demoMode } = useStore();
     const initialLoadRef = useRef(false);
+    const isSubmittingRef = useRef(false);
 
     // Use useFirestoreCollection for stable subscription
     const constraints = useMemo(() => {
@@ -41,14 +42,14 @@ export const useVulnerabilities = () => {
             const kevVulns = await ThreatFeedService.fetchCisaKev();
             if (kevVulns.length > 0) {
                 const batchPromises = kevVulns.slice(0, 20).map(v =>
-                    addDoc(collection(db, 'vulnerabilities'), {
+                    addDoc(collection(db, 'vulnerabilities'), sanitizeData({
                         ...v,
                         organizationId: user.organizationId,
                         createdAt: serverTimestamp(),
                         severity: 'High', // Default for KEV
                         status: 'Open',
                         assetName: 'External Interest'
-                    })
+                    }))
                 );
                 await Promise.all(batchPromises);
                 logAction(user, 'AUTO_SEED', 'Vulnerabilities', `Seeded ${kevVulns.length} vulnerabilities from CISA KEV`);
@@ -74,6 +75,8 @@ export const useVulnerabilities = () => {
             addToast("Action non disponible en mode démo", "info");
             return;
         }
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
         try {
             const dataToSave = sanitizeData({
                 ...vuln,
@@ -88,6 +91,8 @@ export const useVulnerabilities = () => {
             ErrorLogger.error(error as Error, 'useVulnerabilities.add');
             addToast("Erreur lors de la création", "error");
             throw error;
+        } finally {
+            isSubmittingRef.current = false;
         }
     };
 
@@ -216,7 +221,7 @@ export const useVulnerabilities = () => {
                 relatedVulnerabilityId: vuln.id
             };
 
-            const riskRef = await addDoc(collection(db, 'risks'), riskData);
+            const riskRef = await addDoc(collection(db, 'risks'), sanitizeData(riskData));
 
             // Bidirectional linking
             await updateDoc(doc(db, 'vulnerabilities', vuln.id), {

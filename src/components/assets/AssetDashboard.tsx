@@ -274,7 +274,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         <div>
                             <h3 className="text-lg font-bold text-foreground mb-1 uppercase tracking-wide font-mono">Santé du Parc</h3>
                             <p className="text-xs text-muted-foreground max-w-[200px]">
-                                Basé sur l'amortissement et la maintenance.
+                                Basé sur l'amortissement du parc.
                             </p>
                         </div>
                     </div>

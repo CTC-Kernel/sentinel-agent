@@ -50,7 +50,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
     }, [resendCooldown, t]);
 
     // Bypass auth in test mode (NEVER in production builds)
-    if (!import.meta.env.PROD && (import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true')) {
+    if (import.meta.env.DEV === true && (import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true')) {
         return <>{children}</>;
     }
 

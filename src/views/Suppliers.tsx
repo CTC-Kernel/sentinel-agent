@@ -59,7 +59,7 @@ const getScoreColor = (score: number) => {
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
-    const { user, t } = useStore();
+    const { user, t, addToast } = useStore();
 
     // Start module tour
     useEffect(() => {
@@ -85,6 +85,7 @@ export const Suppliers: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const pendingSelectId = useRef<string | null>(null);
 
+    const [isFormDirty, setIsFormDirty] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isExportingDORA, setIsExportingDORA] = useState(false);
 
@@ -207,7 +208,7 @@ export const Suppliers: React.FC = () => {
     }, [setActiveTab]);
 
     const handleCreationDrawerOpen = useCallback(() => setCreationMode(true), []);
-    const handleCreationDrawerClose = useCallback(() => setCreationMode(false), []);
+    const handleCreationDrawerClose = useCallback(() => { setCreationMode(false); setIsFormDirty(false); }, []);
     const handleTemplateModeOpen = useCallback(() => setTemplateMode(true), []);
     const handleTemplateModeClose = useCallback(() => setTemplateMode(false), []);
 
@@ -264,21 +265,21 @@ export const Suppliers: React.FC = () => {
     const handleBulkDelete = useCallback(async (ids: string[]) => {
         setConfirmData({
             isOpen: true,
-            title: t('common.bulkDeleteTitle') || "Suppression multiple",
-            message: t('common.bulkDeleteMessage', { count: ids.length }) || `Supprimer ${ids.length} éléments ?`,
+            title: t('suppliers.bulkDeleteTitle', { defaultValue: `Supprimer ${ids.length} fournisseur(s)`, count: ids.length }) || `Supprimer ${ids.length} fournisseur(s)`,
+            message: t('suppliers.bulkDeleteMessage', { defaultValue: `\u00cates-vous s\u00fbr de vouloir supprimer ${ids.length} fournisseur(s) s\u00e9lectionn\u00e9(s) ? Cette action est irr\u00e9versible.`, count: ids.length }),
             onConfirm: async () => {
-                setIsSubmitting(true);
+                setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
                     await Promise.all(ids.map(id => deleteSupplier(id)));
-                    setConfirmData(prev => ({ ...prev, isOpen: false }));
+                    setConfirmData(prev => ({ ...prev, isOpen: false, loading: false }));
                     setSelectedSupplier(null);
                 } finally {
-                    setIsSubmitting(false);
+                    setConfirmData(prev => ({ ...prev, loading: false }));
                 }
             },
-            loading: isSubmitting
+            loading: false
         });
-    }, [t, deleteSupplier, isSubmitting]);
+    }, [t, deleteSupplier]);
 
     const handleCardClick = useCallback((supplier: Supplier) => {
         setSelectedSupplier(supplier);
@@ -307,10 +308,12 @@ export const Suppliers: React.FC = () => {
     const handleImportFile = useCallback(async (file: File) => {
         if (!file) return;
         const text = await file.text();
+        const lineCount = text.split('\n').filter(l => l.trim()).length - 1; // subtract header
         await importSuppliers(text);
+        addToast(t('suppliers.importSuccess', { defaultValue: `${Math.max(lineCount, 0)} fournisseurs import\u00e9s`, count: Math.max(lineCount, 0) }), 'success');
         setImportModalOpen(false);
         setActiveTab('suppliers');
-    }, [importSuppliers, setActiveTab]);
+    }, [importSuppliers, setActiveTab, addToast, t]);
 
     const handleExportCSV = useCallback(async () => {
         if (isExportingCSV) return;
@@ -610,7 +613,7 @@ export const Suppliers: React.FC = () => {
                                                                     } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                             >
                                                                 {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
-                                                                Export DORA
+                                                                {t('suppliers.exportDora', { defaultValue: 'Export DORA' })}
                                                             </button>
                                                         )}
                                                     </Menu.Item>
@@ -681,7 +684,7 @@ export const Suppliers: React.FC = () => {
                                         <EmptyState
                                             icon={Building}
                                             title={t('suppliers.emptyTitle')}
-                                            description={filter ? "Aucun fournisseur trouvé." : t('suppliers.emptyDesc')}
+                                            description={filter ? t('suppliers.noResults', { defaultValue: 'Aucun fournisseur trouv\u00e9.' }) : t('suppliers.emptyDesc')}
                                             actionLabel={filter || !canEdit ? undefined : t('suppliers.newSupplier')}
                                             onAction={filter || !canEdit ? undefined : handleCreationDrawerOpen}
                                         />
@@ -709,6 +712,7 @@ export const Suppliers: React.FC = () => {
                 title={t('suppliers.newSupplier')}
                 subtitle={t('suppliers.newSupplierSubtitle')}
                 width="max-w-6xl"
+                hasUnsavedChanges={isFormDirty}
             >
                 <div className="p-6">
                     <SupplierForm
@@ -720,6 +724,7 @@ export const Suppliers: React.FC = () => {
                         assets={assetsRaw}
                         risks={risksRaw}
                         documents={documentsRaw}
+                        onDirtyChange={setIsFormDirty}
                     />
                 </div>
             </Drawer>

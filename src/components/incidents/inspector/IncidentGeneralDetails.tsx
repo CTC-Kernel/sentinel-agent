@@ -6,11 +6,21 @@ import { Badge } from '../../ui/Badge';
 import { ThreatIntelChecker } from '../ThreatIntelChecker';
 import { NIS2DeadlineTimer } from '../NIS2DeadlineTimer';
 
+const INCIDENT_STATUS_FLOW: Record<string, string> = {
+    'Nouveau': 'Analyse',
+    'Analyse': 'Contenu',
+    'Contenu': 'Résolu',
+    'Résolu': 'Fermé',
+};
+
 interface IncidentGeneralDetailsProps {
     incident: Incident;
+    onStatusChange?: (newStatus: string) => void;
+    isUpdating?: boolean;
 }
 
-export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ incident }) => {
+export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ incident, onStatusChange, isUpdating }) => {
+    const nextStatus = INCIDENT_STATUS_FLOW[incident.status] || null;
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6 sm:space-y-8">
@@ -68,6 +78,17 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                             <Badge status={incident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
                                 {incident.status}
                             </Badge>
+                            {onStatusChange && nextStatus && (
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        onClick={() => onStatusChange(nextStatus)}
+                                        disabled={isUpdating}
+                                        className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl text-xs font-bold transition-all disabled:opacity-50"
+                                    >
+                                        {isUpdating ? 'Mise à jour...' : `Passer à "${nextStatus}"`}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Audit, Control, Document as GRCDocument, Asset, Risk, Project, UserProfile } from '../../types';
 import { useAuditDetails } from '../../hooks/audits/useAuditDetails';
 import { InspectorLayout } from '../ui/InspectorLayout';
-import { AlertOctagon, ClipboardCheck, FileText, Target, Trash2, CheckCheck, Loader2, History, ShieldCheck, Download, Link } from '../ui/Icons';
+import { AlertOctagon, ClipboardCheck, FileText, Target, Trash2, CheckCheck, Loader2, History, ShieldCheck, Download, Link, Play, CheckCircle2 } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { SingleAuditStats } from './SingleAuditStats';
@@ -42,7 +42,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
         findings, checklist, fetchDetails,
         handleAddFinding, handleDeleteFinding,
         generateChecklist, handleChecklistAnswer,
-        validateAudit, generateAuditReport, handleExportPack,
+        validateAudit, changeAuditStatus, generateAuditReport, handleExportPack,
         handleEvidenceUploadForFinding, updateAuditDetails,
         isGeneratingReport, isValidating
     } = useAuditDetails(audit, controls, documents, refreshAudits);
@@ -84,7 +84,33 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                     )}
                     <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2" />
 
-                    {audit.status !== 'Validé' && canEdit && (
+                    {audit.status === 'Planifié' && canEdit && (
+                        <button
+                            type="button"
+                            onClick={() => changeAuditStatus('En cours')}
+                            disabled={isValidating}
+                            aria-label="Démarrer l'audit"
+                            className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-blue-500/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
+                        >
+                            {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                            <span className="hidden sm:inline">Démarrer</span>
+                        </button>
+                    )}
+
+                    {audit.status === 'En cours' && canEdit && (
+                        <button
+                            type="button"
+                            onClick={() => changeAuditStatus('Terminé')}
+                            disabled={isValidating}
+                            aria-label="Terminer l'audit"
+                            className={`px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-emerald-500/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
+                        >
+                            {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                            <span className="hidden sm:inline">Terminer</span>
+                        </button>
+                    )}
+
+                    {audit.status === 'Terminé' && canEdit && (
                         <button
                             type="button"
                             onClick={validateAudit}
@@ -195,7 +221,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                 auditId={audit.id}
                 auditName={audit.name}
                 onAssigned={() => {
-                    toast.success('Partenaire assigné avec succès');
+                    toast.success(t('audits.inspector.partnerAssigned', { defaultValue: 'Partenaire assigné avec succès' }));
                 }}
             />
         </InspectorLayout>

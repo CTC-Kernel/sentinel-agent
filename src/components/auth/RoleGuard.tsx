@@ -1,9 +1,9 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Role } from '../../utils/permissions';
-import { ContentBlockerError } from '../ui/ContentBlockerError';
+import { ShieldAlert, ArrowLeft } from '../ui/Icons';
 
 interface RoleGuardProps {
     children: React.ReactNode;
@@ -34,9 +34,19 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles, re
     if (resourceOrganizationId && resourceOrganizationId !== user.organizationId) {
         // User is trying to access a resource from a different organization
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-center h-[60dvh]">
-                <ContentBlockerError />
-                <p className="mt-4 text-slate-500">{t('auth.accessDeniedOtherOrg')}</p>
+            <div className="flex flex-col items-center justify-center p-12 text-center h-[60dvh] gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mb-2">
+                    <ShieldAlert className="w-8 h-8 text-destructive" />
+                </div>
+                <h2 className="text-xl font-bold text-foreground">{t('auth.accessDenied', { defaultValue: 'Acces refuse' })}</h2>
+                <p className="text-sm text-muted-foreground max-w-md">{t('auth.accessDeniedOtherOrg')}</p>
+                <Link
+                    to="/"
+                    className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    {t('common.backToDashboard', { defaultValue: 'Retour au tableau de bord' })}
+                </Link>
             </div>
         );
     }
@@ -59,9 +69,19 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles, re
 
     // Unauthorized access attempt
     return (
-        <div className="flex flex-col items-center justify-center p-12 text-center h-[60dvh]">
-            <ContentBlockerError />
-            <p className="mt-4 text-slate-500">{t('auth.insufficientPermissions')}</p>
+        <div className="flex flex-col items-center justify-center p-12 text-center h-[60dvh] gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mb-2">
+                <ShieldAlert className="w-8 h-8 text-destructive" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">{t('auth.accessDenied', { defaultValue: 'Acces refuse' })}</h2>
+            <p className="text-sm text-muted-foreground max-w-md">{t('auth.insufficientPermissions')}</p>
+            <Link
+                to="/"
+                className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                {t('common.backToDashboard', { defaultValue: 'Retour au tableau de bord' })}
+            </Link>
         </div>
     );
 };

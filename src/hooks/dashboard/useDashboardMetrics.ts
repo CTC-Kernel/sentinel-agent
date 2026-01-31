@@ -139,8 +139,9 @@ export const useDashboardMetrics = ({
                     if (asset) {
                         financialExposure += calculateDepreciation(asset.purchasePrice || 0, asset.purchaseDate || '');
                     }
-                } else {
-                    const avgAssetValue = totalAssetValue > 0 && trueTotalAssets > 0 ? totalAssetValue / trueTotalAssets : 10000;
+                } else if (totalAssetValue > 0 && trueTotalAssets > 0) {
+                    // Only estimate exposure if we have real asset data
+                    const avgAssetValue = totalAssetValue / trueTotalAssets;
                     const exposurePercentage = Math.min(1, (risk.score - 9) / 10);
                     financialExposure += Math.round(avgAssetValue * exposurePercentage);
                 }

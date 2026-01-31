@@ -57,6 +57,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     });
     const [isSaving, setIsSaving] = useState(false);
     const [submittedScore, setSubmittedScore] = useState<number | null>(null);
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
     // Accessibility: Handle keyboard escape to close modal
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -72,7 +73,22 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.controlCode) return;
+        const errors: Record<string, string> = {};
+        if (!formData.controlCode) {
+            errors.controlCode = t('compliance.assessment.controlRequired') || 'Veuillez sélectionner un contrôle';
+        }
+        if (!formData.assessmentMethod) {
+            errors.assessmentMethod = t('compliance.assessment.methodRequired') || 'Veuillez sélectionner une méthode';
+        }
+        if (Object.keys(errors).length > 0) {
+            setValidationErrors(errors);
+            // Focus on first errored field
+            const firstErrorField = Object.keys(errors)[0];
+            const el = document.getElementById(firstErrorField === 'controlCode' ? 'control-code' : 'assessment-method');
+            el?.focus();
+            return;
+        }
+        setValidationErrors({});
 
         setIsSaving(true);
         try {
@@ -217,9 +233,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             <select
                                 id="control-code"
                                 value={formData.controlCode}
-                                onChange={(e) => setFormData(prev => ({ ...prev, controlCode: e.target.value }))}
-                                className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                onChange={(e) => { setFormData(prev => ({ ...prev, controlCode: e.target.value })); setValidationErrors(prev => ({ ...prev, controlCode: '' })); }}
+                                className={`w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white ${validationErrors.controlCode ? 'border-red-500 ring-1 ring-red-500' : 'border-border/40 dark:border-slate-700'}`}
                                 required
+                                aria-invalid={!!validationErrors.controlCode}
+                                aria-describedby={validationErrors.controlCode ? 'control-code-error' : undefined}
                             >
                                 <option value="">{t('common.selectTemplate')}</option>
                                 {ISO_DOMAINS.map(domain => (
@@ -230,6 +248,9 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                     </optgroup>
                                 ))}
                             </select>
+                            {validationErrors.controlCode && (
+                                <p id="control-code-error" className="mt-1 text-xs text-red-500 font-medium">{validationErrors.controlCode}</p>
+                            )}
                         </div>
 
                         {/* Effectiveness Score */}
@@ -268,13 +289,18 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             <select
                                 id="assessment-method"
                                 value={formData.assessmentMethod}
-                                onChange={(e) => setFormData(prev => ({ ...prev, assessmentMethod: e.target.value }))}
-                                className="w-full px-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                onChange={(e) => { setFormData(prev => ({ ...prev, assessmentMethod: e.target.value })); setValidationErrors(prev => ({ ...prev, assessmentMethod: '' })); }}
+                                className={`w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white ${validationErrors.assessmentMethod ? 'border-red-500 ring-1 ring-red-500' : 'border-border/40 dark:border-slate-700'}`}
+                                aria-invalid={!!validationErrors.assessmentMethod}
+                                aria-describedby={validationErrors.assessmentMethod ? 'assessment-method-error' : undefined}
                             >
                                 {ASSESSMENT_METHODS.map(m => (
                                     <option key={m.value} value={m.value}>{t(m.label)}</option>
                                 ))}
                             </select>
+                            {validationErrors.assessmentMethod && (
+                                <p id="assessment-method-error" className="mt-1 text-xs text-red-500 font-medium">{validationErrors.assessmentMethod}</p>
+                            )}
                         </div>
 
                         {/* Notes */}

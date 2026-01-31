@@ -33,6 +33,8 @@ interface SoftwareTableProps {
     displayMode?: 'software' | 'agent';
     onSoftwareClick: (software: SoftwareInventoryEntry) => void;
     loading?: boolean;
+    hasActiveFilters?: boolean;
+    onClearFilters?: () => void;
 }
 
 type SortField = 'name' | 'vendor' | 'agentCount' | 'riskScore' | 'authorizationStatus' | 'lastSeen';
@@ -317,16 +319,32 @@ const SoftwareRow: React.FC<{
 };
 
 // Empty State
-const EmptyState: React.FC = () => (
+const EmptyState: React.FC<{ hasActiveFilters?: boolean; onClearFilters?: () => void }> = ({ hasActiveFilters, onClearFilters }) => (
     <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="p-4 rounded-full bg-muted/50 mb-4">
             <Package className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium mb-2">Aucun logiciel détecté</h3>
-        <p className="text-muted-foreground text-sm max-w-md">
-            Les logiciels seront automatiquement inventoriés lorsque les agents
-            effectueront leur scan d'inventaire.
-        </p>
+        {hasActiveFilters ? (
+            <>
+                <h3 className="text-lg font-medium mb-2">Aucun résultat pour ces filtres</h3>
+                <p className="text-muted-foreground text-sm max-w-md mb-4">
+                    Essayez de modifier ou de réinitialiser vos critères de recherche.
+                </p>
+                {onClearFilters && (
+                    <Button variant="outline" size="sm" onClick={onClearFilters}>
+                        Réinitialiser les filtres
+                    </Button>
+                )}
+            </>
+        ) : (
+            <>
+                <h3 className="text-lg font-medium mb-2">Aucun logiciel détecté</h3>
+                <p className="text-muted-foreground text-sm max-w-md">
+                    Les logiciels seront automatiquement inventoriés lorsque les agents
+                    effectueront leur scan d'inventaire.
+                </p>
+            </>
+        )}
     </div>
 );
 
@@ -505,6 +523,8 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
     displayMode = 'software',
     onSoftwareClick,
     loading = false,
+    hasActiveFilters = false,
+    onClearFilters,
 }) => {
     const [sortField, setSortField] = useState<SortField>('riskScore');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -573,7 +593,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
     }
 
     if (software.length === 0) {
-        return <EmptyState />;
+        return <EmptyState hasActiveFilters={hasActiveFilters} onClearFilters={onClearFilters} />;
     }
 
     if (displayMode === 'agent') {

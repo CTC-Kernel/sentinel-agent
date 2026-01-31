@@ -237,6 +237,9 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                             <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
                           <span className="flex-1 truncate relative z-10">{item.name}</span>
+                          {isActive && (
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm" aria-hidden="true" />
+                          )}
                         </>
                       )}
                     </NavLink>

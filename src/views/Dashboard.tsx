@@ -19,7 +19,7 @@ import { QuickActions } from '../components/dashboard/widgets/QuickActions';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
 import { ApprovalsWidget } from '../components/dashboard/ApprovalsWidget';
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Role-based Views
 import { AdminDashboardView } from '../components/dashboard/views/AdminDashboardView';
@@ -261,86 +261,98 @@ export const DashboardWithQuickActions: React.FC = () => {
                     )}
 
                     <motion.div variants={slideUpVariants}>
+                        <AnimatePresence mode="wait">
                         {(() => {
                             const role = user?.role || 'user';
 
                             if (hasPermission(user, 'Risk', 'manage')) {
                                 return (
-                                    <AdminDashboardView
-                                        stats={stats}
-                                        isEditing={isEditing}
-                                        loading={loading}
-                                        navigate={navigate}
-                                        t={t}
-                                        theme={theme}
-                                        myActionItems={myActionItems}
-                                        historyData={historyData}
-                                        healthIssues={healthIssues}
-                                        topRisks={topRisks}
-                                        recentActivity={recentActivity}
-                                        radarData={radarData}
-                                        incidents={activeIncidents}
-                                        complianceScore={complianceScore}
-                                        suppliers={allSuppliers}
-                                        isAddWidgetModalOpen={isAddWidgetModalOpen}
-                                        setIsAddWidgetModalOpen={setIsAddWidgetModalOpen}
-                                    />
+                                    <motion.div key="admin-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                                        <AdminDashboardView
+                                            stats={stats}
+                                            isEditing={isEditing}
+                                            loading={loading}
+                                            navigate={navigate}
+                                            t={t}
+                                            theme={theme}
+                                            myActionItems={myActionItems}
+                                            historyData={historyData}
+                                            healthIssues={healthIssues}
+                                            topRisks={topRisks}
+                                            recentActivity={recentActivity}
+                                            radarData={radarData}
+                                            incidents={activeIncidents}
+                                            complianceScore={complianceScore}
+                                            suppliers={allSuppliers}
+                                            isAddWidgetModalOpen={isAddWidgetModalOpen}
+                                            setIsAddWidgetModalOpen={setIsAddWidgetModalOpen}
+                                        />
+                                    </motion.div>
                                 );
                             }
 
                             if (role === 'direction') {
                                 return (
-                                    <DirectionDashboardView
-                                        stats={stats}
-                                        loading={loading}
-                                        navigate={navigate}
-                                        t={t}
-                                        theme={theme}
-                                        historyData={historyData}
-                                        healthIssues={healthIssues}
-                                        topRisks={topRisks}
-                                        incidents={activeIncidents}
-                                    />
+                                    <motion.div key="direction-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                                        <DirectionDashboardView
+                                            stats={stats}
+                                            loading={loading}
+                                            navigate={navigate}
+                                            t={t}
+                                            theme={theme}
+                                            historyData={historyData}
+                                            healthIssues={healthIssues}
+                                            topRisks={topRisks}
+                                            incidents={activeIncidents}
+                                        />
+                                    </motion.div>
                                 );
                             }
 
                             if (role === 'auditor') {
                                 return (
-                                    <AuditorDashboardView
-                                        loading={loading}
-                                        navigate={navigate}
-                                        t={t}
-                                        theme={theme}
-                                        myActionItems={myActionItems}
-                                        historyData={historyData}
-                                        recentActivity={recentActivity}
-                                        healthIssues={healthIssues}
-                                    />
+                                    <motion.div key="auditor-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                                        <AuditorDashboardView
+                                            loading={loading}
+                                            navigate={navigate}
+                                            t={t}
+                                            theme={theme}
+                                            myActionItems={myActionItems}
+                                            historyData={historyData}
+                                            recentActivity={recentActivity}
+                                            healthIssues={healthIssues}
+                                        />
+                                    </motion.div>
                                 );
                             }
 
                             if (role === 'project_manager') {
                                 return (
-                                    <ProjectManagerDashboardView
-                                        loading={loading}
-                                        navigate={navigate}
-                                        t={t}
-                                        myActionItems={myActionItems}
-                                        projectRisks={projectRisks}
-                                    />
+                                    <motion.div key="pm-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                                        <ProjectManagerDashboardView
+                                            loading={loading}
+                                            navigate={navigate}
+                                            t={t}
+                                            myActionItems={myActionItems}
+                                            projectRisks={projectRisks}
+                                        />
+                                    </motion.div>
                                 );
                             }
 
                             return (
-                                <OperationalDashboardView
-                                    loading={loading}
-                                    navigate={navigate}
-                                    t={t}
-                                    myActionItems={myActionItems}
-                                    myRisksList={myRisksList}
-                                />
+                                <motion.div key="operational-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                                    <OperationalDashboardView
+                                        loading={loading}
+                                        navigate={navigate}
+                                        t={t}
+                                        myActionItems={myActionItems}
+                                        myRisksList={myRisksList}
+                                    />
+                                </motion.div>
                             );
                         })()}
+                        </AnimatePresence>
                     </motion.div>
                 </motion.div>
             </div>

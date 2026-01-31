@@ -31,6 +31,7 @@ interface InspectorLayoutProps {
     disableContentPadding?: boolean;
     disableContentScroll?: boolean;
     hasUnsavedChanges?: boolean;
+    tabsAriaLabel?: string;
 }
 
 export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
@@ -52,7 +53,8 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
     footer,
     disableContentPadding = false,
     disableContentScroll = false,
-    hasUnsavedChanges = false // Default to false
+    hasUnsavedChanges = false, // Default to false
+    tabsAriaLabel
 }) => {
     return (
         <Drawer
@@ -97,6 +99,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
                             onTabChange={onTabChange}
                             className="w-full"
                             isChanging={loading}
+                            ariaLabel={tabsAriaLabel}
                         />
                     </div>
                 )}

@@ -34,9 +34,6 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
             const status = audit.status || 'Planifié';
             if (counts[status as keyof typeof counts] !== undefined) {
                 counts[status as keyof typeof counts]++;
-            } else {
-                // Fallback for unexpected statuses
-                counts['Planifié']++;
             }
         });
 

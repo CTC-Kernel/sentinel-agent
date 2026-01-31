@@ -37,11 +37,6 @@ interface SecurityMetrics {
       timestamp: number;
     }>;
   };
-  rateLimiting: {
-    authRemaining: number;
-    apiRemaining: number;
-    searchRemaining: number;
-  };
   healthScore: number; // 0-100
 }
 
@@ -101,11 +96,6 @@ export const SecurityDashboard: React.FC = () => {
         anomalies: {
           ...anomalyStats,
           recent: recentAnomalies
-        },
-        rateLimiting: {
-          authRemaining: 5, // Mock value
-          apiRemaining: 100,
-          searchRemaining: 30
         },
         healthScore
       });

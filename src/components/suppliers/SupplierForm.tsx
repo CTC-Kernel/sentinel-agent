@@ -9,6 +9,7 @@ import { Criticality, UserProfile, BusinessProcess, Asset, Risk, Document } from
 import { ShieldAlert, Building2, Wand2, Link as LinkIcon, FileText } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
 import { useStore } from '../../store';
+import { useLocale } from '../../hooks/useLocale';
 import { ErrorLogger } from '../../services/errorLogger';
 import { integrationService, CompanySearchResult } from '../../services/integrationService';
 import { Search, Loader2 } from '../ui/Icons';
@@ -55,6 +56,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     onDirtyChange
 }) => {
     const { addToast, demoMode } = useStore();
+    const { t } = useLocale();
     const defaultData: SupplierFormData = {
         name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
         owner: '', ownerId: '', vatNumber: '',
@@ -102,7 +104,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
     const onInvalid = (errors: FieldErrors<SupplierFormData>) => {
         const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        toast.error(t('suppliers.form.invalid', { defaultValue: 'Formulaire invalide' }) + `. ${t('suppliers.form.fieldsInError', { defaultValue: 'Champs en erreur' })} : ${missingFields}`);
     };
 
     const [searchResults, setSearchResults] = React.useState<CompanySearchResult[]>([]);
@@ -461,6 +463,9 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         Conformité DORA
                     </h3>
 
+                    <p className="text-xs text-muted-foreground mb-4">
+                        {t('suppliers.form.doraHelperText', { defaultValue: 'Les champs DORA sont requis pour les prestataires TIC critiques soumis au r\u00e8glement DORA. Cochez "Prestataire TIC Critique" si ce fournisseur fournit des services TIC essentiels.' })}
+                    </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5">
                             <input id="isICTProvider" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40" {...register('isICTProvider')} />

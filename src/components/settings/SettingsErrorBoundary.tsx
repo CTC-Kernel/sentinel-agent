@@ -1,11 +1,16 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useLocale } from '../../hooks/useLocale';
 
 interface Props {
     children: ReactNode;
     onReset?: () => void;
+}
+
+interface InternalProps extends Props {
+    t: (key: string, opts?: { defaultValue?: string }) => string;
 }
 
 interface State {
@@ -13,7 +18,7 @@ interface State {
     error: Error | null;
 }
 
-export class SettingsErrorBoundary extends Component<Props, State> {
+class SettingsErrorBoundaryInner extends Component<InternalProps, State> {
     public state: State = {
         hasError: false,
         error: null
@@ -41,6 +46,8 @@ export class SettingsErrorBoundary extends Component<Props, State> {
     };
 
     public render() {
+        const { t } = this.props;
+
         if (this.state.hasError) {
             return (
                 <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[400px] animate-fade-in">
@@ -49,12 +56,11 @@ export class SettingsErrorBoundary extends Component<Props, State> {
                     </div>
 
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-                        Cette section est momentanément indisponible
+                        {t('settings.errorBoundary.title', { defaultValue: 'Cette section est momentanément indisponible' })}
                     </h3>
 
                     <p className="text-slate-500 dark:text-muted-foreground max-w-md mb-6">
-                        Une erreur technique empêche l'affichage de cet onglet.
-                        Vos données ne sont pas perdues.
+                        {t('settings.errorBoundary.description', { defaultValue: "Une erreur technique empêche l'affichage de cet onglet. Vos données ne sont pas perdues." })}
                     </p>
 
                     <div className="flex gap-3">
@@ -64,7 +70,7 @@ export class SettingsErrorBoundary extends Component<Props, State> {
                             className="flex items-center gap-2"
                         >
                             <RefreshCw className="w-4 h-4" />
-                            Recharger la page
+                            {t('settings.errorBoundary.reload', { defaultValue: 'Recharger la page' })}
                         </Button>
 
                         <Button
@@ -72,7 +78,7 @@ export class SettingsErrorBoundary extends Component<Props, State> {
                             className="bg-brand-600 hover:bg-brand-700 text-white flex items-center gap-2"
                         >
                             <Home className="w-4 h-4" />
-                            Retour au profil
+                            {t('settings.errorBoundary.backToProfile', { defaultValue: 'Retour au profil' })}
                         </Button>
                     </div>
 
@@ -91,3 +97,9 @@ export class SettingsErrorBoundary extends Component<Props, State> {
         return this.props.children;
     }
 }
+
+// Functional wrapper to provide i18n t() to the class component
+export const SettingsErrorBoundary: React.FC<Props> = (props) => {
+    const { t } = useLocale();
+    return <SettingsErrorBoundaryInner {...props} t={t} />;
+};

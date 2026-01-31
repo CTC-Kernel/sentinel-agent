@@ -128,8 +128,14 @@ export const useDashboardData = (): DashboardData => {
                     logs: MockDataService.getCollection('system_logs') as SystemLog[]
                 });
                 setOrganizationName('Sentinel Demo Corp');
-                setActiveIncidentsCount(5);
-                setOpenAuditsCount(2);
+                // Count active incidents from mock data (status !== 'Résolu' && status !== 'Fermé')
+                const mockIncidents = MockDataService.getCollection('incidents');
+                const activeCount = mockIncidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
+                setActiveIncidentsCount(activeCount);
+                // Count open audits from mock data (status === 'Planifié' || status === 'En cours')
+                const mockAudits = MockDataService.getCollection('audits');
+                const openCount = mockAudits.filter(a => a.status === 'Planifié' || a.status === 'En cours').length;
+                setOpenAuditsCount(openCount);
                 setManualLoading(false);
             }).catch(_err => {
                 if (!isMounted) return;

@@ -4,7 +4,7 @@ import { Project, ProjectMilestone, Risk } from '../../types';
 import { TrendingUp, TrendingDown, AlertTriangle, Target, Calendar, CheckCircle2, Clock, Layers } from '../ui/Icons';
 import {
     PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar,
-    RadialBarChart, RadialBar, ComposedChart, Area, Line, Sector
+    RadialBarChart, RadialBar, Sector
 } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
@@ -114,18 +114,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
     // Gauge data
     const healthGaugeData = [{ name: 'Santé', value: projectHealth.score, fill: 'url(#projectHealthGradient)' }];
 
-    // Burndown data based on actual progress
-    const burndownData = useMemo(() => {
-        const weeks = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
-        const total = projectHealth.totalTasks;
-        return weeks.map((name, i) => ({
-            name,
-            ideal: Math.max(0, total - (total / 6) * i),
-            actual: Math.max(0, total - Math.floor((projectHealth.completedTasks / 6) * (i + 1)) + (i % 2)),
-            completed: Math.min(total, Math.floor((projectHealth.completedTasks / 6) * (i + 1)))
-        }));
-    }, [projectHealth]);
-
     return (
         <div className="space-y-6">
             {/* SVG Defs */}
@@ -145,10 +133,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <linearGradient id="projectProgressGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} />
                         <stop offset="100%" stopColor={SENTINEL_PALETTE.secondary} />
-                    </linearGradient>
-                    <linearGradient id="burndownAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.3} />
-                        <stop offset="100%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.05} />
                     </linearGradient>
                 </defs>
             </svg>
@@ -348,14 +332,13 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 </motion.div>
             </div>
 
-            {/* Burndown Chart */}
+            {/* Burndown Chart - requires historical task completion data */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
             >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
                 <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
                     <div className="p-2 bg-emerald-500/10 rounded-3xl">
                         <TrendingDown className="w-4 h-4 text-emerald-500" />
@@ -363,17 +346,11 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     Burndown Chart
                 </h4>
                 <div className="h-[280px] relative z-10">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={burndownData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                            <Tooltip content={<ChartTooltip />} />
-                            <Legend iconType="circle" iconSize={10} formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1">{value}</span>} />
-                            <Area type="monotone" dataKey="actual" name="Réel" fill="url(#burndownAreaGradient)" stroke={SENTINEL_PALETTE.primary} strokeWidth={2} />
-                            <Line type="monotone" dataKey="ideal" name="Idéal" stroke={SENTINEL_PALETTE.success} strokeWidth={2} strokeDasharray="8 4" dot={false} />
-                        </ComposedChart>
-                    </ResponsiveContainer>
+                    <EmptyChartState
+                        variant="bar"
+                        message="Données insuffisantes"
+                        description="Le burndown chart nécessite un historique de complétion des tâches. Les données seront disponibles après plusieurs sprints."
+                    />
                 </div>
             </motion.div>
 

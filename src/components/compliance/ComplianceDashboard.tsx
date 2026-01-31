@@ -48,7 +48,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             }
         };
         fetchTrend();
-    }, [user?.organizationId]);
+    }, [user?.organizationId, t]);
 
     if (loading) {
         return (

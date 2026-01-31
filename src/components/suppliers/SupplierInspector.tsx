@@ -12,6 +12,7 @@ import {
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { CommentSection } from '../collaboration/CommentSection';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { useLocale } from '../../hooks/useLocale';
 
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import type { SubmitHandler } from 'react-hook-form';
@@ -50,16 +51,18 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
     assessments,
     onViewAssessment
 }) => {
+    const { t } = useLocale();
+
     // Tabs state
     const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'contracts' | 'history' | 'comments'>('profile');
     const [isFormDirty, setIsFormDirty] = useState(false);
 
     const tabs = [
-        { id: 'profile', label: 'Profil', icon: Building },
-        { id: 'assessment', label: 'Évaluations', icon: ClipboardList },
-        { id: 'contracts', label: 'Contrats & DORA', icon: Scale },
-        { id: 'history', label: 'Historique', icon: FileSpreadsheet },
-        { id: 'comments', label: 'Commentaires', icon: MessageSquare }
+        { id: 'profile', label: t('suppliers.tabs.profile', { defaultValue: 'Profil' }), icon: Building },
+        { id: 'assessment', label: t('suppliers.tabs.assessments', { defaultValue: '\u00c9valuations' }), icon: ClipboardList },
+        { id: 'contracts', label: t('suppliers.tabs.contracts', { defaultValue: 'Contrats & DORA' }), icon: Scale },
+        { id: 'history', label: t('suppliers.tabs.history', { defaultValue: 'Historique' }), icon: FileSpreadsheet },
+        { id: 'comments', label: t('suppliers.tabs.comments', { defaultValue: 'Commentaires' }), icon: MessageSquare }
     ];
 
     const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
@@ -80,20 +83,20 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
             title={supplier.name}
             subtitle={
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-500 dark:text-slate-400">Contact principal:</span>
+                    <span className="text-slate-500 dark:text-slate-400">{t('suppliers.inspector.mainContact', { defaultValue: 'Contact principal' })}:</span>
                     <div className="flex items-center gap-2">
                         {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                         <img
-                            src={getUserAvatarUrl(contactUser?.photoURL, contactUser?.role)}
-                            alt={supplier.contactName || 'Inconnu'}
+                            src={getUserAvatarUrl(contactUser?.photoURL ?? null, contactUser?.role ?? 'user')}
+                            alt={contactUser?.displayName || supplier.contactName || t('suppliers.inspector.unknown', { defaultValue: 'Inconnu' })}
                             className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-border/40 dark:border-slate-700"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = getUserAvatarUrl(null, contactUser?.role || 'user');
+                                target.src = getUserAvatarUrl(null, 'user');
                             }}
                         />
                         <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
-                            {supplier.contactName || 'Non assigné'}
+                            {contactUser?.displayName || supplier.contactName || supplier.contactEmail || t('suppliers.inspector.notAssigned', { defaultValue: 'Non assign\u00e9' })}
                         </span>
                     </div>
                 </div>

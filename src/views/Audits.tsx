@@ -99,8 +99,9 @@ export const Audits: React.FC = () => {
         if (created) {
             pendingSelectId.current = null;
             setSelectedAudit(created);
+            setActiveTab('list');
         }
-    }, [audits, loading]);
+    }, [audits, loading, setActiveTab]);
 
     const tabs = [
         { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },

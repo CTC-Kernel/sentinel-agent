@@ -242,7 +242,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     const criticalIncidents = incidents.filter(i => i.severity === Criticality.CRITICAL && (i.status !== 'Résolu' && i.status !== 'Fermé')).length;
     const resolutionRate = totalIncidents > 0
         ? Math.round(((totalIncidents - openIncidents) / totalIncidents) * 100)
-        : 100;
+        : 0;
 
     return (
         <div className="space-y-8 animate-fade-in pb-10">

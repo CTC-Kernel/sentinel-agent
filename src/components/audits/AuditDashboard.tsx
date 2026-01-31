@@ -17,6 +17,8 @@ interface AuditDashboardProps {
 }
 
 export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings, loading }) => {
+    const { t } = useStore();
+
     // Metrics Calculation
     const metrics = useMemo(() => {
         const totalAudits = audits.length;
@@ -39,10 +41,10 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
     // Chart Data
     const chartData = useMemo(() => {
         const statusData = [
-            { name: 'Planifié', value: audits.filter(a => a.status === 'Planifié').length, color: '#3B82F6' },
-            { name: 'En cours', value: audits.filter(a => a.status === 'En cours').length, color: '#F59E0B' },
-            { name: 'Terminé', value: audits.filter(a => a.status === 'Terminé').length, color: '#10B981' },
-            { name: 'Validé', value: audits.filter(a => a.status === 'Validé').length, color: '#8B5CF6' },
+            { name: t('audits.status.planned', { defaultValue: 'Planifié' }), value: audits.filter(a => a.status === 'Planifié').length, color: '#3B82F6' },
+            { name: t('audits.status.inProgress', { defaultValue: 'En cours' }), value: audits.filter(a => a.status === 'En cours').length, color: '#F59E0B' },
+            { name: t('audits.status.completed', { defaultValue: 'Terminé' }), value: audits.filter(a => a.status === 'Terminé').length, color: '#10B981' },
+            { name: t('audits.status.validated', { defaultValue: 'Validé' }), value: audits.filter(a => a.status === 'Validé').length, color: '#8B5CF6' },
         ].filter(d => d.value > 0);
 
         const findingsByType = [
@@ -53,7 +55,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
         ].filter(d => d.value > 0);
 
         return { statusData, findingsByType };
-    }, [audits, findings]);
+    }, [audits, findings, t]);
 
     if (loading) {
         return (
@@ -84,8 +86,8 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                 transition={{ duration: 0.5 }}
             >
                 <EmptyChartState
-                    message="Aucun audit pour le moment"
-                    description="Commencez par planifier un audit pour voir apparaître des métriques et des analyses détaillées."
+                    message={t('audits.dashboard.emptyTitle', { defaultValue: 'Aucun audit pour le moment' })}
+                    description={t('audits.dashboard.emptyDescription', { defaultValue: 'Commencez par planifier un audit pour voir apparaître des métriques et des analyses détaillées.' })}
                     className="glass-premium rounded-3xl min-h-[400px]"
                     variant="default"
                     icon={<CheckCircle2 className="h-10 w-10 text-brand-500" />}

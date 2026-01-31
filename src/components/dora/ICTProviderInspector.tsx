@@ -100,7 +100,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                             </p>
                         )}
                     </div>
-                    <Button onClick={onEdit} variant="outline" size="sm">
+                    <Button onClick={onEdit} variant="outline" size="sm" aria-label={t('dora.provider.edit', { defaultValue: 'Modifier le fournisseur' })}>
                         <Edit2 className="w-4 h-4 mr-1" />
                         {t('common.edit')}
                     </Button>

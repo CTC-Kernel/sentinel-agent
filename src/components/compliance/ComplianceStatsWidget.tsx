@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { SENTINEL_PALETTE } from '../../theme/chartTheme';
 import { Control, Framework } from '../../types';
+import { CONTROL_STATUS } from '../../constants/complianceConfig';
 import {
     TrendingUp,
     CheckCircle2,
@@ -39,10 +40,10 @@ const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
 
 export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ controls, currentFramework }) => {
     const stats = useMemo(() => {
-        const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
-        const partialControls = controls.filter(c => c.status === 'Partiel').length;
+        const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
         // Actionable = Not N/A and Not Excluded
-        const actionableControls = controls.filter(c => c.status !== 'Non applicable' && c.status !== 'Exclu').length;
+        const actionableControls = controls.filter(c => c.status !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.EXCLUDED).length;
         const totalControls = controls.length;
 
         // Global Score: Implemented (100%) + Partial (50%) over Actionable
@@ -54,7 +55,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
 
         // Critical (or just missing evidence/high priority) - simplistic metric for now
         // Let's count "En cours" or "Non commencé" as 'In Progress/To Do'
-        const todoControls = controls.filter(c => c.status === 'Non commencé' || c.status === 'En cours').length;
+        const todoControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED || c.status === CONTROL_STATUS.IN_PROGRESS).length;
 
         return {
             totalControls,

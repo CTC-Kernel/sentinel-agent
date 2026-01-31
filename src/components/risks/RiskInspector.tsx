@@ -253,6 +253,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             }
             disableContentPadding={isEditing}
             disableContentScroll={isEditing}
+            tabsAriaLabel="Navigation des sections du risque"
         >
             {isEditing ? (
                 <RiskForm

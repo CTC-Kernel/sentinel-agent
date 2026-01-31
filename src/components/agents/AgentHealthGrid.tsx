@@ -144,6 +144,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                 }}
                 role={onClick ? "button" : undefined}
                 tabIndex={onClick ? 0 : undefined}
+                aria-label={`${agent.hostname || agent.name || agent.id.slice(0, 8)} - ${agent.status}`}
                 className={cn(
                     'group flex items-center gap-3 p-3 rounded-2xl border border-border/40',
                     'bg-background/50 backdrop-blur-sm hover:bg-card hover:border-border/60',
@@ -250,7 +251,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         <button
                             onClick={onClick}
                             className="absolute inset-0 z-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none rounded-3xl"
-                            aria-label={`Agent ${agent.name} details`}
+                            aria-label={`${agent.hostname || agent.name || agent.id.slice(0, 8)} - ${agent.status}`}
                         />
                     )}
                     <div className="flex items-center gap-3">
@@ -300,8 +301,9 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="relative z-10 h-7 w-7 p-0 rounded-md opacity-0 group-hover:opacity-70 transition-opacity flex items-center justify-center hover:bg-muted"
+                                className="relative z-10 h-7 w-7 p-0 rounded-md opacity-70 md:opacity-0 md:group-hover:opacity-70 transition-opacity flex items-center justify-center hover:bg-muted"
                                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                aria-label={`Actions pour ${agent.hostname || agent.name || agent.id.slice(0, 8)}`}
                             >
                                 <MoreVertical className="h-4 w-4" />
                             </button>

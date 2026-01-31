@@ -1,6 +1,9 @@
 {
   "name": "Sentinel GRC",
   "short_name": "Sentinel",
+  "description": "Plateforme GRC pour la cybersécurité et la conformité",
+  "lang": "fr-FR",
+  "categories": ["business", "security", "productivity"],
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -12,13 +15,25 @@
       "src": "icons/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ]
 }

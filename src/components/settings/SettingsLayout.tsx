@@ -33,7 +33,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
         <div className="flex flex-col lg:flex-row gap-8 relative min-h-[calc(100vh-8rem)]">
             {/* Sidebar Navigation */}
             <aside className="w-full lg:w-72 flex-shrink-0 z-30">
-                <nav className="sticky top-24 space-y-4">
+                <nav className="sticky top-24 space-y-4 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
 
                     {/* Mobile: Glass Sticky Nav */}
                     <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-50 pb-4 pt-2">

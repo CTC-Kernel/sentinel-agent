@@ -19,6 +19,7 @@ interface ScrollableTabsProps {
     onTabChange: (id: string) => void;
     className?: string;
     isChanging?: boolean;
+    ariaLabel?: string;
 }
 
 export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
@@ -26,7 +27,8 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
     activeTab,
     onTabChange,
     className = '',
-    isChanging = false
+    isChanging = false,
+    ariaLabel
 }) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -92,6 +94,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
                 className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1.5 bg-muted/50 rounded-full border border-border/40 backdrop-blur-sm"
                 role="tablist"
                 aria-orientation="horizontal"
+                aria-label={ariaLabel}
             >
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;

@@ -3,6 +3,7 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 
 const db = admin.firestore();
@@ -24,11 +25,17 @@ exports.listAgents = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, status, limit: requestLimit = 50, startAfter } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { status, limit: requestLimit = 50, startAfter } = request.data;
     const limit = Math.min(requestLimit, 200);
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     try {
@@ -100,7 +107,7 @@ exports.listAgents = onCall(
         lastId: agents.length > 0 ? agents[agents.length - 1].id : null,
       };
     } catch (error) {
-      console.error('List agents error:', error);
+      logger.error('List agents error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to list agents');
     }
@@ -121,10 +128,16 @@ exports.getAgentDetails = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { agentId, organizationId } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { agentId } = request.data;
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     try {
@@ -241,7 +254,7 @@ exports.getAgentDetails = onCall(
         pendingCommandsCount: commandsSnapshot.size,
       };
     } catch (error) {
-      console.error('Get agent details error:', error);
+      logger.error('Get agent details error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to get agent details');
     }
@@ -263,9 +276,14 @@ exports.getAgentComplianceResults = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     try {
@@ -328,7 +346,7 @@ exports.getAgentComplianceResults = onCall(
 
       return { resultsByAgent };
     } catch (error) {
-      console.error('Get compliance results error:', error);
+      logger.error('Get compliance results error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to get compliance results');
     }
@@ -349,10 +367,16 @@ exports.deleteAgent = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { agentId, organizationId, deleteResults = false } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { agentId, deleteResults = false } = request.data;
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     try {
@@ -408,7 +432,7 @@ exports.deleteAgent = onCall(
 
       return { success: true };
     } catch (error) {
-      console.error('Delete agent error:', error);
+      logger.error('Delete agent error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to delete agent');
     }

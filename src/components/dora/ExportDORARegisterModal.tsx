@@ -42,6 +42,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
     const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('json');
     const [categoryFilter, setCategoryFilter] = useState<ICTCriticality | 'all'>('all');
     const [isExporting, setIsExporting] = useState(false);
+    const [exportSuccess, setExportSuccess] = useState(false);
 
     const formatOptions: FormatOption[] = [
         {
@@ -144,8 +145,12 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                 fileSize: blob.size
             });
 
+            setExportSuccess(true);
             toast.success(t('dora.export.success'));
-            onClose();
+            setTimeout(() => {
+                setExportSuccess(false);
+                onClose();
+            }, 1500);
         } catch (error) {
             ErrorLogger.error(error, 'ExportDORARegisterModal.export');
             toast.error(t('dora.export.error'));
@@ -262,6 +267,13 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                     )}
                 </div>
 
+                {exportSuccess && (
+                    <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-300 animate-in fade-in duration-300">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="text-sm font-medium">{t('dora.export.successMessage', 'Export terminé avec succès !')}</span>
+                    </div>
+                )}
+
                 <DialogFooter>
                     <Button
                         variant="outline"
@@ -272,13 +284,18 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                     </Button>
                     <Button
                         onClick={handleExport}
-                        disabled={isExporting || filteredProviders.length === 0}
+                        disabled={isExporting || exportSuccess || filteredProviders.length === 0}
                         className="gap-2"
                     >
                         {isExporting ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
                                 {t('dora.export.exporting')}
+                            </>
+                        ) : exportSuccess ? (
+                            <>
+                                <CheckCircle className="w-4 h-4" />
+                                {t('dora.export.exported', 'Exporté')}
                             </>
                         ) : (
                             <>

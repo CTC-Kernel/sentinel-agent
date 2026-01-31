@@ -97,7 +97,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
                     <img
                         src="/images/IA.png"
-                        alt=""
+                        alt="AI Analysis background"
                         className="w-full h-full object-cover object-right opacity-20 dark:opacity-30 mix-blend-multiply dark:mix-blend-color-dodge transition-all duration-700"
                     />
                 </div>

@@ -16,7 +16,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
         const total = significant.length;
         const reported = significant.filter(i => i.notificationStatus === 'Reported').length;
         const pending = significant.filter(i => i.notificationStatus === 'Pending').length;
-        const complianceRate = total > 0 ? Math.round((reported / total) * 100) : 100;
+        const complianceRate = total > 0 ? Math.round((reported / total) * 100) : 0;
 
         return { total, reported, pending, complianceRate };
     }, [incidents]);
@@ -30,7 +30,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
         // Avg Score of Critical ICT Providers
         const avgScore = critical.length > 0
             ? Math.round(critical.reduce((acc, s) => acc + (s.securityScore || 0), 0) / critical.length)
-            : 0;
+            : null;
 
         return { totalICT, criticalCount: critical.length, avgScore };
     }, [suppliers]);
@@ -99,13 +99,13 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs">
                                 <span className="text-slate-600 dark:text-muted-foreground">Score de Sécurité Avg</span>
-                                <span className="font-bold text-slate-900 dark:text-white">{doraMetrics.avgScore}/100</span>
+                                <span className="font-bold text-slate-900 dark:text-white">{doraMetrics.avgScore !== null ? `${doraMetrics.avgScore}/100` : '-'}</span>
                             </div>
                             <div className="h-1.5 w-full bg-success-bg dark:bg-success/20 rounded-full overflow-hidden">
                                 <motion.div
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${doraMetrics.avgScore}%` }}
-                                    className={`h-full rounded-full ${doraMetrics.avgScore < 50 ? 'bg-warning' : 'bg-success'}`}
+                                    animate={{ width: `${doraMetrics.avgScore ?? 0}%` }}
+                                    className={`h-full rounded-full ${(doraMetrics.avgScore ?? 0) < 50 ? 'bg-warning' : 'bg-success'}`}
                                 />
                             </div>
                         </div>
@@ -115,7 +115,6 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
 
             <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex justify-between items-center">
                 <div className="flex -space-x-2">
-                    {/* Fake avatars or status icons could go here */}
                 </div>
                 {nis2Metrics.pending > 0 && (
                     <div className="flex items-center gap-1 text-xs font-bold text-warning-text dark:text-warning bg-warning-bg dark:bg-warning/10 px-2 py-1 rounded-lg animate-pulse">
