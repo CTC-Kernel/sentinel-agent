@@ -2,7 +2,7 @@ import React from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import {
     Download, FileText, FileSpreadsheet, FileCode, MoreVertical,
-    Loader2, Plus, BrainCircuit, ShieldAlert, Copy
+    Loader2, Plus, BrainCircuit, Copy
 } from '../ui/Icons';
 import { PageHeader } from '../ui/PageHeader';
 import { Button } from '../ui/button';
