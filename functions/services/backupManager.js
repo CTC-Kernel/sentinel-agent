@@ -1,3 +1,4 @@
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { getStorage } = require('firebase-admin/storage');
 
@@ -13,7 +14,7 @@ class BackupManager {
         if (!organizationId) throw new Error('Organization ID required');
 
         const backupId = `backup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        console.log(`Starting backup ${backupId} for org ${organizationId}`);
+        logger.log(`Starting backup ${backupId} for org ${organizationId}`);
 
         // Default config if not provided
         const finalConfig = {
@@ -59,7 +60,7 @@ class BackupManager {
                     backupData[collectionName] = data;
                     totalSize += JSON.stringify(data).length;
                 } catch (err) {
-                    console.error(`Error backing up collection ${collectionName}:`, err);
+                    logger.error(`Error backing up collection ${collectionName}:`, err);
                 }
             }
 
@@ -99,11 +100,11 @@ class BackupManager {
                 downloadUrl: url
             });
 
-            console.log(`Backup ${backupId} completed successfully.`);
+            logger.log(`Backup ${backupId} completed successfully.`);
             return backupId;
 
         } catch (error) {
-            console.error(`Backup ${backupId} failed:`, error);
+            logger.error(`Backup ${backupId} failed:`, error);
             await db.collection('backups').doc(backupId).update({
                 status: 'failed',
                 error: error.message

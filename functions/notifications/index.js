@@ -509,6 +509,7 @@ async function shouldNotify(db, userId, link, contentMatch) {
         .where('userId', '==', userId)
         .where('link', '==', link)
         .where('createdAt', '>=', yesterday)
+        .limit(1)
         .get();
 
     let alreadyNotified = false;
@@ -591,7 +592,7 @@ async function checkUpcomingAudits(db, organizationId) {
 
     const auditsSnap = await db.collection('audits')
         .where('organizationId', '==', organizationId)
-        .where('status', 'in', ['Planifie', 'En cours'])
+        .where('status', 'in', ['Planifié', 'En cours'])
         .get();
 
     for (const doc of auditsSnap.docs) {

@@ -1,4 +1,5 @@
 const { onObjectFinalized } = require('firebase-functions/v2/storage');
+const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { KeyManagementServiceClient } = require('@google-cloud/kms');
@@ -35,17 +36,17 @@ exports.encryptOnUpload = onObjectFinalized(
 
     // Skip if already encrypted
     if (metadata.encrypted === 'true') {
-      console.log(`File ${filePath} already encrypted, skipping`);
+      logger.log(`File ${filePath} already encrypted, skipping`);
       return;
     }
 
     // Skip non-document files (thumbnails, etc.)
     if (!filePath.startsWith('documents/') && !filePath.startsWith('uploads/')) {
-      console.log(`Skipping non-document file: ${filePath}`);
+      logger.log(`Skipping non-document file: ${filePath}`);
       return;
     }
 
-    console.log(`Encrypting file: ${filePath}`);
+    logger.log(`Encrypting file: ${filePath}`);
 
     const db = getFirestore();
     const storage = getStorage();
@@ -111,14 +112,14 @@ exports.encryptOnUpload = onObjectFinalized(
             'encryption.hash': originalHash,
             updatedAt: FieldValue.serverTimestamp(),
           });
-          console.log(`Updated Firestore document ${documentId}`);
+          logger.log(`Updated Firestore document ${documentId}`);
         }
       }
 
-      console.log(`Successfully encrypted file: ${filePath}`);
+      logger.log(`Successfully encrypted file: ${filePath}`);
       return { success: true, filePath, keyVersion };
     } catch (error) {
-      console.error(`Error encrypting file ${filePath}:`, error);
+      logger.error(`Error encrypting file ${filePath}:`, error);
 
       // Mark document as pending encryption for retry
       const documentId = extractDocumentId(filePath);

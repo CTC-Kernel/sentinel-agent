@@ -19,6 +19,9 @@ const {
     recordScoreSnapshot
 } = require('./predictiveCompliance');
 
+// Gemini Proxy (lightweight, App Check enforced)
+const { geminiProxy } = require('./geminiProxy');
+
 /**
  * Determine the correct API version for a given model
  */
@@ -531,7 +534,7 @@ exports.callGeminiChat = onCall({
         if (error instanceof HttpsError) {
             throw error;
         }
-        throw new HttpsError('internal', `Erreur IA: ${error.message || 'Erreur inconnue'}`);
+        throw new HttpsError('internal', 'Une erreur est survenue lors de l\'appel au service IA.');
     }
 });
 
@@ -593,3 +596,9 @@ exports.generateCompliancePredictions = generateCompliancePredictions;
 exports.generateRecommendedActions = generateRecommendedActions;
 exports.dailyPredictionRefresh = dailyPredictionRefresh;
 exports.recordScoreSnapshot = recordScoreSnapshot;
+
+// ============================================================================
+// Gemini Proxy Export
+// ============================================================================
+
+exports.geminiProxy = geminiProxy;

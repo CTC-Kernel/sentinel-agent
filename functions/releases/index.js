@@ -7,6 +7,7 @@
 
 const { onRequest } = require('firebase-functions/v2/https');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { getStorage } = require('firebase-admin/storage');
 
@@ -254,7 +255,7 @@ const downloadRelease = onRequest({
         res.redirect(downloadUrl);
 
     } catch (error) {
-        console.error('Download error:', error);
+        logger.error('Download error:', error);
         res.status(500).json({
             error: 'Internal server error',
         });

@@ -8,6 +8,7 @@
 
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const admin = require('firebase-admin');
 
@@ -72,7 +73,7 @@ exports.processOTConnectorSyncs = onSchedule(
     timeoutSeconds: 300
   },
   async (event) => {
-    console.log('Starting OT Connector sync check');
+    logger.log('Starting OT Connector sync check');
 
     try {
       // Get all organizations
@@ -101,12 +102,12 @@ exports.processOTConnectorSyncs = onSchedule(
             connector.schedule?.nextRun &&
             connector.schedule.nextRun <= now
           ) {
-            console.log(`Processing sync for connector: ${connector.name} (${connectorDoc.id})`);
+            logger.log(`Processing sync for connector: ${connector.name} (${connectorDoc.id})`);
 
             try {
               await processCSVSync(orgId, connectorDoc.id, connector, 'schedule');
             } catch (error) {
-              console.error(`Sync failed for ${connectorDoc.id}:`, error);
+              logger.error(`Sync failed for ${connectorDoc.id}:`, error);
 
               // Update connector status to error
               await connectorDoc.ref.update({
@@ -119,9 +120,9 @@ exports.processOTConnectorSyncs = onSchedule(
         }
       }
 
-      console.log('OT Connector sync check completed');
+      logger.log('OT Connector sync check completed');
     } catch (error) {
-      console.error('OT Connector sync check failed:', error);
+      logger.error('OT Connector sync check failed:', error);
       throw error;
     }
   }
@@ -191,7 +192,8 @@ exports.triggerOTSync = onCall(
 
       return result;
     } catch (error) {
-      throw new HttpsError('internal', error.message);
+      logger.error('OT sync trigger error:', error);
+      throw new HttpsError('internal', 'An internal error occurred during OT sync.');
     }
   }
 );
@@ -243,7 +245,7 @@ async function processCSVSync(
     // 6. Archive processed files if configured
 
     // Placeholder: simulate a successful empty sync
-    console.log(`CSV sync for connector ${connectorId}: No files to process`);
+    logger.log(`CSV sync for connector ${connectorId}: No files to process`);
 
     const endTime = Date.now();
     const durationMs = endTime - startTime;
@@ -301,7 +303,7 @@ async function processCSVSync(
 
     return syncResult;
   } catch (error) {
-    console.error('CSV sync processing error:', error);
+    logger.error('CSV sync processing error:', error);
 
     // Record failed sync
     const endTime = Date.now();

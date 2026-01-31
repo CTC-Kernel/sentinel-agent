@@ -185,7 +185,7 @@ exports.createOrganization = onCall({
             throw new HttpsError('resource-exhausted', 'Quota dépassé. Réessayez plus tard.');
         }
 
-        throw new HttpsError('internal', 'Erreur de configuration interne: ' + errorMessage);
+        throw new HttpsError('internal', 'Une erreur interne est survenue lors de la création de l\'organisation.');
     }
 });
 
@@ -212,8 +212,8 @@ exports.deleteOrganization = onCall({
         return { success: true };
     } catch (error) {
         logger.error(`Delete Organization Failed`, error);
-        if (error.message.includes('Permission denied')) {
-            throw new HttpsError('permission-denied', error.message);
+        if (error.message && error.message.includes('Permission denied')) {
+            throw new HttpsError('permission-denied', 'Permissions insuffisantes pour supprimer cette organisation.');
         }
         throw new HttpsError('internal', 'Deletion failed.');
     }
@@ -249,7 +249,11 @@ exports.onOrganizationDeleted = onDocumentDeleted({
             allRefs.push(doc.ref);
         });
 
-        const commonCollections = ['risks', 'incidents', 'assets', 'documents', 'projects', 'audits'];
+        const commonCollections = [
+            'risks', 'incidents', 'assets', 'documents', 'projects', 'audits',
+            'enrollmentTokens', 'complianceScores', 'agent_metrics', 'audit_logs',
+            'custom_roles', 'questionnaire_responses', 'evidence_requests'
+        ];
 
         for (const col of commonCollections) {
             const snap = await db.collection(col).where('organizationId', '==', orgId).get();
@@ -298,25 +302,29 @@ exports.onJoinRequestCreated = onDocumentCreated({
         return;
     }
 
-    const batch = admin.firestore().batch();
     const link = `${appBaseUrl.value()}/team`;
+    const adminDocs = adminsSnap.docs;
+    const BATCH_LIMIT = 450;
 
-    adminsSnap.forEach(adminDoc => {
-        const adminUser = adminDoc.data();
-        const mailRef = admin.firestore().collection('mail_queue').doc();
-        batch.set(mailRef, {
-            to: adminUser.email,
-            message: {
-                subject: `Nouvelle demande d'acces : ${request.displayName}`,
-                html: getJoinRequestEmailHtml(request.displayName, request.userEmail, request.organizationName, link)
-            },
-            type: 'JOIN_REQUEST',
-            status: 'PENDING',
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+    for (let i = 0; i < adminDocs.length; i += BATCH_LIMIT) {
+        const chunk = adminDocs.slice(i, i + BATCH_LIMIT);
+        const batch = admin.firestore().batch();
+        chunk.forEach(adminDoc => {
+            const adminUser = adminDoc.data();
+            const mailRef = admin.firestore().collection('mail_queue').doc();
+            batch.set(mailRef, {
+                to: adminUser.email,
+                message: {
+                    subject: `Nouvelle demande d'acces : ${request.displayName}`,
+                    html: getJoinRequestEmailHtml(request.displayName, request.userEmail, request.organizationName, link)
+                },
+                type: 'JOIN_REQUEST',
+                status: 'PENDING',
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
         });
-    });
-
-    await batch.commit();
+        await batch.commit();
+    }
     logger.info(`Queued join request emails for ${adminsSnap.size} admins.`);
 });
 

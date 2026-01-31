@@ -55,13 +55,19 @@ exports.createCheckoutSession = onCall({
         throw new HttpsError("unauthenticated", "User must be logged in.");
     }
 
-    const { planId, organizationId, successUrl, cancelUrl, interval } = validate(z.object({
+    const { planId, successUrl, cancelUrl, interval } = validate(z.object({
         planId: z.enum(['discovery', 'professional', 'enterprise']),
-        organizationId: z.string(),
         successUrl: z.string().url(),
         cancelUrl: z.string().url(),
         interval: z.enum(['month', 'year']).default('month')
     }), request.data);
+
+    // SECURITY: Force organizationId from the authenticated user's profile, not from request data
+    const callerDoc = await db.collection('users').doc(request.auth.uid).get();
+    const organizationId = callerDoc.data()?.organizationId;
+    if (!organizationId) {
+        throw new HttpsError('failed-precondition', 'User has no organization');
+    }
 
     // If it's the free plan, just update Firestore directly
     if (planId === 'discovery') {

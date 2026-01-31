@@ -1,4 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { logger } = require("firebase-functions");
 const { KeyManagementServiceClient } = require("@google-cloud/kms");
 const admin = require("firebase-admin");
 
@@ -54,7 +55,7 @@ const checkKmsSetup = onCall(
         nextRotation: cryptoKey.nextRotationTime?.seconds?.toString(),
       };
     } catch (error) {
-      console.error('KMS setup check failed:', error);
+      logger.error('KMS setup check failed:', error);
       return {
         status: 'not_configured',
         error: error instanceof Error ? error.message : 'Unknown error',

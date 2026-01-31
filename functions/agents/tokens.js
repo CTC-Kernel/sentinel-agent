@@ -3,6 +3,7 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 
@@ -83,7 +84,7 @@ exports.generateEnrollmentToken = onCall(
         maxUses,
       };
     } catch (error) {
-      console.error('Generate enrollment token error:', error);
+      logger.error('Generate enrollment token error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to generate enrollment token');
     }
@@ -172,7 +173,7 @@ exports.listEnrollmentTokens = onCall(
 
       return { tokens };
     } catch (error) {
-      console.error('List enrollment tokens error:', error);
+      logger.error('List enrollment tokens error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to list enrollment tokens');
     }
@@ -243,7 +244,7 @@ exports.revokeEnrollmentToken = onCall(
 
       return { success: true };
     } catch (error) {
-      console.error('Revoke enrollment token error:', error);
+      logger.error('Revoke enrollment token error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to revoke enrollment token');
     }

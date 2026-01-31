@@ -1,5 +1,6 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
-const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { logger } = require('firebase-functions');
+const { getFirestore, FieldValue, FieldPath } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
 
@@ -46,28 +47,28 @@ exports.decryptOnDownload = onCall(
       let storagePath = filePath;
 
       if (documentId) {
-        const docRef = db.collection('documents').doc(documentId);
-        const docSnap = await docRef.get();
-
-        if (!docSnap.exists) {
-          throw new HttpsError('not-found', 'Document not found');
-        }
-
-        docData = docSnap.data();
-        storagePath = docData.url || docData.storagePath;
-
-        // Check user authorization
         const userOrg = request.auth.token.organizationId;
-        if (docData.organizationId !== userOrg) {
-          // Log access denied
+
+        // Query with organizationId filter to enforce tenant isolation at the query level
+        const docQuery = await db.collection('documents')
+          .where('organizationId', '==', userOrg)
+          .where(FieldPath.documentId(), '==', documentId)
+          .limit(1)
+          .get();
+
+        if (docQuery.empty) {
+          // Log access denied (could be not-found or org mismatch)
           await logAuditEvent(db, {
             documentId,
             action: 'access_denied',
             userId,
-            reason: 'organization_mismatch',
+            reason: 'not_found_or_organization_mismatch',
           });
-          throw new HttpsError('permission-denied', 'Access denied');
+          throw new HttpsError('not-found', 'Document not found');
         }
+
+        docData = docQuery.docs[0].data();
+        storagePath = docData.url || docData.storagePath;
 
         // Check classification-based access
         if (docData.classification) {
@@ -148,7 +149,7 @@ exports.decryptOnDownload = onCall(
 
           if (decryptedHash !== originalHash) {
             integrityVerified = false;
-            console.error(
+            logger.error(
               `Integrity check failed for ${storagePath}. Expected: ${originalHash}, Got: ${decryptedHash}`
             );
 
@@ -192,7 +193,7 @@ exports.decryptOnDownload = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Decryption error:', error);
+      logger.error('Decryption error:', error);
       throw new HttpsError('internal', 'Failed to decrypt document');
     }
   }
@@ -263,6 +264,6 @@ async function logAuditEvent(db, event) {
       },
     });
   } catch (error) {
-    console.error('Failed to log audit event:', error);
+    logger.error('Failed to log audit event:', error);
   }
 }

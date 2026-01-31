@@ -199,7 +199,7 @@ exports.deployAgentPolicy = onCall(
         targetAgentCount: targetAgentIds.length,
       };
     } catch (error) {
-      console.error('Deploy policy error:', error);
+      logger.error('Deploy policy error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to deploy policy');
     }
@@ -297,7 +297,7 @@ exports.rollbackAgentPolicy = onCall(
 
       return { success: true };
     } catch (error) {
-      console.error('Rollback policy error:', error);
+      logger.error('Rollback policy error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to rollback policy');
     }
@@ -412,7 +412,7 @@ exports.getEffectivePolicy = onCall(
         ),
       };
     } catch (error) {
-      console.error('Get effective policy error:', error);
+      logger.error('Get effective policy error:', error);
       if (error instanceof HttpsError) throw error;
       throw new HttpsError('internal', 'Failed to get effective policy');
     }
@@ -431,7 +431,7 @@ exports.autoAssignAgentsToGroups = onSchedule(
     timeoutSeconds: 120,
   },
   async () => {
-    console.log('Starting auto-assign agents to groups...');
+    logger.log('Starting auto-assign agents to groups...');
 
     try {
       // Get all organizations
@@ -505,16 +505,16 @@ exports.autoAssignAgentsToGroups = onSchedule(
           }
 
           if (newAgentIds.length > 0 || removedAgentIds.length > 0) {
-            console.log(
+            logger.log(
               `Updated group ${group.name} in org ${organizationId}: +${newAgentIds.length} -${removedAgentIds.length} agents`
             );
           }
         }
       }
 
-      console.log('Auto-assign agents to groups completed');
+      logger.log('Auto-assign agents to groups completed');
     } catch (error) {
-      console.error('Auto-assign agents error:', error);
+      logger.error('Auto-assign agents error:', error);
     }
   }
 );
@@ -598,7 +598,7 @@ exports.onAgentUpdated = onDocumentWritten(
         lastGroupUpdateAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } catch (error) {
-      console.error('On agent updated error:', error);
+      logger.error('On agent updated error:', error);
     }
   }
 );

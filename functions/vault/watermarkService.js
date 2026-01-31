@@ -11,6 +11,7 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
@@ -55,7 +56,7 @@ async function getWatermarkSettings(organizationId) {
       ...settingsSnap.data(),
     };
   } catch (error) {
-    console.error('Error getting watermark settings:', error);
+    logger.error('Error getting watermark settings:', error);
     return DEFAULT_WATERMARK_CONFIG;
   }
 }
@@ -150,7 +151,7 @@ async function applyPdfWatermark(pdfBuffer, watermarkText, config) {
 
     return await pdfDoc.save();
   } catch (error) {
-    console.error('PDF watermark error:', error);
+    logger.error('PDF watermark error:', error);
     throw new Error('Failed to apply PDF watermark');
   }
 }
@@ -218,7 +219,7 @@ async function applyImageWatermark(imageBuffer, watermarkText, config) {
 
     return result;
   } catch (error) {
-    console.error('Image watermark error:', error);
+    logger.error('Image watermark error:', error);
     throw new Error('Failed to apply image watermark');
   }
 }
@@ -409,7 +410,7 @@ exports.downloadWithWatermark = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Watermark error:', error);
+      logger.error('Watermark error:', error);
       throw new HttpsError('internal', 'Failed to apply watermark');
     }
   }
@@ -439,7 +440,7 @@ exports.getWatermarkSettingsCallable = onCall(
         settings,
       };
     } catch (error) {
-      console.error('Get watermark settings error:', error);
+      logger.error('Get watermark settings error:', error);
       throw new HttpsError('internal', 'Failed to get watermark settings');
     }
   }
@@ -513,7 +514,7 @@ exports.updateWatermarkSettings = onCall(
         settings: validSettings,
       };
     } catch (error) {
-      console.error('Update watermark settings error:', error);
+      logger.error('Update watermark settings error:', error);
       throw new HttpsError('internal', 'Failed to update watermark settings');
     }
   }
@@ -557,7 +558,7 @@ exports.previewWatermark = onCall(
         },
       };
     } catch (error) {
-      console.error('Preview watermark error:', error);
+      logger.error('Preview watermark error:', error);
       throw new HttpsError('internal', 'Failed to generate preview');
     }
   }
