@@ -56,8 +56,8 @@ use agent_gui::events::AgentEvent;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiDiscoveredDevice,
-    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding,
-    GuiVulnerabilitySummary,
+    GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiResourceUsage,
+    GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
 };
 
 /// Default vulnerability scan interval (6 hours).
@@ -495,6 +495,70 @@ impl AgentRuntime {
             executed_at: Some(common_result.executed_at),
             frameworks,
         }
+    }
+
+    /// Convert a network snapshot into GUI DTOs for the Network page.
+    #[cfg(feature = "gui")]
+    fn snapshot_to_gui_network(
+        snapshot: &agent_network::types::NetworkSnapshot,
+    ) -> (Vec<GuiNetworkInterface>, Vec<GuiNetworkConnection>) {
+        use agent_network::types::{ConnectionProtocol, ConnectionState, InterfaceStatus, InterfaceType};
+
+        let interfaces = snapshot
+            .interfaces
+            .iter()
+            .map(|iface| GuiNetworkInterface {
+                name: iface.name.clone(),
+                mac_address: iface.mac_address.clone(),
+                ipv4_addresses: iface.ipv4_addresses.clone(),
+                status: match iface.status {
+                    InterfaceStatus::Up => "up".to_string(),
+                    InterfaceStatus::Down => "down".to_string(),
+                    InterfaceStatus::Unknown => "unknown".to_string(),
+                },
+                interface_type: match iface.interface_type {
+                    InterfaceType::Ethernet => "Ethernet".to_string(),
+                    InterfaceType::WiFi => "Wi-Fi".to_string(),
+                    InterfaceType::Loopback => "Loopback".to_string(),
+                    InterfaceType::Virtual => "Virtual".to_string(),
+                    InterfaceType::Vpn => "VPN".to_string(),
+                    InterfaceType::Bridge => "Bridge".to_string(),
+                    InterfaceType::Unknown => "Inconnu".to_string(),
+                },
+            })
+            .collect();
+
+        let connections = snapshot
+            .connections
+            .iter()
+            .map(|conn| GuiNetworkConnection {
+                protocol: match conn.protocol {
+                    ConnectionProtocol::Tcp | ConnectionProtocol::Tcp6 => "TCP".to_string(),
+                    ConnectionProtocol::Udp | ConnectionProtocol::Udp6 => "UDP".to_string(),
+                },
+                local_address: conn.local_address.clone(),
+                local_port: conn.local_port,
+                remote_address: conn.remote_address.clone(),
+                remote_port: conn.remote_port,
+                state: match conn.state {
+                    ConnectionState::Established => "ESTABLISHED".to_string(),
+                    ConnectionState::Listen => "LISTEN".to_string(),
+                    ConnectionState::TimeWait => "TIME_WAIT".to_string(),
+                    ConnectionState::CloseWait => "CLOSE_WAIT".to_string(),
+                    ConnectionState::SynSent => "SYN_SENT".to_string(),
+                    ConnectionState::SynReceived => "SYN_RECV".to_string(),
+                    ConnectionState::FinWait1 => "FIN_WAIT1".to_string(),
+                    ConnectionState::FinWait2 => "FIN_WAIT2".to_string(),
+                    ConnectionState::Closing => "CLOSING".to_string(),
+                    ConnectionState::LastAck => "LAST_ACK".to_string(),
+                    ConnectionState::Closed => "CLOSED".to_string(),
+                    ConnectionState::Unknown => "UNKNOWN".to_string(),
+                },
+                process_name: conn.process_name.clone(),
+            })
+            .collect();
+
+        (interfaces, connections)
     }
 
     /// Get a lightweight handle to the runtime for sharing with the GUI or
@@ -1379,6 +1443,14 @@ impl AgentRuntime {
         info!("Running initial network collection...");
         match self.run_network_collection().await {
             Ok(snapshot) => {
+                #[cfg(feature = "gui")]
+                {
+                    let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                    self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                        interfaces,
+                        connections,
+                    });
+                }
                 if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                     warn!("Failed to upload initial network snapshot: {}", e);
                 }
@@ -1529,13 +1601,20 @@ impl AgentRuntime {
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
                         #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::NetworkUpdate {
-                            interfaces_count: snapshot.interfaces.len() as u32,
-                            connections_count: snapshot.connections.len() as u32,
-                            alerts_count: 0,
-                            primary_ip: snapshot.primary_ip.clone(),
-                            primary_mac: snapshot.primary_mac.clone(),
-                        });
+                        {
+                            self.emit_gui_event(AgentEvent::NetworkUpdate {
+                                interfaces_count: snapshot.interfaces.len() as u32,
+                                connections_count: snapshot.connections.len() as u32,
+                                alerts_count: 0,
+                                primary_ip: snapshot.primary_ip.clone(),
+                                primary_mac: snapshot.primary_mac.clone(),
+                            });
+                            let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                            self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                                interfaces,
+                                connections,
+                            });
+                        }
                         if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                             warn!("Failed to upload network snapshot: {}", e);
                         }
@@ -1556,13 +1635,20 @@ impl AgentRuntime {
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
                         #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::NetworkUpdate {
-                            interfaces_count: snapshot.interfaces.len() as u32,
-                            connections_count: snapshot.connections.len() as u32,
-                            alerts_count: 0,
-                            primary_ip: snapshot.primary_ip.clone(),
-                            primary_mac: snapshot.primary_mac.clone(),
-                        });
+                        {
+                            self.emit_gui_event(AgentEvent::NetworkUpdate {
+                                interfaces_count: snapshot.interfaces.len() as u32,
+                                connections_count: snapshot.connections.len() as u32,
+                                alerts_count: 0,
+                                primary_ip: snapshot.primary_ip.clone(),
+                                primary_mac: snapshot.primary_mac.clone(),
+                            });
+                            let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                            self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                                interfaces,
+                                connections,
+                            });
+                        }
                         // Only upload connections portion
                         if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                             warn!("Failed to upload network connections: {}", e);
@@ -1599,13 +1685,20 @@ impl AgentRuntime {
                             }
                         }
                         #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::NetworkUpdate {
-                            interfaces_count: snapshot.interfaces.len() as u32,
-                            connections_count: snapshot.connections.len() as u32,
-                            alerts_count: alert_count,
-                            primary_ip: snapshot.primary_ip.clone(),
-                            primary_mac: snapshot.primary_mac.clone(),
-                        });
+                        {
+                            self.emit_gui_event(AgentEvent::NetworkUpdate {
+                                interfaces_count: snapshot.interfaces.len() as u32,
+                                connections_count: snapshot.connections.len() as u32,
+                                alerts_count: alert_count,
+                                primary_ip: snapshot.primary_ip.clone(),
+                                primary_mac: snapshot.primary_mac.clone(),
+                            });
+                            let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                            self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                                interfaces,
+                                connections,
+                            });
+                        }
                     }
                     Err(e) => {
                         warn!("Network collection for security scan failed: {}", e);

@@ -19,132 +19,128 @@ pub struct AboutPage;
 
 impl AboutPage {
     pub fn show(ui: &mut Ui) {
-        egui::ScrollArea::vertical()
-            .auto_shrink(egui::Vec2b::new(false, false))
-            .show(ui, |ui| {
+        ui.add_space(theme::SPACE_MD);
+        widgets::page_header(
+            ui,
+            "\u{00c0} propos",
+            Some("Informations sur le produit et support technique"),
+        );
+        ui.add_space(theme::SPACE_LG);
+
+        // Brand card
+        widgets::card(ui, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.add_space(theme::SPACE_LG);
+                ui.label(
+                    egui::RichText::new(icons::VULNERABILITIES)
+                        .size(48.0)
+                        .color(theme::ACCENT),
+                );
+                ui.add_space(theme::SPACE_SM);
+                ui.label(
+                    egui::RichText::new(branding::PRODUCT)
+                        .size(32.0)
+                        .color(theme::TEXT_PRIMARY)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new(format!(
+                        "VERSION {}",
+                        agent_common::constants::AGENT_VERSION
+                    ))
+                    .font(theme::font_small())
+                    .color(theme::TEXT_TERTIARY)
+                    .strong(),
+                );
                 ui.add_space(theme::SPACE_MD);
-                widgets::page_header(
-                    ui,
-                    "\u{00c0} propos",
-                    Some("Informations sur le produit et support technique"),
+                ui.label(
+                    egui::RichText::new(branding::COMPANY)
+                        .font(theme::font_body())
+                        .color(theme::TEXT_SECONDARY),
                 );
                 ui.add_space(theme::SPACE_LG);
-
-                // Brand card
-                widgets::card(ui, |ui| {
-                    ui.vertical_centered(|ui| {
-                        ui.add_space(theme::SPACE_LG);
-                        ui.label(
-                            egui::RichText::new(icons::VULNERABILITIES)
-                                .size(48.0)
-                                .color(theme::ACCENT),
-                        );
-                        ui.add_space(theme::SPACE_SM);
-                        ui.label(
-                            egui::RichText::new(branding::PRODUCT)
-                                .size(32.0)
-                                .color(theme::TEXT_PRIMARY)
-                                .strong(),
-                        );
-                        ui.add_space(theme::SPACE_XS);
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "VERSION {}",
-                                agent_common::constants::AGENT_VERSION
-                            ))
-                            .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
-                            .strong(),
-                        );
-                        ui.add_space(theme::SPACE_MD);
-                        ui.label(
-                            egui::RichText::new(branding::COMPANY)
-                                .font(theme::font_body())
-                                .color(theme::TEXT_SECONDARY),
-                        );
-                        ui.add_space(theme::SPACE_LG);
-                    });
-                });
-
-                ui.add_space(theme::SPACE);
-
-                let total_width = ui.available_width();
-                let col_gap = theme::SPACE;
-                let col_w = (total_width - col_gap) * 0.5;
-                ui.horizontal_top(|ui| {
-                    ui.spacing_mut().item_spacing.x = col_gap;
-                    ui.vertical(|ui| {
-                    ui.set_width(col_w);
-                    // System info
-                    widgets::card(ui, |ui| {
-                        ui.label(
-                            egui::RichText::new("SYST\u{00c8}ME")
-                                .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY)
-                                .strong(),
-                        );
-                        ui.add_space(theme::SPACE_MD);
-
-                        Self::info_row(ui, "OS", &format!(
-                            "{} {}",
-                            std::env::consts::OS,
-                            std::env::consts::ARCH
-                        ), icons::ARROW_RIGHT);
-                        Self::info_row(ui, "Runtime", "Rust v1.80+", icons::ARROW_RIGHT);
-                        Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
-                    });
-                    }); // end left vertical
-
-                    // Links
-                    ui.vertical(|ui| {
-                    ui.set_width(col_w);
-                    widgets::card(ui, |ui| {
-                        ui.label(
-                            egui::RichText::new("RESSOURCES")
-                                .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY)
-                                .strong(),
-                        );
-                        ui.add_space(theme::SPACE_MD);
-
-                        Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
-                        Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
-                        Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), icons::ARROW_RIGHT);
-                    });
-                    }); // end right vertical
-                });
-
-                ui.add_space(theme::SPACE);
-
-                // Legal
-                widgets::card(ui, |ui| {
-                    ui.label(
-                        egui::RichText::new("MENTIONS L\u{00c9}GALES")
-                            .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(
-                            "\u{00a9} 2024\u{2013}2026 Cyber Threat Consulting. Tous droits r\u{00e9}serv\u{00e9}s.",
-                        )
-                        .font(theme::font_small())
-                        .color(theme::TEXT_SECONDARY),
-                    );
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                        egui::RichText::new(
-                            "Ce logiciel est la propri\u{00e9}t\u{00e9} exclusive de Cyber Threat Consulting. \
-                             Toute reproduction ou distribution non autoris\u{00e9}e est strictement interdite.",
-                        )
-                        .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY),
-                    );
-                });
-                
-                ui.add_space(theme::SPACE_XL);
             });
+        });
+
+        ui.add_space(theme::SPACE);
+
+        let total_width = ui.available_width();
+        let col_gap = theme::SPACE;
+        let col_w = (total_width - col_gap) * 0.5;
+        ui.horizontal_top(|ui| {
+            ui.spacing_mut().item_spacing.x = col_gap;
+            ui.vertical(|ui| {
+            ui.set_width(col_w);
+            // System info
+            widgets::card(ui, |ui| {
+                ui.label(
+                    egui::RichText::new("SYST\u{00c8}ME")
+                        .font(theme::font_small())
+                        .color(theme::TEXT_TERTIARY)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_MD);
+
+                Self::info_row(ui, "OS", &format!(
+                    "{} {}",
+                    std::env::consts::OS,
+                    std::env::consts::ARCH
+                ), icons::ARROW_RIGHT);
+                Self::info_row(ui, "Runtime", "Rust v1.80+", icons::ARROW_RIGHT);
+                Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
+            });
+            }); // end left vertical
+
+            // Links
+            ui.vertical(|ui| {
+            ui.set_width(col_w);
+            widgets::card(ui, |ui| {
+                ui.label(
+                    egui::RichText::new("RESSOURCES")
+                        .font(theme::font_small())
+                        .color(theme::TEXT_TERTIARY)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_MD);
+
+                Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
+                Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
+                Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), icons::ARROW_RIGHT);
+            });
+            }); // end right vertical
+        });
+
+        ui.add_space(theme::SPACE);
+
+        // Legal
+        widgets::card(ui, |ui| {
+            ui.label(
+                egui::RichText::new("MENTIONS L\u{00c9}GALES")
+                    .font(theme::font_small())
+                    .color(theme::TEXT_TERTIARY)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+            ui.label(
+                egui::RichText::new(
+                    "\u{00a9} 2024\u{2013}2026 Cyber Threat Consulting. Tous droits r\u{00e9}serv\u{00e9}s.",
+                )
+                .font(theme::font_small())
+                .color(theme::TEXT_SECONDARY),
+            );
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(
+                    "Ce logiciel est la propri\u{00e9}t\u{00e9} exclusive de Cyber Threat Consulting. \
+                     Toute reproduction ou distribution non autoris\u{00e9}e est strictement interdite.",
+                )
+                .font(theme::font_small())
+                .color(theme::TEXT_TERTIARY),
+            );
+        });
+        
+        ui.add_space(theme::SPACE_XL);
     }
 
     fn info_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {

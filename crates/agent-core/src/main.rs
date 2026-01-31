@@ -759,6 +759,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("GUI proposed asset: {}", ip);
                             handle.propose_asset(ip, hostname, device_type);
                         }
+                        Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
+                            info!("GUI updated check interval to {} seconds", interval_secs);
+                        }
+                        Ok(GuiCommand::SetLogLevel { level }) => {
+                            let level_str = match level {
+                                0 => "error",
+                                1 => "warn",
+                                2 => "info",
+                                3 => "debug",
+                                _ => "trace",
+                            };
+                            info!("GUI set log level to {}", level_str);
+                        }
                         Ok(_) => {}
                         Err(mpsc::TryRecvError::Empty) => {
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
