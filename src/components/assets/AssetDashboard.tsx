@@ -131,13 +131,13 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
         }, {} as Record<string, number>);
 
         const colors = [
-            SENTINEL_PALETTE.primary,
-            SENTINEL_PALETTE.secondary,
-            '#ec4899',
-            '#f43f5e',
-            SENTINEL_PALETTE.success,
-            '#6366f1',
-            'hsl(var(--muted-foreground) / 0.55)'
+            SENTINEL_PALETTE.series1,
+            SENTINEL_PALETTE.series2,
+            SENTINEL_PALETTE.series3,
+            SENTINEL_PALETTE.series4,
+            SENTINEL_PALETTE.series5,
+            SENTINEL_PALETTE.series6,
+            SENTINEL_PALETTE.series7
         ];
 
         return {

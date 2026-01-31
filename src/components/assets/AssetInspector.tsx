@@ -28,6 +28,7 @@ import {
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, RefreshCw, Shield, Network, BrainCircuit, MessageSquare } from '../ui/Icons';
+import { Button } from '../ui/button';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface AssetInspectorProps {
@@ -223,12 +224,14 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     </span>
                     {canDelete && selectedAsset && (
                         <CustomTooltip content={t('assets.deleteAssetTooltip')}>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                                className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                className="h-7 w-7 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors"
                             >
                                 <Trash2 className="h-4 w-4" />
-                            </button>
+                            </Button>
                         </CustomTooltip>
                     )}
                 </div>

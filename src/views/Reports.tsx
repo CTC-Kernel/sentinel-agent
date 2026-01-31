@@ -43,6 +43,7 @@ import {
     ReportTemplateId,
     frequencyLabels
 } from '../types/reports';
+import { SENTINEL_PALETTE } from '../theme/chartTheme';
 
 export const Reports: React.FC = () => {
     const { user, t, organization, addToast, activeFramework } = useStore();
@@ -221,10 +222,10 @@ export const Reports: React.FC = () => {
                             { label: t('reports.pdf.isoCoverage'), value: `${globalMetrics.compliance_health}%`, subtext: t('reports.pdf.isoCoverage') }
                         ],
                         stats: [
-                            { label: t('reports.pdf.labelRisks'), value: globalMetrics.risk_health, color: '#EF4444' },
-                            { label: t('reports.pdf.labelCompliance'), value: globalMetrics.compliance_health, color: '#10B981' },
-                            { label: t('reports.pdf.labelAudit'), value: globalMetrics.audit_health, color: '#3B82F6' },
-                            { label: t('reports.pdf.labelProjects'), value: globalMetrics.project_health, color: '#F59E0B' }
+                            { label: t('reports.pdf.labelRisks'), value: globalMetrics.risk_health, color: SENTINEL_PALETTE.series6 },
+                            { label: t('reports.pdf.labelCompliance'), value: globalMetrics.compliance_health, color: SENTINEL_PALETTE.series2 },
+                            { label: t('reports.pdf.labelAudit'), value: globalMetrics.audit_health, color: SENTINEL_PALETTE.series1 },
+                            { label: t('reports.pdf.labelProjects'), value: globalMetrics.project_health, color: SENTINEL_PALETTE.series5 }
                         ]
                     },
                     (doc, y) => {
@@ -251,9 +252,9 @@ export const Reports: React.FC = () => {
                         // 2. Compliance Status
                         doc.text(t('reports.pdf.complianceStatus'), 14, currentY);
                         currentY += 10;
-                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.compliance_coverage, t('reports.pdf.globalCoverage'), '#10B981');
+                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.compliance_coverage, t('reports.pdf.globalCoverage'), SENTINEL_PALETTE.series2);
                         currentY += 15;
-                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.audit_readiness, t('reports.pdf.auditReadiness'), '#3B82F6');
+                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.audit_readiness, t('reports.pdf.auditReadiness'), SENTINEL_PALETTE.series1);
                         currentY += 20;
 
                     }

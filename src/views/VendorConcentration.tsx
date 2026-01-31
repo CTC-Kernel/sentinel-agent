@@ -40,6 +40,7 @@ import type {
 } from '../types/vendorConcentration';
 import { getTrendIndicator } from '../types/vendorConcentration';
 import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/button';
 
 // ============================================================================
 // Types
@@ -143,19 +144,20 @@ interface TabButtonProps {
 }
 
 const TabButton: React.FC<TabButtonProps> = ({ active, onClick, icon: Icon, label }) => (
-  <button
+  <Button
+    variant={active ? 'default' : 'ghost'}
     onClick={onClick}
     className={`
-      flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+      flex items-center gap-2 px-4 py-2 h-auto rounded-xl text-sm font-medium transition-all
       ${active
-        ? 'bg-brand-600 text-white shadow-apple'
+        ? 'bg-brand-600 text-white shadow-apple hover:bg-brand-700'
         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
       }
     `}
   >
-    <Icon className="h-4 w-4" />
+    <Icon className="h-4 w-4 mr-2" />
     {label}
-  </button>
+  </Button>
 );
 
 // ============================================================================
@@ -285,36 +287,39 @@ export const VendorConcentration: React.FC = () => {
         }
         actions={
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowFilters(!showFilters)}
               className={`
-                flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium transition-all
+                flex items-center gap-2 px-3 sm:px-4 py-2 h-auto rounded-xl text-sm font-medium transition-all
                 ${showFilters
-                  ? 'bg-brand-100 dark:bg-brand-900 text-brand-700'
+                  ? 'bg-brand-100 dark:bg-brand-900 text-brand-700 hover:bg-brand-200'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                 }
               `}
               title={t('common.filters')}
             >
               <Filter className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('common.filters')}</span>
-            </button>
-            <button
+              <span className="hidden sm:inline ml-2">{t('common.filters')}</span>
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => loadData(true)}
               disabled={isRefreshing}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 h-auto rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
               title={t('common.refresh')}
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{t('common.refresh')}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 transition-all"
+              <span className="hidden sm:inline ml-2">{t('common.refresh')}</span>
+            </Button>
+            <Button
+              variant="default"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 h-auto rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 transition-all"
               title={t('common.export')}
             >
               <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('common.export')}</span>
-            </button>
+              <span className="hidden sm:inline ml-2">{t('common.export')}</span>
+            </Button>
           </div>
         }
       />

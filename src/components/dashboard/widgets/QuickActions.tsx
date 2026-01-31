@@ -38,7 +38,7 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
 
     return createPortal(
         <div
-            className="fixed right-6 top-24 z-[9999]"
+            className="fixed right-6 top-24 z-sticky"
             data-tour="quick-actions"
             role="toolbar"
             aria-label="Actions rapides"

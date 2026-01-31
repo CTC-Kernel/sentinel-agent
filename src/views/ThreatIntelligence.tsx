@@ -8,6 +8,7 @@ import { staggerContainerVariants, slideUpVariants } from '../components/ui/anim
 import { Globe, AlertOctagon, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box, LayoutDashboard, List, Network } from '../components/ui/Icons';
 import { RefreshCw, Settings, ChevronRight } from '../components/ui/Icons';
 import { Menu, Transition } from '@headlessui/react';
+import { Button } from '../components/ui/button';
 import { Threat } from '../types';
 import { ThreatFeedService } from '../services/ThreatFeedService';
 import { ThreatDashboard } from '../components/threats/ThreatDashboard';
@@ -268,35 +269,35 @@ export const ThreatIntelligence: React.FC = () => {
                 }
                 actions={
                     <div className="flex gap-2">
-                        <button
+                        <Button
                             aria-label="Refresh threat feeds"
                             onClick={handleRefreshLiveFeed}
-                            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 p-2.5 rounded-xl backdrop-blur-md transition-all hover:scale-105 active:scale-95 shadow-sm"
+                            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 p-2.5 h-auto rounded-xl backdrop-blur-md shadow-sm"
                             title="Actualiser les flux"
                         >
                             <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin text-brand-400' : 'text-slate-200'}`} />
-                        </button>
+                        </Button>
 
                         {hasPermission(user, 'Threat', 'create') && (
-                            <button
+                            <Button
                                 aria-label="Share new threat"
                                 onClick={handleSubmitModalOpen}
-                                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20 transition-all hover:scale-105 active:scale-95"
+                                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 h-auto rounded-xl shadow-lg shadow-brand-500/20"
                                 title="Partager une menace"
                             >
                                 <Share2 className="h-4 w-4 mr-2" /> Partager
-                            </button>
+                            </Button>
                         )}
 
                         {hasPermission(user, 'Threat', 'manage') && (
-                            <button
+                            <Button
                                 aria-label="Community settings"
                                 onClick={handleSettingsOpen}
-                                className="bg-white/5 hover:bg-white/10 text-white p-2.5 rounded-xl border border-white/10 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                                className="bg-white/5 hover:bg-white/10 text-white p-2.5 h-auto rounded-xl border border-white/10 shadow-sm"
                                 title="Paramètres Communauté"
                             >
                                 <Settings className="h-5 w-5 text-slate-200" />
-                            </button>
+                            </Button>
                         )}
                     </div>
                 }
@@ -355,15 +356,15 @@ export const ThreatIntelligence: React.FC = () => {
                 activeTab === 'map' && (
                     <motion.div key="map" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
                         <div className="absolute top-6 right-6 z-10 flex gap-3">
-                            <button
+                            <Button
                                 aria-label="Toggle 2D/3D view"
                                 onClick={handleToggleViewMode}
-                                className="bg-slate-900/40 hover:bg-slate-900/60 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all shadow-lg hover:scale-105 active:scale-95"
+                                className="bg-slate-900/40 hover:bg-slate-900/60 text-white px-4 py-2 h-auto rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-lg"
                                 title="Toggle 2D/3D view"
                             >
                                 {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
                                 {viewMode === '2d' ? 'Vue 3D' : 'Vue 2D'}
-                            </button>
+                            </Button>
                             <div className="bg-error-text/90 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center shadow-lg shadow-error-bg/50 animate-pulse">
                                 <Activity className="h-3 w-3 mr-2" /> LIVE
                             </div>
@@ -454,7 +455,7 @@ export const ThreatIntelligence: React.FC = () => {
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
                                 </h3>
-                                <button aria-label="View all top hunters" className="text-xs font-bold text-brand-500 hover:text-brand-400">Voir tout</button>
+                                <Button variant="ghost" aria-label="View all top hunters" className="text-xs font-bold text-brand-500 hover:text-brand-400 p-0 h-auto hover:bg-transparent">Voir tout</Button>
                             </div>
 
                             <div className="space-y-6">
@@ -547,19 +548,19 @@ const ThreatCard = React.memo(({
                     </div>
 
                     <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                        <button aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-brand-500 transition-colors" title="Confirm sighting">
+                        <Button variant="ghost" aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-brand-500 h-auto p-0 hover:bg-transparent" title="Confirm sighting">
                             <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
-                        </button>
-                        <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-brand-500 transition-colors" title="View discussions">
+                        </Button>
+                        <Button variant="ghost" aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-brand-500 h-auto p-0 hover:bg-transparent" title="View discussions">
                             <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
-                        </button>
+                        </Button>
                         <div className="ml-auto flex gap-2">
-                            <button aria-label="Download SIGMA rule" onClick={(e) => onDownloadRule(e, threat)} className="text-xs font-bold text-success-text px-3 py-1 bg-success-bg rounded-lg transition-colors" title="Download SIGMA rule">
+                            <Button aria-label="Download SIGMA rule" onClick={(e) => onDownloadRule(e, threat)} className="text-xs font-bold text-success-text px-3 py-1 h-auto bg-success-bg rounded-lg hover:bg-success-bg/80" title="Download SIGMA rule">
                                 SIGMA Rule
-                            </button>
-                            <button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); onCreateRisk(threat); }} className="text-xs font-bold text-warning-text px-3 py-1 bg-warning-bg rounded-lg transition-colors" title="Create risk from threat">
+                            </Button>
+                            <Button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); onCreateRisk(threat); }} className="text-xs font-bold text-warning-text px-3 py-1 h-auto bg-warning-bg rounded-lg hover:bg-warning-bg/80" title="Create risk from threat">
                                 Créer Risque
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

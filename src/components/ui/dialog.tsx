@@ -23,7 +23,7 @@ interface DialogTitleProps {
   className?: string;
 }
 
-export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, className = 'relative z-[150]' }) => {
+export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, className = 'relative z-modal' }) => {
   return (
     <HeadlessDialog open={open} onClose={() => onOpenChange(false)} className={className}>
       {children}

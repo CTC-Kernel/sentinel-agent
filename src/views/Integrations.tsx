@@ -168,26 +168,28 @@ export const Integrations: React.FC = () => {
                             transform: activeTab === 'jobs' ? 'translateX(0)' : 'translateX(0)'
                         }}
                     />
-                    <button
+                    <Button
+                        variant="ghost"
                         aria-label={t('integrations.tabs.providers')}
                         onClick={() => setActiveTab('providers')}
-                        className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'providers'
+                        className={`relative z-10 px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'providers'
                             ? 'text-slate-900 dark:text-white'
                             : 'text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                             }`}
                     >
                         {t('integrations.tabs.providers')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="ghost"
                         aria-label={t('integrations.tabs.jobs')}
                         onClick={() => setActiveTab('jobs')}
-                        className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'jobs'
+                        className={`relative z-10 px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'jobs'
                             ? 'text-slate-900 dark:text-white'
                             : 'text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                             }`}
                     >
                         {t('integrations.tabs.jobs')}
-                    </button>
+                    </Button>
                 </div>
             </div>
 

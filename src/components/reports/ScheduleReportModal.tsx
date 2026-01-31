@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { X, Calendar, Mail, Clock, FileText, Plus, Trash2 } from '../ui/Icons';
 import { Button } from '../ui/button';
-import { useForm, useWatch, useFieldArray } from 'react-hook-form';
+import { useForm, useWatch, useFieldArray, FieldArrayPath } from 'react-hook-form';
 import { cn } from '../../lib/utils';
 import {
     ReportFrequency,
@@ -59,8 +59,8 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: "recipients"
-    } as any);
+        name: "recipients" as FieldArrayPath<ScheduledReportFormData>
+    });
 
     const watchedFrequency = useWatch({ control, name: 'frequency' });
     const watchedDayOfWeek = useWatch({ control, name: 'dayOfWeek' });
@@ -88,15 +88,11 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                     includeIncidents: true
                 }
             });
-        }
-    }, [isOpen, defaultTemplateId, reset]);
-
-    // Reset form error when modal opens
-    useEffect(() => {
-        if (isOpen) {
+            // Reset form error when modal opens
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormError(null);
         }
-    }, [isOpen]);
+    }, [isOpen, defaultTemplateId, reset]);
 
     const validateEmail = (email: string): boolean => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

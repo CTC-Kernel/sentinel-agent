@@ -54,19 +54,20 @@ import { AnomalyPanel } from '../components/voxel/AnomalyPanel';
 import { BlastRadiusPanel } from '../components/voxel/BlastRadiusPanel';
 import { TimeMachine } from '../components/voxel/TimeMachine';
 import { useBlastRadius } from '../hooks/voxel/useBlastRadius';
+import { SENTINEL_PALETTE } from '../theme/chartTheme';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 const LAYER_CONFIG: { id: LayerType; label: string; color: string; bgColor: string }[] = [
-  { id: 'asset', label: 'Actifs', color: '#3B82F6', bgColor: 'bg-blue-500' },
-  { id: 'risk', label: 'Risques', color: '#F97316', bgColor: 'bg-orange-500' },
-  { id: 'control', label: 'Contrôles', color: '#8B5CF6', bgColor: 'bg-purple-500' },
-  { id: 'project', label: 'Projets', color: '#10B981', bgColor: 'bg-emerald-500' },
-  { id: 'audit', label: 'Audits', color: '#06B6D4', bgColor: 'bg-cyan-500' },
-  { id: 'incident', label: 'Incidents', color: '#EF4444', bgColor: 'bg-red-500' },
-  { id: 'supplier', label: 'Fournisseurs', color: '#F59E0B', bgColor: 'bg-amber-500' },
+  { id: 'asset', label: 'Actifs', color: SENTINEL_PALETTE.series1, bgColor: 'bg-blue-500' },
+  { id: 'risk', label: 'Risques', color: SENTINEL_PALETTE.series5, bgColor: 'bg-orange-500' },
+  { id: 'control', label: 'Contrôles', color: SENTINEL_PALETTE.series3, bgColor: 'bg-purple-500' },
+  { id: 'project', label: 'Projets', color: SENTINEL_PALETTE.series2, bgColor: 'bg-emerald-500' },
+  { id: 'audit', label: 'Audits', color: SENTINEL_PALETTE.series4, bgColor: 'bg-cyan-500' },
+  { id: 'incident', label: 'Incidents', color: SENTINEL_PALETTE.series6, bgColor: 'bg-red-500' },
+  { id: 'supplier', label: 'Fournisseurs', color: SENTINEL_PALETTE.series8, bgColor: 'bg-purple-600' },
 ];
 
 const KEYBOARD_SHORTCUTS = [
@@ -178,7 +179,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
   <motion.div
     initial={{ y: 40 }}
     animate={{ y: 0 }}
-    className="absolute bottom-0 left-0 right-0 h-10 z-[100000] flex items-center justify-between px-3 sm:px-4 lg:px-6 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5"
+    className="absolute bottom-0 left-0 right-0 h-10 z-voxel-ui flex items-center justify-between px-3 sm:px-4 lg:px-6 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5"
   >
     {/* Left - Stats (compact) */}
     <div className="flex items-center gap-2 sm:gap-4">
@@ -750,7 +751,7 @@ export const VoxelView: React.FC = () => {
       <motion.div
         initial={{ y: -60 }}
         animate={{ y: 0 }}
-        className="absolute top-0 left-0 right-0 z-[100000] px-2 sm:px-3 lg:px-4 pt-2 sm:pt-3"
+        className="absolute top-0 left-0 right-0 z-voxel-ui px-2 sm:px-3 lg:px-4 pt-2 sm:pt-3"
       >
         <div className="flex items-center justify-between h-12 px-2 sm:px-3 lg:px-4 rounded-xl sm:rounded-2xl bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl">
           {/* Left - Logo & Title */}
@@ -877,7 +878,7 @@ export const VoxelView: React.FC = () => {
         initial={{ x: 60, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="absolute top-20 right-3 z-[100000] flex flex-col gap-1.5"
+        className="absolute top-20 right-3 z-voxel-ui flex flex-col gap-1.5"
       >
         {/* Navigation */}
         <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
@@ -974,7 +975,7 @@ export const VoxelView: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="absolute top-20 right-16 z-[100000] w-48 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+            className="absolute top-20 right-16 z-voxel-ui w-48 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-white">Légende</span>
@@ -1040,7 +1041,7 @@ export const VoxelView: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="absolute top-20 right-16 z-[100000] w-44 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+            className="absolute top-20 right-16 z-voxel-ui w-44 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-white">Raccourcis</span>
@@ -1070,7 +1071,7 @@ export const VoxelView: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => { setShowCommandPalette(false); setCommandSearch(''); }}
-              className="fixed inset-0 z-[100002] bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-voxel-panel bg-black/60 backdrop-blur-sm"
             />
             {/* Palette */}
             <motion.div
@@ -1078,7 +1079,7 @@ export const VoxelView: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-              className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[100003] w-full max-w-xl"
+              className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[210] w-full max-w-xl"
             >
               <div className="mx-4 overflow-hidden rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50">
                 {/* Search Input */}

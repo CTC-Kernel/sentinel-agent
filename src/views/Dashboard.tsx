@@ -72,18 +72,23 @@ export const DashboardWithQuickActions: React.FC = () => {
 
     const navigate = useNavigate();
 
-    // Update local state when hook data changes
-    useEffect(() => {
-        if (fetchedOrgName) setOrganizationName(fetchedOrgName);
-    }, [fetchedOrgName]);
+    // Update local state when hook data changes using a custom hook pattern
+    const updateStateFromProps = React.useCallback(() => {
+        if (fetchedOrgName && organizationName !== fetchedOrgName) {
+            setOrganizationName(fetchedOrgName);
+        }
+        if (fetchedOrgLogo && organizationLogo !== fetchedOrgLogo) {
+            setOrganizationLogo(fetchedOrgLogo);
+        }
+        if (dataError === 'permission-denied' && error !== 'permission-denied') {
+            setError('permission-denied');
+        }
+    }, [fetchedOrgName, fetchedOrgLogo, dataError, organizationName, organizationLogo, error]);
 
     useEffect(() => {
-        if (fetchedOrgLogo) setOrganizationLogo(fetchedOrgLogo);
-    }, [fetchedOrgLogo]);
-
-    useEffect(() => {
-        if (dataError === 'permission-denied') setError('permission-denied');
-    }, [dataError]);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        updateStateFromProps();
+    }, [updateStateFromProps]);
 
 
 
