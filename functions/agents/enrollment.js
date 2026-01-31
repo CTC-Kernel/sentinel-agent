@@ -3,8 +3,10 @@
  */
 
 const { onRequest } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { v4: uuidv4 } = require('uuid');
+const { checkRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 
@@ -44,6 +46,17 @@ exports.enrollAgent = onRequest(
     // Only allow POST
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // Rate limit enrollment attempts per IP
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const rateLimitResult = checkRateLimit(clientIp, 'auth', { windowMs: 300000, maxRequests: 5 });
+    if (!rateLimitResult.allowed) {
+      logger.warn('Enrollment rate limit exceeded', { ip: clientIp, retryAfter: rateLimitResult.retryAfter });
+      return res.status(429).json({
+        error: 'Too many enrollment attempts. Try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+      });
     }
 
     try {
@@ -201,7 +214,7 @@ exports.enrollAgent = onRequest(
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      console.log(`Agent enrolled: ${agentId} for org ${organizationId}`);
+      logger.info(`Agent enrolled: ${agentId} for org ${organizationId}`);
 
       return res.status(201).json({
         agent_id: agentId,
@@ -213,7 +226,7 @@ exports.enrollAgent = onRequest(
         config: getDefaultAgentConfig(),
       });
     } catch (error) {
-      console.error('Enrollment error:', error);
+      logger.error('Enrollment error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }

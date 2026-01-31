@@ -8,6 +8,7 @@
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 
@@ -33,10 +34,16 @@ exports.generateAgentReport = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { reportId, organizationId, config } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { reportId, config } = request.data;
 
     if (!reportId || !organizationId || !config) {
       throw new HttpsError('invalid-argument', 'reportId, organizationId, and config are required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
@@ -154,9 +161,9 @@ exports.generateAgentReport = onCall(
 
       return { success: true, reportId, fileName };
     } catch (error) {
-      console.error('Generate report error:', error);
+      logger.error('Generate report error:', { reportId, organizationId, error: error.message, stack: error.stack });
 
-      // Update report with error
+      // Update report with error - use generic message to avoid leaking internals
       await db
         .collection('organizations')
         .doc(organizationId)
@@ -164,7 +171,7 @@ exports.generateAgentReport = onCall(
         .doc(reportId)
         .update({
           status: 'failed',
-          errorMessage: error.message,
+          errorMessage: 'Report generation failed. Check Cloud Functions logs for details.',
           completedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
@@ -189,10 +196,16 @@ exports.fetchComplianceReportData = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, filters, dateRange } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { filters, dateRange } = request.data;
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
@@ -204,7 +217,7 @@ exports.fetchComplianceReportData = onCall(
     try {
       return await fetchComplianceData(organizationId, filters || {}, dateRange || {});
     } catch (error) {
-      console.error('Fetch compliance data error:', error);
+      logger.error('Fetch compliance data error:', error);
       throw new HttpsError('internal', 'Failed to fetch compliance data');
     }
   }
@@ -225,10 +238,16 @@ exports.fetchFleetHealthReportData = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, filters, dateRange } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { filters, dateRange } = request.data;
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
@@ -240,7 +259,7 @@ exports.fetchFleetHealthReportData = onCall(
     try {
       return await fetchFleetHealthData(organizationId, filters || {}, dateRange || {});
     } catch (error) {
-      console.error('Fetch fleet health data error:', error);
+      logger.error('Fetch fleet health data error:', error);
       throw new HttpsError('internal', 'Failed to fetch fleet health data');
     }
   }
@@ -261,10 +280,16 @@ exports.fetchExecutiveSummaryData = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, dateRange } = request.data;
+    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    const { dateRange } = request.data;
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
+    }
+
+    // SECURITY: Validate organizationId consistency between token and request data
+    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
@@ -276,7 +301,7 @@ exports.fetchExecutiveSummaryData = onCall(
     try {
       return await fetchExecutiveData(organizationId, dateRange || {});
     } catch (error) {
-      console.error('Fetch executive data error:', error);
+      logger.error('Fetch executive data error:', error);
       throw new HttpsError('internal', 'Failed to fetch executive data');
     }
   }
@@ -297,7 +322,7 @@ exports.processScheduledReports = onSchedule(
     timeoutSeconds: 540,
   },
   async () => {
-    console.log('Processing scheduled reports...');
+    logger.info('Processing scheduled reports...');
 
     try {
       const now = new Date();
@@ -345,8 +370,8 @@ exports.processScheduledReports = onSchedule(
             try {
               await generateReportContent(reportRef.id, organizationId, schedule.config);
             } catch (genError) {
-              console.error(`Report generation failed for ${reportRef.id}:`, genError);
-              await reportRef.update({ status: 'failed', errorMessage: genError.message });
+              logger.error(`Report generation failed for ${reportRef.id}:`, { error: genError.message, stack: genError.stack });
+              await reportRef.update({ status: 'failed', errorMessage: 'Report generation failed. Check Cloud Functions logs for details.' });
             }
 
             // Calculate next run
@@ -361,9 +386,9 @@ exports.processScheduledReports = onSchedule(
               runCount: admin.firestore.FieldValue.increment(1),
             });
 
-            console.log(`Scheduled report ${scheduleDoc.id} triggered for org ${organizationId}`);
+            logger.info(`Scheduled report ${scheduleDoc.id} triggered for org ${organizationId}`);
           } catch (error) {
-            console.error(`Error processing schedule ${scheduleDoc.id}:`, error);
+            logger.error(`Error processing schedule ${scheduleDoc.id}:`, error);
 
             await scheduleDoc.ref.update({
               lastRunStatus: 'failed',
@@ -373,9 +398,9 @@ exports.processScheduledReports = onSchedule(
         }
       }
 
-      console.log('Scheduled reports processing completed');
+      logger.info('Scheduled reports processing completed');
     } catch (error) {
-      console.error('Process scheduled reports error:', error);
+      logger.error('Process scheduled reports error:', error);
     }
   }
 );
@@ -391,7 +416,7 @@ exports.cleanupExpiredReports = onSchedule(
     timeoutSeconds: 300,
   },
   async () => {
-    console.log('Cleaning up expired reports...');
+    logger.info('Cleaning up expired reports...');
 
     try {
       const now = new Date().toISOString();
@@ -422,7 +447,7 @@ exports.cleanupExpiredReports = onSchedule(
               await bucket.file(report.fileUrl).delete();
             } catch (error) {
               // File may not exist
-              console.log(`File not found: ${report.fileUrl}`);
+              logger.info(`File not found: ${report.fileUrl}`);
             }
           }
 
@@ -432,9 +457,9 @@ exports.cleanupExpiredReports = onSchedule(
         }
       }
 
-      console.log(`Cleaned up ${totalDeleted} expired reports`);
+      logger.info(`Cleaned up ${totalDeleted} expired reports`);
     } catch (error) {
-      console.error('Cleanup expired reports error:', error);
+      logger.error('Cleanup expired reports error:', error);
     }
   }
 );
