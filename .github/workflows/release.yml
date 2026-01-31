@@ -322,11 +322,13 @@ jobs:
         with:
           path: artifacts
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
       - name: Setup Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: sentinel-grc-a8701
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Firebase Storage
         run: |
