@@ -121,7 +121,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
               </h2>
               <p className="text-sm text-slate-600">
                 {!isEdit && `Code: ${generateCode()}`}
-                {isEdit && `Code: ${scenario?.code || 'SO-XXX'}`}
+                {isEdit && `Code: ${scenario?.code || '—'}`}
               </p>
             </div>
           </div>

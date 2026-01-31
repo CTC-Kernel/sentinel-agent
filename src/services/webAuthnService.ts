@@ -152,7 +152,8 @@ class WebAuthnServiceClass {
 
     try {
       return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-    } catch {
+    } catch (_err) {
+      ErrorLogger.debug('WebAuthn operation failed', 'webAuthnService');
       return false;
     }
   }
@@ -168,7 +169,8 @@ class WebAuthnServiceClass {
         return await PublicKeyCredential.isConditionalMediationAvailable();
       }
       return false;
-    } catch {
+    } catch (_err) {
+      ErrorLogger.debug('WebAuthn operation failed', 'webAuthnService');
       return false;
     }
   }

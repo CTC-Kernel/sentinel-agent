@@ -24,7 +24,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
     // Fetch risks directly within the widget
     const { data: risks, loading } = useFirestoreCollection<Risk>(
         'risks',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { enabled: !!user?.organizationId }
     );
 

@@ -70,7 +70,6 @@ interface AnomalyAlertsProps {
     className?: string;
     maxAlerts?: number;
     showStats?: boolean;
-    compact?: boolean;
 }
 
 // Anomaly Type Icon Mapping
@@ -473,10 +472,17 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     className,
     maxAlerts = 50,
     showStats = true,
-    compact: _compact = false,
 }) => {
     const { user } = useStore();
     const organizationId = user?.organizationId;
+
+    // Force re-render every minute to update relative timestamps
+    const [, forceUpdate] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => forceUpdate(n => n + 1), 60000);
+        return () => clearInterval(interval);
+    }, []);
+
     const [anomalies, setAnomalies] = useState<DetectedAnomaly[]>([]);
     const [stats, setStats] = useState<AnomalyStats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -489,6 +495,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     const [severityFilter, setSeverityFilter] = useState<AnomalySeverity[]>([]);
     const [typeFilter, setTypeFilter] = useState<AnomalyType[]>([]);
     const [showFilters, setShowFilters] = useState(false);
+    const [showResolved, setShowResolved] = useState(false);
 
     // Subscribe to anomalies
     useEffect(() => {
@@ -541,6 +548,14 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                 if (!matches) return false;
             }
 
+            // Show resolved toggle: if not showing resolved, exclude resolved and false_positive
+            if (!showResolved && (a.status === 'resolved' || a.status === 'false_positive')) {
+                // Only hide if the status filter does not explicitly include them
+                if (statusFilter.length === 0 || !statusFilter.includes(a.status)) {
+                    return false;
+                }
+            }
+
             // Status filter
             if (statusFilter.length > 0 && !statusFilter.includes(a.status)) {
                 return false;
@@ -558,7 +573,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
 
             return true;
         });
-    }, [anomalies, searchTerm, statusFilter, severityFilter, typeFilter]);
+    }, [anomalies, searchTerm, statusFilter, severityFilter, typeFilter, showResolved]);
 
     // Action handlers
     const handleAcknowledge = async (anomalyId: string) => {
@@ -659,6 +674,25 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                         className="pl-9"
                     />
                 </div>
+
+                {/* Show Resolved Toggle */}
+                <Button
+                    variant={showResolved ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setShowResolved(!showResolved)}
+                >
+                    {showResolved ? (
+                        <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Masquer resolues
+                        </>
+                    ) : (
+                        <>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Voir resolues
+                        </>
+                    )}
+                </Button>
 
                 {/* Filter Toggle */}
                 <Button

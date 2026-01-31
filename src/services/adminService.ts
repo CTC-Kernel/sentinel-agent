@@ -3,6 +3,7 @@ import { db, functions, auth } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { ErrorLogger } from './errorLogger';
 import { PlanType, PlanLimits } from '../types';
+import { useStore } from '../store';
 
 export interface AuditLog {
     id: string;
@@ -11,7 +12,30 @@ export interface AuditLog {
     actorEmail?: string;
     action: string;
     targetId: string;
+    organizationId: string;
     metadata?: Record<string, unknown>;
+}
+
+function requireSuperAdmin(): { uid: string; email: string | null; organizationId: string } {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
+    const storeUser = useStore.getState().user;
+    if (!storeUser?.organizationId) throw new Error('No organization context');
+    if (storeUser.role !== 'super_admin' && storeUser.role !== 'admin') {
+        throw new Error('Insufficient permissions: admin or super_admin required');
+    }
+    return { uid: currentUser.uid, email: currentUser.email, organizationId: storeUser.organizationId };
+}
+
+function requireStrictSuperAdmin(): { uid: string; email: string | null; organizationId: string } {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
+    const storeUser = useStore.getState().user;
+    if (!storeUser?.organizationId) throw new Error('No organization context');
+    if (storeUser.role !== 'super_admin') {
+        throw new Error('Insufficient permissions: super_admin required');
+    }
+    return { uid: currentUser.uid, email: currentUser.email, organizationId: storeUser.organizationId };
 }
 
 export const AdminService = {
@@ -26,35 +50,38 @@ export const AdminService = {
                 ErrorLogger.warn('Attempted to log admin action without authenticated user', 'AdminService.logAction');
                 return;
             }
+            const storeUser = useStore.getState().user;
 
             await addDoc(collection(db, 'audit_logs'), {
                 timestamp: new Date().toISOString(),
                 actorId: currentUser.uid,
                 actorEmail: currentUser.email,
+                organizationId: storeUser?.organizationId || '',
                 action,
                 targetId,
                 metadata
             });
         } catch (error) {
-            // We log the error but don't throw to avoid blocking the main action
             ErrorLogger.error(error as Error, 'AdminService.logAction');
         }
     },
 
     /**
-     * Get recent audit logs
+     * Get recent audit logs (filtered by organization)
      */
-    getAuditLogs: async (limitCount: number = 100): Promise<AuditLog[]> => {
+    getAuditLogs: async (organizationId: string, limitCount: number = 100): Promise<AuditLog[]> => {
         try {
+            if (!organizationId) return [];
             const q = query(
                 collection(db, 'audit_logs'),
+                where('organizationId', '==', organizationId),
                 orderBy('timestamp', 'desc'),
                 limit(limitCount)
             );
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
+            return snapshot.docs.map(d => ({
+                id: d.id,
+                ...d.data()
             } as AuditLog));
         } catch (error) {
             ErrorLogger.error(error as Error, 'AdminService.getAuditLogs');
@@ -66,6 +93,7 @@ export const AdminService = {
      * Suspend or Activate a tenant organization
      */
     toggleTenantStatus: async (orgId: string, isActive: boolean): Promise<void> => {
+        const caller = requireSuperAdmin();
         try {
             const orgRef = doc(db, 'organizations', orgId);
             await updateDoc(orgRef, {
@@ -76,7 +104,7 @@ export const AdminService = {
             await AdminService.logAction(
                 isActive ? 'TENANT_ACTIVATE' : 'TENANT_SUSPEND',
                 orgId,
-                { newState: isActive }
+                { newState: isActive, callerOrg: caller.organizationId }
             );
         } catch (error) {
             ErrorLogger.error(error as Error, 'AdminService.toggleTenantStatus');
@@ -88,19 +116,16 @@ export const AdminService = {
      * Get detailed stats for an organization
      */
     getTenantStats: async (orgId: string) => {
+        requireSuperAdmin();
         try {
-            // Count users
             const usersCount = await getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', orgId)));
-
-            // Count projects (mock heuristic for usage)
             const projectsCount = await getCountFromServer(query(collection(db, 'projects'), where('organizationId', '==', orgId)));
-
 
             return {
                 userCount: usersCount.data().count,
                 projectCount: projectsCount.data().count,
-                storageUsedBytes: null, // Unknown - requires cloud storage stats
-                lastActive: null // Unknown at this scope
+                storageUsedBytes: null,
+                lastActive: null
             };
         } catch (error) {
             ErrorLogger.error(error as Error, 'AdminService.getTenantStats');
@@ -112,16 +137,17 @@ export const AdminService = {
      * Impersonate a user (Requires Cloud Function 'impersonateUser')
      */
     impersonateUser: async (targetUid: string): Promise<{ token: string }> => {
+        const caller = requireStrictSuperAdmin();
         try {
             const impersonateFn = httpsCallable<{ targetUid: string }, { token: string }>(functions, 'impersonateUser');
             const result = await impersonateFn({ targetUid });
 
-            await AdminService.logAction('USER_IMPERSONATE', targetUid, { method: 'cloud_function' });
+            await AdminService.logAction('USER_IMPERSONATE', targetUid, { method: 'cloud_function', callerOrg: caller.organizationId });
 
             return result.data;
         } catch (error) {
             ErrorLogger.error(error as Error, 'AdminService.impersonateUser');
-            throw new Error("Impossible d'impréciser l'utilisateur. Vérifiez vos permissions ou si la fonction cloud est déployée.");
+            throw error;
         }
     },
 
@@ -129,6 +155,7 @@ export const AdminService = {
      * Update tenant subscription details
      */
     updateTenantSubscription: async (orgId: string, plan: PlanType, limits: Partial<PlanLimits>): Promise<void> => {
+        requireSuperAdmin();
         try {
             const orgRef = doc(db, 'organizations', orgId);
 

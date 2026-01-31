@@ -9,6 +9,7 @@ import { useContinuityActions } from '../../hooks/continuity/useContinuityAction
 import { StrategyInspector } from './inspector/StrategyInspector';
 import { StrategyFormData } from '../../schemas/continuitySchema';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { hasPermission } from '../../utils/permissions';
 
 interface ContinuityStrategiesProps {
     assets: Asset[];
@@ -20,7 +21,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
 
-    const canManage = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'project_manager';
+    const canManage = hasPermission(user, 'Project', 'manage');
 
     const onSubmit = async (data: StrategyFormData) => {
         if (!user?.organizationId) return;

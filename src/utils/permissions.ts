@@ -3,11 +3,12 @@ export type { ResourceType };
 import { ErrorLogger } from '../services/errorLogger';
 
 export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage' | 'update_own' | 'delete_own';
-export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
+export type Role = 'super_admin' | 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
 
 type PermissionMatrix = Partial<Record<ResourceType | '*', ActionType[]>>;
 
 const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
+    super_admin: { '*': ['manage'] },
     admin: { '*': ['manage'] },
     rssi: {
         '*': ['read', 'update'],
@@ -211,9 +212,10 @@ export const hasPermission = (
 
     const userRole = user.role || 'user';
 
+    // super_admin has full access within their organization (same as admin)
     // SECURITY FIX: Admin must respect tenant isolation
     // Admin has full access ONLY within their own organization
-    if (userRole === 'admin') {
+    if (userRole === 'admin' || userRole === 'super_admin') {
         // Critical resources require organization owner check
         if (action === 'delete' && ['User', 'Organization'].includes(resource)) {
             // If orgOwnerId is explicitly provided, only org owner can delete

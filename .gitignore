@@ -49,6 +49,9 @@ xcuserdata/
 .env.development
 *.secrets
 apphosting.yaml
+token.json
+Certificats.p12
+*.p12
 
 # Functions environment
 functions/.env

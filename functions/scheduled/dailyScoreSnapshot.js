@@ -127,7 +127,7 @@ async function processOrganizationSnapshot(db, orgId, todayDate) {
  */
 const dailyScoreSnapshot = onSchedule({
   schedule: '0 0 * * *', // Every day at midnight UTC
-  region: 'us-west1',
+  region: 'europe-west1',
   timeZone: 'UTC',
   memory: '512MiB',
   timeoutSeconds: 540, // 9 minutes

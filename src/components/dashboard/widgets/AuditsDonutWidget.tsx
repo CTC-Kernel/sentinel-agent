@@ -18,7 +18,7 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
 
     const { data: audits, loading } = useFirestoreCollection<Audit>(
         'audits',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { enabled: !!user?.organizationId }
     );
 

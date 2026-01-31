@@ -14,8 +14,8 @@ export const CertifierAuthGuard: React.FC<CertifierAuthGuardProps> = ({ children
 
     useEffect(() => {
         // Wait for auth to be ready
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (!user) {
+        const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
+            if (!authUser) {
                 // Redirect to login if no user found
                 // Pass current location state to allow redirect back after login if needed
                 navigate('/portal/login', {
@@ -23,10 +23,23 @@ export const CertifierAuthGuard: React.FC<CertifierAuthGuardProps> = ({ children
                     replace: true
                 });
             } else {
-                // User is authenticated
-                // Ideally we should also check if the user has a 'certifier' claim or role
-                // But for now, basic auth check is the MVP requirement
-                setIsLoading(false);
+                // User is authenticated - verify they have certifier or admin role
+                try {
+                    const tokenResult = await authUser.getIdTokenResult();
+                    if (tokenResult.claims.role !== 'certifier' && tokenResult.claims.role !== 'admin') {
+                        // Not a certifier - redirect to home
+                        navigate('/', { replace: true });
+                        setIsLoading(false);
+                        return;
+                    }
+                    setIsLoading(false);
+                } catch {
+                    // If token verification fails, redirect to login
+                    navigate('/portal/login', {
+                        state: { from: location },
+                        replace: true
+                    });
+                }
             }
         });
 

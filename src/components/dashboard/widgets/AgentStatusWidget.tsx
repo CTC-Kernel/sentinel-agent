@@ -50,7 +50,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
     const displayAgents = isExpanded ? agents : agents.slice(0, 4);
 
     const handleManageClick = () => {
-        const safeUrl = validateUrl('/settings?tab=agents');
+        const safeUrl = validateUrl('/agents');
         if (safeUrl) navigate(safeUrl);
     };
 

@@ -95,16 +95,16 @@ service firebase.storage {
       allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(50); // 50MB limit
     }
 
-    // Agent Releases - Public read for downloads, admin-only write
+    // Agent Releases - Authenticated read for downloads, admin-only write
     // Note: Cloud Functions use signed URLs for secure downloads
     match /releases/{allPaths=**} {
-      allow read: if true; // Public downloads via signed URLs from Cloud Function
+      allow read: if isAuthenticated(); // Authenticated downloads via signed URLs from Cloud Function
       allow write: if isAuthenticated() && canWriteCritical(); // Admin/RSSI only for uploads
     }
 
-    // Agent Downloads - Public read for agent installers
+    // Agent Downloads - Authenticated read for agent installers
     match /agents/downloads/{allPaths=**} {
-      allow read: if true; // Public downloads for agent installers
+      allow read: if isAuthenticated(); // Authenticated downloads for agent installers
       allow write: if isAuthenticated() && canWriteCritical(); // Admin/RSSI only for uploads
     }
   }

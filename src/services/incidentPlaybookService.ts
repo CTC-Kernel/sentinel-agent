@@ -154,12 +154,17 @@ export class IncidentPlaybookService {
     }
   }
 
-  static async getPlaybook(id: string): Promise<IncidentPlaybook | null> {
+  static async getPlaybook(id: string, organizationId?: string): Promise<IncidentPlaybook | null> {
     try {
       const docRef = doc(db, this.PLAYBOOKS_COLLECTION, id);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
+        // Verify organizationId if provided to prevent cross-tenant access
+        if (organizationId && docSnap.data().organizationId !== organizationId) {
+          return null;
+        }
+
         return {
           id: docSnap.id,
           ...docSnap.data()
@@ -173,9 +178,18 @@ export class IncidentPlaybookService {
     }
   }
 
-  static async updatePlaybook(id: string, updates: Partial<IncidentPlaybook>): Promise<void> {
+  static async updatePlaybook(id: string, updates: Partial<IncidentPlaybook>, organizationId?: string): Promise<void> {
     try {
       const docRef = doc(db, this.PLAYBOOKS_COLLECTION, id);
+
+      // Verify organizationId if provided to prevent cross-tenant modification
+      if (organizationId) {
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists() || docSnap.data().organizationId !== organizationId) {
+          throw new Error('Playbook not found or access denied');
+        }
+      }
+
       await updateDoc(docRef, sanitizeData({
         ...updates,
         updatedAt: Timestamp.now()
@@ -184,7 +198,7 @@ export class IncidentPlaybookService {
       await logAction({
         uid: 'system',
         email: 'system@sentinel-grc.com',
-        organizationId: 'system'
+        organizationId: organizationId || 'system'
       }, 'UPDATE', 'IncidentPlaybook', `Playbook mis à jour: ${id} `);
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.updatePlaybook');
@@ -192,14 +206,24 @@ export class IncidentPlaybookService {
     }
   }
 
-  static async deletePlaybook(id: string): Promise<void> {
+  static async deletePlaybook(id: string, organizationId?: string): Promise<void> {
     try {
-      await deleteDoc(doc(db, this.PLAYBOOKS_COLLECTION, id));
+      const docRef = doc(db, this.PLAYBOOKS_COLLECTION, id);
+
+      // Verify organizationId if provided to prevent cross-tenant deletion
+      if (organizationId) {
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists() || docSnap.data().organizationId !== organizationId) {
+          throw new Error('Playbook not found or access denied');
+        }
+      }
+
+      await deleteDoc(docRef);
 
       await logAction({
         uid: 'system',
         email: 'system@sentinel-grc.com',
-        organizationId: 'system'
+        organizationId: organizationId || 'system'
       }, 'DELETE', 'IncidentPlaybook', `Playbook supprimé: ${id} `);
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.deletePlaybook');

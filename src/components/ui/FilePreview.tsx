@@ -96,6 +96,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                         /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */
                         <iframe
                             src={url}
+                            sandbox="allow-same-origin"
                             className="w-full h-full min-h-[600px] rounded-lg"
                             title={`Visualiseur PDF pour ${fileName}`}
                             onLoad={() => setLoading(false)}

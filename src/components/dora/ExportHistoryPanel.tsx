@@ -18,6 +18,7 @@ import { DORAExportService, DORAExportRecord, ExportFormat } from '../../service
 import { useStore } from '../../store';
 import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';
+import { hasPermission } from '../../utils/permissions';
 
 interface ExportHistoryPanelProps {
     className?: string;
@@ -37,7 +38,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
     const locale = i18n.language === 'en' ? enUS : fr;
-    const isAdmin = user?.role === 'admin' || user?.role === 'rssi';
+    const isAdmin = hasPermission(user, 'Supplier', 'manage');
 
     const loadExports = useCallback(async () => {
         if (!organization?.id) return;

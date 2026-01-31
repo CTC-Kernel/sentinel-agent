@@ -3,6 +3,7 @@ import { UserProfile, Organization } from '../../types';
 import { Star, RefreshCw, Trash2, Loader2 } from '../ui/Icons';
 import { CustomSelect } from '../ui/CustomSelect';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { hasPermission } from '../../utils/permissions';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface UserRowProps {
@@ -81,7 +82,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
                     )}
 
                     {/* Remove Member Button */}
-                    {(currentUser?.role === 'admin' || currentOrg?.ownerId === currentUser?.uid) && user.uid !== currentUser?.uid && currentOrg?.ownerId !== user.uid && (
+                    {(hasPermission(currentUser, 'User', 'manage') || currentOrg?.ownerId === currentUser?.uid) && user.uid !== currentUser?.uid && currentOrg?.ownerId !== user.uid && (
                         <button
                             onClick={() => onRemove(user.uid)}
                             disabled={updating}

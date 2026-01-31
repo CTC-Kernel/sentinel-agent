@@ -9,19 +9,19 @@ export const useTeamData = (enabled = true) => {
 
   const { data: groups, loading: loadingGroups, add: addGroupRaw, update: updateGroupRaw, remove: removeGroup } = useFirestoreCollection<UserGroup>(
     'user_groups',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId && claimsSynced && enabled }
   );
 
   const { data: roles, loading: loadingRoles, add: addRoleRaw, update: updateRoleRaw, remove: removeRole } = useFirestoreCollection<CustomRole>(
     'roles',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId && claimsSynced && enabled }
   );
 
   const { data: users, loading: loadingUsers, update: updateUser } = useFirestoreCollection<UserProfile>(
     'users',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId && claimsSynced && enabled }
   );
 

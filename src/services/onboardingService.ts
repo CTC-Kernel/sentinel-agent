@@ -159,7 +159,7 @@ export class OnboardingService {
                 // Email sending logic detached from batch to not block Firestore write
                 const sendInviteEmail = async () => {
                     try {
-                        const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(invite.email)}`;
+                        const inviteLink = `${window.location.origin}/login?invite=${invitationRef.id}`;
                         const htmlContent = getInvitationTemplate(
                             user.displayName || user.email || 'Un administrateur',
                             getRoleName(invite.role as Role) || 'Collaborateur',

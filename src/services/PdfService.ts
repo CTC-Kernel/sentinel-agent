@@ -1,5 +1,10 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import { applyPlugin } from 'jspdf-autotable';
+
+// Explicitly apply autoTable plugin to jsPDF prototype.
+// Required because jspdf-autotable v5 auto-application only detects window.jsPDF,
+// which is not set in Vite/ESM environments where jsPDF is imported as a module.
+applyPlugin(jsPDF);
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
@@ -443,7 +448,9 @@ export class PdfService {
         const contentWidth = pageWidth - this.MARGIN_LEFT - this.MARGIN_RIGHT;
 
         // --- PREMIUM COVER PAGE ---
-        this.addCoverPage(doc, options);
+        if (options.includeCover !== false) {
+            this.addCoverPage(doc, options);
+        }
 
         // --- EXECUTIVE SUMMARY PAGE (If provided) ---
         if (options.summary) {
@@ -537,7 +544,10 @@ export class PdfService {
         }
 
         // --- CONTENT PAGES ---
-        doc.addPage();
+        // Only add a new page if we already have content (cover or summary)
+        if (options.includeCover !== false || options.summary) {
+            doc.addPage();
+        }
         this.addHeader(doc, options.title, options.subtitle || dateStr, options);
         renderContent(doc, this.MARGIN_TOP);
 

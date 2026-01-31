@@ -74,7 +74,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             </Button>
                         </div>
 
-                        {!isPermissionError && process.env.NODE_ENV === 'development' && (
+                        {!isPermissionError && import.meta.env.DEV && (
                             <div className="mt-8 p-4 bg-black/40 rounded-3xl text-left overflow-auto max-h-40 border border-white/5 custom-scrollbar">
                                 <p className="text-xs font-mono text-red-400 break-all">
                                     {this.state.error?.toString()}

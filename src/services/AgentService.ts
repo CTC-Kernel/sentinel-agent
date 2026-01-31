@@ -59,13 +59,17 @@ function docToAgent(docId: string, data: Record<string, unknown>, organizationId
         osVersion: data.osVersion as string | undefined,
         status: computeAgentStatus(lastHeartbeat),
         version: (data.version as string) || '0.0.0',
-        lastHeartbeat: lastHeartbeat?.toISOString() || new Date(0).toISOString(),
+        lastHeartbeat: lastHeartbeat
+            ? lastHeartbeat.toISOString()
+            : ((data.lastHeartbeat as string) || null) as unknown as string,
         ipAddress: data.ipAddress as string | undefined,
         hostname: data.hostname as string | undefined,
         organizationId,
         machineId: data.machineId as string | undefined,
         complianceScore: data.complianceScore as number | null | undefined,
-        lastCheckAt: data.lastCheckAt as string | null | undefined,
+        lastCheckAt: data.lastCheckAt instanceof Timestamp
+            ? data.lastCheckAt.toDate().toISOString()
+            : (data.lastCheckAt as string | null | undefined) ?? null,
         enrolledAt,
         cpuPercent: data.cpuPercent as number | undefined,
         memoryBytes: data.memoryBytes as number | undefined,
@@ -155,7 +159,9 @@ export function subscribeToTokens(
                 return {
                     id: doc.id,
                     name: data.name,
-                    tokenPreview: `${data.token?.slice(0, 4)}...${data.token?.slice(-4)}`,
+                    tokenPreview: data.token
+                        ? `${data.token.slice(0, 4)}...${data.token.slice(-4)}`
+                        : '****',
                     expiresAt: expiresAt.toISOString(),
                     createdAt,
                     maxUses: data.maxUses || null,
@@ -259,6 +265,9 @@ export async function generateEnrollmentToken(
             name: result.data.name,
             expiresAt: result.data.expiresAt,
             maxUses: result.data.maxUses,
+            createdAt: new Date().toISOString(),
+            revoked: false,
+            lastUsedAt: null,
             usedCount: 0,
             status: 'active',
             organizationId,
@@ -407,7 +416,7 @@ export async function getAgentComplianceResults(
             action: 'getAgentComplianceResults',
             organizationId
         });
-        return new Map();
+        throw error; // Don't swallow
     }
 }
 
@@ -471,18 +480,26 @@ export async function getAgentDownloadUrl(
  */
 export async function getAgentDownloads(): Promise<AgentDownloadInfo[]> {
     const platforms: AgentPlatform[] = ['macos', 'windows', 'linux_deb', 'linux_rpm'];
-    const downloads: AgentDownloadInfo[] = [];
 
-    for (const platform of platforms) {
-        try {
-            const info = await getAgentDownloadUrl(platform);
-            downloads.push(info);
-        } catch {
-            // Platform not available
-        }
-    }
+    const results = await Promise.allSettled(
+        platforms.map(platform => getAgentDownloadUrl(platform))
+    );
 
-    return downloads;
+    return results
+        .filter((r): r is PromiseFulfilledResult<AgentDownloadInfo> => {
+            if (r.status === 'rejected') {
+                ErrorLogger.warn(
+                    `Failed to get download for platform: ${r.reason instanceof Error ? r.reason.message : 'Unknown error'}`,
+                    'AgentService.getAgentDownloads',
+                    {
+                        component: 'AgentService',
+                        action: 'getAgentDownloads',
+                    }
+                );
+            }
+            return r.status === 'fulfilled';
+        })
+        .map(r => r.value);
 }
 
 export const AgentService = {

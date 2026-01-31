@@ -9,7 +9,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
-import { SentinelAgent } from '../../types/agent';
+import { SentinelAgent, AgentCheckResult } from '../../types/agent';
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import {
@@ -19,9 +19,22 @@ import {
 } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 
+/**
+ * Compute compliance score from actual check results (pass / (pass + fail + error) * 100).
+ * Returns null if no applicable results.
+ */
+function computeScoreFromResults(results: AgentCheckResult[]): number | null {
+    if (!results || results.length === 0) return null;
+    const applicable = results.filter(r => r.status !== 'not_applicable');
+    if (applicable.length === 0) return null;
+    const passed = applicable.filter(r => r.status === 'pass').length;
+    return Math.round((passed / applicable.length) * 100);
+}
+
 interface AgentFleetDashboardProps {
     agents: SentinelAgent[];
     loading?: boolean;
+    complianceResults?: Map<string, AgentCheckResult[]>;
 }
 
 // OS colors for pie chart
@@ -101,7 +114,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend
     );
 };
 
-export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents, loading }) => {
+export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents, loading, complianceResults }) => {
     // Computed statistics
     const stats = useMemo(() => {
         const total = agents.length;
@@ -109,15 +122,19 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
         const offline = agents.filter(a => a.status === 'offline').length;
         const activeRate = total > 0 ? Math.round((active / total) * 100) : 0;
 
-        // Compliance score average
-        const agentsWithScore = agents.filter(a =>
-            a.complianceScore !== undefined && a.complianceScore !== null
-        );
-        const avgScore = agentsWithScore.length > 0
-            ? Math.round(
-                agentsWithScore.reduce((sum, a) => sum + (a.complianceScore || 0), 0) /
-                agentsWithScore.length
-            )
+        // Compliance score: prefer computed from actual results, fallback to agent-reported
+        const agentScores: number[] = [];
+        agents.forEach(a => {
+            // Try computed score from real results first
+            const results = complianceResults?.get(a.id);
+            const computedScore = results ? computeScoreFromResults(results) : null;
+            const score = computedScore ?? a.complianceScore;
+            if (score !== undefined && score !== null) {
+                agentScores.push(score);
+            }
+        });
+        const avgScore = agentScores.length > 0
+            ? Math.round(agentScores.reduce((sum, s) => sum + s, 0) / agentScores.length)
             : null;
 
         // OS distribution
@@ -127,11 +144,14 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
             linux: agents.filter(a => a.os === 'linux').length,
         };
 
-        // Critical agents (offline or low score)
-        const critical = agents.filter(a =>
-            a.status === 'offline' ||
-            (a.complianceScore !== undefined && a.complianceScore !== null && a.complianceScore < 50)
-        ).length;
+        // Critical agents: use reliable score (computed from results when available)
+        const critical = agents.filter(a => {
+            if (a.status === 'offline') return true;
+            const results = complianceResults?.get(a.id);
+            const computedScore = results ? computeScoreFromResults(results) : null;
+            const score = computedScore ?? a.complianceScore;
+            return score !== undefined && score !== null && score < 50;
+        }).length;
 
         // Version distribution
         const versions = new Map<string, number>();
@@ -158,7 +178,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
             updateRate,
             latestVersion: latestVersion?.[0] || 'N/A',
         };
-    }, [agents]);
+    }, [agents, complianceResults]);
 
     // Pie chart data for OS distribution
     const osChartData = useMemo(() => [
@@ -362,40 +382,54 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                             <span>Score conformité</span>
                         </div>
                     </div>
-                    <div className="h-48">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={trendData}>
-                                <defs>
-                                    <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.3} />
-                                        <stop offset="100%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <XAxis
-                                    dataKey="day"
-                                    {...CHART_STYLES.axis}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    domain={[0, 100]}
-                                    {...CHART_STYLES.axis}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(v) => `${v}%`}
-                                />
-                                <Tooltip content={<ChartTooltip formatter={(v) => v !== null ? `${v}%` : 'Pas de données'} />} />
-                                <Area
-                                    type="monotone"
-                                    dataKey="score"
-                                    stroke={SENTINEL_PALETTE.primary}
-                                    strokeWidth={2}
-                                    fill="url(#scoreGradient)"
-                                    connectNulls={false}
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
+                    {trendData.filter(d => d.score !== null).length <= 1 ? (
+                        <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
+                            <div className="text-center">
+                                <div className={cn(
+                                    'text-4xl font-black mb-2',
+                                    stats.avgScore >= 80 ? 'text-success' : stats.avgScore >= 60 ? 'text-warning' : 'text-destructive'
+                                )}>
+                                    {stats.avgScore}%
+                                </div>
+                                <p>Données insuffisantes pour afficher une tendance</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={trendData}>
+                                    <defs>
+                                        <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.3} />
+                                            <stop offset="100%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <XAxis
+                                        dataKey="day"
+                                        {...CHART_STYLES.axis}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <YAxis
+                                        domain={[0, 100]}
+                                        {...CHART_STYLES.axis}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(v) => `${v}%`}
+                                    />
+                                    <Tooltip content={<ChartTooltip formatter={(v) => v !== null ? `${v}%` : 'Pas de données'} />} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="score"
+                                        stroke={SENTINEL_PALETTE.primary}
+                                        strokeWidth={2}
+                                        fill="url(#scoreGradient)"
+                                        connectNulls={false}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
                 </motion.div>
             )}
         </motion.div>

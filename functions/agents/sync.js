@@ -112,9 +112,9 @@ exports.onAgentCreated = onDocumentCreated(
                 await performAutoLinking(organizationId, assetRef.id, os, agentData);
             }
 
-            // 4. Log Action
-            await db.collection("system_logs").add({
-                organizationId,
+            // 4. Log Action (org-scoped)
+            const orgRef = db.collection("organizations").doc(organizationId);
+            await orgRef.collection("auditLogs").add({
                 type: "AUTO_SYNC",
                 category: "ASSET",
                 action: isNewAsset ? "CREATE" : "UPDATE",
@@ -136,9 +136,18 @@ exports.onAgentCreated = onDocumentCreated(
  * Helper: Perform Auto-Linking Logic
  */
 async function performAutoLinking(organizationId, assetId, os, agentData) {
-    const batch = db.batch();
+    let batch = db.batch();
     let operationCount = 0;
     const MAX_BATCH_SIZE = 450;
+
+    // Helper to check batch size and commit if needed
+    async function checkBatchSize() {
+        if (operationCount >= MAX_BATCH_SIZE) {
+            await batch.commit();
+            batch = db.batch();
+            operationCount = 0;
+        }
+    }
 
     console.log(`[CTC Engine] Starting Auto-Linking for Asset ${assetId}...`);
 
@@ -163,16 +172,16 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
 
     // Let's try to link to *any* Control that seems relevant to "Endpoint Security"
     if (!controlsSnap.empty) {
-        controlsSnap.docs.forEach(doc => {
+        for (const doc of controlsSnap.docs) {
             const control = doc.data();
-            // Simple keyword matching
             if (keywords.some(k => control.name?.includes(k) || control.description?.includes(k))) {
+                await checkBatchSize();
                 batch.update(doc.ref, {
                     linkedAssetIds: admin.firestore.FieldValue.arrayUnion(assetId)
                 });
                 operationCount++;
             }
-        });
+        }
     }
 
     // B. Link Standard Risks
@@ -185,15 +194,16 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
         .get();
 
     if (!risksSnap.empty) {
-        risksSnap.docs.forEach(doc => {
+        for (const doc of risksSnap.docs) {
             const risk = doc.data();
             if (riskKeywords.some(k => risk.name?.includes(k))) {
+                await checkBatchSize();
                 batch.update(doc.ref, {
                     affectedAssetIds: admin.firestore.FieldValue.arrayUnion(assetId)
                 });
                 operationCount++;
             }
-        });
+        }
     }
 
     // C. Link to Policies (Documents)
@@ -207,15 +217,16 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
         .get();
 
     if (!docsSnap.empty) {
-        docsSnap.docs.forEach(doc => {
+        for (const doc of docsSnap.docs) {
             const d = doc.data();
             if (docKeywords.some(k => d.title?.includes(k))) {
+                await checkBatchSize();
                 batch.update(doc.ref, {
                     relatedAssetIds: admin.firestore.FieldValue.arrayUnion(assetId)
                 });
                 operationCount++;
             }
-        });
+        }
     }
 
     // Commit if any operations
@@ -276,8 +287,48 @@ exports.onResultUploaded = onDocumentCreated(
                 return;
             }
 
-            // 2. Handle Failed Checks -> Vulnerability / Incident
+            // 2a. Handle Pass -> Resolve open vulnerabilities for this check
+            if (status === 'pass') {
+                const orgRef = db.collection("organizations").doc(organizationId);
+                const openVulns = await orgRef.collection("agentVulnerabilities")
+                    .where("agentId", "==", agentId)
+                    .where("checkId", "==", controlId)
+                    .where("status", "==", "open")
+                    .limit(10)
+                    .get();
+                if (!openVulns.empty) {
+                    const resolveBatch = db.batch();
+                    openVulns.forEach(doc => {
+                        resolveBatch.update(doc.ref, {
+                            status: "resolved",
+                            resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            resolvedBy: "auto-pass"
+                        });
+                    });
+                    await resolveBatch.commit();
+                    console.log(`[CTC Engine] Resolved ${openVulns.size} vulns for agent ${agentId} check ${controlId}`);
+                }
+            }
+
+            // 2b. Handle Failed Checks -> Vulnerability / Incident
             if (status === 'fail' || status === 'error') {
+                // Determine severity: use result data if available, otherwise derive from check type
+                let severity = "medium";
+                if (resultData.severity && typeof resultData.severity === "string") {
+                    severity = resultData.severity.toLowerCase();
+                } else {
+                    // Derive severity from check type
+                    const checkLower = (controlId || "").toLowerCase();
+                    if (checkLower.includes("mfa_enabled") || checkLower.includes("mfa-enabled")) {
+                        severity = "critical";
+                    } else if (
+                        checkLower.includes("disk_encryption") || checkLower.includes("disk-encryption") ||
+                        checkLower.includes("firewall_active") || checkLower.includes("firewall-active")
+                    ) {
+                        severity = "high";
+                    }
+                }
+
                 // Check if Vulnerability already exists for this control/asset
                 const vulnCollection = db
                     .collection("organizations")
@@ -287,7 +338,7 @@ exports.onResultUploaded = onDocumentCreated(
                 const vulnSnap = await vulnCollection
                     .where("assetId", "==", assetRef.id)
                     .where("sourceId", "==", controlId)
-                    .where("status", "==", "OPEN")
+                    .where("status", "==", "open")
                     .limit(1)
                     .get();
 
@@ -297,14 +348,38 @@ exports.onResultUploaded = onDocumentCreated(
                         assetId: assetRef.id,
                         title: `Compliance Failure: ${controlId}`,
                         description: `Agent ${hostname} failed check for ${controlId} (${framework})`,
-                        severity: "MEDIUM",
-                        status: "OPEN",
+                        severity,
+                        status: "open",
                         source: "AGENT_COMPLIANCE",
                         sourceId: controlId,
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                         updatedAt: admin.firestore.FieldValue.serverTimestamp()
                     });
                     console.log(`[CTC Engine] Created Vulnerability for Asset ${assetRef.id}`);
+
+                    // Also write to agentVulnerabilities for the Agent module frontend
+                    const agentVulnRef = db
+                        .collection("organizations")
+                        .doc(organizationId)
+                        .collection("agentVulnerabilities");
+
+                    await agentVulnRef.add({
+                        organizationId,
+                        agentId,
+                        checkId: controlId,
+                        title: `Compliance Failure: ${controlId}`,
+                        description: `Agent ${hostname} failed check for ${controlId} (${framework})`,
+                        severity,
+                        status: "open",
+                        source: "AGENT_COMPLIANCE",
+                        sourceId: controlId,
+                        assetId: assetRef.id,
+                        framework: framework || null,
+                        riskScore: 50,
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    });
+                    console.log(`[CTC Engine] Created agentVulnerability for Agent ${agentId}`);
                 }
             }
 

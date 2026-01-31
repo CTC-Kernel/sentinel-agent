@@ -240,6 +240,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         // SELF-HEALING
                         if (!userData.role) {
                             userData.role = 'user';
+                            ErrorLogger.warn('Self-healing: user missing role, defaulting to user', 'AuthContext.loadUser', {
+                                metadata: { userId: u.uid, timestamp: new Date().toISOString() }
+                            });
                             AccountService.updateProfile(u.uid, { role: 'user' }).catch((err: unknown) => ErrorLogger.error(err, 'AuthContext.selfHealing.role'));
                         }
                         if (userData.organizationId && !userData.onboardingCompleted) {

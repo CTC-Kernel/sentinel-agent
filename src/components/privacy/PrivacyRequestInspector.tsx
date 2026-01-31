@@ -1,22 +1,67 @@
+import { useState } from 'react';
 import { PrivacyRequest } from '../../types/privacy';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { User, Mail, Calendar, Flag, AlertTriangle } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { PrivacyService } from '../../services/PrivacyService';
+import { useStore } from '../../store';
+import { UserProfile } from '../../types';
+import { toast } from '@/lib/toast';
 
 interface PrivacyRequestInspectorProps {
     isOpen: boolean;
     onClose: () => void;
     request: PrivacyRequest | null;
+    onRequestUpdated?: (updatedRequest: PrivacyRequest) => void;
 }
 
 export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = ({
     isOpen,
     onClose,
-    request
+    request,
+    onRequestUpdated
 }) => {
+    const { user } = useStore();
+    const [isAdvancing, setIsAdvancing] = useState(false);
+    const [isHolding, setIsHolding] = useState(false);
+
     if (!request) return null;
+
+    const WORKFLOW_STEPS = ['New', 'Verifying', 'Processing', 'Review', 'Completed'] as const;
+
+    const handleAdvanceStep = async () => {
+        if (!request?.id || !user) return;
+        const currentIdx = WORKFLOW_STEPS.indexOf(request.status as typeof WORKFLOW_STEPS[number]);
+        if (currentIdx < 0 || currentIdx >= WORKFLOW_STEPS.length - 1) return;
+
+        const nextStatus = WORKFLOW_STEPS[currentIdx + 1];
+        setIsAdvancing(true);
+        try {
+            await PrivacyService.updateRequest(request.id, { status: nextStatus }, user as UserProfile);
+            toast.success(`Statut mis à jour : ${nextStatus}`);
+            onRequestUpdated?.({ ...request, status: nextStatus });
+        } catch {
+            toast.error('Erreur lors de la mise à jour du statut');
+        } finally {
+            setIsAdvancing(false);
+        }
+    };
+
+    const handlePutOnHold = async () => {
+        if (!request?.id || !user) return;
+        setIsHolding(true);
+        try {
+            await PrivacyService.updateRequest(request.id, { status: 'On Hold' as string }, user as UserProfile);
+            toast.success('Demande mise en attente');
+            onRequestUpdated?.({ ...request, status: 'On Hold' });
+        } catch {
+            toast.error('Erreur lors de la mise en attente');
+        } finally {
+            setIsHolding(false);
+        }
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -118,11 +163,19 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                                     </h5>
                                     {isCurrent && (
                                         <div className="mt-4 flex gap-3">
-                                            <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl text-sm font-bold transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
-                                                Valider l'étape
+                                            <button
+                                                onClick={handleAdvanceStep}
+                                                disabled={isAdvancing || step === 'Completed'}
+                                                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl text-sm font-bold transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isAdvancing ? 'Mise à jour...' : 'Valider l\'étape'}
                                             </button>
-                                            <button className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-3xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
-                                                Mettre en attente
+                                            <button
+                                                onClick={handlePutOnHold}
+                                                disabled={isHolding}
+                                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-3xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isHolding ? 'Mise à jour...' : 'Mettre en attente'}
                                             </button>
                                         </div>
                                     )}

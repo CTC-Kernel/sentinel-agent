@@ -17,7 +17,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
 
     const { data: incidents, loading } = useFirestoreCollection<Incident>(
         'incidents',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { enabled: !!user?.organizationId }
     );
 

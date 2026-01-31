@@ -8,11 +8,11 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
-import { SentinelAgent } from '../../types/agent';
+import { SentinelAgent, AgentCheckResult } from '../../types/agent';
 import {
     Monitor, Apple, Server, Cpu, HardDrive,
     Activity, Shield, Clock, MoreVertical,
-    Eye, Settings, Trash2, RefreshCw
+    Eye, Settings, Trash2, RefreshCw, Stethoscope
 } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import {
@@ -23,12 +23,26 @@ import {
     DropdownMenuSeparator,
 } from '../ui/dropdown-menu';
 import { cn } from '../../lib/utils';
+import { useStore } from '../../store';
+import { hasPermission } from '../../utils/permissions';
+
+/**
+ * Compute compliance score from actual check results.
+ */
+function computeScoreFromResults(results: AgentCheckResult[]): number | null {
+    if (!results || results.length === 0) return null;
+    const applicable = results.filter(r => r.status !== 'not_applicable');
+    if (applicable.length === 0) return null;
+    const passed = applicable.filter(r => r.status === 'pass').length;
+    return Math.round((passed / applicable.length) * 100);
+}
 
 interface AgentHealthGridProps {
     agents: SentinelAgent[];
     onAgentClick?: (agent: SentinelAgent) => void;
     onAgentAction?: (agent: SentinelAgent, action: 'view' | 'configure' | 'refresh' | 'delete') => void;
     viewMode?: 'grid' | 'compact';
+    complianceResults?: Map<string, AgentCheckResult[]>;
 }
 
 // OS Icon component
@@ -46,7 +60,8 @@ const OSIcon: React.FC<{ os: SentinelAgent['os']; className?: string }> = ({ os,
 
 // Format bytes to human readable
 const formatBytes = (bytes: number | undefined): string => {
-    if (!bytes) return '-';
+    if (bytes === undefined || bytes === null) return '-';
+    if (bytes === 0) return '0 B';
     const gb = bytes / (1024 * 1024 * 1024);
     if (gb >= 1) return `${gb.toFixed(1)} GB`;
     const mb = bytes / (1024 * 1024);
@@ -70,6 +85,18 @@ const formatLastSeen = (dateStr: string): string => {
     return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
 };
 
+// Format relative time for offline agents
+const formatRelativeTime = (isoDate: string | undefined) => {
+    if (!isoDate) return 'Inconnu';
+    const diff = Date.now() - new Date(isoDate).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `il y a ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `il y a ${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `il y a ${days}j`;
+};
+
 // Score color based on value
 const getScoreColor = (score: number | null | undefined): string => {
     if (score === null || score === undefined) return 'text-muted-foreground';
@@ -84,16 +111,24 @@ interface AgentHealthCardProps {
     onClick?: () => void;
     onAction?: (action: 'view' | 'configure' | 'refresh' | 'delete') => void;
     compact?: boolean;
+    reliableScore?: number | null;
+    canUpdate?: boolean;
+    canDelete?: boolean;
 }
 
 const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
     agent,
     onClick,
     onAction,
-    compact = false
+    compact = false,
+    reliableScore,
+    canUpdate = true,
+    canDelete = true,
 }) => {
     const isActive = agent.status === 'active';
     const hasMetrics = agent.cpuPercent !== undefined || agent.memoryBytes !== undefined;
+    // Use reliable score (computed from results) when available, fallback to agent-reported
+    const displayScore = reliableScore !== undefined ? reliableScore : agent.complianceScore;
 
     if (compact) {
         // Compact row view
@@ -137,6 +172,11 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     <span className="text-xs text-muted-foreground truncate block">
                         {agent.ipAddress || agent.hostname}
                     </span>
+                    {agent.status === 'offline' && (
+                        <span className="text-[11px] text-warning font-medium block">
+                            Vu {formatRelativeTime(agent.lastHeartbeat)}
+                        </span>
+                    )}
                 </div>
 
                 {/* Metrics (if available) */}
@@ -170,9 +210,9 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                 )}
 
                 {/* Score */}
-                {agent.complianceScore !== undefined && agent.complianceScore !== null && (
-                    <div className={cn('text-sm font-bold', getScoreColor(agent.complianceScore))}>
-                        {agent.complianceScore}%
+                {displayScore !== undefined && displayScore !== null && (
+                    <div className={cn('text-sm font-bold', getScoreColor(displayScore))}>
+                        {displayScore}%
                     </div>
                 )}
 
@@ -209,7 +249,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     {onClick && (
                         <button
                             onClick={onClick}
-                            className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none rounded-3xl"
+                            className="absolute inset-0 z-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none rounded-3xl"
                             aria-label={`Agent ${agent.name} details`}
                         />
                     )}
@@ -245,6 +285,14 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                     {agent.osVersion || agent.os}
                                 </span>
                             </div>
+                            {agent.status === 'offline' && (
+                                <div className="flex items-center gap-1 mt-1">
+                                    <Clock className="h-3 w-3 text-warning" />
+                                    <span className="text-[11px] text-warning font-medium">
+                                        Vu {formatRelativeTime(agent.lastHeartbeat)}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -252,7 +300,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="h-7 w-7 p-0 rounded-md opacity-0 group-hover:opacity-70 transition-opacity flex items-center justify-center hover:bg-muted"
+                                className="relative z-10 h-7 w-7 p-0 rounded-md opacity-0 group-hover:opacity-70 transition-opacity flex items-center justify-center hover:bg-muted"
                                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                             >
                                 <MoreVertical className="h-4 w-4" />
@@ -263,22 +311,36 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 <Eye className="h-4 w-4 mr-2" />
                                 Voir détails
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onAction?.('configure')}>
-                                <Settings className="h-4 w-4 mr-2" />
-                                Configurer
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onAction?.('refresh')}>
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Rafraîchir
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={() => onAction?.('delete')}
-                                className="text-destructive focus:text-destructive"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Supprimer
-                            </DropdownMenuItem>
+                            {canUpdate && (
+                                <DropdownMenuItem onClick={() => onAction?.('configure')}>
+                                    <Settings className="h-4 w-4 mr-2" />
+                                    Configurer
+                                </DropdownMenuItem>
+                            )}
+                            {canUpdate && !isActive && agent.status === 'offline' && (
+                                <DropdownMenuItem onClick={() => onAction?.('configure')}>
+                                    <Stethoscope className="h-4 w-4 mr-2" />
+                                    Diagnostiquer
+                                </DropdownMenuItem>
+                            )}
+                            {canUpdate && isActive && (
+                                <DropdownMenuItem onClick={() => onAction?.('refresh')}>
+                                    <RefreshCw className="h-4 w-4 mr-2" />
+                                    Rafraîchir
+                                </DropdownMenuItem>
+                            )}
+                            {canDelete && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => onAction?.('delete')}
+                                        className="text-destructive focus:text-destructive"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Supprimer
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -326,9 +388,9 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         <div className="flex items-center justify-center gap-1 mb-1">
                             <Shield className="h-3 w-3 text-muted-foreground" />
                         </div>
-                        <span className={cn('text-sm font-bold', getScoreColor(agent.complianceScore))}>
-                            {agent.complianceScore !== undefined && agent.complianceScore !== null
-                                ? `${agent.complianceScore}%`
+                        <span className={cn('text-sm font-bold', getScoreColor(displayScore))}>
+                            {displayScore !== undefined && displayScore !== null
+                                ? `${displayScore}%`
                                 : '-'}
                         </span>
                         <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">Score</span>
@@ -372,8 +434,22 @@ export const AgentHealthGrid: React.FC<AgentHealthGridProps> = ({
     agents,
     onAgentClick,
     onAgentAction,
-    viewMode = 'grid'
+    viewMode = 'grid',
+    complianceResults
 }) => {
+    const { user } = useStore();
+    const canUpdate = hasPermission(user, 'Agent', 'update');
+    const canDelete = hasPermission(user, 'Agent', 'delete');
+    // Compute reliable scores from actual results
+    const reliableScores = useMemo(() => {
+        const scores = new Map<string, number | null>();
+        agents.forEach(a => {
+            const results = complianceResults?.get(a.id);
+            const computed = results ? computeScoreFromResults(results) : null;
+            scores.set(a.id, computed ?? a.complianceScore ?? null);
+        });
+        return scores;
+    }, [agents, complianceResults]);
     // Sort agents: active first, then by last heartbeat
     const sortedAgents = useMemo(() => {
         return [...agents].sort((a, b) => {
@@ -402,8 +478,11 @@ export const AgentHealthGrid: React.FC<AgentHealthGridProps> = ({
                         key={agent.id}
                         agent={agent}
                         compact
+                        reliableScore={reliableScores.get(agent.id)}
                         onClick={() => onAgentClick?.(agent)}
                         onAction={(action) => onAgentAction?.(agent, action)}
+                        canUpdate={canUpdate}
+                        canDelete={canDelete}
                     />
                 ))}
             </motion.div>
@@ -422,8 +501,11 @@ export const AgentHealthGrid: React.FC<AgentHealthGridProps> = ({
                     <AgentHealthCard
                         key={agent.id}
                         agent={agent}
+                        reliableScore={reliableScores.get(agent.id)}
                         onClick={() => onAgentClick?.(agent)}
                         onAction={(action) => onAgentAction?.(agent, action)}
+                        canUpdate={canUpdate}
+                        canDelete={canDelete}
                     />
                 ))}
             </AnimatePresence>

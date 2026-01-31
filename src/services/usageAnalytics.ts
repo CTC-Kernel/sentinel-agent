@@ -23,6 +23,38 @@ interface UsageMetrics {
     lastActivity: number;
 }
 
+/**
+ * Check if the user has granted tracking consent.
+ * Returns true only if overall consent is 'true' AND granular tracking consent is enabled.
+ */
+function hasTrackingConsent(): boolean {
+    try {
+        const consent = localStorage.getItem('sentinel_cookie_consent');
+        if (consent !== 'true') return false;
+
+        const detailsStr = localStorage.getItem('sentinel_cookie_consent_details');
+        if (!detailsStr) return false;
+
+        const details = JSON.parse(detailsStr) as { essential: boolean; analytics: boolean; tracking: boolean };
+        return details.tracking === true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Generate an anonymized hash from a string using FNV-1a.
+ * Used to avoid storing raw user IDs in analytics events.
+ */
+function anonymizeId(input: string): string {
+    let hash = 2166136261;
+    for (let i = 0; i < input.length; i++) {
+        hash ^= input.charCodeAt(i);
+        hash = (hash * 16777619) >>> 0;
+    }
+    return `anon_${hash.toString(16).padStart(8, '0')}`;
+}
+
 class UsageAnalytics {
     private events: UsageEvent[] = [];
     private sessionId: string;
@@ -78,6 +110,9 @@ class UsageAnalytics {
     }
 
     public trackPageView(page: string, title?: string): void {
+        // Consent gate: do not track if user has not granted tracking consent
+        if (!hasTrackingConsent()) return;
+
         this.metrics.pageViews++;
         this.trackEvent('page_view', page, title || `Page: ${page}`, undefined, undefined, {
             page,
@@ -125,6 +160,9 @@ class UsageAnalytics {
     }
 
     private trackEvent(type: UsageEvent['type'], category: string, action: string, label?: string, value?: number, metadata?: Record<string, unknown>): void {
+        // Consent gate: do not track if user has not granted tracking consent
+        if (!hasTrackingConsent()) return;
+
         const event: UsageEvent = {
             type,
             category,
@@ -134,27 +172,31 @@ class UsageAnalytics {
             metadata,
             timestamp: Date.now(),
             sessionId: this.sessionId,
-            userId: this.getUserId()
+            userId: this.getAnonymizedUserId()
         };
 
         this.events.push(event);
         this.sendEvent(event);
     }
 
-    private getUserId(): string | undefined {
-        // Get user ID from store or localStorage
+    /**
+     * Get an anonymized (hashed) user identifier for analytics.
+     * Does NOT read PII from localStorage. Uses the session ID as fallback.
+     */
+    private getAnonymizedUserId(): string | undefined {
         try {
-            const userStr = localStorage.getItem('sentinel_user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                return user.uid;
-            }
+            // Use the session-specific ID as the anonymous identifier
+            // This avoids reading PII (sentinel_user) from localStorage
+            return anonymizeId(this.sessionId);
         } catch {
             return undefined;
         }
     }
 
     private sendEvent(event: UsageEvent): void {
+        // Consent gate: do not send if user has not granted tracking consent
+        if (!hasTrackingConsent()) return;
+
         // Send to analytics endpoint
         if (typeof window !== 'undefined' && window.navigator.sendBeacon) {
             const data = JSON.stringify({
@@ -171,7 +213,7 @@ class UsageAnalytics {
         }
 
         // Also store locally for development
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
             // Local storage logic can be added here for debugging
         }
     }
@@ -185,10 +227,13 @@ class UsageAnalytics {
     }
 
     private sendSessionMetrics(): void {
+        // Consent gate: do not send session metrics without tracking consent
+        if (!hasTrackingConsent()) return;
+
         const sessionData = {
             ...this.metrics,
             sessionId: this.sessionId,
-            userId: this.getUserId(),
+            userId: this.getAnonymizedUserId(),
             endTime: new Date().toISOString()
         };
 

@@ -21,6 +21,13 @@ import {
     deleteDoc,
     Unsubscribe,
     limit,
+    arrayUnion,
+    arrayRemove,
+    increment,
+    runTransaction,
+    writeBatch,
+    serverTimestamp,
+    QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
@@ -43,7 +50,8 @@ import {
     createDefaultGroup,
     createDefaultGlobalPolicy,
 } from '../types/agentPolicy';
-import type { AgentConfig } from '../types/agent';
+import { isSafeRegex } from './OTConnectorService';
+// AgentConfig is used implicitly via rulesToAgentConfig return type
 
 // ============================================================================
 // Collection Helpers
@@ -60,6 +68,37 @@ const getPolicyHistoryCollection = (organizationId: string) =>
 
 const getPolicyStatsDoc = (organizationId: string) =>
     doc(db, 'organizations', organizationId, 'stats', 'policies');
+
+// ============================================================================
+// Type-safe conversion helpers
+// ============================================================================
+
+function docToGroup(d: QueryDocumentSnapshot): AgentGroup {
+    const data = d.data();
+    return {
+        ...data,
+        id: d.id,
+        agentIds: data.agentIds || [],
+        policyIds: data.policyIds || [],
+        membershipCriteria: data.membershipCriteria || [],
+        agentCount: data.agentCount || 0,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+    } as AgentGroup;
+}
+
+function docToPolicy(d: QueryDocumentSnapshot): AgentPolicy {
+    const data = d.data();
+    return {
+        ...data,
+        id: d.id,
+        rules: data.rules || [],
+        version: data.version || 1,
+        isActive: data.isActive ?? true,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+    } as unknown as AgentPolicy;
+}
 
 // ============================================================================
 // Group Subscriptions
@@ -81,10 +120,7 @@ export function subscribeToGroups(
     return onSnapshot(
         q,
         (snapshot) => {
-            const groups = snapshot.docs.map(d => ({
-                ...d.data(),
-                id: d.id,
-            } as AgentGroup));
+            const groups = snapshot.docs.map(d => docToGroup(d));
             onGroups(groups);
         },
         (error) => {
@@ -111,7 +147,17 @@ export async function getGroup(
 
         if (!snapshot.exists()) return null;
 
-        return { ...snapshot.data(), id: snapshot.id } as AgentGroup;
+        const data = snapshot.data();
+        return {
+            ...data,
+            id: snapshot.id,
+            agentIds: data.agentIds || [],
+            policyIds: data.policyIds || [],
+            membershipCriteria: data.membershipCriteria || [],
+            agentCount: data.agentCount || 0,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        } as AgentGroup;
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.getGroup', {
             component: 'AgentPolicyService',
@@ -163,11 +209,11 @@ export async function updateGroup(
 ): Promise<void> {
     try {
         const docRef = doc(getGroupsCollection(organizationId), groupId);
-        await updateDoc(docRef, {
-            ...updates,
-            agentCount: updates.agentIds?.length ?? undefined,
-            updatedAt: new Date().toISOString(),
-        });
+        const updateData: Record<string, unknown> = { ...updates, updatedAt: serverTimestamp() };
+        if (updates.agentIds) {
+            updateData.agentCount = updates.agentIds.length;
+        }
+        await updateDoc(docRef, updateData);
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.updateGroup', {
             component: 'AgentPolicyService',
@@ -215,16 +261,11 @@ export async function addAgentsToGroup(
     agentIds: string[]
 ): Promise<void> {
     try {
-        const group = await getGroup(organizationId, groupId);
-        if (!group) throw new Error('Group not found');
-
-        const existingIds = new Set(group.agentIds);
-        for (const id of agentIds) {
-            existingIds.add(id);
-        }
-
-        await updateGroup(organizationId, groupId, {
-            agentIds: Array.from(existingIds),
+        const groupRef = doc(getGroupsCollection(organizationId), groupId);
+        await updateDoc(groupRef, {
+            agentIds: arrayUnion(...agentIds),
+            agentCount: increment(agentIds.length),
+            updatedAt: serverTimestamp(),
         });
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.addAgentsToGroup', {
@@ -246,14 +287,11 @@ export async function removeAgentsFromGroup(
     agentIds: string[]
 ): Promise<void> {
     try {
-        const group = await getGroup(organizationId, groupId);
-        if (!group) throw new Error('Group not found');
-
-        const toRemove = new Set(agentIds);
-        const remaining = group.agentIds.filter(id => !toRemove.has(id));
-
-        await updateGroup(organizationId, groupId, {
-            agentIds: remaining,
+        const groupRef = doc(getGroupsCollection(organizationId), groupId);
+        await updateDoc(groupRef, {
+            agentIds: arrayRemove(...agentIds),
+            agentCount: increment(-agentIds.length),
+            updatedAt: serverTimestamp(),
         });
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.removeAgentsFromGroup', {
@@ -343,10 +381,7 @@ export function subscribeToPolicies(
     return onSnapshot(
         q,
         (snapshot) => {
-            const policies = snapshot.docs.map(d => ({
-                ...d.data(),
-                id: d.id,
-            } as AgentPolicy));
+            const policies = snapshot.docs.map(d => docToPolicy(d));
             onPolicies(policies);
         },
         (error) => {
@@ -373,7 +408,16 @@ export async function getPolicy(
 
         if (!snapshot.exists()) return null;
 
-        return { ...snapshot.data(), id: snapshot.id } as AgentPolicy;
+        const data = snapshot.data();
+        return {
+            ...data,
+            id: snapshot.id,
+            rules: data.rules || [],
+            version: data.version || 1,
+            isActive: data.isActive ?? true,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        } as unknown as AgentPolicy;
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.getPolicy', {
             component: 'AgentPolicyService',
@@ -437,45 +481,50 @@ export async function updatePolicy(
     reason?: string
 ): Promise<void> {
     try {
-        const existingPolicy = await getPolicy(organizationId, policyId);
-        if (!existingPolicy) throw new Error('Policy not found');
+        const policyRef = doc(getPoliciesCollection(organizationId), policyId);
+        await runTransaction(db, async (transaction) => {
+            const policyDoc = await transaction.get(policyRef);
+            if (!policyDoc.exists()) throw new Error('Policy not found');
+            const existingPolicy = policyDoc.data();
+            const newVersion = (existingPolicy.version || 0) + 1;
 
-        const now = new Date().toISOString();
-        const newVersion = existingPolicy.version + 1;
-
-        // Find changed rules
-        const changedRules: PolicyHistoryEntry['changedRules'] = [];
-        if (updates.rules) {
-            for (const newRule of updates.rules) {
-                const oldRule = existingPolicy.rules.find(r => r.key === newRule.key);
-                if (!oldRule || JSON.stringify(oldRule.value) !== JSON.stringify(newRule.value)) {
-                    changedRules.push({
-                        ruleKey: newRule.key,
-                        previousValue: oldRule?.value,
-                        newValue: newRule.value,
-                    });
+            // Find changed rules
+            const changedRules: PolicyHistoryEntry['changedRules'] = [];
+            if (updates.rules && existingPolicy.rules) {
+                for (const newRule of updates.rules) {
+                    const oldRule = (existingPolicy.rules as PolicyRule[]).find(r => r.key === newRule.key);
+                    if (!oldRule || JSON.stringify(oldRule.value) !== JSON.stringify(newRule.value)) {
+                        changedRules.push({
+                            ruleKey: newRule.key,
+                            previousValue: oldRule?.value,
+                            newValue: newRule.value,
+                        });
+                    }
                 }
             }
-        }
 
-        const docRef = doc(getPoliciesCollection(organizationId), policyId);
-        await updateDoc(docRef, {
-            ...updates,
-            version: newVersion,
-            updatedAt: now,
-            updatedBy: userId,
-        });
+            transaction.update(policyRef, {
+                ...updates,
+                version: newVersion,
+                updatedAt: serverTimestamp(),
+                updatedBy: userId,
+            });
 
-        // Record history
-        await addDoc(getPolicyHistoryCollection(organizationId), {
-            policyId,
-            changeType: 'updated',
-            previousVersion: existingPolicy.version,
-            newVersion,
-            changedRules,
-            changedBy: userId,
-            changedAt: now,
-            reason,
+            // Add history entry in same transaction
+            const historyRef = doc(collection(db, 'organizations', organizationId, 'policyHistory'));
+            transaction.set(historyRef, {
+                policyId,
+                action: 'updated',
+                changeType: 'updated',
+                version: newVersion,
+                previousVersion: existingPolicy.version || 0,
+                newVersion,
+                changedRules,
+                changes: updates,
+                changedBy: userId,
+                changedAt: serverTimestamp(),
+                reason,
+            });
         });
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.updatePolicy', {
@@ -497,24 +546,29 @@ export async function deletePolicy(
     userId: string
 ): Promise<void> {
     try {
-        const policy = await getPolicy(organizationId, policyId);
-        if (policy?.isDefault) {
+        const policyRef = doc(getPoliciesCollection(organizationId), policyId);
+        const policySnap = await getDoc(policyRef);
+        const policyData = policySnap.data();
+
+        if (policyData?.isDefault) {
             throw new Error('Cannot delete default policy');
         }
 
-        const docRef = doc(getPoliciesCollection(organizationId), policyId);
-        await deleteDoc(docRef);
-
-        // Record history
-        await addDoc(getPolicyHistoryCollection(organizationId), {
+        const batch = writeBatch(db);
+        batch.delete(policyRef);
+        const historyRef = doc(collection(db, 'organizations', organizationId, 'policyHistory'));
+        batch.set(historyRef, {
             policyId,
+            action: 'deleted',
             changeType: 'deleted',
-            previousVersion: policy?.version || 0,
+            version: policyData?.version || 0,
+            previousVersion: policyData?.version || 0,
             newVersion: 0,
             changedRules: [],
-            changedBy: userId,
-            changedAt: new Date().toISOString(),
+            changedBy: userId || 'unknown',
+            changedAt: serverTimestamp(),
         });
+        await batch.commit();
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.deletePolicy', {
             component: 'AgentPolicyService',
@@ -536,23 +590,21 @@ export async function togglePolicy(
     userId: string
 ): Promise<void> {
     try {
-        const docRef = doc(getPoliciesCollection(organizationId), policyId);
-        await updateDoc(docRef, {
-            isEnabled: enabled,
-            updatedAt: new Date().toISOString(),
-            updatedBy: userId,
-        });
-
-        // Record history
-        await addDoc(getPolicyHistoryCollection(organizationId), {
+        const batch = writeBatch(db);
+        const policyRef = doc(getPoliciesCollection(organizationId), policyId);
+        batch.update(policyRef, { isEnabled: enabled, updatedAt: serverTimestamp(), updatedBy: userId });
+        const historyRef = doc(collection(db, 'organizations', organizationId, 'policyHistory'));
+        batch.set(historyRef, {
             policyId,
+            action: enabled ? 'activated' : 'deactivated',
             changeType: enabled ? 'enabled' : 'disabled',
             previousVersion: 0,
             newVersion: 0,
             changedRules: [],
+            changedAt: serverTimestamp(),
             changedBy: userId,
-            changedAt: new Date().toISOString(),
         });
+        await batch.commit();
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.togglePolicy', {
             component: 'AgentPolicyService',
@@ -584,19 +636,33 @@ export async function getEffectivePolicy(
             )
         );
 
-        const policies = policiesSnapshot.docs.map(d => ({
-            ...d.data(),
-            id: d.id,
-        } as AgentPolicy));
+        const policies = policiesSnapshot.docs.map(d => docToPolicy(d));
 
-        // Get groups containing this agent
-        const groupsSnapshot = await getDocs(getGroupsCollection(organizationId));
-        const groups = groupsSnapshot.docs.map(d => ({
-            ...d.data(),
-            id: d.id,
-        } as AgentGroup));
+        // Get groups containing this agent (targeted query instead of full scan)
+        const agentGroupsQuery = query(
+            getGroupsCollection(organizationId),
+            where('agentIds', 'array-contains', agentId)
+        );
+        const groupsSnapshot = await getDocs(agentGroupsQuery);
+        const groups = groupsSnapshot.docs.map(d => docToGroup(d));
 
-        const agentGroupIds = groups
+        // Also fetch default groups
+        const defaultGroupsQuery = query(
+            getGroupsCollection(organizationId),
+            where('isDefault', '==', true)
+        );
+        const defaultGroupsSnapshot = await getDocs(defaultGroupsQuery);
+        const defaultGroups = defaultGroupsSnapshot.docs.map(d => docToGroup(d));
+        // Merge, avoiding duplicates
+        const groupMap = new Map(groups.map(g => [g.id, g]));
+        for (const dg of defaultGroups) {
+            if (!groupMap.has(dg.id)) {
+                groupMap.set(dg.id, dg);
+            }
+        }
+
+        const allGroups = Array.from(groupMap.values());
+        const agentGroupIds = allGroups
             .filter(g => g.agentIds.includes(agentId) || g.isDefault)
             .map(g => g.id);
 
@@ -651,7 +717,7 @@ export async function getEffectivePolicy(
         const agentConfig = rulesToAgentConfig(mergedRules);
 
         // Generate config hash
-        const configHash = generateConfigHash(agentConfig);
+        const configHash = generateConfigHash(agentConfig as unknown as Record<string, unknown>);
 
         return {
             agentId,
@@ -839,10 +905,14 @@ export async function getPolicyHistory(
         );
 
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({
-            ...d.data(),
-            id: d.id,
-        } as PolicyHistoryEntry));
+        return snapshot.docs.map(d => {
+            const data = d.data();
+            return {
+                ...data,
+                id: d.id,
+                changedAt: data.changedAt?.toDate?.()?.toISOString() || data.changedAt,
+            } as PolicyHistoryEntry;
+        });
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.getPolicyHistory', {
             component: 'AgentPolicyService',
@@ -919,15 +989,15 @@ export async function initializeDefaultsIfNeeded(
 /**
  * Generate a hash for config change detection
  */
-function generateConfigHash(config: AgentConfig): string {
-    const str = JSON.stringify(config);
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
+function generateConfigHash(config: Record<string, unknown>): string {
+    const sortedStr = JSON.stringify(config, Object.keys(config).sort());
+    // Use a better hash - FNV-1a 32-bit
+    let hash = 2166136261;
+    for (let i = 0; i < sortedStr.length; i++) {
+        hash ^= sortedStr.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
     }
-    return Math.abs(hash).toString(16);
+    return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 /**
@@ -960,11 +1030,19 @@ export function validatePolicyRules(rules: PolicyRule[]): string[] {
             }
         }
 
-        // Check validation pattern
+        // Check validation pattern with ReDoS protection
         if (rule.validationPattern && typeof rule.value === 'string') {
-            const regex = new RegExp(rule.validationPattern);
-            if (!regex.test(rule.value)) {
-                errors.push(rule.validationMessage || `${rule.name} format invalide`);
+            if (!isSafeRegex(rule.validationPattern)) {
+                errors.push(`Rule "${rule.name}": unsafe regex pattern (too long or nested quantifiers)`);
+                continue;
+            }
+            try {
+                const regex = new RegExp(rule.validationPattern);
+                if (!regex.test(rule.value)) {
+                    errors.push(rule.validationMessage || `${rule.name} format invalide`);
+                }
+            } catch {
+                errors.push(`Rule "${rule.name}": invalid regex pattern`);
             }
         }
     }

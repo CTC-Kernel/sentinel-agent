@@ -6,7 +6,7 @@
  * Apple-style design with smooth animations and tooltips.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { SentinelAgent, AgentCheckResult } from '../../types/agent';
@@ -27,19 +27,18 @@ interface AgentComplianceHeatmapProps {
     maxAgentsDisplay?: number;
 }
 
-// Compliance checks matching the 11 built-in agent checks
+// Compliance checks matching the 10 canonical agent checks from agentEvidence.ts
 const DEFAULT_CHECKS = [
+    { id: 'mfa_enabled', name: 'MFA', category: 'Auth' },
     { id: 'disk_encryption', name: 'Chiffrement Disque', category: 'Storage' },
-    { id: 'firewall', name: 'Firewall', category: 'Network' },
-    { id: 'antivirus', name: 'Antivirus', category: 'Security' },
-    { id: 'mfa', name: 'MFA', category: 'Auth' },
+    { id: 'firewall_active', name: 'Firewall', category: 'Network' },
+    { id: 'audit_logging', name: 'Journalisation', category: 'Audit' },
+    { id: 'patches_current', name: 'MAJ Systeme', category: 'Patches' },
+    { id: 'antivirus_active', name: 'Antivirus', category: 'Security' },
+    { id: 'screen_lock', name: 'Verrouillage', category: 'Access' },
     { id: 'password_policy', name: 'Politique MDP', category: 'Auth' },
-    { id: 'system_updates', name: 'MAJ Système', category: 'Patches' },
-    { id: 'session_lock', name: 'Verrouillage', category: 'Access' },
-    { id: 'remote_access', name: 'Accès Distant', category: 'Network' },
-    { id: 'backup', name: 'Sauvegarde', category: 'Data' },
-    { id: 'admin_accounts', name: 'Comptes Admin', category: 'Auth' },
-    { id: 'obsolete_protocols', name: 'Protocoles Obs.', category: 'Network' },
+    { id: 'remote_access_secure', name: 'Acces Distant', category: 'Network' },
+    { id: 'backup_configured', name: 'Sauvegarde', category: 'Data' },
 ];
 
 type CheckStatus = 'pass' | 'fail' | 'pending' | 'unknown';
@@ -256,10 +255,10 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
     const hasMore = agents.length > maxAgentsDisplay;
 
     // Get check status for an agent
-    const getStatus = (agent: SentinelAgent, checkId: string): CheckStatus => {
+    const getStatus = useCallback((agent: SentinelAgent, checkId: string): CheckStatus => {
         const agentResults = results?.get(agent.id);
         return getCheckStatus(agent, checkId, agentResults);
-    };
+    }, [results]);
 
     if (agents.length === 0) {
         return (
@@ -349,8 +348,10 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
                                 key={agent.id}
                                 className={cn(
                                     'border-b border-border/20 transition-colors',
-                                    'hover:bg-muted/30'
+                                    'hover:bg-muted/50 cursor-pointer'
                                 )}
+                                title="Cliquez pour voir les details de l'agent"
+                                onClick={() => onAgentClick?.(agent)}
                             >
                                 {/* Agent Name Cell */}
                                 <td className="sticky left-0 bg-card z-10 px-4 py-2">

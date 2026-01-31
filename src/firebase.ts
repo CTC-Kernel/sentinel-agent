@@ -41,7 +41,7 @@ if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test') {
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1';
   const isDebugMode = !import.meta.env.PROD && localStorage.getItem('debug_app_check') === 'true';
-  const isVerboseDebug = localStorage.getItem('debug_app_check') === 'true';
+  const isVerboseDebug = !import.meta.env.PROD && localStorage.getItem('debug_app_check') === 'true';
 
   // Expose App Check instance for diagnostics and downstream usage.
   // Not exported directly to avoid changing public API shape at module level.

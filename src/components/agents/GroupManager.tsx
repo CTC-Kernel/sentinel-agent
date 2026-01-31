@@ -232,6 +232,8 @@ const GroupFormModal: React.FC<{
                                             <option value="ip_range">IP Range</option>
                                             <option value="tag">Tag</option>
                                             <option value="department">Département</option>
+                                            <option value="manual">Manuel</option>
+                                            <option value="location">Localisation</option>
                                         </select>
                                         <select
                                             value={c.operator}
@@ -241,6 +243,8 @@ const GroupFormModal: React.FC<{
                                             <option value="equals">égal à</option>
                                             <option value="contains">contient</option>
                                             <option value="matches">regex</option>
+                                            <option value="in">dans la liste</option>
+                                            <option value="range">dans la plage</option>
                                         </select>
                                         <Input
                                             value={typeof c.value === 'string' ? c.value : ''}
@@ -545,6 +549,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [parentForNewGroup, setParentForNewGroup] = useState<string | undefined>();
     const [draggedAgentIds, setDraggedAgentIds] = useState<string[]>([]);
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
     // Subscribe to groups
     useEffect(() => {
@@ -552,13 +557,17 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
 
         // Note: loading is initialized to true, no need to set it here
 
+        let isFirstLoad = true;
         const unsubscribe = subscribeToGroups(
             organizationId,
             (data) => {
                 setGroups(data);
                 setLoading(false);
-                // Expand all by default
-                setExpandedIds(new Set(data.map(g => g.id)));
+                // Only expand all on first load, preserve expanded state on updates
+                if (isFirstLoad) {
+                    setExpandedIds(new Set(data.map(g => g.id)));
+                    isFirstLoad = false;
+                }
             },
             (error) => {
                 ErrorLogger.error(error, 'GroupManager.subscribeToGroups');
@@ -659,26 +668,44 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
 
     const handleDeleteGroup = async (groupId: string) => {
         if (!organizationId) return;
-        if (!confirm('Supprimer ce groupe ? Les agents ne seront pas supprimés.')) return;
+        // Use state-based confirmation
+        setDeleteConfirm(groupId);
+    };
 
-        await deleteGroup(organizationId, groupId);
-        if (selectedGroupId === groupId) {
-            onSelectGroup?.(null);
+    const handleConfirmDelete = async () => {
+        if (!organizationId || !deleteConfirm) return;
+        try {
+            await deleteGroup(organizationId, deleteConfirm);
+            if (selectedGroupId === deleteConfirm) {
+                onSelectGroup?.(null);
+            }
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'GroupManager.deleteGroup');
+        } finally {
+            setDeleteConfirm(null);
         }
     };
 
     const handleDropAgents = async (groupId: string) => {
         if (!organizationId || draggedAgentIds.length === 0) return;
 
-        await addAgentsToGroup(organizationId, groupId, draggedAgentIds);
-        onAssignAgents?.(groupId, draggedAgentIds);
-        setDraggedAgentIds([]);
+        try {
+            await addAgentsToGroup(organizationId, groupId, draggedAgentIds);
+            onAssignAgents?.(groupId, draggedAgentIds);
+            setDraggedAgentIds([]);
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'GroupManager.addAgentsToGroup');
+        }
     };
 
     const handleRemoveAgent = async (agentId: string) => {
         if (!organizationId || !selectedGroupId) return;
 
-        await removeAgentsFromGroup(organizationId, selectedGroupId, [agentId]);
+        try {
+            await removeAgentsFromGroup(organizationId, selectedGroupId, [agentId]);
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'GroupManager.removeAgentsFromGroup');
+        }
     };
 
     if (loading) {
@@ -806,6 +833,33 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
                     </div>
                 </motion.div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteConfirm && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="glass-premium rounded-2xl w-full max-w-sm mx-4 border border-border/40 p-6"
+                        >
+                            <h3 className="text-lg font-semibold mb-2">Supprimer le groupe ?</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Les agents ne seront pas supprimés.
+                            </p>
+                            <div className="flex justify-end gap-3">
+                                <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+                                    Annuler
+                                </Button>
+                                <Button variant="destructive" onClick={handleConfirmDelete}>
+                                    Supprimer
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* Create/Edit Modal */}
             <AnimatePresence>

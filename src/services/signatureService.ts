@@ -147,7 +147,7 @@ export const SignatureService = {
   /**
    * Get a signature request by ID
    */
-  async getSignatureRequest(requestId: string): Promise<SignatureRequest | null> {
+  async getSignatureRequest(requestId: string, organizationId?: string): Promise<SignatureRequest | null> {
     try {
       const docRef = doc(db, SIGNATURE_REQUESTS_COLLECTION, requestId);
       const docSnap = await getDoc(docRef);
@@ -156,9 +156,17 @@ export const SignatureService = {
         return null;
       }
 
+      const data = docSnap.data();
+
+      // Verify organization ownership if organizationId provided
+      if (organizationId && data.organizationId !== organizationId) {
+        ErrorLogger.warn('IDOR attempt: signature request org mismatch', 'SignatureService.getSignatureRequest');
+        return null;
+      }
+
       return {
         id: docSnap.id,
-        ...docSnap.data(),
+        ...data,
       } as SignatureRequest;
     } catch (error) {
       ErrorLogger.error(error, 'SignatureService.getSignatureRequest');

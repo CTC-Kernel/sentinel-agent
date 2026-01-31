@@ -31,6 +31,7 @@ import { slideUpVariants } from '../ui/animationVariants';
 interface CISBenchmarkViewProps {
     baselines: CISBaseline[];
     searchQuery?: string;
+    agentHostnames?: Map<string, string>;
 }
 
 // Compliance Score Gauge
@@ -145,7 +146,8 @@ const BaselineCard: React.FC<{
     baseline: CISBaseline;
     isExpanded: boolean;
     onToggle: () => void;
-}> = ({ baseline, isExpanded, onToggle }) => {
+    agentDisplayName?: string;
+}> = ({ baseline, isExpanded, onToggle, agentDisplayName }) => {
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
     const [showAllChecks, setShowAllChecks] = useState(false);
 
@@ -177,7 +179,7 @@ const BaselineCard: React.FC<{
                 <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center gap-2">
                         <Monitor className="h-4 w-4 text-muted-foreground" />
-                        <h3 className="font-medium truncate">{baseline.agentId}</h3>
+                        <h3 className="font-medium truncate">{agentDisplayName || baseline.agentId}</h3>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                         {baseline.benchmarkName}
@@ -336,8 +338,8 @@ const CheckResultItem: React.FC<{ check: CISCheckResult }> = ({ check }) => {
     return (
         <div className="flex items-center gap-2 py-1.5 text-sm">
             <StatusIcon status={check.status} />
-            <span className="font-mono text-xs text-muted-foreground">{check.checkId}</span>
             <span className={cn(
+                'font-mono text-xs',
                 check.status === 'pass' ? 'text-muted-foreground' : 'text-foreground'
             )}>
                 {check.checkId}
@@ -407,15 +409,23 @@ const FailedCheckCard: React.FC<{ check: CISCheckResult }> = ({ check }) => {
 
                             {/* Actions */}
                             <div className="flex items-center gap-2 pt-2">
-                                <Button variant="outline" size="sm" className="gap-1">
+                                <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                                    const text = `${check.checkId}\nAttendu: ${String(check.expectedValue ?? 'N/A')}\nTrouvé: ${String(check.actualValue ?? 'N/A')}\n${JSON.stringify(check.evidence, null, 2)}`;
+                                    navigator.clipboard.writeText(text);
+                                }}>
                                     <Copy className="h-3 w-3" />
                                     Copier
                                 </Button>
-                                <Button variant="outline" size="sm" className="gap-1">
+                                <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                                    // Navigate to remediation docs based on checkId
+                                    window.open(`https://www.cisecurity.org/benchmark`, '_blank', 'noopener,noreferrer');
+                                }}>
                                     <FileText className="h-3 w-3" />
                                     Remédiation
                                 </Button>
-                                <Button variant="outline" size="sm" className="gap-1">
+                                <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                                    window.open(`https://www.cisecurity.org/benchmark`, '_blank', 'noopener,noreferrer');
+                                }}>
                                     <ExternalLink className="h-3 w-3" />
                                     CIS Docs
                                 </Button>
@@ -499,6 +509,7 @@ const FleetSummary: React.FC<{ baselines: CISBaseline[] }> = ({ baselines }) => 
 export const CISBenchmarkView: React.FC<CISBenchmarkViewProps> = ({
     baselines,
     searchQuery = '',
+    agentHostnames,
 }) => {
     const [expandedBaselines, setExpandedBaselines] = useState<Set<string>>(new Set());
 
@@ -546,6 +557,7 @@ export const CISBenchmarkView: React.FC<CISBenchmarkViewProps> = ({
                         baseline={baseline}
                         isExpanded={expandedBaselines.has(baseline.id)}
                         onToggle={() => toggleBaseline(baseline.id)}
+                        agentDisplayName={agentHostnames?.get(baseline.agentId)}
                     />
                 ))
             )}

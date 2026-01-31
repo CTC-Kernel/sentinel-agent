@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { SEO } from '../components/SEO';
 import { useStore } from '../store';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import {
     subscribeToSoftwareInventory,
     subscribeToCISBaselines,
     getSoftwareStats,
+    SoftwareInventoryService,
 } from '../services/SoftwareInventoryService';
 import { subscribeToAgents } from '../services/AgentService';
 import { SentinelAgent } from '../types/agent';
@@ -50,6 +49,8 @@ import { SoftwareTable } from '../components/agents/SoftwareTable';
 import { CISBenchmarkView } from '../components/agents/CISBenchmarkView';
 import { cn } from '../utils/cn';
 import { ErrorLogger } from '../services/errorLogger';
+import { hasPermission } from '../utils/permissions';
+import { toast } from '@/lib/toast';
 
 // KPI Card Component
 const KPICard: React.FC<{
@@ -279,6 +280,16 @@ const FilterDropdown: React.FC<{
     );
 };
 
+// Sanitize CSV values to prevent CSV injection
+function sanitizeCSVValue(value: string | number | undefined | null): string {
+    const str = String(value ?? '');
+    if (/^[=+\-@\t\r]/.test(str)) return `'${str}`;
+    if (str.includes('"') || str.includes(';') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+}
+
 // Skeleton for loading state
 const SoftwareInventorySkeleton: React.FC = () => (
     <div className="flex flex-col gap-6 animate-pulse">
@@ -303,6 +314,7 @@ export const SoftwareInventory: React.FC = () => {
     const [stats, setStats] = useState<SoftwareInventoryStats | null>(null);
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
@@ -318,6 +330,10 @@ export const SoftwareInventory: React.FC = () => {
     // Drawer state
     const [selectedSoftware, setSelectedSoftware] = useState<SoftwareInventoryEntry | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [authorizingId, setAuthorizingId] = useState<string | null>(null);
+
+    const canUpdateAgent = hasPermission(user, 'Agent', 'update');
 
     // Load stats
     const loadStats = useCallback(async () => {
@@ -337,6 +353,8 @@ export const SoftwareInventory: React.FC = () => {
     useEffect(() => {
         if (!user?.organizationId) return;
 
+        setLoading(true);
+
         const unsubscribe = subscribeToSoftwareInventory(
             user.organizationId,
             (softwareList) => {
@@ -345,6 +363,7 @@ export const SoftwareInventory: React.FC = () => {
             },
             (error) => {
                 ErrorLogger.error(error, 'SoftwareInventory.subscribeToSoftwareInventory');
+                setError('Erreur de chargement des donnees');
                 setLoading(false);
             },
             {
@@ -352,12 +371,11 @@ export const SoftwareInventory: React.FC = () => {
                 riskLevel: riskFilters.length > 0 ? riskFilters : undefined,
                 category: categoryFilters.length > 0 ? categoryFilters : undefined,
                 hasVulnerabilities: vulnFilter,
-                searchTerm: searchQuery || undefined,
             }
         );
 
         return unsubscribe;
-    }, [user?.organizationId, authFilters, riskFilters, categoryFilters, vulnFilter, searchQuery]);
+    }, [user?.organizationId, authFilters, riskFilters, categoryFilters, vulnFilter, retryCount]);
 
     // Subscribe to agents
     useEffect(() => {
@@ -421,6 +439,15 @@ export const SoftwareInventory: React.FC = () => {
         });
     }, [software, searchQuery]);
 
+    // Agent hostname lookup for CIS view
+    const agentHostnames = useMemo(() => {
+        const map = new Map<string, string>();
+        agents.forEach(a => {
+            map.set(a.id, a.name || a.hostname || a.id.slice(0, 8));
+        });
+        return map;
+    }, [agents]);
+
     // Filter options
     const authOptions = AUTHORIZATION_STATUS.map(status => ({
         value: status,
@@ -450,15 +477,20 @@ export const SoftwareInventory: React.FC = () => {
         );
     }
 
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
+                <AlertTriangle className="h-12 w-12 text-destructive" />
+                <p className="text-lg font-medium">{error}</p>
+                <Button onClick={() => { setError(null); setLoading(true); setRetryCount(c => c + 1); }} variant="outline">
+                    Reessayer
+                </Button>
+            </div>
+        );
+    }
+
     return (
         <>
-            <MasterpieceBackground />
-            <SEO
-                title="Inventaire Logiciels - Sentinel GRC"
-                description="Gestion de l'inventaire logiciel et conformité CIS Benchmarks"
-                keywords="software inventory, CIS benchmarks, compliance, security"
-            />
-
             <motion.div
                 variants={staggerContainerVariants}
                 initial="initial"
@@ -487,7 +519,35 @@ export const SoftwareInventory: React.FC = () => {
                                 <RefreshCw className="h-4 w-4" />
                                 <span className="hidden sm:inline">Actualiser</span>
                             </Button>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => {
+                                    const BOM = '\uFEFF';
+                                    const headers = ['Nom', 'Editeur', 'Categorie', 'Risque', 'Score', 'Agents', 'Autorisation', 'Vulnerabilites'].join(';');
+                                    const rows = filteredSoftware.map(sw =>
+                                        [
+                                            sanitizeCSVValue(sw.name),
+                                            sanitizeCSVValue(sw.vendor),
+                                            sanitizeCSVValue(sw.category),
+                                            sanitizeCSVValue(sw.riskLevel),
+                                            sanitizeCSVValue(sw.riskScore),
+                                            sanitizeCSVValue(sw.agentCount),
+                                            sanitizeCSVValue(sw.authorizationStatus),
+                                            sanitizeCSVValue(sw.linkedCveIds?.length || 0),
+                                        ].join(';')
+                                    );
+                                    const csv = BOM + [headers, ...rows].join('\n');
+                                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `inventaire-logiciels-${new Date().toISOString().split('T')[0]}.csv`;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                }}
+                            >
                                 <Download className="h-4 w-4" />
                                 <span className="hidden sm:inline">Exporter</span>
                             </Button>
@@ -655,6 +715,7 @@ export const SoftwareInventory: React.FC = () => {
                         <CISBenchmarkView
                             baselines={cisBaselines}
                             searchQuery={searchQuery}
+                            agentHostnames={agentHostnames}
                         />
                     </motion.div>
                 )}
@@ -785,32 +846,126 @@ export const SoftwareInventory: React.FC = () => {
                         )}
 
                         {/* Actions */}
-                        <div className="flex gap-2 pt-4 border-t">
-                            {selectedSoftware.authorizationStatus === 'pending' && (
-                                <>
-                                    <Button variant="default" className="flex-1 gap-2">
-                                        <CheckCircle className="h-4 w-4" />
-                                        Autoriser
+                        {canUpdateAgent && (
+                            <div className="flex gap-2 pt-4 border-t">
+                                {selectedSoftware.authorizationStatus === 'pending' && (
+                                    <>
+                                        <Button
+                                            variant="default"
+                                            className="flex-1 gap-2"
+                                            disabled={authorizingId === selectedSoftware.id}
+                                            onClick={async () => {
+                                                if (!user?.organizationId || !selectedSoftware) return;
+                                                setAuthorizingId(selectedSoftware.id);
+                                                try {
+                                                    await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'authorized', user.uid);
+                                                    toast.success('Logiciel autorise', `"${selectedSoftware.name}" a ete autorise avec succes.`);
+                                                    setSelectedSoftware(null);
+                                                    setIsDrawerOpen(false);
+                                                } catch (err) {
+                                                    toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                    ErrorLogger.error(err, 'SoftwareInventory.authorize');
+                                                } finally {
+                                                    setAuthorizingId(null);
+                                                }
+                                            }}
+                                        >
+                                            {authorizingId === selectedSoftware.id ? (
+                                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <CheckCircle className="h-4 w-4" />
+                                            )}
+                                            Autoriser
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            className="flex-1 gap-2"
+                                            disabled={authorizingId === selectedSoftware.id}
+                                            onClick={async () => {
+                                                if (!user?.organizationId || !selectedSoftware) return;
+                                                setAuthorizingId(selectedSoftware.id);
+                                                try {
+                                                    await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'blocked', user.uid);
+                                                    toast.success('Logiciel bloque', `"${selectedSoftware.name}" a ete bloque avec succes.`);
+                                                    setSelectedSoftware(null);
+                                                    setIsDrawerOpen(false);
+                                                } catch (err) {
+                                                    toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                    ErrorLogger.error(err, 'SoftwareInventory.block');
+                                                } finally {
+                                                    setAuthorizingId(null);
+                                                }
+                                            }}
+                                        >
+                                            {authorizingId === selectedSoftware.id ? (
+                                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <XCircle className="h-4 w-4" />
+                                            )}
+                                            Bloquer
+                                        </Button>
+                                    </>
+                                )}
+                                {selectedSoftware.authorizationStatus === 'authorized' && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full gap-2"
+                                        disabled={authorizingId === selectedSoftware.id}
+                                        onClick={async () => {
+                                            if (!user?.organizationId || !selectedSoftware) return;
+                                            setAuthorizingId(selectedSoftware.id);
+                                            try {
+                                                await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'pending', user.uid);
+                                                toast.success('Autorisation revoquee', `L'autorisation de "${selectedSoftware.name}" a ete revoquee.`);
+                                                setSelectedSoftware(null);
+                                                setIsDrawerOpen(false);
+                                            } catch (err) {
+                                                toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                ErrorLogger.error(err, 'SoftwareInventory.revoke');
+                                            } finally {
+                                                setAuthorizingId(null);
+                                            }
+                                        }}
+                                    >
+                                        {authorizingId === selectedSoftware.id ? (
+                                            <RefreshCw className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <XCircle className="h-4 w-4" />
+                                        )}
+                                        Révoquer l'autorisation
                                     </Button>
-                                    <Button variant="destructive" className="flex-1 gap-2">
-                                        <XCircle className="h-4 w-4" />
-                                        Bloquer
+                                )}
+                                {selectedSoftware.authorizationStatus === 'blocked' && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full gap-2"
+                                        disabled={authorizingId === selectedSoftware.id}
+                                        onClick={async () => {
+                                            if (!user?.organizationId || !selectedSoftware) return;
+                                            setAuthorizingId(selectedSoftware.id);
+                                            try {
+                                                await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'pending', user.uid);
+                                                toast.success('Logiciel debloque', `"${selectedSoftware.name}" a ete debloque avec succes.`);
+                                                setSelectedSoftware(null);
+                                                setIsDrawerOpen(false);
+                                            } catch (err) {
+                                                toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                ErrorLogger.error(err, 'SoftwareInventory.unblock');
+                                            } finally {
+                                                setAuthorizingId(null);
+                                            }
+                                        }}
+                                    >
+                                        {authorizingId === selectedSoftware.id ? (
+                                            <RefreshCw className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <CheckCircle className="h-4 w-4" />
+                                        )}
+                                        Débloquer
                                     </Button>
-                                </>
-                            )}
-                            {selectedSoftware.authorizationStatus === 'authorized' && (
-                                <Button variant="outline" className="w-full gap-2">
-                                    <XCircle className="h-4 w-4" />
-                                    Révoquer l'autorisation
-                                </Button>
-                            )}
-                            {selectedSoftware.authorizationStatus === 'blocked' && (
-                                <Button variant="outline" className="w-full gap-2">
-                                    <CheckCircle className="h-4 w-4" />
-                                    Débloquer
-                                </Button>
-                            )}
-                        </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </Drawer>

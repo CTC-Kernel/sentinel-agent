@@ -13,37 +13,37 @@ export const useAuditsActions = () => {
 
   const { data: audits, loading: loadingAudits, update: updateAuditRaw, add: addAuditRaw, remove: removeAuditRaw } = useFirestoreCollection<Audit>(
     'audits',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
   const { data: questionnaires, loading: loadingQuestionnaires, add: addQuestionnaireRaw, update: updateQuestionnaireRaw, remove: removeQuestionnaireRaw } = useFirestoreCollection<Questionnaire>(
     'questionnaires',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
   const { data: evidences, loading: loadingEvidences } = useFirestoreCollection<EvidenceRequest>(
     'evidence_requests',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
   const { data: users, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
     'users',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: !!user?.organizationId }
   );
 
   const { data: documents, loading: loadingDocuments, add: addDocumentRaw } = useFirestoreCollection<Document>(
     'documents',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: !!user?.organizationId }
   );
 
   const { data: responses, loading: loadingResponses, add: addResponseRaw, update: updateResponseRaw } = useFirestoreCollection<QuestionnaireResponse>(
     'questionnaire_responses',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 

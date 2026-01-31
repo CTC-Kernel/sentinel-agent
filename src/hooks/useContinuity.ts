@@ -246,8 +246,10 @@ export const useContinuity = () => {
                 return;
             }
 
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
 
             for (const row of lines) {
                 if (!row.Nom) continue;
@@ -269,9 +271,16 @@ export const useContinuity = () => {
 
                 batch.set(newRef, sanitizeData(processData));
                 count++;
+                batchCount++;
+
+                if (batchCount >= BATCH_SIZE) {
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    batchCount = 0;
+                }
             }
 
-            if (count > 0) {
+            if (count > 0 && batchCount > 0) {
                 await batch.commit();
                 await logAction(user, 'IMPORT', 'BusinessProcess', `Imported ${count} processes`);
                 addToast(t('continuity.toastImported', { count }), 'success');

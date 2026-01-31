@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { ErrorLogger } from '@/services/errorLogger';
@@ -130,6 +131,7 @@ interface EvidenceRowProps {
 }
 
 const EvidenceRow: React.FC<EvidenceRowProps> = ({ evidence, onClick }) => {
+    const navigate = useNavigate();
     const checkDef = AGENT_CHECK_DEFINITIONS[evidence.checkId];
 
     return (
@@ -165,10 +167,13 @@ const EvidenceRow: React.FC<EvidenceRowProps> = ({ evidence, onClick }) => {
                     </Badge>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                    <span className="flex items-center gap-1">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); navigate('/agents'); }}
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
                         <Server className="h-3 w-3" />
-                        Agent {evidence.agentId.slice(0, 8)}
-                    </span>
+                        Agent {evidence.agentId.slice(0, 8)} &rarr;
+                    </button>
                     <span>•</span>
                     <span>{evidence.articleReference}</span>
                 </div>

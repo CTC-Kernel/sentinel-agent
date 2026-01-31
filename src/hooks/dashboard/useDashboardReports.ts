@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import 'jspdf-autotable';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { aiService } from '../../services/aiService';

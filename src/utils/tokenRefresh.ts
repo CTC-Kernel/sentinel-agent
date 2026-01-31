@@ -1,6 +1,7 @@
 import { auth } from '../firebase';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { getApp } from 'firebase/app';
+import { ErrorLogger } from '../services/errorLogger';
 
 /**
  * Force refresh the current user's ID token to get updated custom claims
@@ -27,7 +28,8 @@ export const refreshUserToken = async (): Promise<boolean> => {
         // Force token refresh on client side
         await user.getIdToken(true);
         return true;
-    } catch {
+    } catch (_err) {
+        ErrorLogger.debug('Token refresh failed', 'tokenRefresh');
         return false;
     }
 };
@@ -42,7 +44,8 @@ export const hasCustomClaims = async (): Promise<boolean> => {
 
         const tokenResult = await user.getIdTokenResult();
         return !!(tokenResult.claims.organizationId);
-    } catch {
+    } catch (_err) {
+        ErrorLogger.debug('Token refresh failed', 'tokenRefresh');
         return false;
     }
 };
@@ -69,7 +72,7 @@ export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
                 window.location.reload();
             }
         }
-    } catch {
-        // Error handled silently
+    } catch (_err) {
+        ErrorLogger.debug('Token refresh failed', 'tokenRefresh');
     }
 };

@@ -44,9 +44,11 @@
     "operations": "Opérations",
     "training": "Formation & Sensibilisation",
     "retry": "Réessayer",
+    "back": "Retour",
     "closeMenu": "Fermer le menu",
     "settings": {
       "title": "Paramètres",
+      "subtitle": "Gérez vos préférences et configuration",
       "organization": "Organisation",
       "searchMembers": "Rechercher des membres",
       "roles": {
@@ -2160,6 +2162,10 @@
     "frameworkId": "Framework"
   },
   "controls": {
+    "overview": "Vue d'ensemble",
+    "iso27002Controls": "Contrôles ISO 27002",
+    "effectivenessTitle": "Efficacité des Contrôles",
+    "effectivenessDescription": "Évaluation de la maturité des contrôles de sécurité (ISO 27002)",
     "status": {
       "compliant": "Conforme",
       "partial": "Partiel",
@@ -4550,7 +4556,8 @@
     },
     "confirm": {
       "disconnectTitle": "Déconnecter l'intégration",
-      "disconnectMessage": "Voulez-vous vraiment déconnecter {{provider}} ?"
+      "disconnectMessage": "Voulez-vous vraiment déconnecter {{provider}} ?",
+      "disconnect": "Déconnecter"
     },
     "success": {
       "connected": "Connecté à {{provider}} avec succès",
@@ -4864,5 +4871,11 @@
       "pass": "OK",
       "fail": "Échec"
     }
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "Désolé, la page que vous recherchez semble avoir été déplacée, supprimée ou n'a jamais existé.",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "report": "Signaler"
   }
 }

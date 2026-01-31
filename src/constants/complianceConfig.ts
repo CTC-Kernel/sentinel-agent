@@ -56,10 +56,11 @@ export const PARTIAL_CONTROL_WEIGHT = 0.5;
  * Category weights for global compliance score
  */
 export const COMPLIANCE_WEIGHTS = {
-  controls: 0.40,
-  risks: 0.30,
+  controls: 0.35,
+  risks: 0.25,
   audits: 0.20,
   documents: 0.10,
+  training: 0.10,
 } as const;
 
 // ============================================================================
@@ -142,12 +143,14 @@ export function calculateGlobalScore(breakdown: {
   risks: number;
   audits: number;
   documents: number;
+  training: number;
 }): number {
   const score =
     breakdown.controls * COMPLIANCE_WEIGHTS.controls +
     breakdown.risks * COMPLIANCE_WEIGHTS.risks +
     breakdown.audits * COMPLIANCE_WEIGHTS.audits +
-    breakdown.documents * COMPLIANCE_WEIGHTS.documents;
+    breakdown.documents * COMPLIANCE_WEIGHTS.documents +
+    breakdown.training * COMPLIANCE_WEIGHTS.training;
   return Math.round(score * 100) / 100;
 }
 

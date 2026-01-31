@@ -94,8 +94,10 @@ export const PrivacyService = {
     },
 
     async importActivities(activities: Omit<ProcessingActivity, 'id'>[], user: UserProfile): Promise<number> {
-        const batch = writeBatch(db);
+        const BATCH_SIZE = 500;
+        let batch = writeBatch(db);
         let count = 0;
+        let batchCount = 0;
 
         for (const act of activities) {
             const ref = doc(collection(db, 'processing_activities'));
@@ -105,10 +107,20 @@ export const PrivacyService = {
                 updatedAt: serverTimestamp()
             });
             count++;
+            batchCount++;
+
+            if (batchCount >= BATCH_SIZE) {
+                await batch.commit();
+                batch = writeBatch(db);
+                batchCount = 0;
+            }
+        }
+
+        if (batchCount > 0) {
+            await batch.commit();
         }
 
         if (count > 0) {
-            await batch.commit();
             await logAction(
                 user,
                 'IMPORT',

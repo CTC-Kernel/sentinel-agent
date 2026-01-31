@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, arrayRemove, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, deleteDoc, doc, writeBatch, arrayRemove, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Finding, AuditChecklist, Audit } from '../types';
 import { ErrorLogger } from './errorLogger';
@@ -147,6 +147,13 @@ export class AuditService {
         const { auditId, organizationId } = options;
 
         try {
+            // 0. Verify audit belongs to organization (IDOR protection)
+            const auditRef = doc(db, 'audits', auditId);
+            const auditSnap = await getDoc(auditRef);
+            if (!auditSnap.exists() || auditSnap.data().organizationId !== organizationId) {
+                throw new Error('Audit not found or access denied');
+            }
+
             // 1. Check dependencies
             const { hasDependencies, dependencies } = await this.checkDependencies(auditId, organizationId);
 
@@ -286,10 +293,12 @@ export class AuditService {
         userId: string
     ): Promise<number> {
         try {
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
 
-            lines.forEach((row: Record<string, string>) => {
+            for (const row of lines) {
                 const values = Object.values(row) as string[];
                 const name = row['Nom'] || row['Name'] || values[0] || 'Nouvel Audit';
                 const type = row['Type'] || values[1] || 'Interne';
@@ -300,7 +309,7 @@ export class AuditService {
 
                 if (name) {
                     const newRef = doc(collection(db, 'audits'));
-                    const newAuditData: Partial<Audit> = {
+                    const newAuditData = {
                         organizationId,
                         name: name.trim(),
                         type: (type.trim() || 'Interne') as Audit['type'],
@@ -310,17 +319,26 @@ export class AuditService {
                         scope: description.trim(),
                         findingsCount: 0,
                         createdBy: userId,
-                        createdAt: serverTimestamp() as unknown as string,
-                        updatedAt: serverTimestamp() as unknown as string,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
                         relatedProjectIds: [],
                         relatedControlIds: []
                     };
                     batch.set(newRef, sanitizeData(newAuditData));
                     count++;
-                }
-            });
+                    batchCount++;
 
-            await batch.commit();
+                    if (batchCount >= BATCH_SIZE) {
+                        await batch.commit();
+                        batch = writeBatch(db);
+                        batchCount = 0;
+                    }
+                }
+            }
+
+            if (batchCount > 0) {
+                await batch.commit();
+            }
             return count;
         } catch (error) {
             ErrorLogger.error(error, 'AuditService.importAuditsFromCSV');

@@ -17,7 +17,7 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
 
     const { data: projects, loading } = useFirestoreCollection<Project>(
         'projects',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { enabled: !!user?.organizationId }
     );
 

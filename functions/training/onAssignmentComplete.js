@@ -75,16 +75,19 @@ exports.onTrainingAssignmentComplete = onDocumentUpdated(
       logger.info('Score recalculation flagged', { organizationId });
 
       // 2. Update campaign progress if this assignment belongs to a campaign
+      // Uses transaction to prevent race conditions when multiple assignments complete concurrently
       if (afterData.campaignId) {
-        const campaignRef = db
-          .collection('organizations')
-          .doc(organizationId)
-          .collection(CAMPAIGNS_COLLECTION)
-          .doc(afterData.campaignId);
+        await db.runTransaction(async (transaction) => {
+          const campaignRef = db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection(CAMPAIGNS_COLLECTION)
+            .doc(afterData.campaignId);
 
-        const campaignDoc = await campaignRef.get();
+          const campaignDoc = await transaction.get(campaignRef);
 
-        if (campaignDoc.exists) {
+          if (!campaignDoc.exists) return;
+
           // Count completed assignments for this campaign
           const campaignAssignmentsQuery = await db
             .collection('organizations')
@@ -103,13 +106,25 @@ exports.onTrainingAssignmentComplete = onDocumentUpdated(
             if (data.isOverdue && data.status !== 'completed') overdue++;
           });
 
-          // Update campaign progress
-          await campaignRef.update({
+          // Update campaign progress inside transaction
+          const updateData = {
             'progress.completed': completed,
             'progress.overdue': overdue,
             'progress.totalAssignments': total,
             updatedAt: now,
-          });
+          };
+
+          // Also mark campaign as completed if all done
+          if (completed === total && total > 0) {
+            updateData.status = 'completed';
+            updateData.completedAt = now;
+            logger.info('Campaign marked as completed', {
+              campaignId: afterData.campaignId,
+              organizationId,
+            });
+          }
+
+          transaction.update(campaignRef, updateData);
 
           logger.info('Campaign progress updated', {
             campaignId: afterData.campaignId,
@@ -117,20 +132,7 @@ exports.onTrainingAssignmentComplete = onDocumentUpdated(
             total,
             percentage: Math.round((completed / total) * 100),
           });
-
-          // Check if campaign should be marked as completed
-          if (completed === total && total > 0) {
-            await campaignRef.update({
-              status: 'completed',
-              completedAt: now,
-            });
-
-            logger.info('Campaign marked as completed', {
-              campaignId: afterData.campaignId,
-              organizationId,
-            });
-          }
-        }
+        });
       }
 
       // 3. Create audit log entry
@@ -168,18 +170,3 @@ exports.onTrainingAssignmentComplete = onDocumentUpdated(
   }
 );
 
-/**
- * Trigger when a training assignment is created
- * Updates campaign progress to include new assignment
- */
-exports.onTrainingAssignmentCreated = onDocumentUpdated(
-  {
-    document: 'organizations/{organizationId}/training_assignments/{assignmentId}',
-    region: 'europe-west1',
-    memory: '128MiB',
-  },
-  async (event) => {
-    // This is handled by the scheduled check - no action needed on create
-    return null;
-  }
-);

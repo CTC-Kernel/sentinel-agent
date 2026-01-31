@@ -106,7 +106,7 @@ describe('AdminService', () => {
 
     describe('getAuditLogs', () => {
         it('should return audit logs', async () => {
-            const logs = await AdminService.getAuditLogs();
+            const logs = await AdminService.getAuditLogs('org-123');
 
             expect(Array.isArray(logs)).toBe(true);
             expect(logs.length).toBeGreaterThan(0);
@@ -117,7 +117,7 @@ describe('AdminService', () => {
         it('should accept limit parameter', async () => {
             const { limit } = await import('firebase/firestore');
 
-            await AdminService.getAuditLogs(50);
+            await AdminService.getAuditLogs('org-123', 50);
 
             expect(limit).toHaveBeenCalledWith(50);
         });
@@ -126,7 +126,7 @@ describe('AdminService', () => {
             const { getDocs } = await import('firebase/firestore');
             vi.mocked(getDocs).mockRejectedValueOnce(new Error('Firestore error'));
 
-            const logs = await AdminService.getAuditLogs();
+            const logs = await AdminService.getAuditLogs('org-123');
 
             expect(logs).toEqual([]);
         });
@@ -258,6 +258,7 @@ describe('AuditLog interface', () => {
             actorEmail: 'actor@test.com',
             action: 'TEST_ACTION',
             targetId: 'target-1',
+            organizationId: 'org-123',
             metadata: { key: 'value' }
         };
 

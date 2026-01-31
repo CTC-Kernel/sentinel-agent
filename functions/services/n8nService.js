@@ -16,17 +16,18 @@ class N8NService {
      */
     static validateSecret(request) {
         const secret = n8nWebhookSecret.value();
+
+        // Deny all requests if the webhook secret is not configured
+        if (!secret || secret === 'unconfigured') {
+            logger.warn("N8N Webhook Secret is not configured. Denying request. Please set the N8N_WEBHOOK_SECRET secret.");
+            return false;
+        }
+
         const authHeader = request.get('Authorization');
         const customHeader = request.get('X-N8N-Secret');
 
         if (authHeader && authHeader === `Bearer ${secret}`) return true;
         if (customHeader && customHeader === secret) return true;
-
-        // Allow Development bypass if secret is not set (WARN only)
-        if (!secret || secret === 'unconfigured') {
-            logger.warn("N8N Webhook Secret is unconfigured! Allowing request for testing.");
-            return true;
-        }
 
         return false;
     }

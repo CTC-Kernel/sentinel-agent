@@ -5,7 +5,7 @@ import { UserProfile, Control, Risk } from '../types';
 
 export const useReferenceData = () => {
     const { user } = useStore();
-    const orgId = user?.organizationId || 'ignore';
+    const orgId = user?.organizationId || '';
 
     // Users (Cached, Non-realtime)
     // Used for dropdowns, assignments, etc.

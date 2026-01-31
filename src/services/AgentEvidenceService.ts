@@ -291,7 +291,8 @@ export async function getFrameworkEvidenceCoverage(
     try {
         const q = query(
             getEvidenceCollection(organizationId),
-            where('frameworkCode', '==', frameworkCode)
+            where('frameworkCode', '==', frameworkCode),
+            limit(5000)
         );
 
         const snapshot = await getDocs(q);
@@ -392,7 +393,7 @@ export async function getEvidenceStats(
     organizationId: string
 ): Promise<EvidenceCollectionStats> {
     try {
-        const q = query(getEvidenceCollection(organizationId));
+        const q = query(getEvidenceCollection(organizationId), limit(5000));
         const snapshot = await getDocs(q);
         const evidence = snapshot.docs.map(doc => docToEvidence(doc.id, doc.data()));
 
@@ -463,10 +464,11 @@ export async function createEvidenceFromResult(
         }
 
         const createdEvidence: AgentEvidence[] = [];
-        const now = new Date();
-        const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+        const now = new Date().toISOString();
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
 
         for (const mapping of mappings) {
+            // Store as Timestamps in Firestore, return ISO strings to caller
             const evidenceData = {
                 organizationId,
                 resultId: result.id,
@@ -482,7 +484,7 @@ export async function createEvidenceFromResult(
                 summary: `${checkDef.name}: ${result.status === 'pass' ? 'Conforme' : 'Non conforme'}`,
                 verifiedAt: Timestamp.fromDate(new Date(result.timestamp)),
                 createdAt: Timestamp.now(),
-                expiresAt: Timestamp.fromDate(expiresAt),
+                expiresAt: Timestamp.fromDate(new Date(expiresAt)),
                 reviewed: false,
             };
 
@@ -492,8 +494,8 @@ export async function createEvidenceFromResult(
                 ...evidenceData,
                 id: docRef.id,
                 verifiedAt: result.timestamp,
-                createdAt: now.toISOString(),
-                expiresAt: expiresAt.toISOString(),
+                createdAt: now,
+                expiresAt: expiresAt,
             } as AgentEvidence);
         }
 

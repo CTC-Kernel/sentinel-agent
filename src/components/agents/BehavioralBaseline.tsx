@@ -115,6 +115,7 @@ const MetricBaselineCard: React.FC<{
 
     // Calculate percentage of range for bar visualization
     const range = baseline.max - baseline.min;
+    const safeRange = range === 0 ? 1 : range; // Prevent NaN from division by zero
     const normalLow = Math.max(0, baseline.mean - baseline.stdDev);
     const normalHigh = baseline.mean + baseline.stdDev;
 
@@ -146,15 +147,15 @@ const MetricBaselineCard: React.FC<{
                 <div
                     className="absolute h-full bg-success/30"
                     style={{
-                        left: `${((normalLow - baseline.min) / range) * 100}%`,
-                        width: `${((normalHigh - normalLow) / range) * 100}%`,
+                        left: `${((normalLow - baseline.min) / safeRange) * 100}%`,
+                        width: `${((normalHigh - normalLow) / safeRange) * 100}%`,
                     }}
                 />
                 {/* Mean Line */}
                 <div
                     className="absolute h-full w-0.5 bg-success"
                     style={{
-                        left: `${((baseline.mean - baseline.min) / range) * 100}%`,
+                        left: `${((baseline.mean - baseline.min) / safeRange) * 100}%`,
                     }}
                 />
                 {/* Current Value Marker */}
@@ -165,7 +166,7 @@ const MetricBaselineCard: React.FC<{
                             isAnomalous ? 'bg-destructive' : 'bg-primary'
                         )}
                         style={{
-                            left: `${Math.min(100, Math.max(0, ((currentValue - baseline.min) / range) * 100))}%`,
+                            left: `${Math.min(100, Math.max(0, ((currentValue - baseline.min) / safeRange) * 100))}%`,
                         }}
                     />
                 )}

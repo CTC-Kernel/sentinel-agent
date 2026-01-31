@@ -45,10 +45,9 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
     // --- Data Fetching ---
 
     // Harden demoMode detection
-    const isDemo = demoMode || (typeof window !== 'undefined' && (
-        !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
+    const isDemo = demoMode || (typeof window !== 'undefined' &&
         (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
-    ));
+    );
 
     // Firestore Data (Disabled in Demo Mode)
     // Core collection 'audits' is always fetched (unless strict optimization needed later)

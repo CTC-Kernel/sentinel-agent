@@ -110,6 +110,23 @@ async function getDownloadUrl(product, platform, version = 'latest') {
 /**
  * Track download in Firestore
  */
+/**
+ * Anonymize IP address for privacy compliance.
+ * IPv4: masks the last octet. IPv6: masks the last 80 bits.
+ */
+function anonymizeIP(ip) {
+    if (!ip) return 'unknown';
+    if (ip.includes(':')) {
+        // IPv6: mask last 80 bits (keep first 3 groups)
+        const parts = ip.split(':');
+        return parts.slice(0, 3).join(':') + ':0:0:0:0:0';
+    }
+    // IPv4: mask last octet
+    const parts = ip.split('.');
+    parts[3] = '0';
+    return parts.join('.');
+}
+
 async function trackDownload(product, platform, version, metadata = {}) {
     const db = admin.firestore();
 
@@ -119,7 +136,7 @@ async function trackDownload(product, platform, version, metadata = {}) {
         version,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
         userAgent: metadata.userAgent || null,
-        ip: metadata.ip || null,
+        ip: anonymizeIP(metadata.ip),
         referer: metadata.referer || null,
     });
 
@@ -141,7 +158,7 @@ async function trackDownload(product, platform, version, metadata = {}) {
  */
 const downloadRelease = onRequest({
     region: 'europe-west1',
-    cors: true,
+    cors: [/cyber-threat-consulting\.com$/, /sentinel-grc\.com$/],
 }, async (req, res) => {
     try {
         // Parse URL: /releases/{product}/{platform}/{version?}
@@ -240,7 +257,6 @@ const downloadRelease = onRequest({
         console.error('Download error:', error);
         res.status(500).json({
             error: 'Internal server error',
-            message: error.message,
         });
     }
 });
@@ -268,7 +284,9 @@ async function getChecksum(product, platform, version = 'latest') {
 
         const [content] = await file.download();
         return content.toString('utf-8').trim().split(' ')[0]; // SHA256 format: hash filename
-    } catch {
+    } catch (error) {
+        const { logger } = require('firebase-functions');
+        logger.warn('Failed to retrieve checksum', { error: error.message, product, platform, version });
         return null;
     }
 }
@@ -295,7 +313,9 @@ async function getFileSize(product, platform, version = 'latest') {
             return `${(bytes / 1024).toFixed(1)} KB`;
         }
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    } catch {
+    } catch (error) {
+        const { logger } = require('firebase-functions');
+        logger.warn('Failed to retrieve file size', { error: error.message, product, platform, version });
         return null;
     }
 }
@@ -307,6 +327,10 @@ async function getFileSize(product, platform, version = 'latest') {
 const getReleaseInfo = onCall({
     region: 'europe-west1',
 }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'Authentication required');
+    }
+
     const { product = 'agent' } = request.data || {};
 
     const config = RELEASE_CONFIG[product];
@@ -428,12 +452,20 @@ const uploadRelease = onCall({
 const getDownloadStats = onCall({
     region: 'europe-west1',
 }, async (request) => {
-    // Verify authentication
+    // Verify authentication and admin role
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
     const db = admin.firestore();
+
+    // Verify admin role before exposing stats
+    const userDoc = await db.collection('users').doc(request.auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || !['admin', 'rssi'].includes(userData.role)) {
+        throw new HttpsError('permission-denied', 'Admin access required to view download stats');
+    }
+
     const { product = 'agent', days = 30 } = request.data || {};
 
     const startDate = new Date();

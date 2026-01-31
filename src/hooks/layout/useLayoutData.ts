@@ -16,38 +16,38 @@ export const useLayoutData = (options: UseLayoutDataOptions = {}) => {
 
   const { data: notifications, loading: loadingNotifications } = useFirestoreCollection<Notification>(
     'notifications',
-    [where('userId', '==', user?.uid || 'ignore')],
+    [where('userId', '==', user?.uid || '')],
     { realtime: true, enabled: enableNotifications && !!user?.uid }
   );
 
   // Command palette needs access to searchable entities - only load when enabled
   const { data: documents, loading: loadingDocuments } = useFirestoreCollection<Document>(
     'documents',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: enableSearch && !!user?.organizationId }
   );
 
   const { data: risks, loading: loadingRisks } = useFirestoreCollection<Risk>(
     'risks',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: enableSearch && !!user?.organizationId }
   );
 
   const { data: incidents, loading: loadingIncidents } = useFirestoreCollection<Incident>(
     'incidents',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: enableSearch && !!user?.organizationId }
   );
 
   const { data: assets, loading: loadingAssets } = useFirestoreCollection<Asset>(
     'assets',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: enableSearch && !!user?.organizationId }
   );
 
   const { data: projects, loading: loadingProjects } = useFirestoreCollection<Project>(
     'projects',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: enableSearch && !!user?.organizationId }
   );
 

@@ -82,8 +82,10 @@ export class IncidentService {
         if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
 
         try {
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
 
             for (const row of data) {
                 const title = row.Titre || row.title;
@@ -115,9 +117,16 @@ export class IncidentService {
                 const sanitized = sanitizeData(incidentData);
                 batch.set(newDocRef, sanitized);
                 count++;
+                batchCount++;
+
+                if (batchCount >= BATCH_SIZE) {
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    batchCount = 0;
+                }
             }
 
-            if (count > 0) {
+            if (batchCount > 0) {
                 await batch.commit();
 
                 // Generate bulk audit log

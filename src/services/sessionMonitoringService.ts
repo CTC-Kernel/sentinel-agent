@@ -70,10 +70,14 @@ interface ActiveSession {
 }
 
 interface SessionInfo {
+  /** Hashed user identifier (never store raw userId in localStorage) */
   userId: string;
+  /** Hashed email (never store raw email in localStorage) */
   email: string;
   lastActivity: number;
   loginTime: number;
+  /** Timestamp when this session_info entry was stored (for TTL expiration) */
+  storedAt: number;
   ipAddress?: string;
   userAgent?: string;
   location?: string;
@@ -106,8 +110,25 @@ class SessionMonitoringService {
   private sessionKey = 'session_info';
   private anomaliesKey = 'session_anomalies';
   private idleTimeout = 15 * 60 * 1000; // 15 minutes par défaut
+  /** TTL for session_info localStorage entry: 24 hours */
+  private static SESSION_INFO_TTL_MS = 24 * 60 * 60 * 1000;
   private activityCheckInterval: NodeJS.Timeout | null = null;
   private lastActivityTime = Date.now();
+
+  /**
+   * Hash a string using FNV-1a to avoid storing PII in localStorage.
+   */
+  private hashString(input: string): string {
+    let hash = 2166136261;
+    for (let i = 0; i < input.length; i++) {
+      hash ^= input.charCodeAt(i);
+      hash = (hash * 16777619) >>> 0;
+    }
+    return `hashed_${hash.toString(16).padStart(8, '0')}`;
+  }
+
+  /** Bound activity handler for event listener registration/removal */
+  private activityHandler = () => this.recordActivity();
 
   /** Current session ID for this browser/device */
   private currentSessionId: string | null = null;
@@ -575,19 +596,24 @@ class SessionMonitoringService {
     const existingSession = this.getSessionInfo();
     const fingerprint = this.generateDeviceFingerprint();
 
+    // Hash userId and email to avoid storing PII in plaintext localStorage
+    const hashedUserId = this.hashString(user.uid);
+    const hashedEmail = this.hashString(user.email || '');
+
     const sessionInfo: SessionInfo = {
-      userId: user.uid,
-      email: user.email || '',
+      userId: hashedUserId,
+      email: hashedEmail,
       lastActivity: Date.now(),
-      loginTime: existingSession?.userId === user.uid ? existingSession.loginTime : Date.now(),
+      loginTime: existingSession?.userId === hashedUserId ? existingSession.loginTime : Date.now(),
+      storedAt: Date.now(),
       userAgent: navigator.userAgent,
-      activityCount: existingSession?.userId === user.uid ? existingSession.activityCount + 1 : 1,
+      activityCount: existingSession?.userId === hashedUserId ? existingSession.activityCount + 1 : 1,
       deviceFingerprint: fingerprint,
       sessionId: this.currentSessionId || undefined
     };
 
     // Détecter les anomalies
-    if (existingSession && existingSession.userId !== user.uid) {
+    if (existingSession && existingSession.userId !== hashedUserId) {
       this.reportAnomaly({
         type: 'concurrent_session',
         severity: 'high',
@@ -595,13 +621,13 @@ class SessionMonitoringService {
         timestamp: Date.now(),
         metadata: {
           previousUser: existingSession.userId,
-          newUser: user.uid
+          newUser: hashedUserId
         }
       });
     }
 
-    // Detect device change for same user
-    if (existingSession && existingSession.userId === user.uid &&
+    // Detect device change for same user (compare with hashed userId)
+    if (existingSession && existingSession.userId === hashedUserId &&
       existingSession.deviceFingerprint) {
       const similarity = this.compareFingerprints(
         existingSession.deviceFingerprint,
@@ -644,8 +670,7 @@ class SessionMonitoringService {
 
     ErrorLogger.info('Session initialisée', 'SessionMonitoring', {
       metadata: {
-        userId: user.uid,
-        email: user.email,
+        userId: hashedUserId,
         deviceHash: fingerprint.hash
       }
     });
@@ -665,8 +690,9 @@ class SessionMonitoringService {
 
       // Update Firestore session (debounced - only every 5 minutes)
       if (session.activityCount % 50 === 0) {
-        this.updateSessionActivity().catch(() => {
-          // Silent fail
+        this.updateSessionActivity().catch((err) => {
+          /* intentional: non-critical heartbeat update - failing would interrupt user experience */
+          void err;
         });
       }
     }
@@ -689,7 +715,19 @@ class SessionMonitoringService {
     // Écouter les événements d'activité
     if (typeof window !== 'undefined') {
       ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
-        window.addEventListener(event, () => this.recordActivity(), { passive: true });
+        window.addEventListener(event, this.activityHandler, { passive: true });
+      });
+    }
+  }
+
+  /**
+   * Remove activity event listeners to prevent memory leaks.
+   * Should be called when the service is no longer needed.
+   */
+  destroyActivityMonitoring(): void {
+    if (typeof window !== 'undefined') {
+      ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+        window.removeEventListener(event, this.activityHandler);
       });
     }
   }
@@ -802,8 +840,8 @@ class SessionMonitoringService {
     const currentUser = auth.currentUser;
     if (!currentUser) return false;
 
-    // Vérifier que l'utilisateur correspond
-    if (session.userId !== currentUser.uid) {
+    // Vérifier que l'utilisateur correspond (session stores hashed userId)
+    if (session.userId !== this.hashString(currentUser.uid)) {
       this.reportAnomaly({
         type: 'suspicious_activity',
         severity: 'critical',
@@ -811,7 +849,7 @@ class SessionMonitoringService {
         timestamp: Date.now(),
         metadata: {
           localUserId: session.userId,
-          authUserId: currentUser.uid
+          authUserId: this.hashString(currentUser.uid)
         }
       });
       return false;
@@ -896,7 +934,8 @@ class SessionMonitoringService {
   }
 
   /**
-   * Obtient les informations de session
+   * Obtient les informations de session.
+   * Enforces a 24h TTL: if the stored entry is older than 24 hours, it is removed.
    * @returns Informations de session ou null
    */
   private getSessionInfo(): SessionInfo | null {
@@ -905,7 +944,19 @@ class SessionMonitoringService {
     try {
       const stored = localStorage.getItem(this.sessionKey);
       if (!stored) return null;
-      return JSON.parse(stored) as SessionInfo;
+
+      const session = JSON.parse(stored) as SessionInfo;
+
+      // Enforce 24h TTL expiration
+      const storedAt = session.storedAt || session.loginTime;
+      if (Date.now() - storedAt > SessionMonitoringService.SESSION_INFO_TTL_MS) {
+        // Session info has expired - remove it
+        localStorage.removeItem(this.sessionKey);
+        ErrorLogger.info('Session info expired (>24h TTL), removed from localStorage', 'SessionMonitoring');
+        return null;
+      }
+
+      return session;
     } catch (error) {
       ErrorLogger.error(error, 'SessionMonitoring.getSessionInfo');
       return null;
@@ -913,13 +964,16 @@ class SessionMonitoringService {
   }
 
   /**
-   * Sauvegarde les informations de session
+   * Sauvegarde les informations de session.
+   * Always refreshes storedAt to extend the TTL on active sessions.
    * @param info Informations de session
    */
   private saveSessionInfo(info: SessionInfo): void {
     if (typeof window === 'undefined') return;
 
     try {
+      // Refresh the storedAt timestamp on every save to keep active sessions alive
+      info.storedAt = Date.now();
       localStorage.setItem(this.sessionKey, JSON.stringify(info));
     } catch (error) {
       ErrorLogger.error(error, 'SessionMonitoring.saveSessionInfo');
@@ -968,8 +1022,9 @@ class SessionMonitoringService {
     if (typeof window === 'undefined') return;
 
     // Unregister from Firestore
-    this.unregisterSession().catch(() => {
-      // Silent fail
+    this.unregisterSession().catch((err) => {
+      /* intentional: non-critical cleanup during session clear - Firestore may already be disconnected */
+      void err;
     });
 
     localStorage.removeItem(this.sessionKey);
@@ -978,6 +1033,9 @@ class SessionMonitoringService {
       clearInterval(this.activityCheckInterval);
       this.activityCheckInterval = null;
     }
+
+    // Remove event listeners to prevent memory leaks
+    this.destroyActivityMonitoring();
 
     ErrorLogger.info('Session nettoyée', 'SessionMonitoring');
   }

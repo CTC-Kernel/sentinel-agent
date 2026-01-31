@@ -79,7 +79,7 @@ export const ThreatIntelligence: React.FC = () => {
             initialLoadRef.current = true;
             // Force mock data seeding if in demo mode and no data available
             if (demoMode) {
-                ThreatFeedService.useSimulation = true;
+                ThreatFeedService.enableSimulation();
                 ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo')
                     .then(stats => {
                         if (stats.threats > 0) logAction(user, 'AUTO_SEED_MOCK', 'ThreatIntelligence', `Initialized with ${stats.threats} mock threats`);
@@ -112,9 +112,9 @@ export const ThreatIntelligence: React.FC = () => {
             ErrorLogger.error(e instanceof Error ? e : new Error(String(e)), 'ThreatIntelligence.seedLiveThreats');
 
             addToast("Passage en mode simulation (Hors-ligne).", "info");
-            // Fallback to simulation
-            ThreatFeedService.useSimulation = true;
-            await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
+            // Fallback to simulation for offline/demo mode
+            ThreatFeedService.enableSimulation();
+            await ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo');
         } finally {
             setIsSeeding(false);
         }

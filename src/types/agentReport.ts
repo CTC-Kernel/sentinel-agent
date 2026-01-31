@@ -7,7 +7,7 @@
  * Sprint 10 - Reporting & RBAC
  */
 
-import type { AgentOS } from './agent';
+import type { AgentOS, AgentStatus } from './agent';
 import type { PolicyScope } from './agentPolicy';
 
 // ============================================================================
@@ -77,7 +77,7 @@ export interface ReportFilters {
     osTypes?: AgentOS[];
 
     /** Filter by agent status */
-    statuses?: Array<'active' | 'offline' | 'pending'>;
+    statuses?: Array<AgentStatus>;
 
     /** Filter by compliance score range */
     scoreRange?: { min: number; max: number };
@@ -460,7 +460,7 @@ export interface FleetHealthReportData {
 
     /** Status distribution */
     statusDistribution: Array<{
-        status: 'active' | 'offline' | 'pending' | 'error';
+        status: AgentStatus;
         count: number;
         percentage: number;
     }>;
@@ -485,7 +485,6 @@ export interface FleetHealthReportData {
         avgCpuUsage: number;
         avgMemoryUsage: number;
         avgDiskUsage: number;
-        avgNetworkLatency: number;
     };
 
     /** Anomaly summary */
@@ -510,7 +509,7 @@ export interface FleetHealthReportData {
         hostname: string;
         os: AgentOS;
         version: string;
-        status: 'active' | 'offline' | 'pending';
+        status: AgentStatus;
         lastSeen: string;
         uptime: number;
         cpuUsage: number;

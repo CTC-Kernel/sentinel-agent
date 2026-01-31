@@ -33,9 +33,11 @@
     "projects": "Projects",
     "operations": "Operations",
     "retry": "Retry",
+    "back": "Back",
     "closeMenu": "Close menu",
     "settings": {
       "title": "Settings",
+      "subtitle": "Manage your preferences and configuration",
       "organization": "Organization",
       "searchMembers": "Search members",
       "roles": {
@@ -1123,6 +1125,10 @@
     "frameworkId": "Framework"
   },
   "controls": {
+    "overview": "Overview",
+    "iso27002Controls": "ISO 27002 Controls",
+    "effectivenessTitle": "Control Effectiveness",
+    "effectivenessDescription": "Security control maturity assessment (ISO 27002)",
     "status": {
       "compliant": "Compliant",
       "partial": "Partial",
@@ -3981,7 +3987,8 @@
     },
     "confirm": {
       "disconnectTitle": "Disconnect integration",
-      "disconnectMessage": "Do you really want to disconnect {{provider}}?"
+      "disconnectMessage": "Do you really want to disconnect {{provider}}?",
+      "disconnect": "Disconnect"
     },
     "success": {
       "connected": "Connected to {{provider}} successfully",
@@ -4444,5 +4451,11 @@
         "reviewDesc": "Review and create the campaign"
       }
     }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "Sorry, the page you are looking for seems to have been moved, deleted, or never existed.",
+    "backToDashboard": "Back to Dashboard",
+    "report": "Report"
   }
 }

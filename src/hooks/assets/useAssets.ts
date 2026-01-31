@@ -20,10 +20,9 @@ export function useAssets(enabled = true) {
     const { limits } = usePlanLimits();
     const [isSubmitting, setIsSubmitting] = useState(false);
     // Harden demoMode
-    const isDemo = demoMode || (typeof window !== 'undefined' && (
-        !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
+    const isDemo = demoMode || (typeof window !== 'undefined' &&
         (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
-    ));
+    );
 
     // Mock Data State
     const [mockAssets, setMockAssets] = useState<Asset[]>([]);

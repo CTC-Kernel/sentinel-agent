@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { httpsCallable } from 'firebase/functions';
@@ -44,7 +45,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { toast } from '@/lib/toast';
 import { AgentService } from '../../services/AgentService';
-import { SentinelAgent, AgentStatus } from '../../types/agent';
+import { SentinelAgent, AgentStatus, AgentEnrollmentToken } from '../../types/agent';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -296,9 +297,22 @@ const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     </div>
 );
 
+// Format token expiration as relative time
+const formatTokenExpiry = (expiresAt: string | Date): string => {
+    const date = new Date(expiresAt);
+    const now = Date.now();
+    const diff = date.getTime() - now;
+    if (diff < 0) return 'Expiré';
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 24) return `Expire dans ${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `Expire dans ${days}j`;
+};
+
 export const AgentManagement: React.FC = () => {
     const { user } = useStore();
     const { claimsSynced } = useAuth();
+    const navigate = useNavigate();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
     const [showEnrollment, setShowEnrollment] = useState(false);
@@ -311,6 +325,8 @@ export const AgentManagement: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'download' | 'docs' | 'faq' | 'support'>('download');
     const [activeStatusIndex, setActiveStatusIndex] = useState(0);
     const [activeOSIndex, setActiveOSIndex] = useState(0);
+    const [enrollmentTokens, setEnrollmentTokens] = useState<AgentEnrollmentToken[]>([]);
+    const [revokingTokenId, setRevokingTokenId] = useState<string | null>(null);
 
     // FAQ Data
     const faqItems = [
@@ -485,7 +501,7 @@ export const AgentManagement: React.FC = () => {
                     } else if (errorCode === 'unavailable') {
                         toast.error("Service Firestore indisponible. Réessayez plus tard.");
                     } else {
-                        toast.error(`Échec du chargement des agents: ${errorCode || error.message}`);
+                        toast.error("Échec du chargement des agents");
                     }
                     setLoading(false);
                 }
@@ -498,6 +514,36 @@ export const AgentManagement: React.FC = () => {
             if (unsubscribe) unsubscribe();
         };
     }, [user?.organizationId, claimsSynced]);
+
+    // Subscribe to enrollment tokens
+    useEffect(() => {
+        if (!user?.organizationId) return;
+
+        const unsubscribe = AgentService.subscribeToTokens(
+            user.organizationId,
+            (tokens) => {
+                setEnrollmentTokens(tokens);
+            },
+            (error) => {
+                ErrorLogger.error(error, 'AgentManagement.subscribeToTokens');
+            }
+        );
+
+        return () => unsubscribe();
+    }, [user?.organizationId]);
+
+    const handleRevokeToken = async (tokenId: string) => {
+        if (!user?.organizationId) return;
+        setRevokingTokenId(tokenId);
+        try {
+            await AgentService.revokeEnrollmentToken(user.organizationId, tokenId);
+            toast.success("Token revoque avec succes");
+        } catch {
+            toast.error("Erreur lors de la revocation du token");
+        } finally {
+            setRevokingTokenId(null);
+        }
+    };
 
     const handleDelete = async (agentId: string) => {
         if (!user?.organizationId) return;
@@ -517,6 +563,7 @@ export const AgentManagement: React.FC = () => {
             const result = await AgentService.generateEnrollmentToken(user.organizationId);
             setEnrollmentToken(result.token || null);
             setShowEnrollment(true);
+            toast.success('Token d\'enrôlement généré', 'Copiez le token et utilisez-le pour enrôler un nouvel agent.');
         } catch {
             toast.error("Erreur lors de la génération du token");
         } finally {
@@ -1045,6 +1092,108 @@ export const AgentManagement: React.FC = () => {
                                                 </tr>
                                             );
                                         })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </motion.div>
+
+                    {/* Enrollment Tokens Management */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.38 }}
+                        className="bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-border/40 dark:border-border/40 overflow-hidden backdrop-blur-sm"
+                    >
+                        <div className="px-6 py-4 border-b border-border/40 dark:border-white/5 flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Lock className="w-4 h-4 text-brand-500" />
+                                Tokens d'enrolement ({enrollmentTokens.length})
+                            </h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="border-b border-border/40 dark:border-border/40">
+                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Token</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Statut</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Utilisations</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Expiration</th>
+                                        <th className="px-6 py-3 text-right"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                    {enrollmentTokens.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-300">
+                                                Aucun token d'enrolement
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        enrollmentTokens.map((token) => (
+                                            <tr key={token.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div>
+                                                        <div className="font-medium text-slate-900 dark:text-white text-sm">
+                                                            {token.name || 'Token'}
+                                                        </div>
+                                                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5">
+                                                            {token.tokenPreview || `${token.id.slice(0, 8)}...`}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={cn(
+                                                            "text-[11px] font-bold",
+                                                            token.status === 'active' && 'bg-success-bg text-success-600 border-success-500/20',
+                                                            token.status === 'expired' && 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+                                                            token.status === 'revoked' && 'bg-red-50 text-red-600 border-red-500/20',
+                                                            token.status === 'exhausted' && 'bg-amber-50 text-amber-600 border-amber-500/20'
+                                                        )}
+                                                    >
+                                                        {token.status === 'active' ? 'Actif' :
+                                                            token.status === 'expired' ? 'Expire' :
+                                                                token.status === 'revoked' ? 'Revoque' : 'Epuise'}
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-300">
+                                                    {token.usedCount}{token.maxUses ? ` / ${token.maxUses}` : ''}
+                                                </td>
+                                                <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-300">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <span className={cn(
+                                                            'font-medium',
+                                                            new Date(token.expiresAt).getTime() < Date.now() ? 'text-destructive' : 'text-slate-700 dark:text-slate-200'
+                                                        )}>
+                                                            {formatTokenExpiry(token.expiresAt)}
+                                                        </span>
+                                                        <span className="text-[11px] text-slate-400">
+                                                            {new Date(token.expiresAt).toLocaleDateString('fr-FR')}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    {token.status === 'active' && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="rounded-3xl text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 border-red-200 dark:border-red-500/20"
+                                                            onClick={() => handleRevokeToken(token.id)}
+                                                            disabled={revokingTokenId === token.id}
+                                                        >
+                                                            {revokingTokenId === token.id ? (
+                                                                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                                            ) : (
+                                                                <XCircle className="w-3 h-3 mr-1" />
+                                                            )}
+                                                            Revoquer
+                                                        </Button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
                                     )}
                                 </tbody>
                             </table>
@@ -1633,7 +1782,15 @@ export const AgentManagement: React.FC = () => {
 
             <EnrollAgentModal
                 isOpen={showEnrollment}
-                onClose={() => setShowEnrollment(false)}
+                onClose={() => {
+                    setShowEnrollment(false);
+                    if (enrollmentToken) {
+                        toast.info('Voir la flotte d\'agents', 'Consultez vos agents enrôlés dans la vue dédiée.', {
+                            label: 'Voir la flotte',
+                            onClick: () => navigate('/agents'),
+                        });
+                    }
+                }}
                 enrollmentToken={enrollmentToken}
                 releaseInfo={releaseInfo}
                 loadingReleases={loadingReleases}

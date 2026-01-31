@@ -22,13 +22,13 @@ export const useThreatIntelActions = () => {
 
   const { data: risks, loading: loadingRisks, add: addRiskRaw } = useFirestoreCollection<Risk>(
     'risks',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: !!user?.organizationId }
   );
 
   const { data: assets, loading: loadingAssets } = useFirestoreCollection<Asset>(
     'assets',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: !!user?.organizationId }
   );
 

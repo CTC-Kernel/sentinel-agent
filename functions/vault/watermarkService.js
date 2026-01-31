@@ -293,7 +293,11 @@ exports.downloadWithWatermark = onCall(
       // Get document metadata from Firestore
       let docData = null;
       let storagePath = filePath;
-      let organizationId = request.auth.token.organizationId;
+      const organizationId = request.auth.token.organizationId;
+
+      if (!organizationId) {
+        throw new HttpsError('permission-denied', 'No organization context');
+      }
 
       if (documentId) {
         const docRef = db.collection('documents').doc(documentId);
@@ -305,9 +309,8 @@ exports.downloadWithWatermark = onCall(
 
         docData = docSnap.data();
         storagePath = docData.url || docData.storagePath;
-        organizationId = docData.organizationId;
 
-        // Check user authorization
+        // Check user authorization: document must belong to the user's organization
         if (docData.organizationId !== organizationId) {
           throw new HttpsError('permission-denied', 'Access denied');
         }

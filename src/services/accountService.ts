@@ -1,6 +1,6 @@
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { db, functions } from '../firebase';
+import { db, functions, auth } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
@@ -58,9 +58,15 @@ export class AccountService {
    */
   static async updateProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
     try {
+      // Verify the caller is updating their own profile
+      const currentUser = auth.currentUser;
+      if (!currentUser || currentUser.uid !== userId) {
+        throw new Error('Cannot update another user\'s profile');
+      }
+      // Never allow role or organizationId changes from client
+      const { role: _role, organizationId: _orgId, ...safeData } = data;
       const userRef = doc(db, 'users', userId);
-      // We use setDoc with merge: true which is equivalent to update but safer if doc doesn't exist
-      await setDoc(userRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+      await setDoc(userRef, { ...safeData, updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
       ErrorLogger.error(error, 'AccountService.updateProfile');
       throw error;

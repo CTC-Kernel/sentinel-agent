@@ -1,6 +1,5 @@
 
 import JSZip from 'jszip';
-import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import DOMPurify from 'dompurify';
 import { PdfService } from './PdfService';

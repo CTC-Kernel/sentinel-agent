@@ -208,8 +208,13 @@ export class ProjectService {
         userDisplayName: string
     ): Promise<number> {
         try {
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
+
+            // Import schema once outside loop
+            const { projectSchema } = await import('../schemas/projectSchema');
 
             for (const row of data) {
                 const name = row.Nom || row.name;
@@ -230,7 +235,6 @@ export class ProjectService {
                 };
 
                 // VALIDATION: Ensure imported data respects projectSchema
-                const { projectSchema } = await import('../schemas/projectSchema');
                 const validation = projectSchema.safeParse(projectData);
                 if (!validation.success) {
                     ErrorLogger.warn('Project import validation failed for row', 'ProjectService.importProjectsFromCSV', {
@@ -243,9 +247,16 @@ export class ProjectService {
                 const sanitized = sanitizeData(projectData);
                 batch.set(newRef, sanitized);
                 count++;
+                batchCount++;
+
+                if (batchCount >= BATCH_SIZE) {
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    batchCount = 0;
+                }
             }
 
-            if (count > 0) {
+            if (batchCount > 0) {
                 await batch.commit();
             }
 

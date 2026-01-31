@@ -27,7 +27,7 @@ export const UserManagement: React.FC = () => {
             window.location.href = '/dashboard';
         } catch (err) {
             ErrorLogger.error(err, 'UserManagement.impersonate');
-            addToast("Impersonation failed: " + (err as Error).message, 'error');
+            addToast("Échec de l'impersonation", 'error');
         } finally {
             setImpersonateTarget(null);
         }

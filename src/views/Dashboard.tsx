@@ -111,7 +111,7 @@ export const DashboardWithQuickActions: React.FC = () => {
     const myRisksList = myRisks;
 
     const projectRisks = React.useMemo(() => {
-        if (!user || user.role !== 'project_manager') return [];
+        if (!user || !hasPermission(user, 'Project', 'manage')) return [];
         const projectIds = myProjects.map(p => p.id);
         return allRisks.filter(r =>
             (r.ownerId === user.uid) ||

@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 // Initialize the Firebase app in the service worker by passing in the messagingSenderId.
 firebase.initializeApp({
@@ -32,7 +32,23 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
-    const urlToOpen = event.notification.data?.url || '/';
+    var urlToOpen = event.notification.data?.url || '/';
+
+    // Validate URL: only allow same-origin or relative paths
+    if (urlToOpen.startsWith('/')) {
+        // Relative path - safe
+    } else {
+        try {
+            var parsed = new URL(urlToOpen);
+            if (parsed.origin !== self.location.origin) {
+                // Reject cross-origin URLs
+                urlToOpen = '/';
+            }
+        } catch (e) {
+            // Invalid URL, fall back to root
+            urlToOpen = '/';
+        }
+    }
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {

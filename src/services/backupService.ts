@@ -162,10 +162,18 @@ export class BackupService {
         }
 
         try {
-          const batch = writeBatch(db);
+          const BATCH_SIZE = 500;
+          let batch = writeBatch(db);
           let batchCount = 0;
 
           for (const docData of documents) {
+            // Vérifier que le document appartient à l'organisation de l'utilisateur
+            if (docData.organizationId && docData.organizationId !== user.organizationId) {
+              summary.collections[collectionName].skipped++;
+              summary.skipped++;
+              continue;
+            }
+
             const docRef = doc(db, collectionName, docData.id);
 
             // Vérifier si le document existe
@@ -183,8 +191,9 @@ export class BackupService {
             batchCount++;
 
             // Exécuter le batch toutes les 500 opérations
-            if (batchCount >= 500) {
+            if (batchCount >= BATCH_SIZE) {
               await batch.commit();
+              batch = writeBatch(db);
               batchCount = 0;
             }
           }
@@ -216,19 +225,6 @@ export class BackupService {
 
   static async listBackups(organizationId: string): Promise<BackupMetadata[]> {
     if (!organizationId) return [];
-
-    // Check for demo mode (using localStorage for robust test support)
-    // Check for demo mode (using localStorage for robust test support)
-    const isDemo = typeof window !== 'undefined' && (
-      !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
-      (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
-    );
-
-    if (isDemo) {
-      // Dynamic import to avoid cycles if necessary, but static is fine here as MockDataService is simple
-      const { MockDataService } = await import('./mockDataService');
-      return MockDataService.getCollection('backups') as unknown as BackupMetadata[];
-    }
 
     try {
       const snapshot = await getDocs(
@@ -374,8 +370,8 @@ export class BackupService {
     return date;
   }
   private static checkPermission(user: UserProfile): void {
-    if (user.role !== 'admin') {
-      throw new Error('Permission denied: Admin role required for backup operations');
+    if (user.role !== 'admin' && user.role !== 'rssi') {
+      throw new Error('Permission denied: Admin or RSSI role required for backup operations');
     }
   }
 }

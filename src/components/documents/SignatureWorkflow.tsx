@@ -515,7 +515,7 @@ export function SignatureWorkflow({
       loadRequests();
     } catch (error) {
       ErrorLogger.error(error, 'SignatureWorkflow.cancelRequest');
-      toast.error(error instanceof Error ? error.message : 'Échec de l\'annulation');
+      toast.error('Une erreur est survenue lors de la signature');
     } finally {
       setCancelRequestTarget(null);
     }

@@ -20,6 +20,7 @@ import { toast } from '@/lib/toast';
 import { db } from '../firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { hasPermission } from '../utils/permissions';
 import type {
   EbiosAnalysis,
   EbiosWorkshopNumber,
@@ -295,6 +296,12 @@ export const EbiosAnalysisDetail: React.FC = () => {
     riskData: CreateRiskFromEbiosData
   ): Promise<string | null> => {
     if (!organizationId || !user?.uid) return null;
+
+    // Permission check before creating risk
+    if (!hasPermission(user, 'Risk', 'create')) {
+      toast.error('Vous n\'avez pas la permission de créer un risque');
+      return null;
+    }
 
     try {
       const score = riskData.probability * riskData.impact;

@@ -78,8 +78,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                             {t('errorBoundary.title')}
                         </h1>
                         <p className="text-slate-600 dark:text-muted-foreground mb-4">
-                            {this.state.error?.message || t('errorBoundary.defaultMessage')}
+                            {import.meta.env.DEV
+                                ? (this.state.error?.message || t('errorBoundary.defaultMessage'))
+                                : 'Une erreur technique est survenue'}
                         </p>
+                        {import.meta.env.DEV && (
                         <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md mx-auto">
                             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                                 {t('errorBoundary.errorDetails')}
@@ -99,6 +102,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                                 )}
                             </div>
                         </div>
+                        )}
                         <button
                             onClick={this.resetError}
                             className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"

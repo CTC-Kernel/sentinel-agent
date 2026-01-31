@@ -16,9 +16,7 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
     // In test mode only (NOT production), hydrate user and allow access
     const isTestMode = !isProduction && (
         import.meta.env.MODE === 'test' ||
-        import.meta.env.VITE_USE_EMULATORS === 'true' ||
-        (typeof window !== 'undefined' &&
-            (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__)
+        import.meta.env.VITE_USE_EMULATORS === 'true'
     );
 
     useEffect(() => {

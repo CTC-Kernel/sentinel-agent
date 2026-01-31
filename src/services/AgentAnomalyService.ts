@@ -15,7 +15,6 @@ import {
     where,
     orderBy,
     getDocs,
-    addDoc,
     updateDoc,
     Unsubscribe,
     limit,
@@ -310,6 +309,9 @@ export async function saveThresholdConfig(
     try {
         const now = new Date().toISOString();
 
+        // Use a single batch for atomicity
+        const batch = writeBatch(db);
+
         if (config.isDefault) {
             const existingDefaults = await getDocs(
                 query(
@@ -318,21 +320,24 @@ export async function saveThresholdConfig(
                 )
             );
 
-            const batch = writeBatch(db);
+            // Clear existing defaults in batch
             existingDefaults.forEach(docSnap => {
                 batch.update(docSnap.ref, { isDefault: false, updatedAt: now });
             });
-            await batch.commit();
         }
 
-        const docRef = await addDoc(getThresholdsCollection(organizationId), {
+        // Add new config in same batch
+        const newRef = doc(getThresholdsCollection(organizationId));
+        batch.set(newRef, {
             ...config,
+            isDefault: config.isDefault || false,
             createdAt: now,
             updatedAt: now,
             createdBy: userId,
         });
+        await batch.commit();
 
-        return docRef.id;
+        return newRef.id;
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.saveThresholdConfig', {
             component: 'AgentAnomalyService',
@@ -489,19 +494,23 @@ export async function bulkAcknowledge(
     userId: string
 ): Promise<void> {
     try {
-        const batch = writeBatch(db);
+        const BATCH_LIMIT = 400;
         const now = new Date().toISOString();
+        const updateData = {
+            status: 'acknowledged',
+            acknowledgedBy: userId,
+            acknowledgedAt: now,
+        };
 
-        for (const anomalyId of anomalyIds) {
-            const docRef = doc(getAnomaliesCollection(organizationId), anomalyId);
-            batch.update(docRef, {
-                status: 'acknowledged',
-                acknowledgedBy: userId,
-                acknowledgedAt: now,
-            });
+        for (let i = 0; i < anomalyIds.length; i += BATCH_LIMIT) {
+            const chunk = anomalyIds.slice(i, i + BATCH_LIMIT);
+            const batch = writeBatch(db);
+            for (const id of chunk) {
+                const ref = doc(getAnomaliesCollection(organizationId), id);
+                batch.update(ref, updateData);
+            }
+            await batch.commit();
         }
-
-        await batch.commit();
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.bulkAcknowledge', {
             component: 'AgentAnomalyService',
@@ -523,20 +532,24 @@ export async function bulkResolve(
     notes?: string
 ): Promise<void> {
     try {
-        const batch = writeBatch(db);
+        const BATCH_LIMIT = 400;
         const now = new Date().toISOString();
+        const updateData = {
+            status: 'resolved',
+            resolvedBy: userId,
+            resolvedAt: now,
+            resolutionNotes: notes || null,
+        };
 
-        for (const anomalyId of anomalyIds) {
-            const docRef = doc(getAnomaliesCollection(organizationId), anomalyId);
-            batch.update(docRef, {
-                status: 'resolved',
-                resolvedBy: userId,
-                resolvedAt: now,
-                resolutionNotes: notes || null,
-            });
+        for (let i = 0; i < anomalyIds.length; i += BATCH_LIMIT) {
+            const chunk = anomalyIds.slice(i, i + BATCH_LIMIT);
+            const batch = writeBatch(db);
+            for (const id of chunk) {
+                const ref = doc(getAnomaliesCollection(organizationId), id);
+                batch.update(ref, updateData);
+            }
+            await batch.commit();
         }
-
-        await batch.commit();
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.bulkResolve', {
             component: 'AgentAnomalyService',
@@ -685,9 +698,12 @@ export async function getAnomalyTimeline(
             const hourKey = `${date.toISOString().split('T')[0]}-${date.getHours()}`;
 
             if (!hourlyMap.has(hourKey)) {
+                // Avoid mutating `date` - create a new truncated date
+                const truncated = new Date(date.getTime());
+                truncated.setMinutes(0, 0, 0);
                 hourlyMap.set(hourKey, {
-                    timestamp: new Date(date.setMinutes(0, 0, 0)).toISOString(),
-                    hour: date.getHours(),
+                    timestamp: truncated.toISOString(),
+                    hour: truncated.getHours(),
                     bySeverity: {
                         critical: 0,
                         high: 0,
@@ -729,7 +745,7 @@ export async function calculateAnomalyStats(
         const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-        const snapshot = await getDocs(getAnomaliesCollection(organizationId));
+        const snapshot = await getDocs(query(getAnomaliesCollection(organizationId), limit(5000)));
         const anomalies = snapshot.docs.map(d => ({
             ...d.data(),
             id: d.id,

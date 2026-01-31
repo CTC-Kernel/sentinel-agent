@@ -2,7 +2,6 @@
  * Agent Results - Handles compliance check result uploads
  */
 
-const { onRequest } = require('firebase-functions/v2/https');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 
@@ -29,138 +28,8 @@ const db = admin.firestore();
  *   acknowledged: boolean
  * }
  */
-exports.uploadResults = onRequest(
-  {
-    region: 'europe-west1',
-    memory: '512MiB',
-    timeoutSeconds: 60,
-    cors: true,
-  },
-  async (req, res) => {
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    try {
-      // Extract agent ID from path: /v1/agents/{agentId}/results
-      const pathParts = req.path.split('/');
-      const agentIdIndex = pathParts.indexOf('agents') + 1;
-      const agentId = pathParts[agentIdIndex];
-
-      if (!agentId || agentId === 'results') {
-        return res.status(400).json({ error: 'Agent ID is required in path' });
-      }
-
-      const {
-        check_id,
-        framework,
-        control_id,
-        status,
-        evidence,
-        timestamp,
-        duration_ms,
-      } = req.body;
-
-      // Validate required fields
-      if (!check_id || !framework || !control_id || !status) {
-        return res.status(400).json({
-          error: 'check_id, framework, control_id, and status are required',
-        });
-      }
-
-      // Validate status
-      const validStatuses = ['pass', 'fail', 'error', 'not_applicable'];
-      if (!validStatuses.includes(status)) {
-        return res.status(400).json({
-          error: `status must be one of: ${validStatuses.join(', ')}`,
-        });
-      }
-
-      // Find agent across all organizations
-      const agentQuery = await db
-        .collectionGroup('agents')
-        .where('id', '==', agentId)
-        .limit(1)
-        .get();
-
-      if (agentQuery.empty) {
-        return res.status(404).json({ error: 'Agent not found' });
-      }
-
-      const agentDoc = agentQuery.docs[0];
-      const agentData = agentDoc.data();
-      const organizationId = agentData.organizationId;
-
-      // Create result document
-      const resultData = {
-        agentId,
-        checkId: check_id,
-        framework,
-        controlId: control_id,
-        status,
-        evidence: evidence || {},
-        agentTimestamp: timestamp || new Date().toISOString(),
-        durationMs: duration_ms || 0,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        hostname: agentData.hostname,
-        machineId: agentData.machineId,
-      };
-
-      const resultRef = await db
-        .collection('organizations')
-        .doc(organizationId)
-        .collection('agents')
-        .doc(agentId)
-        .collection('results')
-        .add(resultData);
-
-      // Update agent's last check timestamp and compliance score
-      const updateData = {
-        lastCheckAt: admin.firestore.FieldValue.serverTimestamp(),
-      };
-
-      // Calculate compliance score based on recent results
-      const recentResults = await db
-        .collection('organizations')
-        .doc(organizationId)
-        .collection('agents')
-        .doc(agentId)
-        .collection('results')
-        .orderBy('createdAt', 'desc')
-        .limit(100)
-        .get();
-
-      if (!recentResults.empty) {
-        let passCount = 0;
-        let totalCount = 0;
-
-        recentResults.docs.forEach((doc) => {
-          const data = doc.data();
-          if (data.status !== 'not_applicable') {
-            totalCount++;
-            if (data.status === 'pass') {
-              passCount++;
-            }
-          }
-        });
-
-        if (totalCount > 0) {
-          updateData.complianceScore = Math.round((passCount / totalCount) * 100);
-        }
-      }
-
-      await agentDoc.ref.update(updateData);
-
-      return res.status(201).json({
-        result_id: resultRef.id,
-        acknowledged: true,
-      });
-    } catch (error) {
-      console.error('Upload results error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-);
+// DISABLED: Standalone onRequest results upload removed - use authenticated version in api.js instead
+// exports.uploadResults = onRequest(...);
 
 /**
  * Get agent results (callable from frontend)
@@ -176,10 +45,17 @@ exports.getAgentResults = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { agentId, organizationId, framework, limit = 50, startAfter } = request.data;
+    const { agentId, organizationId, framework, limit, startAfter } = request.data;
+    const safeLimit = Math.min(Number(limit) || 50, 200);
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
+    }
+
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {
@@ -188,13 +64,13 @@ exports.getAgentResults = onCall(
         .doc(organizationId)
         .collection('agents')
         .doc(agentId)
-        .collection('results')
-        .orderBy('createdAt', 'desc')
-        .limit(limit);
+        .collection('results');
 
       if (framework) {
         query = query.where('framework', '==', framework);
       }
+
+      query = query.orderBy('createdAt', 'desc').limit(safeLimit);
 
       if (startAfter) {
         const startDoc = await db
@@ -229,7 +105,7 @@ exports.getAgentResults = onCall(
 
       return {
         results,
-        hasMore: results.length === limit,
+        hasMore: results.length === safeLimit,
         lastId: results.length > 0 ? results[results.length - 1].id : null,
       };
     } catch (error) {

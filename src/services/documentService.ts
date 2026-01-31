@@ -234,8 +234,10 @@ export class DocumentService {
         if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
 
         try {
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
 
             for (const row of data) {
                 if (!row.Titre) continue;
@@ -264,9 +266,16 @@ export class DocumentService {
                 const sanitized = sanitizeData(docData);
                 batch.set(newRef, sanitized);
                 count++;
+                batchCount++;
+
+                if (batchCount >= BATCH_SIZE) {
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    batchCount = 0;
+                }
             }
 
-            if (count > 0) {
+            if (count > 0 && batchCount > 0) {
                 await batch.commit();
 
                 // Audit Log

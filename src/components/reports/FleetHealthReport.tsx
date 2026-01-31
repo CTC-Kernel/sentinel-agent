@@ -21,7 +21,7 @@ import type {
     ExportFormat,
 } from '../../types/agentReport';
 import {
-    Activity, Server, Cpu, HardDrive, Wifi, AlertTriangle,
+    Activity, Server, Cpu, HardDrive, AlertTriangle,
     Download, Calendar, CheckCircle2, XCircle,
     ChevronDown, BarChart3, PieChart, Zap, Loader2,
     TrendingUp, TrendingDown, RefreshCw,
@@ -614,13 +614,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                     icon={<HardDrive className="h-5 w-5" />}
                     status={getDiskStatus(data.performanceMetrics.avgDiskUsage)}
                 />
-                <MetricCard
-                    title="Latence réseau"
-                    value={data.performanceMetrics.avgNetworkLatency}
-                    unit="ms"
-                    icon={<Wifi className="h-5 w-5" />}
-                    status={data.performanceMetrics.avgNetworkLatency < 100 ? 'good' : data.performanceMetrics.avgNetworkLatency < 200 ? 'warning' : 'critical'}
-                />
+                {/* avgNetworkLatency removed - no longer tracked by backend */}
             </div>
 
             {/* Main Content Grid */}

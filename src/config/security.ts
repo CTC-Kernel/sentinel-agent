@@ -189,8 +189,8 @@ export const configureSecurity = (app: Express) => {
  */
 export const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? [/yourdomain\.com$/, /your-app\.vercel\.app$/]
-    : ['http://localhost:3000', 'http://localhost:3001'],
+    ? [/cyber-threat-consulting\.com$/, /sentinel-grc-a8701\.web\.app$/, /sentinel-grc-a8701\.firebaseapp\.com$/]
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

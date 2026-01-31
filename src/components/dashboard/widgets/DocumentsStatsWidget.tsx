@@ -20,7 +20,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
 
     const { data: documents, loading } = useFirestoreCollection<Document>(
         'documents',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { enabled: !!user?.organizationId }
     );
 

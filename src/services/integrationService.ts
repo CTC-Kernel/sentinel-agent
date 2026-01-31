@@ -346,16 +346,7 @@ class IntegrationService {
     async searchCompany(query: string, isDemoMode: boolean = false): Promise<CompanySearchResult[]> {
         const demoMode = this.normalizeDemoMode(isDemoMode);
         if (demoMode) {
-            if (query.length < 3) return [];
-            await new Promise(resolve => setTimeout(resolve, 500));
-            return [
-                {
-                    name: `Entreprise Démo ${query}`,
-                    siren: '123456789',
-                    address: '1 Rue de la Démo, 75000 Paris',
-                    activity: '6201Z - Programmation informatique'
-                }
-            ];
+            return [];
         }
 
         if (query.length < 3) return [];

@@ -104,7 +104,7 @@ export const useWarRoom = (incidentId: string) => {
 
         // Update last active every 30 seconds
         const heartbeatInterval = setInterval(() => {
-            setDoc(presenceRef, { lastActive: serverTimestamp() }, { merge: true }).catch(() => {});
+            setDoc(presenceRef, { lastActive: serverTimestamp() }, { merge: true }).catch((err) => ErrorLogger.debug(err, 'useWarRoom'));
         }, 30000);
 
         // Listen to presence changes
@@ -130,7 +130,7 @@ export const useWarRoom = (incidentId: string) => {
         return () => {
             clearInterval(heartbeatInterval);
             unsubscribe();
-            deleteDoc(presenceRef).catch(() => {});
+            deleteDoc(presenceRef).catch((err) => ErrorLogger.debug(err, 'useWarRoom'));
         };
     }, [incidentId, demoMode, user, presencePath]);
 

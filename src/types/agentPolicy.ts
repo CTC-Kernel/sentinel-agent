@@ -112,7 +112,11 @@ export interface AgentGroup {
     /** Membership is dynamic (auto-assigned) */
     isDynamic: boolean;
 
-    /** Membership criteria (if dynamic) */
+    /**
+     * Membership criteria for automatic group assignment.
+     * Can be an array of criteria (frontend) or a single object (legacy backend).
+     * The backend evaluateAllCriteria handles both formats.
+     */
     membershipCriteria: MembershipCriteria[];
 
     /** Criteria logic (AND/OR) */
@@ -208,6 +212,9 @@ export interface PolicyRule {
 
     /** Description */
     description: string;
+
+    /** Whether the rule is enabled (used by backend for filtering) */
+    enabled?: boolean;
 
     /** Category */
     category: RuleCategory;
@@ -373,6 +380,15 @@ export interface AgentPolicy {
 
     /** Updated by */
     updatedBy?: string;
+
+    /** Last deployed by (user ID) */
+    lastDeployedBy?: string;
+
+    /** Last deployment ID */
+    lastDeploymentId?: string;
+
+    /** Total deployment count */
+    deploymentCount?: number;
 }
 
 /**
@@ -395,8 +411,8 @@ export interface PolicySchedule {
 /**
  * Deployment status
  */
-export const DEPLOYMENT_STATUSES = ['draft', 'pending', 'deploying', 'deployed', 'failed', 'rollback'] as const;
-export type DeploymentStatus = typeof DEPLOYMENT_STATUSES[number];
+export const DEPLOYMENT_STATUSES: DeploymentStatus[] = ['draft', 'pending', 'pending_ack', 'deploying', 'deployed', 'failed', 'rollback', 'rolled_back'];
+export type DeploymentStatus = 'draft' | 'pending' | 'pending_ack' | 'deploying' | 'deployed' | 'failed' | 'rollback' | 'rolled_back';
 
 // ============================================================================
 // Effective Policy (Resolved Inheritance)
@@ -631,7 +647,7 @@ export const DEFAULT_RULE_TEMPLATES: RuleTemplate[] = [
     // Security
     {
         id: 'auto_remediation',
-        key: 'auto_remediation_enabled',
+        key: 'enable_auto_remediation',
         name: 'Remédiation automatique',
         description: 'Activer la remédiation automatique des problèmes détectés',
         category: 'security',
@@ -642,7 +658,7 @@ export const DEFAULT_RULE_TEMPLATES: RuleTemplate[] = [
     },
     {
         id: 'realtime_monitoring',
-        key: 'realtime_monitoring_enabled',
+        key: 'enable_realtime_monitoring',
         name: 'Monitoring temps réel',
         description: 'Activer le monitoring des processus et connexions en temps réel',
         category: 'monitoring',
@@ -759,10 +775,12 @@ export function getDeploymentStatusLabel(status: DeploymentStatus): string {
     switch (status) {
         case 'draft': return 'Brouillon';
         case 'pending': return 'En attente';
+        case 'pending_ack': return 'En attente d\'accusé';
         case 'deploying': return 'Déploiement';
         case 'deployed': return 'Déployé';
         case 'failed': return 'Échoué';
         case 'rollback': return 'Rollback';
+        case 'rolled_back': return 'Annulé';
     }
 }
 
@@ -773,10 +791,12 @@ export function getDeploymentStatusColor(status: DeploymentStatus): string {
     switch (status) {
         case 'draft': return 'text-muted-foreground';
         case 'pending': return 'text-warning';
+        case 'pending_ack': return 'text-warning';
         case 'deploying': return 'text-primary';
         case 'deployed': return 'text-success';
         case 'failed': return 'text-destructive';
         case 'rollback': return 'text-orange-500';
+        case 'rolled_back': return 'text-muted-foreground';
     }
 }
 
@@ -932,29 +952,54 @@ export function mergeRulesWithInheritance(
  */
 export function rulesToAgentConfig(rules: PolicyRule[]): AgentConfig {
     const config: AgentConfig = {
-        check_interval_secs: 3600,
+        check_interval_secs: 300,
         heartbeat_interval_secs: 60,
         log_level: 'info',
-        enabled_checks: ['all'],
+        enabled_checks: [],
         offline_mode_days: 7,
     };
 
     for (const rule of rules) {
+        if (rule.enabled === false) continue; // Skip disabled rules
+
         switch (rule.key) {
             case 'check_interval_secs':
-                config.check_interval_secs = rule.value as number;
+                config.check_interval_secs = parseInt(String(rule.value), 10) || 300;
                 break;
             case 'heartbeat_interval_secs':
-                config.heartbeat_interval_secs = rule.value as number;
+                config.heartbeat_interval_secs = parseInt(String(rule.value), 10) || 60;
                 break;
             case 'log_level':
-                config.log_level = rule.value as string;
+                config.log_level = String(rule.value);
                 break;
             case 'enabled_checks':
-                config.enabled_checks = rule.value as string[];
+                config.enabled_checks = Array.isArray(rule.value) ? rule.value as string[] : [String(rule.value)];
                 break;
             case 'offline_mode_days':
-                config.offline_mode_days = rule.value as number;
+                config.offline_mode_days = parseInt(String(rule.value), 10) || 7;
+                break;
+            case 'disabled_checks':
+                config.disabled_checks = Array.isArray(rule.value) ? rule.value as string[] : [String(rule.value)];
+                break;
+            case 'enable_realtime_monitoring':
+            case 'enable_process_monitoring':
+            case 'enable_network_monitoring':
+            case 'enable_auto_remediation':
+            case 'enable_software_inventory':
+            case 'enable_cis_benchmarks':
+                (config as unknown as Record<string, unknown>)[rule.key] = rule.value === true || rule.value === 'true';
+                break;
+            case 'auto_update_enabled':
+                config.auto_update_enabled = rule.value as boolean;
+                break;
+            case 'update_channel':
+                config.update_channel = rule.value as string;
+                break;
+            case 'proxy_enabled':
+                config.proxy_enabled = rule.value as boolean;
+                break;
+            case 'proxy_url':
+                config.proxy_url = rule.value as string;
                 break;
         }
     }

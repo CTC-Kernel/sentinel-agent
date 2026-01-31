@@ -75,10 +75,10 @@ export function useRbacNodeFilter(
   const { enabled = true } = options;
   const { user } = useStore();
 
-  // Check if user is admin
+  // Check if user is admin via permission system
   const isAdmin = useMemo(() => {
-    return user?.role === 'admin';
-  }, [user?.role]);
+    return hasPermission(user, 'Settings', 'manage');
+  }, [user]);
 
   // Calculate viewable node types based on permissions
   const viewableNodeTypes = useMemo((): VoxelNodeType[] => {
@@ -159,7 +159,7 @@ export function filterNodesByPermission(
   }
 
   // Admin sees all nodes
-  if (user.role === 'admin') {
+  if (hasPermission(user, 'Settings', 'manage')) {
     return nodes;
   }
 

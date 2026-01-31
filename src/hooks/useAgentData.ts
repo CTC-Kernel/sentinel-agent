@@ -5,8 +5,9 @@ import { subscribeToAgents } from '../services/AgentService';
 import { SentinelAgent, AgentResult } from '../types/agent';
 import { ErrorLogger } from '../services/errorLogger';
 import {
-    collection,
+    collectionGroup,
     query,
+    where,
     orderBy,
     limit,
     onSnapshot,
@@ -199,11 +200,11 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
         // Wait for custom claims to be synced before subscribing
         if (!claimsSynced) return;
 
-        // Query results from all agents (using collectionGroup would be ideal,
-        // but we'll query the main results collection)
+        // Query results from all agents using collectionGroup on 'results' subcollections
         const resultsQuery = query(
-            collection(db, 'organizations', user.organizationId, 'agentResults'),
-            orderBy('timestamp', 'desc'),
+            collectionGroup(db, 'results'),
+            where('organizationId', '==', user.organizationId),
+            orderBy('createdAt', 'desc'),
             limit(resultsLimit)
         );
 

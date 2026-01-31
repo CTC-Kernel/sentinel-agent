@@ -36,9 +36,11 @@ import {
     deletePolicy,
     togglePolicy,
     deployPolicy,
+    rollbackPolicy,
+    getPolicyHistory,
     validatePolicyRules,
 } from '../../services/AgentPolicyService';
-import type { AgentGroup } from '../../types/agentPolicy';
+import type { AgentGroup, PolicyHistoryEntry } from '../../types/agentPolicy';
 import { useStore } from '../../store';
 import {
     Activity,
@@ -58,6 +60,7 @@ import {
     Play,
     Plus,
     RefreshCw,
+    RotateCcw,
     Save,
     Settings,
     Shield,
@@ -78,6 +81,8 @@ import {
 import { cn } from '../../utils/cn';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { ErrorLogger } from '../../services/errorLogger';
+import { hasPermission } from '../../utils/permissions';
+import { toast } from '@/lib/toast';
 
 interface PolicyEditorProps {
     groups?: AgentGroup[];
@@ -517,7 +522,9 @@ const PolicyCard: React.FC<{
     onToggle: () => void;
     onDeploy: () => void;
     onDelete: () => void;
-}> = ({ policy, isSelected, onSelect, onEdit, onToggle, onDeploy, onDelete }) => {
+    canUpdate?: boolean;
+    canDelete?: boolean;
+}> = ({ policy, isSelected, onSelect, onEdit, onToggle, onDeploy, onDelete, canUpdate = true, canDelete = true }) => {
     return (
         <motion.div
             variants={slideUpVariants}
@@ -573,36 +580,46 @@ const PolicyCard: React.FC<{
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={onEdit}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={onToggle}>
-                            {policy.isEnabled ? (
-                                <>
-                                    <X className="h-4 w-4 mr-2" />
-                                    Désactiver
-                                </>
-                            ) : (
-                                <>
-                                    <Check className="h-4 w-4 mr-2" />
-                                    Activer
-                                </>
-                            )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={onDeploy}>
-                            <Play className="h-4 w-4 mr-2" />
-                            Déployer
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            onClick={onDelete}
-                            className="text-destructive"
-                            disabled={policy.isDefault}
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer
-                        </DropdownMenuItem>
+                        {canUpdate && (
+                            <DropdownMenuItem onClick={onEdit}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Modifier
+                            </DropdownMenuItem>
+                        )}
+                        {canUpdate && (
+                            <DropdownMenuItem onClick={onToggle}>
+                                {policy.isEnabled ? (
+                                    <>
+                                        <X className="h-4 w-4 mr-2" />
+                                        Désactiver
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="h-4 w-4 mr-2" />
+                                        Activer
+                                    </>
+                                )}
+                            </DropdownMenuItem>
+                        )}
+                        {canUpdate && (
+                            <DropdownMenuItem onClick={onDeploy}>
+                                <Play className="h-4 w-4 mr-2" />
+                                Déployer
+                            </DropdownMenuItem>
+                        )}
+                        {canDelete && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    onClick={onDelete}
+                                    className="text-destructive"
+                                    disabled={policy.isDefault}
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Supprimer
+                                </DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -662,6 +679,16 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     const [editingPolicy, setEditingPolicy] = useState<AgentPolicy | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [scopeFilter, setScopeFilter] = useState<PolicyScope | 'all'>('all');
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [rollingBack, setRollingBack] = useState(false);
+    const [policyHistory, setPolicyHistory] = useState<PolicyHistoryEntry[]>([]);
+    const [saveSuccess, setSaveSuccess] = useState<{ policyName: string; isNew: boolean } | null>(null);
+    const [deployStatus, setDeployStatus] = useState<'idle' | 'deploying' | 'success' | 'error'>('idle');
+    const [deployError, setDeployError] = useState<string | null>(null);
+
+    const canCreate = hasPermission(user, 'AgentPolicy', 'create');
+    const canUpdatePolicy = hasPermission(user, 'AgentPolicy', 'update');
+    const canDeletePolicy = hasPermission(user, 'AgentPolicy', 'delete');
 
     // Subscribe to policies
     useEffect(() => {
@@ -690,6 +717,21 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
         [policies, selectedPolicyId]
     );
 
+    // Fetch policy history when a policy is selected
+    useEffect(() => {
+        if (!organizationId || !selectedPolicyId) {
+            setPolicyHistory([]);
+            return;
+        }
+
+        getPolicyHistory(organizationId, selectedPolicyId, 10)
+            .then(history => setPolicyHistory(history))
+            .catch(error => {
+                ErrorLogger.error(error, 'PolicyEditor.getPolicyHistory');
+                setPolicyHistory([]);
+            });
+    }, [organizationId, selectedPolicyId]);
+
     // Filtered policies
     const filteredPolicies = useMemo(() => {
         if (scopeFilter === 'all') return policies;
@@ -700,9 +742,13 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     const handleSavePolicy = async (data: Partial<AgentPolicy>) => {
         if (!organizationId || !user?.uid) return;
 
+        const isNew = !editingPolicy;
+
         if (editingPolicy) {
+            if (!hasPermission(user, 'AgentPolicy', 'update')) return;
             await updatePolicy(organizationId, editingPolicy.id, data, user.uid);
         } else {
+            if (!hasPermission(user, 'AgentPolicy', 'create')) return;
             await createPolicy(organizationId, {
                 ...data,
                 organizationId,
@@ -714,29 +760,92 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
             } as Omit<AgentPolicy, 'id' | 'createdAt' | 'updatedAt' | 'version'>, user.uid);
         }
 
+        const policyName = data.name || 'Policy';
+        toast.success(
+            isNew ? 'Politique créée' : 'Politique mise à jour',
+            `"${policyName}" a été ${isNew ? 'créée' : 'mise à jour'} avec succès.`
+        );
+        setSaveSuccess({ policyName, isNew });
+
         setEditingPolicy(null);
         setIsCreating(false);
     };
 
     const handleTogglePolicy = async (policyId: string) => {
         if (!organizationId || !user?.uid) return;
-        const policy = policies.find(p => p.id === policyId);
-        if (policy) {
-            await togglePolicy(organizationId, policyId, !policy.isEnabled, user.uid);
+        try {
+            const policy = policies.find(p => p.id === policyId);
+            if (policy) {
+                await togglePolicy(organizationId, policyId, !policy.isEnabled, user.uid);
+            }
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'PolicyEditor.togglePolicy');
         }
     };
 
     const handleDeployPolicy = async (policyId: string) => {
         if (!organizationId || !user?.uid) return;
-        await deployPolicy(organizationId, policyId, user.uid);
+        if (!hasPermission(user, 'AgentPolicy', 'update')) return;
+        setDeployStatus('deploying');
+        setDeployError(null);
+        try {
+            await deployPolicy(organizationId, policyId, user.uid);
+            setDeployStatus('success');
+            toast.success('Politique déployée', 'La politique a été déployée avec succès.');
+            // Auto-clear after 5 seconds
+            setTimeout(() => setDeployStatus('idle'), 5000);
+        } catch (error) {
+            setDeployStatus('error');
+            setDeployError((error as Error).message || 'Deployment failed');
+            ErrorLogger.error(error as Error, 'PolicyEditor.deployPolicy');
+        }
     };
 
     const handleDeletePolicy = async (policyId: string) => {
         if (!organizationId || !user?.uid) return;
-        if (!confirm('Supprimer cette politique ?')) return;
-        await deletePolicy(organizationId, policyId, user.uid);
-        if (selectedPolicyId === policyId) {
-            onSelectPolicy?.(null);
+        if (!hasPermission(user, 'AgentPolicy', 'delete')) return;
+        setDeleteConfirm(policyId);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!organizationId || !user?.uid || !deleteConfirm) return;
+        try {
+            const deletedPolicy = policies.find(p => p.id === deleteConfirm);
+            await deletePolicy(organizationId, deleteConfirm, user.uid);
+            toast.success('Politique supprimee', `"${deletedPolicy?.name || 'Politique'}" a ete supprimee avec succes.`);
+            if (selectedPolicyId === deleteConfirm) {
+                onSelectPolicy?.(null);
+            }
+        } catch (error) {
+            toast.error('Erreur', 'Impossible de supprimer la politique.');
+            ErrorLogger.error(error as Error, 'PolicyEditor.deletePolicy');
+        } finally {
+            setDeleteConfirm(null);
+        }
+    };
+
+    const handleRollbackPolicy = async (policyId: string) => {
+        if (!organizationId || !user?.uid) return;
+        if (!canUpdatePolicy) return;
+
+        // Find the previous version from history
+        const previousVersion = policyHistory.find(
+            h => h.policyId === policyId && h.changeType !== 'created'
+        );
+        const targetVersion = previousVersion?.previousVersion;
+
+        if (targetVersion === undefined || targetVersion < 1) {
+            ErrorLogger.warn('No previous version available for rollback', 'PolicyEditor.rollbackPolicy');
+            return;
+        }
+
+        setRollingBack(true);
+        try {
+            await rollbackPolicy(organizationId, policyId, targetVersion, user.uid);
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'PolicyEditor.rollbackPolicy');
+        } finally {
+            setRollingBack(false);
         }
     };
 
@@ -822,10 +931,12 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                         ))}
                     </div>
 
-                    <Button onClick={() => setIsCreating(true)}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Politique
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => setIsCreating(true)}>
+                            <Plus className="h-4 w-4 mr-1" />
+                            Politique
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -840,10 +951,12 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                     <p className="text-sm text-muted-foreground mb-4">
                         Créez une politique pour configurer vos agents
                     </p>
-                    <Button onClick={() => setIsCreating(true)}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Créer une politique
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => setIsCreating(true)}>
+                            <Plus className="h-4 w-4 mr-1" />
+                            Créer une politique
+                        </Button>
+                    )}
                 </motion.div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -859,10 +972,39 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                             onToggle={() => handleTogglePolicy(policy.id)}
                             onDeploy={() => handleDeployPolicy(policy.id)}
                             onDelete={() => handleDeletePolicy(policy.id)}
+                            canUpdate={canUpdatePolicy}
+                            canDelete={canDeletePolicy}
                         />
                     ))}
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteConfirm && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="glass-premium rounded-2xl w-full max-w-sm mx-4 border border-border/40 p-6"
+                        >
+                            <h3 className="text-lg font-semibold mb-2">Supprimer cette politique ?</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Cette action est irreversible.
+                            </p>
+                            <div className="flex justify-end gap-3">
+                                <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+                                    Annuler
+                                </Button>
+                                <Button variant="destructive" onClick={handleConfirmDelete}>
+                                    Supprimer
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* Selected Policy Details */}
             {selectedPolicy && (
@@ -870,16 +1012,95 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                     variants={slideUpVariants}
                     className="glass-premium rounded-2xl p-6 border border-border/40"
                 >
+                    {/* Success Banner after save */}
+                    {saveSuccess && (
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <CheckCircle className="h-5 w-5 text-emerald-500" />
+                                <span className="text-sm font-medium">
+                                    Politique &quot;{saveSuccess.policyName}&quot; {saveSuccess.isNew ? 'créée' : 'mise à jour'} avec succès
+                                </span>
+                            </div>
+                            <div className="flex gap-2">
+                                {saveSuccess.isNew && selectedPolicy && (
+                                    <Button size="sm" onClick={() => { handleDeployPolicy(selectedPolicy.id); setSaveSuccess(null); }}>
+                                        <Play className="h-3 w-3 mr-1" /> Déployer
+                                    </Button>
+                                )}
+                                <Button size="sm" variant="ghost" onClick={() => setSaveSuccess(null)}>
+                                    <X className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold">Détails de la politique</h3>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditingPolicy(selectedPolicy)}
-                        >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Modifier
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            {/* Deployment Status Indicator */}
+                            {deployStatus === 'deploying' && (
+                                <div className="flex items-center gap-2 text-sm text-blue-500">
+                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                    Déploiement en cours...
+                                </div>
+                            )}
+                            {deployStatus === 'success' && (
+                                <div className="flex items-center gap-2 text-sm text-emerald-500">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Politique déployée avec succès
+                                </div>
+                            )}
+                            {deployStatus === 'error' && (
+                                <div className="flex items-center gap-2 text-sm text-red-500">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    Échec du déploiement{deployError ? `: ${deployError}` : ''}
+                                </div>
+                            )}
+
+                            {/* Rollback Button - visible when version > 1 and history exists (Issue #8) */}
+                            {canUpdatePolicy && policyHistory.length > 0 && selectedPolicy.version > 1 && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleRollbackPolicy(selectedPolicy.id)}
+                                    disabled={deployStatus === 'deploying' || rollingBack}
+                                >
+                                    {rollingBack ? (
+                                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                    ) : (
+                                        <RotateCcw className="h-4 w-4 mr-1" />
+                                    )}
+                                    Rollback
+                                </Button>
+                            )}
+
+                            {/* Deploy Button - visible alongside rollback (Issue #8) */}
+                            {canUpdatePolicy && (
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleDeployPolicy(selectedPolicy.id)}
+                                    disabled={deployStatus === 'deploying' || rollingBack}
+                                >
+                                    {deployStatus === 'deploying' ? (
+                                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                    ) : (
+                                        <Play className="h-4 w-4 mr-1" />
+                                    )}
+                                    Déployer
+                                </Button>
+                            )}
+
+                            {canUpdatePolicy && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setEditingPolicy(selectedPolicy)}
+                                >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Modifier
+                                </Button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="space-y-4">

@@ -382,7 +382,7 @@ const SortHeader: React.FC<{
 };
 
 // Agent Group Component
-const AgentGroup: React.FC<{
+const AgentSoftwareGroup: React.FC<{
     agent: SentinelAgent;
     software: SoftwareInventoryEntry[];
     onSoftwareClick: (sw: SoftwareInventoryEntry) => void;
@@ -580,7 +580,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
         return (
             <div className="space-y-4">
                 {softwareByAgent.map((group) => (
-                    <AgentGroup
+                    <AgentSoftwareGroup
                         key={group.agent.id}
                         agent={group.agent}
                         software={group.software}

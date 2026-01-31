@@ -25,6 +25,7 @@ import { VulnerabilityKanban } from '../components/vulnerabilities/Vulnerability
 import { usePersistedState } from '../hooks/usePersistedState';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { VulnerabilityImportModal } from '../components/vulnerabilities/VulnerabilityImportModal';
+import { AgentVulnerabilityPanel } from '../components/vulnerabilities/AgentVulnerabilityPanel';
 import { useAuth } from '../hooks/useAuth';
 
 import { SEO } from '../components/SEO';
@@ -279,8 +280,18 @@ export const Vulnerabilities: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
+                        className="space-y-6"
                     >
                         <VulnerabilityOverview vulnerabilities={filteredVulnerabilities} loading={loading} />
+                        <AgentVulnerabilityPanel
+                            onVulnerabilityClick={(vuln) => {
+                                const match = vulnerabilities.find(v => v.cveId === vuln.cveId);
+                                if (match) {
+                                    setSelectedVulnerability(match);
+                                    setActiveTab('list');
+                                }
+                            }}
+                        />
                     </motion.div>
                 ) : (
                     <motion.div

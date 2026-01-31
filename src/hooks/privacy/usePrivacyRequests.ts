@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PrivacyService } from '../../services/PrivacyService';
 import { PrivacyRequest, UserProfile } from '../../types';
 import { useStore } from '../../store';
+import { hasPermission } from '../../utils/permissions';
 // import { ErrorLogger } from '../../services/errorLogger';
 
 export function usePrivacyRequests() {
@@ -65,7 +66,7 @@ export function usePrivacyRequests() {
 
     const handleDeleteRequest = async (id: string) => {
         if (!user) return;
-        if (user.role !== 'rssi' && user.role !== 'admin') {
+        if (!hasPermission(user, 'ProcessingActivity', 'manage')) {
             addToast("Permission refusée", "error");
             return;
         }

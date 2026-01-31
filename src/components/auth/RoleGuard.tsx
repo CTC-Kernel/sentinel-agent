@@ -41,8 +41,15 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles, re
         );
     }
 
-    // Admin has access to everything within their organization
-    if (userRole === 'admin') {
+    // super_admin has access to everything within their organization
+    if (userRole === 'super_admin') {
+        return <>{children}</>;
+    }
+
+    // Admin has access to everything within their organization,
+    // unless the route is explicitly restricted to super_admin only
+    const isSuperAdminOnly = allowedRoles.includes('super_admin') && !allowedRoles.includes('admin');
+    if (userRole === 'admin' && !isSuperAdminOnly) {
         return <>{children}</>;
     }
 

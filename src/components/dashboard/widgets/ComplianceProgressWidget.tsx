@@ -29,7 +29,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
 
     const { data: controls, loading } = useFirestoreCollection<Control>(
         'controls',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { enabled: !!user?.organizationId }
     );
 

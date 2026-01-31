@@ -6,6 +6,7 @@ export interface SentinelAgent {
     name: string;
     os: AgentOS;
     osVersion?: string;
+    osInfo?: string;
     status: AgentStatus;
     version: string;
     lastHeartbeat: string;
@@ -27,6 +28,34 @@ export interface SentinelAgent {
     config?: AgentConfig;
     configVersion?: number;
     rulesVersion?: number;
+
+    // Group membership
+    groupIds?: string[];
+
+    // Policy-related
+    pendingSyncCount?: number;
+    pendingPolicyId?: string;
+    pendingConfig?: Record<string, unknown>;
+    pendingConfigAt?: string;
+
+    // Network
+    lastNetworkSyncAt?: string;
+    networkHash?: string;
+    networkStats?: Record<string, unknown>;
+    macAddress?: string;
+
+    // Migration
+    previousMachineId?: string;
+    lastMigratedAt?: string;
+    reEnrolledAt?: string;
+
+    // Certificates (sensitive - should not be exposed to frontend normally)
+    certificateExpiresAt?: string;
+    lastCertificateRenewal?: string;
+
+    // Organization
+    tags?: string[];
+    department?: string;
 }
 
 export interface AgentConfig {
@@ -35,8 +64,21 @@ export interface AgentConfig {
     log_level: string;
     enabled_checks: string[];
     offline_mode_days: number;
+    // Additional config fields supported by backend
+    disabled_checks?: string[];
+    enable_realtime_monitoring?: boolean;
+    enable_process_monitoring?: boolean;
+    enable_network_monitoring?: boolean;
+    enable_auto_remediation?: boolean;
+    enable_software_inventory?: boolean;
+    enable_cis_benchmarks?: boolean;
+    auto_update_enabled?: boolean;
+    update_channel?: string;
+    proxy_enabled?: boolean;
+    proxy_url?: string;
 }
 
+/** Lenient type for heatmap/compliance display - all fields optional */
 export interface AgentCheckResult {
     id: string;
     checkId: string;
@@ -61,13 +103,6 @@ export interface AgentDetails extends SentinelAgent {
     };
     checkResults?: AgentCheckResult[];
     pendingCommandsCount: number;
-    // Extended metrics from heartbeat
-    memoryPercent?: number;
-    memoryTotalBytes?: number;
-    diskPercent?: number;
-    diskUsedBytes?: number;
-    diskTotalBytes?: number;
-    uptimeSeconds?: number;
 }
 
 export interface AgentEnrollmentToken {
@@ -85,6 +120,7 @@ export interface AgentEnrollmentToken {
     organizationId: string;
 }
 
+/** Strict type for results page - required fields enforced */
 export interface AgentResult {
     id: string;
     checkId: string;

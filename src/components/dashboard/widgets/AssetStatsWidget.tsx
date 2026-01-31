@@ -16,7 +16,7 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
 
     const { data: assets, loading } = useFirestoreCollection<Asset>(
         'assets',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { realtime: true, enabled: !!user?.organizationId }
     );
 

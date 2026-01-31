@@ -8,6 +8,7 @@ import { TimelineView } from '../shared/TimelineView';
 import { ComplianceDetails } from './inspector/ComplianceDetails';
 import { ComplianceEvidence } from './inspector/ComplianceEvidence';
 import { ComplianceLinkedItems } from './inspector/ComplianceLinkedItems';
+import { AgentEvidencePanel } from './AgentEvidencePanel';
 
 interface ComplianceInspectorProps {
     control: Control;
@@ -112,12 +113,21 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                 )}
 
                 {activeTab === 'evidence' && (
-                    <ComplianceEvidence
-                        control={control}
-                        canEdit={canEdit}
-                        documents={documents}
-                        handlers={handlers}
-                    />
+                    <>
+                        <ComplianceEvidence
+                            control={control}
+                            canEdit={canEdit}
+                            documents={documents}
+                            handlers={handlers}
+                        />
+                        <div className="mt-6">
+                            <AgentEvidencePanel
+                                controlId={control.id}
+                                controlCode={control.code}
+                                controlName={control.name}
+                            />
+                        </div>
+                    </>
                 )}
 
                 {activeTab === 'linkedItems' && (

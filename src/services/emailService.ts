@@ -1,5 +1,6 @@
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
+import DOMPurify from 'dompurify';
 
 // Types d'emails supportés
 export type EmailType =
@@ -76,16 +77,10 @@ export const sendEmail = async (
 };
 
 /**
- * Sanitize HTML to prevent XSS attacks
+ * Sanitize HTML to prevent XSS attacks using DOMPurify
  */
 const sanitizeHtml = (html: string): string => {
-  // Remove script tags and event handlers
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/on\w+\s*=\s*[^\s>]+/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, 'data-blocked:');
+  return DOMPurify.sanitize(html);
 };
 
 /**

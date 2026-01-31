@@ -34,6 +34,7 @@
     "mandatory": "Pflicht",
     "settings": {
       "title": "Einstellungen",
+      "subtitle": "Verwalten Sie Ihre Einstellungen und Konfiguration",
       "organization": "Organisation",
       "searchMembers": "Mitglieder suchen",
       "roles": {
@@ -1532,5 +1533,11 @@
       "title": "Keine Aktivitäten",
       "description": "Es wurden noch keine Aktivitäten aufgezeichnet."
     }
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite wurde möglicherweise verschoben, gelöscht oder existiert nicht.",
+    "backToDashboard": "Zurück zum Dashboard",
+    "report": "Melden"
   }
 }

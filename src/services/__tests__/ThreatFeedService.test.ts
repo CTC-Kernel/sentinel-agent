@@ -105,7 +105,7 @@ describe('ThreatFeedService', () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.clearAllMocks();
-        ThreatFeedService.useSimulation = false;
+        ThreatFeedService.disableSimulation();
         mockAddDoc.mockResolvedValue({ id: 'new-doc-id' });
         mockGetDocs.mockResolvedValue({ empty: true, docs: [] });
 
@@ -324,7 +324,7 @@ describe('ThreatFeedService', () => {
             expect(result.vulns).toBe(0);
         });
 
-        it('should fallback to simulation when offline', async () => {
+        it('should return empty results when offline (no mock data written)', async () => {
             Object.defineProperty(navigator, 'onLine', {
                 value: false,
                 configurable: true
@@ -334,35 +334,41 @@ describe('ThreatFeedService', () => {
             await vi.advanceTimersByTimeAsync(2000);
             const result = await promise;
 
-            // Should have seeded simulated data
-            expect(result.threats).toBeGreaterThan(0);
+            // SECURITY: Should NOT write mock data to Firestore
+            expect(result.threats).toBe(0);
+            expect(result.vulns).toBe(0);
+            expect(mockAddDoc).not.toHaveBeenCalled();
         });
 
-        it('should fallback to simulation when useSimulation is true', async () => {
-            ThreatFeedService.useSimulation = true;
+        it('should return empty results when useSimulation is true (no mock data written)', async () => {
+            ThreatFeedService.enableSimulation();
 
             const promise = ThreatFeedService.seedLiveThreats('org-123');
             await vi.advanceTimersByTimeAsync(2000);
             const result = await promise;
 
-            // Should have seeded simulated data
-            expect(result.threats).toBeGreaterThan(0);
+            // SECURITY: Should NOT write mock data to Firestore
+            expect(result.threats).toBe(0);
+            expect(result.vulns).toBe(0);
+            expect(mockAddDoc).not.toHaveBeenCalled();
         });
 
-        it('should fallback to simulation when live feeds return empty', async () => {
+        it('should return empty results when live feeds return empty (no mock data written)', async () => {
             mockFetchThreatFeed
                 .mockResolvedValueOnce({ data: { urls: [] } })
                 .mockResolvedValueOnce({ data: { vulnerabilities: [] } });
 
             const promise = ThreatFeedService.seedLiveThreats('org-123');
             await vi.advanceTimersByTimeAsync(2000);
-            await promise;
+            const result = await promise;
 
-            // Should have fallen back to simulation
-            expect(mockAddDoc).toHaveBeenCalled();
+            // SECURITY: Should NOT fall back to simulation
+            expect(result.threats).toBe(0);
+            expect(result.vulns).toBe(0);
+            expect(mockAddDoc).not.toHaveBeenCalled();
         });
 
-        it('should fallback to simulation on fetch error', async () => {
+        it('should return empty results on fetch error (no mock data written)', async () => {
             mockFetchThreatFeed.mockRejectedValue(new Error('Network error'));
             mockFetch.mockRejectedValue(new Error('Network error'));
 
@@ -370,8 +376,10 @@ describe('ThreatFeedService', () => {
             await vi.advanceTimersByTimeAsync(2000);
             const result = await promise;
 
-            // Should have fallen back to simulation
-            expect(result.threats).toBeGreaterThan(0);
+            // SECURITY: Should NOT fall back to simulation
+            expect(result.threats).toBe(0);
+            expect(result.vulns).toBe(0);
+            expect(mockAddDoc).not.toHaveBeenCalled();
         });
     });
 
@@ -542,14 +550,15 @@ describe('ThreatFeedService', () => {
 
     describe('useSimulation flag', () => {
         it('should be false by default', () => {
-            ThreatFeedService.useSimulation = false;
+            ThreatFeedService.disableSimulation();
             expect(ThreatFeedService.useSimulation).toBe(false);
         });
 
-        it('should be configurable', () => {
-            ThreatFeedService.useSimulation = true;
+        it('should be configurable via enableSimulation/disableSimulation', () => {
+            ThreatFeedService.enableSimulation();
             expect(ThreatFeedService.useSimulation).toBe(true);
-            ThreatFeedService.useSimulation = false;
+            ThreatFeedService.disableSimulation();
+            expect(ThreatFeedService.useSimulation).toBe(false);
         });
     });
 });

@@ -17,8 +17,10 @@ import { LayoutDashboard, List } from '../components/ui/Icons';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { useControlEffectiveness } from '../hooks/controls/useControlEffectiveness';
 import { ISO_SEED_CONTROLS } from '../data/complianceData';
+import { useStore } from '../store';
 
 export const ControlEffectivenessView: React.FC = () => {
+  const { t } = useStore();
   const [activeTab, setActiveTab] = usePersistedState<string>('control-effectiveness-active-tab', 'overview');
   const [showAssessmentForm, setShowAssessmentForm] = useState(false);
   const [selectedControl, setSelectedControl] = useState<{ code: string; name: string } | null>(null);
@@ -43,8 +45,8 @@ export const ControlEffectivenessView: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-    { id: 'controls', label: 'Contrôles ISO 27002', icon: List, count: ISO_SEED_CONTROLS.length } // Total controls count
+    { id: 'overview', label: t('controls.overview'), icon: LayoutDashboard },
+    { id: 'controls', label: t('controls.iso27002Controls'), icon: List, count: ISO_SEED_CONTROLS.length }
   ];
 
   return (
@@ -55,13 +57,13 @@ export const ControlEffectivenessView: React.FC = () => {
       className="flex flex-col gap-6"
     >
       <MasterpieceBackground />
-      <SEO title="Efficacité des Contrôles" description="Évaluation de la maturité des contrôles de sécurité (ISO 27002)" />
+      <SEO title={t('controls.effectivenessTitle')} description={t('controls.effectivenessDescription')} />
 
       <div className="flex flex-col gap-8">
         <motion.div variants={slideUpVariants}>
           <PageHeader
-            title="Efficacité des Contrôles"
-            subtitle="Évaluation de la maturité des contrôles de sécurité (ISO 27002)"
+            title={t('controls.effectivenessTitle')}
+            subtitle={t('controls.effectivenessDescription')}
             icon={
               <img
                 src="/images/gouvernance.png" // Using Gouvernance as it fits controls/compliance

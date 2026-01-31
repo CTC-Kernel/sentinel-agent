@@ -35,7 +35,23 @@ self.addEventListener('notificationclick', (event) => {
         return;
     }
 
-    const urlToOpen = event.notification.data.url || '/';
+    let urlToOpen = event.notification.data.url || '/';
+
+    // Validate URL: only allow same-origin or relative paths
+    if (urlToOpen.startsWith('/')) {
+        // Relative path - safe
+    } else {
+        try {
+            const parsed = new URL(urlToOpen);
+            if (parsed.origin !== self.location.origin) {
+                // Reject cross-origin URLs
+                urlToOpen = '/';
+            }
+        } catch {
+            // Invalid URL, fall back to root
+            urlToOpen = '/';
+        }
+    }
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })

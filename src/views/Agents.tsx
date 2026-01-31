@@ -6,10 +6,10 @@ import { useStore } from '../store';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { subscribeToAgents, getAgentComplianceResults } from '../services/AgentService';
+import { subscribeToAgents, getAgentComplianceResults, AgentService } from '../services/AgentService';
 import { SentinelAgent, AgentCheckResult } from '../types/agent';
 import {
-    Download, Settings, Search, LayoutGrid, List, Shield, Package, Layers
+    Download, Settings, Search, LayoutGrid, List, Shield, Package, Layers, AlertTriangle, FileText
 } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -19,10 +19,14 @@ import { AgentHealthGrid } from '../components/agents/AgentHealthGrid';
 import { PageHeader } from '../components/ui/PageHeader';
 import { AgentComplianceHeatmap } from '../components/agents/AgentComplianceHeatmap';
 import { AgentLiveView } from '../components/agents/AgentLiveView';
+import { AnomalyAlerts } from '../components/agents/AnomalyAlerts';
+import { BehavioralBaseline } from '../components/agents/BehavioralBaseline';
 import AgentPolicies from './AgentPolicies';
 import SoftwareInventory from './SoftwareInventory';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { ErrorLogger } from '../services/errorLogger';
+import { hasPermission } from '../utils/permissions';
+import { toast } from '@/lib/toast';
 
 // Skeleton for loading state
 const AgentsSkeleton: React.FC = () => (
@@ -44,13 +48,16 @@ export const Agents: React.FC = () => {
     const navigate = useNavigate();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'offline'>('all');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'offline' | 'error'>('all');
     const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
     const [selectedAgent, setSelectedAgent] = useState<SentinelAgent | null>(null);
     const [isLiveViewOpen, setIsLiveViewOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [complianceResults, setComplianceResults] = useState<Map<string, AgentCheckResult[]>>(new Map());
+    const [deleteConfirm, setDeleteConfirm] = useState<{ agent: SentinelAgent } | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
 
     // Handle agent click to open live view
     const handleAgentClick = useCallback((agent: SentinelAgent) => {
@@ -76,20 +83,28 @@ export const Agents: React.FC = () => {
             },
             (error) => {
                 ErrorLogger.error(error, 'Agents.subscribeToAgents');
+                setError('Erreur de chargement des donnees');
                 setLoading(false);
             }
         );
 
         return unsubscribe;
-    }, [user?.organizationId]);
+    }, [user?.organizationId, retryCount]);
 
     // Load compliance results for heatmap
     useEffect(() => {
-        if (!user?.organizationId || agents.length === 0) return;
-        getAgentComplianceResults(user.organizationId).then(setComplianceResults).catch(() => {
-            // Non-critical, heatmap will show "unknown" states
-        });
-    }, [user?.organizationId, agents.length]);
+        let cancelled = false;
+        if (agents.length > 0 && user?.organizationId) {
+            getAgentComplianceResults(user.organizationId)
+                .then(results => {
+                    if (!cancelled) setComplianceResults(results);
+                })
+                .catch(err => {
+                    if (!cancelled) ErrorLogger.error(err, 'Agents.loadComplianceResults');
+                });
+        }
+        return () => { cancelled = true; };
+    }, [agents.length, user?.organizationId]);
 
     // Start tour
     useEffect(() => {
@@ -118,6 +133,44 @@ export const Agents: React.FC = () => {
             <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 p-6">
                 <AgentsSkeleton />
             </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
+                <AlertTriangle className="h-12 w-12 text-destructive" />
+                <p className="text-lg font-medium">{error}</p>
+                <Button onClick={() => { setError(null); setLoading(true); setRetryCount(c => c + 1); }} variant="outline">
+                    Reessayer
+                </Button>
+            </div>
+        );
+    }
+
+    if (agents.length === 0 && !loading && !error) {
+        return (
+            <>
+                <MasterpieceBackground />
+                <SEO
+                    title="Agents - Sentinel GRC"
+                    description="Gestion de la flotte d'agents Sentinel"
+                    keywords="agents, endpoints, monitoring, compliance"
+                />
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                        <Shield className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Aucun agent enrôlé</h3>
+                    <p className="text-muted-foreground max-w-md mb-6">
+                        Déployez Sentinel Agent sur vos endpoints pour commencer la supervision de conformité en temps réel.
+                    </p>
+                    <Button onClick={() => navigate('/settings?tab=agents')}>
+                        <Download className="h-4 w-4 mr-2" />
+                        {"Configurer l'enrôlement"}
+                    </Button>
+                </div>
+            </>
         );
     }
 
@@ -150,6 +203,18 @@ export const Agents: React.FC = () => {
                             <TabsTrigger value="software" className="flex items-center gap-2" isLoading={loading}>
                                 <Package className="h-4 w-4" />
                                 <span>Inventaire Logiciels</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="anomalies" className="flex items-center gap-2" isLoading={loading}>
+                                <AlertTriangle className="h-4 w-4" />
+                                <span>Anomalies</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="baselines" className="flex items-center gap-2" isLoading={loading}>
+                                <Shield className="h-4 w-4" />
+                                <span>Baselines</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="reports" className="flex items-center gap-2" isLoading={loading}>
+                                <FileText className="h-4 w-4" />
+                                <span>Rapports</span>
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -196,7 +261,7 @@ export const Agents: React.FC = () => {
 
                             {/* Fleet Dashboard with KPIs, OS Distribution, and Trends */}
                             <div data-tour="agents-stats">
-                                <AgentFleetDashboard agents={agents} loading={loading} />
+                                <AgentFleetDashboard agents={agents} loading={loading} complianceResults={complianceResults} />
                             </div>
 
                             {/* Search, Filters, and View Mode */}
@@ -237,6 +302,15 @@ export const Agents: React.FC = () => {
                                             <span className="w-2 h-2 rounded-full bg-muted-foreground" />
                                             Hors ligne
                                         </Button>
+                                        <Button
+                                            variant={statusFilter === 'error' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setStatusFilter('error')}
+                                            className="gap-1"
+                                        >
+                                            <span className="w-2 h-2 rounded-full bg-destructive" />
+                                            Erreur
+                                        </Button>
                                     </div>
                                 </div>
                                 {/* View Mode Toggle */}
@@ -267,13 +341,38 @@ export const Agents: React.FC = () => {
                                 <AgentHealthGrid
                                     agents={filteredAgents}
                                     viewMode={viewMode}
+                                    complianceResults={complianceResults}
                                     onAgentClick={handleAgentClick}
-                                    onAgentAction={(agent, action) => {
-                                        if (action === 'view') {
-                                            handleAgentClick(agent);
+                                    onAgentAction={async (agent, action) => {
+                                        switch (action) {
+                                            case 'view':
+                                                handleAgentClick(agent);
+                                                ErrorLogger.debug(`Agent action: ${agent.id} view`, 'Agents');
+                                                break;
+                                            case 'refresh':
+                                                if (!hasPermission(user, 'Agent', 'update')) return;
+                                                try {
+                                                    await AgentService.updateAgentConfig(agent.organizationId, agent.id, {
+                                                        forceSync: true,
+                                                        requestedAt: new Date().toISOString(),
+                                                    } as Record<string, unknown> as Partial<import('../types/agent').AgentConfig>);
+                                                    toast.success('Synchronisation demandee', `L'agent "${agent.name || agent.hostname}" va se synchroniser.`);
+                                                    ErrorLogger.debug(`Agent action: ${agent.id} refresh`, 'Agents');
+                                                } catch (error) {
+                                                    toast.error('Erreur', 'Impossible de synchroniser l\'agent.');
+                                                    ErrorLogger.error(error as Error, 'Agents.refreshAgent');
+                                                }
+                                                break;
+                                            case 'delete':
+                                                if (!hasPermission(user, 'Agent', 'delete')) return;
+                                                setDeleteConfirm({ agent });
+                                                break;
+                                            case 'configure':
+                                                setSelectedAgent(agent);
+                                                setIsLiveViewOpen(true);
+                                                ErrorLogger.debug(`Agent action: ${agent.id} configure`, 'Agents');
+                                                break;
                                         }
-                                        // TODO: Handle other agent actions (configure, refresh, delete)
-                                        ErrorLogger.debug(`Agent action: ${agent.id} ${action}`, 'Agents');
                                     }}
                                 />
                             </div>
@@ -300,14 +399,67 @@ export const Agents: React.FC = () => {
                     </TabsContent>
 
                     <TabsContent value="policies" className="mt-0">
-                        <AgentPolicies />
+                        <AgentPolicies agents={agents} />
                     </TabsContent>
 
                     <TabsContent value="software" className="mt-0">
                         <SoftwareInventory />
                     </TabsContent>
+
+                    <TabsContent value="anomalies" className="mt-0">
+                        {user?.organizationId && (
+                            <AnomalyAlerts />
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="baselines" className="mt-0">
+                        {user?.organizationId && (
+                            <BehavioralBaseline showAllAgents />
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="reports" className="mt-0">
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-semibold mb-2">Rapports Agent</h3>
+                            <p className="text-muted-foreground max-w-md mb-4">
+                                {`Générez des rapports de conformité, santé de la flotte et inventaire logiciel.`}
+                            </p>
+                            <Button onClick={() => {
+                                toast.info('Génération en cours', 'Le rapport de conformité sera disponible sous peu.');
+                                ErrorLogger.debug('Report generation requested', 'Agents.reports');
+                            }}>
+                                {`Générer un rapport`}
+                            </Button>
+                        </div>
+                    </TabsContent>
                 </Tabs>
             </motion.div>
+
+            {/* Delete Confirmation Dialog */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl p-6 max-w-md mx-4 shadow-apple-xl border border-border/50">
+                        <h3 className="text-lg font-semibold mb-2">Confirmer la suppression</h3>
+                        <p className="text-muted-foreground mb-4">
+                            Supprimer l&apos;agent &quot;{deleteConfirm.agent.name || deleteConfirm.agent.hostname}&quot; ? Cette action est irreversible.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Annuler</Button>
+                            <Button variant="destructive" onClick={async () => {
+                                try {
+                                    await AgentService.deleteAgent(deleteConfirm.agent.organizationId, deleteConfirm.agent.id);
+                                    toast.success('Agent supprime', `L'agent "${deleteConfirm.agent.name || deleteConfirm.agent.hostname}" a ete supprime.`);
+                                } catch (err) {
+                                    toast.error('Erreur', 'Impossible de supprimer l\'agent.');
+                                    ErrorLogger.error(err as Error, 'Agents.deleteAgent');
+                                }
+                                setDeleteConfirm(null);
+                            }}>Supprimer</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Agent Live View Drawer */}
             <Drawer

@@ -176,7 +176,7 @@ export const BackupRestore: React.FC = () => {
       }
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'BackupRestore.handleRestore', 'UNKNOWN_ERROR');
-      addToast("Erreur lors de la restauration", "error");
+      addToast(t('backup.errors.restoreFailed'), "error");
     } finally {
       setLoading(false);
     }

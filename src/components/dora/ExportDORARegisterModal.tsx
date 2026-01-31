@@ -98,8 +98,8 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
 
             const orgInfo = {
                 name: organization.name || 'Organization',
-                lei: '', // TODO: Add to organization settings when needed
-                country: 'FR' // TODO: Add to organization settings when needed
+                lei: organization.lei || '',
+                country: organization.country || 'FR'
             };
 
             let blob: Blob;

@@ -141,7 +141,7 @@ export const OrganizationSettings: React.FC = () => {
     }, [user]);
 
     const handleUpdateUserRole = React.useCallback(async (targetUserId: string, newRole: UserProfile['role']) => {
-        if (!process.env.VITE_USE_FIREBASE_EMULATOR) {
+        if (!import.meta.env.VITE_USE_FIREBASE_EMULATOR) {
             if (!canManageRestrictedRoles(newRole)) {
                 addToast(t('settings.errors.unauthorizedRole'), 'error');
                 return;

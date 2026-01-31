@@ -8,13 +8,14 @@ import { SystemLog, timestampToMillis } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../ui/EmptyState';
+import { hasPermission } from '../../utils/permissions';
 
 export const UserActivityLog: React.FC = () => {
     const { user, t } = useStore();
     const { activityLogs, loading } = useSettingsData();
     const [viewMode, setViewMode] = useState<'my' | 'global'>('my');
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'rssi';
+    const isAdmin = hasPermission(user, 'AuditTrail', 'read');
 
     // Filter and sort logs based on view mode
     const logs = useMemo(() => {

@@ -16,7 +16,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
 
     const { data: suppliers, loading } = useFirestoreCollection<Supplier>(
         'suppliers',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        [where('organizationId', '==', user?.organizationId || '')],
         { realtime: true, enabled: !!user?.organizationId }
     );
 

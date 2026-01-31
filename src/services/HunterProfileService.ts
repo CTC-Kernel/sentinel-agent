@@ -37,11 +37,15 @@ export class HunterProfileService {
     /**
      * Get user profile by ID
      */
-    static async getUserProfile(userId: string): Promise<UserProfile | null> {
+    static async getUserProfile(userId: string, organizationId?: string): Promise<UserProfile | null> {
         try {
             const userDoc = await getDoc(doc(db, 'users', userId));
             if (userDoc.exists()) {
-                return userDoc.data() as UserProfile;
+                const data = userDoc.data() as UserProfile;
+                if (organizationId && data.organizationId !== organizationId) {
+                    return null;
+                }
+                return data;
             }
             return null;
         } catch (error) {
@@ -53,15 +57,16 @@ export class HunterProfileService {
     /**
      * Get user profile by email
      */
-    static async getUserProfileByEmail(email: string): Promise<UserProfile | null> {
+    static async getUserProfileByEmail(email: string, organizationId?: string): Promise<UserProfile | null> {
         try {
-            const usersQuery = query(
-                collection(db, 'users'),
+            const constraints = [
                 where('email', '==', email),
+                ...(organizationId ? [where('organizationId', '==', organizationId)] : []),
                 limitQuery(1)
-            );
+            ];
+            const usersQuery = query(collection(db, 'users'), ...constraints);
             const querySnapshot = await getDocs(usersQuery);
-            
+
             if (!querySnapshot.empty) {
                 return querySnapshot.docs[0].data() as UserProfile;
             }

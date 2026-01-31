@@ -56,10 +56,11 @@ export class ScoreService {
         trend: data.trend ?? 'stable',
         lastCalculated: data.lastCalculated?.toDate?.() ?? data.lastCalculated ?? new Date().toISOString(),
         breakdown: data.breakdown ?? {
-          risks: { score: 0, weight: 0.30 },
-          controls: { score: 0, weight: 0.40 },
+          risks: { score: 0, weight: 0.25 },
+          controls: { score: 0, weight: 0.35 },
           documents: { score: 0, weight: 0.10 },
           audits: { score: 0, weight: 0.20 },
+          training: { score: 0, weight: 0.10 },
         },
         calculationDetails: data.calculationDetails,
       } as ComplianceScore;
@@ -153,10 +154,11 @@ export class ScoreService {
           trend: data.trend ?? 'stable',
           lastCalculated: data.lastCalculated?.toDate?.() ?? data.lastCalculated ?? new Date().toISOString(),
           breakdown: data.breakdown ?? {
-            risks: { score: 0, weight: 0.30 },
-            controls: { score: 0, weight: 0.40 },
+            risks: { score: 0, weight: 0.25 },
+            controls: { score: 0, weight: 0.35 },
             documents: { score: 0, weight: 0.10 },
             audits: { score: 0, weight: 0.20 },
+            training: { score: 0, weight: 0.10 },
           },
           calculationDetails: data.calculationDetails,
         };
@@ -198,17 +200,22 @@ export class ScoreService {
 
   /**
    * Calculate global score from breakdown
-   * Uses weighted average: controls 40%, risks 30%, audits 20%, docs 10%
+   * Uses weighted average: controls 35%, risks 25%, audits 20%, docs 10%, training 10%
    *
    * @param breakdown - Score breakdown by category
    * @returns Global score (0-100)
    */
   static calculateGlobalScore(breakdown: ScoreBreakdown): number {
+    const trainingComponent = breakdown.training
+      ? breakdown.training.score * breakdown.training.weight
+      : 0;
+
     const global =
       breakdown.controls.score * breakdown.controls.weight +
       breakdown.risks.score * breakdown.risks.weight +
       breakdown.audits.score * breakdown.audits.weight +
-      breakdown.documents.score * breakdown.documents.weight;
+      breakdown.documents.score * breakdown.documents.weight +
+      trainingComponent;
 
     // Ensure score is within 0-100 range
     return Math.max(0, Math.min(100, Math.round(global * 100) / 100));

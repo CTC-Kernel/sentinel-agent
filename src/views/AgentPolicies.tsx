@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { SEO } from '../components/SEO';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useStore } from '../store';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import * as AgentPolicyService from '../services/AgentPolicyService';
 import { AgentGroup, AgentPolicy, PolicyConflict } from '../types/agentPolicy';
+import { SentinelAgent } from '../types/agent';
 import {
     Users, FileCode, AlertTriangle, Shield, RefreshCw,
     CheckCircle2, XCircle, Settings2, Layers
@@ -17,6 +16,7 @@ import { GroupManager } from '../components/agents/GroupManager';
 import { PolicyEditor } from '../components/agents/PolicyEditor';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
+import { hasPermission } from '../utils/permissions';
 
 // Stats card component
 interface StatsCardProps {
@@ -125,14 +125,37 @@ const PoliciesSkeleton: React.FC = () => (
 );
 
 // Main Agent Policies View Component
-export const AgentPolicies: React.FC = () => {
+interface AgentPoliciesProps {
+    agents?: SentinelAgent[];
+}
+
+export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
     const { user } = useStore();
     const [groups, setGroups] = useState<AgentGroup[]>([]);
     const [policies, setPolicies] = useState<AgentPolicy[]>([]);
     const [conflicts, setConflicts] = useState<PolicyConflict[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'groups' | 'policies'>('groups');
     const [isInitialized, setIsInitialized] = useState(false);
+    const initInFlightRef = useRef(false);
+    const [retryCount, setRetryCount] = useState(0);
+
+    const canReadPolicy = hasPermission(user, 'AgentPolicy', 'read');
+    const canUpdatePolicy = hasPermission(user, 'AgentPolicy', 'update');
+
+    // Gate the entire view for users without read access
+    if (!canReadPolicy && !loading) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
+                <Shield className="h-12 w-12 text-muted-foreground" />
+                <p className="text-lg font-medium">Accès refusé</p>
+                <p className="text-sm text-muted-foreground">
+                    Vous n&apos;avez pas les permissions nécessaires pour accéder aux politiques agents.
+                </p>
+            </div>
+        );
+    }
 
     // Subscribe to groups and policies
     useEffect(() => {
@@ -148,6 +171,7 @@ export const AgentPolicies: React.FC = () => {
             },
             (error: Error) => {
                 ErrorLogger.error(error, 'AgentPolicies.subscribeToGroups');
+                setError('Erreur de chargement des donnees');
             }
         );
         unsubscribers.push(unsubGroups);
@@ -161,6 +185,7 @@ export const AgentPolicies: React.FC = () => {
             },
             (error: Error) => {
                 ErrorLogger.error(error, 'AgentPolicies.subscribeToPolicies');
+                setError('Erreur de chargement des donnees');
                 setLoading(false);
             }
         );
@@ -169,11 +194,12 @@ export const AgentPolicies: React.FC = () => {
         return () => {
             unsubscribers.forEach(unsub => unsub());
         };
-    }, [user?.organizationId]);
+    }, [user?.organizationId, retryCount]);
 
     // Initialize defaults if needed
     useEffect(() => {
         if (loading || isInitialized) return;
+        if (initInFlightRef.current) return;
 
         // Async function to handle initialization
         const initializeIfNeeded = async () => {
@@ -190,16 +216,19 @@ export const AgentPolicies: React.FC = () => {
                 await AgentPolicyService.initializeDefaultsIfNeeded(user.organizationId, user.uid);
                 setIsInitialized(true);
             } catch (error) {
+                initInFlightRef.current = false; // Allow retry
                 ErrorLogger.error(error, 'AgentPolicies.initializeDefaults');
+                setError('Erreur de chargement des donnees');
             }
         };
 
+        initInFlightRef.current = true;
         initializeIfNeeded();
     }, [user?.organizationId, user?.uid, loading, groups.length, policies.length, isInitialized]);
 
     // Detect policy conflicts
     useEffect(() => {
-        const detectConflicts = async () => {
+        const detectConflicts = () => {
             if (!user?.organizationId || policies.length < 2) {
                 setConflicts([]);
                 return;
@@ -218,14 +247,15 @@ export const AgentPolicies: React.FC = () => {
 
     // Handle conflict resolution
     const handleResolveConflict = useCallback((conflict: PolicyConflict) => {
+        if (!canUpdatePolicy) return;
         // Navigate to the higher priority policy for editing
         setActiveTab('policies');
         // Could add scroll-to or highlight functionality here
         ErrorLogger.debug(`Resolving conflict: ${conflict.ruleKey}`, 'AgentPolicies.handleResolveConflict');
-    }, []);
+    }, [canUpdatePolicy]);
 
     // Compute stats
-    const stats = {
+    const stats = useMemo(() => ({
         totalGroups: groups.length,
         totalPolicies: policies.length,
         activePolicies: policies.filter(p => p.isEnabled).length,
@@ -234,7 +264,7 @@ export const AgentPolicies: React.FC = () => {
         agentPolicies: policies.filter(p => p.scope === 'agent').length,
         deployedPolicies: policies.filter(p => p.lastDeployedAt).length,
         conflictCount: conflicts.length
-    };
+    }), [groups, policies, conflicts]);
 
     if (loading) {
         return (
@@ -244,15 +274,26 @@ export const AgentPolicies: React.FC = () => {
         );
     }
 
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
+                <AlertTriangle className="h-12 w-12 text-destructive" />
+                <p className="text-lg font-medium">{error}</p>
+                <Button onClick={() => {
+                    setError(null);
+                    setLoading(true);
+                    initInFlightRef.current = false;
+                    setIsInitialized(false);
+                    setRetryCount(prev => prev + 1);
+                }} variant="outline">
+                    Reessayer
+                </Button>
+            </div>
+        );
+    }
+
     return (
         <>
-            <MasterpieceBackground />
-            <SEO
-                title="Politiques Agents - Sentinel GRC"
-                description="Gestion des groupes et politiques de configuration des agents"
-                keywords="agents, policies, groups, configuration, compliance"
-            />
-
             <motion.div
                 variants={staggerContainerVariants}
                 initial="initial"
@@ -275,7 +316,13 @@ export const AgentPolicies: React.FC = () => {
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={() => window.location.reload()}
+                            onClick={() => {
+                                setError(null);
+                                setLoading(true);
+                                initInFlightRef.current = false;
+                                setIsInitialized(false);
+                                setRetryCount(prev => prev + 1);
+                            }}
                         >
                             <RefreshCw className="h-4 w-4" />
                             <span className="hidden sm:inline">Actualiser</span>
@@ -396,6 +443,7 @@ export const AgentPolicies: React.FC = () => {
 
                         <TabsContent value="groups" className="mt-6">
                             <GroupManager
+                                agents={agents}
                                 onSelectGroup={(groupId: string | null) => {
                                     ErrorLogger.debug(`Selected group: ${groupId}`, 'AgentPolicies');
                                 }}

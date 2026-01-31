@@ -22,6 +22,7 @@ import {
     limit,
     getDoc,
     setDoc,
+    QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
@@ -223,7 +224,7 @@ export async function getSoftwareStats(
     organizationId: string
 ): Promise<SoftwareInventoryStats> {
     try {
-        const softwareQuery = query(getSoftwareCollection(organizationId));
+        const softwareQuery = query(getSoftwareCollection(organizationId), limit(5000));
         const softwareSnapshot = await getDocs(softwareQuery);
         const software = softwareSnapshot.docs.map(d => docToSoftware(d.id, d.data()));
 
@@ -427,23 +428,45 @@ export async function upsertSoftwareFromAgent(
     softwareItems: AgentSoftwareItem[]
 ): Promise<{ added: number; updated: number }> {
     try {
-        const batch = writeBatch(db);
         let added = 0;
         let updated = 0;
+
+        // Pre-fetch all existing software for this organization to avoid N+1 queries
+        const existingQuery = query(
+            getSoftwareCollection(organizationId),
+            where('agentId', '==', agentId)
+        );
+        const existingSnapshot = await getDocs(existingQuery);
+        const existingByName = new Map<string, QueryDocumentSnapshot>();
+        existingSnapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const key = (data.name || '').toLowerCase().trim();
+            existingByName.set(key, docSnap);
+        });
+
+        // Also pre-fetch by name for software that may belong to other agents
+        const allSoftwareSnapshot = await getDocs(
+            query(getSoftwareCollection(organizationId), limit(5000))
+        );
+        allSoftwareSnapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const key = (data.name || '').toLowerCase().trim();
+            if (!existingByName.has(key)) {
+                existingByName.set(key, docSnap);
+            }
+        });
+
+        const BATCH_LIMIT = 400;
+        const batches: Array<{ action: 'set' | 'update'; ref: ReturnType<typeof doc>; data: Record<string, unknown> }> = [];
 
         for (const item of softwareItems) {
             // Normalize software name for matching
             const normalizedName = item.name.toLowerCase().trim();
 
-            // Check if software exists
-            const existingQuery = query(
-                getSoftwareCollection(organizationId),
-                where('name', '==', normalizedName),
-                limit(1)
-            );
-            const existingSnapshot = await getDocs(existingQuery);
+            // Use Map lookup instead of query
+            const existingDoc = existingByName.get(normalizedName);
 
-            if (existingSnapshot.empty) {
+            if (!existingDoc) {
                 // Create new software entry
                 const newSoftwareRef = doc(getSoftwareCollection(organizationId));
                 const newEntry: Omit<SoftwareInventoryEntry, 'id'> = {
@@ -482,14 +505,14 @@ export async function upsertSoftwareFromAgent(
                     updatedAt: new Date().toISOString(),
                 };
 
-                batch.set(newSoftwareRef, {
-                    ...newEntry,
-                    updatedAt: Timestamp.now(),
+                batches.push({
+                    action: 'set',
+                    ref: newSoftwareRef,
+                    data: { ...newEntry, updatedAt: Timestamp.now() },
                 });
                 added++;
             } else {
                 // Update existing software entry
-                const existingDoc = existingSnapshot.docs[0];
                 const existingData = docToSoftware(existingDoc.id, existingDoc.data());
 
                 // Check if agent already recorded
@@ -533,18 +556,35 @@ export async function upsertSoftwareFromAgent(
                     ? existingData.agentIds
                     : [...existingData.agentIds, agentId];
 
-                batch.update(existingDoc.ref, {
-                    versions,
-                    agentIds: newAgentIds,
-                    agentCount: newAgentIds.length,
-                    lastSeen: new Date().toISOString(),
-                    updatedAt: Timestamp.now(),
+                batches.push({
+                    action: 'update',
+                    ref: existingDoc.ref,
+                    data: {
+                        versions,
+                        agentIds: newAgentIds,
+                        agentCount: newAgentIds.length,
+                        lastSeen: new Date().toISOString(),
+                        updatedAt: Timestamp.now(),
+                    },
                 });
                 updated++;
             }
         }
 
-        await batch.commit();
+        // Commit in chunks to respect Firestore batch limit
+        for (let i = 0; i < batches.length; i += BATCH_LIMIT) {
+            const chunk = batches.slice(i, i + BATCH_LIMIT);
+            const batch = writeBatch(db);
+            for (const op of chunk) {
+                if (op.action === 'set') {
+                    batch.set(op.ref, op.data);
+                } else {
+                    batch.update(op.ref, op.data);
+                }
+            }
+            await batch.commit();
+        }
+
         return { added, updated };
     } catch (error) {
         ErrorLogger.error(error as Error, 'SoftwareInventoryService.upsertSoftwareFromAgent', {
@@ -565,7 +605,8 @@ export async function updateAuthorizationStatus(
     softwareId: string,
     status: AuthorizationStatus,
     userId: string,
-    notes?: string
+    notes?: string,
+    totalAgentCount?: number
 ): Promise<void> {
     try {
         const softwareRef = doc(getSoftwareCollection(organizationId), softwareId);
@@ -586,7 +627,7 @@ export async function updateAuthorizationStatus(
             existingData.vulnerabilitySummary,
             existingData.versions.some(v => v.isOutdated),
             status === 'unauthorized' || status === 'blocked',
-            existingData.agentCount / 100 // Placeholder for total agents
+            existingData.agentCount / (totalAgentCount || 1)
         );
 
         await updateDoc(softwareRef, {
@@ -700,7 +741,8 @@ export async function linkCvesToSoftware(
     organizationId: string,
     softwareId: string,
     cveIds: string[],
-    vulnerabilitySummary: SoftwareInventoryEntry['vulnerabilitySummary']
+    vulnerabilitySummary: SoftwareInventoryEntry['vulnerabilitySummary'],
+    totalAgentCount?: number
 ): Promise<void> {
     try {
         const softwareRef = doc(getSoftwareCollection(organizationId), softwareId);
@@ -720,7 +762,7 @@ export async function linkCvesToSoftware(
             vulnerabilitySummary,
             existingData.versions.some(v => v.isOutdated),
             existingData.authorizationStatus === 'unauthorized' || existingData.authorizationStatus === 'blocked',
-            existingData.agentCount / 100
+            existingData.agentCount / (totalAgentCount || 1)
         );
 
         await updateDoc(softwareRef, {

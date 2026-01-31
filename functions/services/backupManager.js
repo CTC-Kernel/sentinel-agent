@@ -86,10 +86,10 @@ class BackupManager {
             // Existing client `BackupRestore.tsx` uses `BackupService.getBackupUrl` which generates it from path.
             // So we don't strictly need to save `downloadUrl` in Firestore for the client to work, 
             // EXCEPT `BackupService.createBackup` (client-side) DOES save it.
-            // Let's generate a signed URL for 1 year just in case.
+            // Generate a signed URL valid for 1 hour. Client can regenerate on demand if needed.
             const [url] = await file.getSignedUrl({
                 action: 'read',
-                expires: Date.now() + 1000 * 60 * 60 * 24 * 365 // 1 year
+                expires: Date.now() + 60 * 60 * 1000 // 1 hour
             });
 
             // 4. Update Metadata

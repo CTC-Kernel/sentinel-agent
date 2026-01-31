@@ -326,8 +326,8 @@ export const Integrations: React.FC = () => {
                 title={t('integrations.confirm.disconnectTitle')}
                 message={t('integrations.confirm.disconnectMessage', { provider: disconnectTarget?.name })}
                 type="warning"
-                confirmText="Déconnecter"
-                cancelText="Annuler"
+                confirmText={t('integrations.confirm.disconnect')}
+                cancelText={t('common.cancel')}
             />
         </motion.div>
     );

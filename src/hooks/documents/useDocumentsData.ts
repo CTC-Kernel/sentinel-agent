@@ -9,12 +9,11 @@ import { MockDataService } from '../../services/mockDataService';
 export const useDocumentsData = (organizationId?: string, enabled = true) => {
     const { claimsSynced } = useAuth();
     const { demoMode: storeDemoMode } = useStore();
-    // Prioritize localStorage and window global for reliability in tests/demo
+    // Prioritize localStorage for reliability in demo mode
     const demoMode = storeDemoMode ||
-        (typeof window !== 'undefined' && (
-            !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
+        (typeof window !== 'undefined' &&
             (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
-        ));
+        );
 
     // Mock Data State
     const [mockData, setMockData] = useState<{

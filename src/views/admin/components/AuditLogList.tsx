@@ -2,20 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { AdminService, AuditLog } from '../../../services/adminService';
 import { Search, User, Clock, Info, Download } from '../../../components/ui/Icons';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { useStore } from '../../../store';
 
 export const AuditLogList: React.FC = () => {
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const { user } = useStore();
 
     useEffect(() => {
-        loadLogs();
-    }, []);
+        if (user?.organizationId) loadLogs();
+    }, [user?.organizationId]);
 
     const loadLogs = async () => {
         setLoading(true);
         try {
-            const data = await AdminService.getAuditLogs();
+            const data = await AdminService.getAuditLogs(user?.organizationId || '');
             setLogs(data);
         } catch (error) {
             ErrorLogger.error(error, 'AuditLogList.fetchLogs');

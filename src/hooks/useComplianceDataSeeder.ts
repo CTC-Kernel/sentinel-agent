@@ -89,7 +89,9 @@ export const useComplianceDataSeeder = () => {
             toast.success(`${count} contrôles ${framework} importés avec succès`);
 
         } catch (error) {
-            console.error('Seeder Error:', error);
+            if (import.meta.env.DEV) {
+                console.error('Seeder Error:', error);
+            }
             toast.error("Erreur lors de l'import des données");
         } finally {
             setSeeding(false);

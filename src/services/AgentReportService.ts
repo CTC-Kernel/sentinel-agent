@@ -21,6 +21,8 @@ import {
     deleteDoc,
     Unsubscribe,
     limit as firestoreLimit,
+    increment,
+    QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -59,6 +61,35 @@ const getTemplatesCollection = (organizationId: string) =>
     collection(db, 'organizations', organizationId, 'reportTemplates');
 
 // ============================================================================
+// Type-safe conversion helpers
+// ============================================================================
+
+function docToReport(d: QueryDocumentSnapshot): AgentReport {
+    const data = d.data();
+    return {
+        ...data,
+        id: d.id,
+        status: data.status || 'pending',
+        downloadCount: data.downloadCount || 0,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+        startedAt: data.startedAt?.toDate?.()?.toISOString() || data.startedAt,
+        completedAt: data.completedAt?.toDate?.()?.toISOString() || data.completedAt,
+    } as unknown as AgentReport;
+}
+
+function docToSchedule(d: QueryDocumentSnapshot): ScheduledReport {
+    const data = d.data();
+    return {
+        ...data,
+        id: d.id,
+        runCount: data.runCount || 0,
+        isEnabled: data.isEnabled ?? true,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+    } as ScheduledReport;
+}
+
+// ============================================================================
 // Report Subscriptions
 // ============================================================================
 
@@ -95,10 +126,7 @@ export function subscribeToReports(
     return onSnapshot(
         q,
         (snapshot) => {
-            const reports = snapshot.docs.map(d => ({
-                ...d.data(),
-                id: d.id,
-            } as AgentReport));
+            const reports = snapshot.docs.map(d => docToReport(d));
             onReports(reports);
         },
         (error) => {
@@ -128,10 +156,7 @@ export function subscribeToSchedules(
     return onSnapshot(
         q,
         (snapshot) => {
-            const schedules = snapshot.docs.map(d => ({
-                ...d.data(),
-                id: d.id,
-            } as ScheduledReport));
+            const schedules = snapshot.docs.map(d => docToSchedule(d));
             onSchedules(schedules);
         },
         (error) => {
@@ -212,7 +237,16 @@ export async function getReport(
 
         if (!snapshot.exists()) return null;
 
-        return { ...snapshot.data(), id: snapshot.id } as AgentReport;
+        const data = snapshot.data();
+        return {
+            ...data,
+            id: snapshot.id,
+            status: data.status || 'pending',
+            downloadCount: data.downloadCount || 0,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+            startedAt: data.startedAt?.toDate?.()?.toISOString() || data.startedAt,
+            completedAt: data.completedAt?.toDate?.()?.toISOString() || data.completedAt,
+        } as unknown as AgentReport;
     } catch (error) {
         ErrorLogger.error(error, 'AgentReportService.getReport', {
             component: 'AgentReportService',
@@ -240,13 +274,11 @@ export async function deleteReport(
                 const fileRef = ref(storage, report.fileUrl);
                 await deleteObject(fileRef);
             } catch (storageError) {
-                // File may not exist, continue but log for debugging
+                // File may not exist, continue but log for debugging (don't log full URL)
                 ErrorLogger.warn('Failed to delete report file from storage', 'AgentReportService.deleteReport', {
                     component: 'AgentReportService',
                     action: 'deleteReportFile',
-                    reportId,
-                    fileUrl: report.fileUrl,
-                    error: storageError instanceof Error ? storageError.message : 'Unknown error',
+                    metadata: { reportId: report.id },
                 });
             }
         }
@@ -282,7 +314,7 @@ export async function getReportDownloadUrl(
 
         // Update download count
         await updateDoc(doc(getReportsCollection(organizationId), reportId), {
-            downloadCount: (report.downloadCount || 0) + 1,
+            downloadCount: increment(1),
             lastDownloadedAt: new Date().toISOString(),
         });
 
@@ -385,7 +417,15 @@ export async function getSchedule(
 
         if (!snapshot.exists()) return null;
 
-        return { ...snapshot.data(), id: snapshot.id } as ScheduledReport;
+        const data = snapshot.data();
+        return {
+            ...data,
+            id: snapshot.id,
+            runCount: data.runCount || 0,
+            isEnabled: data.isEnabled ?? true,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+        } as ScheduledReport;
     } catch (error) {
         ErrorLogger.error(error, 'AgentReportService.getSchedule', {
             component: 'AgentReportService',
@@ -453,11 +493,11 @@ export async function runScheduleNow(
         // Generate report with schedule config
         const reportId = await generateReport(organizationId, schedule.config, userId);
 
-        // Update schedule
+        // Update schedule with atomic increment
         await updateDoc(doc(getSchedulesCollection(organizationId), scheduleId), {
             lastRunAt: new Date().toISOString(),
             lastReportId: reportId,
-            runCount: (schedule.runCount || 0) + 1,
+            runCount: increment(1),
         });
 
         return reportId;
@@ -485,10 +525,14 @@ export async function getTemplates(
     try {
         // Get custom templates
         const snapshot = await getDocs(getTemplatesCollection(organizationId));
-        const customTemplates = snapshot.docs.map(d => ({
-            ...d.data(),
-            id: d.id,
-        } as ReportTemplate));
+        const customTemplates = snapshot.docs.map(d => {
+            const data = d.data();
+            return {
+                ...data,
+                id: d.id,
+                isBuiltIn: data.isBuiltIn ?? false,
+            } as ReportTemplate;
+        });
 
         // Combine with built-in templates
         return [...DEFAULT_REPORT_TEMPLATES, ...customTemplates];
@@ -652,9 +696,9 @@ export async function getReportStats(
     storageUsed: number;
 }> {
     try {
-        const reportsSnapshot = await getDocs(getReportsCollection(organizationId));
+        const reportsSnapshot = await getDocs(query(getReportsCollection(organizationId), firestoreLimit(2000)));
         const schedulesSnapshot = await getDocs(
-            query(getSchedulesCollection(organizationId), where('isEnabled', '==', true))
+            query(getSchedulesCollection(organizationId), where('isEnabled', '==', true), firestoreLimit(2000))
         );
 
         const stats = {

@@ -46,7 +46,7 @@ export class SecureStorage {
             // Derive key using PBKDF2
             const derivedKey = CryptoJS.PBKDF2(fingerprint, salt, {
                 keySize: 256 / 32,
-                iterations: 1000
+                iterations: 100000
             }).toString();
 
             // Store in sessionStorage for session persistence
@@ -94,7 +94,7 @@ export class SecureStorage {
         try {
             localStorage.setItem('__sentinel_uid', uid);
         } catch {
-            // Ignore storage errors
+            ErrorLogger.debug('Storage operation failed', 'SecureStorage');
         }
         return uid;
     }
@@ -176,12 +176,7 @@ export class SecureStorage {
             const keyWithPrefix = this.PREFIX + key;
             const encrypted = localStorage.getItem(keyWithPrefix);
 
-            // Fallback for E2E testing or plain keys
             if (!encrypted) {
-                if (key === 'demoMode') {
-                    const plain = localStorage.getItem(key);
-                    if (plain) return (plain === 'true') as unknown as T;
-                }
                 return defaultValue ?? null;
             }
 

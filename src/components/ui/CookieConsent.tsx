@@ -4,11 +4,25 @@ import { LegalModal } from './LegalModal';
 import { useStore } from '../../store';
 import { hybridService } from '../../services/hybridService';
 import { initializeAnalytics } from '../../firebase';
+import { initSentry } from '../../utils/sentryInit';
 import { ErrorLogger } from '../../services/errorLogger';
+
+interface CookieConsentDetails {
+    essential: true;
+    analytics: boolean;
+    tracking: boolean;
+}
+
+/** Store granular consent details in localStorage */
+const saveConsentDetails = (details: CookieConsentDetails): void => {
+    localStorage.setItem('sentinel_cookie_consent_details', JSON.stringify(details));
+};
 
 export const CookieConsent: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [showLegalModal, setShowLegalModal] = useState(false);
+    const [analyticsConsent, setAnalyticsConsent] = useState(false);
+    const [trackingConsent, setTrackingConsent] = useState(false);
     const isDemoMode = localStorage.getItem('demoMode') === 'true';
 
     useEffect(() => {
@@ -24,8 +38,10 @@ export const CookieConsent: React.FC = () => {
 
     const { user } = useStore();
 
-    const handleAccept = async () => {
+    const handleAcceptAll = async () => {
         localStorage.setItem('sentinel_cookie_consent', 'true');
+        const details: CookieConsentDetails = { essential: true, analytics: true, tracking: true };
+        saveConsentDetails(details);
         setIsVisible(false);
 
         // RGPD: Initialize analytics after consent is given
@@ -35,16 +51,66 @@ export const CookieConsent: React.FC = () => {
             ErrorLogger.warn('Analytics initialization after consent failed', 'CookieConsent', { metadata: { error } });
         }
 
+        // Initialize Sentry after analytics consent is granted
+        try {
+            initSentry();
+        } catch (error) {
+            ErrorLogger.warn('Sentry initialization after consent failed', 'CookieConsent', { metadata: { error } });
+        }
+
         if (user) {
             try {
                 // Log consent to backend for GDPR proof
                 await hybridService.logConsent('cookie_policy', true);
-                await hybridService.logConsent('tos', true); // Implicit acceptance
                 await hybridService.logConsent('privacy_policy', true);
             } catch (error) {
-                ErrorLogger.error(error, 'CookieConsent.handleAccept');
+                ErrorLogger.error(error, 'CookieConsent.handleAcceptAll');
             }
         }
+    };
+
+    const handleAcceptSelected = async () => {
+        localStorage.setItem('sentinel_cookie_consent', 'true');
+        const details: CookieConsentDetails = { essential: true, analytics: analyticsConsent, tracking: trackingConsent };
+        saveConsentDetails(details);
+        setIsVisible(false);
+
+        // Only initialize analytics services if the relevant consent was given
+        if (analyticsConsent) {
+            try {
+                await initializeAnalytics();
+            } catch (error) {
+                ErrorLogger.warn('Analytics initialization after consent failed', 'CookieConsent', { metadata: { error } });
+            }
+
+            // Initialize Sentry only with analytics consent
+            try {
+                initSentry();
+            } catch (error) {
+                ErrorLogger.warn('Sentry initialization after consent failed', 'CookieConsent', { metadata: { error } });
+            }
+        }
+
+        if (user) {
+            try {
+                await hybridService.logConsent('cookie_policy', true);
+                await hybridService.logConsent('privacy_policy', true);
+            } catch (error) {
+                ErrorLogger.error(error, 'CookieConsent.handleAcceptSelected');
+            }
+        }
+    };
+
+    const handleRefuse = () => {
+        localStorage.setItem('sentinel_cookie_consent', 'false');
+        const details: CookieConsentDetails = { essential: true, analytics: false, tracking: false };
+        saveConsentDetails(details);
+        setIsVisible(false);
+    };
+
+    const handleClose = () => {
+        // Closing the banner without accepting is treated as refusing
+        handleRefuse();
     };
 
     if (isDemoMode || !isVisible)
@@ -53,7 +119,7 @@ export const CookieConsent: React.FC = () => {
     return (
         <>
             <div className="fixed bottom-0 left-0 right-0 z-max p-4 animate-slide-up">
-                <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-border/40 dark:border-border/40 rounded-2xl shadow-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-border/40 dark:border-border/40 rounded-2xl shadow-2xl p-6 flex flex-col gap-5">
                     <div className="flex items-start gap-4">
                         <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-3xl text-brand-600 shrink-0">
                             <Cookie className="h-6 w-6" />
@@ -72,15 +138,62 @@ export const CookieConsent: React.FC = () => {
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+
+                    {/* Granular consent options */}
+                    <div className="flex flex-col gap-2 pl-16">
+                        <label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                            <input
+                                type="checkbox"
+                                checked
+                                disabled
+                                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-not-allowed opacity-70"
+                            />
+                            <span className="font-medium">Cookies essentiels</span>
+                            <span className="text-xs text-slate-400">(toujours actifs)</span>
+                        </label>
+                        <label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={analyticsConsent}
+                                onChange={(e) => setAnalyticsConsent(e.target.checked)}
+                                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                            />
+                            <span className="font-medium">Cookies analytiques</span>
+                            <span className="text-xs text-slate-400">(mesure d'audience)</span>
+                        </label>
+                        <label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={trackingConsent}
+                                onChange={(e) => setTrackingConsent(e.target.checked)}
+                                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                            />
+                            <span className="font-medium">Cookies de suivi</span>
+                            <span className="text-xs text-slate-400">(amélioration de l'expérience)</span>
+                        </label>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 w-full">
                         <button
-                            onClick={handleAccept}
-                            className="flex-1 md:flex-none px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                            onClick={handleRefuse}
+                            className="px-5 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                         >
-                            Accepter et Fermer
+                            Refuser
                         </button>
                         <button
-                            onClick={() => setIsVisible(false)}
+                            onClick={handleAcceptSelected}
+                            className="px-5 py-2.5 border border-brand-500 text-brand-600 dark:text-brand-400 font-semibold rounded-3xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            Accepter la sélection
+                        </button>
+                        <button
+                            onClick={handleAcceptAll}
+                            className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                        >
+                            Accepter tout
+                        </button>
+                        <button
+                            onClick={handleClose}
                             className="p-3 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                             aria-label="Fermer"
                         >

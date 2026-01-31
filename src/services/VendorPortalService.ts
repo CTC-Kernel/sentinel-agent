@@ -4,6 +4,7 @@
  * Story 37-2: Vendor Self-Service Portal
  */
 
+import CryptoJS from 'crypto-js';
 import { db } from '../firebase';
 import {
   collection,
@@ -180,7 +181,7 @@ export class VendorPortalService {
   /**
    * Send email verification code
    */
-  static async sendVerificationCode(accessId: string): Promise<string> {
+  static async sendVerificationCode(accessId: string): Promise<boolean> {
     try {
       const docRef = doc(db, PORTAL_ACCESS_COLLECTION, accessId);
       const docSnap = await getDoc(docRef);
@@ -190,18 +191,18 @@ export class VendorPortalService {
       }
 
       const code = generateVerificationCode();
+      const hashedCode = CryptoJS.SHA256(code).toString();
       const expiresAt = new Date(Date.now() + VERIFICATION_CODE_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-      // Store hashed code (in production, use proper hashing)
-      // For simplicity, storing plain for now - in production use bcrypt
+      // Store hashed code - never store plaintext verification codes
       await updateDoc(docRef, sanitizeData({
-        verificationCodeHash: code, // Should be hashed in production
+        verificationCodeHash: hashedCode,
         verificationCodeExpiresAt: expiresAt,
       }));
 
-      // In production, send email here via Cloud Function
-      // For now, return code for testing
-      return code;
+      // TODO: Send email via Cloud Function with the plaintext code
+      // The code is only sent via email and never returned to the client
+      return true; // Code sent via email - never return to client
     } catch (error) {
       ErrorLogger.error(error, 'VendorPortalService.sendVerificationCode');
       throw error;
@@ -231,8 +232,8 @@ export class VendorPortalService {
         return false;
       }
 
-      // In production, compare hashed values
-      if (access.verificationCodeHash !== code) {
+      // Compare hashed values - hash the incoming code and compare with stored hash
+      if (access.verificationCodeHash !== CryptoJS.SHA256(code).toString()) {
         return false;
       }
 

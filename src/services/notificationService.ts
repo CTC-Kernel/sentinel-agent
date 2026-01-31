@@ -864,6 +864,122 @@ export class NotificationService {
     }
 
     /**
+     * Check for offline agents (no heartbeat for 3+ minutes)
+     */
+    static async checkOfflineAgents(organizationId: string): Promise<void> {
+        try {
+            const agentsRef = collection(db, 'organizations', organizationId, 'agents');
+            const agentsSnapshot = await getDocs(agentsRef);
+            const now = Date.now();
+            const OFFLINE_THRESHOLD = 3 * 60 * 1000; // 3 minutes
+
+            let offlineCount = 0;
+            agentsSnapshot.docs.forEach(agentDoc => {
+                const data = agentDoc.data();
+                const lastHeartbeat = data.lastHeartbeat?.toDate?.() || new Date(0);
+                if (now - lastHeartbeat.getTime() > OFFLINE_THRESHOLD) {
+                    offlineCount++;
+                }
+            });
+
+            if (offlineCount > 0) {
+                // Notify all admins
+                const adminsSnap = await getDocs(
+                    query(
+                        collection(db, 'users'),
+                        where('organizationId', '==', organizationId),
+                        where('role', '==', 'admin')
+                    )
+                );
+
+                for (const adminDoc of adminsSnap.docs) {
+                    // Idempotency check
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    const existingNotifs = await getDocs(query(
+                        collection(db, 'notifications'),
+                        where('userId', '==', adminDoc.id),
+                        where('link', '==', '/agents'),
+                        where('createdAt', '>=', yesterday)
+                    ));
+
+                    const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('hors ligne'));
+
+                    if (!alreadyNotified) {
+                        const severity: Notification['type'] = offlineCount > 3 ? 'danger' : 'warning';
+                        await addDoc(collection(db, 'notifications'), sanitizeData({
+                            organizationId,
+                            userId: adminDoc.id,
+                            type: severity,
+                            title: `${offlineCount} agent${offlineCount > 1 ? 's' : ''} hors ligne`,
+                            message: `${offlineCount} agent${offlineCount > 1 ? 's sont' : ' est'} hors ligne depuis plus de 3 minutes.`,
+                            link: '/agents',
+                            read: false,
+                            createdAt: serverTimestamp(),
+                        }));
+                    }
+                }
+            }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkOfflineAgents');
+        }
+    }
+
+    /**
+     * Check for agent compliance failures (critical/high severity open vulnerabilities)
+     */
+    static async checkAgentComplianceFailures(organizationId: string): Promise<void> {
+        try {
+            const vulnsRef = collection(db, 'organizations', organizationId, 'agentVulnerabilities');
+            const q = query(vulnsRef, where('status', '==', 'open'), limit(100));
+            const snapshot = await getDocs(q);
+
+            const criticalCount = snapshot.docs.filter(d => {
+                const sev = d.data().severity;
+                return sev === 'critical' || sev === 'high';
+            }).length;
+
+            if (criticalCount > 0) {
+                // Notify all admins
+                const adminsSnap = await getDocs(
+                    query(
+                        collection(db, 'users'),
+                        where('organizationId', '==', organizationId),
+                        where('role', '==', 'admin')
+                    )
+                );
+
+                for (const adminDoc of adminsSnap.docs) {
+                    // Idempotency check
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    const existingNotifs = await getDocs(query(
+                        collection(db, 'notifications'),
+                        where('userId', '==', adminDoc.id),
+                        where('link', '==', '/agents'),
+                        where('createdAt', '>=', yesterday)
+                    ));
+
+                    const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('conformite critique'));
+
+                    if (!alreadyNotified) {
+                        await addDoc(collection(db, 'notifications'), sanitizeData({
+                            organizationId,
+                            userId: adminDoc.id,
+                            type: 'danger' as Notification['type'],
+                            title: `${criticalCount} echec${criticalCount > 1 ? 's' : ''} de conformite critique${criticalCount > 1 ? 's' : ''}`,
+                            message: `${criticalCount} probleme${criticalCount > 1 ? 's' : ''} de conformite critique${criticalCount > 1 ? 's' : ''} detecte${criticalCount > 1 ? 's' : ''} par les agents.`,
+                            link: '/agents',
+                            read: false,
+                            createdAt: serverTimestamp(),
+                        }));
+                    }
+                }
+            }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkAgentComplianceFailures');
+        }
+    }
+
+    /**
      * Run all automated checks
      */
     static async runAutomatedChecks(organizationId: string): Promise<void> {
@@ -875,6 +991,8 @@ export class NotificationService {
             this.checkExpiringContracts(organizationId),
             this.checkRiskTreatmentSLA(organizationId),
             this.checkSMSIMilestones(organizationId),
+            this.checkOfflineAgents(organizationId),
+            this.checkAgentComplianceFailures(organizationId),
         ]);
 
         results.forEach((result, index) => {
@@ -886,7 +1004,9 @@ export class NotificationService {
                     'checkCriticalRisks',
                     'checkExpiringContracts',
                     'checkRiskTreatmentSLA',
-                    'checkSMSIMilestones'
+                    'checkSMSIMilestones',
+                    'checkOfflineAgents',
+                    'checkAgentComplianceFailures',
                 ];
                 ErrorLogger.error(result.reason, `NotificationService.${methods[index]}`);
             }

@@ -105,15 +105,23 @@ export class CertificateService {
 
   /**
    * Get a single certificate by ID
+   * Validates that the certificate belongs to the specified organization
    */
-  static async getCertificate(id: string): Promise<Certificate | null> {
+  static async getCertificate(id: string, organizationId: string): Promise<Certificate | null> {
     try {
+      if (!organizationId) throw new Error('Organization ID required');
+
       const docRef = doc(db, COLLECTION, id);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) return null;
 
-      return { id: docSnap.id, ...docSnap.data() } as Certificate;
+      const data = docSnap.data();
+      if (data.organizationId !== organizationId) {
+        throw new Error('Access denied: certificate does not belong to this organization');
+      }
+
+      return { id: docSnap.id, ...data } as Certificate;
     } catch (error) {
       ErrorLogger.error(error, 'CertificateService.getCertificate');
       throw error;
@@ -156,6 +164,7 @@ export class CertificateService {
 
   /**
    * Update an existing certificate
+   * Verifies the certificate belongs to the user's organization before updating
    */
   static async updateCertificate(
     id: string,
@@ -163,6 +172,16 @@ export class CertificateService {
     user: UserProfile
   ): Promise<void> {
     try {
+      if (!user.organizationId) throw new Error('Organization ID required');
+
+      // Verify ownership before updating
+      const docRef = doc(db, COLLECTION, id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error('Certificate not found');
+      if (docSnap.data().organizationId !== user.organizationId) {
+        throw new Error('Access denied: certificate does not belong to this organization');
+      }
+
       const updateData: Record<string, unknown> = {
         ...data,
         updatedAt: Timestamp.now(),
@@ -179,7 +198,7 @@ export class CertificateService {
         updateData.status = calculateStatus(validTo);
       }
 
-      await updateDoc(doc(db, COLLECTION, id), updateData);
+      await updateDoc(docRef, updateData);
     } catch (error) {
       ErrorLogger.error(error, 'CertificateService.updateCertificate');
       throw error;
@@ -188,10 +207,21 @@ export class CertificateService {
 
   /**
    * Delete a certificate
+   * Verifies the certificate belongs to the specified organization before deleting
    */
-  static async deleteCertificate(id: string): Promise<void> {
+  static async deleteCertificate(id: string, organizationId: string): Promise<void> {
     try {
-      await deleteDoc(doc(db, COLLECTION, id));
+      if (!organizationId) throw new Error('Organization ID required');
+
+      // Verify ownership before deleting
+      const docRef = doc(db, COLLECTION, id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error('Certificate not found');
+      if (docSnap.data().organizationId !== organizationId) {
+        throw new Error('Access denied: certificate does not belong to this organization');
+      }
+
+      await deleteDoc(docRef);
     } catch (error) {
       ErrorLogger.error(error, 'CertificateService.deleteCertificate');
       throw error;
@@ -207,9 +237,11 @@ export class CertificateService {
   ): Promise<{ success: number; errors: Array<{ row: number; error: string }> }> {
     if (!user.organizationId) throw new Error('Organization ID required');
 
-    const batch = writeBatch(db);
+    const BATCH_SIZE = 500;
+    let batch = writeBatch(db);
     const errors: Array<{ row: number; error: string }> = [];
     let success = 0;
+    let batchCount = 0;
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -254,6 +286,13 @@ export class CertificateService {
         const docRef = doc(collection(db, COLLECTION));
         batch.set(docRef, certificateData);
         success++;
+        batchCount++;
+
+        if (batchCount >= BATCH_SIZE) {
+          await batch.commit();
+          batch = writeBatch(db);
+          batchCount = 0;
+        }
       } catch (error) {
         errors.push({
           row: i + 1,
@@ -262,7 +301,7 @@ export class CertificateService {
       }
     }
 
-    if (success > 0) {
+    if (batchCount > 0) {
       await batch.commit();
     }
 
@@ -408,8 +447,10 @@ export class CertificateService {
   static async refreshStatuses(organizationId: string): Promise<number> {
     try {
       const certificates = await this.getCertificates(organizationId);
-      const batch = writeBatch(db);
+      const BATCH_SIZE = 500;
+      let batch = writeBatch(db);
       let updated = 0;
+      let batchCount = 0;
 
       for (const cert of certificates) {
         if (cert.status === 'revoked') continue; // Don't update revoked certs
@@ -421,10 +462,17 @@ export class CertificateService {
             updatedAt: Timestamp.now(),
           });
           updated++;
+          batchCount++;
+
+          if (batchCount >= BATCH_SIZE) {
+            await batch.commit();
+            batch = writeBatch(db);
+            batchCount = 0;
+          }
         }
       }
 
-      if (updated > 0) {
+      if (batchCount > 0) {
         await batch.commit();
       }
 

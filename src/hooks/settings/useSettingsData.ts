@@ -11,25 +11,25 @@ export const useSettingsData = () => {
 
   const { data: organization, loading: loadingOrg } = useFirestoreDocument<Organization>(
     'organizations',
-    user?.organizationId || 'ignore',
+    user?.organizationId || '',
     { enabled: !!user?.organizationId }
   );
 
   const { data: integrations, loading: loadingIntegrations } = useFirestoreCollection(
     'integrations',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: !!user?.organizationId }
   );
 
   const { data: activityLogs, loading: loadingLogs } = useFirestoreCollection<SystemLog>(
     'system_logs',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: !!user?.organizationId, realtime: true }
   );
 
   const { data: users, loading: loadingUsers, update: updateUser } = useFirestoreCollection<UserProfile>(
     'users',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId || '')],
     { enabled: !!user?.organizationId }
   );
 

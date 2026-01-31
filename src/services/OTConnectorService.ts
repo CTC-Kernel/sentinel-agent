@@ -36,6 +36,36 @@ import type {
 } from '../types/otConnector';
 
 // ============================================================================
+// Regex Safety Helper
+// ============================================================================
+
+/**
+ * Check if a regex pattern is safe from ReDoS attacks.
+ * Rejects patterns with nested quantifiers and excessive length.
+ */
+export function isSafeRegex(pattern: string): boolean {
+  if (pattern.length > 200) return false;
+
+  // Detect nested quantifiers that can cause catastrophic backtracking
+  // Patterns like (.*)+, (.+)+, (a*)*,  (a+)+, (a|a)*, etc.
+  const nestedQuantifierPatterns = [
+    /\(.*[*+]\).*[*+]/, // (something*)+  or (something+)*
+    /\([^)]*\|[^)]*\)\*/, // (a|a)*
+    /\(\.\*\)\+/, // (.*)+
+    /\(\.\+\)\+/, // (.+)+
+    /\([^)]*[*+][^)]*\)[*+?]/, // (a*)+, (a+)*, (a+)+, (a*)?, etc.
+  ];
+
+  for (const dangerousPattern of nestedQuantifierPatterns) {
+    if (dangerousPattern.test(pattern)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// ============================================================================
 // Collection References
 // ============================================================================
 
@@ -564,16 +594,30 @@ export async function testConnection(
     if (data.type === 'csv') {
       const csvConfig = data.config as Partial<CSVConnectorConfig>;
 
-      // Validate file pattern regex
-      try {
-        if (csvConfig.filePattern) {
-          new RegExp(csvConfig.filePattern);
+      // Validate file pattern regex with ReDoS protection
+      if (csvConfig.filePattern) {
+        if (csvConfig.filePattern.length > 100) {
+          return {
+            success: false,
+            message: 'File pattern too long (max 100 characters)'
+          };
         }
-      } catch {
-        return {
-          success: false,
-          message: 'Invalid file pattern regex'
-        };
+
+        if (!isSafeRegex(csvConfig.filePattern)) {
+          return {
+            success: false,
+            message: 'File pattern contains potentially unsafe regex constructs'
+          };
+        }
+
+        try {
+          new RegExp(csvConfig.filePattern);
+        } catch {
+          return {
+            success: false,
+            message: 'Invalid file pattern regex'
+          };
+        }
       }
 
       // In a real implementation, we would:

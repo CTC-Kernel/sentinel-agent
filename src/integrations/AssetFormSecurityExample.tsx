@@ -73,8 +73,8 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
             }
         },
         rateLimitOperation: 'api',
-        onError: (error) => {
-            toast.error(error.message);
+        onError: () => {
+            toast.error('Une erreur est survenue');
         }
     });
 

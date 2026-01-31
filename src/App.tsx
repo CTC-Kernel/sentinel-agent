@@ -199,12 +199,10 @@ const AppInner: React.FC = () => {
         return <ContentBlockerError />;
     }
 
-    const isTest = import.meta.env.MODE === 'test' ||
-        import.meta.env.VITE_USE_EMULATORS === 'true' ||
-        (typeof window !== 'undefined' && (
-            (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ ||
-            (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
-        ));
+    const isTest = !import.meta.env.PROD && (
+        import.meta.env.MODE === 'test' ||
+        import.meta.env.VITE_USE_EMULATORS === 'true'
+    );
 
     return (
         <>

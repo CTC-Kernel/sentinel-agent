@@ -10,8 +10,8 @@ export const useProjectMilestones = (projectId?: string) => {
   const { data: milestones, loading, add: addMilestoneRaw, update: updateMilestone, remove: removeMilestone } = useFirestoreCollection<ProjectMilestone>(
     'project_milestones',
     projectId
-      ? [where('organizationId', '==', user?.organizationId || 'ignore'), where('projectId', '==', projectId)]
-      : [where('organizationId', '==', user?.organizationId || 'ignore')],
+      ? [where('organizationId', '==', user?.organizationId || ''), where('projectId', '==', projectId)]
+      : [where('organizationId', '==', user?.organizationId || '')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 

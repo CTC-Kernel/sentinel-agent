@@ -95,9 +95,7 @@ export const useStore = create<AppState>((set) => ({
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
-  // Robust demoMode initialization
-  demoMode: (typeof window !== 'undefined' && !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__)) ||
-    SecureStorage.getSecureItem('demoMode') === 'true',
+  demoMode: SecureStorage.getSecureItem('demoMode') === 'true',
 
   toggleDemoMode: () => set((state) => {
     const next = !state.demoMode;

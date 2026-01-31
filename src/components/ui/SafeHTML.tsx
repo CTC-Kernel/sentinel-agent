@@ -32,8 +32,13 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
         node.setAttribute('rel', 'noopener noreferrer');
         // Only allow http/https links
         const href = node.getAttribute('href');
-        if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('/')) {
-            node.removeAttribute('href');
+        if (href) {
+            const normalizedHref = href.trim().toLowerCase();
+            if (normalizedHref.startsWith('javascript:') || normalizedHref.startsWith('data:') || normalizedHref.startsWith('vbscript:')) {
+                node.removeAttribute('href');
+            } else if (!href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('/')) {
+                node.removeAttribute('href');
+            }
         }
     }
 });

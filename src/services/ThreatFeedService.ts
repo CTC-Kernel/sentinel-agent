@@ -69,13 +69,13 @@ export class ThreatFeedService {
     private static async fetchViaProxy(targetUrl: string): Promise<unknown> {
         // Validation basique de l'URL pour éviter des appels inutiles
         if (!targetUrl || !targetUrl.startsWith('http')) {
-            console.warn('[ThreatFeedService] Invalid URL provided:', targetUrl);
+            ErrorLogger.warn('Invalid URL provided', 'ThreatFeedService.fetchViaProxy', { metadata: { targetUrl } });
             return { vulnerabilities: [], urls: [] };
         }
 
         // Si hors ligne, ne pas tenter de fetch
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            console.warn('[ThreatFeedService] Offline detected, skipping fetch');
+            ErrorLogger.warn('Offline detected, skipping fetch', 'ThreatFeedService.fetchViaProxy');
             return { vulnerabilities: [], urls: [] };
         }
 
@@ -85,24 +85,23 @@ export class ThreatFeedService {
             // Type safe access to data
             const data = result.data as { vulnerabilities?: unknown[]; urls?: unknown[] };
             if (data) {
-                console.log('[ThreatFeedService] Firebase proxy success for:', targetUrl);
+                // Firebase proxy success
                 return data;
             }
         } catch (error) {
-            console.warn('[ThreatFeedService] Firebase proxy failed:', error instanceof Error ? error.message : String(error));
+            ErrorLogger.warn('Firebase proxy failed', 'ThreatFeedService.fetchViaProxy', { metadata: { error: error instanceof Error ? error.message : String(error) } });
             // Continue to other methods if Firebase proxy fails
         }
 
         // List of proxy services to try in order
         const proxies = [
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            // Removed flaky proxies (codetabs, thingproxy) to reduce console spam
-            // (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}` 
+            // Removed flaky proxies (codetabs, thingproxy) to reduce noise
         ];
 
         // Si hors ligne, ne pas tenter de fetch
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            console.warn('[ThreatFeedService] Offline detected, skipping fetch');
+            ErrorLogger.warn('Offline detected, skipping fetch', 'ThreatFeedService.fetchViaProxy');
             return { vulnerabilities: [], urls: [] };
         }
 
@@ -124,16 +123,15 @@ export class ThreatFeedService {
                 const text = await response.text();
                 try {
                     const data = JSON.parse(text);
-                    console.log('[ThreatFeedService] Direct fetch success for:', targetUrl);
+                    // Direct fetch success
                     return data;
                 } catch {
-                    // Si json parse fail, peut-être format invalid
-                    console.warn('[ThreatFeedService] JSON parse failed for direct fetch');
+                    // JSON parse failed for direct fetch - invalid format
                     return { vulnerabilities: [], urls: [] };
                 }
             }
         } catch (error) {
-            console.warn('[ThreatFeedService] Direct fetch failed:', error instanceof Error ? error.message : String(error));
+            ErrorLogger.warn('Direct fetch failed', 'ThreatFeedService.fetchViaProxy', { metadata: { error: error instanceof Error ? error.message : String(error) } });
             // Continue to proxies if direct fetch fails
         }
 
@@ -156,20 +154,20 @@ export class ThreatFeedService {
                     const text = await response.text();
                     try {
                         const data = JSON.parse(text);
-                        console.log('[ThreatFeedService] Proxy success for:', targetUrl);
+                        // Proxy success
                         return data;
                     } catch {
                         continue; // Try next proxy if JSON parsing fails
                     }
                 }
             } catch (error) {
-                console.warn('[ThreatFeedService] Proxy failed:', error instanceof Error ? error.message : String(error));
+                ErrorLogger.warn('Proxy failed', 'ThreatFeedService.fetchViaProxy', { metadata: { error: error instanceof Error ? error.message : String(error) } });
                 // Silent catch for individual proxy failures to keep trying others
                 continue;
             }
         }
 
-        console.warn('[ThreatFeedService] All fetch methods failed for:', targetUrl);
+        ErrorLogger.warn('All fetch methods failed', 'ThreatFeedService.fetchViaProxy', { metadata: { targetUrl } });
         // Return empty structure instead of throwing to prevent app crash
         // Instead of throwing, we return empty to trigger fallback logic upstream if needed,
         // OR we can rely on the caller to handle empty results.
@@ -205,7 +203,7 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            console.error('[ThreatFeedService] fetchCisaKev failed:', error instanceof Error ? error.message : String(error));
+            ErrorLogger.error(error, 'ThreatFeedService.fetchCisaKev');
             return [];
         }
     }
@@ -240,12 +238,27 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            console.error('[ThreatFeedService] fetchUrlHaus failed:', error instanceof Error ? error.message : String(error));
+            ErrorLogger.error(error, 'ThreatFeedService.fetchUrlHaus');
             return [];
         }
     }
 
-    static useSimulation = false;
+    private static _useSimulation = false;
+
+    /** Read-only accessor for simulation mode. Only tests should modify this via `enableSimulation()`. */
+    static get useSimulation(): boolean {
+        return this._useSimulation;
+    }
+
+    /** Enable simulation mode explicitly (for demo/test use only). */
+    static enableSimulation(): void {
+        this._useSimulation = true;
+    }
+
+    /** Disable simulation mode. */
+    static disableSimulation(): void {
+        this._useSimulation = false;
+    }
 
     /**
      * Seed the database with LIVE data only.
@@ -256,7 +269,9 @@ export class ThreatFeedService {
         const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
 
         if (this.useSimulation || isOffline) {
-            return this.seedSimulatedData(organizationId);
+            // SECURITY: Do not write mock data to production Firestore.
+            // Return empty results when offline or in simulation mode.
+            return { threats: 0, vulns: 0 };
         }
 
         let liveThreats: Threat[] = [];
@@ -268,16 +283,16 @@ export class ThreatFeedService {
                 this.fetchCisaKev()
             ]);
 
-            // If live fetch returns nothing/empty, consider falling back to simulation automatically
-            // to avoid empty dashboards for the user.
+            // If live feeds returned no data, return empty results.
+            // Do NOT fall back to mock data in production.
             if (liveThreats.length === 0 && liveVulns.length === 0) {
-                return this.seedSimulatedData(organizationId);
+                return { threats: 0, vulns: 0 };
             }
 
         } catch (_e) {
             ErrorLogger.error(_e, 'ThreatFeedService.seedLiveThreats');
-            // Fallback to simulation on error
-            return this.seedSimulatedData(organizationId);
+            // Return empty results on error. Do NOT write mock data to Firestore.
+            return { threats: 0, vulns: 0 };
         }
 
         let threatsAdded = 0;
@@ -322,8 +337,8 @@ export class ThreatFeedService {
                     threatsAdded++;
                 }
             }
-        } catch {
-            // ErrorLogger.error(_error, 'ThreatFeedService.processLiveFeeds');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'ThreatFeedService.processLiveFeeds');
         }
 
         return { threats: threatsAdded, vulns: vulnsAdded };

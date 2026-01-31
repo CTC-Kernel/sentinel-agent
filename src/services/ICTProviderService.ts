@@ -44,11 +44,11 @@ export class ICTProviderService {
         userId: string
     ): Promise<string> {
         try {
-            const providerData: Partial<ICTProvider> = {
+            const providerData = {
                 ...data,
                 organizationId,
-                createdAt: serverTimestamp() as unknown as string,
-                updatedAt: serverTimestamp() as unknown as string,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 createdBy: userId,
                 status: data.status || 'active'
             };
@@ -71,10 +71,19 @@ export class ICTProviderService {
     static async update(
         providerId: string,
         data: Partial<ICTProviderFormData>,
-        userId: string
+        userId: string,
+        organizationId?: string
     ): Promise<void> {
         try {
             const providerRef = doc(db, this.COLLECTION, providerId);
+
+            // Verify organization ownership if organizationId provided
+            if (organizationId) {
+                const docSnap = await getDoc(providerRef);
+                if (!docSnap.exists() || docSnap.data().organizationId !== organizationId) {
+                    throw new Error('ICT Provider not found or access denied');
+                }
+            }
 
             await updateDoc(providerRef, sanitizeData({
                 ...data,
@@ -90,7 +99,7 @@ export class ICTProviderService {
     /**
      * Get a single ICT Provider by ID
      */
-    static async getById(providerId: string): Promise<ICTProvider | null> {
+    static async getById(providerId: string, organizationId?: string): Promise<ICTProvider | null> {
         try {
             const docRef = doc(db, this.COLLECTION, providerId);
             const docSnap = await getDoc(docRef);
@@ -99,7 +108,15 @@ export class ICTProviderService {
                 return null;
             }
 
-            return { id: docSnap.id, ...docSnap.data() } as ICTProvider;
+            const data = docSnap.data();
+
+            // Verify organization ownership if organizationId provided
+            if (organizationId && data.organizationId !== organizationId) {
+                ErrorLogger.warn('IDOR attempt: ICT provider org mismatch', 'ICTProviderService.getById');
+                return null;
+            }
+
+            return { id: docSnap.id, ...data } as ICTProvider;
         } catch (error) {
             ErrorLogger.error(error, 'ICTProviderService.getById');
             throw error;
@@ -369,15 +386,17 @@ export class ICTProviderService {
         userId: string
     ): Promise<{ imported: number; errors: string[] }> {
         try {
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
             const errors: string[] = [];
 
-            lines.forEach((row, index) => {
+            for (const [index, row] of lines.entries()) {
                 const name = row['Nom'] || row['Name'] || row['name'];
                 if (!name) {
                     errors.push(`Ligne ${index + 1}: Nom manquant`);
-                    return;
+                    continue;
                 }
 
                 const categoryRaw = row['Categorie'] || row['Category'] || row['category'] || 'standard';
@@ -431,9 +450,16 @@ export class ICTProviderService {
                 const newRef = doc(collection(db, this.COLLECTION));
                 batch.set(newRef, sanitizeData(providerData));
                 count++;
-            });
+                batchCount++;
 
-            if (count > 0) {
+                if (batchCount >= BATCH_SIZE) {
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    batchCount = 0;
+                }
+            }
+
+            if (batchCount > 0) {
                 await batch.commit();
             }
 

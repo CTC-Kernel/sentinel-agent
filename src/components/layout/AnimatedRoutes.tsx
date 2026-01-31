@@ -36,7 +36,6 @@ const ActivityLogs = React.lazy(() => import('../../views/ActivityLogs').then(mo
 const CalendarView = React.lazy(() => import('../../views/CalendarView').then(module => ({ default: module.CalendarView })));
 const Pricing = React.lazy(() => import('../../views/Pricing'));
 const SystemHealth = React.lazy(() => import('../../views/SystemHealth').then(module => ({ default: module.SystemHealth })));
-const AdminDashboard = React.lazy(() => import('../../views/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 const Integrations = React.lazy(() => import('../../views/Integrations').then(module => ({ default: module.Integrations })));
 const ThreatRegistry = React.lazy(() => import('../../views/ThreatRegistry').then(module => ({ default: module.ThreatRegistry })));
 const Vulnerabilities = React.lazy(() => import('../../views/Vulnerabilities').then(module => ({ default: module.Vulnerabilities })));
@@ -74,9 +73,10 @@ import { NotFound } from '../../views/NotFound';
 
 export const AnimatedRoutes: React.FC = () => {
     const location = useLocation();
-    const isTestMode = import.meta.env.MODE === 'test' ||
-        import.meta.env.VITE_USE_EMULATORS === 'true' ||
-        (typeof window !== 'undefined' && (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })());
+    const isTestMode = !import.meta.env.PROD && (
+        import.meta.env.MODE === 'test' ||
+        import.meta.env.VITE_USE_EMULATORS === 'true'
+    );
     const RoleGuardComponent = isTestMode ? TestRoleGuard : RoleGuard;
 
     const allRoles: Role[] = ['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user'];
@@ -151,12 +151,7 @@ export const AnimatedRoutes: React.FC = () => {
                         <AnimatedPage><BackupRestore /></AnimatedPage>
                     </RoleGuardComponent>
                 } />
-                <Route path="/admin_management" element={
-                    // AdminDashboard handles its own super-admin check, but we add basic role check too
-                    <RoleGuardComponent allowedRoles={['admin']}>
-                        <AnimatedPage><AdminDashboard /></AnimatedPage>
-                    </RoleGuardComponent>
-                } />
+                {/* /admin_management route is defined in App.tsx with StrictSuperAdminGuard */}
                 <Route path="/integrations" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
                         <AnimatedPage><Integrations /></AnimatedPage>

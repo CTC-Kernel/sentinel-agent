@@ -166,15 +166,15 @@ export class SupplierService {
         user: { uid: string; email: string; displayName?: string }
     ): Promise<string> {
         try {
-            const newResponse: Partial<SupplierQuestionnaireResponse> = {
+            const newResponse = {
                 organizationId,
                 supplierId,
                 supplierName,
                 templateId: template.id,
-                status: 'Draft',
+                status: 'Draft' as const,
                 answers: {},
                 overallScore: 0,
-                sentDate: serverTimestamp() as unknown as string
+                sentDate: serverTimestamp()
             };
 
             const res = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData(newResponse));
@@ -305,10 +305,12 @@ export class SupplierService {
         userDisplayName?: string
     ): Promise<number> {
         try {
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
 
-            lines.forEach((row: Record<string, string>) => {
+            for (const row of lines) {
                 const values = Object.values(row) as string[];
                 const name = row['Nom'] || row['Name'] || values[0] || 'Inconnu';
                 const category = row['Catégorie'] || row['Category'] || values[1] || 'Autre';
@@ -318,14 +320,14 @@ export class SupplierService {
 
                 if (name) {
                     const newRef = doc(collection(db, 'suppliers'));
-                    const newSupplierData: Partial<Supplier> = {
+                    const newSupplierData = {
                         organizationId,
                         name: name.trim(),
                         category: (category.trim() || 'Autre') as Supplier['category'],
                         criticality: (criticality.trim() || 'Moyenne') as Criticality,
                         contactName: contactName.trim(),
                         contactEmail: contactEmail.trim(),
-                        status: 'Actif',
+                        status: 'Actif' as const,
                         securityScore: 0,
                         assessment: {
                             hasIso27001: false,
@@ -333,21 +335,30 @@ export class SupplierService {
                             hasEncryption: false,
                             hasBcp: false,
                             hasIncidentProcess: false,
-                            lastAssessmentDate: serverTimestamp() as unknown as string
+                            lastAssessmentDate: serverTimestamp()
                         },
                         isICTProvider: false,
                         supportsCriticalFunction: false,
-                        doraCriticality: 'Aucun',
+                        doraCriticality: 'Aucun' as const,
                         owner: userDisplayName || 'Importé',
                         ownerId: userId,
-                        createdAt: serverTimestamp() as unknown as string
+                        createdAt: serverTimestamp()
                     };
                     batch.set(newRef, sanitizeData(newSupplierData));
                     count++;
-                }
-            });
+                    batchCount++;
 
-            await batch.commit();
+                    if (batchCount >= BATCH_SIZE) {
+                        await batch.commit();
+                        batch = writeBatch(db);
+                        batchCount = 0;
+                    }
+                }
+            }
+
+            if (batchCount > 0) {
+                await batch.commit();
+            }
 
             // Audit Log
             await AuditLogService.logImport(

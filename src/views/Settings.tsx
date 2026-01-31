@@ -80,7 +80,7 @@ const Settings: React.FC = () => {
 
             <PageHeader
                 title={t('settings.title')}
-                subtitle="Gerez vos préférences et configuration"
+                subtitle={t('settings.subtitle')}
                 icon={
                     <img
                         src="/images/administration.png"
