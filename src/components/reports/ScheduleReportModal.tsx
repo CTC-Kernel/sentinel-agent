@@ -58,9 +58,9 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
     });
 
     const { fields, append, remove } = useFieldArray({
-        control: control as any,
+        control,
         name: "recipients"
-    });
+    } as any);
 
     const watchedFrequency = useWatch({ control, name: 'frequency' });
     const watchedDayOfWeek = useWatch({ control, name: 'dayOfWeek' });
