@@ -909,7 +909,9 @@ fn scan_macos_apps() -> Vec<crate::dto::GuiMacOsApp> {
         }
     }
 
-    apps.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    apps.sort_by(|a: &crate::dto::GuiMacOsApp, b: &crate::dto::GuiMacOsApp| {
+        a.name.to_lowercase().cmp(&b.name.to_lowercase())
+    });
     apps
 }
 
