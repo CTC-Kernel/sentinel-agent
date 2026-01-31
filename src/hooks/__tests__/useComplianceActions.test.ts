@@ -152,7 +152,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(success).toBe(false);
-            expect(mockToastError).toHaveBeenCalledWith('Erreur lors de la mise à jour');
+            expect(mockToastError).toHaveBeenCalledWith('errors.updateFailed');
         });
 
         it('sets updating state during operation', async () => {
@@ -185,7 +185,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Statut mis à jour');
+            expect(mockToastSuccess).toHaveBeenCalledWith('Statut mis à jour. Prochaine étape : ajoutez des preuves.');
         });
     });
 
@@ -198,7 +198,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Responsable assigné');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.assigneeAssigned');
         });
     });
 
@@ -211,7 +211,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Actif lié');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.assetLinked');
         });
     });
 
@@ -224,7 +224,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Lien supprimé');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.linkRemoved');
         });
     });
 
@@ -237,7 +237,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Fournisseur lié');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.supplierLinked');
         });
     });
 
@@ -250,7 +250,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Projet lié');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.projectLinked');
         });
     });
 
@@ -263,7 +263,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Document lié');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.documentLinked');
         });
     });
 
@@ -276,7 +276,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Justification enregistrée');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.justificationSaved');
         });
     });
 
@@ -292,7 +292,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Contrôle marqué comme Applicable');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.applicabilityChanged');
         });
 
         it('marks control as non-applicable', async () => {
@@ -303,7 +303,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Contrôle marqué comme Non applicable');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.applicabilityChanged');
         });
     });
 
@@ -316,7 +316,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Référentiel mappé');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.frameworkMapped');
         });
 
         it('shows info toast when mapping primary framework', async () => {
@@ -326,7 +326,7 @@ describe('useComplianceActions', () => {
                 await result.current.handleMapFramework(mockControl, 'ISO27001' as Framework);
             });
 
-            expect(mockToastInfo).toHaveBeenCalledWith('Ce référentiel est déjà le référentiel principal');
+            expect(mockToastInfo).toHaveBeenCalledWith('compliance.frameworkAlreadyPrimary');
         });
 
         it('shows info toast when framework already mapped', async () => {
@@ -341,7 +341,7 @@ describe('useComplianceActions', () => {
                 await result.current.handleMapFramework(controlWithMappings, 'NIS2' as Framework);
             });
 
-            expect(mockToastInfo).toHaveBeenCalledWith('Ce référentiel est déjà mappé');
+            expect(mockToastInfo).toHaveBeenCalledWith('compliance.frameworkAlreadyMapped');
         });
     });
 
@@ -354,7 +354,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockToastSuccess).toHaveBeenCalledWith('Mapping supprimé');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.mappingRemoved');
         });
     });
 
@@ -371,7 +371,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(riskId!).toBe('new-doc-id');
-            expect(mockToastSuccess).toHaveBeenCalledWith('Risque créé avec succès');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.riskCreated');
         });
 
         it('handles create risk error', async () => {
@@ -385,7 +385,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(riskId!).toBeNull();
-            expect(mockToastError).toHaveBeenCalledWith('Erreur lors de la création du risque');
+            expect(mockToastError).toHaveBeenCalledWith('errors.riskCreationFailed');
         });
     });
 
@@ -402,7 +402,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(auditId!).toBe('new-doc-id');
-            expect(mockToastSuccess).toHaveBeenCalledWith('Audit planifié avec succès');
+            expect(mockToastSuccess).toHaveBeenCalledWith('compliance.auditPlanned');
         });
 
         it('handles create audit error', async () => {
@@ -416,7 +416,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(auditId!).toBeNull();
-            expect(mockToastError).toHaveBeenCalledWith("Erreur lors de la création de l'audit");
+            expect(mockToastError).toHaveBeenCalledWith('errors.auditCreationFailed');
         });
     });
 
