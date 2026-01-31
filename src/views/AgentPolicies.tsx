@@ -144,19 +144,6 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
     const canReadPolicy = hasPermission(user, 'AgentPolicy', 'read');
     const canUpdatePolicy = hasPermission(user, 'AgentPolicy', 'update');
 
-    // Gate the entire view for users without read access
-    if (!canReadPolicy && !loading) {
-        return (
-            <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
-                <Shield className="h-12 w-12 text-muted-foreground" />
-                <p className="text-lg font-medium">Accès refusé</p>
-                <p className="text-sm text-muted-foreground">
-                    Vous n&apos;avez pas les permissions nécessaires pour accéder aux politiques agents.
-                </p>
-            </div>
-        );
-    }
-
     // Subscribe to groups and policies
     useEffect(() => {
         if (!user?.organizationId) return;
@@ -265,6 +252,19 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
         deployedPolicies: policies.filter(p => p.lastDeployedAt).length,
         conflictCount: conflicts.length
     }), [groups, policies, conflicts]);
+
+    // Gate the entire view for users without read access
+    if (!canReadPolicy && !loading) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
+                <Shield className="h-12 w-12 text-muted-foreground" />
+                <p className="text-lg font-medium">Accès refusé</p>
+                <p className="text-sm text-muted-foreground">
+                    Vous n&apos;avez pas les permissions nécessaires pour accéder aux politiques agents.
+                </p>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

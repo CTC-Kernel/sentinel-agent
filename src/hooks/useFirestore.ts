@@ -218,7 +218,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             try {
                 unsubscribe();
-            } catch (_err) {
+            } catch {
                 ErrorLogger.warn('Firestore unsubscribe failed', 'useFirestoreCollection');
             }
         };
@@ -458,7 +458,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
                 timeouts.forEach(window.clearTimeout);
                 try {
                     unsubscribe();
-                } catch (_err) {
+                } catch {
                     ErrorLogger.warn('Firestore unsubscribe failed', 'useFirestoreDocument');
                 }
             };

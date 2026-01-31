@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { AdminService, AuditLog } from '../../../services/adminService';
 import { Search, User, Clock, Info, Download } from '../../../components/ui/Icons';
 import { ErrorLogger } from '../../../services/errorLogger';
@@ -10,11 +10,7 @@ export const AuditLogList: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const { user } = useStore();
 
-    useEffect(() => {
-        if (user?.organizationId) loadLogs();
-    }, [user?.organizationId]);
-
-    const loadLogs = async () => {
+    const loadLogs = useCallback(async () => {
         setLoading(true);
         try {
             const data = await AdminService.getAuditLogs(user?.organizationId || '');
@@ -24,7 +20,11 @@ export const AuditLogList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.organizationId]);
+
+    useEffect(() => {
+        if (user?.organizationId) loadLogs();
+    }, [user?.organizationId, loadLogs]);
 
     const filteredLogs = logs.filter(log =>
         log.actorEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||

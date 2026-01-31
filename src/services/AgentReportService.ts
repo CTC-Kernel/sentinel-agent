@@ -273,7 +273,7 @@ export async function deleteReport(
             try {
                 const fileRef = ref(storage, report.fileUrl);
                 await deleteObject(fileRef);
-            } catch (storageError) {
+            } catch {
                 // File may not exist, continue but log for debugging (don't log full URL)
                 ErrorLogger.warn('Failed to delete report file from storage', 'AgentReportService.deleteReport', {
                     component: 'AgentReportService',
