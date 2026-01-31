@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleGetInfoString</key>
+    <string>Sentinel GRC Agent Installer</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.sentinel.installer</string>
+    <key>CFBundleName</key>
+    <string>Sentinel GRC Agent</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>2.0.0</string>
+    <key>IFPkgFlagAuthorizationAction</key>
+    <string>RootAuthorization</string>
+    <key>IFPkgFlagBackgroundAlignment</key>
+    <string>center</string>
+    <key>IFPkgFlagBackgroundScaling</key>
+    <string>proportional</string>
+    <key>IFPkgFlagFollowLinks</key>
+    <true/>
+    <key>IFPkgFlagInstallLocation</key>
+    <string>/Applications</string>
+    <key>IFPkgFlagRelocatable</key>
+    <false/>
+    <key>IFPkgFlagRestartAction</key>
+    <string>NoRestart</string>
+    <key>IFPkgFlagAuthorizationAction</key>
+    <string>RootAuthorization</string>
+    <key>IFPkgFlagFollowLinks</key>
+    <true/>
+    <key>IFMajorVersion</key>
+    <integer>2</integer>
+    <key>IFMinorVersion</key>
+    <integer>0</integer>
+    <key>IFPkgFormatVersion</key>
+    <real>0.10000000149011612</real>
+    <key>IFPkgFlagAllowBackRev</key>
+    <false/>
+    <key>IFPkgFlagDefaultLocation</key>
+    <string>/Applications</string>
+    <key>IFPkgFlagAuthorizationAction</key>
+    <string>RootAuthorization</string>
+</dict>
+</plist>

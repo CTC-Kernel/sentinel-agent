@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="Sentinel GRC Agent" 
+           Language="1033" 
+           Version="2.0.0.0" 
+           Manufacturer="Cyber Threat Consulting" 
+           UpgradeCode="12345678-1234-5678-9012-123456789012">
+    
+    <Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             Platform="x64" 
+             Description="Sentinel GRC Agent - Endpoint compliance monitoring" />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Properties -->
+    <Property Id="ARPPRODUCTICON" Value="sentinel.ico" />
+    <Property Id="ARPNOMODIFY" Value="Modify" />
+    <Property Id="ARPNOREPAIR" Value="Repair" />
+    <Property Id="ARPNOREMOVE" Value="Remove" />
+    
+    <!-- Features -->
+    <Feature Id="Complete" 
+             Title="Sentinel GRC Agent" 
+             Description="Complete Sentinel GRC Agent installation" 
+             Display="expand" 
+             Level="1">
+      <Feature Id="AgentCore" 
+               Title="Core Agent" 
+               Description="Sentinel Agent core application and service" 
+               Level="1">
+        <ComponentRef Id="AgentExecutable" />
+        <ComponentRef Id="AgentService" />
+        <ComponentRef Id="AgentConfig" />
+      </Feature>
+      
+      <Feature Id="CLI" 
+               Title="Command Line Tools" 
+               Description="Command line interface and tools" 
+               Level="2">
+        <ComponentRef Id="CLI" />
+      </Feature>
+      
+      <Feature Id="Shortcuts" 
+               Title="Shortcuts" 
+               Description="Desktop and Start Menu shortcuts" 
+               Level="3">
+        <ComponentRef Id="DesktopShortcut" />
+        <ComponentRef Id="StartMenuShortcut" />
+      </Feature>
+    </Feature>
+
+    <!-- Directories -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLDIR" Name="Sentinel GRC">
+          <Directory Id="AGENTDIR" Name="Agent" />
+        </Directory>
+      </Directory>
+      
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Sentinel GRC" />
+      </Directory>
+      
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <!-- Components -->
+    <ComponentGroup Id="AgentComponents" Directory="AGENTDIR">
+      <!-- Agent Executable -->
+      <Component Id="AgentExecutable" Guid="12345678-1234-5678-9012-123456789001">
+        <File Id="AgentExe" 
+              Source="sentinel-agent.exe" 
+              KeyPath="yes" />
+        
+        <!-- Registry entries -->
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Sentinel GRC\Agent">
+          <RegistryValue Name="InstallPath" Type="string" Value="[AGENTDIR]" />
+          <RegistryValue Name="Version" Type="string" Value="2.0.0" />
+        </RegistryKey>
+      </Component>
+      
+      <!-- Windows Service -->
+      <Component Id="AgentService" Guid="12345678-1234-5678-9012-123456789002">
+        <File Id="ServiceExe" 
+              Source="sentinel-agent.exe" />
+        
+        <ServiceInstall Id="AgentService"
+                     Type="ownProcess"
+                     Vital="yes"
+                     Name="SentinelAgentService"
+                     DisplayName="Sentinel GRC Agent"
+                     Description="Endpoint compliance monitoring agent for Sentinel GRC platform"
+                     Start="auto"
+                     Account="LocalSystem"
+                     ErrorControl="normal"
+                     Interactive="no">
+          <ServiceDependency Id="Tcpip" />
+          <ServiceDependency Id="Dnscache" />
+        </ServiceInstall>
+        
+        <ServiceControl Id="AgentService" 
+                       Start="install" 
+                       Stop="both" 
+                       Remove="uninstall" 
+                       Name="SentinelAgentService" 
+                       Wait="yes" />
+      </Component>
+      
+      <!-- Configuration -->
+      <Component Id="AgentConfig" Guid="12345678-1234-5678-9012-123456789003">
+        <File Id="ConfigFile" 
+              Source="agent.json" />
+        
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Sentinel GRC\Agent">
+          <RegistryValue Name="ConfigFile" Type="string" Value="[AGENTDIR]agent.json" />
+        </RegistryKey>
+      </Component>
+      
+      <!-- CLI Tools -->
+      <Component Id="CLI" Guid="12345678-1234-5678-9012-123456789004">
+        <File Id="CLIExe" 
+              Source="sentinel-agent.exe" />
+        
+        <!-- Add to PATH -->
+        <Environment Id="PATH" 
+                    Name="PATH" 
+                    Value="[AGENTDIR]" 
+                    Permanent="yes" 
+                    Part="last" 
+                    System="yes" />
+      </Component>
+      
+      <!-- Desktop Shortcut -->
+      <Component Id="DesktopShortcut" Guid="12345678-1234-5678-9012-123456789005">
+        <Shortcut Id="DesktopShortcut"
+                  Directory="DesktopFolder"
+                  Name="Sentinel GRC Agent"
+                  Description="Launch Sentinel GRC Agent"
+                  Target="[AGENTDIR]sentinel-agent.exe"
+                  WorkingDirectory="AGENTDIR"
+                  Icon="sentinel.ico"
+                  IconIndex="0" />
+        <RegistryValue Root="HKCU" 
+                     Key="Software\Sentinel GRC\Agent" 
+                     Name="DesktopShortcut" 
+                     Type="integer" 
+                     Value="1" />
+      </Component>
+      
+      <!-- Start Menu Shortcut -->
+      <Component Id="StartMenuShortcut" Guid="12345678-1234-5678-9012-123456789006">
+        <Shortcut Id="StartMenuShortcut"
+                  Directory="ApplicationProgramsFolder"
+                  Name="Sentinel GRC Agent"
+                  Description="Launch Sentinel GRC Agent"
+                  Target="[AGENTDIR]sentinel-agent.exe"
+                  WorkingDirectory="AGENTDIR"
+                  Icon="sentinel.ico"
+                  IconIndex="0" />
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" 
+                     Key="Software\Sentinel GRC\Agent" 
+                     Name="StartMenuShortcut" 
+                     Type="integer" 
+                     Value="1" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Firewall Rules -->
+    <Component Id="FirewallRules" Guid="12345678-1234-5678-9012-123456789007" Directory="AGENTDIR">
+      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile\AuthorizedApplications\List">
+        <RegistryValue Name="SentinelAgent" 
+                       Type="string" 
+                       Value="[AGENTDIR]sentinel-agent.exe:*:Enabled:Sentinel Agent" />
+      </RegistryKey>
+    </Component>
+
+    <!-- UI Configuration -->
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" />
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="3" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="2" />
+      <Publish Dialog="VerifyReadyDlg" Control="Next" Event="NewDialog" Value="WelcomeDlg" Order="1" Condition="NOT Installed" />
+      <Publish Dialog="VerifyReadyDlg" Control="Next" Event="EndDialog" Value="Return" Order="2" Condition="Installed AND PATCH" />
+    </UI>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+    <!-- Custom Actions -->
+    <Binary Id="CustomActionsDLL" Source="CustomActions.CA.dll" />
+    
+    <CustomAction Id="LaunchAgent" 
+                  BinaryKey="CustomActionsDLL" 
+                  DllEntry="LaunchAgent" 
+                  Execute="immediate" 
+                  Return="ignore" />
+
+    <!-- Progress Text -->
+    <ProgressText Action="InstallFiles">Installing Sentinel Agent files...</ProgressText>
+    <ProgressText Action="InstallServices">Configuring Windows service...</ProgressText>
+    <ProgressText Action="WriteRegistry">Setting up configuration...</ProgressText>
+    <ProgressText Action="CreateShortcuts">Creating shortcuts...</ProgressText>
+
+    <!-- Properties for UI -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="dialog.bmp" />
+
+    <!-- Upgrade -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <!-- Installation Sequence -->
+    <InstallExecuteSequence>
+      <Custom Action="LaunchAgent" After="InstallFinalize">NOT Installed</Custom>
+    </InstallExecuteSequence>
+
+    <!-- Media -->
+    <Media Id="1" Cabinet="SentinelAgent.cab" EmbedCab="yes" />
+
+    <!-- Features -->
+    <FeatureRef Id="Complete" />
+  </Product>
+</Wix>
