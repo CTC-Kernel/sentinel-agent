@@ -552,38 +552,32 @@ exports.migrateUserKeys = onCall({
 
     const db = admin.firestore();
     const usersRef = db.collection('users');
-    const snapshot = await usersRef.get();
-
-    const batches = [];
-    let currentBatch = db.batch();
-    let operationCount = 0;
     let totalMigrated = 0;
 
-    snapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const updates = {};
-        if (data.geminiApiKey) updates.geminiApiKey = admin.firestore.FieldValue.delete();
-        if (data.shodanApiKey) updates.shodanApiKey = admin.firestore.FieldValue.delete();
-        if (data.hibpApiKey) updates.hibpApiKey = admin.firestore.FieldValue.delete();
-        if (data.safeBrowsingApiKey) updates.safeBrowsingApiKey = admin.firestore.FieldValue.delete();
+    // SECURITY: Only migrate keys for the authenticated user
+    // The previous implementation was a critical security flaw allowing global deletion
+    const userId = request.auth.uid;
+    const userRef = usersRef.doc(userId);
+    const userDoc = await userRef.get();
 
-        if (Object.keys(updates).length > 0) {
-            currentBatch.update(doc.ref, updates);
-            operationCount++;
-            totalMigrated++;
-            if (operationCount === 499) {
-                batches.push(currentBatch.commit());
-                currentBatch = db.batch();
-                operationCount = 0;
-            }
-        }
-    });
-
-    if (operationCount > 0) {
-        batches.push(currentBatch.commit());
+    if (!userDoc.exists) {
+        throw new HttpsError('not-found', 'User profile not found.');
     }
 
-    await Promise.all(batches);
+    // Rate Limit Check
+    checkCallableRateLimit(request, 'admin');
+
+    const data = userDoc.data();
+    const updates = {};
+    if (data.geminiApiKey) updates.geminiApiKey = admin.firestore.FieldValue.delete();
+    if (data.shodanApiKey) updates.shodanApiKey = admin.firestore.FieldValue.delete();
+    if (data.hibpApiKey) updates.hibpApiKey = admin.firestore.FieldValue.delete();
+    if (data.safeBrowsingApiKey) updates.safeBrowsingApiKey = admin.firestore.FieldValue.delete();
+
+    if (Object.keys(updates).length > 0) {
+        await userRef.update(updates);
+        totalMigrated = 1;
+    }
 
     return { success: true, migratedCount: totalMigrated };
 });

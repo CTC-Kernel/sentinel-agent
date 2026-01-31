@@ -238,7 +238,7 @@ exports.stripeWebhook = onRequest({
         event = stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret);
     } catch (err) {
         logger.error(`Webhook Error: ${err.message}`);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
+        return res.status(400).send('Webhook Error: Verification failed.');
     }
 
     if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted' || event.type === 'customer.subscription.created') {

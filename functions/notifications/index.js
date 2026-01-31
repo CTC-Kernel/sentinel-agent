@@ -14,6 +14,20 @@ const sgMail = require('@sendgrid/mail');
 
 // Import centralized risk threshold from calculateComplianceScore
 const { CRITICAL_RISK_THRESHOLD } = require('../callable/calculateComplianceScore');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
+
+/**
+ * Basic HTML Sanitization to prevent arbitrary injection
+ * Removes script tags and other dangerous elements
+ */
+function sanitizeHtml(html) {
+    if (!html) return '';
+    return html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/on\w+="[^"]*"/gi, '')
+        .replace(/on\w+='[^']*'/gi, '')
+        .replace(/href="javascript:[^"]*"/gi, '');
+}
 
 // Secrets
 const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
@@ -211,18 +225,36 @@ exports.sendEmail = onCall({
         throw new HttpsError('invalid-argument', 'Missing required email fields (to, subject, html).');
     }
 
+    // SECURITY: Role and Ownership checks
+    // Only allow admins to send generic emails, or enforce specific types
+    const callerDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
+    const callerData = callerDoc.data();
+
+    if (!callerData || callerData.organizationId !== metadata?.organizationId && callerData.role !== 'super_admin') {
+        // Enforce that you can only send emails for your own organization
+        // If no orgId in metadata, it's a suspicious call
+        if (!metadata?.organizationId) {
+            throw new HttpsError('permission-denied', 'Missing organization context for email.');
+        }
+        throw new HttpsError('permission-denied', 'You do not have permission to send emails for this organization.');
+    }
+
+    // Rate Limit Check
+    checkCallableRateLimit(request, 'standard');
+
     try {
         await admin.firestore().collection('mail_queue').add({
             to,
             message: {
                 subject,
-                html,
+                html: sanitizeHtml(html),
             },
             type: type || 'GENERIC',
             metadata: {
                 ...metadata,
                 senderUid: request.auth.uid,
-                senderEmail: request.auth.token.email
+                senderEmail: request.auth.token.email,
+                organizationId: callerData.organizationId
             },
             status: 'PENDING',
             createdAt: admin.firestore.FieldValue.serverTimestamp()
@@ -253,18 +285,30 @@ exports.scheduleEmail = onCall({
         throw new HttpsError('invalid-argument', 'Missing required fields.');
     }
 
+    // SECURITY: Role and Ownership checks
+    const callerDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
+    const callerData = callerDoc.data();
+
+    if (!callerData || (metadata?.organizationId && callerData.organizationId !== metadata.organizationId && callerData.role !== 'super_admin')) {
+        throw new HttpsError('permission-denied', 'You do not have permission to schedule emails for this organization.');
+    }
+
+    // Rate Limit Check
+    checkCallableRateLimit(request, 'standard');
+
     try {
         await admin.firestore().collection('scheduled_emails').add({
             to,
             message: {
                 subject,
-                html,
+                html: sanitizeHtml(html),
             },
             type: type || 'GENERIC',
             metadata: {
                 ...metadata,
                 senderUid: request.auth.uid,
-                senderEmail: request.auth.token.email
+                senderEmail: request.auth.token.email,
+                organizationId: callerData.organizationId
             },
             status: 'SCHEDULED',
             scheduledFor: scheduledFor,
