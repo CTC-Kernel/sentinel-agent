@@ -18,6 +18,7 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
+import { calculateTrend } from '../utils/trendUtils';
 
 /**
  * Overdue action item for list display
@@ -57,23 +58,7 @@ export interface OverdueActionsResult {
 /**
  * Action statuses that count as "pending" (not completed)
  */
-const PENDING_ACTION_STATUSES = ['pending', 'in_progress', 'Planifie', 'En cours'];
-
-/**
- * Calculate trend based on count comparison
- * For overdue actions: UP is bad (more overdue), DOWN is good (fewer overdue)
- */
-function calculateTrend(current: number, previous: number): TrendType {
-  if (previous === 0 && current === 0) return 'stable';
-  if (previous === 0) return current > 0 ? 'up' : 'stable';
-
-  const percentChange = ((current - previous) / previous) * 100;
-
-  // Use 5% threshold for significant change
-  if (percentChange > 5) return 'up';
-  if (percentChange < -5) return 'down';
-  return 'stable';
-}
+const PENDING_ACTION_STATUSES = ['pending', 'in_progress', 'Planifié', 'En cours'];
 
 /**
  * Calculate days overdue from due date

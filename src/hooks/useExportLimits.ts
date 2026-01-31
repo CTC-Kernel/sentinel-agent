@@ -11,7 +11,7 @@ export interface ExportLimitCheck {
 }
 
 export const useExportLimits = () => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const { hasFeature, planId } = usePlanLimits();
 
     const checkExportLimit = useCallback((
@@ -24,13 +24,13 @@ export const useExportLimits = () => {
 
         const upgradeMessages = {
             professional: {
-                discovery: `Cette fonctionnalité "${featureName}" nécessite le plan Professional (199€/mois).`,
+                discovery: t('export.upgrade.professional', { defaultValue: 'Cette fonctionnalité "{{feature}}" nécessite le plan Professional (199\u20AC/mois).', feature: featureName }),
                 professional: '',
                 enterprise: ''
             },
             enterprise: {
-                discovery: `Cette fonctionnalité "${featureName}" nécessite le plan Enterprise (499€/mois).`,
-                professional: `Cette fonctionnalité "${featureName}" nécessite le plan Enterprise (499€/mois).`,
+                discovery: t('export.upgrade.enterprise', { defaultValue: 'Cette fonctionnalité "{{feature}}" nécessite le plan Enterprise (499\u20AC/mois).', feature: featureName }),
+                professional: t('export.upgrade.enterpriseFromPro', { defaultValue: 'Cette fonctionnalité "{{feature}}" nécessite le plan Enterprise (499\u20AC/mois).', feature: featureName }),
                 enterprise: ''
             }
         };
@@ -44,7 +44,7 @@ export const useExportLimits = () => {
             upgradeMessage,
             planRequired
         };
-    }, [hasFeature, planId]);
+    }, [hasFeature, planId, t]);
 
     const handleExportWithLimitCheck = useCallback((
         exportFunction: () => Promise<void> | void,
@@ -63,24 +63,24 @@ export const useExportLimits = () => {
             const result = exportFunction();
             if (result instanceof Promise) {
                 result.then(() => {
-                    onSuccess?.(`Export ${limitCheck.featureName} réussi`);
+                    onSuccess?.(t('export.toast.exportSuccess', { defaultValue: "Export {{feature}} réussi", feature: limitCheck.featureName }));
                 }).catch(onError);
             } else {
-                onSuccess?.(`Export ${limitCheck.featureName} réussi`);
+                onSuccess?.(t('export.toast.exportSuccess', { defaultValue: "Export {{feature}} réussi", feature: limitCheck.featureName }));
             }
             return true;
         } catch (error) {
             onError?.(error);
             return false;
         }
-    }, [addToast]);
+    }, [addToast, t]);
 
     const createUpgradeToast = useCallback((limitCheck: ExportLimitCheck) => {
         addToast(
-            `${limitCheck.upgradeMessage} Les rapports générés avec le plan Discovery incluent un filigrane et des fonctionnalités limitées.`,
+            t('export.toast.discoveryLimitations', { defaultValue: "{{message}} Les rapports générés avec le plan Discovery incluent un filigrane et des fonctionnalités limitées.", message: limitCheck.upgradeMessage }),
             'info'
         );
-    }, [addToast]);
+    }, [addToast, t]);
 
     return {
         checkExportLimit,

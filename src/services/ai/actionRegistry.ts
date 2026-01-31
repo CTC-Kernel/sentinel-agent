@@ -10,6 +10,7 @@ import { canEditResource, canDeleteResource, hasPermission } from '../../utils/p
 
 /** Risk update fields for Firestore */
 interface RiskUpdateFields {
+    [key: string]: FieldValue | string | number | undefined;
     updatedAt: FieldValue;
     status?: string;
     probability?: number;
@@ -109,8 +110,7 @@ export const ActionRegistry: Record<AIActionType, AIActionDefinition> = {
             if (data.impact) updates.impact = data.impact;
             if (data.description) updates.description = data.description;
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await updateDoc(riskRef, updates as any);
+            await updateDoc(riskRef, updates as Record<string, unknown>);
             await logAction(user, 'UPDATE', 'Risk', `Mise à jour Risque via IA: ${data.id}`);
 
             return `Le risque a été mis à jour (Statut: ${data.status || 'Inchangé'}).`;

@@ -264,7 +264,7 @@ export class AuditService {
 
                 chunk.forEach(auditData => {
                     const newAuditRef = doc(collection(db, 'audits'));
-                    batch.set(newAuditRef, {
+                    batch.set(newAuditRef, sanitizeData({
                         ...auditData,
                         organizationId,
                         status: 'Planifié',
@@ -274,7 +274,7 @@ export class AuditService {
                         auditor: auditData.auditor || defaultAuditor,
                         relatedProjectIds: auditData.relatedProjectIds || [],
                         relatedControlIds: auditData.relatedControlIds || []
-                    });
+                    }));
                 });
 
                 await batch.commit();

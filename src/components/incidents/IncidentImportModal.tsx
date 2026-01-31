@@ -21,7 +21,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
     const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
     const [selectedSource, setSelectedSource] = useState<string>('');
 
-    const { demoMode } = useStore();
+    const { demoMode, t } = useStore();
 
     const handleSourceSelect = async (source: 'splunk' | 'crowdstrike' | 'sentinelone' | 'microsoft') => {
         setSelectedSource(source);
@@ -32,7 +32,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
             setSelectedEvents(new Set(fetchedEvents.map(e => e.id)));
             setStep('select');
         } catch {
-            toast.error("Erreur de connexion au connecteur");
+            toast.error(t('incidents.toast.connectorError', { defaultValue: "Erreur de connexion au connecteur" }));
         } finally {
             setLoading(false);
         }

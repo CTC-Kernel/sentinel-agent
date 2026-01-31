@@ -83,7 +83,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
     const handleDelete = useCallback(async (id: string) => {
         try {
             await deleteProvider(id);
-            toast.success(t('dora.providers.toastDeleted'));
+            toast.info(t('dora.providerDeleted', { defaultValue: 'Fournisseur ICT supprimé' }));
         } catch (error) {
             ErrorLogger.error(error, 'DORAProviders.handleDelete');
             toast.error(t('common.error'));
@@ -286,6 +286,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                         onSelect={handleSelect}
                         onEdit={handleEdit}
                         onDelete={async (id) => setDeleteProviderId(id)}
+                        onCreateNew={handleCreate}
                     />
                 </div>
             </div>

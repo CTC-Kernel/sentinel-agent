@@ -11,6 +11,7 @@
 import type { Asset } from '@/types/assets';
 import type { Risk } from '@/types/risks';
 import type { Control } from '@/types/controls';
+import { RISK_THRESHOLDS, CONTROL_STATUS } from '@/constants/complianceConfig';
 import type { Project } from '@/types/projects';
 import type { Audit } from '@/types/audits';
 import type { Incident } from '@/types/incidents';
@@ -84,19 +85,19 @@ function criticalityToNumber(criticality: string): number {
 
 function mapRiskStatus(risk: Risk): VoxelNodeStatus {
   if (risk.status === 'Fermé') return 'inactive';
-  if (risk.score >= 20) return 'critical';
-  if (risk.score >= 12) return 'warning';
+  if (risk.score >= RISK_THRESHOLDS.CRITICAL) return 'critical';
+  if (risk.score >= RISK_THRESHOLDS.HIGH) return 'warning';
   return 'normal';
 }
 
 function mapControlStatus(control: Control): VoxelNodeStatus {
-  if (control.status === 'Non applicable' || control.status === 'Exclu') {
+  if (control.status === CONTROL_STATUS.NOT_APPLICABLE || control.status === CONTROL_STATUS.EXCLUDED) {
     return 'inactive';
   }
-  if (control.status === 'Non conforme' || control.status === 'Non commencé') {
+  if (control.status === CONTROL_STATUS.NOT_STARTED || control.status === CONTROL_STATUS.OVERDUE) {
     return 'critical';
   }
-  if (control.status === 'Partiel' || control.status === 'En cours') {
+  if (control.status === CONTROL_STATUS.PARTIAL || control.status === CONTROL_STATUS.IN_PROGRESS || control.status === CONTROL_STATUS.PLANNED) {
     return 'warning';
   }
   return 'normal';

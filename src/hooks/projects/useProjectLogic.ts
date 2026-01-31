@@ -18,7 +18,7 @@ import { ImportService } from '../../services/ImportService';
 import { MockDataService } from '../../services/mockDataService';
 
 export const useProjectLogic = () => {
-    const { user, addToast, organization, demoMode } = useStore();
+    const { user, addToast, organization, demoMode, t } = useStore();
     const role = user?.role || 'user';
     const canEdit = canEditResource(user, 'Project');
     const { limits } = usePlanLimits();
@@ -112,7 +112,7 @@ export const useProjectLogic = () => {
 
                 const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', currentCount);
                 if (!canAddProject) {
-                    addToast(`Nombre maximum de projets atteint pour votre plan (${projects.length}/${limits?.maxProjects ?? '…'}).`, "error");
+                    addToast(t('projects.toast.limitReached', { defaultValue: "Nombre maximum de projets atteint pour votre plan ({{current}}/{{max}}).", current: projects.length, max: limits?.maxProjects ?? '...' }), "error");
                     setIsSubmitting(false);
                     return;
                 }
@@ -157,7 +157,7 @@ export const useProjectLogic = () => {
                     validatedData.name
                 );
 
-                addToast("Projet créé avec succès", "success");
+                addToast(t('projects.toast.created', { defaultValue: "Projet créé avec succès" }), "success");
             }
         } catch (e) {
             if (e instanceof z.ZodError) {
@@ -203,7 +203,7 @@ export const useProjectLogic = () => {
                 `Duplication: ${newProjData.name}`
             );
 
-            addToast("Projet dupliqué", "success");
+            addToast(t('projects.toast.duplicated', { defaultValue: "Projet dupliqué" }), "success");
             return 'SUCCESS';
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleDuplicate', 'CREATE_FAILED');
@@ -237,7 +237,7 @@ export const useProjectLogic = () => {
                 name || 'Projet'
             );
 
-            addToast("Projet supprimé", "info");
+            addToast(t('projects.toast.deleted', { defaultValue: "Projet supprimé" }), "info");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.deleteProject', 'DELETE_FAILED');
         }
@@ -264,14 +264,14 @@ export const useProjectLogic = () => {
     const importProjects = useCallback(async (csvContent: string) => {
         if (!user?.organizationId) return;
         if (!canEditResource(user, 'Project')) {
-            addToast("Permission refusée", "error");
+            addToast(t('common.toast.permissionDenied', { defaultValue: "Permission refusée" }), "error");
             return;
         }
 
         try {
             const lines = ImportService.parseCSV(csvContent);
             if (lines.length === 0) {
-                addToast("Fichier vide ou invalide", "error");
+                addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
                 return;
             }
 
@@ -290,13 +290,13 @@ export const useProjectLogic = () => {
                 'CSV Upload'
             );
 
-            addToast(`Import de ${count} projets réussi`, "success");
+            addToast(t('projects.toast.importSuccess', { defaultValue: "Import de {{count}} projets réussi", count }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useProjectLogic.importProjects');
         } finally {
             setIsSubmitting(false);
         }
-    }, [user, addToast]);
+    }, [user, addToast, t]);
 
     const createProjectFromTemplateData = async (
         projectData: Omit<Project, 'id'>,
@@ -306,7 +306,7 @@ export const useProjectLogic = () => {
 
         const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
         if (!canAddProject) {
-            addToast(`Nombre maximum de projets atteint pour votre plan (${projects.length}/${limits?.maxProjects ?? '…'}).`, "error");
+            addToast(t('projects.toast.limitReached', { defaultValue: "Nombre maximum de projets atteint pour votre plan ({{current}}/{{max}}).", current: projects.length, max: limits?.maxProjects ?? '...' }), "error");
             return;
         }
 
@@ -351,7 +351,7 @@ export const useProjectLogic = () => {
                 `Template: ${projectData.name}`
             );
 
-            addToast("Projet et jalons créés avec succès", "success");
+            addToast(t('projects.toast.createdWithMilestones', { defaultValue: "Projet et jalons créés avec succès" }), "success");
 
             return newProjectRef.id;
 

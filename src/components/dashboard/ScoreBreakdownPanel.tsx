@@ -167,6 +167,14 @@ export function ScoreBreakdownPanel({
           weight={breakdown.documents.weight}
           details={documentsDetails}
         />
+
+        {breakdown.training && (
+          <CategoryRow
+            label="Formation"
+            score={breakdown.training.score}
+            weight={breakdown.training.weight}
+          />
+        )}
       </div>
 
       {/* Weight explanation */}

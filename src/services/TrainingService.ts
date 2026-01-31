@@ -206,11 +206,11 @@ export class TrainingService {
     try {
       await updateDoc(
         doc(db, `organizations/${organizationId}/${this.CATALOG_COLLECTION}/${courseId}`),
-        {
+        sanitizeData({
           isArchived: true,
           updatedAt: serverTimestamp(),
           updatedBy: user.uid,
-        }
+        })
       );
 
       // Audit log
@@ -250,7 +250,7 @@ export class TrainingService {
     try {
       const validatedData = trainingAssignmentSchema.parse(data);
 
-      const assignmentData = {
+      const assignmentData = sanitizeData({
         organizationId,
         userId: validatedData.userId,
         courseId: validatedData.courseId,
@@ -260,7 +260,7 @@ export class TrainingService {
         dueDate: Timestamp.fromDate(validatedData.dueDate),
         status: 'assigned' as AssignmentStatus,
         remindersSent: 0,
-      };
+      });
 
       const docRef = await addDoc(
         collection(db, `organizations/${organizationId}/${this.ASSIGNMENTS_COLLECTION}`),
@@ -303,7 +303,7 @@ export class TrainingService {
         );
         assignmentIds.push(docRef.id);
 
-        batch.set(docRef, {
+        batch.set(docRef, sanitizeData({
           organizationId,
           userId,
           courseId,
@@ -313,7 +313,7 @@ export class TrainingService {
           dueDate: Timestamp.fromDate(dueDate),
           status: 'assigned' as AssignmentStatus,
           remindersSent: 0,
-        });
+        }));
       }
 
       await batch.commit();
@@ -414,10 +414,10 @@ export class TrainingService {
           db,
           `organizations/${organizationId}/${this.ASSIGNMENTS_COLLECTION}/${assignmentId}`
         ),
-        {
+        sanitizeData({
           status: 'in_progress',
           startedAt: serverTimestamp(),
-        }
+        })
       );
     } catch (error) {
       ErrorLogger.error(error, 'TrainingService.startAssignment', {
@@ -455,7 +455,7 @@ export class TrainingService {
           db,
           `organizations/${organizationId}/${this.ASSIGNMENTS_COLLECTION}/${assignmentId}`
         ),
-        updateData
+        sanitizeData(updateData)
       );
     } catch (error) {
       ErrorLogger.error(error, 'TrainingService.completeAssignment', {
@@ -594,7 +594,7 @@ export class TrainingService {
 
       await updateDoc(
         doc(db, `organizations/${organizationId}/${this.CAMPAIGNS_COLLECTION}/${campaignId}`),
-        updateData
+        sanitizeData(updateData)
       );
     } catch (error) {
       ErrorLogger.error(error, 'TrainingService.updateCampaignStatus', {
@@ -617,7 +617,7 @@ export class TrainingService {
     try {
       await updateDoc(
         doc(db, `organizations/${organizationId}/${this.CAMPAIGNS_COLLECTION}/${campaignId}`),
-        { progress }
+        sanitizeData({ progress })
       );
     } catch (error) {
       ErrorLogger.error(error, 'TrainingService.updateCampaignProgress', {

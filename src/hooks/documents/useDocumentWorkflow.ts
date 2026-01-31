@@ -13,7 +13,7 @@ import CryptoJS from 'crypto-js';
 import SignatureCanvas from 'react-signature-canvas';
 
 export const useDocumentWorkflow = (usersList: UserProfile[]) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const signaturePadRef = useRef<SignatureCanvas>(null);
@@ -40,13 +40,13 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
 
         if (action === 'submit') {
             updates = { status: 'En revue', workflowStatus: 'Review' };
-            logMsg = 'Document soumis pour revue';
+            logMsg = t('documents.workflow.submittedForReview', { defaultValue: 'Document soumis pour revue' });
         } else if (action === 'approve') {
             updates = { status: 'Approuvé', workflowStatus: 'Approved' };
-            logMsg = 'Document approuvé';
+            logMsg = t('documents.workflow.approved', { defaultValue: 'Document approuvé' });
         } else if (action === 'reject') {
             updates = { status: 'Rejeté', workflowStatus: 'Rejected' };
-            logMsg = 'Document rejeté';
+            logMsg = t('documents.workflow.rejected', { defaultValue: 'Document rejeté' });
         } else if (action === 'sign') {
             const newSignature = {
                 userId: user.uid,
@@ -60,7 +60,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
                 workflowStatus: 'Approved',
                 signatures: [...currentSignatures, newSignature]
             };
-            logMsg = 'Document signé et publié';
+            logMsg = t('documents.workflow.signedAndPublished', { defaultValue: 'Document signé et publié' });
         }
 
         try {
@@ -71,7 +71,11 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
             if (selectedDocument?.id === docItem.id) {
                 setSelectedDocument(updatedDoc);
             }
-            addToast(logMsg, "success");
+            const contextualMessages: Record<string, string> = {
+                'Approuvé': t('documents.workflow.approvedGuidance', { defaultValue: 'Document approuvé. Le propriétaire peut maintenant le publier.' }),
+                'Publié': t('documents.workflow.publishedGuidance', { defaultValue: 'Document publié et disponible pour l\'équipe.' }),
+            };
+            addToast(contextualMessages[updates.status as string] || logMsg, "success");
             return updatedDoc;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleWorkflowAction', 'UPDATE_FAILED');
@@ -81,7 +85,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
 
     const handleSignatureSubmit = async () => {
         if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
-            addToast("Veuillez signer avant de valider", "info");
+            addToast(t('documents.toast.signBeforeValidation', { defaultValue: "Veuillez signer avant de valider" }), "info");
             return;
         }
 
@@ -95,7 +99,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
 
     const handleSecureView = async (docItem: Document) => {
         if (!docItem.url) return;
-        addToast("Préparation du document sécurisé...", "info");
+        addToast(t('documents.toast.preparingSecureDoc', { defaultValue: "Préparation du document sécurisé..." }), "info");
 
         try {
             // 1. Fetch the file
@@ -110,10 +114,10 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
                 const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
                 const currentHash = CryptoJS.SHA256(wordArray).toString();
                 if (currentHash !== docItem.hash) {
-                    addToast("ALERTE : L'intégrité du document est compromise ! Le hash ne correspond pas.", "error");
+                    addToast(t('documents.toast.integrityCompromised', { defaultValue: "ALERTE : L'intégrité du document est compromise ! Le hash ne correspond pas." }), "error");
                     // We allow viewing but with a warning
                 } else {
-                    addToast("Intégrité du document vérifiée.", "success");
+                    addToast(t('documents.toast.integrityVerified', { defaultValue: "Intégrité du document vérifiée." }), "success");
                 }
             }
 

@@ -34,7 +34,7 @@ interface ProjectMilestonesProps {
 }
 
 export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, milestones, onUpdate }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { addMilestone, updateMilestone, removeMilestone } = useProjectMilestones(project.id);
     const [isEditing, setIsEditing] = useState(false);
     const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
@@ -66,11 +66,11 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
         const projectEnd = project.dueDate ? new Date(project.dueDate) : null;
 
         if (projectStart && milestoneDate < projectStart) {
-            addToast("La date du jalon ne peut pas être avant le début du projet.", "error");
+            addToast(t('projects.milestones.toast.dateBeforeStart', { defaultValue: "La date du jalon ne peut pas être avant le début du projet." }), "error");
             return;
         }
         if (projectEnd && milestoneDate > projectEnd) {
-            addToast("La date du jalon ne peut pas être après la fin du projet.", "error");
+            addToast(t('projects.milestones.toast.dateAfterEnd', { defaultValue: "La date du jalon ne peut pas être après la fin du projet." }), "error");
             return;
         }
 
@@ -84,7 +84,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                     status: data.status || 'pending',
                     linkedTaskIds: data.linkedTaskIds || []
                 }));
-                addToast('Jalon mis à jour', 'success');
+                addToast(t('projects.milestones.toast.updated', { defaultValue: 'Jalon mis à jour' }), 'success');
             } else {
                 // Create
                 await addMilestone(sanitizeData({
@@ -96,7 +96,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                     status: 'pending',
                     linkedTaskIds: data.linkedTaskIds || []
                 }));
-                addToast('Jalon créé', 'success');
+                addToast(t('projects.milestones.toast.created', { defaultValue: 'Jalon créé' }), 'success');
             }
             setIsEditing(false);
             setEditingMilestoneId(null);
@@ -110,7 +110,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
     const handleDelete = async (id: string) => {
         try {
             await removeMilestone(id);
-            addToast('Jalon supprimé', 'info');
+            addToast(t('projects.milestones.toast.deleted', { defaultValue: 'Jalon supprimé' }), 'info');
             onUpdate();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ProjectMilestones.handleDelete', 'DELETE_FAILED');

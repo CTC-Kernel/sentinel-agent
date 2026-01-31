@@ -650,6 +650,20 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
         );
     }
 
+    if (anomalies.length === 0) {
+        return (
+            <div className={cn('space-y-4', className)}>
+                <div className="glass-premium rounded-2xl p-8 text-center border border-border/40">
+                    <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2">Aucune anomalie détectée</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Tous les agents fonctionnent normalement
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <motion.div
             initial="hidden"

@@ -74,19 +74,9 @@ export const DashboardWithQuickActions: React.FC = () => {
 
     // Update local state when hook data changes
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (fetchedOrgName) {
-                setOrganizationName(prev => prev !== fetchedOrgName ? fetchedOrgName : prev);
-            }
-            if (fetchedOrgLogo) {
-                setOrganizationLogo(prev => prev !== fetchedOrgLogo ? fetchedOrgLogo : prev);
-            }
-            if (dataError === 'permission-denied') {
-                setError('permission-denied');
-            }
-        }, 0);
-
-        return () => clearTimeout(timer);
+        if (fetchedOrgName) setOrganizationName(fetchedOrgName);
+        if (fetchedOrgLogo) setOrganizationLogo(fetchedOrgLogo);
+        if (dataError === 'permission-denied') setError('permission-denied');
     }, [fetchedOrgName, fetchedOrgLogo, dataError]);
 
 

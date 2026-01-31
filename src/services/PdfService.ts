@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
 import { Risk, Project, ProjectTask, Control, Audit, Finding } from '../types';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 // Type extension for jsPDF GState (graphics state for transparency effects)
 interface GStateOptions {
@@ -1153,8 +1154,8 @@ export class PdfService {
 
         // Risk density KPI (inline with title)
         const totalRisks = risks.length;
-        // Standardized 'Critical' definition (High + Critical): Score >= 10
-        const highRiskCount = risks.filter(r => (r.probability * r.impact) >= 10).length;
+        // High + Critical risks (score >= HIGH threshold)
+        const highRiskCount = risks.filter(r => (r.probability * r.impact) >= RISK_THRESHOLDS.HIGH).length;
         const riskDensity = totalRisks > 0 ? ((highRiskCount / totalRisks) * 100).toFixed(0) : '0';
 
         doc.setFontSize(9);
@@ -1191,10 +1192,10 @@ export class PdfService {
                 // Cell background with color gradient
                 // Cell background with color gradient based on standardized scores
                 const score = prob * imp;
-                let cellColor = '#dcfce7'; // Default Green (Low < 5)
-                if (score >= 15) cellColor = '#ef4444'; // Red (Critical)
-                else if (score >= 10) cellColor = '#f97316'; // Orange (High)
-                else if (score >= 5) cellColor = '#eab308'; // Yellow (Medium)
+                let cellColor = '#dcfce7'; // Default Green (Low)
+                if (score >= RISK_THRESHOLDS.CRITICAL) cellColor = '#ef4444'; // Red (Critical)
+                else if (score >= RISK_THRESHOLDS.HIGH) cellColor = '#f97316'; // Orange (High)
+                else if (score >= RISK_THRESHOLDS.MEDIUM) cellColor = '#eab308'; // Yellow (Medium)
 
                 doc.setFillColor(cellColor);
                 doc.setDrawColor('#FFFFFF');
@@ -1620,7 +1621,7 @@ export class PdfService {
         currentY += 8;
 
         selectedFramework.domains.forEach((domain) => {
-            const coverage = Math.random() * 100; // Replace with actual data
+            const coverage = 0; // TODO: Pass actual per-domain control coverage via _data
             const progressWidth = width - 60;
             const progressHeight = 6;
 

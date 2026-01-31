@@ -7,6 +7,7 @@ import { Tooltip as CustomTooltip } from '../../components/ui/Tooltip';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { AgentVerificationIndicator } from './AgentVerificationBadge';
 import { useLocale } from '@/hooks/useLocale';
+import { CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, isActionableStatus } from '../../constants/complianceConfig';
 
 interface ComplianceListProps {
     controls: Control[];
@@ -116,24 +117,27 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
     const getDomainStats = (prefix: string) => {
         const domainControls = controls.filter(c => c.code.startsWith(prefix));
         const total = domainControls.length;
-        const implemented = domainControls.filter(c => c.status === 'Implémenté').length;
-        const partial = domainControls.filter(c => c.status === 'Partiel').length;
-        // Progress: implemented is 100%, partial is 50%
-        const progress = total > 0 ? Math.round(((implemented + (partial * 0.5)) / total) * 100) : 0;
+        const actionable = domainControls.filter(c => isActionableStatus(c.status));
+        const implemented = actionable.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partial = actionable.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+        const progress = actionable.length > 0 ? Math.round(((implemented + (partial * PARTIAL_CONTROL_WEIGHT)) / actionable.length) * 100) : 100;
         return { total, implemented, partial, progress };
     };
 
-    let domains: { id: string, title: string, description: string }[] = [];
-    switch (currentFramework) {
-        case 'ISO27001': domains = ISO_DOMAINS; break;
-        case 'ISO22301': domains = ISO22301_DOMAINS; break;
-        case 'NIS2': domains = NIS2_DOMAINS; break;
-        case 'DORA': domains = DORA_DOMAINS; break;
-        case 'GDPR': domains = GDPR_DOMAINS; break;
-        case 'SOC2': domains = SOC2_DOMAINS; break;
-        case 'HDS': domains = HDS_DOMAINS; break;
-        case 'PCI_DSS': domains = PCI_DSS_DOMAINS; break;
-        case 'NIST_CSF': domains = NIST_CSF_DOMAINS; break;
+    const frameworkDomainsMap: Record<string, { id: string, title: string, description: string }[]> = {
+        'ISO27001': ISO_DOMAINS,
+        'ISO22301': ISO22301_DOMAINS,
+        'NIS2': NIS2_DOMAINS,
+        'DORA': DORA_DOMAINS,
+        'GDPR': GDPR_DOMAINS,
+        'SOC2': SOC2_DOMAINS,
+        'HDS': HDS_DOMAINS,
+        'PCI_DSS': PCI_DSS_DOMAINS,
+        'NIST_CSF': NIST_CSF_DOMAINS,
+    };
+    const domains = frameworkDomainsMap[currentFramework] || [];
+    if (!frameworkDomainsMap[currentFramework]) {
+        console.warn(`[ComplianceList] Unknown framework "${currentFramework}", no domains found. Falling back to empty list.`);
     }
 
     if (loading) {

@@ -443,8 +443,8 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
         manufacturer: asset.otDetails?.manufacturer || '',
         model: asset.otDetails?.model || '',
         firmwareVersion: asset.otDetails?.firmwareVersion || '',
-        matchConfidence: Math.floor(Math.random() * 30) + 70,
-        matchType: Math.random() > 0.5 ? 'exact' : 'partial',
+        matchConfidence: 0, // No real CVE matching engine yet
+        matchType: 'partial' as const, // Conservative default until real matching is implemented
         otCriticality: asset.otDetails?.otCriticality || 'operations',
         networkSegment: asset.networkSegment || 'OT',
         safetyRating: asset.otDetails?.safetyRating,

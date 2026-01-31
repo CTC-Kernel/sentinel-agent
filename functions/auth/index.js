@@ -427,7 +427,7 @@ exports.updateSsoSettings = onCall({
         return { success: true, data: nextSettings };
     } catch (error) {
         logger.error('Error updating SSO settings', error);
-        throw new HttpsError('internal', 'Failed to update settings: ' + error.message);
+        throw new HttpsError('internal', 'An internal error occurred while updating settings.');
     }
 });
 
@@ -444,6 +444,37 @@ exports.requestPasswordReset = onCall({
     const email = request.data.email;
     if (!email) {
         throw new HttpsError('invalid-argument', 'Email is required.');
+    }
+
+    // SECURITY: Rate limit password reset requests to 5 per email per hour
+    const clientIp = request.rawRequest?.ip || 'unknown';
+    const rateLimitKey = `pwd_reset_${email.toLowerCase()}`;
+    const db = admin.firestore();
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    try {
+        const recentRequests = await db.collection('auth_rate_limits')
+            .where('key', '==', rateLimitKey)
+            .where('timestamp', '>=', oneHourAgo.toISOString())
+            .get();
+
+        if (recentRequests.size >= 5) {
+            logger.warn(`Password reset rate limit exceeded for ${email}`, { ip: clientIp });
+            // Return success to avoid email enumeration, but do not actually send
+            return { success: true, message: 'Reset email sent.' };
+        }
+
+        // Record this attempt
+        await db.collection('auth_rate_limits').add({
+            key: rateLimitKey,
+            timestamp: new Date().toISOString(),
+            email: email.toLowerCase(),
+            ip: clientIp,
+            type: 'password_reset'
+        });
+    } catch (rateLimitError) {
+        // Fail open - don't block legitimate users if rate limit check fails
+        logger.error('Error checking password reset rate limit', rateLimitError);
     }
 
     try {

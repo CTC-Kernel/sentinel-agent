@@ -38,7 +38,7 @@ export const SecuritySettings: React.FC = () => {
         if (currentUser) {
             try {
                 await updatePassword(currentUser, data.newPassword);
-                addToast(t('settings.passwordChanged'), "success");
+                addToast(t('settings.passwordChangedDetailed', { defaultValue: 'Mot de passe modifié avec succès. Votre nouveau mot de passe est actif immédiatement.' }), "success");
                 passwordForm.reset();
             } catch (error) {
                 if ((error as { code?: string }).code === 'auth/requires-recent-login') {
@@ -78,7 +78,7 @@ export const SecuritySettings: React.FC = () => {
         setVerifyingMFA(true);
         try {
             await verifyMFA('Sentinel Authenticator', mfaCode);
-            addToast(t('settings.mfaEnabled') || "MFA activé avec succès", "success");
+            addToast(t('settings.mfaEnabledDetailed', { defaultValue: 'Authentification à deux facteurs activée. Votre compte est désormais protégé par une double vérification.' }), "success");
             setIsEnrollingMFA(false);
             setQrCodeUrl(null);
             setMfaCode('');
@@ -159,12 +159,12 @@ export const SecuritySettings: React.FC = () => {
                         <div className="p-2 bg-success-50 dark:bg-success-900/30 rounded-2xl text-success-600 dark:text-success-400 border border-success-100/50 dark:border-success-500/10 shadow-inner">
                             <ShieldAlert className="w-5 h-5" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Authentification à deux facteurs</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.mfa.title', { defaultValue: 'Authentification à deux facteurs' })}</h3>
                     </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
                     <p className="text-sm text-slate-600 dark:text-muted-foreground">
-                        Sécurisez votre compte en ajoutant une seconde étape de validation.
+                        {t('settings.mfa.description', { defaultValue: 'Sécurisez votre compte en ajoutant une seconde étape de validation.' })}
                     </p>
 
                     {!isEnrollingMFA && !qrCodeUrl ? (
@@ -173,13 +173,13 @@ export const SecuritySettings: React.FC = () => {
                                 onClick={handleEnrollMFA}
                                 className="w-full bg-success-600 hover:bg-success-700 text-white shadow-lg shadow-success-500/20 border-none"
                             >
-                                Activer MFA
+                                {t('settings.mfa.enable', { defaultValue: 'Activer MFA' })}
                             </Button>
                             <button
                                 onClick={() => setShowDisableMFAConfirm(true)}
                                 className="w-full text-xs text-red-500 hover:text-red-600 font-bold hover:underline"
                             >
-                                {t('settings.disableMFA') || 'Désactiver MFA'}
+                                {t('settings.mfa.disable', { defaultValue: 'Désactiver MFA' })}
                             </button>
                         </div>
                     ) : (
@@ -188,7 +188,7 @@ export const SecuritySettings: React.FC = () => {
                                 <div className="flex flex-col items-center p-6 bg-white rounded-3xl border border-border/40 shadow-inner">
                                     <p className="text-xs font-bold text-slate-500 dark:text-slate-300 mb-4 text-center uppercase tracking-wider">Scannez ce QR Code</p>
                                     <div className="bg-white p-2 rounded-3xl border border-border/40 shadow-lg">
-                                        <img src={qrCodeUrl} alt="QR Code" className="w-40 h-40 mix-blend-multiply" />
+                                        <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32 sm:w-40 sm:h-40 mix-blend-multiply" />
                                     </div>
                                     <p className="text-[11px] text-slate-400 mt-4 text-center max-w-[200px]">Utilisez Google Authenticator ou Authy</p>
                                 </div>
@@ -196,7 +196,7 @@ export const SecuritySettings: React.FC = () => {
 
                             <div>
                                 <FloatingLabelInput
-                                    label="Code de vérification (6 chiffres)"
+                                    label={t('settings.mfa.verificationCode', { defaultValue: 'Code de vérification (6 chiffres)' })}
                                     value={mfaCode}
                                     onChange={(e) => setMfaCode(e.target.value)}
                                     className="text-center tracking-[0.5em] font-mono text-lg"
@@ -210,7 +210,7 @@ export const SecuritySettings: React.FC = () => {
                                     onClick={() => { setIsEnrollingMFA(false); setQrCodeUrl(null); }}
                                     className="flex-1"
                                 >
-                                    Annuler
+                                    {t('common.cancel', { defaultValue: 'Annuler' })}
                                 </Button>
                                 <Button
                                     onClick={handleVerifyMFA}
@@ -218,7 +218,7 @@ export const SecuritySettings: React.FC = () => {
                                     isLoading={verifyingMFA}
                                     className="flex-1 bg-success-600 hover:bg-success-700 text-white shadow-lg shadow-success-500/20 border-none"
                                 >
-                                    Vérifier
+                                    {t('common.verify', { defaultValue: 'Vérifier' })}
                                 </Button>
                             </div>
                         </div>
@@ -230,11 +230,11 @@ export const SecuritySettings: React.FC = () => {
                 isOpen={showDisableMFAConfirm}
                 onClose={() => setShowDisableMFAConfirm(false)}
                 onConfirm={handleDisableMFA}
-                title={t('settings.disableMFATitle') || "Désactiver l'authentification à deux facteurs"}
-                message={t('settings.disableMFAMessage') || "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ? Votre compte sera moins sécurisé."}
+                title={t('settings.mfa.disableTitle', { defaultValue: "Désactiver l'authentification à deux facteurs" })}
+                message={t('settings.mfa.disableMessage', { defaultValue: "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ? Votre compte sera moins sécurisé." })}
                 type="danger"
-                confirmText={t('settings.disableMFAConfirm') || "Désactiver"}
-                cancelText={t('common.cancel') || "Annuler"}
+                confirmText={t('settings.mfa.disableConfirm', { defaultValue: "Désactiver" })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
                 loading={disablingMFA}
                 closeOnConfirm={false}
             />

@@ -306,7 +306,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
 
     // Permission check before creating risk
     if (!hasPermission(user, 'Risk', 'create')) {
-      toast.error('Vous n\'avez pas la permission de créer un risque');
+      toast.error(t('errors.noCreateRiskPermission') || 'Vous n\'avez pas la permission de créer un risque');
       return null;
     }
 

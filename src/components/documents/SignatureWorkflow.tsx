@@ -214,7 +214,7 @@ export function SignatureWorkflow({
   onRequestCreated,
   onSignatureComplete,
 }: SignatureWorkflowProps) {
-  const { user, organization } = useStore();
+  const { user, organization, t } = useStore();
   const organizationId = organization?.id;
 
   // Main state
@@ -270,11 +270,11 @@ export function SignatureWorkflow({
       setRequests(data);
     } catch (error) {
       ErrorLogger.error(error, 'SignatureWorkflow.loadRequests');
-      toast.error('Impossible de charger les demandes de signature');
+      toast.error(t('signatures.loadFailed') || 'Impossible de charger les demandes de signature');
     } finally {
       setLoading(false);
     }
-  }, [documentId, organizationId]);
+  }, [documentId, organizationId, t]);
 
   useEffect(() => {
     if (documentId && organizationId) {
@@ -340,13 +340,13 @@ export function SignatureWorkflow({
 
     // Validation
     if (!formTitle.trim()) {
-      toast.error('Veuillez saisir un titre');
+      toast.error(t('signatures.titleRequired') || 'Veuillez saisir un titre');
       return;
     }
 
     const validSigners = formSigners.filter((s) => s.name.trim() && s.email.trim());
     if (validSigners.length === 0) {
-      toast.error('Veuillez ajouter au moins un signataire');
+      toast.error(t('signatures.signerRequired') || 'Veuillez ajouter au moins un signataire');
       return;
     }
 
@@ -354,7 +354,7 @@ export function SignatureWorkflow({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const invalidEmail = validSigners.find((s) => !emailRegex.test(s.email));
     if (invalidEmail) {
-      toast.error(`Email invalide: ${invalidEmail.email}`);
+      toast.error(t('signatures.invalidEmail', { email: invalidEmail.email }) || `Email invalide: ${invalidEmail.email}`);
       return;
     }
 
@@ -377,7 +377,7 @@ export function SignatureWorkflow({
         input
       );
 
-      toast.success('Demande de signature créée');
+      toast.success(t('signatures.requestCreated') || 'Demande de signature créée');
       setRequests((prev) => [request, ...prev]);
       resetForm();
       setActiveTab('requests');
@@ -385,7 +385,7 @@ export function SignatureWorkflow({
       onRequestCreated?.(request);
     } catch (error) {
       ErrorLogger.error(error, 'SignatureWorkflow.createRequest');
-      toast.error('Échec de la création de la demande');
+      toast.error(t('signatures.requestCreationFailed') || 'Échec de la création de la demande');
     } finally {
       setFormSubmitting(false);
     }
@@ -401,6 +401,7 @@ export function SignatureWorkflow({
     formSigners,
     onRequestCreated,
     resetForm,
+    t,
   ]);
 
 
@@ -420,12 +421,12 @@ export function SignatureWorkflow({
 
     // Validation
     if (signatureType === 'simple' && !typedName.trim()) {
-      toast.error('Veuillez saisir votre nom');
+      toast.error(t('signatures.nameRequired') || 'Veuillez saisir votre nom');
       return;
     }
 
     if (signatureType === 'advanced' && signaturePadRef.current?.isEmpty()) {
-      toast.error('Veuillez dessiner votre signature');
+      toast.error(t('signatures.drawSignatureRequired') || 'Veuillez dessiner votre signature');
       return;
     }
 
@@ -448,18 +449,18 @@ export function SignatureWorkflow({
         user.displayName || user.email || ''
       );
 
-      toast.success('Signature appliquée avec succès');
+      toast.success(t('signatures.signatureApplied') || 'Signature appliquée avec succès');
       setSignModalOpen(false);
       loadRequests();
       onSignatureComplete?.();
     } catch (error: unknown) {
       ErrorLogger.error(error, 'SignatureWorkflow.applySignature');
-      const message = error instanceof Error ? error.message : 'Échec de la signature';
+      const message = error instanceof Error ? error.message : (t('signatures.signatureFailed') || 'Échec de la signature');
       toast.error(message);
     } finally {
       setSigning(false);
     }
-  }, [activeRequest, activeSigner, user, signatureType, typedName, loadRequests, onSignatureComplete]);
+  }, [activeRequest, activeSigner, user, signatureType, typedName, loadRequests, onSignatureComplete, t]);
 
   // Open reject modal
   const openRejectModal = useCallback((request: SignatureRequest, signer: SignerInfo) => {
@@ -474,7 +475,7 @@ export function SignatureWorkflow({
     if (!activeRequest || !activeSigner || !user) return;
 
     if (!rejectionReason.trim()) {
-      toast.error('Veuillez indiquer une raison');
+      toast.error(t('signatures.reasonRequired') || 'Veuillez indiquer une raison');
       return;
     }
 
@@ -489,17 +490,17 @@ export function SignatureWorkflow({
         user.displayName || user.email || ''
       );
 
-      toast.success('Signature rejetée');
+      toast.success(t('signatures.signatureRejected') || 'Signature rejetée');
       setRejectModalOpen(false);
       loadRequests();
     } catch (error: unknown) {
       ErrorLogger.error(error, 'SignatureWorkflow.rejectSignature');
-      const message = error instanceof Error ? error.message : 'Échec du rejet';
+      const message = error instanceof Error ? error.message : (t('signatures.rejectionFailed') || 'Échec du rejet');
       toast.error(message);
     } finally {
       setRejecting(false);
     }
-  }, [activeRequest, activeSigner, user, rejectionReason, loadRequests]);
+  }, [activeRequest, activeSigner, user, rejectionReason, loadRequests, t]);
 
   // Cancel a request
   const handleCancelRequest = useCallback(async (request: SignatureRequest) => {
@@ -511,15 +512,15 @@ export function SignatureWorkflow({
         'Annulée par l\'utilisateur',
         user.uid
       );
-      toast.success('Demande annulée');
+      toast.success(t('signatures.requestCancelled') || 'Demande annulée');
       loadRequests();
     } catch (error) {
       ErrorLogger.error(error, 'SignatureWorkflow.cancelRequest');
-      toast.error('Une erreur est survenue lors de la signature');
+      toast.error(t('signatures.cancelFailed') || 'Une erreur est survenue lors de la signature');
     } finally {
       setCancelRequestTarget(null);
     }
-  }, [user, loadRequests]);
+  }, [user, loadRequests, t]);
 
   // Check if current user can sign
   const canSign = useCallback(

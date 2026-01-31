@@ -676,7 +676,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     onBack,
     className,
 }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const organizationId = user?.organizationId;
     const [policies, setPolicies] = useState<AgentPolicy[]>([]);
     const [loading, setLoading] = useState(true);
@@ -765,10 +765,17 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
         }
 
         const policyName = data.name || 'Policy';
-        toast.success(
-            isNew ? 'Politique créée' : 'Politique mise à jour',
-            `"${policyName}" a été ${isNew ? 'créée' : 'mise à jour'} avec succès.`
-        );
+        if (isNew) {
+            toast.success(
+                t('policies.created', { defaultValue: 'Politique créée' }),
+                t('policies.createdDesc', { defaultValue: `"${policyName}" créée. Déployez-la pour l'appliquer aux agents.` })
+            );
+        } else {
+            toast.success(
+                t('policies.updated', { defaultValue: 'Politique mise à jour' }),
+                t('policies.updatedDesc', { defaultValue: `"${policyName}" a été mise à jour avec succès.` })
+            );
+        }
         setSaveSuccess({ policyName, isNew });
 
         setEditingPolicy(null);
@@ -795,7 +802,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
         try {
             await deployPolicy(organizationId, policyId, user.uid);
             setDeployStatus('success');
-            toast.success('Politique déployée', 'La politique a été déployée avec succès.');
+            toast.success(t('policies.deployed', { defaultValue: 'Politique déployée' }), t('policies.deployedDesc', { defaultValue: 'La politique sera appliquée aux agents concernés.' }));
             // Auto-clear after 5 seconds
             setTimeout(() => setDeployStatus('idle'), 5000);
         } catch (error) {
@@ -816,18 +823,18 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
         try {
             const deletedPolicy = policies.find(p => p.id === deleteConfirm);
             await deletePolicy(organizationId, deleteConfirm, user.uid);
-            toast.success('Politique supprimee', `"${deletedPolicy?.name || 'Politique'}" a ete supprimee avec succes.`);
+            toast.success(t('policies.deleted') || 'Politique supprimée', `"${deletedPolicy?.name || (t('policies.policy') || 'Politique')}" ${t('policies.deletedSuccess') || 'a été supprimée avec succès.'}`);
             if (selectedPolicyId === deleteConfirm) {
                 onSelectPolicy?.(null);
             }
         } catch (error) {
             const err = error as Error & { code?: string };
             if (err.code === 'permission-denied' || err.message?.includes('permission')) {
-                toast.error('Accès refusé', 'Vous n\'avez pas les permissions pour supprimer cette politique.');
+                toast.error(t('common.accessDenied') || 'Accès refusé', t('policies.deletePermissionError') || 'Vous n\'avez pas les permissions pour supprimer cette politique.');
             } else if (err.message?.includes('network') || err.message?.includes('timeout') || err.message?.includes('unavailable')) {
-                toast.error('Erreur réseau', 'Vérifiez votre connexion et réessayez.');
+                toast.error(t('common.networkError') || 'Erreur réseau', t('common.checkConnection') || 'Vérifiez votre connexion et réessayez.');
             } else {
-                toast.error('Erreur', 'Impossible de supprimer la politique.');
+                toast.error(t('common.error') || 'Erreur', t('policies.deleteError') || 'Impossible de supprimer la politique.');
             }
             ErrorLogger.error(error as Error, 'PolicyEditor.deletePolicy');
         } finally {
@@ -958,15 +965,29 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                     className="glass-premium rounded-2xl p-8 text-center border border-border/40"
                 >
                     <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">Aucune politique</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                        Créez une politique pour configurer vos agents
-                    </p>
-                    {canCreate && (
-                        <Button onClick={() => setIsCreating(true)}>
-                            <Plus className="h-4 w-4 mr-1" />
-                            Créer une politique
-                        </Button>
+                    {scopeFilter !== 'all' && policies.length > 0 ? (
+                        <>
+                            <h3 className="font-semibold mb-2">{t('policies.noFilterResults', { defaultValue: 'Aucune politique pour ce filtre' })}</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                {t('policies.noFilterResultsDesc', { defaultValue: 'Aucune politique ne correspond à la portée sélectionnée.' })}
+                            </p>
+                            <Button variant="outline" onClick={() => setScopeFilter('all')}>
+                                {t('policies.clearFilter', { defaultValue: 'Afficher toutes les politiques' })}
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <h3 className="font-semibold mb-2">{t('policies.noPolicies', { defaultValue: 'Aucune politique' })}</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                {t('policies.noPoliciesDesc', { defaultValue: 'Créez une politique pour configurer vos agents.' })}
+                            </p>
+                            {canCreate && (
+                                <Button onClick={() => setIsCreating(true)}>
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    {t('policies.createPolicy', { defaultValue: 'Créer une politique' })}
+                                </Button>
+                            )}
+                        </>
                     )}
                 </motion.div>
             ) : (

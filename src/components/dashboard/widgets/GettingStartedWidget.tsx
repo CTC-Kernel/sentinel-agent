@@ -4,6 +4,7 @@ import { X, Rocket, Check, ChevronRight, Info } from '../../ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 let lastStatusFetchAt = 0;
 let lastStatusOrgId: string | null = null;
@@ -72,7 +73,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 const qAssets = query(assetsColl, where('organizationId', '==', user.organizationId));
                 const qRisks = query(risksColl, where('organizationId', '==', user.organizationId));
                 // Controls that are implemented or in progress (not "Non commencé")
-                const qControls = query(controlsColl, where('organizationId', '==', user.organizationId), where('status', 'in', ['Implémenté', 'Partiel', 'En cours']));
+                const qControls = query(controlsColl, where('organizationId', '==', user.organizationId), where('status', 'in', [CONTROL_STATUS.IMPLEMENTED, CONTROL_STATUS.PARTIAL, CONTROL_STATUS.IN_PROGRESS]));
                 const qDocs = query(docsColl, where('organizationId', '==', user.organizationId));
                 const qAudits = query(auditsColl, where('organizationId', '==', user.organizationId));
 

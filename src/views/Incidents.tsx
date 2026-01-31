@@ -51,7 +51,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const Incidents: React.FC = () => {
     const { user, claimsSynced, loading: authLoading } = useAuth();
-    const { t } = useStore();
+    const { t, addToast } = useStore();
     const location = useLocation();
 
     // Start module tour
@@ -266,12 +266,13 @@ export const Incidents: React.FC = () => {
             }
             setIsFormDirty(false);
             setCreationMode(false);
+            setActiveTab('incidents');
         } catch (error) {
             ErrorLogger.warn('Creation handled in hook', 'Incidents.handleCreate', { metadata: { error } });
         } finally {
             setIsSubmitting(false);
         }
-    }, [user, addIncident]);
+    }, [user, addIncident, setActiveTab]);
 
     const handleUpdate = useCallback(async (data: IncidentFormData) => {
         if (!user?.organizationId || !selectedIncident || !canEditResource(user, 'Incident')) return;
@@ -294,12 +295,13 @@ export const Incidents: React.FC = () => {
             await deleteIncident(id);
             if (selectedIncident?.id === id) setSelectedIncident(null);
             setConfirmData(prev => ({ ...prev, isOpen: false }));
+            addToast(t('incidents.deleted', { defaultValue: 'Incident supprimé' }), 'info');
         } catch (error) {
             ErrorLogger.warn('Delete handled in hook', 'Incidents.handleDelete', { metadata: { error } });
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
-    }, [deleteIncident, selectedIncident]);
+    }, [deleteIncident, selectedIncident, addToast, t]);
 
     const initiateDelete = useCallback((id: string) => {
         if (!canDeleteResource(user, 'Incident')) return;

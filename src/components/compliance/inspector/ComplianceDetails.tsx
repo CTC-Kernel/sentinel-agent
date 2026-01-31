@@ -83,13 +83,26 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             {/* Status & Assignment */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Statut d'implémentation</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">{t('compliance.implementationStatus', { defaultValue: "Statut d'implémentation" })}</h3>
                     {canEdit ? (
                         <div className="grid grid-cols-2 gap-2">
-                            {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
+                            {(['Non commencé', 'En cours', 'Partiel', 'Implémenté', 'Planifié', 'En retard', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => {
+                                const statusLabels: Record<string, string> = {
+                                    'Non commencé': t('compliance.status.notStarted', { defaultValue: 'Non commencé' }),
+                                    'En cours': t('compliance.status.inProgress', { defaultValue: 'En cours' }),
+                                    'Partiel': t('compliance.status.partial', { defaultValue: 'Partiel' }),
+                                    'Implémenté': t('compliance.status.implemented', { defaultValue: 'Implémenté' }),
+                                    'Planifié': t('compliance.status.planned', { defaultValue: 'Planifié' }),
+                                    'En retard': t('compliance.status.overdue', { defaultValue: 'En retard' }),
+                                    'En revue': t('compliance.status.inReview', { defaultValue: 'En revue' }),
+                                    'Non applicable': t('compliance.status.notApplicable', { defaultValue: 'Non applicable' }),
+                                    'Exclu': t('compliance.status.excluded', { defaultValue: 'Exclu' }),
+                                };
+                                const label = statusLabels[s] || s;
+                                return (
                                 <Button
                                     key={s}
-                                    aria-label={`Changer le statut à ${s}`}
+                                    aria-label={t('compliance.changeStatusTo', { defaultValue: 'Changer le statut à', status: label })}
                                     aria-pressed={control.status === s}
                                     onClick={async () => {
                                         await handleStatusChange(control, s);
@@ -100,9 +113,10 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                     className={`h-auto py-2 text-[11px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-brand-600 hover:bg-brand-700' : 'text-slate-600 dark:text-slate-300'}`}
                                 >
                                     {updating && control.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                                    {s}
+                                    {label}
                                 </Button>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <span className={`px-4 py-2 rounded-3xl text-sm font-bold border uppercase tracking-wide inline-block`}>{control.status}</span>

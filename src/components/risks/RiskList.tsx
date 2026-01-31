@@ -81,7 +81,7 @@ export const RiskList = React.memo<RiskListProps>(({
                             title={emptyStateTitle || t('common.noResults')}
                             description={emptyStateDescription || t('common.emptyChart.addData')}
                             actionLabel={emptyStateActionLabel || t('common.create')}
-                            onAction={onEmptyStateAction || (() => window.dispatchEvent(new CustomEvent('open-risk-modal')))}
+                            onAction={onEmptyStateAction}
                             color="emerald"
                         />
                     }

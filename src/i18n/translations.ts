@@ -1,3 +1,8 @@
+/**
+ * @deprecated This file is no longer imported by any production or test code.
+ * The application uses i18next with JSON translation files instead.
+ * This file is kept for reference only and can be safely removed in a future cleanup.
+ */
 export const translations = {
     fr: {
         common: {

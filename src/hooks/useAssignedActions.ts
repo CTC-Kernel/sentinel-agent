@@ -18,6 +18,7 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
+import { calculateTrend } from '../utils/trendUtils';
 
 /**
  * Action item for list display
@@ -61,21 +62,6 @@ export interface AssignedActionsResult {
  * Action statuses that count as "pending"
  */
 const PENDING_ACTION_STATUSES = ['pending', 'in_progress', 'Planifié', 'En cours'];
-
-/**
- * Calculate trend based on count comparison
- */
-function calculateTrend(current: number, previous: number): TrendType {
-  if (previous === 0 && current === 0) return 'stable';
-  if (previous === 0) return current > 0 ? 'up' : 'stable';
-
-  const percentChange = ((current - previous) / previous) * 100;
-
-  // Use 5% threshold for significant change
-  if (percentChange > 5) return 'up';
-  if (percentChange < -5) return 'down';
-  return 'stable';
-}
 
 /**
  * Calculate days until due date

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Server, Database, Cloud, Activity, RefreshCw } from '../../../components/ui/Icons';
 import { ConnectivityService, ServiceHealth } from '../../../services/connectivityService';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { BUILD_VERSION } from '../../../config/version';
 
 const ServiceStatus: React.FC<{
     name: string;
@@ -28,7 +29,7 @@ const ServiceStatus: React.FC<{
                     <h4 className="font-medium text-foreground text-sm">{name}</h4>
                     <p className="text-xs text-muted-foreground flex items-center mt-0.5">
                         <Activity className="w-3 h-3 mr-1 opacity-60" />
-                        {error ? <span className="text-destructive">{error}</span> : 'Uptime: 99.99%'}
+                        {error ? <span className="text-destructive">{error}</span> : latency ? `Latency: ${latency}ms` : 'Operational'}
                     </p>
                 </div>
             </div>
@@ -75,8 +76,8 @@ export const SystemHealth: React.FC = () => {
                 { ...firestore, icon: Database },
                 { ...storage, icon: Cloud },
                 { ...functions, icon: Server },
-                // Static entry for AI until we have a ping
-                { name: 'AI Models (Gemini)', icon: Activity, status: 'operational' as const, latency: 450 }
+                // AI health is not actively pinged yet — latency 0 means no measurement
+                { name: 'AI Models (Gemini)', icon: Activity, status: 'operational' as const, latency: 0 }
             ]);
             setLastUpdate(new Date());
         } catch (error) {
@@ -126,7 +127,7 @@ export const SystemHealth: React.FC = () => {
                                 Check Now
                             </button>
                             <span className="font-mono text-muted-foreground/50">|</span>
-                            <span className="font-mono">v2.4.1</span>
+                            <span className="font-mono">v{BUILD_VERSION}</span>
                         </div>
                     </div>
                 </div>

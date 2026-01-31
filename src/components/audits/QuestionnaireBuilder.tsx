@@ -19,7 +19,7 @@ interface QuestionnaireBuilderProps {
 }
 
 export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ auditId, organizationId, onClose, onSave, initialData }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { addQuestionnaire, updateQuestionnaire } = useAuditsActions();
     const [title, setTitle] = useState(initialData?.title || '');
     const [description, setDescription] = useState(initialData?.description || '');
@@ -48,11 +48,11 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
 
     const handleSave = async () => {
         if (!title.trim()) {
-            addToast("Le titre est requis", "info");
+            addToast(t('audits.toast.titleRequired', { defaultValue: "Le titre est requis" }), "info");
             return;
         }
         if (questions.length === 0) {
-            addToast("Ajoutez au moins une question", "info");
+            addToast(t('audits.toast.addAtLeastOneQuestion', { defaultValue: "Ajoutez au moins une question" }), "info");
             return;
         }
 
@@ -67,7 +67,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
 
             if (initialData) {
                 await updateQuestionnaire(initialData.id, sanitizeData(questionnaireData));
-                addToast("Questionnaire mis à jour", "success");
+                addToast(t('audits.toast.questionnaireUpdated', { defaultValue: "Questionnaire mis à jour" }), "success");
             } else {
                 await addQuestionnaire(sanitizeData({
                     ...questionnaireData,
@@ -76,7 +76,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     status: 'Draft',
                     createdBy: user?.uid || 'system'
                 }) as Questionnaire);
-                addToast("Questionnaire créé", "success");
+                addToast(t('audits.toast.questionnaireCreated', { defaultValue: "Questionnaire créé" }), "success");
             }
             onSave();
             onClose();

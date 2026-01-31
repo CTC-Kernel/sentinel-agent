@@ -211,12 +211,12 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     const handleAISuggestion = async (field: keyof SupplierFormData) => {
         const name = getValues('name');
         if (!name) {
-            addToast("Veuillez d'abord saisir un nom de fournisseur", "info");
+            addToast(t('suppliers.form.enterNameFirst', { defaultValue: "Veuillez d'abord saisir un nom de fournisseur" }), "info");
             return;
         }
 
         try {
-            addToast("Génération de suggestions IA...", "info");
+            addToast(t('suppliers.form.aiGenerating', { defaultValue: 'Génération de suggestions IA...' }), "info");
             const prompt = `Suggère une valeur pour le champ ${field} d'un fournisseur nommé ${name}. Réponds uniquement par la valeur.`;
             const suggestion = await aiService.generateText(prompt);
 
@@ -225,11 +225,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 if (field === 'category') setValue('category', 'SaaS');
                 if (field === 'criticality') setValue('criticality', Criticality.MEDIUM);
                 if (field === 'description') setValue('description', suggestion);
-                addToast("Suggestion appliquée", "success");
+                addToast(t('suppliers.form.suggestionApplied', { defaultValue: 'Suggestion appliquée' }), "success");
             }
         } catch (error) {
             ErrorLogger.error(error, 'SupplierForm.handleAISuggestion');
-            addToast("Erreur lors de la génération", "error");
+            addToast(t('suppliers.form.aiError', { defaultValue: 'Erreur lors de la génération' }), "error");
         }
     };
 
@@ -240,7 +240,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             const result = await integrationService.validateVat(vat);
             addToast(result.message, result.valid ? 'success' : 'error');
         } catch {
-            addToast('Erreur de validation VIES', 'error');
+            addToast(t('suppliers.toast.viesValidationError', { defaultValue: 'Erreur de validation VIES' }), 'error');
         }
     };
 
@@ -253,14 +253,14 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         onSelectTemplate={handleSelectTemplate}
                         onAutoGenerate={handleAutoGenerate}
                         isGenerating={isGenerating}
-                        title="Assistant Fournisseur"
-                        description="Ajoutez un fournisseur type ou laissez l'IA le qualifier."
+                        title={t('suppliers.form.assistantTitle', { defaultValue: 'Assistant Fournisseur' })}
+                        description={t('suppliers.form.assistantDescription', { defaultValue: 'Ajoutez un fournisseur type ou laissez l\'IA le qualifier.' })}
                     />
                 )}
                 <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <Building2 className="w-5 h-5 mr-2 text-indigo-500" />
-                        Informations Générales
+                        {t('suppliers.form.generalInfo', { defaultValue: 'Informations Générales' })}
                     </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -270,7 +270,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <FloatingLabelInput
-                                        label="Nom de l'entreprise"
+                                        label={t('suppliers.form.companyName', { defaultValue: "Nom de l'entreprise" })}
                                         {...field}
                                         value={field.value || ''}
                                         error={errors.name?.message}
@@ -340,7 +340,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                     control={control}
                                     render={({ field }) => (
                                         <FloatingLabelInput
-                                            label="Numéro de TVA (VIES)"
+                                            label={t('suppliers.form.vatNumber', { defaultValue: 'Numéro de TVA (VIES)' })}
                                             {...field}
                                             value={field.value || ''}
                                         />

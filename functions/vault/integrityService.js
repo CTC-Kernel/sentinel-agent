@@ -6,6 +6,7 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
@@ -186,7 +187,7 @@ exports.verifyIntegrity = onCall(
       });
 
       if (!integrityValid) {
-        console.error(
+        logger.error(
           `INTEGRITY FAILURE for document ${documentId}. Expected: ${storedHash}, Got: ${calculatedHash}`
         );
       }
@@ -206,7 +207,7 @@ exports.verifyIntegrity = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Integrity verification error:', error);
+      logger.error('Integrity verification error:', error);
       throw new HttpsError('internal', 'Failed to verify document integrity');
     }
   }
@@ -294,7 +295,7 @@ exports.getHashHistory = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Get hash history error:', error);
+      logger.error('Get hash history error:', error);
       throw new HttpsError('internal', 'Failed to retrieve hash history');
     }
   }
@@ -407,7 +408,7 @@ exports.generateIntegrityCertificate = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Generate certificate error:', error);
+      logger.error('Generate certificate error:', error);
       throw new HttpsError('internal', 'Failed to generate integrity certificate');
     }
   }
@@ -427,6 +428,6 @@ async function logIntegrityEvent(db, event) {
       },
     });
   } catch (error) {
-    console.error('Failed to log integrity event:', error);
+    logger.error('Failed to log integrity event:', error);
   }
 }

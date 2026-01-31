@@ -12,7 +12,7 @@ interface ContinuityCrisisProps {
 }
 
 export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const {
         isCrisisActive: crisisActive,
         scenario,
@@ -43,15 +43,15 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
             supply: "DÉFAILLANCE CRITIQUE FOURNISSEUR",
             staff: "INDISPONIBILITÉ MAJEURE PERSONNEL"
         };
-        addToast(`⚠️ MODE CRISE ACTIVÉ : ${scenarioLabels[selectedScenario]}`, "error");
-        addToast("Notifications envoyées à la cellule de crise.", "info");
+        addToast(t('continuity.toast.crisisActivated', { defaultValue: `MODE CRISE ACTIVÉ : ${scenarioLabels[selectedScenario]}`, scenario: scenarioLabels[selectedScenario] }), "error");
+        addToast(t('continuity.toast.crisisNotificationsSent', { defaultValue: "Notifications envoyées à la cellule de crise." }), "info");
     };
 
     const handleDeactivate = async () => {
         await deactivateCrisis();
         setConfirmDeactivate(false);
         setActivationStep(0);
-        addToast("Mode crise désactivé. Retour à la normale.", "success");
+        addToast(t('continuity.toast.crisisDeactivated', { defaultValue: "Mode crise désactivé. Retour à la normale." }), "success");
     };
 
     return (

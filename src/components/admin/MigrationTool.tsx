@@ -5,7 +5,7 @@ import { MigrationService } from '../../services/migrationService';
 import { Database, Loader2, Zap } from '../ui/Icons';
 
 export const MigrationTool: React.FC = () => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const [loading, setLoading] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const [progress, setProgress] = useState(0);
@@ -22,14 +22,14 @@ export const MigrationTool: React.FC = () => {
             });
 
             addToast(
-                `Migration terminée. ${result.totalFixed} documents et ${result.orgFixed} organisations corrigés.`,
+                t('admin.toast.migrationComplete', { defaultValue: `Migration terminée. ${result.totalFixed} documents et ${result.orgFixed} organisations corrigés.`, totalFixed: result.totalFixed, orgFixed: result.orgFixed }),
                 "success"
             );
         } catch (error) {
             ErrorLogger.error(error, 'MigrationTool.runMigration');
             const msg = error instanceof Error ? error.message : 'Unknown error';
             setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ❌ Erreur: ${msg}`]);
-            addToast("Erreur lors de la migration", "error");
+            addToast(t('admin.toast.migrationError', { defaultValue: "Erreur lors de la migration" }), "error");
         } finally {
             setLoading(false);
         }

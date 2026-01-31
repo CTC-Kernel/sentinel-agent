@@ -1,7 +1,7 @@
 import { collection, query, where, getCountFromServer, getDoc, doc, setDoc, Query, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
-import { RISK_THRESHOLDS } from '../constants/complianceConfig';
+import { RISK_THRESHOLDS, CONTROL_STATUS } from '../constants/complianceConfig';
 
 export interface DashboardCounts {
     activeIncidentsCount: number;
@@ -124,7 +124,9 @@ export class DashboardService {
             const qMediumRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', RISK_THRESHOLDS.MEDIUM), where('score', '<', RISK_THRESHOLDS.HIGH));
             const qLowRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '<', RISK_THRESHOLDS.MEDIUM));
             const qAssets = query(collection(db, 'assets'), where('organizationId', '==', organizationId));
-            const qControlsImpl = query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', 'Implémenté'));
+            const qControlsImpl = query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', CONTROL_STATUS.IMPLEMENTED));
+            const qControlsNA = query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', CONTROL_STATUS.NOT_APPLICABLE));
+            const qControlsExcl = query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', CONTROL_STATUS.EXCLUDED));
             const qControlsTotal = query(collection(db, 'controls'), where('organizationId', '==', organizationId));
 
             const [
@@ -135,6 +137,8 @@ export class DashboardService {
                 lowRisks,
                 totalAssets,
                 implemented,
+                naControls,
+                excludedControls,
                 totalControls
             ] = await Promise.all([
                 safeCount(qTotalRisks, 'totalRisks'),
@@ -144,6 +148,8 @@ export class DashboardService {
                 safeCount(qLowRisks, 'lowRisks'),
                 safeCount(qAssets, 'totalAssets'),
                 safeCount(qControlsImpl, 'controlsImpl'),
+                safeCount(qControlsNA, 'controlsNA'),
+                safeCount(qControlsExcl, 'controlsExcl'),
                 safeCount(qControlsTotal, 'controlsTotal')
             ]);
 
@@ -156,7 +162,7 @@ export class DashboardService {
                 totalAssets,
                 controlsStats: {
                     implemented,
-                    actionable: totalControls, // Approx
+                    actionable: totalControls - naControls - excludedControls,
                     total: totalControls
                 },
                 hasPartialData: failedQueries.length > 0,

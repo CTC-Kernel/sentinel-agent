@@ -6,6 +6,8 @@ import { RiskInspector } from '../../risks/RiskInspector';
 import { AssetInspector } from '../../assets/AssetInspector';
 import { AuditInspector } from '../../audits/AuditInspector';
 import { ComplianceInspector } from '../../compliance/ComplianceInspector';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../../../constants/RiskConstants';
+import { RISK_THRESHOLDS } from '../../../constants/complianceConfig';
 
 type DependencyType = 'risks' | 'controls' | 'assets' | 'audits';
 
@@ -227,7 +229,7 @@ const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () 
             <div>
                 <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{risk.threat}</h4>
                 <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.score >= 12 ? 'bg-red-100 text-red-600' : risk.score >= 5 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.score}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.score >= RISK_ACCEPTANCE_THRESHOLD ? 'bg-red-100 text-red-600' : risk.score >= RISK_THRESHOLDS.MEDIUM ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.score}</span>
                     <span className="text-xs text-slate-500">{risk.category}</span>
                 </div>
             </div>

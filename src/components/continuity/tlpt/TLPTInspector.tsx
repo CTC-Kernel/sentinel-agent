@@ -31,6 +31,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
     const [activeTab, setActiveTab] = useState<'details' | 'findings' | 'report'>('details');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     const isNew = !campaign?.id;
 
@@ -50,6 +51,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
             activeTab={activeTab}
             onTabChange={(id) => setActiveTab(id as 'details' | 'findings' | 'report')}
             width="max-w-4xl"
+            hasUnsavedChanges={isFormDirty}
             actions={
                 <div className="flex items-center gap-2">
                     {onDelete && campaign?.id && canEdit && (
@@ -76,6 +78,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
                                 isLoading={isLoading}
                                 isEditing={!isNew}
                                 readOnly={!canEdit && !isNew}
+                                onDirtyChange={setIsFormDirty}
                             />
                         </div>
                     )}

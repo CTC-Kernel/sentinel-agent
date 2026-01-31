@@ -3,6 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { toast } from '@/lib/toast';
+import { useStore } from '../../store';
 import {
     ShieldCheck,
     Copy,
@@ -61,10 +62,11 @@ interface DownloadButtonProps {
 }
 
 const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> = ({ label, sublabel, icon, available = true, loading = false, downloadUrl }) => {
+    const { t } = useStore();
     const handleDownload = () => {
         if (loading) return;
         if (!available) {
-            toast.info("Cette version sera disponible prochainement");
+            toast.info(t('settings.agents.toast.versionComingSoon', { defaultValue: "Cette version sera disponible prochainement" }));
             return;
         }
         if (downloadUrl) {
@@ -154,6 +156,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
     releaseInfo,
     loadingReleases
 }) => {
+    const { t } = useStore();
     const [activeTab, setActiveTab] = useState<'download' | 'docs' | 'faq' | 'support'>('download');
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
@@ -208,7 +211,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                 className="w-full bg-brand-500 hover:bg-brand-600 text-white rounded-lg shadow-sm"
                                 onClick={() => {
                                     navigator.clipboard.writeText(enrollmentToken || '');
-                                    toast.success("Token copié !");
+                                    toast.success(t('settings.agents.toast.tokenCopied', { defaultValue: "Token copié !" }));
                                 }}
                             >
                                 <Copy className="w-3.5 h-3.5 mr-2" />
@@ -234,7 +237,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                             <button
                                 onClick={() => {
                                     navigator.clipboard.writeText(`sentinel-agent enroll --token ${enrollmentToken}`);
-                                    toast.success("Commande copiée !");
+                                    toast.success(t('settings.agents.toast.commandCopied', { defaultValue: "Commande copiée !" }));
                                 }}
                                 className="absolute right-2 top-2 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover:opacity-70"
                                 title="Copier la commande"

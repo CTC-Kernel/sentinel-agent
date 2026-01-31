@@ -193,8 +193,6 @@ export const useRiskActions = (onRefresh: () => void) => {
             });
 
             const docRef = await addDoc(collection(db, 'risks'), riskData);
-            toast.success(t('common.draftSaved') || 'Brouillon enregistré');
-            onRefresh();
             if (user && user.organizationId) {
                 await AuditLogService.logCreate(
                     user.organizationId,
@@ -227,7 +225,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             ErrorLogger.warn('IDOR attempt: risk draft update across organizations', 'useRiskActions.updateRiskDraft', {
                 metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: riskOrganizationId, callerOrg: user?.organizationId }
             });
-            toast.error('Risque non trouvé');
+            toast.error(t('risks.notFound') || 'Risque non trouvé');
             return false;
         }
 
@@ -284,7 +282,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             ErrorLogger.warn('IDOR attempt: risk publish across organizations', 'useRiskActions.publishDraft', {
                 metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: currentRisk.organizationId, callerOrg: user?.organizationId }
             });
-            toast.error('Risque non trouvé');
+            toast.error(t('risks.notFound') || 'Risque non trouvé');
             return false;
         }
 
@@ -396,7 +394,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             const result = await RiskService.deleteRisk(user as UserProfile, id, riskVerify);
 
             if (result.success) {
-                toast.success(t('common.riskDeleted'));
+                toast.success(t('risks.deleted', { defaultValue: 'Risque supprimé. Consultez le registre pour mettre à jour vos priorités.' }));
                 onRefresh();
                 return true;
             } else {
@@ -449,7 +447,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                     resolve();
                 } else {
                     // PDF Not implemented yet
-                    toast.info('Export PDF bientôt disponible');
+                    toast.info(t('risks.pdfExportComingSoon') || 'Export PDF bientôt disponible');
                     resolve();
                 }
             } catch (error) {
@@ -520,8 +518,8 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             if (blockedCount > 0) {
                 // Show first error as example
-                const firstError = errors.length > 0 ? errors[0] : 'Dépendances existantes';
-                toast.error(`Certains risques n'ont pas pu être supprimés (${blockedCount}). Exemple: ${firstError}`);
+                const firstError = errors.length > 0 ? errors[0] : t('risks.existingDependencies') || 'Dépendances existantes';
+                toast.error(t('risks.bulkDeletePartialError', { count: blockedCount, error: firstError }) || `Certains risques n'ont pas pu être supprimés (${blockedCount}). Exemple: ${firstError}`);
             }
 
         } catch (error) {
@@ -539,7 +537,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             const { data, errors } = ImportService.parseRisks(csvContent);
 
             if (errors.length > 0) {
-                toast.error(`Erreurs de validation (${errors.length}): ${errors.slice(0, 3).join(', ')}`);
+                toast.error(t('risks.importValidationErrors', { count: errors.length, details: errors.slice(0, 3).join(', ') }) || `Erreurs de validation (${errors.length}): ${errors.slice(0, 3).join(', ')}`);
                 if (data.length === 0) return false;
             }
 

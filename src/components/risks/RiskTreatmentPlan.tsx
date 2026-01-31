@@ -6,6 +6,8 @@ import { fr } from 'date-fns/locale';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { TreatmentActionsList } from './TreatmentActionsList';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
+
 
 interface RiskTreatmentPlanProps {
     risk: Risk;
@@ -244,7 +246,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 value={treatment.strategy}
                                 onChange={(e) => {
                                     const value = e.target.value;
-                                    if (value === 'Accepter' && risk.score >= 16) {
+                                    if (value === 'Accepter' && risk.score >= RISK_THRESHOLDS.CRITICAL) {
                                         setShowAcceptWarning(true);
                                     } else {
                                         setShowAcceptWarning(false);

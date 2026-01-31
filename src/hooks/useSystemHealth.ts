@@ -9,11 +9,6 @@ export const useSystemHealth = () => {
     const [userCount, setUserCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
 
-    // Simulated system stats
-    const [systemLoad, setSystemLoad] = useState(24);
-    const [memoryUsage, setMemoryUsage] = useState(42);
-    const [networkLatency, setNetworkLatency] = useState(35);
-
     useEffect(() => {
         const fetchMetrics = async () => {
             if (!user?.organizationId) return;
@@ -30,24 +25,10 @@ export const useSystemHealth = () => {
         };
 
         fetchMetrics();
-
-        // Simulate live metric updates
-        const interval = setInterval(() => {
-            setSystemLoad(prev => Math.min(Math.max(prev + (Math.random() - 0.5) * 5, 10), 60));
-            setMemoryUsage(prev => Math.min(Math.max(prev + (Math.random() - 0.5) * 3, 30), 80));
-            setNetworkLatency(prev => Math.min(Math.max(prev + (Math.random() - 0.5) * 10, 20), 80));
-        }, 3000);
-
-        return () => clearInterval(interval);
     }, [user?.organizationId]);
 
     return {
         userCount,
         loading,
-        metrics: {
-            systemLoad,
-            memoryUsage,
-            networkLatency
-        }
     };
 };

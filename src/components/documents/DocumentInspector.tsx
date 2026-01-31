@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Document, Control, UserProfile } from '../../types';
 import { Drawer } from '../ui/Drawer';
+import { useLocale } from '../../hooks/useLocale';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
 import { FileText, History, MessageSquare, Eye, ShieldCheck, List, Edit, Trash2 } from '../ui/Icons';
 import { WorkflowStatusBadge } from './WorkflowStatusBadge';
@@ -46,6 +47,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
     onWorkflowAction,
     onSecureView
 }) => {
+    const { t } = useLocale();
     const [activeTab, setActiveTab] = useState<'details' | 'versions' | 'history' | 'comments'>('details');
     const [isDeleting, setIsDeleting] = useState(false);
     const { versions } = useDocumentVersions(selectedDocument?.id || null, isOpen);
@@ -86,9 +88,9 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 onClick={onEdit}
                                 variant="ghost"
                                 size="icon"
-                                aria-label="Modifier le document"
+                                aria-label={t('documents.inspector.editDocument', { defaultValue: 'Modifier le document' })}
                                 className="text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30"
-                                title="Modifier"
+                                title={t('documents.inspector.edit', { defaultValue: 'Modifier' })}
                             >
                                 <Edit className="h-5 w-5" />
                             </Button>
@@ -98,8 +100,8 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 variant="ghost"
                                 size="icon"
                                 className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-                                title={isDeleting ? "Suppression..." : "Supprimer"}
-                                aria-label="Supprimer le document"
+                                title={isDeleting ? t('documents.inspector.deleting', { defaultValue: 'Suppression...' }) : t('documents.inspector.delete', { defaultValue: 'Supprimer' })}
+                                aria-label={t('documents.inspector.deleteDocument', { defaultValue: 'Supprimer le document' })}
                             >
                                 <Trash2 className="h-5 w-5" />
                             </Button>
@@ -116,7 +118,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                             <WorkflowStatusBadge status={selectedDocument.status} />
                             {selectedDocument.isSecure && (
                                 <span className="bg-success-100 text-success-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border border-success-200 dark:bg-success-900/30 dark:text-success-400 dark:border-success-800">
-                                    <ShieldCheck className="h-3 w-3" /> Coffre-fort
+                                    <ShieldCheck className="h-3 w-3" /> {t('documents.inspector.digitalSafe', { defaultValue: 'Coffre-fort' })}
                                 </span>
                             )}
                             <span className="text-sm text-slate-500 dark:text-slate-300 px-2 py-0.5 bg-slate-100 rounded-lg border border-border/40 dark:border-slate-700">

@@ -45,7 +45,7 @@ const EFFECTIVENESS_THRESHOLD = 50;
  * Generate a unique ID for an anomaly
  */
 const generateAnomalyId = (): string => {
-  return `anomaly-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `anomaly-${crypto.randomUUID()}`;
 };
 
 /**

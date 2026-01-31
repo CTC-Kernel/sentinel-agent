@@ -256,13 +256,19 @@
     "emptyState": {
       "noComments": "Aucun commentaire pour le moment."
     },
+    "success": "Succès",
+    "error": "Erreur",
+    "confirm": "Confirmer",
     "statuses": {
       "all": "Tous les statuts",
       "notStarted": "Non commencé",
       "inProgress": "En cours",
+      "planned": "Planifié",
+      "overdue": "En retard",
       "partial": "Partiel",
       "implemented": "Implémenté",
-      "notApplicable": "Non applicable"
+      "notApplicable": "Non applicable",
+      "excluded": "Exclu"
     },
     "errors": {
       "generic": "Une erreur est survenue",
@@ -279,7 +285,11 @@
       "timeout": "Délai d'attente dépassé",
       "unauthorized": "Non autorisé",
       "serverError": "Erreur serveur",
-      "missingOrgId": "ID d'organisation manquant"
+      "missingOrgId": "ID d'organisation manquant",
+      "operationFailed": "Opération échouée",
+      "createFailed": "Échec de la création",
+      "updateFailed": "Échec de la mise à jour",
+      "deleteFailed": "Échec de la suppression"
     }
   },
   "admin": {
@@ -1310,6 +1320,7 @@
     },
     "frameworks": {
       "ISO27001": "ISO 27001",
+      "iso27001": "ISO 27001",
       "ebios": "EBIOS RM",
       "nist": "NIST CSF",
       "pci": "PCI-DSS",
@@ -1358,6 +1369,8 @@
     "aiConsentDesc": "J'autorise Sentinel à traiter les données (anonymisées si activé) pour fournir des analyses.",
     "frameworksTitle": "Référentiels de Conformité",
     "frameworksDescription": "Sélectionnez les référentiels que votre organisation doit respecter.",
+    "frameworkLimitReached": "Limite de frameworks atteinte pour votre plan.",
+    "frameworksUpdated": "Frameworks mis à jour avec succès",
     "securityDesc": "Gérez vos méthodes d'authentification et sessions sécurisées.",
     "title": "Paramètres",
     "subtitle": "Configuration globale de l'organisation et préférences utilisateur.",
@@ -1563,6 +1576,8 @@
     "vulnerabilities": "Vulnérabilités",
     "reports": "Rapports",
     "agents": "Agents",
+    "agentPolicies": "Politiques Agents",
+    "softwareInventory": "Inventaire Logiciel",
     "threatIntel": "Threat Intel",
     "smsi": "Programme SMSI",
     "systemHealth": "État du Système",
@@ -1601,7 +1616,9 @@
     },
     "digitalSafe": "Coffre-fort Numérique",
     "overview": "Vue d'ensemble",
-    "list": "Liste"
+    "list": "Liste",
+    "signatureSuccess": "Document signé avec succès",
+    "integrityVerified": "Intégrité du document vérifiée"
   },
   "incidents": {
     "title": "Gestion des Incidents",
@@ -2033,6 +2050,8 @@
       "newFinding": "Nouveau Constat",
       "add": "Ajouter",
       "delete": "Supprimer",
+      "emptyTitle": "Aucun constat",
+      "emptyDesc": "Aucun constat enregistré pour cet audit.",
       "uploadEvidence": "Ajouter Preuve",
       "toast": {
         "evidenceSuccess": "Preuve ajoutée"
@@ -2040,6 +2059,7 @@
       "form": {
         "description": "Description du constat",
         "descriptionPlaceholder": "Détails de l'observation...",
+        "linkControl": "Lier à un contrôle (optionnel)",
         "type": {
           "observation": "Observation",
           "nonconformity": "Non-conformité",
@@ -2075,6 +2095,8 @@
     "mapping": "Cartographie",
     "shared": "Partagé",
     "dossierGenerated": "Dossier généré",
+    "riskCreated": "Risque créé",
+    "auditCreated": "Audit créé",
     "dashboard": {
       "initializing": "Initialisation de la conformité...",
       "noFrameworks": "Aucun référentiel configuré. Cliquez sur le bouton ci-dessous pour initialiser les données.",
@@ -4848,6 +4870,9 @@
     }
   },
   "agents": {
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet agent ?",
+    "syncRequested": "Synchronisation demandée",
+    "enrollmentSuccess": "Agent enregistré avec succès",
     "widget": {
       "title": "Maturité de la Flotte",
       "subtitle": "Vue d'ensemble de la santé et de la conformité des agents",

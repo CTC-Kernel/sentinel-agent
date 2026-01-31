@@ -17,7 +17,7 @@ interface AuditTeamProps {
 }
 
 export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { updateAudit } = useAuditsActions();
     const [isAddingInternal, setIsAddingInternal] = useState(false);
     const [isAddingExternal, setIsAddingExternal] = useState(false);
@@ -32,14 +32,14 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
         try {
             const currentCollaborators = audit.collaborators || [];
             if (currentCollaborators.includes(selectedUserId)) {
-                addToast("Cet utilisateur est déjà dans l'équipe", "info");
+                addToast(t('audits.team.alreadyInTeam', { defaultValue: "Cet utilisateur est déjà dans l'équipe" }), "info");
                 return;
             }
 
             await updateAudit(audit.id, sanitizeData({
                 collaborators: [...currentCollaborators, selectedUserId]
             }));
-            addToast("Collaborateur ajouté", "success");
+            addToast(t('audits.team.collaboratorAdded', { defaultValue: "Collaborateur ajouté" }), "success");
             setIsAddingInternal(false);
             setSelectedUserId('');
         } catch (error) {
@@ -52,7 +52,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
         try {
             const currentExternal = audit.externalAuditors || [];
             if (currentExternal.includes(externalEmail)) {
-                addToast("Cet auditeur est déjà invité", "info");
+                addToast(t('audits.team.auditorAlreadyInvited', { defaultValue: "Cet auditeur est déjà invité" }), "info");
                 return;
             }
 
@@ -73,7 +73,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 type: 'AUDIT_INVITATION'
             });
 
-            addToast("Auditeur externe invité", "success");
+            addToast(t('audits.team.externalAuditorInvited', { defaultValue: "Auditeur externe invité" }), "success");
             setIsAddingExternal(false);
             setExternalEmail('');
         } catch (error) {
@@ -87,7 +87,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             await updateAudit(audit.id, sanitizeData({
                 collaborators: currentCollaborators.filter(id => id !== userId)
             }));
-            addToast("Collaborateur retiré", "info");
+            addToast(t('audits.team.collaboratorRemoved', { defaultValue: "Collaborateur retiré" }), "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleRemoveInternal', 'UPDATE_FAILED');
         }
@@ -99,7 +99,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             await updateAudit(audit.id, sanitizeData({
                 externalAuditors: currentExternal.filter(e => e !== email)
             }));
-            addToast("Auditeur externe retiré", "info");
+            addToast(t('audits.team.externalAuditorRemoved', { defaultValue: "Auditeur externe retiré" }), "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleRemoveExternal', 'UPDATE_FAILED');
         }

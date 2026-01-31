@@ -16,13 +16,13 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-const roleSchema = z.object({
-    name: z.string().min(2, 'Nom requis (min 2 caractères)').max(100, 'Nom trop long'),
-    description: z.string().max(500, 'Description trop longue').optional(),
+const createRoleSchema = (t: (key: string, options?: { defaultValue: string }) => string) => z.object({
+    name: z.string().min(2, t('team.roles.validation.nameRequired', { defaultValue: 'Nom requis (min 2 caractères)' })).max(100, t('team.roles.validation.nameTooLong', { defaultValue: 'Nom trop long' })),
+    description: z.string().max(500, t('team.roles.validation.descriptionTooLong', { defaultValue: 'Description trop longue' })).optional(),
     permissions: z.record(z.string(), z.array(z.string())).optional()
 });
 
-type RoleFormData = z.infer<typeof roleSchema>;
+type RoleFormData = z.infer<ReturnType<typeof createRoleSchema>>;
 
 interface RoleManagerProps {
     roles: CustomRole[];
@@ -36,11 +36,12 @@ const RESOURCES: ResourceType[] = [
 const ACTIONS: ActionType[] = ['read', 'create', 'update', 'delete', 'manage'];
 
 export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { addRole, updateRole, removeRole } = useTeamData();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<CustomRole | null>(null);
 
+    const roleSchema = React.useMemo(() => createRoleSchema(t), [t]);
     const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<RoleFormData>({
         resolver: zodResolver(roleSchema),
         defaultValues: {
@@ -98,10 +99,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
 
             if (editingRole) {
                 await updateRole(editingRole.id, sanitizeData(roleData));
-                addToast("Rôle mis à jour", "success");
+                addToast(t('team.roles.toast.updated', { defaultValue: 'Rôle mis à jour' }), "success");
             } else {
                 await addRole(sanitizeData(roleData));
-                addToast("Rôle créé", "success");
+                addToast(t('team.roles.toast.created', { defaultValue: 'Rôle créé' }), "success");
             }
             setIsDrawerOpen(false);
             reset();
@@ -109,19 +110,19 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RoleManager.onSubmit');
         }
-    }, [user, editingRole, onRefresh, addToast, addRole, updateRole, reset]);
+    }, [user, editingRole, onRefresh, addToast, addRole, updateRole, reset, t]);
 
     const handleDelete = React.useCallback(async () => {
         if (!confirmDelete.roleId) return;
         try {
             await removeRole(confirmDelete.roleId);
-            addToast("Rôle supprimé", "info");
+            addToast(t('team.roles.toast.deletedWithImpact', { defaultValue: 'Rôle supprimé. Les utilisateurs concernés ont été réattribués au rôle par défaut.' }), "info");
             setConfirmDelete({ isOpen: false, roleId: null });
             onRefresh();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RoleManager.handleDelete');
         }
-    }, [confirmDelete.roleId, onRefresh, addToast, removeRole]);
+    }, [confirmDelete.roleId, onRefresh, addToast, removeRole, t]);
 
     const handleConfirmDelete = React.useCallback((roleId: string) => {
         setConfirmDelete({ isOpen: true, roleId });
@@ -139,23 +140,23 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rôles Personnalisés</h3>
-                    <p className="text-sm text-slate-600">Gérez les permissions fines pour votre organisation.</p>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('team.roles.title', { defaultValue: 'Rôles Personnalisés' })}</h3>
+                    <p className="text-sm text-slate-600">{t('team.roles.subtitle', { defaultValue: 'Gérez les permissions fines pour votre organisation.' })}</p>
                 </div>
                 <Button
                     onClick={handleNewRole}
                     className="flex items-center gap-2 bg-brand-600 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700"
                 >
-                    <Plus className="h-4 w-4" /> Nouveau Rôle
+                    <Plus className="h-4 w-4" /> {t('team.roles.newRole', { defaultValue: 'Nouveau Rôle' })}
                 </Button>
             </div>
 
             {roles.length === 0 ? (
                 <EmptyState
                     icon={Shield}
-                    title="Aucun rôle personnalisé"
-                    description="Créez des rôles sur mesure pour gérer les accès de vos équipes."
-                    actionLabel="Créer un rôle"
+                    title={t('team.roles.emptyTitle', { defaultValue: 'Aucun rôle personnalisé' })}
+                    description={t('team.roles.emptyDescription', { defaultValue: 'Créez des rôles sur mesure pour gérer les accès de vos équipes.' })}
+                    actionLabel={t('team.roles.createRole', { defaultValue: 'Créer un rôle' })}
                     onAction={handleNewRole}
                 />
             ) : (
@@ -174,34 +175,34 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
             <Drawer
                 isOpen={isDrawerOpen}
                 onClose={handleCloseDrawer}
-                title={editingRole ? "Modifier le rôle" : "Nouveau rôle"}
-                subtitle="Définissez les permissions d'accès."
+                title={editingRole ? t('team.roles.editRole', { defaultValue: 'Modifier le rôle' }) : t('team.roles.newRoleDrawer', { defaultValue: 'Nouveau rôle' })}
+                subtitle={t('team.roles.drawerSubtitle', { defaultValue: "Définissez les permissions d'accès." })}
                 width="max-w-6xl"
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <FloatingLabelInput
-                            label="Nom du rôle"
+                            label={t('team.roles.form.name', { defaultValue: 'Nom du rôle' })}
                             {...register('name')}
                             error={errors.name?.message}
                             required
-                            placeholder="ex: Stagiaire Marketing"
+                            placeholder={t('team.roles.form.namePlaceholder', { defaultValue: 'ex: Stagiaire Marketing' })}
                         />
                         <FloatingLabelInput
-                            label="Description"
+                            label={t('common.description', { defaultValue: 'Description' })}
                             {...register('description')}
                             error={errors.description?.message}
-                            placeholder="Description du rôle..."
+                            placeholder={t('team.roles.form.descriptionPlaceholder', { defaultValue: 'Description du rôle...' })}
                         />
                     </div>
 
                     <div className="border-t border-border/40 dark:border-border/40 pt-6">
-                        <h4 className="font-bold text-slate-900 dark:text-white mb-4">Matrice des Permissions</h4>
+                        <h4 className="font-bold text-slate-900 dark:text-white mb-4">{t('team.roles.permissionsMatrix', { defaultValue: 'Matrice des Permissions' })}</h4>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-800/50 text-left">
                                     <tr>
-                                        <th scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider rounded-tl-lg">Ressource</th>
+                                        <th scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider rounded-tl-lg">{t('team.roles.resource', { defaultValue: 'Ressource' })}</th>
                                         {ACTIONS.map(action => (
                                             <th key={action} scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-center">{action}</th>
                                         ))}
@@ -228,9 +229,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-border/40 dark:border-border/40">
-                        <Button type="button" variant="ghost" onClick={handleCloseDrawer}>Annuler</Button>
+                        <Button type="button" variant="ghost" onClick={handleCloseDrawer}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                         <Button type="submit" disabled={isSubmitting} className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">
-                            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                            {isSubmitting ? t('common.saving', { defaultValue: 'Enregistrement...' }) : t('common.save', { defaultValue: 'Enregistrer' })}
                         </Button>
                     </div>
                 </form>
@@ -240,8 +241,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, roleId: null })}
                 onConfirm={handleDelete}
-                title="Supprimer le rôle ?"
-                message="Cette action est irréversible. Les utilisateurs assignés à ce rôle perdront leurs permissions spécifiques."
+                title={t('team.roles.deleteTitle', { defaultValue: 'Supprimer le rôle ?' })}
+                message={t('team.roles.deleteMessage', { defaultValue: 'Cette action est irréversible. Les utilisateurs assignés à ce rôle perdront leurs permissions spécifiques.' })}
             />
         </div>
     );

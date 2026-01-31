@@ -9,6 +9,7 @@ import {
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../theme/chartTheme';
+import { RISK_LEVELS } from '../../constants/RiskConstants';
 
 interface ProjectDashboardProps {
     project: Project;
@@ -69,7 +70,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
         const expectedProgress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
         const onSchedule = progressRate >= expectedProgress * 0.9;
 
-        const criticalRisks = relatedRisks.filter(r => r.score >= 10).length;
+        const criticalRisks = relatedRisks.filter(r => r.score >= RISK_LEVELS.HIGH.min).length;
 
         let healthScore = 100;
         if (!onSchedule) healthScore -= 30;
@@ -221,13 +222,13 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                             <span className="font-bold">{projectHealth.onSchedule ? 'Planning OK' : 'Retard Planning'}</span>
                         </motion.div>
 
-                        {relatedRisks.filter(r => r.score >= 10).length > 0 && (
+                        {relatedRisks.filter(r => r.score >= RISK_LEVELS.HIGH.min).length > 0 && (
                             <motion.div
                                 whileHover={{ scale: 1.02 }}
                                 className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-3xl border border-red-100 dark:border-red-800/30"
                             >
                                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                                <span className="font-bold">{relatedRisks.filter(r => r.score >= 10).length} Risques Critiques</span>
+                                <span className="font-bold">{relatedRisks.filter(r => r.score >= RISK_LEVELS.HIGH.min).length} Risques Élevés+</span>
                             </motion.div>
                         )}
                     </div>

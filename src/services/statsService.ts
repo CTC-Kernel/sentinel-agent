@@ -2,6 +2,7 @@ import { collection, doc, getDoc, setDoc, query, where, getDocs, orderBy, limit 
 import { db } from '../firebase';
 import { Risk, Incident, Control, Asset, Project } from '../types';
 import { ErrorLogger } from './errorLogger';
+import { RISK_THRESHOLDS, CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, isActionableStatus } from '../constants/complianceConfig';
 
 export interface DailyStats {
     date: string; // YYYY-MM-DD
@@ -54,15 +55,15 @@ export class StatsService {
             const projects = projectsSnap.docs.map(d => d.data() as Project);
 
             // Calculate metrics
-            const criticalRisks = risks.filter(r => (r.score || 0) >= 15).length;
-            const highRisks = risks.filter(r => (r.score || 0) >= 10 && (r.score || 0) < 15).length;
+            const criticalRisks = risks.filter(r => (r.score || 0) >= RISK_THRESHOLDS.CRITICAL).length;
+            const highRisks = risks.filter(r => (r.score || 0) >= RISK_THRESHOLDS.HIGH && (r.score || 0) < RISK_THRESHOLDS.CRITICAL).length;
             const openIncidents = incidents.filter(i => i.status !== 'Fermé').length;
             const activeProjects = projects.filter(p => p.status === 'En cours').length;
 
-            const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
-            const partialControls = controls.filter(c => c.status === 'Partiel').length;
-            const actionableControls = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
-            const complianceRate = actionableControls > 0 ? Math.round(((implementedControls + (partialControls * 0.5)) / actionableControls) * 100) : 0;
+            const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+            const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+            const actionableControls = controls.filter(c => isActionableStatus(c.status)).length;
+            const complianceRate = actionableControls > 0 ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100) : 0;
 
             const stats: DailyStats = {
                 date: today,

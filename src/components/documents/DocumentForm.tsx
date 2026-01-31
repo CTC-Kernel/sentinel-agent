@@ -121,7 +121,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
         setUploadedFileUrl(url);
         setUploadedFileHash(hash || '');
         setUploadedFileSecure(isSecure || false);
-        addToast(`Fichier ${fileName} téléversé avec succès`, 'success');
+        addToast(t('documents.form.fileUploadSuccess', { defaultValue: `Fichier ${fileName} téléversé avec succès`, fileName }), 'success');
         if (size && onUploadComplete) {
             onUploadComplete(size);
         }
@@ -134,12 +134,12 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             } else if (provider === 'onedrive' || provider === 'sharepoint') {
                 await externalStorageService.connectOneDrive();
             }
-            addToast("Connexion réussie (Simulation)", 'success');
+            addToast(t('documents.toast.connectionSuccess', { defaultValue: "Connexion réussie (Simulation)" }), 'success');
         } catch (e) {
-            addToast("Configuration OAuth manquante ou annulée", 'error');
+            addToast(t('documents.toast.oauthError', { defaultValue: "Configuration OAuth manquante ou annulée" }), 'error');
             ErrorLogger.error(e, "DocumentForm.handleConnectProvider");
         }
-    }, [addToast]);
+    }, [addToast, t]);
 
     const handleBrowseProvider = useCallback(() => {
         if (storageProvider === 'google_drive' || storageProvider === 'onedrive' || storageProvider === 'sharepoint') {
@@ -162,29 +162,35 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             <input type="hidden" {...register('owner', { required: true })} />
             <div className="space-y-6">
                 <FloatingLabelInput
-                    label="Titre"
+                    label={t('documents.form.title', { defaultValue: 'Titre' })}
                     {...register('title')}
                     error={errors.title?.message}
-                    placeholder="Ex: PSSI"
+                    placeholder={t('documents.form.titlePlaceholder', { defaultValue: 'Ex: PSSI' })}
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <CustomSelect
-                        label="Dossier"
+                        label={t('documents.form.folder', { defaultValue: 'Dossier' })}
                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
                         value={folderId || ''}
                         onChange={(val) => setValue('folderId', typeof val === 'string' ? val : '')}
                         error={errors.folderId?.message}
                     />
                     <CustomSelect
-                        label="Type"
-                        options={['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => ({ value: t, label: t }))}
+                        label={t('documents.form.type', { defaultValue: 'Type' })}
+                        options={[
+                            { value: 'Politique', label: t('documents.form.types.policy', { defaultValue: 'Politique' }) },
+                            { value: 'Procédure', label: t('documents.form.types.procedure', { defaultValue: 'Procédure' }) },
+                            { value: 'Preuve', label: t('documents.form.types.evidence', { defaultValue: 'Preuve' }) },
+                            { value: 'Rapport', label: t('documents.form.types.report', { defaultValue: 'Rapport' }) },
+                            { value: 'Autre', label: t('documents.form.types.other', { defaultValue: 'Autre' }) },
+                        ]}
                         value={docType || 'Politique'}
                         onChange={(val) => setValue('type', (typeof val === 'string' ? val : 'Politique') as DocumentFormData['type'])}
                         error={errors.type?.message}
                     />
                     <FloatingLabelInput
-                        label="Version"
+                        label={t('documents.form.version', { defaultValue: 'Version' })}
                         {...register('version')}
                         error={errors.version?.message}
                     />
@@ -196,7 +202,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                         name="content"
                         render={({ field }) => (
                             <RichTextEditor
-                                label="Contenu (Éditeur Riche)"
+                                label={t('documents.form.content', { defaultValue: 'Contenu (Éditeur Riche)' })}
                                 value={field.value || ''}
                                 onChange={field.onChange}
                                 error={errors.content?.message}
@@ -207,14 +213,14 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <CustomSelect
-                        label="Statut"
+                        label={t('documents.form.status', { defaultValue: 'Statut' })}
                         options={['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète', 'Archivé'].map(s => ({ value: s, label: s }))}
                         value={status || 'Brouillon'}
                         onChange={(val) => setValue('status', (typeof val === 'string' ? val : 'Brouillon') as DocumentFormData['status'])}
                         error={errors.status?.message}
                     />
                     <CustomSelect
-                        label="Propriétaire"
+                        label={t('documents.form.owner', { defaultValue: 'Propriétaire' })}
                         options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                         value={ownerId || ''}
                         onChange={(val) => setValue('ownerId', typeof val === 'string' ? val : '', { shouldDirty: true, shouldValidate: true })}

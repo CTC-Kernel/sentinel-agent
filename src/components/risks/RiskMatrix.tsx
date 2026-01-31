@@ -3,6 +3,7 @@ import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk } from '../../types';
 import { motion } from 'framer-motion';
 import { Info } from '../ui/Icons';
+import { useLocale } from '@/hooks/useLocale';
 
 interface RiskMatrixProps {
     risks: Risk[];
@@ -12,7 +13,7 @@ interface RiskMatrixProps {
 }
 
 export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, setMatrixFilter, frameworkFilter }) => {
-
+    const { t } = useLocale();
     const [viewMode, setViewMode] = useState<'inherent' | 'residual'>('inherent');
 
     // Helper within the component to count risks per cell
@@ -24,19 +25,19 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
         });
 
     const PROBABILITY_LABELS = [
-        { val: 5, label: "Très Élevé", sub: "Certain" },
-        { val: 4, label: "Élevé", sub: "Probable" },
-        { val: 3, label: "Moyen", sub: "Possible" },
-        { val: 2, label: "Faible", sub: "Improbable" },
-        { val: 1, label: "Très Faible", sub: "Rare" },
+        { val: 5, label: t('risks.matrix.probability.veryHigh', { defaultValue: 'Très Élevé' }), sub: t('risks.matrix.probability.certain', { defaultValue: 'Certain' }) },
+        { val: 4, label: t('risks.matrix.probability.high', { defaultValue: 'Élevé' }), sub: t('risks.matrix.probability.probable', { defaultValue: 'Probable' }) },
+        { val: 3, label: t('risks.matrix.probability.medium', { defaultValue: 'Moyen' }), sub: t('risks.matrix.probability.possible', { defaultValue: 'Possible' }) },
+        { val: 2, label: t('risks.matrix.probability.low', { defaultValue: 'Faible' }), sub: t('risks.matrix.probability.improbable', { defaultValue: 'Improbable' }) },
+        { val: 1, label: t('risks.matrix.probability.veryLow', { defaultValue: 'Très Faible' }), sub: t('risks.matrix.probability.rare', { defaultValue: 'Rare' }) },
     ];
 
     const IMPACT_LABELS = [
-        { val: 1, label: "Négligeable", sub: "" },
-        { val: 2, label: "Mineur", sub: "" },
-        { val: 3, label: "Modéré", sub: "" },
-        { val: 4, label: "Majeur", sub: "" },
-        { val: 5, label: "Critique", sub: "" },
+        { val: 1, label: t('risks.matrix.impact.negligible', { defaultValue: 'Négligeable' }), sub: "" },
+        { val: 2, label: t('risks.matrix.impact.minor', { defaultValue: 'Mineur' }), sub: "" },
+        { val: 3, label: t('risks.matrix.impact.moderate', { defaultValue: 'Modéré' }), sub: "" },
+        { val: 4, label: t('risks.matrix.impact.major', { defaultValue: 'Majeur' }), sub: "" },
+        { val: 5, label: t('risks.matrix.impact.critical', { defaultValue: 'Critique' }), sub: "" },
     ];
 
     return (
@@ -44,10 +45,10 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             {/* Header & Legend */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6">
                 <div>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Matrice des Risques</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('risks.matrix.title', { defaultValue: 'Matrice des Risques' })}</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-300 max-w-lg">
-                        Visualisation de l'exposition aux risques selon la norme {frameworkFilter || 'ISO 27005'}.
-                        Cliquez sur une case pour filtrer les risques associés.
+                        {t('risks.matrix.description', { defaultValue: "Visualisation de l'exposition aux risques selon la norme" })} {frameworkFilter || 'ISO 27005'}.
+                        {' '}{t('risks.matrix.clickToFilter', { defaultValue: 'Cliquez sur une case pour filtrer les risques associés.' })}
                     </p>
 
                     {/* View Mode Toggle */}
@@ -59,7 +60,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                 : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'
                                 }`}
                         >
-                            Risque Inhérent
+                            {t('risks.matrix.inherentRisk', { defaultValue: 'Risque Inhérent' })}
                         </button>
                         <button
                             onClick={() => setViewMode('residual')}
@@ -68,7 +69,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                 : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'
                                 }`}
                         >
-                            Risque Résiduel
+                            {t('risks.matrix.residualRisk', { defaultValue: 'Risque Résiduel' })}
                         </button>
                     </div>
                 </div>
@@ -77,28 +78,28 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-success-text shadow-glow shadow-success-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Faible</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('risks.matrix.legend.low', { defaultValue: 'Faible' })}</span>
                             <span className="text-[11px] text-muted-foreground">Score 1-4</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-info-text shadow-glow shadow-info-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Moyen</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('risks.matrix.legend.medium', { defaultValue: 'Moyen' })}</span>
                             <span className="text-[11px] text-muted-foreground">Score 5-9</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-warning-text shadow-glow shadow-warning-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Élevé</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('risks.matrix.legend.high', { defaultValue: 'Élevé' })}</span>
                             <span className="text-[11px] text-muted-foreground">Score 10-14</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5">
                         <span className="w-3 h-3 rounded-full bg-error-text shadow-glow shadow-error-text/40"></span>
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Critique</span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('risks.matrix.legend.critical', { defaultValue: 'Critique' })}</span>
                             <span className="text-[11px] text-muted-foreground">Score 15-25</span>
                         </div>
                     </div>
@@ -118,7 +119,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         {/* Y-Axis Label */}
                         <div className="row-span-5 flex items-center justify-center -mr-4">
                             <div className="-rotate-90 text-xs font-bold uppercase tracking-[0.3em] text-slate-400 whitespace-nowrap">
-                                Probabilité
+                                {t('risks.matrix.probabilityAxis', { defaultValue: 'Probabilité' })}
                             </div>
                         </div>
 
@@ -210,7 +211,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                                 {/* Label for populated cells */}
                                                 {hasRisks && (
                                                     <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-muted-foreground mt-1">
-                                                        Risques
+                                                        {t('risks.matrix.risksLabel', { defaultValue: 'Risques' })}
                                                     </span>
                                                 )}
 
@@ -229,7 +230,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         {IMPACT_LABELS.map(label => (
                             <div key={label.val} className="flex flex-col items-center pt-4">
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{label.label}</span>
-                                <span className="text-xs font-bold text-muted-foreground mt-1">Niveau {label.val}</span>
+                                <span className="text-xs font-bold text-muted-foreground mt-1">{t('risks.matrix.level', { defaultValue: 'Niveau' })} {label.val}</span>
                             </div>
                         ))}
 
@@ -237,7 +238,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         <div className="col-span-2" /> {/* Spacer for Y-Axis and Row Labels */}
                         <div className="col-span-5 text-center mt-6">
                             <span className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">
-                                Impact
+                                {t('risks.matrix.impactAxis', { defaultValue: 'Impact' })}
                             </span>
                         </div>
 
@@ -249,9 +250,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             <div className="flex items-start gap-3 p-4 rounded-3xl bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900 border border-blue-100 dark:border-blue-900/20 text-sm text-blue-700 dark:text-blue-300">
                 <Info className="h-5 w-5 shrink-0 mt-0.5" />
                 <p>
-                    La matrice des risques permet de visualiser la répartition de vos risques selon leur criticité.
-                    La zone rouge représente les risques inacceptables nécessitant une action immédiate.
-                    La zone verte représente les risques acceptables ou sous contrôle.
+                    {t('risks.matrix.infoFooter', { defaultValue: "La matrice des risques permet de visualiser la répartition de vos risques selon leur criticité. La zone rouge représente les risques inacceptables nécessitant une action immédiate. La zone verte représente les risques acceptables ou sous contrôle." })}
                 </p>
             </div>
         </div>

@@ -32,6 +32,24 @@
     "lightMode": "Light Mode",
     "projects": "Projects",
     "operations": "Operations",
+    "next": "Next",
+    "previous": "Previous",
+    "exit": "Exit",
+    "importCsv": "Import CSV",
+    "documents": "Documentation",
+    "system-health": "System Health",
+    "team": "Team",
+    "compliance": "Compliance",
+    "smsi": "ISMS",
+    "continuity": "Continuity",
+    "training": "Training & Awareness",
+    "close": "Close",
+    "agents": "Agents",
+    "threat-intelligence": "Threat Intelligence",
+    "controls": "Controls",
+    "vulnerability": "Vulnerability",
+    "active": "Active",
+    "pricing": "Plans & Pricing",
     "retry": "Retry",
     "back": "Back",
     "closeMenu": "Close menu",
@@ -48,7 +66,63 @@
         "direction": "Executive",
         "user": "User"
       },
-      "address": "Address"
+      "address": "Address",
+      "website": "Website",
+      "profile": "My Profile",
+      "activity": "Activity Log",
+      "security": "Security & Login",
+      "securityDesc": "Manage your authentication methods and secure sessions.",
+      "frameworks": "Frameworks",
+      "partners": "Partners",
+      "integrations": "Integrations",
+      "ssoDescription": "Enterprise Authentication (SAML/OIDC)",
+      "centralizeAccess": "Centralize your access",
+      "ssoExplanation": "Connect Sentinel GRC to your existing identity provider to simplify login.",
+      "enableSSO": "Enable SSO",
+      "passwordChanged": "Password changed successfully",
+      "reloginRequired": "Please log in again",
+      "mfaEnabled": "Two-factor authentication enabled",
+      "mfaDisabled": "Two-factor authentication disabled",
+      "changePassword": "Change password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "securityPage": {
+        "mfaTitle": "Two-Factor Authentication (MFA)",
+        "mfaDesc": "Secure your account with a second authentication method.",
+        "enableMfa": "Enable MFA",
+        "disableMfa": "Disable MFA",
+        "scanQr": "Scan this QR Code",
+        "verifyCode": "Verification code",
+        "cancel": "Cancel",
+        "verify": "Verify"
+      },
+      "photoUpdated": "Profile photo updated",
+      "hibpKeyRequired": "HIBP API Key required",
+      "noBreachesFound": "No data breaches detected",
+      "breachesFound": "{count} data breaches detected",
+      "hibpError": "Error checking for breaches",
+      "profileUpdated": "Profile updated",
+      "accountDeleted": "Account deleted",
+      "profilePhoto": "Profile Photo",
+      "photoRequirements": "JPG, PNG or GIF. Max 5MB.",
+      "personalInfo": "Personal Information",
+      "personalInfoDesc": "Manage your identity and preferences.",
+      "displayName": "Display name",
+      "email": "Email",
+      "department": "Department",
+      "notifications": "Notifications",
+      "notificationsDesc": "Choose how you want to be notified.",
+      "notificationsChannels": {
+        "email": "Email",
+        "push": "Push Mobile",
+        "inApp": "In-App"
+      },
+      "apiKeys": "API Keys",
+      "private": "Private",
+      "frameworksTitle": "Compliance Frameworks",
+      "frameworksDescription": "Select the frameworks your organization must comply with.",
+      "frameworkLimitReached": "Framework limit reached for your plan.",
+      "frameworksUpdated": "Frameworks updated successfully"
     },
     "name": "Name",
     "type": "Type",
@@ -179,9 +253,23 @@
     "val_comm": "Community",
     "val_prio": "Priority",
     "val_dedicated": "Dedicated",
+    "statuses": {
+      "all": "All statuses",
+      "notStarted": "Not started",
+      "inProgress": "In progress",
+      "planned": "Planned",
+      "overdue": "Overdue",
+      "partial": "Partial",
+      "implemented": "Implemented",
+      "notApplicable": "Not applicable",
+      "excluded": "Excluded"
+    },
     "emptyState": {
       "noComments": "No comments yet."
     },
+    "success": "Success",
+    "error": "Error",
+    "confirm": "Confirm",
     "errors": {
       "generic": "An error occurred",
       "loading": "Error loading data",
@@ -197,7 +285,11 @@
       "timeout": "Request timeout",
       "unauthorized": "Unauthorized",
       "serverError": "Server error",
-      "missingOrgId": "Missing organization ID"
+      "missingOrgId": "Missing organization ID",
+      "operationFailed": "Operation failed",
+      "createFailed": "Creation failed",
+      "updateFailed": "Update failed",
+      "deleteFailed": "Deletion failed"
     }
   },
   "validation": {
@@ -354,10 +446,26 @@
     "myProfile": "My Profile",
     "plansAndBilling": "Plans & Billing",
     "title": "Settings",
+    "subtitle": "Global organization configuration and user preferences.",
     "profile": "Profile",
     "activity": "My Activity",
     "security": "Security",
+    "securityDesc": "Manage your authentication methods and secure sessions.",
     "organization": "Organization",
+    "frameworks": "Frameworks",
+    "partners": "Partners",
+    "address": "Address",
+    "aiPrivacyTitle": "Sentinel AI & Privacy",
+    "enableAI": "Enable Sentinel AI",
+    "enableAIDesc": "Enable AI features for risk analysis and content generation.",
+    "dataSanitization": "Data Anonymization",
+    "dataSanitizationDesc": "Automatically removes names, emails and phone numbers before sending to AI models.",
+    "aiConsent": "Analysis Consent",
+    "aiConsentDesc": "I authorize Sentinel to process data (anonymized if enabled) to provide analyses.",
+    "frameworksTitle": "Compliance Frameworks",
+    "frameworksDescription": "Select the frameworks your organization must comply with.",
+    "frameworkLimitReached": "Framework limit reached for your plan.",
+    "frameworksUpdated": "Frameworks updated successfully",
     "accountConnected": "Account connected",
     "activeSessions": "Active Sessions",
     "activityHistory": "Activity History",
@@ -584,6 +692,130 @@
     }
   },
   "dashboard": {
+    "widgetCategories": {
+      "scoreKpi": "Indicators & Scores",
+      "risks": "Risks",
+      "actions": "Actions",
+      "audits": "Audits",
+      "other": "Other"
+    },
+    "statsOverview": "Key indicators overview",
+    "maturityRadar": "Maturity level by domain",
+    "complianceProgress": "Compliance Progress",
+    "nis2doraConfig": "NIS2/DORA Configuration",
+    "executiveKpi": "Executive KPIs",
+    "rssiCriticalRisks": "CISO Critical Risks",
+    "rssiActions": "CISO Actions",
+    "pmActionsOverdue": "Overdue Actions",
+    "pmTimeline": "Timeline",
+    "pmProgress": "Progress",
+    "cyberNews": "Cyber News",
+    "incidentsStats": "Incident Statistics",
+    "documentsStats": "Document Statistics",
+    "assetStats": "Asset Statistics",
+    "suppliersStats": "Supplier Statistics",
+    "continuityPlans": "Continuity Plans",
+    "rssiIncidents": "CISO Incidents",
+    "agentMaturityRadar": "Agent Fleet Maturity",
+    "agentMaturity": {
+      "compliance": "Compliance",
+      "availability": "Availability",
+      "modernity": "Modernity",
+      "health": "System Health",
+      "monitoring": "Monitoring",
+      "fleetMaturity": "Agent Fleet Maturity"
+    },
+    "showGettingStarted": "Show getting started guide",
+    "filterActivity": "Filter activity",
+    "addWidgetToDashboard": "Add to your dashboard",
+    "customizeDashboard": "Customize your dashboard",
+    "CONTROLS_UPDATE": "Controls Updated",
+    "widgets": {
+      "stats-overview": {
+        "description": "Key indicators overview."
+      },
+      "my-workspace": {
+        "description": "Your tasks and immediate actions."
+      },
+      "compliance-evolution": {
+        "description": "Compliance tracking over time."
+      },
+      "health-check": {
+        "description": "Overall system health status."
+      },
+      "priority-risks": {
+        "description": "Focus on the most critical risks."
+      },
+      "recent-activity": {
+        "description": "Latest actions on the platform."
+      },
+      "maturity-radar": {
+        "description": "Maturity level by domain."
+      },
+      "cyber-news": {
+        "description": "Cybersecurity news feed."
+      },
+      "risk-heatmap": {
+        "description": "Risk matrix (impact x probability)."
+      },
+      "audits-donut": {
+        "description": "Audit distribution by status."
+      },
+      "project-tasks": {
+        "description": "Project task progress."
+      },
+      "incidents-stats": {
+        "description": "Security incident metrics."
+      },
+      "documents-stats": {
+        "description": "Document repository status."
+      },
+      "compliance-progress": {
+        "description": "Compliance progress tracking."
+      },
+      "asset-stats": {
+        "description": "Asset distribution and criticality."
+      },
+      "suppliers-stats": {
+        "description": "Supplier compliance tracking."
+      },
+      "continuity-plans": {
+        "description": "Continuity plan and exercise status."
+      },
+      "system-health": {
+        "description": "Overall system health status."
+      },
+      "nis2-dora-kpi": {
+        "description": "NIS2 and DORA standards configuration."
+      },
+      "compliance-score": {
+        "description": "Overall compliance score."
+      },
+      "executive-kpi": {
+        "description": "Executive KPIs for the board."
+      },
+      "rssi-critical-risks": {
+        "description": "Critical risks focus for CISO."
+      },
+      "rssi-incidents": {
+        "description": "Recent security incidents."
+      },
+      "rssi-actions": {
+        "description": "CISO priority actions."
+      },
+      "pm-actions-overdue": {
+        "description": "Overdue project action list."
+      },
+      "pm-timeline": {
+        "description": "Current project timeline."
+      },
+      "pm-progress": {
+        "description": "Overall project progress status."
+      },
+      "agent-maturity-radar": {
+        "description": "360 view of agent fleet maturity and health."
+      }
+    },
     "selectPeriod": "Select period",
     "welcomeTitle_admin": "Welcome back",
     "welcomeTitle_user": "Welcome back",
@@ -635,7 +867,8 @@
       "INCIDENT_CREATE": "Incident Reported",
       "INCIDENT_UPDATE": "Incident Updated",
       "INCIDENT_CLOSE": "Incident Closed",
-      "CONTROL_UPDATE": "Control Updated"
+      "CONTROL_UPDATE": "Control Updated",
+      "CONTROLS_UPDATE": "Controls Updated"
     },
     "seoTitle": "Governance Dashboard",
     "seoDescription": "Overview of your security and compliance posture.",
@@ -796,6 +1029,7 @@
       "invalidLink": "The access link is invalid or has expired.",
       "contactAdmin": "If you believe this is an error, contact the administrator who invited you.",
       "defaultError": "Access denied or link expired",
+      "validation_residual_error": "Residual risk cannot be greater than inherent risk.",
       "invitedAs": "Invited as:",
       "tabs": {
         "overview": "Overview",
@@ -850,7 +1084,8 @@
     "searchPlaceholder": "Search for an activity...",
     "exportRegistry": "Export Registry",
     "emptyTitle": "No activity",
-    "emptyDescription": "Your processing registry is empty."
+    "emptyDescription": "Your processing registry is empty.",
+    "test": "loaded"
   },
   "assets": {
     "title": "Asset Inventory",
@@ -904,9 +1139,70 @@
       "Value",
       "Warranty End"
     ],
-    "warrantyExp": "Warranty Exp."
+    "warrantyExp": "Warranty Exp.",
+    "lifecycle": {
+      "title": "Maintenance & Lifecycle",
+      "status": "Asset Status",
+      "maintenance": "Maintenance",
+      "history": "Maintenance History",
+      "addMaintenance": "Add maintenance",
+      "type": "Type",
+      "types": {
+        "preventive": "Preventive",
+        "corrective": "Corrective",
+        "update": "Update",
+        "inspection": "Inspection"
+      },
+      "description": "Details / Description",
+      "technician": "Technician",
+      "cost": "Cost",
+      "noRecords": "No maintenance records yet.",
+      "financial": "Financial Information & Depreciation",
+      "purchasePrice": "Purchase Price",
+      "purchaseDate": "Purchase Date",
+      "depreciation": "Depreciation (5 years)",
+      "currentValue": "Current Value",
+      "warranty": {
+        "status": "Warranty Status",
+        "validUntil": "Valid until {{date}}",
+        "expiresSoon": "Expires soon",
+        "expired": "Expired",
+        "expiredLabel": "Warranty expired",
+        "underWarranty": "Under warranty"
+      }
+    }
   },
   "risks": {
+    "tabs": {
+      "context": "Context & Assets",
+      "identification": "Identification",
+      "assessment": "Assessment",
+      "treatment": "Treatment & Controls"
+    },
+    "treatment": {
+      "actions_title": "Treatment Actions",
+      "progress": "Progress",
+      "no_actions": "No treatment actions defined. Add actions to track treatment plan implementation.",
+      "add_action": "Add an action",
+      "edit_action": "Edit action",
+      "delete_action": "Delete action",
+      "new_action": "New action",
+      "save": "Save",
+      "cancel": "Cancel",
+      "title_label": "Title",
+      "description_label": "Description",
+      "owner_label": "Owner",
+      "deadline_label": "Deadline",
+      "status_label": "Status",
+      "not_assigned": "Not assigned",
+      "late": "Overdue",
+      "today": "Today",
+      "placeholder_title": "E.g., Update security policy",
+      "placeholder_description": "Describe the action to be taken..."
+    },
+    "moreActions": "More actions",
+    "myRisks": "My Risks",
+    "exportReport": "Export Report",
     "title": "Risk Management",
     "subtitle": "Analyze and treat risks according to ISO 27005.",
     "title_admin": "Risk Registry & Exposure",
@@ -963,6 +1259,7 @@
       "avoid": "Avoid"
     },
     "frameworks": {
+      "ISO27001": "ISO 27001",
       "iso27001": "ISO 27001",
       "ebios": "EBIOS RM",
       "nist": "NIST CSF",
@@ -1072,7 +1369,10 @@
     "emptyDesc": "Start by adding a document to populate your repository.",
     "exportCsv": "Export CSV",
     "overview": "Overview",
-    "list": "List"
+    "list": "List",
+    "signatureSuccess": "Document signed successfully",
+    "integrityVerified": "Document integrity verified",
+    "searchPlaceholder": "Search..."
   },
   "compliance": {
     "title": "Compliance",
@@ -1089,7 +1389,63 @@
     "linkMode": "Link mode active: Select a control to link to project {project}",
     "exportInfo": "PDF Export available via global actions menu",
     "projectSim": "Project creation simulated",
-    "auditSim": "Audit creation simulated"
+    "auditSim": "Audit creation simulated",
+    "mapping": "Mapping",
+    "shared": "Shared",
+    "dossierGenerated": "Dossier generated",
+    "generateDossier": "Evidence Dossier",
+    "generating": "Generating...",
+    "searchPlaceholder": "Search a control (code, name...)",
+    "missingEvidence": "Missing evidence",
+    "riskCreated": "Risk created",
+    "auditCreated": "Audit created",
+    "dashboard": {
+      "initializing": "Initializing compliance...",
+      "noFrameworks": "No framework configured. Click the button below to initialize the data.",
+      "noFrameworksTitle": "Framework not initialized",
+      "noFrameworksDesc": "Controls for {{framework}} are not loaded yet.",
+      "initializeIso": "Initialize {{framework}} framework",
+      "initMessage": "Initializing ISO 27001 base data (Annex A Controls)...",
+      "initError": "Error during initialization",
+      "initSuccess": "Data initialized successfully",
+      "alerts": "Alerts",
+      "inProgress": "In Progress",
+      "partial": "Partial",
+      "scoreTitle": "{{framework}} Score",
+      "avgCompliance": "Average compliance",
+      "vs30d": "vs 30d",
+      "distributionTitle": "Status Distribution",
+      "domainConformityTitle": "Compliance by Domain",
+      "radarTitle": "Radar View - Maturity by Domain",
+      "criticalControlsTitle": "Critical Controls to Implement",
+      "domainDetailTitle": "{{framework}} Domain Details",
+      "implemented": "Implemented",
+      "notStarted": "Not started",
+      "notApplicable": "Not applicable",
+      "conformityRate": "Rate %",
+      "conformityLabel": "compliance",
+      "excellentLevel": "Excellent level of compliance.",
+      "acceptableLevel": "Acceptable level, keep up the good work.",
+      "priorityActionsRequired": "Priority corrective actions required."
+    },
+    "assessment": {
+      "title": "Effectiveness Assessment",
+      "control": "Control",
+      "score": "Effectiveness score",
+      "method": "Assessment method",
+      "notes": "Notes / Observations",
+      "notesPlaceholder": "Observations and findings from the assessment...",
+      "nextDate": "Next assessment",
+      "saving": "Saving...",
+      "save": "Save",
+      "methods": {
+        "documentation": "Document review",
+        "interview": "Interview",
+        "testing": "Technical testing",
+        "observation": "Observation",
+        "audit": "Internal audit"
+      }
+    }
   },
   "requirements": {
     "title": "Requirements",
@@ -1098,6 +1454,7 @@
     "searchPlaceholder": "Search requirements...",
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
+    "allThemes": "All themes",
     "allCriticalities": "All criticalities",
     "allCategories": "All categories",
     "filterAll": "All",
@@ -1182,6 +1539,7 @@
     "noActions": "All your controls are implemented and documented."
   },
   "projects": {
+    "title": "Projects",
     "dashboard": "Project Dashboard",
     "subtitle": "Pilot your security initiatives and monitor global progress.",
     "overview": "Overview",
@@ -1243,6 +1601,7 @@
     "subtitle_admin": "Pilot critical suppliers, contracts, SSI compliance, and associated risks.",
     "title_exec": "Supplier Risk View",
     "subtitle_exec": "Monitor critical suppliers, risky contracts, and regulatory obligations.",
+    "title_auditor": "Suppliers to Audit",
     "title_audit": "Suppliers to Audit",
     "subtitle_audit": "Prepare your supplier audits, evidence, and expected controls.",
     "title_project": "Project-Linked Suppliers",
@@ -1274,8 +1633,22 @@
       "assessment": "Security Assessment",
       "history": "History",
       "comments": "Discussion",
-      "dora": "DORA Register"
+      "dora": "DORA Register",
+      "contract": "Contracts",
+      "overview": "Overview",
+      "suppliers": "Suppliers",
+      "concentration": "Concentration"
     },
+    "backToDashboard": "Back to dashboard",
+    "backLabel": "Back",
+    "templateEditorTitle": "Questionnaire Template Editor",
+    "newSupplierSubtitle": "Add a new third party",
+    "tooltips": {
+      "templates": "Manage assessment templates",
+      "dora": "DORA view of ICT suppliers",
+      "add": "Add a new supplier"
+    },
+    "registryDora": "DORA Register",
     "cards": {
       "security": "Security",
       "contact": "Contact",
@@ -1379,6 +1752,9 @@
     "details": "Vulnerability Details"
   },
   "audits": {
+    "actions": {
+      "assignPartner": "Assign a Partner"
+    },
     "title": "Audit Program",
     "subtitle": "Planning, execution, and monitoring of internal and external audits.",
     "title_admin": "Audit & Compliance Program",
@@ -1427,6 +1803,7 @@
       "details": "Details",
       "findings": "Findings",
       "checklist": "Checklist",
+      "linked": "Linked",
       "dashboard": "Dashboard",
       "history": "History"
     },
@@ -1450,9 +1827,17 @@
         "descriptionPlaceholder": "Write a factual audit finding.",
         "linkControl": "Link to control (optional)",
         "type": {
+          "observation": "Observation",
+          "nonconformity": "Non-conformity",
           "minor": "Minor",
           "major": "Major",
           "opportunity": "Opportunity"
+        },
+        "severity": {
+          "critical": "Critical",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
         }
       },
       "toast": {
@@ -1472,6 +1857,11 @@
       }
     },
     "form": {
+      "templates": {
+        "internal": "Annual compliance verification across the full scope.",
+        "supplier": "Security assessment of a health data hosting provider.",
+        "access": "Quarterly review of privileged accounts."
+      },
       "name": "Audit Name",
       "namePlaceholder": "Ex: Internal Audit ISO 27001 - Q1",
       "description": "Description",
@@ -1496,6 +1886,16 @@
         "prompt": "Describe security audit \"{{name}}\"."
       }
     }
+  },
+  "faqs": {
+    "q1": "Can I change plans?",
+    "a1": "Yes, at any time from your settings.",
+    "q2": "Is my data secure?",
+    "a2": "Yes, encrypted in transit and at rest (AES-256).",
+    "q3": "Do you offer a trial?",
+    "a3": "Yes, 14 days free on the Pro plan.",
+    "q4": "Do you accept bank transfers?",
+    "a4": "Yes, for annual Enterprise plans."
   },
   "auth": {
     "title": "Login",
@@ -1548,6 +1948,9 @@
       "weak": "Password too weak.",
       "google": "Google Auth error.",
       "generic": "An error occurred.",
+      "userNotFound": "User not found",
+      "wrongPassword": "Incorrect password",
+      "tooManyRequests": "Too many attempts. Please try again later.",
       "permissionDenied": "Permission denied.",
       "totpNotFound": "No TOTP factor found.",
       "restrictedEnv": "Restricted environment: Google Auth not available here.",
@@ -1601,6 +2004,7 @@
       "manualAdd": "Manual Add"
     },
     "toasts": {
+      "termsRequired": "Please accept the terms and conditions",
       "assetsDetected": "{{count}} assets detected automatically",
       "orgMissing": "Error: Organization missing",
       "emailRequired": "Please enter an email address.",
@@ -1700,6 +2104,7 @@
     "subtitle": "Generate, view, and customize your governance and compliance reports.",
     "seoDescription": "Generate and manage your compliance reports, executive documents and audit evidence.",
     "keywords": "GRC Reports, ISO 27001 Audit, Compliance Evidence, CISO Reporting, SoA",
+    "newReport": "New Report",
     "scheduleThis": "Schedule this report",
     "badges": {
       "recommended": "Recommended",
@@ -1877,6 +2282,7 @@
     },
     "actions": {
       "exportCsv": "Export CSV",
+      "importCsv": "Import CSV",
       "invite": "Invite Member",
       "edit": "Edit",
       "delete": "Delete",
@@ -1935,6 +2341,12 @@
     "monthly": "Monthly",
     "annual": "Annual",
     "discount": "-20%",
+    "detailed_comparison": "Detailed Comparison",
+    "features_intro": "All features",
+    "features_header": "Features",
+    "custom_solution_title": "Custom Solution",
+    "custom_solution_desc": "Need a tailored offer for your company?",
+    "contact_us": "Contact Us",
     "popular": "Popular",
     "startFree": "Start for free",
     "choose": "Choose this plan",
@@ -2031,6 +2443,8 @@
       "sso_tooltip": "Single Sign-On with your enterprise identity provider.",
       "auditLogs": "Advanced Audit Logs",
       "auditLogs_tooltip": "Full traceability of user actions for compliance.",
+      "audits": "Audits",
+      "audits_tooltip": "Internal/external audit management.",
       "onboarding": "Assisted Onboarding",
       "onboarding_tooltip": "Personalized support for initial setup."
     },
@@ -2062,6 +2476,13 @@
     "viewDetails": "View details"
   },
   "ebios": {
+    "stats": {
+      "total": "Total Analyses",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "avgProgress": "Average Progress"
+    },
+    "createAnalysisSubtitle": "New EBIOS Risk Manager analysis",
     "title": "EBIOS Risk Manager",
     "description": "ANSSI methodology for cyber risk analysis",
     "newAnalysis": "New Analysis",
@@ -2127,6 +2548,7 @@
       "completeFailed": "Error completing"
     },
     "workshop1": {
+      "importFromInventory": "Import from inventory",
       "missions": "Missions",
       "missionCount": "missions defined",
       "addMission": "Add mission",
@@ -2326,6 +2748,9 @@
     }
   },
   "smsi": {
+    "newProgram": "New Program",
+    "programDetails": "Program Details",
+    "targetDate": "Target Date",
     "title": "ISMS Program",
     "description": "Manage your security and compliance programs.",
     "editProgram": "Edit program",
@@ -2383,6 +2808,36 @@
       "riskManagement": "Risk Management",
       "assetProtection": "Asset Protection",
       "continuousImprovement": "Continuous Improvement"
+    }
+  },
+  "riskContext": {
+    "title": "Risk Context",
+    "subtitle": "Define scope and impact criteria.",
+    "keywords": "Context, Scope, Criteria, Impact, Likelihood"
+  },
+  "systemHealth": {
+    "title": "System Health",
+    "subtitle": "Service status and performance metrics.",
+    "operational": "Operational",
+    "servicesStatus": "Services Status",
+    "recentAlerts": "Recent Alerts",
+    "metrics": {
+      "activeUsers": "Active Users",
+      "totalAccounts": "Total Accounts",
+      "systemLoad": "System Load",
+      "cpuUsage": "CPU",
+      "memory": "Memory",
+      "ramAllocated": "RAM Allocated",
+      "latency": "Latency",
+      "globalPing": "Global Ping"
+    },
+    "alerts": {
+      "networkLatency": "High Network Latency",
+      "networkLatencyDesc": "Latency spike > 300ms detected on the main cluster.",
+      "twoHoursAgo": "2 hours ago",
+      "backupComplete": "Backup Complete",
+      "backupCompleteDesc": "Daily backup was completed successfully.",
+      "fourHoursAgo": "4 hours ago"
     }
   },
   "dora": {
@@ -4000,6 +4455,12 @@
       "invalidApiKey": "Please enter a valid API key.",
       "connectFailed": "Failed to connect to {{provider}}",
       "disconnectFailed": "Error disconnecting"
+    },
+    "testN8n": "Test N8N",
+    "n8n": {
+      "testing": "Testing N8N connection...",
+      "success": "N8N connection successful!",
+      "error": "N8N connection error"
     }
   },
   "errorLogger": {
@@ -4450,6 +4911,34 @@
         "review": "Review",
         "reviewDesc": "Review and create the campaign"
       }
+    }
+  },
+  "agents": {
+    "confirmDelete": "Are you sure you want to delete this agent?",
+    "syncRequested": "Sync requested",
+    "enrollmentSuccess": "Agent enrolled successfully",
+    "widget": {
+      "title": "Fleet Maturity",
+      "subtitle": "Overview of agent health and compliance",
+      "noAgents": "No agents available",
+      "allHealthy": "All agents are healthy",
+      "activeTooltip": "Agent active and operational",
+      "offlineTooltip": "Agent offline",
+      "errorTooltip": "Agent in error state",
+      "machineCompliance": "Machine compliance",
+      "avgScore": "Average score",
+      "checkResults": "Check results",
+      "manage": "Manage agents",
+      "viewDetails": "View details"
+    },
+    "status": {
+      "active": "Active",
+      "offline": "Offline",
+      "error": "Error"
+    },
+    "checks": {
+      "pass": "Pass",
+      "fail": "Fail"
     }
   },
   "notFound": {

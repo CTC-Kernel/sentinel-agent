@@ -18,14 +18,14 @@ interface ShodanResult {
 }
 
 export function useAssetSecurity(asset: Asset | null) {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const [scanning, setScanning] = useState(false);
     const [shodanResult, setShodanResult] = useState<ShodanResult | null>(null);
     const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
 
     const scanShodan = async () => {
         if (!asset?.ipAddress && !asset?.hostname) {
-            addToast("L'actif doit avoir une IP ou un nom d'hôte pour le scan", "info");
+            addToast(t('assets.toast.needIpOrHostname', { defaultValue: "L'actif doit avoir une IP ou un nom d'hôte pour le scan" }), "info");
             return;
         }
         setScanning(true);
@@ -33,7 +33,7 @@ export function useAssetSecurity(asset: Asset | null) {
             const scanFn = httpsCallable(functions, 'scanShodan');
             const result = await scanFn({ target: asset.ipAddress || asset.hostname || '' });
             setShodanResult((result.data as ShodanResult));
-            addToast("Scan Shodan terminé", "success");
+            addToast(t('assets.toast.shodanScanComplete', { defaultValue: "Scan Shodan terminé" }), "success");
             await logAction(user, 'SCAN', 'Asset', `Scan Shodan pour ${asset.name}`);
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'useAssetSecurity.scanShodan', 'SCAN_FAILED');
@@ -44,7 +44,7 @@ export function useAssetSecurity(asset: Asset | null) {
 
     const checkCVEs = async () => {
         if (!asset?.cpe) {
-            addToast("L'actif doit avoir un identifiant CPE pour la recherche CVE", "info");
+            addToast(t('assets.toast.needCpe', { defaultValue: "L'actif doit avoir un identifiant CPE pour la recherche CVE" }), "info");
             return;
         }
         setScanning(true);
@@ -53,7 +53,7 @@ export function useAssetSecurity(asset: Asset | null) {
             const result = await cveFn({ cpe: asset.cpe });
             const data = result.data as Vulnerability[];
             setVulnerabilities(data || []);
-            addToast(`Scan terminé : ${data?.length || 0} vulnérabilités trouvées`, "success");
+            addToast(t('assets.toast.cveScanComplete', { defaultValue: "Scan terminé : {{count}} vulnérabilités trouvées", count: data?.length || 0 }), "success");
             await logAction(user, 'SCAN', 'Asset', `Recherche CVEs pour ${asset.name}`);
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'useAssetSecurity.checkCVEs', 'SCAN_FAILED');
@@ -87,7 +87,7 @@ export function useAssetSecurity(asset: Asset | null) {
 
             await addDoc(collection(db, 'risks'), sanitizeData(newRisk));
             await logAction(user, 'CREATE', 'Risk', `Création automatique risque pour ${vuln.cveId}`);
-            addToast("Risque créé depuis la vulnérabilité", "success");
+            addToast(t('assets.toast.riskCreatedFromVuln', { defaultValue: "Risque créé depuis la vulnérabilité" }), "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'useAssetSecurity.createRiskFromVuln', 'CREATE_FAILED');
         }

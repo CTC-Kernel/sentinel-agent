@@ -58,7 +58,10 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                     className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-60 grayscale' : ''}`}
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = getDefaultAvatarUrl(user.role);
+                        const fallback = getDefaultAvatarUrl(user.role);
+                        if (target.src !== fallback) {
+                            target.src = fallback;
+                        }
                     }}
                 />
                 <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">

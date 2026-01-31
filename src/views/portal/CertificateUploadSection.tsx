@@ -6,12 +6,14 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { useStore } from '../../store';
 
 interface CertificateUploadProps {
     token: string;
 }
 
 export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ token }) => {
+    const { t } = useStore();
     const [isUploading, setIsUploading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'success'>('idle');
@@ -26,13 +28,13 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
             const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
             if (!ALLOWED_TYPES.includes(selectedFile.type)) {
-                toast.error('Format invalide. Uniquement PDF ou Word.');
+                toast.error(t('certificate.invalidFormat') || 'Format invalide. Uniquement PDF ou Word.');
                 e.target.value = ''; // Reset input
                 return;
             }
 
             if (selectedFile.size > MAX_SIZE) {
-                toast.error('Fichier trop volumineux (Max 10 Mo).');
+                toast.error(t('certificate.fileTooLarge') || 'Fichier trop volumineux (Max 10 Mo).');
                 e.target.value = '';
                 return;
             }
@@ -75,7 +77,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
             });
 
             setStatus('success');
-            toast.success('Audit validé et certifié avec succès !');
+            toast.success(t('certificate.certifiedSuccess') || 'Audit validé et certifié avec succès !');
 
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'CertificateUpload.submit', 'UPDATE_FAILED');

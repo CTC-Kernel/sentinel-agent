@@ -60,7 +60,7 @@ export function useSecureForm<T extends Record<string, unknown>>({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addToast } = useStore();
+  const { addToast, t } = useStore();
   const user = useStore(state => state.user);
 
   /**
@@ -156,7 +156,7 @@ export function useSecureForm<T extends Record<string, unknown>>({
     if (!RateLimiter.checkLimit(rateLimitOperation, user?.uid)) {
       const waitTime = RateLimiter.getWaitTime(rateLimitOperation, user?.uid);
       const waitSeconds = Math.ceil(waitTime / 1000);
-      const message = `Trop de requêtes. Veuillez patienter ${waitSeconds} seconde${waitSeconds > 1 ? 's' : ''}.`;
+      const message = t('common.toast.rateLimited', { defaultValue: "Trop de requêtes. Veuillez patienter {{seconds}} seconde(s).", seconds: waitSeconds });
 
       addToast(message, 'error');
       ErrorLogger.warn('Rate limit exceeded on form submit', 'useSecureForm', {
@@ -174,7 +174,7 @@ export function useSecureForm<T extends Record<string, unknown>>({
       const validationErrors = validate(values);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
-        addToast('Veuillez corriger les erreurs du formulaire', 'error');
+        addToast(t('common.toast.fixFormErrors', { defaultValue: 'Veuillez corriger les erreurs du formulaire' }), 'error');
         return;
       }
     }
@@ -233,12 +233,12 @@ export function useSecureForm<T extends Record<string, unknown>>({
       if (onError) {
         onError(error as Error);
       } else {
-        addToast('Une erreur est survenue lors de la soumission', 'error');
+        addToast(t('common.toast.submitError', { defaultValue: 'Une erreur est survenue lors de la soumission' }), 'error');
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [values, validate, onSubmit, rateLimitOperation, user, addToast, onError, sanitizationOptions]);
+  }, [values, validate, onSubmit, rateLimitOperation, user, addToast, onError, sanitizationOptions, t]);
 
   /**
    * Réinitialise le formulaire
@@ -342,7 +342,7 @@ export function useSecureFileUpload({
 }: UseSecureFileUploadOptions) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { addToast } = useStore();
+  const { addToast, t } = useStore();
   const user = useStore(state => state.user);
 
   const handleUpload = useCallback(async (file: File) => {
@@ -351,7 +351,7 @@ export function useSecureFileUpload({
     // Rate limiting
     if (!RateLimiter.checkLimit(rateLimitOperation, user?.uid)) {
       const waitTime = RateLimiter.getWaitTime(rateLimitOperation, user?.uid);
-      const message = `Trop d'uploads. Veuillez patienter ${Math.ceil(waitTime / 1000)}s.`;
+      const message = t('common.toast.uploadRateLimited', { defaultValue: "Trop d'uploads. Veuillez patienter {{seconds}}s.", seconds: Math.ceil(waitTime / 1000) });
       setError(message);
       addToast(message, 'error');
       return;
@@ -359,7 +359,7 @@ export function useSecureFileUpload({
 
     // Validation de la taille
     if (file.size > maxSize) {
-      const message = `Fichier trop volumineux. Maximum: ${Math.round(maxSize / 1024 / 1024)}MB`;
+      const message = t('common.toast.fileTooLarge', { defaultValue: "Fichier trop volumineux. Maximum: {{size}}MB", size: Math.round(maxSize / 1024 / 1024) });
       setError(message);
       addToast(message, 'error');
       return;
@@ -367,7 +367,7 @@ export function useSecureFileUpload({
 
     // Validation du type
     if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
-      const message = `Type de fichier non autorisé. Types acceptés: ${allowedTypes.join(', ')}`;
+      const message = t('common.toast.fileTypeNotAllowed', { defaultValue: "Type de fichier non autorisé. Types acceptés: {{types}}", types: allowedTypes.join(', ') });
       setError(message);
       addToast(message, 'error');
       return;
@@ -392,16 +392,16 @@ export function useSecureFileUpload({
 
       await onUpload(sanitizedFile);
 
-      addToast('Fichier uploadé avec succès', 'success');
+      addToast(t('common.toast.fileUploaded', { defaultValue: 'Fichier uploadé avec succès' }), 'success');
     } catch (err) {
-      const message = 'Erreur lors de l\'upload du fichier';
+      const message = t('common.toast.uploadError', { defaultValue: 'Erreur lors de l\'upload du fichier' });
       setError(message);
       addToast(message, 'error');
       ErrorLogger.error(err, 'useSecureFileUpload.handleUpload');
     } finally {
       setIsUploading(false);
     }
-  }, [maxSize, allowedTypes, onUpload, rateLimitOperation, user, addToast]);
+  }, [maxSize, allowedTypes, onUpload, rateLimitOperation, user, addToast, t]);
 
   return {
     handleUpload,

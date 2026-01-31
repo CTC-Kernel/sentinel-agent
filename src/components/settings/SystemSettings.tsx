@@ -36,7 +36,7 @@ export const SystemSettings: React.FC = () => {
         setExporting(true);
         try {
             await DataExportService.exportOrganizationData({ organizationId: user.organizationId });
-            addToast("Export réussi ! Le téléchargement a démarré.", "success");
+            addToast(t('settings.toast.exportSuccess', { defaultValue: "Export réussi ! Le téléchargement a démarré." }), "success");
         } catch (_error) {
             ErrorLogger.handleErrorWithToast(_error, 'SystemSettings.handleExportData', 'UNKNOWN_ERROR');
         } finally {
@@ -56,7 +56,7 @@ export const SystemSettings: React.FC = () => {
                 userId: user.uid,
                 organizationId: user.organizationId
             });
-            addToast("Export RGPD réussi ! Le téléchargement a démarré.", "success");
+            addToast(t('settings.toast.gdprExportSuccess', { defaultValue: "Export RGPD réussi ! Le téléchargement a démarré." }), "success");
         } catch (_error) {
             ErrorLogger.handleErrorWithToast(_error, 'SystemSettings.handleExportGDPRData', 'UNKNOWN_ERROR');
         } finally {
@@ -129,7 +129,7 @@ export const SystemSettings: React.FC = () => {
         try {
             const { deleteUser } = await import('firebase/auth');
             await deleteUser(auth.currentUser);
-            addToast("Compte supprimé avec succès. Au revoir.", "success");
+            addToast(t('settings.toast.accountDeleted', { defaultValue: "Compte supprimé avec succès. Au revoir." }), "success");
             // AuthContext will handle logout/redirect automatically
         } catch (error: unknown) {
             if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'auth/requires-recent-login') {
@@ -298,7 +298,7 @@ export const SystemSettings: React.FC = () => {
                                         try {
                                             const { DemoDataService } = await import('../../services/demoDataService');
                                             const result = await DemoDataService.generateDemoData(user.organizationId, user);
-                                            addToast(`Succès ! ${result.count} éléments générés.`, "success");
+                                            addToast(t('settings.toast.demoDataGenerated', { defaultValue: `Succès ! ${result.count} éléments générés.`, count: result.count }), "success");
                                         } catch (_e) {
                                             ErrorLogger.handleErrorWithToast(_e, 'GenerateDemoData', 'UNKNOWN_ERROR');
                                         } finally {

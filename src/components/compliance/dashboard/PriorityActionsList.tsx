@@ -86,8 +86,9 @@ function getCriticality(control: Control): 'high' | 'medium' | 'low' {
 function getGapScore(status: string): number {
   switch (status) {
     case 'Non commencé':
-    case 'Non applicable':
       return 100;
+    case 'En retard':
+      return 90;
     case 'En cours':
     case 'Planifié':
       return 60;
@@ -95,6 +96,9 @@ function getGapScore(status: string): number {
       return 30;
     case 'Implémenté':
       return 0;
+    case 'Non applicable':
+    case 'Exclu':
+      return -1; // Should be filtered out before scoring
     default:
       return 50;
   }

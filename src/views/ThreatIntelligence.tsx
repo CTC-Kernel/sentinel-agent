@@ -35,7 +35,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 
 
 export const ThreatIntelligence: React.FC = () => {
-    const { user, addToast, demoMode } = useStore();
+    const { user, addToast, demoMode, t } = useStore();
     // hasPermission check: View accessible to all, but actions are restricted in backend or sub-components.
 
     // UI State
@@ -103,22 +103,22 @@ export const ThreatIntelligence: React.FC = () => {
     const handleRefreshLiveFeed = React.useCallback(async () => {
         if (isSeeding) return;
         setIsSeeding(true); // Loading state: used in UI (line 208 spinner, line 304 button label)
-        addToast("Actualisation des flux live CISA & URLhaus...", "info");
+        addToast(t('threatIntel.toast.refreshingFeeds', { defaultValue: "Actualisation des flux live CISA & URLhaus..." }), "info");
         try {
             const stats = await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
-            addToast(`Flux mis à jour : ${stats.threats} nouvelles menaces`, "success");
+            addToast(t('threatIntel.toast.feedsUpdated', { defaultValue: `Flux mis à jour : ${stats.threats} nouvelles menaces`, count: stats.threats }), "success");
             logAction(user, 'REFRESH_THREAT_FEED', 'ThreatIntelligence', `Manual feed refresh: ${stats.threats} new, ${stats.vulns} vulnerabilities`);
         } catch (e) {
             ErrorLogger.error(e instanceof Error ? e : new Error(String(e)), 'ThreatIntelligence.seedLiveThreats');
 
-            addToast("Passage en mode simulation (Hors-ligne).", "info");
+            addToast(t('threatIntel.toast.simulationMode', { defaultValue: "Passage en mode simulation (Hors-ligne)." }), "info");
             // Fallback to simulation for offline/demo mode
             ThreatFeedService.enableSimulation();
             await ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo');
         } finally {
             setIsSeeding(false);
         }
-    }, [isSeeding, addToast, user]);
+    }, [isSeeding, addToast, user, t]);
 
     const mapData = useMemo(() => {
         const countryCounts: Record<string, { value: number, iso3?: string, markers: { coordinates: [number, number]; name: string; type: string; severity: 'Critical' | 'High' | 'Medium' | 'Low'; date: string; url?: string }[] }> = {};
@@ -197,9 +197,9 @@ export const ThreatIntelligence: React.FC = () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        addToast("Règle de détection téléchargée", "success");
+        addToast(t('threatIntel.toast.ruleDownloaded', { defaultValue: "Règle de détection téléchargée" }), "success");
         logAction(user, 'DOWNLOAD_SIGMA_RULE', 'ThreatIntelligence', `Downloaded SIGMA rule for threat ${threat.title}`, undefined, threat.id);
-    }, [addToast, user]);
+    }, [addToast, user, t]);
 
     // UI Handlers
     const handleViewChange = React.useCallback((view: string) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community' | 'library'), [setActiveTab]);
@@ -211,9 +211,9 @@ export const ThreatIntelligence: React.FC = () => {
     const handleDiscussionClose = React.useCallback(() => setSelectedThreatId(null), [setSelectedThreatId]);
     const handleSubmitModalClose = React.useCallback(() => setIsSubmitModalOpen(false), [setIsSubmitModalOpen]);
     const handleSubmitSuccess = React.useCallback(() => {
-        addToast("Menace signalée !", "success");
+        addToast(t('threatIntel.toast.threatReported', { defaultValue: "Menace signalée !" }), "success");
         logAction(user, 'SIGNAL_THREAT', 'ThreatIntelligence', 'User signaled a new community threat');
-    }, [addToast, user]);
+    }, [addToast, user, t]);
     const handleRiskModalClose = React.useCallback(() => setIsRiskModalOpen(false), [setIsRiskModalOpen]);
     const handleToggleViewMode = React.useCallback(() => setViewMode(prev => prev === '2d' ? '3d' : '2d'), [setViewMode]);
     const handleHunterClick = React.useCallback((hunter: { name: string; count: number; rank: number }) => {

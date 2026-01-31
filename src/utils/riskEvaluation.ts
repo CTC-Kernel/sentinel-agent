@@ -1,5 +1,5 @@
 import { Control } from '../types';
-import { RISK_THRESHOLDS } from '../constants/complianceConfig';
+import { RISK_THRESHOLDS, CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT } from '../constants/complianceConfig';
 
 /**
  * Risk level classification based on score
@@ -74,12 +74,14 @@ export function calculateMitigationCoverage(linkedControls: Control[]): number {
     if (applicableControls.length === 0) return 0;
 
     const statusWeightMap: Record<string, number> = {
-        'Implémenté': 1.0,
+        [CONTROL_STATUS.IMPLEMENTED]: 1.0,
         'Actif': 1.0,
-        'Partiel': 0.5,
-        'En cours': 0.3,
+        [CONTROL_STATUS.PARTIAL]: PARTIAL_CONTROL_WEIGHT,
+        [CONTROL_STATUS.IN_PROGRESS]: 0.3,
         'En revue': 0.2,
-        'Non commencé': 0.1,
+        [CONTROL_STATUS.PLANNED]: 0.15,
+        [CONTROL_STATUS.NOT_STARTED]: 0.1,
+        [CONTROL_STATUS.OVERDUE]: 0.1,
         'Non conforme': 0
     };
 

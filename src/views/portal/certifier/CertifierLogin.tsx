@@ -31,7 +31,7 @@ export const CertifierLogin: React.FC = () => {
         try {
             await signInWithEmailAndPassword(auth, data.email, data.password);
             // Simple redirect after login/register
-            toast.success('Connexion réussie', 'Bienvenue sur le portail certificateur');
+            toast.success(t('certifier.loginSuccess') || 'Connexion réussie', t('certifier.loginWelcome') || 'Bienvenue sur le portail certificateur');
             navigate('/portal/dashboard');
         } catch (error) {
             ErrorLogger.error(error, 'CertifierLogin.handleLogin');

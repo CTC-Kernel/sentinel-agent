@@ -360,7 +360,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                         value={stats.conflictCount}
                         icon={stats.conflictCount > 0 ? <XCircle className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
                         variant={stats.conflictCount > 0 ? 'danger' : 'success'}
-                        subtitle={stats.conflictCount > 0 ? 'à résoudre' : 'aucun conflit'}
+                        subtitle={stats.conflictCount > 0 ? t('agents.policies.toResolve', { defaultValue: 'à résoudre' }) : t('agents.policies.noConflict', { defaultValue: 'aucun conflit' })}
                     />
                 </motion.div>
 
@@ -373,7 +373,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                     className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm"
                 >
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-foreground">Distribution des politiques</h3>
+                        <h3 className="text-sm font-semibold text-foreground">{t('agents.policies.distribution', { defaultValue: 'Distribution des politiques' })}</h3>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-primary" />
@@ -468,7 +468,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                 >
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <Shield className="h-4 w-4 text-primary" />
-                        Modèle d'héritage des politiques
+                        {t('agents.policies.inheritanceModel', { defaultValue: "Modèle d'héritage des politiques" })}
                     </h3>
                     <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
                         <div className="flex items-center gap-3">
@@ -477,7 +477,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-foreground">Global</p>
-                                <p className="text-xs text-muted-foreground">Priorité basse</p>
+                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityLow', { defaultValue: 'Priorité basse' })}</p>
                             </div>
                         </div>
                         <div className="hidden sm:block w-8 h-px bg-border" />
@@ -488,7 +488,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-foreground">Groupe</p>
-                                <p className="text-xs text-muted-foreground">Priorité moyenne</p>
+                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityMedium', { defaultValue: 'Priorité moyenne' })}</p>
                             </div>
                         </div>
                         <div className="hidden sm:block w-8 h-px bg-border" />
@@ -499,7 +499,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-foreground">Agent</p>
-                                <p className="text-xs text-muted-foreground">Priorité haute</p>
+                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityHigh', { defaultValue: 'Priorité haute' })}</p>
                             </div>
                         </div>
                     </div>

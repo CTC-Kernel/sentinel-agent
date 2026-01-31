@@ -7,6 +7,7 @@ import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, CanvasTextur
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, VoxelNodeType, VoxelNodeStatus, AISuggestedLink } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
 import { VoxelMesh } from './voxel/VoxelMesh';
 import { ModelLibraryProvider } from '../contexts/ModelLibraryContext';
 
@@ -379,7 +380,7 @@ const PresentationManager: React.FC<{ presentationMode: boolean | undefined; vox
     return voxelNodes.filter(node => {
       if (node.type === 'risk') {
         const riskData = node.data as unknown as Risk;
-        return riskData.score >= 12;
+        return riskData.score >= RISK_ACCEPTANCE_THRESHOLD;
       }
       if (node.type === 'incident') {
         const incidentData = node.data as unknown as Incident;

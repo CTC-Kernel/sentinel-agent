@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { collection, query, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProcessingActivity, UserProfile, Asset, Risk, SystemLog } from '../types';
@@ -7,7 +7,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { PrivacyService } from '../services/PrivacyService';
 
 export function usePrivacy() {
-    const { user, addToast, t } = useStore();
+    const { user, addToast, t, demoMode } = useStore();
 
     // Data State
     const [activities, setActivities] = useState<ProcessingActivity[]>([]);
@@ -22,17 +22,18 @@ export function usePrivacy() {
     const [viewingAssessmentId, setViewingAssessmentId] = useState<string | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [activityHistory, setActivityHistory] = useState<SystemLog[]>([]);
+    const pendingSelectId = useRef<string | null>(null);
 
     const organizationId = user?.organizationId;
 
     // Realtime Data Subscription
     useEffect(() => {
-        if (!organizationId && !useStore.getState().demoMode) {
+        if (!organizationId && !demoMode) {
             setLoading(false);
             return;
         }
 
-        const isDemo = useStore.getState().demoMode;
+        const isDemo = demoMode;
         if (isDemo) {
             const loadDemo = async () => {
                 setLoading(true);
@@ -84,7 +85,17 @@ export function usePrivacy() {
             unsubAssets();
             unsubRisks();
         };
-    }, [organizationId]);
+    }, [organizationId, demoMode]);
+
+    // Auto-open inspector for newly created activity
+    useEffect(() => {
+        if (!pendingSelectId.current || loading) return;
+        const created = activities.find(a => a.id === pendingSelectId.current);
+        if (created) {
+            pendingSelectId.current = null;
+            setSelectedActivity(created);
+        }
+    }, [activities, loading]);
 
     // Resolved Activities with Manager IDs
     const resolvedActivities = useMemo(() => {
@@ -140,8 +151,11 @@ export function usePrivacy() {
                 createdAt: '',
                 updatedAt: ''
             };
-            await PrivacyService.createActivity(newActivity, user);
-            addToast(t('privacy.toast.activityCreated', { defaultValue: 'Traitement ajouté' }), "success");
+            const newId = await PrivacyService.createActivity(newActivity, user);
+            if (newId) {
+                pendingSelectId.current = newId;
+            }
+            addToast(t('privacy.activityCreated', { defaultValue: 'Traitement créé. Complétez la cartographie des données.' }), "success");
             setShowCreateModal(false);
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.create');
@@ -163,7 +177,11 @@ export function usePrivacy() {
         if (!user) return;
         try {
             await PrivacyService.deleteActivity(id, name, user);
-            if (selectedActivity?.id === id) setSelectedActivity(null);
+            if (selectedActivity?.id === id) {
+                // Auto-select the next available activity, or null if none remain
+                const remaining = activities.filter(a => a.id !== id);
+                setSelectedActivity(remaining.length > 0 ? remaining[0] : null);
+            }
             addToast(t('privacy.toast.activityDeleted', { defaultValue: 'Traitement supprimé' }), "success");
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.delete');

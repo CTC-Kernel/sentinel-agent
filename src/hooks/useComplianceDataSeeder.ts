@@ -19,7 +19,7 @@ import { AuditLogService } from '../services/auditLogService';
 import { canEditResource } from '../utils/permissions';
 
 export const useComplianceDataSeeder = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [seeding, setSeeding] = useState(false);
 
     const getSeedDataForFramework = (framework: Framework) => {
@@ -42,13 +42,13 @@ export const useComplianceDataSeeder = () => {
 
         // RBAC Check
         if (!canEditResource(user, 'Control')) {
-            toast.error("Permission refusée : Vous n'avez pas les droits pour gérer les contrôles.");
+            toast.error(t('compliance.permissionDenied') || "Permission refusée : Vous n'avez pas les droits pour gérer les contrôles.");
             return;
         }
 
         const seedData = getSeedDataForFramework(framework);
         if (seedData.length === 0) {
-            toast.error(`Aucune donnée de démarrage disponible pour ${framework}`);
+            toast.error(t('compliance.noSeedData') || `Aucune donnée de démarrage disponible pour ${framework}`);
             return;
         }
 
@@ -86,13 +86,13 @@ export const useComplianceDataSeeder = () => {
                 `Compliance Framework Import (${framework})`
             );
 
-            toast.success(`${count} contrôles ${framework} importés avec succès`);
+            toast.success(t('compliance.importSuccess', { count, framework }) || `${count} contrôles ${framework} importés avec succès`);
 
         } catch (error) {
             if (import.meta.env.DEV) {
                 console.error('Seeder Error:', error);
             }
-            toast.error("Erreur lors de l'import des données");
+            toast.error(t('compliance.importError') || "Erreur lors de l'import des données");
         } finally {
             setSeeding(false);
         }

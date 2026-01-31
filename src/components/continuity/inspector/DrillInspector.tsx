@@ -25,7 +25,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
     processes,
     isLoading
 }) => {
-    const { handleSubmit, control, formState: { errors, isSubmitting } } = useZodForm({
+    const { handleSubmit, control, formState: { errors, isSubmitting, isDirty } } = useZodForm({
         schema: bcpDrillSchema,
         mode: 'onChange'
     });
@@ -43,6 +43,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
             subtitle="Planifier ou enregistrer un exercice de continuité"
             icon={Zap}
             width="max-w-2xl"
+            hasUnsavedChanges={isDirty}
             footer={
                 <div className="flex justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>

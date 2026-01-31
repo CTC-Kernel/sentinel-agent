@@ -152,6 +152,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
     setIsLoggingOut(true);
     try {
       await signOut(auth);
+      setIsLoggingOut(false);
     } catch (error) {
       ErrorLogger.error(error, 'Sidebar.handleLogout');
       setIsLoggingOut(false);

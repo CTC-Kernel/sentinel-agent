@@ -50,7 +50,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
     initialFile,
     isStorageFull = false
 }) => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const [currentStep, setCurrentStep] = useState(0);
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string>('');
     const [uploadedFileHash, setUploadedFileHash] = useState<string>('');
@@ -135,10 +135,10 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                     // This creates a UX edge case where file is selected but not uploaded yet.
                     // User must wait for upload. FileUploader handles upload automatically on select/drop?
                     // Yes, FileUploader starts upload on selection.
-                    addToast("Veuillez attendre la fin du téléversement", "info");
+                    addToast(t('documents.toast.waitForUpload', { defaultValue: "Veuillez attendre la fin du téléversement" }), "info");
                     valid = false;
                 }
-                else addToast("Veuillez téléverser un fichier", "error");
+                else addToast(t('documents.toast.uploadRequired', { defaultValue: "Veuillez téléverser un fichier" }), "error");
             } else {
                 if (await trigger('externalUrl')) valid = true;
             }

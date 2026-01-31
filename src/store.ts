@@ -84,12 +84,18 @@ export const useStore = create<AppState>((set) => ({
   }),
   setLoading: (loading) => set({ isLoading: loading }),
   addToast: (message, type = 'info', action) => {
+    // TODO: i18n - store cannot use t() directly here as it's inside zustand create().
+    // The i18n instance is available but calling i18n.t() synchronously is possible.
+    // Using i18n.t() with French fallbacks for toast titles.
+    const successTitle = (i18n.t('common.success') as string) || 'Succès';
+    const errorTitle = (i18n.t('common.error') as string) || 'Erreur';
+    const infoTitle = (i18n.t('common.information') as string) || 'Information';
     if (type === 'success') {
-      toast.success('Succès', message, action);
+      toast.success(successTitle, message, action);
     } else if (type === 'error') {
-      toast.error('Erreur', message, action);
+      toast.error(errorTitle, message, action);
     } else {
-      toast.info('Information', message, action);
+      toast.info(infoTitle, message, action);
     }
     // Legacy state update removed
   },

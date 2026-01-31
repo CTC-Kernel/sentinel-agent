@@ -40,7 +40,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
   const [confirmMessage, setConfirmMessage] = useState('');
-  const { user, addToast } = useStore();
+  const { user, addToast, t } = useStore();
   const { updateIncident } = useIncidentActions();
 
   const loadPlaybooks = useCallback(async () => {
@@ -90,7 +90,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
       );
 
       await loadResponse();
-      addToast('Response initiée avec succès', 'success');
+      addToast(t('incidents.playbook.responseInitiated', { defaultValue: 'Response initiée avec succès' }), 'success');
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleInitiateResponse', 'CREATE_FAILED');
     } finally {
@@ -116,7 +116,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
       setNotes('');
       setEvidence({});
       setCurrentStep(currentStep + 1);
-      addToast('Étape complétée', 'success');
+      addToast(t('incidents.playbook.stepCompleted', { defaultValue: 'Étape complétée' }), 'success');
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleStepComplete', 'UPDATE_FAILED');
     }
@@ -134,7 +134,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
           ['management']
         );
         await loadResponse();
-        addToast('Incident escaladé', 'success');
+        addToast(t('incidents.playbook.escalated', { defaultValue: 'Incident escaladé' }), 'success');
       } catch (error) {
         ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleEscalate', 'UPDATE_FAILED');
       }
@@ -154,7 +154,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
           dateResolved: new Date().toISOString(),
           lessonsLearned: notes
         }));
-        addToast('Response terminée', 'success');
+        addToast(t('incidents.playbook.responseCompleted', { defaultValue: 'Response terminée' }), 'success');
         onClose();
       } catch (error) {
         ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleCompleteResponse', 'UPDATE_FAILED');

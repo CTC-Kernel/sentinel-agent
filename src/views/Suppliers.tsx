@@ -273,13 +273,14 @@ export const Suppliers: React.FC = () => {
                     await Promise.all(ids.map(id => deleteSupplier(id)));
                     setConfirmData(prev => ({ ...prev, isOpen: false, loading: false }));
                     setSelectedSupplier(null);
+                    addToast(t('suppliers.bulkDeleteSuccess', { defaultValue: `${ids.length} fournisseur(s) supprimé(s) avec succès`, count: ids.length }), 'success');
                 } finally {
                     setConfirmData(prev => ({ ...prev, loading: false }));
                 }
             },
             loading: false
         });
-    }, [t, deleteSupplier]);
+    }, [t, deleteSupplier, addToast]);
 
     const handleCardClick = useCallback((supplier: Supplier) => {
         setSelectedSupplier(supplier);
@@ -596,7 +597,7 @@ export const Suppliers: React.FC = () => {
                                                                 onClick={handleExportCSV}
                                                                 disabled={isExportingCSV}
                                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                             >
                                                                 {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                                 {t('suppliers.exportCsv')}
@@ -610,7 +611,7 @@ export const Suppliers: React.FC = () => {
                                                                 onClick={handleExportDORARegister}
                                                                 disabled={isExportingDORA}
                                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                             >
                                                                 {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                                 {t('suppliers.exportDora', { defaultValue: 'Export DORA' })}
@@ -684,7 +685,7 @@ export const Suppliers: React.FC = () => {
                                         <EmptyState
                                             icon={Building}
                                             title={t('suppliers.emptyTitle')}
-                                            description={filter ? t('suppliers.noResults', { defaultValue: 'Aucun fournisseur trouv\u00e9.' }) : t('suppliers.emptyDesc')}
+                                            description={filter ? t('suppliers.noResults', { defaultValue: 'Aucun fournisseur trouvé.' }) : (!canEdit ? t('suppliers.emptyDescReadOnly', { defaultValue: 'Contactez votre administrateur pour ajouter des fournisseurs.' }) : t('suppliers.emptyDesc'))}
                                             actionLabel={filter || !canEdit ? undefined : t('suppliers.newSupplier')}
                                             onAction={filter || !canEdit ? undefined : handleCreationDrawerOpen}
                                         />

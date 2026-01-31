@@ -110,7 +110,7 @@ export function IntegrityCertificate({
   className,
   compact = false,
 }: IntegrityCertificateProps) {
-  const { user } = useStore();
+  const { user, t } = useStore();
 
   // State
   const [integrity, setIntegrity] = useState<DocumentIntegrity | null>(null);
@@ -160,17 +160,17 @@ export function IntegrityCertificate({
       });
 
       if (result.match) {
-        toast.success('Intégrité vérifiée avec succès');
+        toast.success(t('integrity.verifiedSuccess') || 'Intégrité vérifiée avec succès');
       } else {
-        toast.error('ALERTE: Intégrité compromise - hash différent détecté');
+        toast.error(t('integrity.compromisedAlert') || 'ALERTE: Intégrité compromise - hash différent détecté');
       }
     } catch (error) {
       ErrorLogger.error(error, 'IntegrityCertificate.verify');
-      toast.error('Échec de la vérification d\'intégrité');
+      toast.error(t('integrity.verificationFailed') || 'Échec de la vérification d\'intégrité');
     } finally {
       setVerifying(false);
     }
-  }, [documentId, user]);
+  }, [documentId, user, t]);
 
   const handleCopyHash = useCallback(async (hashToCopy?: string | null) => {
     const targetHash = hashToCopy || integrity?.hash;
@@ -179,12 +179,12 @@ export function IntegrityCertificate({
     try {
       await navigator.clipboard.writeText(targetHash);
       setCopiedHash(true);
-      toast.success('Hash copié dans le presse-papiers');
+      toast.success(t('integrity.hashCopied') || 'Hash copié dans le presse-papiers');
       setTimeout(() => setCopiedHash(false), 2000);
     } catch {
-      toast.error('Impossible de copier le hash');
+      toast.error(t('integrity.hashCopyFailed') || 'Impossible de copier le hash');
     }
-  }, [integrity?.hash]);
+  }, [integrity?.hash, t]);
 
   const loadHistory = useCallback(async () => {
     if (history.length > 0) return; // Already loaded
@@ -195,11 +195,11 @@ export function IntegrityCertificate({
       setHistory(response.history);
     } catch (error) {
       ErrorLogger.error(error, 'IntegrityCertificate.loadHistory');
-      toast.error('Impossible de charger l\'historique');
+      toast.error(t('integrity.historyLoadFailed') || 'Impossible de charger l\'historique');
     } finally {
       setLoadingHistory(false);
     }
-  }, [documentId, history.length]);
+  }, [documentId, history.length, t]);
 
   const handleToggleHistory = useCallback(() => {
     if (!historyOpen) {
@@ -213,14 +213,14 @@ export function IntegrityCertificate({
     try {
       const certificate = await IntegrityService.generateCertificate(documentId);
       generatePdfCertificate(certificate);
-      toast.success('Certificat téléchargé');
+      toast.success(t('integrity.certificateDownloaded') || 'Certificat téléchargé');
     } catch (error) {
       ErrorLogger.error(error, 'IntegrityCertificate.generateCertificate');
-      toast.error('Échec de la génération du certificat');
+      toast.error(t('integrity.certificateGenerationFailed') || 'Échec de la génération du certificat');
     } finally {
       setGeneratingPdf(false);
     }
-  }, [documentId]);
+  }, [documentId, t]);
 
   const generatePdfCertificate = (cert: CertificateType) => {
     const doc = new jsPDF({

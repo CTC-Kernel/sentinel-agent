@@ -49,7 +49,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
                                 setValue('manager', selectedUser?.displayName || '', { shouldDirty: true });
                             }}
                             options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                            placeholder="Sélectionner un responsable"
+                            placeholder={t('privacy.details.selectManager', { defaultValue: 'Sélectionner un responsable' })}
                             error={errors.managerId?.message}
                         />
                     </div>

@@ -1,5 +1,6 @@
 
 import { Risk, Asset, Audit } from '../types';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
 
 export interface AuditSuggestion {
     name: string;
@@ -43,7 +44,7 @@ export class AuditPlannerService {
         // 1. High Risk Audits
         // Filter risks with score >= 15 (Critical) or >= 12 (High) that haven't been reviewed recently? 
         // For simplicity, we just target high scores.
-        const highRisks = risks.filter(r => r.score >= 12 && r.status !== 'Fermé');
+        const highRisks = risks.filter(r => r.score >= RISK_ACCEPTANCE_THRESHOLD && r.status !== 'Fermé');
 
         highRisks.forEach(risk => {
             if (isRiskCovered(risk.id)) return;

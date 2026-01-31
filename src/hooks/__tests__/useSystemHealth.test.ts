@@ -1,6 +1,6 @@
 /**
  * Unit tests for useSystemHealth hook
- * Tests system metrics fetching and live updates
+ * Tests system metrics fetching
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -58,10 +58,7 @@ describe('useSystemHealth', () => {
             await waitFor(() => !result.current.loading);
 
             expect(result.current.userCount).toBeDefined();
-            expect(result.current.metrics).toBeDefined();
-            expect(result.current.metrics.systemLoad).toBeDefined();
-            expect(result.current.metrics.memoryUsage).toBeDefined();
-            expect(result.current.metrics.networkLatency).toBeDefined();
+            expect(result.current.loading).toBeDefined();
         });
     });
 
@@ -85,28 +82,6 @@ describe('useSystemHealth', () => {
             await waitFor(() => {
                 expect(result.current.loading).toBe(false);
             }, { timeout: 3000 });
-        });
-    });
-
-    describe('metrics simulation', () => {
-        it('initializes with default metric values', async () => {
-            const { result } = renderHook(() => useSystemHealth());
-
-            await waitFor(() => !result.current.loading);
-
-            expect(result.current.metrics.systemLoad).toBe(24);
-            expect(result.current.metrics.memoryUsage).toBe(42);
-            expect(result.current.metrics.networkLatency).toBe(35);
-        });
-
-        it('metrics are numbers within expected type', async () => {
-            const { result } = renderHook(() => useSystemHealth());
-
-            await waitFor(() => !result.current.loading);
-
-            expect(typeof result.current.metrics.systemLoad).toBe('number');
-            expect(typeof result.current.metrics.memoryUsage).toBe('number');
-            expect(typeof result.current.metrics.networkLatency).toBe('number');
         });
     });
 

@@ -33,11 +33,9 @@ export const useAdminActions = () => {
     }, []);
 
     const handleManage = async (orgId: string, orgName: string) => {
-        if (!user) return;
-
-        // SECURITY: Local permission check for super-admin / manage organization
+        // SECURITY: Null guard + local permission check for super-admin / manage organization
         // Although the backend verifies the claim, a local check prevents UI spamming/misuse
-        if (!hasPermission(user, 'Organization', 'manage')) {
+        if (!user || !hasPermission(user, 'Organization', 'manage')) {
             toast.error(t('common.accessDenied'));
             return;
         }

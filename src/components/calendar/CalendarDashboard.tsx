@@ -47,7 +47,7 @@ const messages = {
 };
 
 export const CalendarDashboard: React.FC = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -130,9 +130,9 @@ export const CalendarDashboard: React.FC = () => {
         try {
             await CalendarService.updateEvent(calendarEvent, new Date(start), new Date(end));
             setEvents(prev => prev.map(e => e.id === calendarEvent.id ? { ...e, start: new Date(start), end: new Date(end) } : e));
-            toast.success('Événement mis à jour');
+            toast.success(t('calendar.eventUpdated') || 'Événement mis à jour');
         } catch {
-            toast.error("Impossible de mettre à jour l'événement");
+            toast.error(t('calendar.eventUpdateFailed') || "Impossible de mettre à jour l'événement");
         }
     };
 
@@ -142,9 +142,9 @@ export const CalendarDashboard: React.FC = () => {
         try {
             await CalendarService.updateEvent(calendarEvent, new Date(start), new Date(end));
             setEvents(prev => prev.map(e => e.id === calendarEvent.id ? { ...e, start: new Date(start), end: new Date(end) } : e));
-            toast.success('Événement déplacé');
+            toast.success(t('calendar.eventMoved') || 'Événement déplacé');
         } catch {
-            toast.error("Impossible de déplacer l'événement");
+            toast.error(t('calendar.eventMoveFailed') || "Impossible de déplacer l'événement");
         }
     };
 
@@ -162,14 +162,14 @@ export const CalendarDashboard: React.FC = () => {
             }));
             const icsContent = generateICS(mappedEvents);
             downloadICS('sentinel_calendar_export.ics', icsContent);
-            toast.success('Calendrier exporté');
+            toast.success(t('calendar.exported') || 'Calendrier exporté');
         } catch (error) {
             ErrorLogger.error(error, "CalendarExport");
-            toast.error("Erreur lors de l'export");
+            toast.error(t('calendar.exportFailed') || "Erreur lors de l'export");
         } finally {
             setIsExporting(false);
         }
-    }, [organizationId]);
+    }, [organizationId, t]);
 
     const eventStyleGetter = (event: CalendarEvent) => {
         let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus-visible:ring-brand-500 ';

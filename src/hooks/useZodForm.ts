@@ -64,7 +64,7 @@ export function useZodForm<TSchema extends z.ZodSchema>(
 
   return useForm<z.infer<TSchema> & FieldValues>({
     ...formOptions,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required: zodResolver expects ZodType<any> but TSchema is ZodSchema, causing type incompatibility between @hookform/resolvers/zod and zod generics
     resolver: zodResolver(schema as any, { errorMap } as any),
   });
 }

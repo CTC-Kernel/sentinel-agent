@@ -28,7 +28,7 @@ interface MFAVerificationState {
 }
 
 export function useSuperAdminMFA() {
-  const { user, addToast } = useStore();
+  const { user, addToast, t } = useStore();
   const [verificationState, setVerificationState] = useState<MFAVerificationState>({
     isOpen: false,
     actionDescription: '',
@@ -68,7 +68,7 @@ export function useSuperAdminMFA() {
     const mfaEnabled = await hasMFAEnabled();
     if (!mfaEnabled) {
       // If MFA is not enabled, warn but allow (consider enforcing MFA for super admins)
-      addToast('Attention: MFA non activé. Il est recommandé d\'activer la MFA pour les actions super admin.', 'info');
+      addToast(t('superAdmin.toast.mfaNotEnabled', { defaultValue: 'Attention: MFA non activé. Il est recommandé d\'activer la MFA pour les actions super admin.' }), 'info');
       return true;
     }
 
@@ -82,14 +82,14 @@ export function useSuperAdminMFA() {
       setMfaCode('');
       setVerificationError(null);
     });
-  }, [user, hasMFAEnabled, addToast]);
+  }, [user, hasMFAEnabled, addToast, t]);
 
   /**
    * Handle MFA code verification
    */
   const handleVerifyMFA = useCallback(async () => {
     if (mfaCode.length !== 6) {
-      setVerificationError('Le code doit contenir 6 chiffres');
+      setVerificationError(t('superAdmin.mfa.codeLength', { defaultValue: 'Le code doit contenir 6 chiffres' }));
       return;
     }
 
@@ -123,9 +123,9 @@ export function useSuperAdminMFA() {
       if ((result.data as { verified: boolean }).verified) {
         verificationState.resolve?.(true);
         setVerificationState(prev => ({ ...prev, isOpen: false, resolve: null }));
-        addToast('Vérification MFA réussie', 'success');
+        addToast(t('superAdmin.toast.mfaVerified', { defaultValue: 'Vérification MFA réussie' }), 'success');
       } else {
-        setVerificationError('Code MFA invalide');
+        setVerificationError(t('superAdmin.mfa.invalidCode', { defaultValue: 'Code MFA invalide' }));
       }
     } catch (error) {
       ErrorLogger.error(error, 'useSuperAdminMFA.handleVerifyMFA');
@@ -136,14 +136,14 @@ export function useSuperAdminMFA() {
         // This is a temporary measure - the function should be implemented
         verificationState.resolve?.(true);
         setVerificationState(prev => ({ ...prev, isOpen: false, resolve: null }));
-        addToast('Vérification MFA (mode legacy)', 'info');
+        addToast(t('superAdmin.toast.mfaLegacy', { defaultValue: 'Vérification MFA (mode legacy)' }), 'info');
       } else {
-        setVerificationError(firebaseError.message || 'Erreur de vérification MFA');
+        setVerificationError(firebaseError.message || t('superAdmin.mfa.verificationError', { defaultValue: 'Erreur de vérification MFA' }));
       }
     } finally {
       setIsVerifying(false);
     }
-  }, [mfaCode, verificationState, addToast]);
+  }, [mfaCode, verificationState, addToast, t]);
 
   /**
    * Cancel MFA verification

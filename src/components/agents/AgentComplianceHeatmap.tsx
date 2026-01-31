@@ -153,6 +153,13 @@ const HeatmapCell: React.FC<HeatmapCellProps> = ({ status, agentName, checkName,
         >
             <button
                 onClick={onClick}
+                onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+                        e.preventDefault();
+                        onClick();
+                    }
+                }}
+                aria-label={`${checkName} - ${agentName}: ${getStatusLabel(status)}`}
                 className={cn(
                     'w-8 h-8 rounded-md flex items-center justify-center',
                     'border transition-all duration-200',

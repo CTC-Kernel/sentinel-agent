@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Activity, Database, Server, Shield, Globe, Cpu, HardDrive, Users, Zap, AlertCircle, CheckCircle2 } from '../components/ui/Icons';
+import { Database, Shield, Globe, Cpu, HardDrive, Users, Zap, AlertCircle, CheckCircle2 } from '../components/ui/Icons';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useSystemHealth } from '../hooks/useSystemHealth';
@@ -14,7 +14,7 @@ import { useConnectivity } from '../hooks/useConnectivity';
 
 export const SystemHealth: React.FC = () => {
     const { t } = useTranslation();
-    const { userCount, loading, metrics } = useSystemHealth();
+    const { userCount, loading } = useSystemHealth();
     const { user } = useStore();
     const { authStatus, dbStatus, storageStatus, edgeStatus } = useConnectivity();
 
@@ -56,9 +56,6 @@ export const SystemHealth: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { label: t('systemHealth.metrics.activeUsers'), value: loading ? '...' : userCount, icon: Users, color: 'text-brand-500', sub: t('systemHealth.metrics.totalAccounts') },
-                    { label: t('systemHealth.metrics.systemLoad'), value: `${Math.round(metrics.systemLoad)}%`, icon: Cpu, color: 'text-violet-500', sub: t('systemHealth.metrics.cpuUsage') },
-                    { label: t('systemHealth.metrics.memory'), value: `${Math.round(metrics.memoryUsage)}%`, icon: Server, color: 'text-success-text', sub: t('systemHealth.metrics.ramAllocated') },
-                    { label: t('systemHealth.metrics.latency'), value: `${Math.round(metrics.networkLatency)}ms`, icon: Activity, color: 'text-warning-text', sub: t('systemHealth.metrics.globalPing') },
                 ].map((metric) => (
                     <motion.div
                         key={metric.label}

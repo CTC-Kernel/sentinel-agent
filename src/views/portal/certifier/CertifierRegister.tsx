@@ -44,13 +44,13 @@ export const CertifierRegister: React.FC = () => {
                 siret: data.siret
             });
 
-            toast.success('Compte créé avec succès !');
+            toast.success(t('certifier.accountCreated') || 'Compte créé avec succès !');
             navigate('/portal/dashboard');
 
         } catch (_error: unknown) {
             const firebaseError = _error as { code?: string };
             if (firebaseError?.code === 'auth/email-already-in-use') {
-                toast.error('Cet email est déjà utilisé');
+                toast.error(t('certifier.emailAlreadyUsed') || 'Cet email est déjà utilisé');
             } else {
                 toast.error(t('common.errors.creating'));
             }

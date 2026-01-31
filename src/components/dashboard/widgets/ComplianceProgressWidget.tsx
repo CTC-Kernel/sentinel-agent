@@ -18,6 +18,7 @@ import { TrendingUp, Loader2, ShieldCheck, ArrowRight, CheckCircle2, Clock, Aler
 import { SENTINEL_PALETTE } from '../../../theme/chartTheme';
 import { cn } from '../../../lib/utils';
 import { EmptyState } from '../../ui/EmptyState';
+import { CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT } from '../../../constants/complianceConfig';
 
 interface ComplianceProgressWidgetProps {
     navigate?: (path: string) => void;
@@ -35,16 +36,22 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
 
     const stats = useMemo(() => {
         const totalControls = controls.length;
-        const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
-        const inProgressControls = controls.filter(c => c.status === 'Partiel').length;
-        const notImplementedControls = controls.filter(c => c.status === 'Non commencé' || !c.status).length;
-        const complianceRate = totalControls > 0 ? Math.round((implementedControls / totalControls) * 100) : 0;
+        const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+        const notImplementedControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED || !c.status).length;
+        const actionableControls = controls.filter(c =>
+            c.status !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.EXCLUDED
+        ).length;
+        const complianceRate = actionableControls > 0
+            ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100)
+            : 0;
 
         return {
             totalControls,
             implementedControls,
-            inProgressControls,
+            inProgressControls: partialControls,
             notImplementedControls,
+            actionableControls,
             complianceRate
         };
     }, [controls]);

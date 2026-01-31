@@ -7,7 +7,7 @@ import { hasPermission } from '../../utils/permissions';
 // import { ErrorLogger } from '../../services/errorLogger';
 
 export function usePrivacyRequests() {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const [requests, setRequests] = useState<PrivacyRequest[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -46,7 +46,7 @@ export function usePrivacyRequests() {
                 status: 'New'
             };
             await PrivacyService.createRequest(newRequest, user as UserProfile);
-            addToast("Demande DSR créée", "success");
+            addToast(t('privacy.toast.dsrCreated', { defaultValue: "Demande DSR créée" }), "success");
             fetchRequests();
         } catch {
             // Service handles toast
@@ -58,7 +58,7 @@ export function usePrivacyRequests() {
         try {
             await PrivacyService.updateRequest(id, updates, user as UserProfile);
             setRequests(prev => prev.map(req => req.id === id ? { ...req, ...updates } : req));
-            addToast("Demande mise à jour", "success");
+            addToast(t('privacy.toast.requestUpdated', { defaultValue: "Demande mise à jour" }), "success");
         } catch {
             // Service handles toast
         }
@@ -67,13 +67,13 @@ export function usePrivacyRequests() {
     const handleDeleteRequest = async (id: string) => {
         if (!user) return;
         if (!hasPermission(user, 'ProcessingActivity', 'manage')) {
-            addToast("Permission refusée", "error");
+            addToast(t('common.toast.permissionDenied', { defaultValue: "Permission refusée" }), "error");
             return;
         }
         try {
             await PrivacyService.deleteRequest(id, user as UserProfile);
             setRequests(prev => prev.filter(req => req.id !== id));
-            addToast("Demande supprimée", "success");
+            addToast(t('privacy.toast.requestDeleted', { defaultValue: "Demande supprimée" }), "success");
         } catch {
             // Service handles toast
         }

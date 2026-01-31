@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
@@ -208,14 +207,12 @@ export const Compliance: React.FC = () => {
 
     // Deep Link Effect
     useEffect(() => {
-        if (!loading && deepLinkControlId && filteredControls.length > 0) {
+        if (!loading && deepLinkControlId && filteredControls.length > 0 && !deepLinkProcessedRef.current) {
             const control = filteredControls.find((c: Control) => c.id === deepLinkControlId);
 
             if (control) {
                 deepLinkProcessedRef.current = true;
-                flushSync(() => {
-                    handleSelectControl(control);
-                });
+                handleSelectControl(control);
             }
         }
     }, [loading, deepLinkControlId, filteredControls, handleSelectControl]);
@@ -474,9 +471,12 @@ export const Compliance: React.FC = () => {
                                             { value: 'all', label: t('common.statuses.all') },
                                             { value: 'Non commencé', label: t('common.statuses.notStarted') },
                                             { value: 'En cours', label: t('common.statuses.inProgress') },
+                                            { value: 'Planifié', label: t('common.statuses.planned') },
+                                            { value: 'En retard', label: t('common.statuses.overdue') },
                                             { value: 'Partiel', label: t('common.statuses.partial') },
                                             { value: 'Implémenté', label: t('common.statuses.implemented') },
-                                            { value: 'Non applicable', label: t('common.statuses.notApplicable') }
+                                            { value: 'Non applicable', label: t('common.statuses.notApplicable') },
+                                            { value: 'Exclu', label: t('common.statuses.excluded') }
                                         ]}
                                         placeholder="Filtrer par statut"
                                         className="rounded-xl"

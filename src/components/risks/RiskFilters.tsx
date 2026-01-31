@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, LayoutGrid, List, SlidersHorizontal, Table, FileSpreadsheet, FileText } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
+import { useLocale } from '@/hooks/useLocale';
 
 interface RiskFiltersProps {
     query: string;
@@ -31,6 +32,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
     showAdvancedSearch, onToggleAdvancedSearch, totalRisks, filteredCount,
     onExportExcel, onExportPdf
 }) => {
+    const { t } = useLocale();
     const hasActiveFilters = statusFilter || categoryFilter || criticalityFilter || frameworkFilter;
 
     return (
@@ -41,9 +43,9 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-hover:text-brand-500 transition-colors h-5 w-5" />
                     <input value={query} onChange={(e) => onQueryChange(e.target.value)}
                         type="text"
-                        placeholder="Rechercher une menace, une vulnérabilité..."
+                        placeholder={t('risks.filters.searchPlaceholder', { defaultValue: 'Rechercher une menace, une vulnérabilité...' })}
                         className="pl-10 pr-4 py-3 w-full bg-slate-50 dark:bg-black/20 border-transparent focus:bg-white dark:focus:bg-black/40 border-2 focus:border-brand-500 rounded-3xl transition-all outline-none"
-                        aria-label="Rechercher un risque"
+                        aria-label={t('risks.filters.searchAria', { defaultValue: 'Rechercher un risque' })}
                     />
                 </div>
 
@@ -52,21 +54,21 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                         <button
                             onClick={() => onViewModeChange('cards')}
                             className={`p-2 rounded-lg transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                            title="Vue Cartes"
+                            title={t('risks.filters.viewCards', { defaultValue: 'Vue Cartes' })}
                         >
                             <LayoutGrid className="h-5 w-5" />
                         </button>
                         <button
                             onClick={() => onViewModeChange('list')}
                             className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                            title="Vue Liste"
+                            title={t('risks.filters.viewList', { defaultValue: 'Vue Liste' })}
                         >
                             <List className="h-5 w-5" />
                         </button>
                         <button
                             onClick={() => onViewModeChange('matrix')}
                             className={`p-2 rounded-lg transition-all ${viewMode === 'matrix' ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                            title="Matrice de risques"
+                            title={t('risks.filters.viewMatrix', { defaultValue: 'Matrice de risques' })}
                         >
                             <Table className="h-5 w-5" />
                         </button>
@@ -77,7 +79,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     <button
                         onClick={onToggleAdvancedSearch}
                         className={`p-2.5 rounded-3xl border transition-all flex items-center gap-2 ${showAdvancedSearch || hasActiveFilters ? 'bg-brand-50 border-brand-200 text-brand-600 dark:bg-brand-800 dark:border-brand-800' : 'bg-white dark:bg-white/5 border-border/40 dark:border-border/40 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                        title="Filtres avancés"
+                        title={t('risks.filters.advancedFilters', { defaultValue: 'Filtres avancés' })}
                     >
                         <SlidersHorizontal className="h-5 w-5" />
                         {hasActiveFilters && (
@@ -94,7 +96,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                                     <button
                                         onClick={onExportExcel}
                                         className="p-2 rounded-3xl bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 text-slate-500 dark:text-slate-300 hover:bg-success-bg hover:text-success-text hover:border-success-border transition-all"
-                                        title="Exporter en Excel"
+                                        title={t('risks.filters.exportExcel', { defaultValue: 'Exporter en Excel' })}
                                     >
                                         <FileSpreadsheet className="h-5 w-5" />
                                     </button>
@@ -103,7 +105,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                                     <button
                                         onClick={onExportPdf}
                                         className="p-2 rounded-3xl bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 text-slate-500 dark:text-slate-300 hover:bg-error-bg hover:text-error-text hover:border-error-border transition-all"
-                                        title="Exporter en PDF"
+                                        title={t('risks.filters.exportPdf', { defaultValue: 'Exporter en PDF' })}
                                     >
                                         <FileText className="h-5 w-5" />
                                     </button>
@@ -128,9 +130,9 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                         className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                         value={frameworkFilter}
                         onChange={(e) => onFrameworkFilterChange(e.target.value)}
-                        aria-label="Filtrer par référentiel"
+                        aria-label={t('risks.filters.filterByFramework', { defaultValue: 'Filtrer par référentiel' })}
                     >
-                        <option value="">Tous les référentiels</option>
+                        <option value="">{t('risks.filters.allFrameworks', { defaultValue: 'Tous les référentiels' })}</option>
                         <option value="ISO 27001">ISO 27001</option>
                         <option value="ISO 27005">ISO 27005</option>
                         <option value="EBIOS">EBIOS RM</option>
@@ -143,14 +145,14 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                             className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={statusFilter || ''}
                             onChange={(e) => onStatusFilterChange(e.target.value)}
-                            aria-label="Filtrer par statut"
+                            aria-label={t('risks.filters.filterByStatus', { defaultValue: 'Filtrer par statut' })}
                         >
-                            <option value="">Tous les statuts</option>
-                            <option value="Brouillon">Brouillon</option>
-                            <option value="Ouvert">Ouvert</option>
-                            <option value="En cours">En cours</option>
-                            <option value="En attente de validation">En attente de validation</option>
-                            <option value="Fermé">Fermé</option>
+                            <option value="">{t('risks.filters.allStatuses', { defaultValue: 'Tous les statuts' })}</option>
+                            <option value="Brouillon">{t('risks.filters.status.draft', { defaultValue: 'Brouillon' })}</option>
+                            <option value="Ouvert">{t('risks.filters.status.open', { defaultValue: 'Ouvert' })}</option>
+                            <option value="En cours">{t('risks.filters.status.inProgress', { defaultValue: 'En cours' })}</option>
+                            <option value="En attente de validation">{t('risks.filters.status.pendingValidation', { defaultValue: 'En attente de validation' })}</option>
+                            <option value="Fermé">{t('risks.filters.status.closed', { defaultValue: 'Fermé' })}</option>
                         </select>
                     )}
 
@@ -160,13 +162,13 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                             className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={criticalityFilter || ''}
                             onChange={(e) => onCriticalityFilterChange(e.target.value)}
-                            aria-label="Filtrer par criticité"
+                            aria-label={t('risks.filters.filterByCriticality', { defaultValue: 'Filtrer par criticité' })}
                         >
-                            <option value="">Toutes les criticités</option>
-                            <option value="Critique">Critique (15-25)</option>
-                            <option value="Élevé">Élevé (10-14)</option>
-                            <option value="Moyen">Moyen (5-9)</option>
-                            <option value="Faible">Faible (1-4)</option>
+                            <option value="">{t('risks.filters.allCriticalities', { defaultValue: 'Toutes les criticités' })}</option>
+                            <option value="Critique">{t('risks.filters.criticality.critical', { defaultValue: 'Critique (15-25)' })}</option>
+                            <option value="Élevé">{t('risks.filters.criticality.high', { defaultValue: 'Élevé (10-14)' })}</option>
+                            <option value="Moyen">{t('risks.filters.criticality.medium', { defaultValue: 'Moyen (5-9)' })}</option>
+                            <option value="Faible">{t('risks.filters.criticality.low', { defaultValue: 'Faible (1-4)' })}</option>
                         </select>
                     )}
 
@@ -176,9 +178,9 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                             className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={categoryFilter || ''}
                             onChange={(e) => onCategoryFilterChange(e.target.value)}
-                            aria-label="Filtrer par catégorie"
+                            aria-label={t('risks.filters.filterByCategory', { defaultValue: 'Filtrer par catégorie' })}
                         >
-                            <option value="">Toutes les catégories</option>
+                            <option value="">{t('risks.filters.allCategories', { defaultValue: 'Toutes les catégories' })}</option>
                             {availableCategories.map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
                             ))}
@@ -196,7 +198,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                             }}
                             className="px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-red-600 transition-colors"
                         >
-                            Effacer les filtres
+                            {t('risks.filters.clearFilters', { defaultValue: 'Effacer les filtres' })}
                         </button>
                     )}
                 </div>

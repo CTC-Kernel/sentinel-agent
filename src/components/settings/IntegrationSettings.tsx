@@ -105,7 +105,7 @@ export const IntegrationSettings: React.FC = () => {
 
             const ics = generateICS([...auditEvents, ...taskEvents]);
             downloadICS(`sentinel_calendar_${new Date().toISOString().split('T')[0]}.ics`, ics);
-            addToast("Calendrier exporté avec succès", "success");
+            addToast(t('settings.toast.calendarExported', { defaultValue: "Calendrier exporté avec succès" }), "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'IntegrationSettings.handleExportCalendar', 'FETCH_FAILED');
         } finally {

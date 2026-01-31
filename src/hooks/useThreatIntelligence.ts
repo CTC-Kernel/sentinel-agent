@@ -59,7 +59,7 @@ export const useThreatIntelligence = () => {
     // Actions
     const handleTrustAction = async (id: string, action: 'trust' | 'block' | 'remove') => {
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
         try {
@@ -79,7 +79,7 @@ export const useThreatIntelligence = () => {
     const confirmSighting = async (threatId: string) => {
         if (!user) return;
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
         try {

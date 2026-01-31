@@ -1,7 +1,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
-import { where, collection, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import { where, collection, addDoc, updateDoc, doc, arrayUnion, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Audit, Control, Asset, Risk, UserProfile, Document, Project, Finding, AuditChecklist } from '../../types';
@@ -29,8 +29,8 @@ export interface UseAuditsOptions {
 
 export const useAudits = (options: UseAuditsOptions = {}) => {
     const { user, addToast, demoMode, t } = useStore();
-    const canEdit = canEditResource(user, 'Audit');
-    const canDelete = canDeleteResource(user, 'Audit');
+    const canEdit = useMemo(() => canEditResource(user, 'Audit'), [user]);
+    const canDelete = useMemo(() => canDeleteResource(user, 'Audit'), [user]);
 
     const {
         fetchControls = false,
@@ -203,7 +203,10 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
             const docRef = await addDoc(collection(db, 'audits'), newDocData);
 
             if (preSelectedProjectId) {
-                await updateDoc(doc(db, 'projects', preSelectedProjectId), { relatedAuditIds: arrayUnion(docRef.id) });
+                const projectDoc = await getDoc(doc(db, 'projects', preSelectedProjectId));
+                if (projectDoc.exists() && projectDoc.data()?.organizationId === user?.organizationId) {
+                    await updateDoc(doc(db, 'projects', preSelectedProjectId), { relatedAuditIds: arrayUnion(docRef.id) });
+                }
             }
 
             await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name} `);
@@ -216,7 +219,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
                 }
             }
             refreshAudits();
-            addToast("Audit planifié et notifié", "success");
+            addToast(t('audits.toast.plannedAndNotified', { defaultValue: "Audit planifié et notifié" }), "success");
             return docRef.id;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAudits.handleCreateAudit', 'CREATE_FAILED');
@@ -235,7 +238,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
             ErrorLogger.warn('IDOR attempt: audit update across organizations', 'useAudits.handleUpdateAudit', {
                 metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: auditOrganizationId, callerOrg: user.organizationId }
             });
-            addToast('Audit non trouvé', 'error');
+            addToast(t('audits.toast.notFound', { defaultValue: 'Audit non trouvé' }), 'error');
             return;
         }
 
@@ -243,7 +246,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
             await updateDoc(doc(db, 'audits', id), sanitizeData(data));
             await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name} `);
             refreshAudits();
-            addToast("Audit mis à jour", "success");
+            addToast(t('audits.toast.updated', { defaultValue: "Audit mis à jour" }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAudits.handleUpdateAudit', 'UPDATE_FAILED');
             throw error;
@@ -256,7 +259,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
         return await AuditService.checkDependencies(auditId, user.organizationId);
     };
 
-    const handleDeleteAudit = async (id: string, name: string) => {
+    const handleDeleteAudit = async (id: string, name: string, silent = false) => {
         if (!canDelete || !user?.organizationId || !user?.uid) return;
         try {
             // Use AuditService for atomic cascade deletion
@@ -272,7 +275,9 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
 
             if (selectedAudit?.id === id) setSelectedAudit(null);
             refreshAudits();
-            addToast("Audit et constats supprimés", "info");
+            if (!silent) {
+                addToast(t('audits.toast.deletedWithFindings', { defaultValue: "Audit et constats supprimés" }), "info");
+            }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAudits.handleDeleteAudit', 'DELETE_FAILED');
         }
@@ -280,23 +285,19 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
 
     const bulkDeleteAudits = async (ids: string[]) => {
         if (!canDelete || !user?.organizationId) return;
+        let successCount = 0;
         try {
-            await Promise.all(ids.map(id => {
-                // We need the name for logging, but we can skip it or fetch it.
-                // For bulk, let's keep log simple or ideally fetch local name if needed.
-                // Here we just reuse logic or reimplement for batching?
-                // Reuse is safer for cascade logic.
+            await Promise.all(ids.map(async (id) => {
                 const audit = audits.find(a => a.id === id);
-                return handleDeleteAudit(id, audit?.name || 'Inconnu');
+                await handleDeleteAudit(id, audit?.name || 'Inconnu', true);
+                successCount++;
             }));
-            // Toasts are handled per delete, might be spammy?
-            // Ideally we mute individual toasts and show one summary, but handleDeleteAudit already toasts.
-            // Refactoring handleDeleteAudit to accept a 'silent' flag would be better, but for now strict audit compliance > UI spam.
-            // Actually, let's just accept the multiple toasts or refine later.
-            // Better: update handleDeleteAudit to take options.
-            // But let's simple iterate for now to minimize risk.
+            addToast(t('audits.bulkDeleted', { defaultValue: `${successCount} audit(s) supprimé(s)`, count: successCount }), 'success');
         } catch (error) {
             ErrorLogger.error(error, 'useAudits.bulkDeleteAudits');
+            if (successCount > 0) {
+                addToast(t('audits.bulkDeleted', { defaultValue: `${successCount} audit(s) supprimé(s)`, count: successCount }), 'success');
+            }
             addToast(t('audits.errors.bulkDeleteFailed') || 'Erreur lors de la suppression', 'error');
         }
     };
@@ -307,7 +308,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
         // Logic for AI Plan Generation
         const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets, audits);
         if (suggestions.length === 0) {
-            addToast("Aucune suggestion d'audit pertinente trouvée.", "info");
+            addToast(t('audits.toast.noSuggestions', { defaultValue: "Aucune suggestion d'audit pertinente trouvée." }), "info");
             return;
         }
 
@@ -320,7 +321,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
         );
 
         refreshAudits();
-        addToast(`${auditsToCreate.length} audits planifiés avec succès.`, "success");
+        addToast(t('audits.toast.plannedCount', { defaultValue: `${auditsToCreate.length} audits planifiés avec succès.`, count: auditsToCreate.length }), "success");
     };
 
     const handleExportCSV = async () => {
@@ -351,7 +352,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
         try {
             const lines = CsvParser.parseCSV(csvContent);
             if (lines.length === 0) {
-                addToast("Fichier vide ou invalide", "error");
+                addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
                 return;
             }
 
@@ -364,17 +365,17 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
 
             await logAction(user, 'IMPORT', 'Audit', `Import CSV de ${count} audits`);
             refreshAudits();
-            addToast(`Import de ${count} audits réussi`, "success");
+            addToast(t('audits.toast.importSuccess', { defaultValue: `Import de ${count} audits réussi`, count }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAudits.importAudits');
             throw error;
         }
-    }, [user, addToast, refreshAudits]);
+    }, [user, addToast, refreshAudits, t]);
 
     const handleExportCalendar = () => {
         const scheduledAudits = audits.filter(a => a.status === 'Planifié' && a.dateScheduled);
         if (scheduledAudits.length === 0) {
-            addToast("Aucun audit planifié à exporter.", "info");
+            addToast(t('audits.toast.noAuditsToExport', { defaultValue: "Aucun audit planifié à exporter." }), "info");
             return;
         }
 
@@ -390,7 +391,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
         const icsContent = generateICS(events);
         downloadICS('audit_calendar.ics', icsContent);
 
-        addToast(`${scheduledAudits.length} audits exportés vers le calendrier.`, "success");
+        addToast(t('audits.toast.calendarExported', { defaultValue: `${scheduledAudits.length} audits exportés vers le calendrier.`, count: scheduledAudits.length }), "success");
     };
 
     return {

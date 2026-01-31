@@ -250,7 +250,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
 
 export const VoxelView: React.FC = () => {
   const { user } = useAuth();
-  const { addToast, activeFramework, setActiveFramework } = useStore();
+  const { addToast, activeFramework, setActiveFramework, t } = useStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -576,10 +576,10 @@ export const VoxelView: React.FC = () => {
   const handleDetailPanelNavigate = useCallback((node: VoxelNode) => {
     const route = DETAIL_ROUTES[node.type];
     if (route && isValidRoute(route)) {
-      addToast(`Navigation vers ${node.label} `, 'info');
+      addToast(t('voxel.toast.navigatingTo', { defaultValue: `Navigation vers ${node.label}`, label: node.label }), 'info');
       navigate(`${route}?id = ${node.id} `, { state: { fromVoxel: true, nodeId: node.id } });
     }
-  }, [addToast, navigate]);
+  }, [addToast, navigate, t]);
 
   const handleSelectLinkedEntity = useCallback((nodeId: string) => {
     const node = nodesMap.get(nodeId);
@@ -593,14 +593,14 @@ export const VoxelView: React.FC = () => {
 
   const handleAIAnalysis = async () => {
     if (!user || !hasPermission(user, 'CTCEngine', 'read')) {
-      addToast("Permission refusée", "error");
+      addToast(t('voxel.toast.permissionDenied', { defaultValue: "Permission refusée" }), "error");
       return;
     }
     setAnalyzing(true);
     try {
       const result = await aiService.analyzeGraph({ assets, risks, projects, audits, incidents, suppliers, controls });
       setSuggestedLinks(result.suggestions);
-      addToast("Analyse IA terminée", "success");
+      addToast(t('voxel.toast.aiAnalysisComplete', { defaultValue: "Analyse IA terminée" }), "success");
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'VoxelView.handleAIAnalysis', 'UNKNOWN_ERROR');
     } finally {
@@ -618,14 +618,14 @@ export const VoxelView: React.FC = () => {
         link.download = `ctc - engine - ${new Date().toISOString().split('T')[0]}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        addToast("Capture sauvegardée", "success");
+        addToast(t('voxel.toast.captureSaved', { defaultValue: "Capture sauvegardée" }), "success");
       }
     } catch {
-      addToast("Erreur lors de la capture", "error");
+      addToast(t('voxel.toast.captureError', { defaultValue: "Erreur lors de la capture" }), "error");
     } finally {
       setIsCapturing(false);
     }
-  }, [isCapturing, addToast]);
+  }, [isCapturing, addToast, t]);
 
   const handleCommandSelect = useCallback((node: { id: string; type: string }) => {
     applyFocus(node.id, node.type as LayerType);

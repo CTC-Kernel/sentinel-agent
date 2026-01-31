@@ -13,9 +13,11 @@ import {
   onSnapshot,
   type Unsubscribe,
 } from 'firebase/firestore';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
+import { calculateTrend } from '../utils/trendUtils';
 
 /**
  * Risk item for list display
@@ -57,30 +59,15 @@ export interface CriticalRisksListResult {
 const ACTIVE_RISK_STATUSES = ['Ouvert', 'En cours', 'En attente de validation'];
 
 /**
- * Calculate trend based on count comparison
- */
-function calculateTrend(current: number, previous: number): TrendType {
-  if (previous === 0 && current === 0) return 'stable';
-  if (previous === 0) return current > 0 ? 'up' : 'stable';
-
-  const percentChange = ((current - previous) / previous) * 100;
-
-  // Use 5% threshold for significant change
-  if (percentChange > 5) return 'up'; // More risks = worse = up (red arrow)
-  if (percentChange < -5) return 'down'; // Fewer risks = better = down (green arrow)
-  return 'stable';
-}
-
-/**
  * Get criticality color scheme based on criticality score
  */
 export function getCriticalityColorScheme(
   criticality: number
 ): 'danger' | 'warning' | 'caution' | 'success' {
-  if (criticality >= 20) return 'danger'; // Critical (20-25)
-  if (criticality >= 15) return 'warning'; // High (15-19)
-  if (criticality >= 10) return 'caution'; // Medium (10-14)
-  return 'success'; // Low (1-9)
+  if (criticality >= RISK_THRESHOLDS.CRITICAL) return 'danger';
+  if (criticality >= RISK_THRESHOLDS.HIGH) return 'warning';
+  if (criticality >= RISK_THRESHOLDS.MEDIUM) return 'caution';
+  return 'success';
 }
 
 /**
@@ -192,8 +179,8 @@ export function useCriticalRisksList(
             // Sort by criticality descending
             riskItems.sort((a, b) => b.criticality - a.criticality);
 
-            // Filter to only critical (score >= 15)
-            const criticalOnly = riskItems.filter((r) => r.criticality >= 15);
+            // Filter to only critical risks
+            const criticalOnly = riskItems.filter((r) => r.criticality >= RISK_THRESHOLDS.CRITICAL);
 
             setRisks(criticalOnly);
 

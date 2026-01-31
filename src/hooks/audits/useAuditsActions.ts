@@ -7,8 +7,10 @@ import { hasPermission } from '../../utils/permissions';
 import { AuditLogService } from '../../services/auditLogService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
+import { useStore } from '../../store';
 
 export const useAuditsActions = () => {
+  const { t } = useStore();
   const { user } = useAuth();
 
   const { data: audits, loading: loadingAudits, update: updateAuditRaw, add: addAuditRaw, remove: removeAuditRaw } = useFirestoreCollection<Audit>(
@@ -51,7 +53,7 @@ export const useAuditsActions = () => {
   const addAudit = useCallback(async (data: Partial<Audit>) => {
     if (!user?.organizationId) return null;
     if (!hasPermission(user, 'Audit', 'create')) {
-      toast.error("Non autorisé à créer un audit");
+      toast.error(t('audits.notAuthorizedCreate') || "Non autorisé à créer un audit");
       return null;
     }
 
@@ -65,19 +67,19 @@ export const useAuditsActions = () => {
         data as Record<string, unknown>,
         `Audit créé: ${data.name}`
       );
-      toast.success("Audit créé avec succès");
+      toast.success(t('audits.created') || "Audit créé avec succès");
       return id;
     } catch (error) {
       ErrorLogger.error(error as Error, 'useAuditsActions.addAudit');
-      toast.error("Erreur lors de la création");
+      toast.error(t('errors.creationFailed') || "Erreur lors de la création");
       return null;
     }
-  }, [addAuditRaw, user]);
+  }, [addAuditRaw, user, t]);
 
   const updateAudit = useCallback(async (id: string, data: Partial<Audit>) => {
     if (!user?.organizationId) return;
     if (!hasPermission(user, 'Audit', 'update')) {
-      toast.error("Non autorisé à modifier cet audit");
+      toast.error(t('audits.notAuthorizedUpdate') || "Non autorisé à modifier cet audit");
       return;
     }
 
@@ -92,17 +94,17 @@ export const useAuditsActions = () => {
         data as Record<string, unknown>,
         data.name || 'Audit'
       );
-      toast.success("Audit mis à jour");
+      toast.success(t('audits.updated') || "Audit mis à jour");
     } catch (error) {
       ErrorLogger.error(error as Error, 'useAuditsActions.updateAudit');
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t('errors.updateFailed') || "Erreur lors de la mise à jour");
     }
-  }, [updateAuditRaw, user]);
+  }, [updateAuditRaw, user, t]);
 
   const removeAudit = useCallback(async (id: string) => {
     if (!user?.organizationId) return;
     if (!hasPermission(user, 'Audit', 'delete')) {
-      toast.error("Non autorisé à supprimer cet audit");
+      toast.error(t('audits.notAuthorizedDelete') || "Non autorisé à supprimer cet audit");
       return;
     }
 
@@ -118,18 +120,18 @@ export const useAuditsActions = () => {
         entityId: id,
         details: "Suppression d'audit"
       });
-      toast.success("Audit supprimé");
+      toast.success(t('audits.deleted') || "Audit supprimé");
     } catch (error) {
       ErrorLogger.error(error as Error, 'useAuditsActions.removeAudit');
-      toast.error("Erreur lors de la suppression");
+      toast.error(t('errors.deletionFailed') || "Erreur lors de la suppression");
     }
-  }, [removeAuditRaw, user]);
+  }, [removeAuditRaw, user, t]);
 
   /* Wrapper for Questionnaires */
   const addQuestionnaire = useCallback(async (data: Partial<Questionnaire>) => {
     if (!user?.organizationId) return null;
     if (!hasPermission(user, 'Audit', 'create')) { // Reuse Audit permission
-      toast.error("Non autorisé");
+      toast.error(t('errors.notAuthorized') || "Non autorisé");
       return null;
     }
 
@@ -152,7 +154,7 @@ export const useAuditsActions = () => {
       ErrorLogger.error(error as Error, 'useAuditsActions.addQuestionnaire');
       return null;
     }
-  }, [addQuestionnaireRaw, user]);
+  }, [addQuestionnaireRaw, user, t]);
 
   const updateQuestionnaire = useCallback(async (id: string, data: Partial<Questionnaire>) => {
     if (!user?.organizationId) return;

@@ -29,7 +29,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
     users,
     assets
 }) => {
-    const { register, handleSubmit, control, setValue, reset, watch, formState: { errors, isSubmitting } } = useZodForm<typeof recoveryPlanSchema>({
+    const { register, handleSubmit, control, setValue, reset, watch, formState: { errors, isSubmitting, isDirty } } = useZodForm<typeof recoveryPlanSchema>({
         schema: recoveryPlanSchema,
         defaultValues: {
             title: '',
@@ -102,6 +102,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
             title={initialData ? "Modifier le Plan" : "Nouveau Plan de Reprise"}
             subtitle="Définissez les procédures de résilience."
             icon={Shield}
+            hasUnsavedChanges={isDirty}
             footer={
                 <div className="flex justify-end gap-2">
                     <Button variant="ghost" onClick={onClose}>Annuler</Button>

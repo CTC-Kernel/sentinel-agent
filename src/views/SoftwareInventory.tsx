@@ -222,6 +222,8 @@ const FilterDropdown: React.FC<{
                 size="sm"
                 onClick={() => setIsOpen(!isOpen)}
                 className="gap-2"
+                aria-label={label}
+                aria-expanded={isOpen}
             >
                 {icon}
                 {label}
@@ -242,11 +244,18 @@ const FilterDropdown: React.FC<{
                         onClick={() => setIsOpen(false)}
                         aria-hidden="true"
                     />
-                    <div className="absolute top-full left-0 mt-1 z-50 bg-popover border rounded-lg shadow-lg p-2 min-w-48">
+                    <div
+                        role="menu"
+                        tabIndex={-1}
+                        className="absolute top-full left-0 mt-1 z-50 bg-popover border rounded-lg shadow-lg p-2 min-w-48"
+                        onKeyDown={(e) => { if (e.key === 'Escape') setIsOpen(false); }}
+                    >
                         {options.map(option => (
                             <button
                                 key={option.value}
                                 onClick={() => toggleOption(option.value)}
+                                role="checkbox"
+                                aria-checked={selected.includes(option.value)}
                                 className={cn(
                                     'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
                                     selected.includes(option.value)
@@ -642,7 +651,7 @@ export const SoftwareInventory: React.FC = () => {
                                     className="gap-2"
                                 >
                                     <XCircle className="h-4 w-4" />
-                                    Vulnérables
+                                    {t('software.filter.vulnerable', { defaultValue: 'Vulnérables' })}
                                 </Button>
                             </div>
                         )}
@@ -658,9 +667,10 @@ export const SoftwareInventory: React.FC = () => {
                                     onClick={() => setDisplayMode('software')}
                                     className="h-8 px-3 text-xs gap-2"
                                     title="Vue par logiciel"
+                                    aria-label={t('software.displayMode.software', { defaultValue: 'Vue par logiciel' })}
                                 >
                                     <Package className="h-3.5 w-3.5" />
-                                    Logiciels
+                                    {t('software.displayMode.softwareLabel', { defaultValue: 'Logiciels' })}
                                 </Button>
                                 <Button
                                     variant={displayMode === 'agent' ? 'default' : 'ghost'}
@@ -668,9 +678,10 @@ export const SoftwareInventory: React.FC = () => {
                                     onClick={() => setDisplayMode('agent')}
                                     className="h-8 px-3 text-xs gap-2"
                                     title="Vue par agent"
+                                    aria-label={t('software.displayMode.agent', { defaultValue: 'Vue par agent' })}
                                 >
                                     <Users className="h-3.5 w-3.5" />
-                                    Agents
+                                    {t('software.displayMode.agentLabel', { defaultValue: 'Agents' })}
                                 </Button>
                             </div>
                         )}
@@ -682,6 +693,7 @@ export const SoftwareInventory: React.FC = () => {
                                 onClick={() => setViewMode('table')}
                                 className="h-8 w-8 p-0"
                                 title="Vue tableau"
+                                aria-label={t('software.viewMode.table', { defaultValue: 'Vue tableau' })}
                             >
                                 <List className="h-4 w-4" />
                             </Button>
@@ -691,6 +703,7 @@ export const SoftwareInventory: React.FC = () => {
                                 onClick={() => setViewMode('grid')}
                                 className="h-8 w-8 p-0"
                                 title="Vue grille"
+                                aria-label={t('software.viewMode.grid', { defaultValue: 'Vue grille' })}
                             >
                                 <LayoutGrid className="h-4 w-4" />
                             </Button>
@@ -767,7 +780,7 @@ export const SoftwareInventory: React.FC = () => {
                                 <div>
                                     <p className="text-muted-foreground">Première détection</p>
                                     <p className="font-medium">
-                                        {new Date(selectedSoftware.firstDiscovered).toLocaleDateString('fr-FR')}
+                                        {selectedSoftware.firstDiscovered ? new Date(selectedSoftware.firstDiscovered).toLocaleDateString('fr-FR') : '-'}
                                     </p>
                                 </div>
                             </div>
@@ -867,11 +880,11 @@ export const SoftwareInventory: React.FC = () => {
                                                 setAuthorizingId(selectedSoftware.id);
                                                 try {
                                                     await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'authorized', user.uid);
-                                                    toast.success(t('software.authorized', { defaultValue: 'Logiciel autorise' }), `"${selectedSoftware.name}" a ete autorise avec succes.`);
+                                                    toast.success(t('software.authorized', { defaultValue: 'Logiciel autorisé' }), t('software.authorizedDesc', { defaultValue: `"${selectedSoftware.name}" a été autorisé. Il apparaîtra désormais comme conforme dans l'inventaire.` }));
                                                     setSelectedSoftware(null);
                                                     setIsDrawerOpen(false);
                                                 } catch (err) {
-                                                    toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                    toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
                                                     ErrorLogger.error(err, 'SoftwareInventory.authorize');
                                                 } finally {
                                                     setAuthorizingId(null);
@@ -894,11 +907,11 @@ export const SoftwareInventory: React.FC = () => {
                                                 setAuthorizingId(selectedSoftware.id);
                                                 try {
                                                     await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'blocked', user.uid);
-                                                    toast.success(t('software.blocked', { defaultValue: 'Logiciel bloque' }), `"${selectedSoftware.name}" a ete bloque avec succes.`);
+                                                    toast.success(t('software.blocked', { defaultValue: 'Logiciel bloqué' }), t('software.blockedDesc', { defaultValue: `"${selectedSoftware.name}" a été bloqué. Les agents concernés seront notifiés.` }));
                                                     setSelectedSoftware(null);
                                                     setIsDrawerOpen(false);
                                                 } catch (err) {
-                                                    toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                    toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
                                                     ErrorLogger.error(err, 'SoftwareInventory.block');
                                                 } finally {
                                                     setAuthorizingId(null);
@@ -924,11 +937,11 @@ export const SoftwareInventory: React.FC = () => {
                                             setAuthorizingId(selectedSoftware.id);
                                             try {
                                                 await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'pending', user.uid);
-                                                toast.success('Autorisation revoquee', `L'autorisation de "${selectedSoftware.name}" a ete revoquee.`);
+                                                toast.success(t('software.revoked', { defaultValue: 'Autorisation révoquée' }), t('software.revokedDesc', { defaultValue: `L'autorisation de "${selectedSoftware.name}" a été révoquée. Le logiciel repasse en attente de validation.` }));
                                                 setSelectedSoftware(null);
                                                 setIsDrawerOpen(false);
                                             } catch (err) {
-                                                toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
                                                 ErrorLogger.error(err, 'SoftwareInventory.revoke');
                                             } finally {
                                                 setAuthorizingId(null);
@@ -953,11 +966,11 @@ export const SoftwareInventory: React.FC = () => {
                                             setAuthorizingId(selectedSoftware.id);
                                             try {
                                                 await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'pending', user.uid);
-                                                toast.success(t('software.unblocked', { defaultValue: 'Logiciel debloque' }), `"${selectedSoftware.name}" a ete debloque avec succes.`);
+                                                toast.success(t('software.unblocked', { defaultValue: 'Logiciel débloqué' }), t('software.unblockedDesc', { defaultValue: `"${selectedSoftware.name}" a été débloqué. Le logiciel repasse en attente de validation.` }));
                                                 setSelectedSoftware(null);
                                                 setIsDrawerOpen(false);
                                             } catch (err) {
-                                                toast.error('Erreur', "Impossible de modifier le statut d'autorisation.");
+                                                toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
                                                 ErrorLogger.error(err, 'SoftwareInventory.unblock');
                                             } finally {
                                                 setAuthorizingId(null);

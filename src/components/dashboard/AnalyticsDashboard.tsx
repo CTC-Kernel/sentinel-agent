@@ -23,6 +23,7 @@ import {
     HelpCircle
 } from '../ui/Icons';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { RISK_THRESHOLDS, CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, isActionableStatus } from '../../constants/complianceConfig';
 import { useStore } from '../../store';
 import { Risk } from '../../types';
 import { StatCard } from '../ui/StatCard';
@@ -75,11 +76,14 @@ export const AnalyticsDashboard: React.FC = () => {
 
     // Calculate metrics
     const metrics = useMemo(() => {
-        const criticalRisks = risks.filter(r => (r.score || 0) >= 15).length;
+        const criticalRisks = risks.filter(r => (r.score || 0) >= RISK_THRESHOLDS.CRITICAL).length;
         const openIncidents = incidents.filter(i => i.status !== 'Résolu').length;
-        const complianceRate = controls.length > 0
-            ? (controls.filter(c => c.status === 'Implémenté').length / controls.length) * 100
-            : 0;
+        const actionableControls = controls.filter(c => isActionableStatus(c.status));
+        const implementedCount = actionableControls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partialCount = actionableControls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+        const complianceRate = actionableControls.length > 0
+            ? ((implementedCount + partialCount * PARTIAL_CONTROL_WEIGHT) / actionableControls.length) * 100
+            : 100;
         const activeProjects = projects.filter(p => p.status === 'En cours').length;
 
         return {
@@ -132,11 +136,14 @@ export const AnalyticsDashboard: React.FC = () => {
 
             // If no history yet, show current state as a single point or empty
             if (mappedData.length === 0) {
-                const criticalRisks = risks.filter(r => (r.score || 0) >= 15).length;
+                const criticalRisks = risks.filter(r => (r.score || 0) >= RISK_THRESHOLDS.CRITICAL).length;
                 const openIncidents = incidents.filter(i => i.status !== 'Résolu').length;
-                const complianceRate = controls.length > 0
-                    ? (controls.filter(c => c.status === 'Implémenté').length / controls.length) * 100
-                    : 0;
+                const fallbackActionable = controls.filter(c => isActionableStatus(c.status));
+                const fallbackImpl = fallbackActionable.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+                const fallbackPartial = fallbackActionable.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+                const complianceRate = fallbackActionable.length > 0
+                    ? ((fallbackImpl + fallbackPartial * PARTIAL_CONTROL_WEIGHT) / fallbackActionable.length) * 100
+                    : 100;
                 setTrendData([{
                     date: new Date().toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
                     risks: criticalRisks,

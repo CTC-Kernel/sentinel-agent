@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Controller, SubmitHandler } from 'react-hook-form';
 import { useZodForm } from '../../../hooks/useZodForm';
 import { TlptCampaign } from '../../../types';
@@ -17,6 +17,7 @@ interface TLPTFormProps {
     isLoading?: boolean;
     isEditing?: boolean;
     readOnly?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export const TLPTForm: React.FC<TLPTFormProps> = ({
@@ -25,7 +26,8 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
     onCancel,
     isLoading,
     isEditing,
-    readOnly
+    readOnly,
+    onDirtyChange
 }) => {
     const defaultValues: TlptFormData = initialData ? {
         name: initialData.name,
@@ -47,11 +49,16 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
         notes: ''
     };
 
-    const { control, handleSubmit, watch, reset, formState: { errors } } = useZodForm<typeof tlptSchema>({
+    const { control, handleSubmit, watch, reset, formState: { errors, isDirty } } = useZodForm<typeof tlptSchema>({
         schema: tlptSchema,
         mode: 'onChange',
         defaultValues
     });
+
+    // Notify parent of dirty state changes
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Persistence Hook
     const { clearDraft } = useFormPersistence<TlptFormData>('sentinel_tlpt_draft_new', {

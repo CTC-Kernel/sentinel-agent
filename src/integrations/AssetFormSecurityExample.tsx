@@ -47,6 +47,8 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
     isLoading: _isLoading = false,
     readOnly = false
 }) => {
+    const { t } = useStore();
+
     // Utiliser useSecureFormWithZod au lieu de useForm
     const form = useSecureFormWithZod<AssetFormData>({
         schema: assetSchema as any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -65,16 +67,16 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
 
             try {
                 await onSubmit(sanitizedData);
-                toast.success('Actif sauvegardé avec succès');
+                toast.success(t('assets.saved') || 'Actif sauvegardé avec succès');
             } catch (error) {
                 ErrorLogger.error(error, 'AssetFormSecure.onSubmit');
-                toast.error('Erreur lors de la sauvegarde');
+                toast.error(t('assets.saveError') || 'Erreur lors de la sauvegarde');
                 throw error;
             }
         },
         rateLimitOperation: 'api',
         onError: () => {
-            toast.error('Une erreur est survenue');
+            toast.error(t('common.unexpectedError') || 'Une erreur est survenue');
         }
     });
 
@@ -158,6 +160,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
     readOnly = false
 }) => {
     const user = useStore((state: any) => state.user); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const t = useStore((state: any) => state.t); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Garder react-hook-form existant
@@ -177,7 +180,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
         // 1. Rate Limiting
         if (!RateLimiter.checkLimit('api', user?.uid)) {
             const waitTime = RateLimiter.getWaitTime('api', user?.uid);
-            toast.error(`Trop de requêtes. Veuillez patienter ${Math.ceil(waitTime / 1000)}s.`);
+            toast.error(t('common.rateLimited') || `Trop de requêtes. Veuillez patienter ${Math.ceil(waitTime / 1000)}s.`);
             return;
         }
 
@@ -194,7 +197,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
 
         try {
             await onSubmit(sanitizedData);
-            toast.success('Actif sauvegardé avec succès');
+            toast.success(t('assets.saved') || 'Actif sauvegardé avec succès');
         } catch (error) {
             ErrorLogger.error(error, 'AssetForm.handleSecureSubmit', {
                 metadata: {
@@ -202,7 +205,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
                     assetName: sanitizedData.name
                 }
             });
-            toast.error('Erreur lors de la sauvegarde');
+            toast.error(t('assets.saveError') || 'Erreur lors de la sauvegarde');
         } finally {
             setIsSubmitting(false);
         }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Control } from '../../types';
 import { CheckCircle2, AlertTriangle, ShieldAlert } from '../ui/Icons';
 import { useLocale } from '../../hooks/useLocale';
+import { CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, isActionableStatus } from '../../constants/complianceConfig';
 
 interface ComplianceScorecardProps {
     controls: Control[];
@@ -23,17 +24,20 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
 
     const stats = controls.length > 0 ? domains.map(domain => {
         const domainControls = controls.filter(c => c.code.startsWith(domain.id) || c.code.startsWith(`A.${domain.id}`));
-        const applicableControls = domainControls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable');
-        const implemented = applicableControls.filter(c => c.status === 'Implémenté').length;
-        const total = applicableControls.length;
-        const score = total > 0 ? Math.round((implemented / total) * 100) : 0;
+        const actionable = domainControls.filter(c => isActionableStatus(c.status));
+        const implemented = actionable.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partial = actionable.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+        const total = actionable.length;
+        const score = total > 0 ? Math.round(((implemented + partial * PARTIAL_CONTROL_WEIGHT) / total) * 100) : 100;
         return { ...domain, score, total, implemented };
     }) : [];
 
-    const applicableTotal = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable');
-    const totalScore = Math.round(
-        (applicableTotal.filter(c => c.status === 'Implémenté').length / (applicableTotal.length || 1)) * 100
-    );
+    const actionableTotal = controls.filter(c => isActionableStatus(c.status));
+    const implementedTotal = actionableTotal.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+    const partialTotal = actionableTotal.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+    const totalScore = actionableTotal.length > 0
+        ? Math.round(((implementedTotal + partialTotal * PARTIAL_CONTROL_WEIGHT) / actionableTotal.length) * 100)
+        : 100;
 
     return (
         <div className="glass-premium p-4 sm:p-6 rounded-3xl h-full border border-border/40">
@@ -81,15 +85,15 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
             <div className="mt-6 pt-6 border-t border-border/60 flex gap-4 overflow-x-auto no-scrollbar">
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    {controls.filter(c => c.status === 'Implémenté').length} {t('compliance.status.implemented', { defaultValue: 'Implémentés' })}
+                    {controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length} {t('compliance.status.implemented', { defaultValue: 'Implémentés' })}
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    {controls.filter(c => c.status === 'Partiel').length} {t('compliance.status.partial', { defaultValue: 'Partiels' })}
+                    {controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length} {t('compliance.status.partial', { defaultValue: 'Partiels' })}
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <ShieldAlert className="h-4 w-4 text-red-500" />
-                    {controls.filter(c => c.status === 'Non commencé').length} {t('compliance.status.todo', { defaultValue: 'À faire' })}
+                    {controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length} {t('compliance.status.todo', { defaultValue: 'À faire' })}
                 </div>
             </div>
         </div>

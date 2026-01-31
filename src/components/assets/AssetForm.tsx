@@ -250,7 +250,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         setValue('integrity', suggestion.integrity, { shouldDirty: true });
         setValue('availability', suggestion.availability, { shouldDirty: true });
 
-        addToast(`Classification appliquée: ${suggestion.reason}`, "success");
+        addToast(t('assets.toast.classificationApplied', { defaultValue: `Classification appliquée: ${suggestion.reason}`, reason: suggestion.reason }), "success");
     };
 
     return (

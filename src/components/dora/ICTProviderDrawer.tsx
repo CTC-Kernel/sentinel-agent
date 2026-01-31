@@ -40,7 +40,7 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
                 toast.success(t('dora.providers.toastUpdated'));
             } else {
                 await createProvider(data);
-                toast.success(t('dora.providers.toastCreated'));
+                toast.success(t('dora.providerCreated', { defaultValue: 'Fournisseur ICT créé. Enregistrez les incidents associés.' }));
             }
             onSuccess?.();
             onClose();

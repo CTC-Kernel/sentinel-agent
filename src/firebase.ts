@@ -22,6 +22,13 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
+const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket'] as const;
+for (const key of requiredKeys) {
+    if (!firebaseConfig[key]) {
+        console.error(`Missing Firebase config: ${key}`);
+    }
+}
+
 export const app = initializeApp(firebaseConfig);
 
 let appCheck: AppCheck | null = null;

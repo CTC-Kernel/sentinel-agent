@@ -160,7 +160,9 @@ export const Documents: React.FC = () => {
         isExportingCSV,
         confirmData,
         setConfirmData
-    } = useDocumentActions(effectiveUsers);
+    } = useDocumentActions(effectiveUsers, useCallback((deletedId: string) => {
+        if (selectedDocument?.id === deletedId) setSelectedDocument(null);
+    }, [selectedDocument, setSelectedDocument]));
 
     const [csvImportOpen, setCsvImportOpen] = useState(false);
 
@@ -573,7 +575,7 @@ export const Documents: React.FC = () => {
                                             <Button
                                                 variant={isDigitalSafeMode ? "default" : "outline"}
                                                 onClick={handleDigitalSafeToggle}
-                                                aria-label={t('documents.digitalSafe')}
+                                                aria-label={isDigitalSafeMode ? t('documents.digitalSafeActive', { defaultValue: 'Coffre-fort numérique activé — cliquez pour désactiver' }) : t('documents.digitalSafeInactive', { defaultValue: 'Coffre-fort numérique désactivé — cliquez pour activer' })}
                                                 aria-pressed={isDigitalSafeMode}
                                                 className={`gap-2 transition-all ${isDigitalSafeMode
                                                     ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 border-indigo-500'
@@ -610,8 +612,8 @@ export const Documents: React.FC = () => {
                                     <EmptyState
                                         icon={FileText}
                                         title={t('documents.emptyTitle')}
-                                        description={t('documents.emptyDesc')}
-                                        actionLabel={t('documents.newDocument')}
+                                        description={canCreate ? t('documents.emptyDesc') : t('documents.emptyDescReadOnly', { defaultValue: 'Contactez votre administrateur pour ajouter des documents.' })}
+                                        actionLabel={canCreate ? t('documents.newDocument') : undefined}
                                         onAction={canCreate ? handleCreateClick : undefined}
                                     />
                                 ) : (

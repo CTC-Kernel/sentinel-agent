@@ -3,6 +3,7 @@ import { functions, db } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { collection, doc, getDocs, setDoc, deleteDoc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { MitreTechnique, Vulnerability, CyberNewsItem, CompanySearchResult } from '../types';
 import { ScannerJob, ScannerJobCreate } from '../types/job';
 export type { CyberNewsItem, CompanySearchResult } from '../types';
@@ -142,7 +143,7 @@ class IntegrationService {
 
             // 2. Persist status to Firestore
             const integrationRef = doc(db, 'organizations', organizationId, 'integrations', providerId);
-            await setDoc(integrationRef, {
+            await setDoc(integrationRef, sanitizeData({
                 id: providerId,
                 providerId,
                 organizationId,
@@ -151,7 +152,7 @@ class IntegrationService {
                 connectedAt: serverTimestamp(),
                 lastSync: serverTimestamp(),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             return true;
         } catch (error) {
@@ -206,11 +207,11 @@ class IntegrationService {
             // Update the integration document to show it's "syncing" then "connected"
             // For this 'Masterpiece' implementation without a real backend, we just update the timestamp.
             const integrationRef = doc(db, 'organizations', organizationId, 'integrations', providerId);
-            await updateDoc(integrationRef, {
+            await updateDoc(integrationRef, sanitizeData({
                 lastSync: serverTimestamp(),
                 status: 'active', // Ensure it stays active
                 updatedAt: serverTimestamp()
-            });
+            }));
 
         } catch (error) {
             ErrorLogger.error(error, "IntegrationService.syncProvider");
@@ -296,9 +297,16 @@ class IntegrationService {
             const xmlDoc = parser.parseFromString(xmlText, "text/xml");
             const items = xmlDoc.querySelectorAll("item");
 
+            const safeLink = (url: string): string => {
+                try {
+                    const parsed = new URL(url);
+                    return ['https:', 'http:'].includes(parsed.protocol) ? url : '#';
+                } catch { return '#'; }
+            };
+
             return Array.from(items).slice(0, 5).map(item => ({
                 title: item.querySelector("title")?.textContent || "Sans titre",
-                link: item.querySelector("link")?.textContent || "#",
+                link: safeLink(item.querySelector("link")?.textContent || "#"),
                 pubDate: item.querySelector("pubDate")?.textContent || new Date().toISOString(),
                 source: "CERT-FR"
             }));
@@ -331,9 +339,16 @@ class IntegrationService {
             const xmlDoc = parser.parseFromString(xmlText, "text/xml");
             const items = xmlDoc.querySelectorAll("item");
 
+            const safeLink = (url: string): string => {
+                try {
+                    const parsed = new URL(url);
+                    return ['https:', 'http:'].includes(parsed.protocol) ? url : '#';
+                } catch { return '#'; }
+            };
+
             return Array.from(items).slice(0, 5).map(item => ({
                 title: item.querySelector("title")?.textContent || "Sans titre",
-                link: item.querySelector("link")?.textContent || "#",
+                link: safeLink(item.querySelector("link")?.textContent || "#"),
                 pubDate: item.querySelector("pubDate")?.textContent || new Date().toISOString(),
                 source: "CNIL"
             }));
@@ -610,7 +625,7 @@ class IntegrationService {
                 createdAt: serverTimestamp() as unknown as string,
                 nextRun: job.scheduledDate || new Date().toISOString()
             };
-            const docRef = await addDoc(jobsRef, newJob);
+            const docRef = await addDoc(jobsRef, sanitizeData(newJob));
             return { id: docRef.id, ...newJob };
         } catch (error) {
             ErrorLogger.error(error, "IntegrationService.scheduleScannerJob");
@@ -662,6 +677,11 @@ class IntegrationService {
                     success: false,
                     message: 'N8N integration not configured. Please set VITE_N8N_WEBHOOK_URL environment variable.'
                 };
+            }
+
+            // Validate webhookPath to prevent SSRF
+            if (!/^[a-zA-Z0-9\-_./]+$/.test(webhookPath)) {
+                throw new Error('Invalid webhook path');
             }
 
             // Note: Direct calls from Frontend to N8N might fail if CORS is not configured on N8N.

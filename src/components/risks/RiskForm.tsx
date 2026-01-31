@@ -190,6 +190,12 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         const firstErrorField = missingFields[0];
         if (firstErrorField && fieldTabMapping[firstErrorField]) setActiveTab(fieldTabMapping[firstErrorField]);
 
+        // Auto-scroll to the first error field after tab switch
+        setTimeout(() => {
+            const firstError = document.querySelector('[aria-invalid="true"]');
+            if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+
         const fieldLabels: Record<string, string> = {
             assetId: t('common.assets'),
             threat: t('common.threat'),
@@ -264,10 +270,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     }, [onSubmit, clearPersistedDraft, bypassNavigation]);
 
     const handleRestoreDraft = useCallback(() => {
-        if (savedDraft) { reset({ ...getValues(), ...savedDraft }); setShowDraftRecoveryBanner(false); toast.success('Brouillon restauré'); }
-    }, [savedDraft, reset, getValues]);
+        if (savedDraft) { reset({ ...getValues(), ...savedDraft }); setShowDraftRecoveryBanner(false); toast.success(t('risks.draftRestored') || 'Brouillon restauré'); }
+    }, [savedDraft, reset, getValues, t]);
 
-    const handleDiscardDraft = useCallback(() => { clearPersistedDraft(); setShowDraftRecoveryBanner(false); toast.info('Brouillon supprimé'); }, [clearPersistedDraft]);
+    const handleDiscardDraft = useCallback(() => { clearPersistedDraft(); setShowDraftRecoveryBanner(false); toast.info(t('risks.draftDiscarded') || 'Brouillon supprimé'); }, [clearPersistedDraft, t]);
 
     // Effects
     useEffect(() => {

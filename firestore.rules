@@ -754,6 +754,7 @@ service cloud.firestore {
 
       // UPDATE: Admin/RSSI/Direction can update
       allow update: if (canWrite(resource.data.organizationId) || (hasRole('direction') && belongsToOrganization(resource.data.organizationId))) &&
+        request.resource.data.organizationId == resource.data.organizationId &&
         // Validation
         (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
         (!('category' in request.resource.data) || request.resource.data.category in ['critical', 'important', 'standard']);
@@ -864,7 +865,8 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -951,7 +953,7 @@ service cloud.firestore {
           )
         );
         
-      allow update: if canWrite(resource.data.organizationId) ||
+      allow update: if (canWrite(resource.data.organizationId) ||
         (isAuditor() && belongsToOrganization(resource.data.organizationId)) ||
         (isAuthenticated() && belongsToOrganization(resource.data.organizationId) &&
           exists(/databases/$(database)/documents/audits/$(resource.data.auditId)) &&
@@ -960,7 +962,8 @@ service cloud.firestore {
         (isAuthenticated() &&
           exists(/databases/$(database)/documents/audits/$(resource.data.auditId)) &&
           "externalAuditors" in get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data && get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data.externalAuditors.hasAny([request.auth.token.email])
-        );
+        )) &&
+        request.resource.data.organizationId == resource.data.organizationId;
         
       allow delete: if canDelete(resource.data.organizationId);
     }
@@ -1020,7 +1023,8 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -1030,7 +1034,8 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -1056,7 +1061,8 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || isProjectManager());
-      allow update: if canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
+      allow update: if (canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId))) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
     }
 
@@ -1067,9 +1073,10 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || isProjectManager());
       // Allow update by Admin/Owner/PM OR the assignee (e.g. to mark as complete)
-      allow update: if canWrite(resource.data.organizationId) || 
+      allow update: if (canWrite(resource.data.organizationId) ||
         (isProjectManager() && belongsToOrganization(resource.data.organizationId)) ||
-        (isAuthenticated() && resource.data.assigneeId == request.auth.uid && belongsToOrganization(resource.data.organizationId));
+        (isAuthenticated() && resource.data.assigneeId == request.auth.uid && belongsToOrganization(resource.data.organizationId))) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
     }
     
@@ -1158,9 +1165,10 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (isAdmin() || isAuditor() || isOrgOwner(request.resource.data.organizationId));
-      allow update: if isAuthenticated() && 
+      allow update: if isAuthenticated() &&
         resource.data.organizationId == getUserData().organizationId &&
-        (isAdmin() || isAuditor() || isOrgOwner(resource.data.organizationId));
+        (isAdmin() || isAuditor() || isOrgOwner(resource.data.organizationId)) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -1207,8 +1215,9 @@ service cloud.firestore {
         (canWrite(request.resource.data.organizationId) || (isUser() && belongsToOrganization(request.resource.data.organizationId)));
       
       // SECURITY FIX: Only allow update if the user is the creator OR is an Admin/RSSI/Owner
-      allow update: if canWrite(resource.data.organizationId) ||
-        (isAuthenticated() && belongsToOrganization(resource.data.organizationId) && resource.data.userId == request.auth.uid);
+      allow update: if (canWrite(resource.data.organizationId) ||
+        (isAuthenticated() && belongsToOrganization(resource.data.organizationId) && resource.data.userId == request.auth.uid)) &&
+        request.resource.data.organizationId == resource.data.organizationId;
         
       allow delete: if canDelete(resource.data.organizationId);
     }
@@ -1219,7 +1228,8 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -1229,10 +1239,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+        request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
-    
+
     // Partnerships (Certifier Ecosystem) - Managed by Cloud Functions
     match /partnerships/{partnershipId} {
       allow read: if belongsToOrganization(resource.data.tenantId) || 
@@ -1281,6 +1292,7 @@ service cloud.firestore {
       // Cannot change status from released back to active
       allow update: if belongsToOrganization(resource.data.organizationId) &&
         (isAdmin() || isRSSI()) &&
+        request.resource.data.organizationId == resource.data.organizationId &&
         (!('status' in request.resource.data) ||
           request.resource.data.status == 'active' ||
           (request.resource.data.status == 'released' && resource.data.status == 'active'));
@@ -1311,6 +1323,7 @@ service cloud.firestore {
       // Update: Only admin/rssi can modify retention policies
       allow update: if belongsToOrganization(resource.data.organizationId) &&
         (isAdmin() || isRSSI()) &&
+        request.resource.data.organizationId == resource.data.organizationId &&
         (!('retentionDays' in request.resource.data) ||
           (request.resource.data.retentionDays is int && request.resource.data.retentionDays > 0)) &&
         (!('action' in request.resource.data) ||
@@ -1369,7 +1382,8 @@ service cloud.firestore {
 
       // Update: Only owner or admin can update
       allow update: if belongsToOrganization(resource.data.organizationId) &&
-        (isAdmin() || isRSSI() || resource.data.createdBy == request.auth.uid);
+        (isAdmin() || isRSSI() || resource.data.createdBy == request.auth.uid) &&
+        request.resource.data.organizationId == resource.data.organizationId;
 
       // Delete: Only owner or admin can delete
       allow delete: if belongsToOrganization(resource.data.organizationId) &&
@@ -1506,6 +1520,13 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || (isAdmin() && belongsToOrganization(resource.data.organizationId)));
       allow create: if isAuthenticated() && request.resource.data.organizationId == getUserData().organizationId;
+    }
+
+    // Archived Documents (created by Retention Engine Cloud Function)
+    // Read-only for org members; only Cloud Functions can write
+    match /archived_documents/{docId} {
+      allow read: if isAuthenticated() && canRead(resource.data.organizationId);
+      allow write: if false; // Only writable by Cloud Functions (Admin SDK)
     }
 
     // Default deny all

@@ -26,6 +26,13 @@ export const VALID_RISK_TRANSITIONS: Record<RiskStatus, RiskStatus[]> = {
 };
 
 /**
+ * Type guard for RiskStatus validation
+ */
+export function isRiskStatus(value: unknown): value is RiskStatus {
+    return typeof value === 'string' && (RISK_STATUSES as readonly string[]).includes(value);
+}
+
+/**
  * Check if a risk status transition is valid
  */
 export function isValidRiskTransition(from: RiskStatus, to: RiskStatus): boolean {
@@ -150,7 +157,7 @@ export interface Risk {
 }
 
 export interface RiskTreatment {
-    strategy?: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
+    strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
     description?: string;
     ownerId?: string;
     dueDate?: string;

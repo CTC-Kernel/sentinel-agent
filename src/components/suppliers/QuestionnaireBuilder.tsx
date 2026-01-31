@@ -17,7 +17,7 @@ interface Props {
 }
 
 export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { addTemplate, updateTemplate } = useSupplierDependencies({ fetchTemplates: true });
 
     const { register, control, handleSubmit, formState: { isSubmitting } } = useForm<QuestionnaireTemplate>({
@@ -55,7 +55,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                     createdAt: undefined
                 });
             }
-            addToast('Modèle enregistré avec succès', 'success');
+            addToast(t('suppliers.toast.templateSaved', { defaultValue: 'Modèle enregistré avec succès' }), 'success');
             if (onSave) onSave();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireBuilder.submit', 'UPDATE_FAILED');
@@ -73,7 +73,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
 
     const handleRemoveSectionClick = (index: number) => {
         if (fields.length <= 1) {
-            addToast('Le questionnaire doit contenir au moins une section', 'info');
+            addToast(t('suppliers.toast.atLeastOneSection', { defaultValue: 'Le questionnaire doit contenir au moins une section' }), 'info');
             return;
         }
         setSectionToDelete(index);
@@ -83,7 +83,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
         if (sectionToDelete !== null) {
             remove(sectionToDelete);
             setSectionToDelete(null);
-            addToast('Section supprimée', 'info');
+            addToast(t('suppliers.toast.sectionDeleted', { defaultValue: 'Section supprimée' }), 'info');
         }
     };
 

@@ -50,7 +50,7 @@ interface CreateEventDrawerProps {
 type EventType = 'audit' | 'project' | 'maintenance' | 'drill';
 
 export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, onClose, onEventCreated, initialDate }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const { assets, risks } = useCalendarData();
     const [eventType, setEventType] = useState<EventType>('audit');
     const [syncToGoogle, setSyncToGoogle] = useState(false);
@@ -129,17 +129,17 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                         start: startDateTime,
                         end: endDateTime,
                     });
-                    toast.success("Événement synchronisé avec Google Calendar");
+                    toast.success(t('calendar.toast.googleSynced', { defaultValue: "Événement synchronisé avec Google Calendar" }));
                 }
             }
 
-            toast.success('Événement créé avec succès');
+            toast.success(t('calendar.toast.eventCreated', { defaultValue: 'Événement créé avec succès' }));
             onEventCreated();
             onClose();
             reset();
         } catch (error) {
             ErrorLogger.error(error, "CreateEventDrawer.onSubmit");
-            toast.error("Erreur lors de la création de l'événement");
+            toast.error(t('calendar.toast.eventCreateError', { defaultValue: "Erreur lors de la création de l'événement" }));
         }
     };
 

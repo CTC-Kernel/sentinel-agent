@@ -71,7 +71,7 @@ export const Integrations: React.FC = () => {
                 setProviders(prev => prev.map(p =>
                     p.id === provider.id ? { ...p, status: 'connected' } : p
                 ));
-                toast.success(`Connecté à ${provider.name} (Démo)`);
+                toast.success(t('integrations.success.demoConnected', { defaultValue: `Connecté à ${provider.name} (Démo)`, provider: provider.name }));
             } catch {
                 toast.error(t('common.errors.connecting'));
             } finally {

@@ -9,6 +9,7 @@ import {
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../../theme/chartTheme';
+import { PARTIAL_CONTROL_WEIGHT } from '../../../constants/complianceConfig';
 
 interface ComplianceChartsProps {
     controls: Control[];
@@ -90,7 +91,8 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
     const notImplementedControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length;
     const notApplicableControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_APPLICABLE).length;
 
-    const overallScore = controls.length > 0 ? Math.round((implementedControls / controls.length) * 100) : 0;
+    const actionableControls = controls.filter(c => c.status !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.EXCLUDED).length;
+    const overallScore = actionableControls > 0 ? Math.round(((implementedControls + (inProgressControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100) : 0;
 
     // Status distribution
     const statusData = [
@@ -117,7 +119,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
 
     const domainChartData = Object.entries(domainData).map(([domain, data]) => ({
         domain,
-        rate: Math.round((data.implemented / data.total) * 100),
+        rate: data.total > 0 ? Math.round(((data.implemented + (data.inProgress * PARTIAL_CONTROL_WEIGHT)) / data.total) * 100) : 0,
         total: data.total,
         implemented: data.implemented
     }));
@@ -125,7 +127,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
     const radarData = Object.entries(domainData)
         .map(([domain, data]) => ({
             domain: domain,
-            score: (data.implemented / data.total * 100)
+            score: data.total > 0 ? ((data.implemented + (data.inProgress * PARTIAL_CONTROL_WEIGHT)) / data.total * 100) : 0
         }))
         .slice(0, 8);
 

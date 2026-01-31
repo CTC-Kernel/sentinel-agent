@@ -32,7 +32,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     label,
     initialFile
 }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
@@ -164,7 +164,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                             <>
                                 <Upload className={`text-slate-500 ${compact ? 'h-5 w-5 mb-1' : 'h-8 w-8 mb-2'}`} />
                                 <p className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
-                                    {label || "Cliquez pour sélectionner un fichier"}
+                                    {label || t('common.fileUploader.selectFile', { defaultValue: 'Cliquez pour sélectionner un fichier' })}
                                 </p>
                                 {!compact && (
                                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
@@ -235,7 +235,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 />
                             </div>
                             <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">
-                                Upload en cours... {progress}%
+                                {t('common.fileUploader.uploading', { defaultValue: 'Upload en cours... {progress}%', progress })}
                             </p>
                         </div>
                     )}
@@ -247,7 +247,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                             className="mt-3 w-full"
                         >
                             <Upload className="h-4 w-4 mr-2" />
-                            Téléverser
+                            {t('common.fileUploader.upload', { defaultValue: 'Téléverser' })}
                         </Button>
                     )}
                 </div>
@@ -264,7 +264,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             {progress === 100 && !uploading && (
                 <div className="flex items-center space-x-2 p-3 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-3xl">
                     <CheckCircle2 className="h-4 w-4 text-success-600 dark:text-success-400 flex-shrink-0" />
-                    <p className="text-sm text-success-600 dark:text-success-400">Fichier téléversé avec succès !</p>
+                    <p className="text-sm text-success-600 dark:text-success-400">{t('common.fileUploader.success', { defaultValue: 'Fichier téléversé avec succès !' })}</p>
                 </div>
             )}
         </div>

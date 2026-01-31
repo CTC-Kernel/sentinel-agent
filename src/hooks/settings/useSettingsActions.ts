@@ -2,6 +2,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../useAuth';
 import { ErrorLogger } from '../../services/errorLogger';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 export const useSettingsActions = () => {
   const { user } = useAuth();
@@ -11,10 +12,10 @@ export const useSettingsActions = () => {
 
     try {
       const settingsRef = doc(db, 'users', user.uid, 'settings', 'community');
-      await setDoc(settingsRef, {
+      await setDoc(settingsRef, sanitizeData({
         ...settings,
         updatedAt: serverTimestamp()
-      }, { merge: true });
+      }), { merge: true });
     } catch (error) {
       ErrorLogger.error(error, 'useSettingsActions.saveCommunitySettings');
       throw error;

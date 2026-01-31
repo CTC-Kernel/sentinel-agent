@@ -12,7 +12,7 @@ import { ConfirmModal } from '../../../components/ui/ConfirmModal';
 const auth = getAuth();
 
 export const UserManagement: React.FC = () => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export const UserManagement: React.FC = () => {
             window.location.href = '/dashboard';
         } catch (err) {
             ErrorLogger.error(err, 'UserManagement.impersonate');
-            addToast("Échec de l'impersonation", 'error');
+            addToast(t('admin.toast.impersonationFailed', { defaultValue: "Échec de l'impersonation" }), 'error');
         } finally {
             setImpersonateTarget(null);
         }

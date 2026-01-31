@@ -60,6 +60,7 @@ const Team: React.FC = () => {
     } = useTeamManagement(claimsSynced);
 
     const [csvImportOpen, setCsvImportOpen] = useState(false);
+    const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
 
     // CSV Import Handlers
     const userGuidelines = React.useMemo(() => ({
@@ -94,13 +95,18 @@ const Team: React.FC = () => {
 
     const handleOpenInviteModal = React.useCallback(() => {
         inviteForm.reset();
+        setInviteSuccess(null);
         setShowInviteModal(true);
     }, [inviteForm]);
 
     const handleAddUser: SubmitHandler<UserFormData> = React.useCallback(async (data) => {
         const success = await inviteUser(data);
-        if (success) setShowInviteModal(false);
-    }, [inviteUser]);
+        if (success) {
+            setInviteSuccess(data.email);
+            addToast(t('team.invite.success', { defaultValue: 'Invitation envoyée à {{email}}', email: data.email }), 'success');
+            inviteForm.reset({ role: 'user', displayName: '', email: '', department: '' });
+        }
+    }, [inviteUser, addToast, t, inviteForm]);
 
     const openEditModal = React.useCallback((u: UserProfile) => {
         setSelectedUser(u);
@@ -116,8 +122,11 @@ const Team: React.FC = () => {
     const handleUpdateUser: SubmitHandler<UserFormData> = React.useCallback(async (data) => {
         if (!selectedUser) return;
         const success = await updateUser(selectedUser.uid, data, !!selectedUser.isPending);
-        if (success) setShowEditModal(false);
-    }, [selectedUser, updateUser]);
+        if (success) {
+            addToast(t('team.userUpdated', { defaultValue: '{{name}} mis à jour avec succès', name: selectedUser.displayName || selectedUser.email }), 'success');
+            setShowEditModal(false);
+        }
+    }, [selectedUser, updateUser, addToast, t]);
 
     const initiateDelete = React.useCallback(async (u: UserProfile) => {
         try {
@@ -126,8 +135,8 @@ const Team: React.FC = () => {
                 if (dependencies.length > 0) {
                     setConfirmData({
                         isOpen: true,
-                        title: "Impossible de supprimer",
-                        message: `Cet utilisateur possède des éléments liés : ${dependencies.join(', ')}. Réassignez-les avant de supprimer.`,
+                        title: t('team.delete.cannotDelete', { defaultValue: 'Impossible de supprimer' }),
+                        message: t('team.delete.hasDependenciesDetailed', { defaultValue: 'Cet utilisateur possède des éléments liés : {{dependencies}}. Veuillez réassigner ces éléments à un autre membre depuis les modules concernés (Actifs, Risques, Documents) avant de pouvoir supprimer ce compte.', dependencies: dependencies.join(', ') }),
                         onConfirm: () => setConfirmData(prev => ({ ...prev, isOpen: false }))
                     });
                     return;
@@ -190,6 +199,7 @@ const Team: React.FC = () => {
 
     const handleCloseInvite = React.useCallback(() => {
         setShowInviteModal(false);
+        setInviteSuccess(null);
     }, []);
 
     const handleCloseEdit = React.useCallback(() => {
@@ -491,9 +501,25 @@ const Team: React.FC = () => {
                             />
                         </div>
                     </div>
+                    {inviteSuccess && (
+                        <div className="p-4 bg-success-bg border border-success-border/30 rounded-2xl text-success-text text-sm font-medium">
+                            {t('team.invite.successMessage', { defaultValue: 'Invitation envoyée à {{email}} !', email: inviteSuccess })}
+                        </div>
+                    )}
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-white/5">
-                        <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.actions.cancel')}</Button>
-                        <Button type="submit" disabled={loading || inviteForm.formState.isSubmitting} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
+                        {inviteSuccess ? (
+                            <>
+                                <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.invite.done', { defaultValue: 'Terminé' })}</Button>
+                                <Button type="button" onClick={() => setInviteSuccess(null)} className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">
+                                    <Plus className="h-4 w-4 mr-2" />{t('team.invite.inviteAnother', { defaultValue: 'Inviter un autre' })}
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.actions.cancel')}</Button>
+                                <Button type="submit" disabled={loading || inviteForm.formState.isSubmitting} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
+                            </>
+                        )}
                     </div>
                 </form>
             </Drawer>

@@ -4,6 +4,7 @@ import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';
 import { Loader2, Trash2, ExternalLink, ShieldAlert, Clock } from '../ui/Icons';
 import { toast } from '@/lib/toast';
+import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -24,6 +25,7 @@ interface SharedLinksListProps {
 }
 
 export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => {
+    const { t } = useStore();
     const [links, setLinks] = useState<SharedLink[]>([]);
     const [loading, setLoading] = useState(true);
     const [revokingId, setRevokingId] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
         try {
             const revokeFn = httpsCallable(functions, 'revokeAuditShare');
             await revokeFn({ token });
-            toast.success('Accès révoqué avec succès');
+            toast.success(t('audits.toast.accessRevoked', { defaultValue: 'Accès révoqué avec succès' }));
             // Optimistic update
             setLinks(prev => prev.map(l => l.id === token ? { ...l, revoked: true } : l));
         } catch (error) {

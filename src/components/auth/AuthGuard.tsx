@@ -39,7 +39,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
         setResendLoading(true);
         try {
             await sendEmailVerification(auth.currentUser);
-            toast.success(t('auth.verificationSent') || 'Email de vérification envoyé !');
+            toast.success(t('auth.emailResent', { defaultValue: 'Email de vérification envoyé ! Vérifiez votre boîte de réception et vos spams.' }) || 'Email de vérification envoyé !');
             setResendCooldown(60);
         } catch (err) {
             toast.error(t('auth.errors.generic') || 'Impossible d\'envoyer l\'email. Réessayez plus tard.');

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * SkipLink - Lien de navigation pour utilisateurs clavier
@@ -6,6 +7,7 @@ import React from 'react';
  * Améliore l'accessibilité WCAG 2.1 niveau A
  */
 export const SkipLink: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <a
       href="#main-content"
@@ -23,7 +25,7 @@ export const SkipLink: React.FC = () => {
       "
       tabIndex={0}
     >
-      Aller au contenu principal
+      {t('common.skipToMainContent', { defaultValue: 'Aller au contenu principal' })}
     </a>
   );
 };
@@ -39,10 +41,11 @@ interface SkipLinksProps {
 }
 
 export const SkipLinks: React.FC<SkipLinksProps> = ({ links }) => {
+  const { t } = useTranslation();
   const defaultLinks = [
-    { href: '#main-content', label: 'Aller au contenu principal' },
-    { href: '#navigation', label: 'Aller à la navigation' },
-    { href: '#search', label: 'Aller à la recherche' },
+    { href: '#main-content', label: t('common.skipToMainContent', { defaultValue: 'Aller au contenu principal' }) },
+    { href: '#navigation', label: t('common.skipToNavigation', { defaultValue: 'Aller à la navigation' }) },
+    { href: '#search', label: t('common.skipToSearch', { defaultValue: 'Aller à la recherche' }) },
   ];
 
   const skipLinks = links || defaultLinks;

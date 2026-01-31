@@ -8,6 +8,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Pencil, Loader2 } from './Icons';
 import { cn } from '../../lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface InlineEditProps {
     /** Current value */
@@ -49,7 +50,7 @@ interface InlineEditProps {
 export const InlineEdit: React.FC<InlineEditProps> = ({
     value,
     onSave,
-    placeholder = 'Cliquez pour modifier...',
+    placeholder,
     type = 'text',
     multiline = false,
     maxLength,
@@ -65,6 +66,8 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
     saveOnEnter = true,
     cancelOnEscape = true
 }) => {
+    const { t } = useTranslation();
+    const resolvedPlaceholder = placeholder ?? t('common.clickToEdit', { defaultValue: 'Cliquez pour modifier...' });
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(value);
     const [isSaving, setIsSaving] = useState(false);
@@ -105,7 +108,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
 
         // Validation
         if (minLength > 0 && trimmedValue.length < minLength) {
-            setError(`Minimum ${minLength} caractères requis`);
+            setError(t('validation.minLength', { defaultValue: `Minimum ${minLength} caractères requis`, count: minLength }));
             return;
         }
 
@@ -135,7 +138,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                 navigator.vibrate(30);
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde');
+            setError(err instanceof Error ? err.message : t('common.saveError', { defaultValue: 'Erreur lors de la sauvegarde' }));
         } finally {
             setIsSaving(false);
         }
@@ -202,7 +205,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     multiline && 'min-h-[80px] resize-y',
                                     inputClassName
                                 )}
-                                placeholder={placeholder}
+                                placeholder={resolvedPlaceholder}
                             />
                             {error && (
                                 <motion.p
@@ -222,7 +225,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     onClick={saveValue}
                                     disabled={isSaving}
                                     className="p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-                                    aria-label="Sauvegarder"
+                                    aria-label={t('common.save', { defaultValue: 'Sauvegarder' })}
                                 >
                                     {isSaving ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -235,7 +238,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     onClick={cancelEditing}
                                     disabled={isSaving}
                                     className="p-1.5 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-                                    aria-label="Annuler"
+                                    aria-label={t('common.cancel', { defaultValue: 'Annuler' })}
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -264,7 +267,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                 startEditing();
                             }
                         }}
-                        aria-label={`Modifier: ${value || placeholder}`}
+                        aria-label={`${t('common.edit', { defaultValue: 'Modifier' })}: ${value || resolvedPlaceholder}`}
                     >
                         <span
                             className={cn(
@@ -273,7 +276,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                 displayClassName
                             )}
                         >
-                            {renderDisplay ? renderDisplay(value) : (value || placeholder)}
+                            {renderDisplay ? renderDisplay(value) : (value || resolvedPlaceholder)}
                         </span>
 
                         {showEditIcon && !disabled && (
@@ -322,13 +325,14 @@ export const InlineEditNumber: React.FC<InlineEditNumberProps> = ({
     step: _step,
     ...props
 }) => {
+    const { t } = useTranslation();
     const validate = useCallback((val: string): string | null => {
         const num = parseFloat(val);
-        if (isNaN(num)) return 'Veuillez entrer un nombre valide';
-        if (min !== undefined && num < min) return `Minimum: ${min}`;
-        if (max !== undefined && num > max) return `Maximum: ${max}`;
+        if (isNaN(num)) return t('validation.invalidNumber', { defaultValue: 'Veuillez entrer un nombre valide' });
+        if (min !== undefined && num < min) return `${t('validation.minimum', { defaultValue: 'Minimum' })}: ${min}`;
+        if (max !== undefined && num > max) return `${t('validation.maximum', { defaultValue: 'Maximum' })}: ${max}`;
         return null;
-    }, [min, max]);
+    }, [min, max, t]);
 
     return (
         <InlineEdit

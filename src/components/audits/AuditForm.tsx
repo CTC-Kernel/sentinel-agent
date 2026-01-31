@@ -88,7 +88,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
 
     const onInvalid = (errors: FieldErrors<AuditFormData>) => {
         const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        toast.error(t('common.formInvalid', { defaultValue: 'Formulaire invalide. Champs en erreur' }) + ` : ${missingFields}`);
     };
 
     const watchedName = useWatch({ control, name: 'name' });

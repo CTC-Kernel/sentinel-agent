@@ -105,7 +105,10 @@ const getStatusText = (status: string): string => {
         'Partiel': '◐ Partiel',
         'En cours': '→ En cours',
         'Non commencé': '○ Non commencé',
-        'Non applicable': '— N/A'
+        'Planifié': '◇ Planifié',
+        'En retard': '⚠ En retard',
+        'Non applicable': '— N/A',
+        'Exclu': '✗ Exclu'
     };
     return statusMap[status] || status;
 };

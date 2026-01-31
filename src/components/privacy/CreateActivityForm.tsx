@@ -64,14 +64,14 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
 
     const onInvalid = (errors: FieldErrors<ProcessingActivityFormData>) => {
         const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        toast.error(t('common.formInvalid', { defaultValue: 'Formulaire invalide. Champs en erreur' }) + ` : ${missingFields}`);
     };
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="p-4 sm:p-8 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                    <FloatingLabelInput label="Nom du traitement" {...register('name')} placeholder="ex: Gestion Paie" error={errors.name?.message} />
+                    <FloatingLabelInput label="Nom du traitement" {...register('name')} placeholder="ex: Gestion Paie" error={errors.name?.message} aria-describedby={errors.name ? 'name-error' : undefined} />
                 </div>
                 <div>
                     <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Responsable</label>
@@ -84,13 +84,13 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                             setValue('manager', selectedUser?.displayName || '');
                         }}
                         options={usersList.map(u => ({ value: u.uid, label: u.displayName }))}
-                        placeholder="Sélectionner..."
+                        placeholder={t('common.select', { defaultValue: 'Sélectionner...' })}
                     />
-                    {errors.managerId && <p className="text-destructive text-xs mt-1">{errors.managerId.message}</p>}
+                    {errors.managerId && <p id="managerId-error" className="text-destructive text-xs mt-1">{errors.managerId.message}</p>}
                 </div>
             </div>
             <div>
-                <FloatingLabelInput label="Finalité principale" textarea rows={2} {...register('purpose')} placeholder="ex: Payer les salaires et déclarations sociales" error={errors.purpose?.message} />
+                <FloatingLabelInput label="Finalité principale" textarea rows={2} {...register('purpose')} placeholder="ex: Payer les salaires et déclarations sociales" error={errors.purpose?.message} aria-describedby={errors.purpose ? 'purpose-error' : undefined} />
             </div>
             <div className="grid grid-cols-2 gap-6">
                 <div>

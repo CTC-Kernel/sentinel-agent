@@ -58,13 +58,29 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     const [isSaving, setIsSaving] = useState(false);
     const [submittedScore, setSubmittedScore] = useState<number | null>(null);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [isFormDirty, setIsFormDirty] = useState(false);
+
+    // Track form modifications
+    const handleFieldChange = useCallback(<K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        setIsFormDirty(true);
+    }, []);
+
+    // Safe close with dirty check
+    const handleSafeClose = useCallback(() => {
+        if (isFormDirty && submittedScore === null) {
+            const confirmed = window.confirm(t('compliance.assessment.unsavedWarning', { defaultValue: 'Vous avez des modifications non enregistrées. Voulez-vous vraiment fermer ?' }));
+            if (!confirmed) return;
+        }
+        onClose();
+    }, [isFormDirty, submittedScore, onClose, t]);
 
     // Accessibility: Handle keyboard escape to close modal
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-            onClose();
+            handleSafeClose();
         }
-    }, [onClose]);
+    }, [handleSafeClose]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -128,7 +144,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={handleSafeClose}
             role="dialog"
             aria-modal="true"
             aria-labelledby="assessment-modal-title"
@@ -150,11 +166,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 <h3 id="assessment-modal-title" className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
                                     {t('compliance.assessment.title')}
                                 </h3>
-                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">ISO 27002</p>
+                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('compliance.assessment.framework', { defaultValue: 'ISO 27002' })}</p>
                             </div>
                         </div>
                         <button
-                            onClick={onClose}
+                            onClick={handleSafeClose}
                             aria-label={t('common.cancel')}
                             className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
@@ -173,10 +189,10 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                                                {t('compliance.assessment.nonCompliantTitle') || 'Non-conformite detectee'}
+                                                {t('compliance.assessment.nonCompliantTitle', { defaultValue: 'Non-conformité détectée' })}
                                             </h4>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                                Voulez-vous creer un plan d'action pour corriger cette non-conformite ?
+                                                {t('compliance.assessment.nonCompliantMessage', { defaultValue: "Voulez-vous créer un plan d'action pour corriger cette non-conformité ?" })}
                                             </p>
                                         </div>
                                     </div>
@@ -186,10 +202,10 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                             className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20 flex-1"
                                         >
                                             <ArrowRight className="w-4 h-4 mr-2" />
-                                            {t('compliance.assessment.createActionPlan') || 'Creer un plan d\'action'}
+                                            {t('compliance.assessment.createActionPlan', { defaultValue: "Créer un plan d'action" })}
                                         </Button>
                                         <Button variant="ghost" onClick={onClose} className="rounded-2xl">
-                                            {t('common.close') || 'Fermer'}
+                                            {t('common.close', { defaultValue: 'Fermer' })}
                                         </Button>
                                     </div>
                                 </div>
@@ -202,23 +218,40 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                                                {t('compliance.assessment.compliantTitle') || 'Evaluation enregistree'}
+                                                {t('compliance.assessment.compliantTitle', { defaultValue: 'Évaluation enregistrée' })}
                                             </h4>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                                {t('compliance.assessment.compliantMessage') || 'Le controle est conforme. Evaluation sauvegardee avec succes.'}
+                                                {t('compliance.assessment.compliantMessage', { defaultValue: 'Le contrôle est conforme. Évaluation sauvegardée avec succès.' })}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-3">
-                                        {getNextControl() && (
-                                            <Button onClick={handleAssessNext} className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20 flex-1">
-                                                <ArrowRight className="w-4 h-4 mr-2" />
-                                                {t('compliance.assessment.assessNext') || 'Evaluer le controle suivant'}
-                                            </Button>
+                                    <div className="flex flex-col gap-3">
+                                        {getNextControl() ? (
+                                            <div className="flex gap-3">
+                                                <Button onClick={handleAssessNext} className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20 flex-1">
+                                                    <ArrowRight className="w-4 h-4 mr-2" />
+                                                    {t('compliance.assessment.assessNext', { defaultValue: 'Évaluer le contrôle suivant' })}
+                                                </Button>
+                                                <Button variant="ghost" onClick={onClose} className="rounded-2xl">
+                                                    {t('common.close', { defaultValue: 'Fermer' })}
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                                                    {t('compliance.assessment.allCompleted', { defaultValue: 'Tous les contrôles ont été évalués. Consultez le tableau de bord pour un résumé.' })}
+                                                </p>
+                                                <div className="flex gap-3">
+                                                    <Button onClick={() => { navigate('/compliance'); onClose(); }} className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20 flex-1">
+                                                        <ArrowRight className="w-4 h-4 mr-2" />
+                                                        {t('compliance.assessment.viewDashboard', { defaultValue: 'Voir le tableau de bord' })}
+                                                    </Button>
+                                                    <Button variant="ghost" onClick={onClose} className="rounded-2xl">
+                                                        {t('common.close', { defaultValue: 'Fermer' })}
+                                                    </Button>
+                                                </div>
+                                            </>
                                         )}
-                                        <Button variant="ghost" onClick={onClose} className="rounded-2xl">
-                                            {t('common.close') || 'Fermer'}
-                                        </Button>
                                     </div>
                                 </div>
                             )}
@@ -233,9 +266,10 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             <select
                                 id="control-code"
                                 value={formData.controlCode}
-                                onChange={(e) => { setFormData(prev => ({ ...prev, controlCode: e.target.value })); setValidationErrors(prev => ({ ...prev, controlCode: '' })); }}
-                                className={`w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white ${validationErrors.controlCode ? 'border-red-500 ring-1 ring-red-500' : 'border-border/40 dark:border-slate-700'}`}
+                                onChange={(e) => { handleFieldChange('controlCode', e.target.value); setValidationErrors(prev => ({ ...prev, controlCode: '' })); }}
+                                className={`w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white ${validationErrors.controlCode ? 'border-red-500 ring-1 ring-red-500' : 'border-border/40 dark:border-slate-700'} ${controls.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 required
+                                disabled={controls.length === 0}
                                 aria-invalid={!!validationErrors.controlCode}
                                 aria-describedby={validationErrors.controlCode ? 'control-code-error' : undefined}
                             >
@@ -268,7 +302,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 max="100"
                                 step="5"
                                 value={formData.effectivenessScore}
-                                onChange={(e) => setFormData(prev => ({ ...prev, effectivenessScore: parseInt(e.target.value) }))}
+                                onChange={(e) => handleFieldChange('effectivenessScore', parseInt(e.target.value))}
                                 className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
                             />
                             <div className="flex justify-between text-xs text-muted-foreground mt-1">
@@ -289,7 +323,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             <select
                                 id="assessment-method"
                                 value={formData.assessmentMethod}
-                                onChange={(e) => { setFormData(prev => ({ ...prev, assessmentMethod: e.target.value })); setValidationErrors(prev => ({ ...prev, assessmentMethod: '' })); }}
+                                onChange={(e) => { handleFieldChange('assessmentMethod', e.target.value); setValidationErrors(prev => ({ ...prev, assessmentMethod: '' })); }}
                                 className={`w-full px-4 py-2.5 rounded-3xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white ${validationErrors.assessmentMethod ? 'border-red-500 ring-1 ring-red-500' : 'border-border/40 dark:border-slate-700'}`}
                                 aria-invalid={!!validationErrors.assessmentMethod}
                                 aria-describedby={validationErrors.assessmentMethod ? 'assessment-method-error' : undefined}
@@ -311,7 +345,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             <textarea
                                 id="notes"
                                 value={formData.notes}
-                                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                                onChange={(e) => handleFieldChange('notes', e.target.value)}
                                 rows={3}
                                 className="w-full px-4 py-3 rounded-2xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
                                 placeholder={t('compliance.assessment.notesPlaceholder')}
@@ -329,7 +363,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                     id="next-assessment"
                                     type="date"
                                     value={formData.nextAssessmentDate}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, nextAssessmentDate: e.target.value }))}
+                                    onChange={(e) => handleFieldChange('nextAssessmentDate', e.target.value)}
                                     className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 />
                             </div>
@@ -337,7 +371,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Actions */}
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border/40 dark:border-slate-700/50">
-                            <Button type="button" variant="ghost" onClick={onClose} className="rounded-2xl">
+                            <Button type="button" variant="ghost" onClick={handleSafeClose} className="rounded-2xl">
                                 {t('common.cancel')}
                             </Button>
                             <Button type="submit" disabled={isSaving || !formData.controlCode} className="rounded-2xl bg-brand-600 shadow-lg shadow-brand-500/20">

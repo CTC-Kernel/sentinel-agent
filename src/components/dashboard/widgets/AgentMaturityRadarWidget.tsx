@@ -49,8 +49,9 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
             ? Math.round(agentsWithScore.reduce((sum, a) => sum + (a.complianceScore || 0), 0) / agentsWithScore.length)
             : 0;
 
-        const latestVersion = '1.0.0';
-        const upToDate = agents.filter(a => a.version === latestVersion).length;
+        const versions = agents.map(a => a.version).filter(Boolean);
+        const latestVersion = versions.length > 0 ? versions.sort().reverse()[0] : null;
+        const upToDate = latestVersion ? agents.filter(a => a.version === latestVersion).length : 0;
 
         const tenMinAgo = mountTime - 10 * 60 * 1000;
         const supervised = agents.filter(a => new Date(a.lastHeartbeat).getTime() > tenMinAgo).length;
@@ -77,7 +78,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
         const recommendations: Record<string, string> = {
             [t('dashboard.agentMaturity.compliance')]: "Planifier un audit des accès sur les endpoints non-conformes.",
             [t('dashboard.agentMaturity.availability')]: "Vérifier la connectivité réseau des agents 'Offline'.",
-            [t('dashboard.agentMaturity.modernity')]: "Mettre à jour les agents vers la version v1.0.1 (Critique).",
+            [t('dashboard.agentMaturity.modernity')]: "Mettre à jour les agents vers la dernière version disponible.",
             [t('dashboard.agentMaturity.health')]: "Analyser les logs système des agents en erreur.",
             [t('dashboard.agentMaturity.monitoring')]: "Réactiver les heartbeats sur le segment production."
         };

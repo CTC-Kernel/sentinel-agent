@@ -209,7 +209,7 @@ class RateLimitService {
     let id = localStorage.getItem(key);
 
     if (!id) {
-      id = `anon_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      id = `anon_${crypto.randomUUID()}`;
       localStorage.setItem(key, id);
     }
 

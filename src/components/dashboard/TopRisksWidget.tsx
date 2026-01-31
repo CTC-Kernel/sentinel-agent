@@ -1,6 +1,7 @@
 import React from 'react';
 import { Risk } from '../../types';
 import { ShieldAlert, ArrowRight, CheckCircle2 } from '../ui/Icons';
+import { RISK_LEVELS } from '../../constants/RiskConstants';
 
 interface TopRisksWidgetProps {
     risks: Risk[];
@@ -8,9 +9,9 @@ interface TopRisksWidgetProps {
 }
 
 export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigate }) => {
-    // Sort by score desc and take top 5, but ONLY high/critical risks (>= 10)
+    // Sort by score desc and take top 5, but ONLY high/critical risks
     const topRisks = [...risks]
-        .filter(r => r.score >= 10)
+        .filter(r => r.score >= RISK_LEVELS.HIGH.min)
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
 
@@ -18,7 +19,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
         <div className="glass-premium p-4 sm:p-6 rounded-3xl h-full border border-border/40">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h3 className="text-lg font-bold text-foreground">Risques Critiques</h3>
+                    <h3 className="text-lg font-bold text-foreground">Risques Prioritaires</h3>
                     <p className="text-sm text-muted-foreground">Priorité d'action</p>
                 </div>
                 <button className="p-2 bg-destructive/10 text-destructive rounded-3xl hover:bg-destructive/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50">
@@ -30,7 +31,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                 {topRisks.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground text-sm flex flex-col items-center">
                         <CheckCircle2 className="h-12 w-12 mb-2 text-success opacity-60" />
-                        <p>Aucun risque critique identifié.</p>
+                        <p>Aucun risque élevé identifié.</p>
                         <p className="text-xs mt-1">Excellente posture de sécurité !</p>
                     </div>
                 ) : (

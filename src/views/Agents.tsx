@@ -194,27 +194,27 @@ export const Agents: React.FC = () => {
                         <TabsList className="bg-muted/50 p-1 rounded-xl" data-tour="agents-tabs">
                             <TabsTrigger value="overview" className="flex items-center gap-2" isLoading={loading}>
                                 <Layers className="h-4 w-4" />
-                                <span>Supervision</span>
+                                <span>{t('agents.tabs.supervision', { defaultValue: 'Supervision' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="policies" className="flex items-center gap-2" isLoading={loading}>
                                 <Shield className="h-4 w-4" />
-                                <span>Politiques</span>
+                                <span>{t('agents.tabs.policies', { defaultValue: 'Politiques' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="software" className="flex items-center gap-2" isLoading={loading}>
                                 <Package className="h-4 w-4" />
-                                <span>Inventaire Logiciels</span>
+                                <span>{t('agents.tabs.softwareInventory', { defaultValue: 'Inventaire Logiciels' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="anomalies" className="flex items-center gap-2" isLoading={loading}>
                                 <AlertTriangle className="h-4 w-4" />
-                                <span>Anomalies</span>
+                                <span>{t('agents.tabs.anomalies', { defaultValue: 'Anomalies' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="baselines" className="flex items-center gap-2" isLoading={loading}>
                                 <Shield className="h-4 w-4" />
-                                <span>Baselines</span>
+                                <span>{t('agents.tabs.baselines', { defaultValue: 'Baselines' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="reports" className="flex items-center gap-2" isLoading={loading}>
                                 <FileText className="h-4 w-4" />
-                                <span>Rapports</span>
+                                <span>{t('agents.tabs.reports', { defaultValue: 'Rapports' })}</span>
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -281,35 +281,39 @@ export const Agents: React.FC = () => {
                                             variant={statusFilter === 'all' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('all')}
+                                            aria-label={t('agents.filter.all', { defaultValue: 'Tous' })}
                                         >
-                                            Tous
+                                            {t('agents.filter.all', { defaultValue: 'Tous' })}
                                         </Button>
                                         <Button
                                             variant={statusFilter === 'active' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('active')}
                                             className="gap-1"
+                                            aria-label={t('agents.filter.active', { defaultValue: 'Actifs' })}
                                         >
                                             <span className="w-2 h-2 rounded-full bg-success" />
-                                            Actifs
+                                            {t('agents.filter.active', { defaultValue: 'Actifs' })}
                                         </Button>
                                         <Button
                                             variant={statusFilter === 'offline' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('offline')}
                                             className="gap-1"
+                                            aria-label={t('agents.filter.offline', { defaultValue: 'Hors ligne' })}
                                         >
                                             <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-                                            Hors ligne
+                                            {t('agents.filter.offline', { defaultValue: 'Hors ligne' })}
                                         </Button>
                                         <Button
                                             variant={statusFilter === 'error' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('error')}
                                             className="gap-1"
+                                            aria-label={t('agents.filter.error', { defaultValue: 'Erreur' })}
                                         >
                                             <span className="w-2 h-2 rounded-full bg-destructive" />
-                                            Erreur
+                                            {t('agents.filter.error', { defaultValue: 'Erreur' })}
                                         </Button>
                                     </div>
                                 </div>
@@ -321,6 +325,7 @@ export const Agents: React.FC = () => {
                                         onClick={() => setViewMode('grid')}
                                         className="h-8 w-8 p-0"
                                         title="Vue grille"
+                                        aria-label={t('agents.viewMode.grid', { defaultValue: 'Vue grille' })}
                                     >
                                         <LayoutGrid className="h-4 w-4" />
                                     </Button>
@@ -330,6 +335,7 @@ export const Agents: React.FC = () => {
                                         onClick={() => setViewMode('compact')}
                                         className="h-8 w-8 p-0"
                                         title="Vue liste"
+                                        aria-label={t('agents.viewMode.compact', { defaultValue: 'Vue liste' })}
                                     >
                                         <List className="h-4 w-4" />
                                     </Button>
@@ -368,6 +374,10 @@ export const Agents: React.FC = () => {
                                                 setDeleteConfirm({ agent });
                                                 break;
                                             case 'configure':
+                                                if (!hasPermission(user, 'Asset', 'update')) {
+                                                    toast.error(t('errors.permissionDenied', { defaultValue: 'Permission refusée' }));
+                                                    return;
+                                                }
                                                 setSelectedAgent(agent);
                                                 setIsLiveViewOpen(true);
                                                 ErrorLogger.debug(`Agent action: ${agent.id} configure`, 'Agents');
@@ -421,15 +431,15 @@ export const Agents: React.FC = () => {
                     <TabsContent value="reports" className="mt-0">
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-semibold mb-2">Rapports Agent</h3>
+                            <h3 className="text-lg font-semibold mb-2">{t('agents.reports.title', { defaultValue: 'Rapports Agent' })}</h3>
                             <p className="text-muted-foreground max-w-md mb-4">
-                                {`Générez des rapports de conformité, santé de la flotte et inventaire logiciel.`}
+                                {t('agents.reports.description', { defaultValue: 'Générez des rapports de conformité, santé de la flotte et inventaire logiciel.' })}
                             </p>
                             <Button onClick={() => {
-                                toast.info(t('agents.reportGenerating', { defaultValue: 'Génération en cours' }), t('agents.reportGeneratingDesc', { defaultValue: 'Le rapport de conformité sera disponible sous peu.' }));
+                                toast.info(t('agents.reportComingSoon', { defaultValue: 'Fonctionnalité en cours de développement' }), t('agents.reportComingSoonDesc', { defaultValue: 'La génération de rapports sera bientôt disponible.' }));
                                 ErrorLogger.debug('Report generation requested', 'Agents.reports');
                             }}>
-                                {`Générer un rapport`}
+                                {t('agents.generateReport', { defaultValue: 'Générer un rapport (bientôt)' })}
                             </Button>
                         </div>
                     </TabsContent>
@@ -440,22 +450,22 @@ export const Agents: React.FC = () => {
             {deleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="bg-card rounded-2xl p-6 max-w-md mx-4 shadow-apple-xl border border-border/50">
-                        <h3 className="text-lg font-semibold mb-2">Confirmer la suppression</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t('agents.deleteConfirm.title', { defaultValue: 'Confirmer la suppression' })}</h3>
                         <p className="text-muted-foreground mb-4">
-                            Supprimer l&apos;agent &quot;{deleteConfirm.agent.name || deleteConfirm.agent.hostname}&quot; ? Cette action est irreversible.
+                            {t('agents.deleteConfirm.message', { defaultValue: `Supprimer l'agent "${deleteConfirm.agent.name || deleteConfirm.agent.hostname}" ? Cette action est irreversible.`, name: deleteConfirm.agent.name || deleteConfirm.agent.hostname })}
                         </p>
                         <div className="flex gap-3 justify-end">
-                            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Annuler</Button>
+                            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                             <Button variant="destructive" onClick={async () => {
                                 try {
                                     await AgentService.deleteAgent(deleteConfirm.agent.organizationId, deleteConfirm.agent.id);
-                                    toast.success(t('agents.agentDeleted', { defaultValue: 'Agent supprime' }), `L'agent "${deleteConfirm.agent.name || deleteConfirm.agent.hostname}" a ete supprime.`);
+                                    toast.success(t('agents.agentDeleted', { defaultValue: 'Agent supprime' }), t('agents.agentDeletedDesc', { defaultValue: `L'agent "${deleteConfirm.agent.name || deleteConfirm.agent.hostname}" a ete supprime.`, name: deleteConfirm.agent.name || deleteConfirm.agent.hostname }));
                                 } catch (err) {
                                     toast.error(t('common.error', { defaultValue: 'Erreur' }), t('agents.deleteError', { defaultValue: 'Impossible de supprimer l\'agent.' }));
                                     ErrorLogger.error(err as Error, 'Agents.deleteAgent');
                                 }
                                 setDeleteConfirm(null);
-                            }}>Supprimer</Button>
+                            }}>{t('common.delete', { defaultValue: 'Supprimer' })}</Button>
                         </div>
                     </div>
                 </div>

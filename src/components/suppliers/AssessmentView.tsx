@@ -20,7 +20,7 @@ interface AssessmentAnswer {
 }
 
 export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
-    const { addToast, user } = useStore();
+    const { addToast, user, t } = useStore();
     const { templates, assessments, loading: hookLoading, updateAssessment } = useSupplierDependencies({
         fetchTemplates: true,
         fetchAssessments: true
@@ -105,10 +105,10 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                     // But given `user` comes from `useStore`, it should be there.
                 }
 
-                addToast('Évaluation soumise avec succès', 'success');
+                addToast(t('suppliers.toast.assessmentSubmittedWithScore', { defaultValue: `Évaluation soumise. Score : ${overallScore}/100` }), 'success');
                 onClose();
             } else {
-                addToast('Brouillon sauvegardé', 'success');
+                addToast(t('suppliers.toast.draftSaved', { defaultValue: 'Brouillon sauvegardé' }), 'success');
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AssessmentView.save', 'UPDATE_FAILED');

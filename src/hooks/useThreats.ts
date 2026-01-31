@@ -9,7 +9,7 @@ import { RISK_TEMPLATES } from '../data/riskTemplates';
 import { hasPermission } from '../utils/permissions';
 
 export const useThreats = () => {
-    const { user, addToast, demoMode } = useStore();
+    const { user, addToast, demoMode, t } = useStore();
     const [threats, setThreats] = useState<ThreatTemplate[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -35,17 +35,17 @@ export const useThreats = () => {
             setLoading(false);
         }, (err) => {
             ErrorLogger.error(err as Error, 'useThreats.subscribe');
-            addToast('Erreur lors du chargement des menaces', 'error');
+            addToast(t('threats.toast.loadError', { defaultValue: 'Erreur lors du chargement des menaces' }), 'error');
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, [user?.organizationId, addToast, demoMode]);
+    }, [user?.organizationId, addToast, demoMode, t]);
 
     const addThreat = async (threat: Partial<ThreatTemplate>) => {
         if (!user?.organizationId) return;
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
         try {
@@ -56,18 +56,18 @@ export const useThreats = () => {
                 createdAt: serverTimestamp()
             });
             await addDoc(collection(db, 'threat_library'), dataToSave);
-            addToast("Menace créée", "success");
+            addToast(t('threats.toast.created', { defaultValue: "Menace créée" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useThreats.addThreat');
-            addToast("Erreur lors de la création", "error");
+            addToast(t('threats.toast.createError', { defaultValue: "Erreur lors de la création" }), "error");
             throw error;
         }
     };
 
     const updateThreat = async (id: string, updates: Partial<ThreatTemplate>) => {
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
 
@@ -76,7 +76,7 @@ export const useThreats = () => {
             ErrorLogger.warn('Unauthorized threat update attempt', 'useThreats.updateThreat', {
                 metadata: { attemptedBy: user?.uid, targetId: id }
             });
-            addToast("Vous n'avez pas les droits pour modifier cette menace", "error");
+            addToast(t('threats.toast.noUpdatePermission', { defaultValue: "Vous n'avez pas les droits pour modifier cette menace" }), "error");
             return false;
         }
 
@@ -86,7 +86,7 @@ export const useThreats = () => {
             ErrorLogger.warn('IDOR attempt: threat modification across organizations', 'useThreats.updateThreat', {
                 metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetThreat?.organizationId, callerOrg: user?.organizationId }
             });
-            addToast("Menace non trouvée", "error");
+            addToast(t('threats.toast.notFound', { defaultValue: "Menace non trouvée" }), "error");
             return false;
         }
 
@@ -94,18 +94,18 @@ export const useThreats = () => {
             // Ensure ID is not in the update payload
             const { id: _unused, ...safeUpdates } = updates;
             await updateDoc(doc(db, 'threat_library', id), safeUpdates);
-            addToast("Menace modifiée", "success");
+            addToast(t('threats.toast.updated', { defaultValue: "Menace modifiée" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useThreats.updateThreat');
-            addToast("Erreur lors de la modification", "error");
+            addToast(t('threats.toast.updateError', { defaultValue: "Erreur lors de la modification" }), "error");
             throw error;
         }
     };
 
     const deleteThreat = async (id: string) => {
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
 
@@ -114,7 +114,7 @@ export const useThreats = () => {
             ErrorLogger.warn('Unauthorized threat deletion attempt', 'useThreats.deleteThreat', {
                 metadata: { attemptedBy: user?.uid, targetId: id }
             });
-            addToast("Vous n'avez pas les droits pour supprimer cette menace", "error");
+            addToast(t('threats.toast.noDeletePermission', { defaultValue: "Vous n'avez pas les droits pour supprimer cette menace" }), "error");
             return false;
         }
 
@@ -124,17 +124,17 @@ export const useThreats = () => {
             ErrorLogger.warn('IDOR attempt: threat deletion across organizations', 'useThreats.deleteThreat', {
                 metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetThreat?.organizationId, callerOrg: user?.organizationId }
             });
-            addToast("Menace non trouvée", "error");
+            addToast(t('threats.toast.notFound', { defaultValue: "Menace non trouvée" }), "error");
             return false;
         }
 
         try {
             await deleteDoc(doc(db, 'threat_library', id));
-            addToast("Menace supprimée", "success");
+            addToast(t('threats.toast.deleted', { defaultValue: "Menace supprimée" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useThreats.deleteThreat');
-            addToast("Erreur lors de la suppression", "error");
+            addToast(t('threats.toast.deleteError', { defaultValue: "Erreur lors de la suppression" }), "error");
             throw error;
         }
     };
@@ -142,7 +142,7 @@ export const useThreats = () => {
     const seedStandardThreats = async () => {
         if (!user?.organizationId) return;
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
         try {
@@ -161,11 +161,11 @@ export const useThreats = () => {
             });
 
             await batch.commit();
-            addToast(`${count} menaces standard importées`, 'success');
+            addToast(t('threats.toast.standardImported', { defaultValue: "{{count}} menaces standard importées", count }), 'success');
             return count;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useThreats.seedStandardThreats');
-            addToast("Erreur lors de l'import", "error");
+            addToast(t('threats.toast.importError', { defaultValue: "Erreur lors de l'import" }), "error");
             throw error;
         }
     };

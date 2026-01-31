@@ -2,6 +2,7 @@
 import React from 'react';
 import { ChevronRight, ChevronDown } from './Icons';
 import { Button } from './button';
+import { useTranslation } from 'react-i18next';
 
 interface PaginationProps {
     currentPage: number;
@@ -22,6 +23,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     itemsPerPageOptions = [20, 50, 100],
     showItemsPerPage = true
 }) => {
+    const { t } = useTranslation();
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
@@ -67,7 +69,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-premium rounded-2xl border border-border/40 dark:border-white/5">
             <div className="flex items-center gap-4">
                 <p className="text-sm text-slate-600 dark:text-muted-foreground font-medium">
-                    {startItem} à {endItem} sur {totalItems}
+                    {startItem} {t('pagination.to', { defaultValue: 'à' })} {endItem} {t('pagination.of', { defaultValue: 'sur' })} {totalItems}
                 </p>
 
                 {showItemsPerPage && onItemsPerPageChange && (
@@ -76,7 +78,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                             htmlFor="items-per-page"
                             className="text-sm text-slate-600 dark:text-slate-300 font-medium"
                         >
-                            Afficher:
+                            {t('pagination.show', { defaultValue: 'Afficher :' })}
                         </label>
                         <div className="relative">
                             <select

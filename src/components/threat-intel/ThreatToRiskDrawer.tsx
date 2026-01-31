@@ -29,7 +29,7 @@ interface ThreatToRiskDrawerProps {
 }
 
 export const ThreatToRiskDrawer: React.FC<ThreatToRiskDrawerProps> = ({ isOpen, onClose, threat }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { assets, addRisk, updateCommunityThreat } = useThreatIntelActions();
 
     const { control, handleSubmit, formState: { errors, isSubmitting }, reset, setValue } = useForm<FormData>({
@@ -81,7 +81,7 @@ export const ThreatToRiskDrawer: React.FC<ThreatToRiskDrawerProps> = ({ isOpen, 
                 });
             }
 
-            addToast("Risque créé avec succès", "success");
+            addToast(t('threatIntel.toast.riskCreated', { defaultValue: "Risque créé avec succès" }), "success");
             reset();
             onClose();
         } catch (error) {

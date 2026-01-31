@@ -2,6 +2,7 @@ import React from 'react';
 import { LucideIcon, Lightbulb, ArrowRight } from './Icons';
 import { motion, TargetAndTransition } from 'framer-motion';
 import { appleEasing } from '../../utils/microInteractions';
+import { useStore } from '../../store';
 
 interface EmptyStateProps {
     icon: LucideIcon;
@@ -35,6 +36,8 @@ const floatingAnimation: TargetAndTransition = {
 };
 
 export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, title, description, actionLabel, onAction, secondaryActionLabel, onSecondaryAction, tip, quickSteps, color = 'slate', semantic, compact = false, className = '' }) => {
+    const { t } = useStore();
+
     // Legacy color mapping (deprecated)
     const legacyColorStyles = {
         slate: 'bg-muted text-muted-foreground',
@@ -128,7 +131,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
                         visible: { opacity: 1, y: 0, transition: { ease: appleEasing } }
                     }}
                 >
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pour commencer</p>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('common.toGetStarted', { defaultValue: 'Pour commencer' })}</p>
                     <ol className="space-y-2">
                         {quickSteps.map((step, index) => (
                             <li key={index} className="flex items-start gap-3 text-sm text-foreground/80">

@@ -1,5 +1,6 @@
 import { ErrorLogger } from '../services/errorLogger';
 import { toast } from '@/lib/toast';
+import { useStore } from '../store';
 
 /**
  * Types d'erreurs standardisés pour Sentinel GRC
@@ -34,6 +35,8 @@ export interface StructuredError {
  * Hook pour la gestion d'erreurs standardisée
  */
 export const useErrorHandler = () => {
+  const { t } = useStore();
+
   /**
    * Gère une erreur de manière standardisée
    */
@@ -78,7 +81,7 @@ export const useErrorHandler = () => {
     // Afficher un toast si demandé
     if (showToast) {
       if (structuredError.type === ErrorType.NETWORK) {
-        toast.error(structuredError.userMessage, 'Veuillez vérifier votre connexion.');
+        toast.error(t('errors.checkConnection', { defaultValue: 'Veuillez vérifier votre connexion.' }), structuredError.userMessage);
       } else {
         toast.error(structuredError.userMessage);
       }
@@ -155,7 +158,7 @@ export const useErrorHandler = () => {
     const timestamp = new Date();
 
     // Tenter d'extraire des informations de l'erreur
-    let message = 'Une erreur inattendue est survenue';
+    let message = t('errors.unexpected', { defaultValue: 'Une erreur inattendue est survenue' });
     let code: string | undefined;
     let technicalDetails: Record<string, unknown> | undefined;
 
@@ -189,35 +192,35 @@ export const useErrorHandler = () => {
   };
 
   /**
-   * Génère un message utilisateur approprié
+   * Generates an appropriate user-facing error message.
    */
   const generateUserMessage = (structuredError: StructuredError): string => {
     const { type, message } = structuredError;
 
     switch (type) {
       case ErrorType.NETWORK:
-        return 'Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer.';
+        return t('errors.networkConnection', { defaultValue: 'Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer.' });
 
       case ErrorType.TIMEOUT:
-        return 'Le serveur met trop temps à répondre. Veuillez réessayer dans un instant.';
+        return t('errors.timeout', { defaultValue: 'Le serveur met trop temps à répondre. Veuillez réessayer dans un instant.' });
 
       case ErrorType.PERMISSION:
-        return 'Vous n\'avez pas les permissions nécessaires pour effectuer cette action.';
+        return t('errors.permissionDenied', { defaultValue: 'Vous n\'avez pas les permissions nécessaires pour effectuer cette action.' });
 
       case ErrorType.VALIDATION:
-        return 'Les données fournies ne sont pas valides. Veuillez vérifier les champs du formulaire.';
+        return t('errors.validationFailed', { defaultValue: 'Les données fournies ne sont pas valides. Veuillez vérifier les champs du formulaire.' });
 
       case ErrorType.NOT_FOUND:
-        return 'La ressource demandée n\'existe pas ou a été supprimée.';
+        return t('errors.notFound', { defaultValue: 'La ressource demandée n\'existe pas ou a été supprimée.' });
 
       case ErrorType.CONFLICT:
-        return 'Un conflit a été détecté. Les données ont peut-être été modifiées par un autre utilisateur.';
+        return t('errors.conflict', { defaultValue: 'Un conflit a été détecté. Les données ont peut-être été modifiées par un autre utilisateur.' });
 
       case ErrorType.SERVER_ERROR:
-        return 'Une erreur technique est survenue. Nos équipes en ont été informées.';
+        return t('errors.serverError', { defaultValue: 'Une erreur technique est survenue. Nos équipes en ont été informées.' });
 
       default:
-        return message || 'Une erreur inattendue est survenue.';
+        return message || t('errors.unexpected', { defaultValue: 'Une erreur inattendue est survenue.' });
     }
   };
 

@@ -1,4 +1,5 @@
 import { Risk, Project, ProjectTask, Control } from '../types';
+import { CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, RISK_THRESHOLDS, COMPLIANCE_WEIGHTS, isActionableStatus, isExcludedStatus } from '../constants/complianceConfig';
 
 export interface ReportMetrics {
     total_risks: number;
@@ -55,9 +56,9 @@ export class ReportEnrichmentService {
             const prob = Number(r.probability) || 0;
             const imp = Number(r.impact) || 0;
             const level = prob * imp;
-            if (level >= 15) critical++;
-            else if (level >= 10) high++;
-            else if (level >= 5) medium++;
+            if (level >= RISK_THRESHOLDS.CRITICAL) critical++;
+            else if (level >= RISK_THRESHOLDS.HIGH) high++;
+            else if (level >= RISK_THRESHOLDS.MEDIUM) medium++;
             else low++;
 
             if (r.treatment?.status === 'Terminé' || r.treatment?.status === 'Planifié' || r.treatment?.status === 'En cours') {
@@ -285,14 +286,15 @@ export class ReportEnrichmentService {
      */
     static calculateComplianceMetrics(controls: Control[]): ComplianceMetrics {
         const total = controls.length;
-        const implemented = controls.filter(c => c.status === 'Implémenté').length;
-        const planned = controls.filter(c => c.status === 'Non commencé' || c.status === 'En cours').length;
-        const notApplicable = controls.filter(c => c.status === 'Non applicable').length;
-        const notStarted = controls.filter(c => c.status === 'Non commencé').length;
+        const implemented = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partial = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+        const planned = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED || c.status === CONTROL_STATUS.IN_PROGRESS).length;
+        const notApplicable = controls.filter(c => isExcludedStatus(c.status)).length;
+        const notStarted = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length;
 
-        const effectiveTotal = total - notApplicable;
-        const coverage = effectiveTotal > 0 ? Math.round((implemented / effectiveTotal) * 100) : 0;
-        const readiness = effectiveTotal > 0 ? Math.round(((implemented + planned) / effectiveTotal) * 100) : 0;
+        const actionable = controls.filter(c => isActionableStatus(c.status)).length;
+        const coverage = actionable > 0 ? Math.round(((implemented + partial * PARTIAL_CONTROL_WEIGHT) / actionable) * 100) : 100;
+        const readiness = actionable > 0 ? Math.round(((implemented + partial + planned) / actionable) * 100) : 100;
 
         return {
             total_controls: total,
@@ -368,12 +370,12 @@ export class ReportEnrichmentService {
             }, 0) / projectMetrics.length
             : 100; // Default to 100 if no projects
 
-        // Weighted Average
+        // Weighted Average (using centralized weights)
         const globalScore = Math.round(
-            (riskHealth * 0.30) +
-            (complianceHealth * 0.30) +
-            (auditHealth * 0.20) +
-            (projectHealth * 0.20)
+            (riskHealth * COMPLIANCE_WEIGHTS.risks) +
+            (complianceHealth * COMPLIANCE_WEIGHTS.controls) +
+            (auditHealth * COMPLIANCE_WEIGHTS.audits) +
+            (projectHealth * (COMPLIANCE_WEIGHTS.documents + COMPLIANCE_WEIGHTS.training))
         );
 
         return {

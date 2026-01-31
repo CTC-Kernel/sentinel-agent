@@ -54,7 +54,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     reset,
     watch,
     setValue,
@@ -101,6 +101,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
       title={title}
       subtitle={subtitle}
       width="max-w-xl"
+      hasUnsavedChanges={isDirty}
     >
       <form
         id="milestone-form"

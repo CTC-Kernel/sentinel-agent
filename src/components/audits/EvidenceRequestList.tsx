@@ -131,11 +131,11 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
             }
 
             refresh();
-            addToast("Preuve ajoutée et liée", "success");
+            addToast(t('audits.evidence.proofAdded', { defaultValue: "Preuve ajoutée et liée" }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleFileUpload', 'FILE_UPLOAD_FAILED');
         }
-    }, [user, organizationId, auditId, refresh, addToast, addDocument, updateRequest, updateControl]);
+    }, [user, organizationId, auditId, refresh, addToast, addDocument, updateRequest, updateControl, t]);
 
     const handleStatusChange = useCallback(async (req: EvidenceRequest, status: EvidenceRequest['status']) => {
         try {
@@ -158,7 +158,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         try {
             await removeRequest(confirmDelete.id);
             refresh();
-            addToast("Demande supprimée", "info");
+            addToast(t('audits.evidence.requestDeleted', { defaultValue: "Demande supprimée" }), "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleDelete', 'DELETE_FAILED');
         } finally {
@@ -196,17 +196,17 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
             addWatermark: limitCheck.willHaveWatermark,
             planId,
             onSuccess: () => {
-                const successMessage = limitCheck.willHaveWatermark 
-                    ? "Export ZIP téléchargé (avec filigrane Discovery)"
-                    : "Export ZIP téléchargé";
+                const successMessage = limitCheck.willHaveWatermark
+                    ? t('audits.evidence.exportWithWatermark', { defaultValue: "Export ZIP téléchargé (avec filigrane Discovery)" })
+                    : t('audits.evidence.exportSuccess', { defaultValue: "Export ZIP téléchargé" });
                 addToast(successMessage, 'success');
             },
             onError: (err) => {
                 ErrorLogger.handleErrorWithToast(err, 'EvidenceRequestList.handleExport', 'UNKNOWN_ERROR');
-                addToast("Erreur lors de l'export", 'error');
+                addToast(t('audits.evidence.exportError', { defaultValue: "Erreur lors de l'export" }), 'error');
             }
         });
-    }, [auditId, requests, users, controls, documents, addToast, hasFeature, planId]);
+    }, [auditId, requests, users, controls, documents, addToast, hasFeature, planId, t]);
 
     return (
         <div>

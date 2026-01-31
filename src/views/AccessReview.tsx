@@ -75,7 +75,7 @@ const dormantStatusConfig: Record<DormantStatus, { label: string; color: string 
 };
 
 export const AccessReview: React.FC = () => {
-  const { user, addToast } = useStore();
+  const { user, addToast, t } = useStore();
 
   // State
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -166,7 +166,7 @@ export const AccessReview: React.FC = () => {
         user
       );
 
-      addToast('Campagne créée avec succès', 'success');
+      addToast(t('accessReview.toast.campaignCreated', { defaultValue: 'Campagne créée avec succès' }), 'success');
       setShowCampaignForm(false);
       resetForm();
     } catch (error) {
@@ -174,7 +174,7 @@ export const AccessReview: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user, campaignName, campaignDescription, startDate, endDate, scope, isRecurring, recurrenceDays, addToast, resetForm]);
+  }, [user, campaignName, campaignDescription, startDate, endDate, scope, isRecurring, recurrenceDays, addToast, resetForm, t]);
 
   // Launch campaign
   const handleLaunchCampaign = useCallback(async (campaign: AccessReviewCampaign) => {
@@ -184,11 +184,11 @@ export const AccessReview: React.FC = () => {
       // In a real implementation, we would fetch users based on campaign scope
       // For now, we just update the status
       await AccessReviewService.updateCampaignStatus(campaign.id, 'active', user);
-      addToast('Campagne lancée avec succès', 'success');
+      addToast(t('accessReview.toast.campaignLaunched', { defaultValue: 'Campagne lancée avec succès' }), 'success');
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'accessReview.errors.launchFailed');
     }
-  }, [user, addToast]);
+  }, [user, addToast, t]);
 
   // Update dormant status
   const handleDormantAction = useCallback(async (account: DormantAccount, newStatus: DormantStatus) => {
@@ -201,11 +201,11 @@ export const AccessReview: React.FC = () => {
         `Status changed to ${newStatus}`,
         user
       );
-      addToast('Statut mis à jour', 'success');
+      addToast(t('accessReview.toast.statusUpdated', { defaultValue: 'Statut mis à jour' }), 'success');
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'accessReview.errors.updateFailed');
     }
-  }, [user, addToast]);
+  }, [user, addToast, t]);
 
   return (
     <motion.div

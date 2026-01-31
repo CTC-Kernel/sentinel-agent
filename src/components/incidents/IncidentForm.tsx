@@ -134,9 +134,9 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
         <form id="incident-form" onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="space-y-6">
             <div className="space-y-6">
                 <FloatingLabelInput
-                    label="Titre de l'incident"
+                    label={t('incidents.form.title', { defaultValue: "Titre de l'incident" })}
                     {...register('title')}
-                    placeholder="Ex: Attaque Ransomware sur Serveur RH"
+                    placeholder={t('incidents.form.titlePlaceholder', { defaultValue: 'Ex: Attaque Ransomware sur Serveur RH' })}
                     error={errors.title?.message}
                 />
 
@@ -152,7 +152,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                             />
                             <label htmlFor="is-significant" className="text-sm font-bold text-foreground flex items-center">
                                 <ShieldAlert className="h-4 w-4 mr-2 text-error" />
-                                Incident Significatif (NIS 2)
+                                {t('incidents.form.nis2Significant', { defaultValue: 'Incident Significatif (NIS 2)' })}
                             </label>
                         </div>
 

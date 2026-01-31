@@ -72,7 +72,7 @@ export const PartnerManagement: React.FC = () => {
         try {
             const inviteFn = httpsCallable(functions, 'inviteCertifier');
             await inviteFn({ email, message: 'Nous souhaitons vous ajouter comme partenaire de certification sur Sentinel GRC.' });
-            toast.success('Invitation envoyée avec succès !');
+            toast.success(t('certifier.partners.inviteSent') || 'Invitation envoyée avec succès !');
             setIsInviteOpen(false);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'PartnerManagement.invite');
@@ -89,7 +89,7 @@ export const PartnerManagement: React.FC = () => {
             ErrorLogger.warn('Unauthorized partner deletion attempt', 'PartnerManagement.delete', {
                 metadata: { attemptedBy: user?.uid, targetPartnerId: partnerToDelete.id }
             });
-            toast.error("Vous n'avez pas les droits pour retirer ce partenaire");
+            toast.error(t('certifier.partners.deletePermissionError') || "Vous n'avez pas les droits pour retirer ce partenaire");
             setPartnerToDelete(null);
             return;
         }
@@ -99,7 +99,7 @@ export const PartnerManagement: React.FC = () => {
             ErrorLogger.warn('IDOR attempt: partner deletion across organizations', 'PartnerManagement.delete', {
                 metadata: { attemptedBy: user?.uid, targetPartnerId: partnerToDelete.id, targetOrg: partnerToDelete.tenantId, callerOrg: user?.organizationId }
             });
-            toast.error("Partenaire non trouvé");
+            toast.error(t('certifier.partners.notFound') || "Partenaire non trouvé");
             setPartnerToDelete(null);
             return;
         }
@@ -109,7 +109,7 @@ export const PartnerManagement: React.FC = () => {
             // Otherwise, we might need a cloud function 'revokePartner'.
             // Assuming direct delete per rules for 'manage' permissions.
             await deleteDoc(doc(db, 'partnerships', partnerToDelete.id));
-            toast.success('Partenaire retiré avec succès');
+            toast.success(t('certifier.partners.removed') || 'Partenaire retiré avec succès');
             setPartnerToDelete(null);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'PartnerManagement.delete');

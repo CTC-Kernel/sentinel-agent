@@ -50,7 +50,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
     const { addToast, t } = useStore();
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const { handleSubmit, control, watch, setValue, formState: { errors, isSubmitting }, reset } = useZodForm({
+    const { handleSubmit, control, watch, setValue, formState: { errors, isSubmitting, isDirty }, reset } = useZodForm({
         schema: businessProcessSchema,
         mode: 'onChange',
         defaultValues: {
@@ -168,6 +168,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
             title={title}
             subtitle={isEditing ? t('continuity.editProcess') : t('continuity.createProcess')}
             width="max-w-2xl"
+            hasUnsavedChanges={isDirty}
         >
             <form onSubmit={handleSubmit(async (data) => {
                 await onSubmit(data);

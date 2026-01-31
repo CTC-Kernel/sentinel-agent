@@ -29,6 +29,7 @@ import { CompliancePackService } from '../services/CompliancePackService';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { usePlanLimits } from '../hooks/usePlanLimits';
+import { hasPermission } from '../utils/permissions';
 import { useReportsData } from '../hooks/reports/useReportsData';
 import { Button } from '../components/ui/button';
 import { SEO } from '../components/SEO';
@@ -149,6 +150,10 @@ export const Reports: React.FC = () => {
     };
 
     const generatePDF = async (templateId: string, title: string, config?: ReportConfig) => {
+        if (!hasPermission(user, 'Document', 'create')) {
+            addToast(t('errors.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
+            return;
+        }
         if (!checkLimit('reports')) return; // reports feature check
         setLoadingAction(true);
         try {

@@ -1,6 +1,7 @@
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier, NotificationPreferences, NotificationChannelPreferences } from '../types';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import type { Milestone } from '../types/ebios';
 import { sendEmail } from './emailService';
 import {
@@ -513,7 +514,7 @@ export class NotificationService {
             const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Risk));
 
             const criticalRisksWithoutMitigation = risks.filter(
-                (risk) => risk.score >= 15 && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)
+                (risk) => risk.score >= RISK_THRESHOLDS.CRITICAL && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)
             );
 
             if (criticalRisksWithoutMitigation.length > 0) {

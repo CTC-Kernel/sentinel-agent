@@ -1,6 +1,7 @@
 import React from 'react';
 import { Risk } from '../../types';
 import { motion } from 'framer-motion';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 interface RiskHeatmapProps {
     risks: Risk[];
@@ -22,9 +23,9 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
     const getCellColor = (p: number, i: number) => {
         const score = p * i;
         // Using semantic tokens for consistency
-        if (score >= 15) return 'bg-error-text/90 dark:bg-error-text/80'; // Critical
-        if (score >= 10) return 'bg-warning-text/90 dark:bg-warning-text/80'; // High
-        if (score >= 5) return 'bg-info-text/90 dark:bg-info-text/80'; // Medium
+        if (score >= RISK_THRESHOLDS.CRITICAL) return 'bg-error-text/90 dark:bg-error-text/80'; // Critical
+        if (score >= RISK_THRESHOLDS.HIGH) return 'bg-warning-text/90 dark:bg-warning-text/80'; // High
+        if (score >= RISK_THRESHOLDS.MEDIUM) return 'bg-info-text/90 dark:bg-info-text/80'; // Medium
         return 'bg-success-text/90 dark:bg-success-text/80'; // Low
     };
 

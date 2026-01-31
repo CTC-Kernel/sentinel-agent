@@ -95,7 +95,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         },
         {
             accessorKey: 'name',
-            header: 'Audit',
+            header: t('audits.list.columns.audit', { defaultValue: 'Audit' }),
             cell: ({ row }) => {
                 const styles = getAuditTypeStyles(row.original.type);
                 const TypeIcon = styles.icon;
@@ -116,7 +116,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         },
         {
             accessorKey: 'dateScheduled',
-            header: 'Date',
+            header: t('audits.list.columns.date', { defaultValue: 'Date' }),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                     <CalendarDays className="w-4 h-4 text-muted-foreground" />
@@ -126,10 +126,10 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         },
         {
             accessorKey: 'auditor',
-            header: 'Auditeur',
+            header: t('audits.list.columns.auditor', { defaultValue: 'Auditeur' }),
             cell: ({ row }) => {
                 const auditorName = row.original.auditor;
-                if (!auditorName) return <span className="text-muted-foreground italic">Non assigné</span>;
+                if (!auditorName) return <span className="text-muted-foreground italic">{t('common.unassigned', { defaultValue: 'Non assigné' })}</span>;
 
                 const auditorUser = users?.find(u => u.displayName === auditorName || u.email === auditorName);
 
@@ -137,7 +137,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                     <div className="flex items-center gap-2">
                         <img
                             src={getUserAvatarUrl(auditorUser?.photoURL, auditorUser?.role)}
-                            alt=""
+                            alt={t('audits.list.auditorAvatar', { defaultValue: 'Avatar de l\'auditeur', name: auditorName })}
                             className="w-6 h-6 rounded-full border border-border/40 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{auditorName}</span>
@@ -147,7 +147,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         },
         {
             accessorKey: 'status',
-            header: 'Statut',
+            header: t('audits.list.columns.status', { defaultValue: 'Statut' }),
             cell: ({ row }) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(row.original.status)}`}>
                     {row.original.status}
@@ -156,7 +156,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         },
         {
             accessorKey: 'findingsCount',
-            header: 'Écarts',
+            header: t('audits.list.columns.findings', { defaultValue: 'Écarts' }),
             cell: ({ row }) => {
                 const count = (row.original.findings || []).filter((f: { status: string }) => f.status === 'Ouvert').length;
                 return (
@@ -206,7 +206,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                 );
             }
         }
-    ], [canEdit, canDelete, onEdit, onDelete, onDuplicate, onOpen, onSelect, selectedIds, audits, users, duplicatingIds]);
+    ], [canEdit, canDelete, onEdit, onDelete, onDuplicate, onOpen, onSelect, selectedIds, audits, users, duplicatingIds, t]);
 
     return (
         <DataTable

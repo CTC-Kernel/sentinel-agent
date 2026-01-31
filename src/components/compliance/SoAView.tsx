@@ -11,6 +11,7 @@ import autoTable from 'jspdf-autotable';
 import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useLocale } from '@/hooks/useLocale';
+import { CONTROL_STATUS } from '../../constants/complianceConfig';
 
 interface SoAViewProps {
     controls: Control[];
@@ -81,7 +82,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             const snapshot: SoAControlSnapshot[] = controls.map(c => ({
                 code: c.code,
                 name: c.name,
-                applicability: c.applicability || (c.status === 'Non applicable' ? 'Non applicable' : 'Applicable'),
+                applicability: c.applicability || (c.status === CONTROL_STATUS.NOT_APPLICABLE ? CONTROL_STATUS.NOT_APPLICABLE : 'Applicable'),
                 justification: c.justification || '',
                 status: c.status,
                 risksCount: c.relatedRiskIds?.filter(id => risks.some(r => r.id === id)).length || 0,
@@ -102,7 +103,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             const versionsRef = collection(db, 'organizations', user.organizationId, 'soaVersions');
             await addDoc(versionsRef, newVersion);
 
-            addToast(t('soa.versionSaved', { defaultValue: 'Version SoA sauvegardée' }), 'success');
+            addToast(t('soa.versionSaved', { defaultValue: 'Version sauvegardée. Consultez l\'historique pour comparer les versions.' }), 'success');
             await loadVersions(); // Refresh the list
         } catch (error) {
             ErrorLogger.error(error, 'SoAView.saveVersion');
@@ -142,7 +143,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                 : controls.map(c => [
                     c.code,
                     c.name,
-                    c.applicability || (c.status === 'Non applicable' ? 'Non applicable' : 'Applicable'),
+                    c.applicability || (c.status === CONTROL_STATUS.NOT_APPLICABLE ? CONTROL_STATUS.NOT_APPLICABLE : 'Applicable'),
                     c.justification || '-',
                     c.status,
                     (c.relatedRiskIds?.length || 0).toString()
@@ -185,7 +186,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             code: c.code,
             name: c.name,
             description: c.description,
-            applicability: c.applicability || (c.status === 'Non applicable' ? 'Non applicable' : 'Applicable'),
+            applicability: c.applicability || (c.status === CONTROL_STATUS.NOT_APPLICABLE ? CONTROL_STATUS.NOT_APPLICABLE : 'Applicable'),
             justification: c.justification,
             status: c.status,
             linkedRisksCount: c.relatedRiskIds?.filter(id => risks.some(r => r.id === id)).length || 0,
@@ -222,7 +223,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                         className="relative"
                     >
                         <History className="h-4 w-4 mr-2" />
-                        Historique
+                        {t('soa.history', { defaultValue: 'Historique' })}
                         {versions.length > 0 && (
                             <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 rounded-full">
                                 {versions.length}
@@ -236,7 +237,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                             disabled={savingVersion || controls.length === 0}
                         >
                             <Save className="h-4 w-4 mr-2" />
-                            {savingVersion ? 'Sauvegarde...' : 'Sauvegarder version'}
+                            {savingVersion ? t('soa.saving', { defaultValue: 'Sauvegarde...' }) : t('soa.saveVersion', { defaultValue: 'Sauvegarder version' })}
                         </Button>
                     )}
                     <Button variant="outline" onClick={() => exportPDF(selectedVersion || undefined)} disabled={exportingPdf}>
@@ -252,7 +253,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                             <History className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                            Historique des versions
+                            {t('soa.versionHistory', { defaultValue: 'Historique des versions' })}
                         </h3>
                         <button
                             onClick={() => setShowHistory(false)}
@@ -266,7 +267,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                         <div className="py-4 text-center text-slate-500">Chargement...</div>
                     ) : versions.length === 0 ? (
                         <div className="py-4 text-center text-slate-500">
-                            Aucune version sauvegardée. Cliquez sur "Sauvegarder version" pour créer un snapshot.
+                            {t('soa.noVersionsSaved', { defaultValue: 'Aucune version sauvegardée. Cliquez sur "Sauvegarder version" pour créer un snapshot.' })}
                         </div>
                     ) : (
                         <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -353,7 +354,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             <div className="overflow-x-auto rounded-lg border border-border/40 dark:border-border/40">
                 {displayControls.length === 0 ? (
                     <div className="text-center py-12 space-y-4">
-                        <p className="text-slate-600 dark:text-muted-foreground">Aucun contrôle disponible dans ce référentiel.</p>
+                        <p className="text-slate-600 dark:text-muted-foreground">{t('soa.noControlsAvailable', { defaultValue: 'Aucun contrôle disponible dans ce référentiel.' })}</p>
                         {onSeed && !selectedVersion && (
                             <Button onClick={onSeed} variant="default">
                                 Charger les contrôles par défaut
@@ -364,14 +365,14 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-slate-500 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-900/50">
                             <tr>
-                                <th className="px-4 py-3">Code</th>
-                                <th className="px-4 py-3">Contrôle</th>
-                                <th className="px-4 py-3">Applicable</th>
-                                <th className="px-4 py-3">Risques</th>
-                                <th className="px-4 py-3">Preuves</th>
-                                <th className="px-4 py-3">Justification</th>
-                                <th className="px-4 py-3">Statut implémentation</th>
-                                {!selectedVersion && <th className="px-4 py-3">Maturité</th>}
+                                <th className="px-4 py-3">{t('soa.table.code', { defaultValue: 'Code' })}</th>
+                                <th className="px-4 py-3">{t('soa.table.control', { defaultValue: 'Contrôle' })}</th>
+                                <th className="px-4 py-3">{t('soa.table.applicable', { defaultValue: 'Applicable' })}</th>
+                                <th className="px-4 py-3">{t('soa.table.risks', { defaultValue: 'Risques' })}</th>
+                                <th className="px-4 py-3">{t('soa.table.evidence', { defaultValue: 'Preuves' })}</th>
+                                <th className="px-4 py-3">{t('soa.table.justification', { defaultValue: 'Justification' })}</th>
+                                <th className="px-4 py-3">{t('soa.table.implementationStatus', { defaultValue: 'Statut implémentation' })}</th>
+                                {!selectedVersion && <th className="px-4 py-3">{t('soa.table.maturity', { defaultValue: 'Maturité' })}</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5 bg-white dark:bg-slate-900">

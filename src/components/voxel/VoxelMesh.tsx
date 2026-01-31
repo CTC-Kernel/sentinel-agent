@@ -4,6 +4,7 @@ import { Text } from '@react-three/drei';
 import { Group, Mesh, MeshPhysicalMaterial, DoubleSide, AdditiveBlending } from 'three';
 import { animated, useSpring, config } from '@react-spring/three';
 import { VoxelNode, VoxelNodeType, VoxelNodeStatus, Risk, Project, Incident } from '../../types';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 // Helper to convert object position to array for Three.js
 const positionToArray = (pos: { x: number; y: number; z: number }): [number, number, number] => [pos.x, pos.y, pos.z];
@@ -19,8 +20,8 @@ const getNodeColor = (type: VoxelNodeType, status: VoxelNodeStatus, data?: Recor
     case 'asset': return '#3b82f6';
     case 'risk': {
       const score = (data as { score?: number })?.score ?? 0;
-      if (score >= 15) return '#ef4444';
-      if (score >= 10) return '#f59e0b';
+      if (score >= RISK_THRESHOLDS.CRITICAL) return '#ef4444';
+      if (score >= RISK_THRESHOLDS.HIGH) return '#f59e0b';
       return '#22c55e';
     }
     case 'project': return '#a855f7';
@@ -297,7 +298,7 @@ export const VoxelMesh: React.FC<{
     const isCritical = useMemo(() => {
         if (node.type === 'risk') {
             const riskData = node.data as unknown as Risk;
-            return riskData.score >= 15;
+            return riskData.score >= RISK_THRESHOLDS.CRITICAL;
         }
         if (node.type === 'incident') {
             const incidentData = node.data as unknown as Incident;

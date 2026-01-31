@@ -25,8 +25,8 @@ const resolveOwner = (ownerId: string | undefined, usersList: UserProfile[]) => 
     return usersList.find(u => u.uid === ownerId) || null;
 };
 
-export const useDocumentActions = (usersList: UserProfile[] = []) => {
-    const { user, addToast } = useStore();
+export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: (id: string) => void) => {
+    const { user, addToast, t } = useStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
 
@@ -89,7 +89,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 `Nouveau document: ${data.title}`
             );
 
-            addToast("Document ajouté", "success");
+            addToast(t('documents.toast.created', { defaultValue: "Document ajouté" }), "success");
             return docRef.id;
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
@@ -158,7 +158,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 data.title
             );
 
-            addToast("Document mis à jour", "success");
+            addToast(t('documents.toast.updated', { defaultValue: "Document mis à jour" }), "success");
             return { ...currentDoc, ...updates };
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdate', 'UPDATE_FAILED');
@@ -180,7 +180,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
             setConfirmData({
                 isOpen: true,
-                title: "Supprimer le document ?",
+                title: t('documents.confirm.deleteTitle', { defaultValue: "Supprimer le document ?" }),
                 message: dependencies.message,
                 onConfirm: async () => await handleDelete(docItem.id, docItem.title),
                 closeOnConfirm: false
@@ -194,7 +194,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         if (!user?.organizationId || !user?.uid) return;
         // Strict RBAC check for deletion
         if (!canDeleteResource(user, 'Document')) {
-            addToast('Permission refusée', 'error');
+            addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
             return;
         }
 
@@ -217,7 +217,8 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 title
             );
 
-            addToast("Document et liens supprimés", "info");
+            addToast(t('documents.toast.deletedWithLinks', { defaultValue: "Document et liens supprimés" }), "info");
+            onDeletedId?.(id);
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleDelete', 'DELETE_FAILED');
@@ -248,7 +249,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 name
             );
 
-            addToast('Dossier créé', 'success');
+            addToast(t('documents.toast.folderCreated', { defaultValue: 'Dossier créé' }), 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleCreateFolder', 'CREATE_FAILED');
         }
@@ -263,7 +264,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
             ErrorLogger.warn('IDOR attempt: folder update across organizations', 'useDocumentActions.handleUpdateFolder', {
                 metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folderOrganizationId, callerOrg: user.organizationId }
             });
-            addToast('Dossier non trouvé', 'error');
+            addToast(t('documents.toast.folderNotFound', { defaultValue: 'Dossier non trouvé' }), 'error');
             return;
         }
 
@@ -283,7 +284,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 name
             );
 
-            addToast('Dossier renommé', 'success');
+            addToast(t('documents.toast.folderRenamed', { defaultValue: 'Dossier renommé' }), 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdateFolder', 'UPDATE_FAILED');
         }
@@ -292,7 +293,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     const handleDeleteFolder = async (id: string, rawFolders: DocumentFolder[], documents: Document[], selectedFolderId: string | null, setSelectedFolderId: (id: string | null) => void) => {
         if (!user?.organizationId) return;
         if (!canDeleteResource(user, 'Document')) {
-            addToast('Permission refusée', 'error');
+            addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
             return;
         }
 
@@ -302,7 +303,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
             ErrorLogger.warn('IDOR attempt: folder deletion across organizations', 'useDocumentActions.handleDeleteFolder', {
                 metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folder?.organizationId, callerOrg: user.organizationId }
             });
-            addToast('Dossier non trouvé', 'error');
+            addToast(t('documents.toast.folderNotFound', { defaultValue: 'Dossier non trouvé' }), 'error');
             return;
         }
 
@@ -332,7 +333,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
             );
 
             if (selectedFolderId === id) setSelectedFolderId(null);
-            addToast('Dossier supprimé', 'success');
+            addToast(t('documents.toast.folderDeleted', { defaultValue: 'Dossier supprimé' }), 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleDeleteFolder', 'DELETE_FAILED');
         }
@@ -363,7 +364,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 type: 'DOCUMENT_REVIEW',
                 html
             });
-            addToast("Rappel envoyé au propriétaire", "success");
+            addToast(t('documents.toast.reminderSent', { defaultValue: "Rappel envoyé au propriétaire" }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.sendReviewReminder', 'EMAIL_SEND_FAILED');
         }
@@ -402,7 +403,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     const importDocuments = async (csvContent: string) => {
         if (!user?.organizationId) return;
         if (!canEditResource(user, 'Document')) {
-            addToast('Permission refusée', 'error');
+            addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
             return;
         }
 
@@ -410,7 +411,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         try {
             const lines = ImportService.parseCSV(csvContent);
             if (lines.length === 0) {
-                addToast("Fichier vide ou invalide", "error");
+                addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
                 return;
             }
 
@@ -428,7 +429,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 'CSV Import'
             );
 
-            addToast(`Import de ${count} documents réussi`, "success");
+            addToast(t('documents.toast.importSuccess', { defaultValue: "Import de {{count}} documents réussi", count }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useDocumentActions.importDocuments');
         } finally {

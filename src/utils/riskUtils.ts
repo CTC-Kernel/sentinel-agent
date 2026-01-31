@@ -1,20 +1,22 @@
 import { Risk, Control } from '../types';
-import { RISK_THRESHOLDS } from '../constants/complianceConfig';
+import { RISK_THRESHOLDS, CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT } from '../constants/complianceConfig';
 
 /**
  * Control status weight map for mitigation calculations
  */
 export const CONTROL_STATUS_WEIGHTS: Record<string, number> = {
-    'Implémenté': 1.0,
+    [CONTROL_STATUS.IMPLEMENTED]: 1.0,
     'Actif': 1.0,
-    'Partiel': 0.5,
-    'En cours': 0.3,
+    [CONTROL_STATUS.PARTIAL]: PARTIAL_CONTROL_WEIGHT,
+    [CONTROL_STATUS.IN_PROGRESS]: 0.3,
     'En revue': 0.2,
-    'Non commencé': 0.1,
-    'Non applicable': 0,
-    'Exclu': 0,
+    [CONTROL_STATUS.PLANNED]: 0.15,
+    [CONTROL_STATUS.NOT_STARTED]: 0.1,
+    [CONTROL_STATUS.OVERDUE]: 0.1,
+    [CONTROL_STATUS.NOT_APPLICABLE]: 0,
+    [CONTROL_STATUS.EXCLUDED]: 0,
     'Inactif': 0,
-    'Non appliqué': 0
+    'Non conforme': 0
 };
 
 /**
@@ -73,10 +75,10 @@ export function calculateSuggestedResidualRisk(
     const suggestedImpact = Math.max(1, Math.round(impact * impactReduction));
 
     const implementedCount = linkedControls.filter(c =>
-        c.status === 'Implémenté' || c.status === 'Actif'
+        c.status === CONTROL_STATUS.IMPLEMENTED || c.status === 'Actif'
     ).length;
     const partialCount = linkedControls.filter(c =>
-        c.status === 'Partiel' || c.status === 'En cours'
+        c.status === CONTROL_STATUS.PARTIAL || c.status === CONTROL_STATUS.IN_PROGRESS
     ).length;
 
     let explanation = `Basé sur ${linkedControls.length} contrôle(s) lié(s): `;

@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { SENTINEL_PALETTE } from '../../theme/chartTheme';
 import { Control, Framework } from '../../types';
-import { CONTROL_STATUS } from '../../constants/complianceConfig';
+import { CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT } from '../../constants/complianceConfig';
 import {
     TrendingUp,
     CheckCircle2,
@@ -46,9 +46,9 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
         const actionableControls = controls.filter(c => c.status !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.EXCLUDED).length;
         const totalControls = controls.length;
 
-        // Global Score: Implemented (100%) + Partial (50%) over Actionable
+        // Global Score: Implemented (100%) + Partial (PARTIAL_CONTROL_WEIGHT) over Actionable
         const globalScore = actionableControls > 0
-            ? Math.round(((implementedControls + (partialControls * 0.5)) / actionableControls) * 100)
+            ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100)
             : 0;
 
         const evidenceCount = controls.reduce((acc, curr) => acc + (curr.evidenceIds?.length || 0), 0);

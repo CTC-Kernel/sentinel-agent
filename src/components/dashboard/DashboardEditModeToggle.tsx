@@ -6,7 +6,7 @@
  * Implements Task 4: Edit mode UI (AC: 1, 5)
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Check, RotateCcw } from '../ui/Icons';
@@ -42,6 +42,16 @@ function ResetConfirmDialog({
 }) {
   const { t } = useTranslation();
 
+  useEffect(() => {
+    if (isOpen) {
+      const dialog = document.getElementById('reset-confirm-dialog');
+      if (dialog) {
+        const focusable = dialog.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+        if (focusable.length > 0) (focusable[0] as HTMLElement).focus();
+      }
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -60,8 +70,9 @@ function ResetConfirmDialog({
         className="relative bg-background rounded-3xl shadow-2xl p-6 max-w-sm mx-4 border border-muted pointer-events-none"
       >
         <div
+          id="reset-confirm-dialog"
           className="pointer-events-auto"
-          role="dialog"
+          role="alertdialog"
           aria-modal="true"
           aria-labelledby="reset-confirm-title"
         >

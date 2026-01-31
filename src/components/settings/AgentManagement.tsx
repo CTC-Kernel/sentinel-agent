@@ -156,6 +156,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
 );
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, href, available = true, loading = false }) => {
+    const { t } = useStore();
     // Use href prop if provided (from releaseInfo), otherwise fallback to cloud function endpoint
     const getDownloadUrl = (platform: string) => {
         switch (platform) {
@@ -215,7 +216,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
             disabled={true} // Always disabled if not available or loading (we don't want click events)
             className={baseClasses}
             onClick={() => {
-                if (!available) toast.info("Cette version sera disponible prochainement");
+                if (!available) toast.info(t('agents.versionComingSoon') || "Cette version sera disponible prochainement");
             }}
         >
             {content}
@@ -310,7 +311,7 @@ const formatTokenExpiry = (expiresAt: string | Date): string => {
 };
 
 export const AgentManagement: React.FC = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const { claimsSynced } = useAuth();
     const navigate = useNavigate();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
@@ -411,17 +412,12 @@ export const AgentManagement: React.FC = () => {
             date.setDate(date.getDate() - i);
             const dayName = days[date.getDay()];
 
-            // Simulate activity based on agent count
-            const baseActive = Math.max(1, agentStats.active);
-            const variation = Math.random() * 0.3 - 0.15;
-            const activeCount = Math.max(0, Math.round(baseActive * (1 + variation)));
-            const offlineCount = Math.max(0, Math.round(agentStats.offline * (1 + Math.random() * 0.2 - 0.1)));
-
+            // Use current snapshot (no historical data available)
             data.push({
                 day: dayName,
-                actifs: activeCount,
-                horsLigne: offlineCount,
-                total: activeCount + offlineCount
+                actifs: agentStats.active,
+                horsLigne: agentStats.offline,
+                total: agentStats.active + agentStats.offline
             });
         }
 
@@ -497,11 +493,11 @@ export const AgentManagement: React.FC = () => {
                     ErrorLogger.error(error, 'AgentManagement.subscribeToAgents');
                     const errorCode = (error as { code?: string }).code;
                     if (errorCode === 'permission-denied') {
-                        toast.error("Accès refusé aux agents. Essayez de vous reconnecter.");
+                        toast.error(t('agents.accessDenied') || "Accès refusé aux agents. Essayez de vous reconnecter.");
                     } else if (errorCode === 'unavailable') {
-                        toast.error("Service Firestore indisponible. Réessayez plus tard.");
+                        toast.error(t('agents.serviceUnavailable') || "Service Firestore indisponible. Réessayez plus tard.");
                     } else {
-                        toast.error("Échec du chargement des agents");
+                        toast.error(t('agents.loadFailed') || "Échec du chargement des agents");
                     }
                     setLoading(false);
                 }
@@ -513,7 +509,7 @@ export const AgentManagement: React.FC = () => {
         return () => {
             if (unsubscribe) unsubscribe();
         };
-    }, [user?.organizationId, claimsSynced]);
+    }, [user?.organizationId, claimsSynced, t]);
 
     // Subscribe to enrollment tokens
     useEffect(() => {
@@ -537,9 +533,9 @@ export const AgentManagement: React.FC = () => {
         setRevokingTokenId(tokenId);
         try {
             await AgentService.revokeEnrollmentToken(user.organizationId, tokenId);
-            toast.success("Token revoque avec succes");
+            toast.success(t('agents.tokenRevoked') || "Token revoque avec succes");
         } catch {
-            toast.error("Erreur lors de la revocation du token");
+            toast.error(t('agents.tokenRevocationFailed') || "Erreur lors de la revocation du token");
         } finally {
             setRevokingTokenId(null);
         }
@@ -550,9 +546,9 @@ export const AgentManagement: React.FC = () => {
         try {
             await AgentService.deleteAgent(user.organizationId, agentId);
             setAgents(prev => prev.filter(a => a.id !== agentId));
-            toast.success("Agent supprimé");
+            toast.success(t('agents.agentDeletedSuccess') || "Agent supprimé");
         } catch {
-            toast.error("Erreur lors de la suppression");
+            toast.error(t('errors.deletionFailed') || "Erreur lors de la suppression");
         }
     };
 
@@ -563,9 +559,9 @@ export const AgentManagement: React.FC = () => {
             const result = await AgentService.generateEnrollmentToken(user.organizationId);
             setEnrollmentToken(result.token || null);
             setShowEnrollment(true);
-            toast.success('Token d\'enrôlement généré', 'Copiez le token et utilisez-le pour enrôler un nouvel agent.');
+            toast.success(t('agents.tokenGenerated') || 'Token d\'enrôlement généré', t('agents.tokenGeneratedDesc') || 'Copiez le token et utilisez-le pour enrôler un nouvel agent.');
         } catch {
-            toast.error("Erreur lors de la génération du token");
+            toast.error(t('agents.tokenGenerationFailed') || "Erreur lors de la génération du token");
         } finally {
             setGeneratingToken(false);
         }
@@ -1713,7 +1709,7 @@ export const AgentManagement: React.FC = () => {
                                                 <button
                                                     onClick={() => {
                                                         navigator.clipboard.writeText('sentinel-agent status --verbose');
-                                                        toast.success("Commande copiée !");
+                                                        toast.success(t('agents.commandCopied') || "Commande copiée !");
                                                     }}
                                                     className="absolute right-2 top-2 p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
                                                 >
@@ -1725,7 +1721,7 @@ export const AgentManagement: React.FC = () => {
                                                 size="sm"
                                                 className="w-full rounded-3xl text-xs"
                                                 onClick={() => {
-                                                    toast.info("Vérification des agents en cours...");
+                                                    toast.info(t('agents.verificationInProgress') || "Vérification des agents en cours...");
                                                 }}
                                             >
                                                 <RefreshCw className="w-3 h-3 mr-1.5" />
@@ -1785,7 +1781,7 @@ export const AgentManagement: React.FC = () => {
                 onClose={() => {
                     setShowEnrollment(false);
                     if (enrollmentToken) {
-                        toast.info('Voir la flotte d\'agents', 'Consultez vos agents enrôlés dans la vue dédiée.', {
+                        toast.info(t('agents.viewFleet') || 'Voir la flotte d\'agents', t('agents.viewFleetDesc') || 'Consultez vos agents enrôlés dans la vue dédiée.', {
                             label: 'Voir la flotte',
                             onClick: () => navigate('/agents'),
                         });

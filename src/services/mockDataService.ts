@@ -276,7 +276,7 @@ export const MockDataService = {
                     },
                     {
                         id: 'ctrl-2',
-                        code: 'A.9.1',
+                        code: 'A.8.1',
                         name: 'Contrôle d\'accès',
                         status: 'Partiel',
                         type: 'Préventif',
@@ -289,7 +289,7 @@ export const MockDataService = {
                     },
                     {
                         id: 'ctrl-3',
-                        code: 'A.12.3',
+                        code: 'A.6.3',
                         name: 'Sauvegardes',
                         status: 'Implémenté',
                         type: 'Correctif',
@@ -785,7 +785,7 @@ export const MockDataService = {
                     {
                         id: 'user-1',
                         uid: 'demo-user-123',
-                        email: 'demo@sentinel.com',
+                        email: 'demo@sentinel-grc.com',
                         displayName: 'Demo User',
                         role: 'admin',
                         organizationId: 'org_default',
@@ -796,7 +796,7 @@ export const MockDataService = {
                     {
                         id: 'user-2',
                         uid: 'user-2',
-                        email: 'sophie@sentinel.com',
+                        email: 'sophie@sentinel-grc.com',
                         displayName: 'Sophie Martin',
                         role: 'rssi',
                         organizationId: 'org_default',
@@ -807,7 +807,7 @@ export const MockDataService = {
                     {
                         id: 'user-3',
                         uid: 'user-3',
-                        email: 'thomas@sentinel.com',
+                        email: 'thomas@sentinel-grc.com',
                         displayName: 'Thomas Dubois',
                         role: 'user',
                         organizationId: 'org_default',
@@ -818,7 +818,7 @@ export const MockDataService = {
                     {
                         id: 'user-4',
                         uid: 'user-4',
-                        email: 'marie@sentinel.com',
+                        email: 'marie@sentinel-grc.com',
                         displayName: 'Marie Leroy',
                         role: 'direction',
                         organizationId: 'org_default',
@@ -883,7 +883,7 @@ export const MockDataService = {
                         id: 'backup-1',
                         organizationId: 'org_default',
                         createdAt: new Date(now.getTime() - oneDay).toISOString(),
-                        createdBy: 'demo@sentinel.com',
+                        createdBy: 'demo@sentinel-grc.com',
                         config: {
                             includeDocuments: true,
                             includeAssets: true,
@@ -905,7 +905,7 @@ export const MockDataService = {
                         id: 'backup-2',
                         organizationId: 'org_default',
                         createdAt: new Date(now.getTime() - oneWeek).toISOString(),
-                        createdBy: 'admin@sentinel.com',
+                        createdBy: 'admin@sentinel-grc.com',
                         config: {
                             includeDocuments: true,
                             includeAssets: true,

@@ -5,6 +5,7 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { Risk } from '../../types';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 interface ReportContext {
     organizationName: string;
@@ -50,7 +51,7 @@ export const useDashboardReports = () => {
                 activeIncidents: activeIncidentsCount,
                 openAudits: openAuditsCount,
                 riskCount: allRisks?.length || 0,
-                highRisks: (topRisks || []).filter(r => r.score >= 15).length,
+                highRisks: (topRisks || []).filter(r => r.score >= RISK_THRESHOLDS.CRITICAL).length,
                 financialRisk: financialRisk || 0,
                 criticalRisks: (topRisks || []).slice(0, 3).map(r => ({ threat: r.threat, score: r.score }))
             };
@@ -69,7 +70,7 @@ export const useDashboardReports = () => {
 
             const metrics = [
                 { label: t('dashboard.complianceScore') || 'Conformité', value: `${complianceScore || 0}%` },
-                { label: t('dashboard.criticalRisks') || 'Risques Critiques', value: (topRisks || []).filter(r => r.score >= 15).length.toString() },
+                { label: t('dashboard.criticalRisks') || 'Risques Critiques', value: (topRisks || []).filter(r => r.score >= RISK_THRESHOLDS.CRITICAL).length.toString() },
                 { label: t('dashboard.activeIncidents') || 'Incidents Actifs', value: (activeIncidentsCount || 0).toString() },
                 { label: t('dashboard.openAudits') || 'Audits Ouverts', value: (openAuditsCount || 0).toString() }
             ];

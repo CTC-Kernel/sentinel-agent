@@ -55,6 +55,7 @@ import {
 import { cn } from '../../utils/cn';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { ErrorLogger } from '../../services/errorLogger';
+import { toast } from '@/lib/toast';
 
 interface GroupManagerProps {
     agents?: SentinelAgent[];
@@ -494,8 +495,8 @@ const GroupAgentList: React.FC<{
         return (
             <div className="text-center py-8 text-muted-foreground">
                 <Monitor className="h-12 w-12 mx-auto mb-3 opacity-60" />
-                <p>Aucun agent dans ce groupe</p>
-                <p className="text-sm">Glissez des agents ici pour les ajouter</p>
+                <p className="font-medium">{group.isDynamic ? 'Aucun agent ne correspond aux critères' : 'Aucun agent dans ce groupe'}</p>
+                <p className="text-sm mt-1">{group.isDynamic ? 'Modifiez les critères d\'appartenance pour inclure des agents.' : 'Glissez-déposez des agents depuis la liste pour les ajouter à ce groupe.'}</p>
             </div>
         );
     }
@@ -539,7 +540,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
     className,
     compact = false,
 }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const organizationId = user?.organizationId;
     const [groups, setGroups] = useState<AgentGroup[]>([]);
     const [loading, setLoading] = useState(true);
@@ -650,19 +651,25 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
     const handleSaveGroup = async (data: Partial<AgentGroup>) => {
         if (!organizationId || !user?.uid) return;
 
-        if (editingGroup) {
-            await updateGroup(organizationId, editingGroup.id, data);
-        } else {
-            await createGroup(organizationId, {
-                ...data,
-                organizationId,
-                icon: 'Folder',
-                isDefault: false,
-                isSystem: false,
-                agentIds: [],
-                policyIds: [],
-                sortOrder: groups.length,
-            } as Omit<AgentGroup, 'id' | 'createdAt' | 'updatedAt' | 'agentCount'>, user.uid);
+        try {
+            if (editingGroup) {
+                await updateGroup(organizationId, editingGroup.id, data);
+            } else {
+                await createGroup(organizationId, {
+                    ...data,
+                    organizationId,
+                    icon: 'Folder',
+                    isDefault: false,
+                    isSystem: false,
+                    agentIds: [],
+                    policyIds: [],
+                    sortOrder: groups.length,
+                } as Omit<AgentGroup, 'id' | 'createdAt' | 'updatedAt' | 'agentCount'>, user.uid);
+            }
+            toast.success(t('agents.groups.saved', { defaultValue: 'Groupe sauvegardé' }), t('agents.groups.savedDesc', { defaultValue: `Le groupe "${data.name || ''}" a été ${editingGroup ? 'mis à jour' : 'créé'}.` }));
+        } catch (error) {
+            toast.error(t('common.error', { defaultValue: 'Erreur' }), t('agents.groups.saveError', { defaultValue: 'Impossible de sauvegarder le groupe.' }));
+            throw error;
         }
     };
 
@@ -675,11 +682,14 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
     const handleConfirmDelete = async () => {
         if (!organizationId || !deleteConfirm) return;
         try {
+            const deletedGroup = groups.find(g => g.id === deleteConfirm);
             await deleteGroup(organizationId, deleteConfirm);
+            toast.success(t('agents.groups.deleted', { defaultValue: 'Groupe supprimé' }), t('agents.groups.deletedDesc', { defaultValue: `Le groupe "${deletedGroup?.name || ''}" a été supprimé. Les agents n'ont pas été affectés.` }));
             if (selectedGroupId === deleteConfirm) {
                 onSelectGroup?.(null);
             }
         } catch (error) {
+            toast.error(t('common.error', { defaultValue: 'Erreur' }), t('agents.groups.deleteError', { defaultValue: 'Impossible de supprimer le groupe.' }));
             ErrorLogger.error(error as Error, 'GroupManager.deleteGroup');
         } finally {
             setDeleteConfirm(null);
@@ -761,7 +771,17 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
                     {filteredHierarchy.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
                             <Folder className="h-12 w-12 mx-auto mb-3 opacity-60" />
-                            <p>Aucun groupe</p>
+                            <p>{searchTerm ? t('agents.groups.noResults', { defaultValue: 'Aucun groupe trouvé' }) : t('agents.groups.noGroups', { defaultValue: 'Aucun groupe' })}</p>
+                            {searchTerm ? (
+                                <Button variant="outline" size="sm" className="mt-3" onClick={() => setSearchTerm('')}>
+                                    {t('common.clearSearch', { defaultValue: 'Effacer la recherche' })}
+                                </Button>
+                            ) : (
+                                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setParentForNewGroup(undefined); setEditingGroup(null); setShowCreateModal(true); }}>
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    {t('agents.groups.create', { defaultValue: 'Créer un groupe' })}
+                                </Button>
+                            )}
                         </div>
                     ) : (
                         filteredHierarchy.map(node => (

@@ -63,7 +63,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
     // Finding severity data
     const findingSeverityData = findingsByType.map((entry) => ({
         ...entry,
-        color: entry.name === 'Majeure' ? FINDING_COLORS.majeure : entry.name === 'Mineure' ? FINDING_COLORS.mineure : FINDING_COLORS.observation
+        color: entry.name === 'Majeure' ? FINDING_COLORS.majeure : entry.name === 'Mineure' ? FINDING_COLORS.mineure : entry.name === 'Opportunité' ? FINDING_COLORS.opportunite : FINDING_COLORS.observation
     }));
 
     return (

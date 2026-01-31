@@ -20,6 +20,7 @@ import { PROJECT_STATUSES } from '../../data/projectConstants';
 
 type ProjectStatus = typeof PROJECT_STATUSES[number];
 import { toast } from '@/lib/toast';
+import { useStore } from '../../store';
 import { Loader2 } from '../ui/Icons';
 import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
@@ -60,6 +61,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     hideActions = false,
     onDirtyChange,
 }) => {
+    const { t } = useStore();
     const [isGenerating, setIsGenerating] = React.useState(false);
     const formRef = useRef<HTMLFormElement | null>(null);
     const dueDateSectionRef = useRef<HTMLDivElement | null>(null);
@@ -116,7 +118,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 
     const onInvalid = (fieldErrors: FieldErrors<ProjectFormData>) => {
         const missingFields = Object.keys(fieldErrors).join(', ');
-        toast.error(`Formulaire incomplet. Champs manquants : ${missingFields}`);
+        toast.error(t('projects.toast.formIncomplete', { defaultValue: `Formulaire incomplet. Champs manquants : ${missingFields}`, fields: missingFields }));
         scrollToFirstError(fieldErrors);
     };
 

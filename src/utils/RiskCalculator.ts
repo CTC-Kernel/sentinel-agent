@@ -1,6 +1,7 @@
 
 import { Risk } from '../types';
 import { RISK_COLORS, STATUS_COLORS } from '../constants/colors';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 export const RiskCalculator = {
     /**
@@ -24,9 +25,9 @@ export const RiskCalculator = {
      * Scale: 1-25
      */
     getCriticalityLabel: (score: number): 'Faible' | 'Moyen' | 'Élevé' | 'Critique' => {
-        if (score >= 15) return 'Critique';
-        if (score >= 10) return 'Élevé';
-        if (score >= 5) return 'Moyen';
+        if (score >= RISK_THRESHOLDS.CRITICAL) return 'Critique';
+        if (score >= RISK_THRESHOLDS.HIGH) return 'Élevé';
+        if (score >= RISK_THRESHOLDS.MEDIUM) return 'Moyen';
         return 'Faible';
     },
 
@@ -34,19 +35,19 @@ export const RiskCalculator = {
      * Returns the color associated with the score.
      */
     getScoreColor: (score: number): string => {
-        if (score >= 15) return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400'; // Critique
-        if (score >= 10) return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400'; // Élevé
-        if (score >= 5) return 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400'; // Moyen
-        return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400'; // Faible
+        if (score >= RISK_THRESHOLDS.CRITICAL) return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400';
+        if (score >= RISK_THRESHOLDS.HIGH) return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400';
+        if (score >= RISK_THRESHOLDS.MEDIUM) return 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400';
+        return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400';
     },
 
     /**
      * Returns the badge status for UI components
      */
     getBadgeStatus: (score: number): 'error' | 'warning' | 'info' | 'success' => {
-        if (score >= 15) return 'error';
-        if (score >= 10) return 'warning';
-        if (score >= 5) return 'info';
+        if (score >= RISK_THRESHOLDS.CRITICAL) return 'error';
+        if (score >= RISK_THRESHOLDS.HIGH) return 'warning';
+        if (score >= RISK_THRESHOLDS.MEDIUM) return 'info';
         return 'success';
     },
 
@@ -54,9 +55,9 @@ export const RiskCalculator = {
      * Returns the hex color for charts/matrices
      */
     getScoreHexColor: (score: number): string => {
-        if (score >= 15) return RISK_COLORS.critical;
-        if (score >= 10) return RISK_COLORS.high;
-        if (score >= 5) return STATUS_COLORS.warning;
+        if (score >= RISK_THRESHOLDS.CRITICAL) return RISK_COLORS.critical;
+        if (score >= RISK_THRESHOLDS.HIGH) return RISK_COLORS.high;
+        if (score >= RISK_THRESHOLDS.MEDIUM) return STATUS_COLORS.warning;
         return STATUS_COLORS.success;
     },
 

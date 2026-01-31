@@ -6,7 +6,7 @@ import { CheckCircle2, AlertTriangle, Info, X, ArrowRight, Bell, Search } from '
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Notifications: React.FC = () => {
-    const { t } = useStore(); // Assuming useStore provides t, matching SystemSettings usage
+    const { t, addToast } = useStore();
     const { notifications, markAsRead, markAllAsRead, removeNotification } = useNotifications();
     const [filterStatus, setFilterStatus] = useState<'all' | 'unread'>('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +48,11 @@ export const Notifications: React.FC = () => {
                 <div className="flex gap-2">
                     {notifications.some(n => !n.read) && (
                         <button
-                            onClick={markAllAsRead}
+                            onClick={() => {
+                                const unreadCount = notifications.filter(n => !n.read).length;
+                                markAllAsRead();
+                                addToast(t('notifications.allMarkedRead', { defaultValue: '{{count}} notification(s) marquée(s) comme lue(s)', count: unreadCount }), 'success');
+                            }}
                             className="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 px-4 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors"
                         >
                             {t('notifications.markAllRead', { defaultValue: 'Tout marquer comme lu' })}
@@ -82,7 +86,9 @@ export const Notifications: React.FC = () => {
 
                 <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <label htmlFor="notification-search" className="sr-only">{t('common.search', { defaultValue: 'Rechercher...' })}</label>
                     <input
+                        id="notification-search"
                         type="text"
                         placeholder={t('common.search', { defaultValue: 'Rechercher...' })}
                         value={searchQuery}
@@ -169,6 +175,9 @@ export const Notifications: React.FC = () => {
                             {filterStatus === 'unread'
                                 ? t('notifications.emptyUnread', { defaultValue: 'Vous êtes à jour !' })
                                 : t('notifications.emptyAll', { defaultValue: 'Rien à signaler pour le moment.' })}
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-3 max-w-sm mx-auto leading-relaxed">
+                            {t('notifications.emptyHint', { defaultValue: 'Les notifications sont générées automatiquement lors des actions importantes : échéances, changements de statut, nouvelles affectations et alertes de conformité.' })}
                         </p>
                     </div>
                 )}

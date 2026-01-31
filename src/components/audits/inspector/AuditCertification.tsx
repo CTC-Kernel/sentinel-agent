@@ -21,10 +21,10 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
             <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-brand-500" />
-                    Accès Auditeur Externe
+                    {t('audits.certification.externalAccess', { defaultValue: 'Accès Auditeur Externe' })}
                 </h3>
                 <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                    Créez un lien sécurisé pour permettre à un auditeur externe ou un organisme de certification d'accéder à cet audit, consulter les preuves et valider la conformité.
+                    {t('audits.certification.externalAccessDesc', { defaultValue: 'Créez un lien sécurisé pour permettre à un auditeur externe ou un organisme de certification d\'accéder à cet audit, consulter les preuves et valider la conformité.' })}
                 </p>
 
                 {canEdit && (
@@ -33,13 +33,13 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
                         className="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-semibold rounded-3xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 flex items-center gap-2 transition-all hover:-translate-y-0.5"
                     >
                         <LinkIcon className="w-4 h-4" />
-                        Générer un lien d'accès
+                        {t('audits.certification.generateLink', { defaultValue: 'Générer un lien d\'accès' })}
                     </button>
                 )}
 
                 <div className="mt-8 border-t border-border/40 dark:border-white/5 pt-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Partenaires Assignés</h4>
+                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{t('audits.certification.assignedPartners', { defaultValue: 'Partenaires Assignés' })}</h4>
                         {canEdit && (
                             <button
                                 onClick={onOpenAssignModal}
@@ -52,8 +52,8 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
                     </div>
                     <EmptyState
                         icon={ExternalLink}
-                        title="Aucun auditeur externe actif"
-                        description="Aucun lien d'accès n'est actuellement actif pour cet audit."
+                        title={t('audits.certification.noExternalAuditor', { defaultValue: 'Aucun auditeur externe actif' })}
+                        description={t('audits.certification.noActiveLink', { defaultValue: 'Aucun lien d\'accès n\'est actuellement actif pour cet audit.' })}
                         color="slate"
                     />
                 </div>

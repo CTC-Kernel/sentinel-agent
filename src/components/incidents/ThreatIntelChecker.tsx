@@ -8,7 +8,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Button } from '../ui/button';
 
 export const ThreatIntelChecker: React.FC = () => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const [urlToCheck, setUrlToCheck] = useState('');
     const [urlReputationResult, setUrlReputationResult] = useState<{ safe: boolean; threatType?: string } | null>(null);
     const [checkingUrl, setCheckingUrl] = useState(false);
@@ -23,7 +23,7 @@ export const ThreatIntelChecker: React.FC = () => {
             const result = (data as { result?: { safe?: boolean; threatType?: string } } | undefined)?.result;
 
             if (!result || result.safe === undefined) {
-                addToast('Erreur lors de la vérification de réputation', 'error');
+                addToast(t('incidents.toast.reputationCheckError', { defaultValue: 'Erreur lors de la vérification de réputation' }), 'error');
             } else {
                 setUrlReputationResult({ safe: result.safe, threatType: result.threatType });
             }

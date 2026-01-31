@@ -10,6 +10,7 @@ import { ComplianceDetails } from './inspector/ComplianceDetails';
 import { ComplianceEvidence } from './inspector/ComplianceEvidence';
 import { ComplianceLinkedItems } from './inspector/ComplianceLinkedItems';
 import { AgentEvidencePanel } from './AgentEvidencePanel';
+import { useLocale } from '@/hooks/useLocale';
 
 interface ComplianceInspectorProps {
     control: Control;
@@ -60,6 +61,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
     handlers,
     onDirtyChange
 }) => {
+    const { t } = useLocale();
     type InspectorTabId = 'details' | 'evidence' | 'comments' | 'history' | 'linkedItems';
     const [activeTab, setActiveTab] = useState<InspectorTabId>('details');
 
@@ -84,28 +86,28 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                     <div className="bg-brand-50 dark:bg-brand-900 px-6 py-3 border-b border-brand-100 dark:border-brand-800 flex items-center justify-between animate-fade-in">
                         <div className="flex items-center text-sm text-brand-700 dark:text-brand-300">
                             <Link className="h-4 w-4 mr-2" />
-                            <span className="font-medium">Lier ce contrôle au projet <strong>{linkingToProjectName}</strong> ?</span>
+                            <span className="font-medium">{t('compliance.linkControlToProject', { defaultValue: 'Lier ce contrôle au projet' })} <strong>{linkingToProjectName}</strong> ?</span>
                         </div>
                         <Button
-                            aria-label={`Lier le contrôle au projet ${linkingToProjectName}`}
+                            aria-label={t('compliance.linkControlToProjectAria', { defaultValue: 'Lier le contrôle au projet', project: linkingToProjectName })}
                             onClick={() => handleLinkProject(control, linkingToProjectId)}
                             disabled={updating || (Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).includes(linkingToProjectId)}
                             size="sm"
                             className="text-xs font-bold shadow-sm"
                         >
                             {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Link className="h-3 w-3 mr-1.5" />}
-                            {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).includes(linkingToProjectId) ? 'Déjà lié' : 'Lier maintenant'}
+                            {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).includes(linkingToProjectId) ? t('compliance.alreadyLinked', { defaultValue: 'Déjà lié' }) : t('compliance.linkNow', { defaultValue: 'Lier maintenant' })}
                         </Button>
                     </div>
                 )}
 
                 <ScrollableTabs
                     tabs={[
-                        { id: 'details', label: 'Détails', icon: FileText },
-                        { id: 'evidence', label: `Preuves (${control.evidenceIds?.length || 0})`, icon: Paperclip },
-                        { id: 'linkedItems', label: 'Éléments Liés', icon: Link },
-                        { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                        { id: 'history', label: 'Historique', icon: FileText },
+                        { id: 'details', label: t('compliance.tabs.details', { defaultValue: 'Détails' }), icon: FileText },
+                        { id: 'evidence', label: `${t('compliance.tabs.evidence', { defaultValue: 'Preuves' })} (${control.evidenceIds?.length || 0})`, icon: Paperclip },
+                        { id: 'linkedItems', label: t('compliance.tabs.linkedItems', { defaultValue: 'Éléments Liés' }), icon: Link },
+                        { id: 'comments', label: t('compliance.tabs.discussion', { defaultValue: 'Discussion' }), icon: MessageSquare },
+                        { id: 'history', label: t('compliance.tabs.history', { defaultValue: 'Historique' }), icon: FileText },
                     ]}
                     activeTab={activeTab}
                     onTabChange={(id) => setActiveTab(id as InspectorTabId)}

@@ -1,4 +1,5 @@
 import { Risk, Asset, Control, Audit, Incident, Project } from '../types';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 interface ExportOptions {
     filename: string;
@@ -55,18 +56,24 @@ export class ExcelExportService {
                         const cell = worksheet.getCell(i, scoreColumn);
                         const value = cell.value as number;
 
-                        if (value >= 15) {
+                        if (value >= RISK_THRESHOLDS.CRITICAL) {
                             cell.fill = {
                                 type: 'pattern',
                                 pattern: 'solid',
                                 fgColor: { argb: 'FFEF4444' }
                             };
                             cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-                        } else if (value >= 10) {
+                        } else if (value >= RISK_THRESHOLDS.HIGH) {
                             cell.fill = {
                                 type: 'pattern',
                                 pattern: 'solid',
                                 fgColor: { argb: 'FFF59E0B' }
+                            };
+                        } else if (value >= RISK_THRESHOLDS.MEDIUM) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFFBBF24' }
                             };
                         } else {
                             cell.fill = {

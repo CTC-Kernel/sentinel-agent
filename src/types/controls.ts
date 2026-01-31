@@ -14,10 +14,19 @@ export const CONTROL_STATUSES = [
     'En revue',
     'Actif',
     'Inactif',
-    'Non conforme'
+    'Non conforme',
+    'Planifié',
+    'En retard'
 ] as const;
 
 export type ControlStatus = typeof CONTROL_STATUSES[number];
+
+/**
+ * Type guard for ControlStatus validation
+ */
+export function isControlStatus(value: unknown): value is ControlStatus {
+    return typeof value === 'string' && CONTROL_STATUSES.includes(value as ControlStatus);
+}
 
 export interface AutomatedEvidence {
     id: string;

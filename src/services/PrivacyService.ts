@@ -168,7 +168,7 @@ export const PrivacyService = {
             // Let's assume user.organizationId for the template copy if needed, or check logic.
             // The original logic used 'system', let's stick to it but wrap in try/catch.
 
-            await setDoc(templateRef, { ...DPIA_TEMPLATE, organizationId: user.organizationId }, { merge: Boolean(true) });
+            await setDoc(templateRef, sanitizeData({ ...DPIA_TEMPLATE, organizationId: user.organizationId }), { merge: Boolean(true) });
 
             // 2. Create Assessment
             const responseId = await SupplierService.createAssessment(
@@ -180,10 +180,10 @@ export const PrivacyService = {
             );
 
             // 3. Update Activity
-            await updateDoc(doc(db, 'processing_activities', activity.id), {
+            await updateDoc(doc(db, 'processing_activities', activity.id), sanitizeData({
                 hasDPIA: true,
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             return responseId;
         } catch (error) {

@@ -24,7 +24,7 @@ interface Partner {
 }
 
 export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen, onClose, auditId, auditName, onAssigned }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [partners, setPartners] = useState<Partner[]>([]);
     const [loading, setLoading] = useState(true);
     const [assigning, setAssigning] = useState<string | null>(null);
@@ -44,18 +44,18 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                 const snap = await getDocs(q);
                 setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() } as Partner)));
             } catch {
-                toast.error('Erreur chargement partenaires');
+                toast.error(t('audits.toast.partnersLoadError', { defaultValue: 'Erreur chargement partenaires' }));
             } finally {
                 setLoading(false);
             }
         };
 
         loadPartners();
-    }, [isOpen, user?.organizationId]);
+    }, [isOpen, user?.organizationId, t]);
 
     const handleAssign = async (partner: Partner) => {
         if (!partner.certifierId) {
-            toast.error("Ce partenaire n'a pas encore finalisé son compte Certifieur.");
+            toast.error(t('audits.toast.partnerNotFinalized', { defaultValue: "Ce partenaire n'a pas encore finalisé son compte Certifieur." }));
             return;
         }
 
@@ -68,11 +68,11 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                 partnerName: partner.tenantName || partner.contactEmail
             });
 
-            toast.success(`Audit assigné à ${partner.contactEmail}`);
+            toast.success(t('audits.toast.auditAssigned', { defaultValue: `Audit assigné à ${partner.contactEmail}`, email: partner.contactEmail }));
             onAssigned();
             onClose();
         } catch {
-            toast.error("Échec de l'assignation");
+            toast.error(t('audits.toast.assignmentFailed', { defaultValue: "Échec de l'assignation" }));
         } finally {
             setAssigning(null);
         }

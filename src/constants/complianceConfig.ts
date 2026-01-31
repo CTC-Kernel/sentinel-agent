@@ -16,6 +16,7 @@ export const CONTROL_STATUS = {
   IN_PROGRESS: 'En cours',
   NOT_STARTED: 'Non commencé',
   PLANNED: 'Planifié',
+  OVERDUE: 'En retard',
   NOT_APPLICABLE: 'Non applicable',
   EXCLUDED: 'Exclu',
 } as const;
@@ -32,6 +33,7 @@ export const ACTIONABLE_STATUSES: ControlStatus[] = [
   CONTROL_STATUS.IN_PROGRESS,
   CONTROL_STATUS.NOT_STARTED,
   CONTROL_STATUS.PLANNED,
+  CONTROL_STATUS.OVERDUE,
 ];
 
 /**

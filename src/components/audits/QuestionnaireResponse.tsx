@@ -17,7 +17,7 @@ interface QuestionnaireResponseProps {
 }
 
 export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = ({ questionnaire, onClose, readOnly = false }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { responses, addResponse, updateResponse, addDocument } = useAuditsActions();
     const [answers, setAnswers] = useState<Record<string, string | string[] | number>>({});
     const [responseId, setResponseId] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
         if (submit) {
             const missingRequired = questionnaire.questions.filter(q => q.required && !answers[q.id]);
             if (missingRequired.length > 0) {
-                addToast(`Veuillez répondre à toutes les questions obligatoires(${missingRequired.length} restantes)`, "info");
+                addToast(t('audits.toast.answerRequiredQuestions', { defaultValue: `Veuillez répondre à toutes les questions obligatoires (${missingRequired.length} restantes)`, count: missingRequired.length }), "info");
                 return;
             }
         }
@@ -91,10 +91,10 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
 
             if (submit) {
                 setStatus('Submitted');
-                addToast("Questionnaire soumis avec succès", "success");
+                addToast(t('audits.toast.questionnaireSubmitted', { defaultValue: "Questionnaire soumis avec succès" }), "success");
                 onClose();
             } else {
-                addToast("Brouillon enregistré", "info");
+                addToast(t('audits.toast.draftSaved', { defaultValue: "Brouillon enregistré" }), "info");
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireResponseView.handleSave', 'UPDATE_FAILED');
@@ -126,7 +126,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 }));
             }
 
-            addToast("Preuve ajoutée", "success");
+            addToast(t('audits.toast.evidenceAdded', { defaultValue: "Preuve ajoutée" }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireResponse.evidenceUpload');
         }
@@ -150,7 +150,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
             const evaluation = await aiService.evaluateQuestionnaire(context);
             setAnalysis(evaluation);
 
-            addToast("Analyse IA terminée", "success");
+            addToast(t('audits.toast.aiAnalysisComplete', { defaultValue: "Analyse IA terminée" }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireResponse.aiAnalysis');
         } finally {

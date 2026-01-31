@@ -90,7 +90,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
 
     const renderComment = (comment: Comment, isReply = false) => {
         // const isMe = comment.userId === user?.uid; // Unused for now but good for styling in future
-        // const hasReplies = (comment as any).replies && (comment as any).replies.length > 0; // Unused logic
 
         return (
             <div key={comment.id} className={cn("flex gap-3", isReply ? "ml-8 mt-2" : "mt-4")}>

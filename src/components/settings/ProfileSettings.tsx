@@ -332,11 +332,11 @@ export const ProfileSettings: React.FC = () => {
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
                                 <div className="flex-1">
-                                    <h4 className="font-medium text-slate-900 dark:text-white">Double Authentification (MFA)</h4>
+                                    <h4 className="font-medium text-slate-900 dark:text-white">{t('settings.mfa.toggleTitle', { defaultValue: 'Double Authentification (MFA)' })}</h4>
                                     <p className="text-xs text-slate-500 dark:text-muted-foreground">
                                         {user?.mfaEnabled
-                                            ? "Votre compte est protégé par une authentification à deux facteurs."
-                                            : "Ajoutez une couche de sécurité supplémentaire à votre compte."}
+                                            ? t('settings.mfa.enabledDescription', { defaultValue: 'Votre compte est protégé par une authentification à deux facteurs.' })
+                                            : t('settings.mfa.disabledDescription', { defaultValue: 'Ajoutez une couche de sécurité supplémentaire à votre compte.' })}
                                     </p>
                                 </div>
                                 <Switch

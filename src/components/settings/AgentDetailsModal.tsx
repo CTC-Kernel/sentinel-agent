@@ -131,7 +131,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
     onAgentUpdated,
     onAgentDeleted
 }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [activeTab, setActiveTab] = useState<'overview' | 'compliance' | 'config' | 'logs'>('overview');
     const [agentDetails, setAgentDetails] = useState<AgentDetails | null>(null);
     const [metricsHistory, setMetricsHistory] = useState<AgentMetricPoint[]>([]);
@@ -154,7 +154,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
             }
         } catch (error) {
             ErrorLogger.error(error, 'AgentDetailsModal.loadAgentDetails');
-            toast.error("Erreur lors du chargement des détails de l'agent");
+            toast.error(t('agents.loadError') || "Erreur lors du chargement des détails de l'agent");
             // Fallback to initial data if available for basic display
             if (initialAgent) {
                 // casting to AgentDetails for basic display
@@ -163,7 +163,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [agentId, user?.organizationId, initialAgent]);
+    }, [agentId, user?.organizationId, initialAgent, t]);
 
     // Reset state when modal opens/changes agent
     useEffect(() => {
@@ -180,12 +180,12 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
         setUpdating(true);
         try {
             await AgentService.updateAgentConfig(user.organizationId, agentId, configForm);
-            toast.success("Configuration mise à jour");
+            toast.success(t('agents.configUpdated') || "Configuration mise à jour");
             if (onAgentUpdated) onAgentUpdated();
             loadAgentDetails(); // Reload to confirm
         } catch (error) {
             ErrorLogger.error(error, 'AgentDetailsModal.saveConfig');
-            toast.error("Erreur lors de la mise à jour");
+            toast.error(t('agents.updateError') || "Erreur lors de la mise à jour");
         } finally {
             setUpdating(false);
         }
@@ -193,17 +193,17 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
 
     const handleDeleteAgent = async () => {
         if (!agentId || !user?.organizationId) return;
-        if (!confirm("Êtes-vous sûr de vouloir supprimer cet agent ? Cette action est irréversible.")) return;
+        if (!confirm(t('agents.confirmDelete') || "Êtes-vous sûr de vouloir supprimer cet agent ? Cette action est irréversible.")) return;
 
         setUpdating(true);
         try {
             await AgentService.deleteAgent(user.organizationId, agentId, true);
-            toast.success("Agent supprimé");
+            toast.success(t('agents.deleted') || "Agent supprimé");
             if (onAgentDeleted) onAgentDeleted();
             onClose();
         } catch (error) {
             ErrorLogger.error(error, 'AgentDetailsModal.deleteAgent');
-            toast.error("Erreur lors de la suppression");
+            toast.error(t('agents.deleteError') || "Erreur lors de la suppression");
         } finally {
             setUpdating(false);
         }

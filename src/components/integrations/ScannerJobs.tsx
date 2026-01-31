@@ -11,7 +11,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 
 export const ScannerJobs: React.FC = () => {
-    const { demoMode, user } = useStore();
+    const { demoMode, user, t } = useStore();
     const [jobs, setJobs] = useState<ScannerJob[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -29,11 +29,11 @@ export const ScannerJobs: React.FC = () => {
             const data = await integrationService.getScannerJobs(user?.organizationId, demoMode);
             setJobs(data);
         } catch {
-            toast.error('Erreur lors du chargement des tâches de scan');
+            toast.error(t('scanner.loadFailed') || 'Erreur lors du chargement des tâches de scan');
         } finally {
             setLoading(false);
         }
-    }, [demoMode, user?.organizationId]);
+    }, [demoMode, user?.organizationId, t]);
 
     useEffect(() => {
         loadJobs();
@@ -41,19 +41,19 @@ export const ScannerJobs: React.FC = () => {
 
     const handleCreateJob = async () => {
         if (!newJob.target) {
-            toast.error('Veuillez spécifier une cible');
+            toast.error(t('scanner.targetRequired') || 'Veuillez spécifier une cible');
             return;
         }
 
         setIsSubmitting(true);
         try {
             await integrationService.scheduleScannerJob(newJob, user?.organizationId, demoMode);
-            toast.success('Tâche de scan programmée avec succès');
+            toast.success(t('scanner.jobScheduled') || 'Tâche de scan programmée avec succès');
             setIsCreateModalOpen(false);
             loadJobs();
             setNewJob({ scannerId: 'nessus', target: '', frequency: 'once' });
         } catch {
-            toast.error('Erreur lors de la création de la tâche');
+            toast.error(t('scanner.jobCreationFailed') || 'Erreur lors de la création de la tâche');
         } finally {
             setIsSubmitting(false);
         }
@@ -62,11 +62,11 @@ export const ScannerJobs: React.FC = () => {
     const handleDeleteJob = async (id: string) => {
         try {
             await integrationService.deleteScannerJob(id, user?.organizationId, demoMode);
-            toast.success('Tâche supprimée');
+            toast.success(t('scanner.jobDeleted') || 'Tâche supprimée');
             // Optimistic update
             setJobs(prev => prev.filter(j => j.id !== id));
         } catch {
-            toast.error('Erreur lors de la suppression');
+            toast.error(t('errors.deletionFailed') || 'Erreur lors de la suppression');
         } finally {
             setDeleteJobId(null);
         }

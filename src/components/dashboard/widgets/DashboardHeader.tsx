@@ -7,6 +7,7 @@ import { ShinyText } from '../../ui/ShinyText';
 import { Spotlight } from '../../ui/aceternity/Spotlight';
 import { BorderBeam } from '../../ui/aceternity/BorderBeam';
 import { SparklesCore } from '../../ui/aceternity/Sparkles.tsx';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 type DashboardInsight = {
     type?: 'danger' | 'warning' | 'success' | string;
@@ -119,8 +120,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     condition,
                     icon
                 });
-            } catch {
-                // Silently fail
+            } catch (error) {
+                ErrorLogger.error(error, 'DashboardHeader.fetchWeather');
             }
         };
 
@@ -583,7 +584,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </span>
                                     <div className="flex flex-col -mb-0.5">
                                         <span className="text-[11px] font-black text-slate-600 dark:text-slate-600 leading-tight uppercase tracking-widest">
-                                            En cours
+                                            {t('common.inProgress', { defaultValue: 'En cours' })}
                                         </span>
                                     </div>
                                 </div>
@@ -640,7 +641,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                                 <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                             </span>
-                                            Protection active
+                                            {t('dashboard.activeProtection', { defaultValue: 'Protection active' })}
                                         </p>
                                     </div>
                                 </motion.div>

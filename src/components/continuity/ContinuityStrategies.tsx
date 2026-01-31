@@ -16,7 +16,7 @@ interface ContinuityStrategiesProps {
 }
 
 export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ assets }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { strategies, addStrategy, removeStrategy } = useContinuityActions();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
@@ -32,7 +32,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                 organizationId: user.organizationId,
                 linkedAssets: data.linkedAssets || []
             });
-            addToast('Stratégie ajoutée', 'success');
+            addToast(t('continuity.toast.strategyAdded', { defaultValue: 'Stratégie ajoutée' }), 'success');
             setIsModalOpen(false);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.onSubmit', 'CREATE_FAILED');
@@ -47,7 +47,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
         if (!confirmDelete.id) return;
         try {
             await removeStrategy(confirmDelete.id);
-            addToast('Stratégie supprimée', 'success');
+            addToast(t('continuity.toast.strategyDeleted', { defaultValue: 'Stratégie supprimée' }), 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleDelete', 'DELETE_FAILED');
         } finally {

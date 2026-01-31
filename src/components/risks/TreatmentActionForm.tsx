@@ -6,6 +6,7 @@ import { treatmentActionSchema, TreatmentActionFormData } from '../../schemas/tr
 import { Calendar, User, X, Check } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
+import { toast } from '@/lib/toast';
 
 interface TreatmentActionFormProps {
     action?: TreatmentAction; // If provided, editing mode
@@ -56,6 +57,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
             completedAt: data.status === 'Terminé' ? new Date().toISOString() : action?.completedAt
         });
         clearDraft();
+        toast.success(t('risks.treatmentActionSaved', { defaultValue: 'Action de traitement enregistrée' }));
     };
 
     return (

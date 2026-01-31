@@ -17,7 +17,7 @@ interface CommunitySettingsModalProps {
 }
 
 export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen, onClose, partners, onTrustAction }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { saveCommunitySettings } = useSettingsActions();
     const [activeTab, setActiveTab] = useState<'general' | 'network'>('general');
 
@@ -64,10 +64,10 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
         setIsSubmitting(true);
         try {
             await saveCommunitySettings(settings as unknown as Record<string, unknown>);
-            addToast("Paramètres de confidentialité mis à jour", "success");
+            addToast(t('threatIntel.toast.privacySettingsUpdated', { defaultValue: "Paramètres de confidentialité mis à jour" }), "success");
             onClose();
         } catch {
-            addToast("Erreur lors de la sauvegarde", "error");
+            addToast(t('threatIntel.toast.saveError', { defaultValue: "Erreur lors de la sauvegarde" }), "error");
         } finally {
             setIsSubmitting(false);
         }

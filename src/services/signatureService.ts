@@ -53,7 +53,7 @@ function isFirebaseError(error: unknown): error is FirebaseError {
  * Generate a unique ID
  */
 function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  return crypto.randomUUID();
 }
 
 /**

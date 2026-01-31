@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
@@ -81,6 +81,7 @@ export const useDashboardData = (): DashboardData => {
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
+    const lastFetchRef = useRef<string | null>(null);
 
     // Mock Data State
     const [mockData, setMockData] = useState<{
@@ -280,6 +281,11 @@ export const useDashboardData = (): DashboardData => {
             else setManualLoading(false);
             return;
         }
+
+        // Guard: prevent re-fetching when data is already loaded for the same org/claims state
+        const cacheKey = `${user.organizationId}-${claimsSynced}`;
+        if (lastFetchRef.current === cacheKey) return;
+        lastFetchRef.current = cacheKey;
 
         setManualLoading(true);
         try {

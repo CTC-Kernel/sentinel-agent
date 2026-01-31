@@ -6,7 +6,7 @@ import { useStore } from '../store';
 import { toast } from '@/lib/toast';
 
 export const useResourceLogs = (_resourceType: string, resourceId?: string, limitCount: number = 20) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [loading, setLoading] = useState(true);
     const lastDocRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
@@ -61,12 +61,12 @@ export const useResourceLogs = (_resourceType: string, resourceId?: string, limi
             if ((error as { code?: string })?.code === 'failed-precondition') {
                 // Index missing - silent fail for better UX
             } else {
-                toast.error('Impossible de charger l\'historique');
+                toast.error(t('resourceLogs.toast.loadError', { defaultValue: 'Impossible de charger l\'historique' }));
             }
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId, resourceId, limitCount]);
+    }, [user?.organizationId, resourceId, limitCount, t]);
 
     useEffect(() => {
         if (resourceId) {

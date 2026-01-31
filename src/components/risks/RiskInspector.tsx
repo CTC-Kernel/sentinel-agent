@@ -17,6 +17,7 @@ import { TimelineView } from '../shared/TimelineView';
 import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
 import { integrationService } from '../../services/integrationService';
 import { toast } from '@/lib/toast';
+import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { ConfirmModal } from '../ui/ConfirmModal';
 
@@ -52,6 +53,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     canEdit, demoMode, onUpdate, onDelete, onDuplicate
 }) => {
     const navigate = useNavigate();
+    const { t } = useStore();
 
     // Memoize tabs configuration early for use in hook
     const tabs = React.useMemo(() => [
@@ -156,15 +158,15 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         // For simplicity, we just update status here as per original code logic
         await handleLocalUpdate(updates);
 
-        toast.success(`Statut mis à jour : ${newStatus}`);
-    }, [canEdit, risk, handleLocalUpdate]);
+        toast.success(t('risks.toast.statusUpdated', { defaultValue: `Statut mis à jour : ${newStatus}`, status: newStatus }));
+    }, [canEdit, risk, handleLocalUpdate, t]);
 
     const handleReview = React.useCallback(async () => {
         if (!canEdit) return;
 
         await handleLocalUpdate({ lastReviewDate: new Date().toISOString() });
-        toast.success("Revue validée pour aujourd'hui");
-    }, [canEdit, handleLocalUpdate]);
+        toast.success(t('risks.toast.reviewValidated', { defaultValue: "Revue validée pour aujourd'hui" }));
+    }, [canEdit, handleLocalUpdate, t]);
 
     const linkedProjects = React.useMemo(() => !risk ? [] : projects.filter(p => p.relatedRiskIds?.includes(risk.id)), [projects, risk]);
     const linkedAudits = React.useMemo(() => !risk ? [] : audits.filter(a => a.relatedRiskIds?.includes(risk.id)), [audits, risk]);

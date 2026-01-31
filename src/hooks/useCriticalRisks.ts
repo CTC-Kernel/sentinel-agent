@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import {
   collection,
   query,
@@ -15,6 +16,7 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
+import { calculateTrend } from '../utils/trendUtils';
 
 /**
  * Result type for useCriticalRisks hook
@@ -39,21 +41,6 @@ export interface CriticalRisksResult {
  * Aligned with useCriticalRisksList for consistency
  */
 const ACTIVE_RISK_STATUSES = ['Ouvert', 'En cours', 'En attente de validation'];
-
-/**
- * Calculate trend based on count comparison
- */
-function calculateTrend(current: number, previous: number): TrendType {
-  if (previous === 0 && current === 0) return 'stable';
-  if (previous === 0) return current > 0 ? 'up' : 'stable';
-
-  const percentChange = ((current - previous) / previous) * 100;
-
-  // Use 5% threshold for significant change
-  if (percentChange > 5) return 'up';    // More risks = worse = up (red arrow)
-  if (percentChange < -5) return 'down'; // Fewer risks = better = down (green arrow)
-  return 'stable';
-}
 
 /**
  * Hook to fetch and monitor critical risks count
@@ -117,8 +104,7 @@ export function useCriticalRisks(tenantId: string | undefined): CriticalRisksRes
               // Handle potential missing fields with defaults
               const score = (data.impact || 1) * (data.probability || 1);
 
-              // Critical threshold is >= 20 (or 15 for 'High' depending on definition)
-              if (score >= 15) {
+              if (score >= RISK_THRESHOLDS.CRITICAL) {
                 criticalCount++;
               }
             });

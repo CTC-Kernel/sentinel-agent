@@ -2,6 +2,7 @@ import { z } from 'zod';
 import i18n from '../i18n';
 import { RISK_STATUSES, TREATMENT_STATUSES } from '../types/risks';
 import { FRAMEWORKS } from '../constants/frameworks';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
 
 export const riskSchema = z.object({
     assetId: z.string().optional(),
@@ -64,9 +65,9 @@ export const riskSchema = z.object({
     message: i18n.t('risks.validation_residual'),
     path: ["residualImpact"] // Show error on this field
 }).refine((data) => {
-    // Validate that Justification is present if Risk is Accepted and Criticality is High (Score >= 12)
+    // Validate that Justification is present if Risk is Accepted and Criticality is High
     const score = data.probability * data.impact;
-    if (data.strategy === 'Accepter' && score >= 12) {
+    if (data.strategy === 'Accepter' && score >= RISK_ACCEPTANCE_THRESHOLD) {
         return !!data.justification && data.justification.trim().length > 10;
     }
     return true;

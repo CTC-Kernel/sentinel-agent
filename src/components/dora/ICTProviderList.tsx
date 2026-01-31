@@ -24,6 +24,7 @@ interface ICTProviderListProps {
     onEdit: (provider: ICTProvider) => void;
     onDelete: (id: string) => Promise<void>;
     onDuplicate?: (provider: ICTProvider) => void;
+    onCreateNew?: () => void;
 }
 
 type ProviderWithId = ICTProvider & { id: string };
@@ -34,7 +35,8 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
     onSelect,
     onEdit,
     onDelete,
-    onDuplicate
+    onDuplicate,
+    onCreateNew
 }) => {
     const { t } = useTranslation();
     const { locale } = useLocale();
@@ -290,9 +292,18 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
                     {t('dora.providers.emptyTitle')}
                 </h3>
-                <p className="text-slate-500 dark:text-muted-foreground max-w-md">
+                <p className="text-slate-500 dark:text-muted-foreground max-w-md mb-4">
                     {t('dora.providers.emptyDesc')}
                 </p>
+                {onCreateNew && (
+                    <button
+                        type="button"
+                        onClick={onCreateNew}
+                        className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                        {t('dora.providers.new', { defaultValue: 'Nouveau fournisseur ICT' })}
+                    </button>
+                )}
             </div>
         );
     }

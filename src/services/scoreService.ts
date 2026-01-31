@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { COMPLIANCE_WEIGHTS, TREND_THRESHOLD } from '../constants/complianceConfig';
 import type {
   ComplianceScore,
   ScoreHistory,
@@ -56,11 +57,11 @@ export class ScoreService {
         trend: data.trend ?? 'stable',
         lastCalculated: data.lastCalculated?.toDate?.() ?? data.lastCalculated ?? new Date().toISOString(),
         breakdown: data.breakdown ?? {
-          risks: { score: 0, weight: 0.25 },
-          controls: { score: 0, weight: 0.35 },
-          documents: { score: 0, weight: 0.10 },
-          audits: { score: 0, weight: 0.20 },
-          training: { score: 0, weight: 0.10 },
+          risks: { score: 0, weight: COMPLIANCE_WEIGHTS.risks },
+          controls: { score: 0, weight: COMPLIANCE_WEIGHTS.controls },
+          documents: { score: 0, weight: COMPLIANCE_WEIGHTS.documents },
+          audits: { score: 0, weight: COMPLIANCE_WEIGHTS.audits },
+          training: { score: 0, weight: COMPLIANCE_WEIGHTS.training },
         },
         calculationDetails: data.calculationDetails,
       } as ComplianceScore;
@@ -154,11 +155,11 @@ export class ScoreService {
           trend: data.trend ?? 'stable',
           lastCalculated: data.lastCalculated?.toDate?.() ?? data.lastCalculated ?? new Date().toISOString(),
           breakdown: data.breakdown ?? {
-            risks: { score: 0, weight: 0.25 },
-            controls: { score: 0, weight: 0.35 },
-            documents: { score: 0, weight: 0.10 },
-            audits: { score: 0, weight: 0.20 },
-            training: { score: 0, weight: 0.10 },
+            risks: { score: 0, weight: COMPLIANCE_WEIGHTS.risks },
+            controls: { score: 0, weight: COMPLIANCE_WEIGHTS.controls },
+            documents: { score: 0, weight: COMPLIANCE_WEIGHTS.documents },
+            audits: { score: 0, weight: COMPLIANCE_WEIGHTS.audits },
+            training: { score: 0, weight: COMPLIANCE_WEIGHTS.training },
           },
           calculationDetails: data.calculationDetails,
         };
@@ -193,8 +194,8 @@ export class ScoreService {
     const avg = sum / history.length;
     const diff = currentScore - avg;
 
-    if (diff > 5) return 'up';
-    if (diff < -5) return 'down';
+    if (diff > TREND_THRESHOLD) return 'up';
+    if (diff < -TREND_THRESHOLD) return 'down';
     return 'stable';
   }
 

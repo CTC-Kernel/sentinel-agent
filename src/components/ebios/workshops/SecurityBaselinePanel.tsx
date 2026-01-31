@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { CheckCircle, AlertCircle, MinusCircle, Search, Filter } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { ProgressRing } from '../../ui/ProgressRing';
+import { PARTIAL_CONTROL_WEIGHT } from '../../../constants/complianceConfig';
 import type { SecurityBaseline, SecurityBaselineMeasure } from '../../../types/ebios';
 
 interface SecurityBaselinePanelProps {
@@ -92,7 +93,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
     const partial = updatedMeasures.filter((m) => m.status === 'partial').length;
     const notImplemented = updatedMeasures.filter((m) => m.status === 'not_implemented').length;
     const total = updatedMeasures.length;
-    const maturityScore = total > 0 ? Math.round(((implemented + partial * 0.5) / total) * 100) : 0;
+    const maturityScore = total > 0 ? Math.round(((implemented + partial * PARTIAL_CONTROL_WEIGHT) / total) * 100) : 0;
 
     onChange({
       ...baseline,

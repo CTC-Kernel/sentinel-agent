@@ -123,7 +123,7 @@ export const useSupplierLogic = () => {
         try {
             const lines = ImportService.parseCSV(csvContent);
             if (lines.length === 0) {
-                addToast("Fichier vide ou invalide", "error");
+                addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
                 return;
             }
 

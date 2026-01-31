@@ -4,6 +4,7 @@ import { Badge } from '../../ui/Badge';
 import { SafeHTML } from '../../ui/SafeHTML';
 import { RiskAIAssistant } from '../RiskAIAssistant';
 import { Risk } from '../../../types';
+import { useLocale } from '@/hooks/useLocale';
 // import { toast } from '@/lib/toast';
 
 interface RiskGeneralDetailsProps {
@@ -29,6 +30,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
     onAIAssistantUpdate,
     getOwnerName
 }) => {
+    const { t } = useLocale();
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -39,9 +41,9 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                             <ShieldAlert className="h-4 w-4" /> Risque Brut
                         </h4>
                         <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
-                            {Number(risk.score) || (Number(risk.probability) * Number(risk.impact)) || 0}
+                            {Number(risk.score) || (Number(risk.probability || 0) * Number(risk.impact || 0)) || 0}
                         </div>
-                        <div className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Prob: {risk.probability || 0} × Impact: {risk.impact || 0}</div>
+                        <div className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Prob: {Number(risk.probability || 0)} × Impact: {Number(risk.impact || 0)}</div>
                     </div>
                 </div>
                 <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
@@ -51,9 +53,9 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                             <CheckCircle2 className="h-4 w-4" /> Risque Résiduel
                         </h4>
                         <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
-                            {Number(risk.residualScore) || ((Number(risk.residualProbability) || Number(risk.probability)) * (Number(risk.residualImpact) || Number(risk.impact))) || 0}
+                            {Number(risk.residualScore) || ((Number(risk.residualProbability || 0) || Number(risk.probability || 0)) * (Number(risk.residualImpact || 0) || Number(risk.impact || 0))) || 0}
                         </div>
-                        <div className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Prob: {risk.residualProbability || risk.probability || 0} × Impact: {risk.residualImpact || risk.impact || 0}</div>
+                        <div className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Prob: {Number(risk.residualProbability || risk.probability || 0)} × Impact: {Number(risk.residualImpact || risk.impact || 0)}</div>
                     </div>
                 </div>
             </div>
@@ -98,7 +100,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                             {['Ouvert', 'En cours', 'Fermé', 'En attente de validation'].map(s => (
                                 <button
-                                    aria-label={`Changer le statut à ${s}`}
+                                    aria-label={t('risks.changeStatusTo', { defaultValue: 'Changer le statut à', status: s })}
                                     key={s}
                                     onClick={() => onStatusChangeRequest(s as Risk['status'])}
                                     disabled={updating}

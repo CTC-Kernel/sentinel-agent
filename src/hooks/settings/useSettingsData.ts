@@ -38,7 +38,7 @@ export const useSettingsData = () => {
     if (!user?.organizationId) throw new Error('No organization ID');
     try {
       const orgRef = doc(db, 'organizations', user.organizationId);
-      await updateDoc(orgRef, data);
+      await updateDoc(orgRef, sanitizeData(data as Record<string, unknown>));
     } catch (error) {
       ErrorLogger.error(error, 'useSettingsData.updateOrganization');
       throw error;

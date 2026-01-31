@@ -17,7 +17,7 @@ interface QuestionnaireListProps {
 }
 
 export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, organizationId, canEdit }) => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const { questionnaires: allQuestionnaires, removeQuestionnaire } = useAuditsActions();
     const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<Questionnaire | null>(null);
     const [mode, setMode] = useState<'view' | 'edit' | 'respond' | null>(null);
@@ -36,7 +36,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
         if (!confirmDelete.id) return;
         try {
             await removeQuestionnaire(confirmDelete.id);
-            addToast("Questionnaire supprimé", "info");
+            addToast(t('audits.questionnaire.deleted', { defaultValue: "Questionnaire supprimé" }), "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireList.handleDelete', 'DELETE_FAILED');
         } finally {

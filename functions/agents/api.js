@@ -110,6 +110,11 @@ async function validateAgentAuth(req, res, next) {
     if (!agentDoc.exists) return res.status(401).json({ error: 'Agent not found' });
     const agentData = agentDoc.data();
 
+    // SECURITY: Verify the agent's organizationId matches the header to prevent cross-tenant access
+    if (agentData.organizationId !== orgId) {
+        return res.status(403).json({ error: 'Organization mismatch' });
+    }
+
     // Attach agent data to request for downstream handlers
     req.agentDoc = agentDoc;
     req.agentData = agentData;
@@ -255,8 +260,16 @@ app.post('/v1/agents/enroll', async (req, res) => {
         }
 
         // Find and validate the enrollment token
+        // SECURITY: Require organizationId from request body to scope query to a specific org
+        const reqOrganizationId = req.body.organization_id || req.headers['x-organization-id'];
+        if (!reqOrganizationId) {
+            return res.status(400).json({ error: 'organization_id is required for enrollment' });
+        }
+
         const tokensSnapshot = await db
-            .collectionGroup('enrollmentTokens')
+            .collection('organizations')
+            .doc(reqOrganizationId)
+            .collection('enrollmentTokens')
             .where('token', '==', enrollment_token)
             .where('revoked', '==', false)
             .limit(1)
@@ -1242,8 +1255,19 @@ app.get('/v1/agents/tokens/validate', async (req, res) => {
         }
 
         // Find the token
+        // SECURITY: Require organizationId to scope query to a specific org
+        const orgId = req.query.organization_id || req.headers['x-organization-id'];
+        if (!orgId) {
+            return res.status(400).json({
+                code: 'MISSING_ORGANIZATION_ID',
+                message: 'organization_id query parameter is required',
+            });
+        }
+
         const tokensSnapshot = await db
-            .collectionGroup('enrollmentTokens')
+            .collection('organizations')
+            .doc(orgId)
+            .collection('enrollmentTokens')
             .where('token', '==', token)
             .limit(1)
             .get();

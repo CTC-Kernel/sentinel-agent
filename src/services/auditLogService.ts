@@ -236,10 +236,7 @@ export class AuditContextCollector {
      * Generate a correlation ID for request tracing
      */
     private static generateCorrelationId(): string {
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-            return crypto.randomUUID();
-        }
-        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        return crypto.randomUUID();
     }
 
     /**

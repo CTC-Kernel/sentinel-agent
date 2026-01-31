@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { SystemHealth } from '../SystemHealth';
+import { BUILD_VERSION } from '../../../../config/version';
 
 // Mock ConnectivityService
 vi.mock('../../../../services/connectivityService', () => ({
@@ -109,7 +110,7 @@ describe('SystemHealth', () => {
         render(<SystemHealth />);
 
         await waitFor(() => {
-            expect(screen.getByText('v2.4.1')).toBeInTheDocument();
+            expect(screen.getByText(`v${BUILD_VERSION}`)).toBeInTheDocument();
         }, { timeout: 10000 });
     });
 

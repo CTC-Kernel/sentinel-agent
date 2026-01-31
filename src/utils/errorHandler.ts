@@ -139,6 +139,7 @@ export class ErrorHandler {
       return new Error(JSON.stringify(error));
     }
 
+    // TODO: i18n key: 'errors.unknown'
     return new Error('Une erreur inconnue est survenue');
   }
 
@@ -206,6 +207,7 @@ export class ErrorHandler {
     switch (severity) {
       case ErrorSeverity.CRITICAL:
       case ErrorSeverity.HIGH:
+        // TODO: i18n key: 'errors.retryOrContact'
         toast.error(message, 'Veuillez réessayer ou contacter le support si le problème persiste.');
         break;
       case ErrorSeverity.MEDIUM:
@@ -241,39 +243,46 @@ export class ErrorHandler {
 
   /**
    * Génère un message utilisateur compréhensible
+   *
+   * TODO: i18n - This utility has no React context, so t() is not available directly.
+   * These French strings serve as last-resort fallbacks. To fully internationalize,
+   * pass a translator function via ErrorHandlerOptions or call from a component/hook
+   * that has access to t(). Translation keys are noted in comments for future mapping.
    */
   private static getUserFriendlyMessage(error: Error): string {
     const message = error.message.toLowerCase();
 
-    // Erreurs réseau
+    // Erreurs réseau — i18n key: 'errors.networkConnection'
     if (message.includes('network') || message.includes('fetch')) {
       return 'Erreur de connexion. Vérifiez votre connexion internet.';
     }
 
-    // Erreurs Firebase
+    // Erreurs Firebase — i18n key: 'errors.permissionDenied'
     if (message.includes('permission-denied')) {
       return 'Vous n\'avez pas les permissions nécessaires pour cette action.';
     }
 
+    // i18n key: 'errors.notFound'
     if (message.includes('not-found')) {
       return 'La ressource demandée n\'existe pas.';
     }
 
+    // i18n key: 'errors.alreadyExists'
     if (message.includes('already-exists')) {
       return 'Cette ressource existe déjà.';
     }
 
-    // Erreurs d'authentification
+    // Erreurs d'authentification — i18n key: 'errors.authError'
     if (message.includes('auth') || message.includes('unauthorized')) {
       return 'Erreur d\'authentification. Veuillez vous reconnecter.';
     }
 
-    // Erreurs de validation
+    // Erreurs de validation — i18n key: 'errors.invalidData'
     if (message.includes('invalid') || message.includes('validation')) {
       return 'Les données fournies sont invalides. Veuillez vérifier votre saisie.';
     }
 
-    // Message générique
+    // Message générique — i18n key: 'errors.generic'
     return 'Une erreur est survenue. Veuillez réessayer.';
   }
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileUploader } from '../ui/FileUploader';
+import { useLocale } from '../../hooks/useLocale';
 
 interface DocumentUploadZoneProps {
     fileUrl?: string; // Can be string or File mostly in forms, but usually string in Document object
@@ -20,10 +21,12 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     maxSizeMB = 50,
     storagePath = 'documents'
 }) => {
+    const { t } = useLocale();
+
     if (fileUrl) {
         return (
             <div className="mb-4">
-                <div className="block text-sm font-medium mb-1 dark:text-muted-foreground">Fichier associé</div>
+                <div className="block text-sm font-medium mb-1 dark:text-muted-foreground">{t('documents.upload.associatedFile', { defaultValue: 'Fichier associé' })}</div>
                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700">
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="h-10 w-10 flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
@@ -31,15 +34,16 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
                         </div>
                         <div className="min-w-0">
                             <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{fileName || 'Document'}</p>
-                            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">Voir le fichier</a>
+                            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">{t('documents.upload.viewFile', { defaultValue: 'Voir le fichier' })}</a>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClear}
+                        aria-label={t('documents.upload.deleteFile', { defaultValue: 'Supprimer' })}
                         className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     >
-                        Supprimer
+                        {t('documents.upload.deleteFile', { defaultValue: 'Supprimer' })}
                     </button>
                 </div>
             </div>
@@ -58,9 +62,9 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
 
     return (
         <div className="mb-4">
-            <div className="block text-sm font-medium mb-1 dark:text-muted-foreground">Fichier (Optionnel)</div>
+            <div className="block text-sm font-medium mb-1 dark:text-muted-foreground">{t('documents.upload.fileOptional', { defaultValue: 'Fichier (Optionnel)' })}</div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                Formats accept&eacute;s : PDF, Word (.doc, .docx), Excel (.xls, .xlsx), Images (JPG, PNG, etc.), Texte (.txt) &mdash; Max {maxSizeMB}Mo
+                {t('documents.upload.acceptedFormats', { defaultValue: 'Formats acceptés : PDF, Word (.doc, .docx), Excel (.xls, .xlsx), Images (JPG, PNG, etc.), Texte (.txt)', maxSize: maxSizeMB })} &mdash; Max {maxSizeMB}Mo
             </p>
             <FileUploader
                 onUploadComplete={(url, name, hash, _isSecure, size, type) => onUploadSuccess(url, name, type || 'application/octet-stream', size || 0, hash)}

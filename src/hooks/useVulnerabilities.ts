@@ -11,7 +11,7 @@ import { useFirestoreCollection } from './useFirestore';
 import { hasPermission } from '../utils/permissions';
 
 export const useVulnerabilities = () => {
-    const { user, addToast, demoMode } = useStore();
+    const { user, addToast, demoMode, t } = useStore();
     const initialLoadRef = useRef(false);
     const isSubmittingRef = useRef(false);
 
@@ -32,9 +32,9 @@ export const useVulnerabilities = () => {
 
     useEffect(() => {
         if (error) {
-            addToast('Erreur lors du chargement des vulnérabilités', 'error');
+            addToast(t('vulnerabilities.toast.loadError', { defaultValue: 'Erreur lors du chargement des vulnérabilités' }), 'error');
         }
-    }, [error, addToast]);
+    }, [error, addToast, t]);
 
     const seedCisaKev = useCallback(async () => {
         if (!user?.organizationId || demoMode) return;
@@ -53,13 +53,13 @@ export const useVulnerabilities = () => {
                 );
                 await Promise.all(batchPromises);
                 logAction(user, 'AUTO_SEED', 'Vulnerabilities', `Seeded ${kevVulns.length} vulnerabilities from CISA KEV`);
-                addToast("Flux CISA KEV synchronisé", "success");
+                addToast(t('vulnerabilities.toast.cisaKevSynced', { defaultValue: "Flux CISA KEV synchronisé" }), "success");
             }
         } catch (error) {
             ErrorLogger.warn((error as Error).message, 'useVulnerabilities.seedCisaKev');
             // optional: toast
         }
-    }, [user, addToast, demoMode]);
+    }, [user, addToast, demoMode, t]);
 
     // Auto-seed CISA KEV
     useEffect(() => {
@@ -72,7 +72,7 @@ export const useVulnerabilities = () => {
     const addVulnerability = async (vuln: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
         if (isSubmittingRef.current) return;
@@ -85,11 +85,11 @@ export const useVulnerabilities = () => {
             });
             await addDoc(collection(db, 'vulnerabilities'), dataToSave);
             logAction(user, 'CREATE', 'Vulnerabilities', `Created Vulnerability ${vuln.cveId}`);
-            addToast("Vulnérabilité créée", "success");
+            addToast(t('vulnerabilities.toast.created', { defaultValue: "Vulnérabilité créée" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useVulnerabilities.add');
-            addToast("Erreur lors de la création", "error");
+            addToast(t('vulnerabilities.toast.createError', { defaultValue: "Erreur lors de la création" }), "error");
             throw error;
         } finally {
             isSubmittingRef.current = false;
@@ -98,7 +98,7 @@ export const useVulnerabilities = () => {
 
     const updateVulnerability = async (id: string, updates: Partial<Vulnerability>) => {
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
 
@@ -107,7 +107,7 @@ export const useVulnerabilities = () => {
             ErrorLogger.warn('Unauthorized vulnerability update attempt', 'useVulnerabilities.update', {
                 metadata: { attemptedBy: user?.uid, targetId: id }
             });
-            addToast("Vous n'avez pas les droits pour modifier cette vulnérabilité", "error");
+            addToast(t('vulnerabilities.toast.noUpdatePermission', { defaultValue: "Vous n'avez pas les droits pour modifier cette vulnérabilité" }), "error");
             return false;
         }
 
@@ -117,7 +117,7 @@ export const useVulnerabilities = () => {
             ErrorLogger.warn('IDOR attempt: vulnerability modification across organizations', 'useVulnerabilities.update', {
                 metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetVuln?.organizationId, callerOrg: user?.organizationId }
             });
-            addToast("Vulnérabilité non trouvée", "error");
+            addToast(t('vulnerabilities.toast.notFound', { defaultValue: "Vulnérabilité non trouvée" }), "error");
             return false;
         }
 
@@ -145,23 +145,23 @@ export const useVulnerabilities = () => {
                     );
                     await Promise.all(updatePromises);
                     const count = riskSnap.docs.length;
-                    addToast(`${count} risque${count > 1 ? 's' : ''} associé${count > 1 ? 's' : ''} marqué${count > 1 ? 's' : ''} comme Traité`, "success");
+                    addToast(t('vulnerabilities.toast.relatedRisksResolved', { defaultValue: "{{count}} risque(s) associé(s) marqué(s) comme Traité", count }), "success");
                 }
             }
 
             logAction(user!, 'UPDATE', 'Vulnerabilities', `Updated Vulnerability ${updates.cveId}`);
-            addToast("Vulnérabilité mise à jour", "success");
+            addToast(t('vulnerabilities.toast.updated', { defaultValue: "Vulnérabilité mise à jour" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useVulnerabilities.update');
-            addToast("Erreur lors de la modification", "error");
+            addToast(t('vulnerabilities.toast.updateError', { defaultValue: "Erreur lors de la modification" }), "error");
             throw error;
         }
     };
 
     const deleteVulnerability = async (id: string) => {
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
 
@@ -170,7 +170,7 @@ export const useVulnerabilities = () => {
             ErrorLogger.warn('Unauthorized vulnerability deletion attempt', 'useVulnerabilities.delete', {
                 metadata: { attemptedBy: user?.uid, targetId: id }
             });
-            addToast("Vous n'avez pas les droits pour supprimer cette vulnérabilité", "error");
+            addToast(t('vulnerabilities.toast.noDeletePermission', { defaultValue: "Vous n'avez pas les droits pour supprimer cette vulnérabilité" }), "error");
             return false;
         }
 
@@ -180,18 +180,18 @@ export const useVulnerabilities = () => {
             ErrorLogger.warn('IDOR attempt: vulnerability deletion across organizations', 'useVulnerabilities.delete', {
                 metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetVuln?.organizationId, callerOrg: user?.organizationId }
             });
-            addToast("Vulnérabilité non trouvée", "error");
+            addToast(t('vulnerabilities.toast.notFound', { defaultValue: "Vulnérabilité non trouvée" }), "error");
             return false;
         }
 
         try {
             await deleteDoc(doc(db, 'vulnerabilities', id));
             logAction(user!, 'DELETE', 'Vulnerabilities', `Deleted Vulnerability ID: ${id}`);
-            addToast("Supprimé avec succès", "success");
+            addToast(t('vulnerabilities.toast.deleted', { defaultValue: "Supprimé avec succès" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useVulnerabilities.delete');
-            addToast("Erreur lors de la suppression", "error");
+            addToast(t('vulnerabilities.toast.deleteError', { defaultValue: "Erreur lors de la suppression" }), "error");
             throw error;
         }
     };
@@ -199,7 +199,7 @@ export const useVulnerabilities = () => {
     const createRiskFromVuln = async (vuln: Vulnerability) => {
         if (!user?.organizationId || !vuln.id) return;
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
         try {
@@ -230,11 +230,11 @@ export const useVulnerabilities = () => {
             });
 
             logAction(user, 'CREATE_RISK', 'Vulnerabilities', `Created Risk for Vuln ${vuln.cveId}`);
-            addToast("Risque créé et lié avec succès", "success");
+            addToast(t('vulnerabilities.toast.riskCreatedAndLinked', { defaultValue: "Risque créé et lié avec succès" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useVulnerabilities.createRisk');
-            addToast("Erreur création risque", "error");
+            addToast(t('vulnerabilities.toast.riskCreateError', { defaultValue: "Erreur création risque" }), "error");
             throw error;
         }
     };
@@ -242,7 +242,7 @@ export const useVulnerabilities = () => {
     const importVulnerabilities = async (vulns: Partial<Vulnerability>[]) => {
         if (!user?.organizationId) return;
         if (demoMode) {
-            addToast("Action non disponible en mode démo", "info");
+            addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
         try {
@@ -256,11 +256,11 @@ export const useVulnerabilities = () => {
             );
             await Promise.all(batchPromises);
             logAction(user, 'IMPORT', 'Vulnerabilities', `Imported ${vulns.length} vulnerabilities from scanner`);
-            addToast(`${vulns.length} vulnérabilités importées`, "success");
+            addToast(t('vulnerabilities.toast.imported', { defaultValue: "{{count}} vulnérabilités importées", count: vulns.length }), "success");
             return true;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useVulnerabilities.import');
-            addToast("Erreur lors de l'import", "error");
+            addToast(t('vulnerabilities.toast.importError', { defaultValue: "Erreur lors de l'import" }), "error");
             throw error;
         }
     };

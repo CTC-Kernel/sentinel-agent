@@ -9,6 +9,7 @@
  */
 
 const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
@@ -130,7 +131,7 @@ exports.initiateSignature = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Initiate signature error:', error);
+      logger.error('Initiate signature error:', error);
       throw new HttpsError('internal', 'Failed to initiate signature request');
     }
   }
@@ -240,7 +241,7 @@ exports.verifySignature = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Verify signature error:', error);
+      logger.error('Verify signature error:', error);
       throw new HttpsError('internal', 'Failed to verify signature');
     }
   }
@@ -314,14 +315,14 @@ exports.sendSignatureNotifications = onCall(
         try {
           // In a real implementation, this would call an email service
           // For MVP, we just update the signer status
-          console.log(`Would send notification to ${maskedEmail} for request ${requestId}`);
+          logger.log(`Would send notification to ${maskedEmail} for request ${requestId}`);
 
           return {
             email: signer.email,
             success: true,
           };
         } catch (error) {
-          console.error(`Failed to notify ${maskedEmail}:`, error);
+          logger.error(`Failed to notify ${maskedEmail}:`, error);
           return {
             email: signer.email,
             success: false,
@@ -361,7 +362,7 @@ exports.sendSignatureNotifications = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Send notifications error:', error);
+      logger.error('Send notifications error:', error);
       throw new HttpsError('internal', 'Failed to send notifications');
     }
   }
@@ -388,7 +389,7 @@ exports.handleSignatureWebhook = onRequest(
     const webhookSecret = process.env.SIGNATURE_WEBHOOK_SECRET;
     const providedSecret = req.headers['x-webhook-secret'];
     if (!webhookSecret || !providedSecret || providedSecret !== webhookSecret) {
-      console.warn('Unauthorized webhook attempt', { ip: req.ip });
+      logger.warn('Unauthorized webhook attempt', { ip: req.ip });
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -412,7 +413,7 @@ exports.handleSignatureWebhook = onRequest(
         .get();
 
       if (requestsQuery.empty) {
-        console.warn(`No request found for external ID: ${externalId}`);
+        logger.warn(`No request found for external ID: ${externalId}`);
         res.status(200).json({ success: true, message: 'Request not found, ignoring' });
         return;
       }
@@ -475,7 +476,7 @@ exports.handleSignatureWebhook = onRequest(
           break;
 
         default:
-          console.log(`Unhandled webhook event: ${event}`);
+          logger.log(`Unhandled webhook event: ${event}`);
       }
 
       // Apply updates
@@ -497,7 +498,7 @@ exports.handleSignatureWebhook = onRequest(
 
       res.status(200).json({ success: true, event, requestId: requestDoc.id });
     } catch (error) {
-      console.error('Webhook handling error:', error);
+      logger.error('Webhook handling error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -631,7 +632,7 @@ exports.generateSignedDocumentCertificate = onCall(
       if (error instanceof HttpsError) {
         throw error;
       }
-      console.error('Generate certificate error:', error);
+      logger.error('Generate certificate error:', error);
       throw new HttpsError('internal', 'Failed to generate signed document certificate');
     }
   }
@@ -651,6 +652,6 @@ async function logSignatureAudit(db, event) {
       },
     });
   } catch (error) {
-    console.error('Failed to log signature audit event:', error);
+    logger.error('Failed to log signature audit event:', error);
   }
 }

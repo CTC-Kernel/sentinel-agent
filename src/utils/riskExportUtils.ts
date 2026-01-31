@@ -7,6 +7,7 @@ import { Risk, Asset, UserProfile } from '../types';
 import { ExcelExportService } from '../services/excelExportService';
 import { PdfService } from '../services/PdfService';
 import { getRiskLevel } from './riskUtils';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { RISK_COLORS, STATUS_COLORS } from '../constants/colors';
@@ -121,10 +122,10 @@ export function getRiskSummaryStats(risks: Risk[]): {
     const total = risks.length;
 
     const byCriticality = [
-        { label: 'Critique', count: risks.filter(r => r.score >= 15).length, color: RISK_COLORS.critical },
-        { label: 'Élevé', count: risks.filter(r => r.score >= 10 && r.score < 15).length, color: RISK_COLORS.high },
-        { label: 'Moyen', count: risks.filter(r => r.score >= 5 && r.score < 10).length, color: RISK_COLORS.medium },
-        { label: 'Faible', count: risks.filter(r => r.score < 5).length, color: STATUS_COLORS.success }
+        { label: 'Critique', count: risks.filter(r => r.score >= RISK_THRESHOLDS.CRITICAL).length, color: RISK_COLORS.critical },
+        { label: 'Élevé', count: risks.filter(r => r.score >= RISK_THRESHOLDS.HIGH && r.score < RISK_THRESHOLDS.CRITICAL).length, color: RISK_COLORS.high },
+        { label: 'Moyen', count: risks.filter(r => r.score >= RISK_THRESHOLDS.MEDIUM && r.score < RISK_THRESHOLDS.HIGH).length, color: RISK_COLORS.medium },
+        { label: 'Faible', count: risks.filter(r => r.score < RISK_THRESHOLDS.MEDIUM).length, color: STATUS_COLORS.success }
     ];
 
     const byStatus = [

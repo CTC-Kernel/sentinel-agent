@@ -6,7 +6,7 @@ import { useStore } from '../store';
 import { toast } from '@/lib/toast';
 
 export const useActivityLogs = (limitCount: number = 50) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [loading, setLoading] = useState(true);
     const lastDocRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
@@ -60,9 +60,17 @@ export const useActivityLogs = (limitCount: number = 50) => {
         // Date Range
         if (filter.dateRange && filter.dateRange !== 'all') {
             const now = new Date();
-            const logDate = (timestamp: { seconds: number } | string | Date) => {
-                const seconds = (timestamp as { seconds: number }).seconds;
-                return new Date(seconds ? seconds * 1000 : timestamp as string | Date);
+            const logDate = (timestamp: unknown): Date => {
+                if (!timestamp) return new Date();
+                if (typeof timestamp === 'string') return new Date(timestamp);
+                if (timestamp instanceof Date) return timestamp;
+                if (timestamp && typeof timestamp === 'object' && 'toDate' in timestamp && typeof (timestamp as { toDate: () => Date }).toDate === 'function') {
+                    return (timestamp as { toDate: () => Date }).toDate();
+                }
+                if (timestamp && typeof timestamp === 'object' && 'seconds' in timestamp) {
+                    return new Date((timestamp as { seconds: number }).seconds * 1000);
+                }
+                return new Date();
             };
 
             if (filter.dateRange === 'today') {
@@ -148,11 +156,11 @@ export const useActivityLogs = (limitCount: number = 50) => {
             setHasMore(snapshot.docs.length === limitCount);
 
         } catch {
-            toast.error('Impossible de charger le journal d\'activité');
+            toast.error(t('activityLogs.toast.loadError', { defaultValue: 'Impossible de charger le journal d\'activité' }));
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId, limitCount]);
+    }, [user?.organizationId, limitCount, t]);
 
     useEffect(() => {
         // Initial fetch
@@ -177,8 +185,20 @@ export const useActivityLogs = (limitCount: number = 50) => {
         const csvContent = [
             headers.join(','),
             ...filteredLogs.map(log => {
-                const ts = log.timestamp as { seconds?: number } | string | Date;
-                const date = new Date((ts as { seconds: number }).seconds ? (ts as { seconds: number }).seconds * 1000 : ts as string).toLocaleString();
+                const ts = log.timestamp as unknown;
+                const safeTimestamp = (t: unknown): string => {
+                    if (!t) return new Date().toISOString();
+                    if (typeof t === 'string') return t;
+                    if (t instanceof Date) return t.toISOString();
+                    if (t && typeof t === 'object' && 'toDate' in t && typeof (t as { toDate: () => Date }).toDate === 'function') {
+                        return (t as { toDate: () => Date }).toDate().toISOString();
+                    }
+                    if (t && typeof t === 'object' && 'seconds' in t) {
+                        return new Date((t as { seconds: number }).seconds * 1000).toISOString();
+                    }
+                    return new Date().toISOString();
+                };
+                const date = new Date(safeTimestamp(ts)).toLocaleString();
                 return [
                     `"${date}"`,
                     `"${log.userEmail}"`,

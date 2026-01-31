@@ -15,7 +15,7 @@ interface AIAssistButtonProps {
 
 export const AIAssistButton: React.FC<AIAssistButtonProps> = ({ context, fieldName, onSuggest, prompt, className, tooltip = "Suggérer avec l'IA" }) => {
     const [loading, setLoading] = useState(false);
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
 
     const handleSuggest = async () => {
         setLoading(true);
@@ -35,13 +35,13 @@ export const AIAssistButton: React.FC<AIAssistButtonProps> = ({ context, fieldNa
 
             if (suggestion) {
                 onSuggest(suggestion);
-                addToast("Suggestion appliquée !", "success");
+                addToast(t('ai.toast.suggestionApplied', { defaultValue: "Suggestion appliquée !" }), "success");
             } else {
-                addToast("Je n'ai pas trouvé de suggestion pertinente.", "info");
+                addToast(t('ai.toast.noSuggestionFound', { defaultValue: "Je n'ai pas trouvé de suggestion pertinente." }), "info");
             }
         } catch (error) {
             ErrorLogger.error(error, 'AIAssistButton.handleSuggest');
-            addToast("Erreur lors de la génération.", "error");
+            addToast(t('ai.toast.generationError', { defaultValue: "Erreur lors de la génération." }), "error");
         } finally {
             setLoading(false);
         }

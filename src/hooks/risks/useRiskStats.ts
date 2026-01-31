@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Risk } from '../../types';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 export const useRiskStats = (risks: Risk[]) => {
     const stats = useMemo(() => {
@@ -12,10 +13,10 @@ export const useRiskStats = (risks: Risk[]) => {
         }));
 
         const total = safeRisks.length;
-        const critical = safeRisks.filter(r => r.score >= 15).length;
-        const high = safeRisks.filter(r => r.score >= 10 && r.score < 15).length;
-        const medium = safeRisks.filter(r => r.score >= 5 && r.score < 10).length;
-        const low = safeRisks.filter(r => r.score < 5).length;
+        const critical = safeRisks.filter(r => r.score >= RISK_THRESHOLDS.CRITICAL).length;
+        const high = safeRisks.filter(r => r.score >= RISK_THRESHOLDS.HIGH && r.score < RISK_THRESHOLDS.CRITICAL).length;
+        const medium = safeRisks.filter(r => r.score >= RISK_THRESHOLDS.MEDIUM && r.score < RISK_THRESHOLDS.HIGH).length;
+        const low = safeRisks.filter(r => r.score < RISK_THRESHOLDS.MEDIUM).length;
 
         const totalScore = safeRisks.reduce((sum, r) => sum + r.score, 0);
         const totalResidual = safeRisks.reduce((sum, r) => sum + r.residualScore, 0);
@@ -25,7 +26,7 @@ export const useRiskStats = (risks: Risk[]) => {
             ? Math.round(((totalScore - totalResidual) / totalScore) * 100)
             : 0;
 
-        const untreatedCritical = safeRisks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length;
+        const untreatedCritical = safeRisks.filter(r => r.strategy === 'Accepter' && r.score >= RISK_THRESHOLDS.CRITICAL).length;
 
         const strategyCounts = safeRisks.reduce((acc, r) => {
             const strat = r.strategy || 'Inconnu';

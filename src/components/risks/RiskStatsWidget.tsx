@@ -3,7 +3,7 @@ import { Risk } from '../../types';
 import { PremiumCard } from '../ui/PremiumCard';
 import { ShieldAlert, AlertTriangle, Activity, TrendingUp } from '../ui/Icons';
 import { cn } from '../../utils/cn';
-import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
+import { RISK_ACCEPTANCE_THRESHOLD, RISK_LEVELS } from '../../constants/RiskConstants';
 
 interface RiskStatsWidgetProps {
     risks: Risk[];
@@ -12,7 +12,7 @@ interface RiskStatsWidgetProps {
 export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
 
     const totalRisks = risks.length;
-    const criticalRisks = risks.filter(r => r.score >= 10).length;
+    const criticalRisks = risks.filter(r => r.score >= RISK_LEVELS.HIGH.min).length;
     const risksAboveAppetite = risks.filter(r => (r.residualScore || r.score) > RISK_ACCEPTANCE_THRESHOLD).length;
     const avgScore = risks.length > 0 ? risks.reduce((sum, r) => sum + r.score, 0) / risks.length : 0;
 
@@ -31,9 +31,9 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
             bg: 'bg-brand-50'
         },
         {
-            label: "Risques Critiques",
+            label: "Risques Élevés+",
             value: criticalRisks,
-            subtext: "Score ≥ 10",
+            subtext: `Score ≥ ${RISK_LEVELS.HIGH.min}`,
             icon: ShieldAlert,
             color: 'text-error-text',
             bg: 'bg-error-bg'

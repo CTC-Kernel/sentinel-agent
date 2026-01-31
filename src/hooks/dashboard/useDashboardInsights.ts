@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Control, Document, Audit, Supplier, Risk, Incident, Project, ActionItem, HealthIssue } from '../../types';
 import { useStore } from '../../store';
+import { CONTROL_STATUS, RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 interface UseDashboardInsightsProps {
     controls: Control[];
@@ -62,7 +63,7 @@ export const useDashboardInsights = ({
         const overdueAudits = myAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length;
         const criticalSuppliersNoScore = allSuppliers.filter(s => (s.criticality === 'Critique' || s.criticality === 'Élevée') && (!s.securityScore || s.securityScore < 50)).length;
         const expiredContracts = allSuppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
-        const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
+        const actionable = controls.filter(c => c.status !== CONTROL_STATUS.EXCLUDED && c.status !== CONTROL_STATUS.NOT_APPLICABLE).length;
 
         if (activeIncidentsCount > 0) {
             return {
@@ -80,7 +81,7 @@ export const useDashboardInsights = ({
                 action: t('common.view') + ' ' + t('dashboard.risks'),
                 link: "/risks"
             };
-        } else if (allRisks.filter(r => r.score >= 15).length > 0) {
+        } else if (allRisks.filter(r => r.score >= RISK_THRESHOLDS.CRITICAL).length > 0) {
             return { text: t('dashboard.insightRisks'), type: 'warning' as const, details: t('dashboard.insightRisksDesc'), action: t('common.view') + ' ' + t('dashboard.risks'), link: "/risks" };
         } else if (complianceScore < 50 && actionable > 0) {
             return { text: t('dashboard.insightCompliance'), type: 'warning' as const, details: t('dashboard.insightComplianceDesc'), action: t('dashboard.plan'), link: "/compliance" };
@@ -99,9 +100,9 @@ export const useDashboardInsights = ({
     // Health Issues
     const healthIssues = useMemo(() => {
         const issues: HealthIssue[] = [];
-        const unmitigatedRisks = allRisks.filter(r => r.score >= 15 && !r.mitigationControlIds?.length).length;
+        const unmitigatedRisks = allRisks.filter(r => r.score >= RISK_THRESHOLDS.CRITICAL && !r.mitigationControlIds?.length).length;
         if (unmitigatedRisks > 0) issues.push({ id: '1', type: 'danger', message: t('dashboard.issueRisks'), count: unmitigatedRisks, link: '/risks' });
-        const unprovenControls = controls.filter(c => c.status === 'Implémenté' && (!c.evidenceIds || c.evidenceIds.length === 0)).length;
+        const unprovenControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED && (!c.evidenceIds || c.evidenceIds.length === 0)).length;
         if (unprovenControls > 0) issues.push({ id: '2', type: 'warning', message: t('dashboard.issueControls'), count: unprovenControls, link: '/compliance' });
 
         const overdueAudits = myAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length;

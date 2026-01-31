@@ -119,7 +119,7 @@ export const NotificationCenter: React.FC = () => {
                         {/* Footer */}
                         <div className="p-2 border-t border-border/40 dark:border-border/40 bg-gradient-to-br from-slate-50/30 to-white/20 dark:from-slate-800/20 dark:to-slate-900/10 shrink-0 text-center">
                             <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-muted-foreground hover:text-foreground dark:hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
-                                Gérer les préférences
+                                {t('notifications.managePreferences', { defaultValue: 'Gérer les préférences' })}
                             </Link>
                         </div>
                     </motion.div>

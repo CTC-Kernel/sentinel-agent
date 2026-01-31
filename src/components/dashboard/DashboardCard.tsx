@@ -47,14 +47,13 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
     tier = 'standard'
 }) => {
     const tierStyle = TIER_STYLES[tier];
-    // Lock body scroll when expanded
+    // Lock body scroll when expanded (preserves previous overflow value)
     React.useEffect(() => {
         if (isExpanded) {
+            const prev = document.body.style.overflow;
             document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
+            return () => { document.body.style.overflow = prev; };
         }
-        return () => { document.body.style.overflow = ''; };
     }, [isExpanded]);
 
     const CardContent = (
@@ -133,6 +132,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                     className="relative w-full max-w-6xl h-[85vh] glass-premium rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-muted ring-1 ring-black/5"
                     role="dialog"
                     aria-modal="true"
+                    aria-label={title || 'Dashboard card detail'}
                 >
                     {CardContent}
                 </div>

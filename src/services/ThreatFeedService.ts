@@ -234,7 +234,7 @@ export class ThreatFeedService {
                 author: 'URLhaus',
                 active: u.url_status === 'online',
                 timestamp: new Date(u.date_added).getTime(),
-                coordinates: [(Math.random() * 360) - 180, (Math.random() * 160) - 80]
+                coordinates: [0, 0] // URLhaus does not provide geo data
             }));
 
         } catch (error) {

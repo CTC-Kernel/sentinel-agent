@@ -85,21 +85,20 @@ app.get("/v1/proxy/threat-feed", async (req, res) => {
             'urlhaus-api.abuse.ch'
         ];
 
-        const targetUrl = decodeURIComponent(url);
-
-        // Parse URL to extract hostname safely
+        // SECURITY: Parse URL BEFORE any decoding to prevent double-encoding bypass attacks.
+        // new URL() handles standard percent-encoding safely on its own.
         let parsedUrl;
         try {
-            parsedUrl = new URL(targetUrl);
+            parsedUrl = new URL(url);
         } catch (e) {
-            logger.warn(`Invalid URL format: ${targetUrl} by user ${uid}`);
+            logger.warn(`Invalid URL format: ${url} by user ${uid}`);
             res.status(400).json({ success: false, error: "Invalid URL format" });
             return;
         }
 
         // Validate protocol (only HTTPS allowed)
         if (parsedUrl.protocol !== 'https:') {
-            logger.warn(`Non-HTTPS URL rejected: ${targetUrl} by user ${uid}`);
+            logger.warn(`Non-HTTPS URL rejected: ${parsedUrl.href} by user ${uid}`);
             res.status(403).json({ success: false, error: "Only HTTPS URLs allowed" });
             return;
         }
@@ -108,13 +107,13 @@ app.get("/v1/proxy/threat-feed", async (req, res) => {
         const isAllowed = ALLOWED_HOSTNAMES.includes(parsedUrl.hostname);
 
         if (!isAllowed) {
-            logger.warn(`Blocked proxy attempt to unauthorized URL: ${targetUrl} (hostname: ${parsedUrl.hostname}) by user ${uid}`);
+            logger.warn(`Blocked proxy attempt to unauthorized URL: ${parsedUrl.href} (hostname: ${parsedUrl.hostname}) by user ${uid}`);
             res.status(403).json({ success: false, error: "URL not allowed" });
             return;
         }
 
         // Fetch the data server-side
-        const response = await fetch(targetUrl);
+        const response = await fetch(parsedUrl.href);
 
         if (!response.ok) {
             throw new Error(`Upstream server responded with ${response.status}`);

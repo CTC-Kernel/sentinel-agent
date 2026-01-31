@@ -53,7 +53,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
     const loading = loadingProcesses || loadingDrills;
 
     // Gradient calculation similar to Compliance widget
-    const circumference = 2 * Math.PI * 40; // r=40
+    const circumference = 2 * Math.PI * 36; // r=36 matching SVG circles
     const strokeDashoffset = circumference - (stats.coverage / 100) * circumference;
 
     if (loading) {

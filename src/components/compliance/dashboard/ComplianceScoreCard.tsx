@@ -6,8 +6,8 @@ import { Tooltip } from '../../ui/Tooltip';
 import { Control } from '../../../types';
 import {
     CONTROL_STATUS,
-    PARTIAL_CONTROL_WEIGHT,
-    isActionableStatus
+    isActionableStatus,
+    calculateControlsScore
 } from '../../../constants/complianceConfig';
 import { useAgentResultsByControl } from '../../../hooks/useAgentData';
 
@@ -35,9 +35,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
         const notStarted = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length;
         const actionable = controls.filter(c => isActionableStatus(c.status)).length;
 
-        const score = actionable > 0
-            ? ((implemented + (partial * PARTIAL_CONTROL_WEIGHT)) / actionable * 100)
-            : 0;
+        const score = calculateControlsScore(implemented, partial, actionable);
 
         const verifiedByAgent = controls.filter(c => agentResults.has(c.code)).length;
 

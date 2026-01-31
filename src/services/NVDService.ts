@@ -3,8 +3,7 @@ import { db } from '../firebase';
 import { Vulnerability } from '../types';
 import { ErrorLogger } from './errorLogger';
 
-// NVD API Configuration - API key should be set via environment variable
-const NVD_API_KEY = import.meta.env.VITE_NVD_API_KEY || '';
+// NVD API Configuration - API key moved to Cloud Function proxy
 const NVD_API_BASE_URL = 'https://services.nvd.nist.gov/rest/json';
 const NVD_API_DELAY = 6; // seconds between requests (required without API key)
 const NVD_API_RESULTS_PER_PAGE = 2000;
@@ -239,11 +238,7 @@ export class NVDService {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
-      
-      if (NVD_API_KEY) {
-        headers['apiKey'] = NVD_API_KEY;
-      }
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: headers

@@ -27,7 +27,7 @@ const feedbackSchema = z.object({
 type FeedbackFormData = z.infer<typeof feedbackSchema>;
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const { addFeedback } = useFeedbackActions();
     const [mounted, setMounted] = useState(false);
 
@@ -66,12 +66,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 url: window.location.href // Intentional: reading current URL for feedback context
             });
 
-            addToast('Merci ! Votre retour a bien été envoyé.', 'success');
+            addToast(t('feedback.toast.sent', { defaultValue: 'Merci ! Votre retour a bien été envoyé.' }), 'success');
             onClose();
             reset();
         } catch (error) {
             ErrorLogger.error(error, 'FeedbackModal.onSubmit');
-            addToast("Une erreur est survenue lors de l'envoi.", 'error');
+            addToast(t('feedback.toast.sendError', { defaultValue: "Une erreur est survenue lors de l'envoi." }), 'error');
         }
     };
 

@@ -24,7 +24,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
     const [importing, setImporting] = useState(false);
     const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete'>('upload');
     const [importedCount, setImportedCount] = useState(0);
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
 
     const parseCSV = (text: string): Record<string, unknown>[] => {
         const lines = text.split('\n').filter(line => line.trim());
@@ -97,7 +97,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
         if (!uploadedFile) return;
 
         if (!uploadedFile.name.endsWith('.csv')) {
-            addToast('Veuillez sélectionner un fichier CSV', 'error');
+            addToast(t('common.toast.selectCsvFile', { defaultValue: 'Veuillez sélectionner un fichier CSV' }), 'error');
             return;
         }
 
@@ -118,7 +118,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
 
     const handleImport = async () => {
         if (errors.length > 0) {
-            addToast('Veuillez corriger les erreurs avant d\'importer', 'error');
+            addToast(t('common.toast.fixErrorsBeforeImport', { defaultValue: "Veuillez corriger les erreurs avant d'importer" }), 'error');
             return;
         }
 
@@ -129,9 +129,9 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
             await onImport(parsedData);
             setImportedCount(parsedData.length);
             setStep('complete');
-            addToast(`${parsedData.length} éléments importés avec succès`, 'success');
+            addToast(t('common.toast.importSuccess', { defaultValue: `${parsedData.length} éléments importés avec succès`, count: parsedData.length }), 'success');
         } catch {
-            addToast('Erreur lors de l\'importation', 'error');
+            addToast(t('common.toast.importError', { defaultValue: "Erreur lors de l'importation" }), 'error');
             setStep('preview');
         } finally {
             setImporting(false);

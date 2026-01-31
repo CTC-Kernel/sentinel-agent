@@ -37,6 +37,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import type { VoxelNode, VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
+import { RISK_THRESHOLDS } from '@/constants/complianceConfig';
 
 // ============================================================================
 // Types
@@ -185,9 +186,9 @@ interface RiskScoreIndicatorProps {
 
 const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, impact, score }) => {
   const getScoreColor = (s: number) => {
-    if (s >= 15) return { color: '#EF4444', label: 'Critique' };
-    if (s >= 10) return { color: '#F59E0B', label: 'Élevé' };
-    if (s >= 5) return { color: '#FBBF24', label: 'Modéré' };
+    if (s >= RISK_THRESHOLDS.CRITICAL) return { color: '#EF4444', label: 'Critique' };
+    if (s >= RISK_THRESHOLDS.HIGH) return { color: '#F59E0B', label: 'Élevé' };
+    if (s >= RISK_THRESHOLDS.MEDIUM) return { color: '#FBBF24', label: 'Modéré' };
     return { color: '#22C55E', label: 'Faible' };
   };
 

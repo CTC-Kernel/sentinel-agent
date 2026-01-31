@@ -6,7 +6,7 @@ import {
 } from '../../ui/Icons';
 import { Risk } from '../../../types';
 import { PremiumCard } from '../../ui/PremiumCard';
-import { RISK_ACCEPTANCE_THRESHOLD } from '../../../constants/RiskConstants';
+import { RISK_ACCEPTANCE_THRESHOLD, RISK_LEVELS } from '../../../constants/RiskConstants';
 import { cn } from '../../../utils/cn';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,12 +22,12 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
         const total = risks.length;
         if (total === 0) return null;
 
-        const critical = risks.filter(r => r.score >= 10).length;
+        const critical = risks.filter(r => r.score >= RISK_LEVELS.HIGH.min).length;
         const aboveAppetite = risks.filter(r => (r.residualScore ?? r.score) > RISK_ACCEPTANCE_THRESHOLD).length;
 
         // Averages for "The Gap" Visualization
         const totalInherent = risks.reduce((sum, r) => sum + r.score, 0);
-        const totalResidual = risks.reduce((sum, r) => sum + ((r.residualProbability ?? 0) * (r.residualImpact ?? 0)), 0);
+        const totalResidual = risks.reduce((sum, r) => sum + (r.residualScore ?? r.score), 0);
 
         const avgInherent = totalInherent / total;
         const avgResidual = totalResidual / total;
@@ -102,7 +102,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                         >
                             <div className="flex items-center justify-between mb-1">
                                 <p className={cn("text-sm font-medium", metrics.critical > 0 ? "text-error-text dark:text-error-text" : "text-success-text dark:text-success-text")}>
-                                    Critiques
+                                    Élevés+
                                 </p>
                                 {metrics.critical > 0 ? <ShieldAlert className="w-4 h-4 text-error-text" /> : <CheckCircle className="w-4 h-4 text-success-text" />}
                             </div>

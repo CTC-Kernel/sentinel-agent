@@ -4,6 +4,7 @@ import { X, Users, Database, Shield, AlertTriangle, CreditCard, Save } from '../
 import { Organization, PlanType } from '../../../types';
 import { AdminService } from '../../../services/adminService';
 import { toast } from '../../../lib/toast';
+import { useStore } from '../../../store';
 import { ErrorLogger } from '../../../services/errorLogger';
 import { ConfirmModal } from '../../../components/ui/ConfirmModal';
 
@@ -15,6 +16,7 @@ interface TenantDetailModalProps {
 }
 
 export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, onClose, tenant, onUpdate }) => {
+    const { t } = useStore();
     const [stats, setStats] = useState<Record<string, unknown> | null>(null);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
@@ -33,11 +35,11 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
             setStats(data);
         } catch (error) {
             ErrorLogger.error(error, 'TenantDetailModal.loadStats');
-            toast.error("Failed to load stats");
+            toast.error(t('admin.toast.statsLoadFailed', { defaultValue: "Échec du chargement des statistiques" }));
         } finally {
             setLoading(false);
         }
-    }, [tenant]);
+    }, [tenant, t]);
 
     useEffect(() => {
         if (isOpen && tenant) {
@@ -59,11 +61,11 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
         setProcessing(true);
         try {
             await AdminService.toggleTenantStatus(tenant.id, newStatus);
-            toast.success(`Tenant ${newStatus ? 'activated' : 'suspended'} successfully`);
+            toast.success(t('admin.toast.tenantStatusUpdated', { defaultValue: `Tenant ${newStatus ? 'activé' : 'suspendu'} avec succès`, status: newStatus ? 'activé' : 'suspendu' }));
             onUpdate();
             onClose();
         } catch {
-            toast.error("Status update failed");
+            toast.error(t('admin.toast.statusUpdateFailed', { defaultValue: "Échec de la mise à jour du statut" }));
         } finally {
             setProcessing(false);
             setShowToggleStatusConfirm(false);
@@ -78,10 +80,10 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                 maxUsers,
                 maxProjects
             });
-            toast.success("Subscription updated successfully");
+            toast.success(t('admin.toast.subscriptionUpdated', { defaultValue: "Abonnement mis à jour avec succès" }));
             onUpdate();
         } catch {
-            toast.error("Update failed");
+            toast.error(t('admin.toast.updateFailed', { defaultValue: "Échec de la mise à jour" }));
         } finally {
             setProcessing(false);
         }

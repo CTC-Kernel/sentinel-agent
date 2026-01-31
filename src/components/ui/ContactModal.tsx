@@ -27,7 +27,7 @@ interface ContactModalProps {
 }
 
 export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, subject = '' }) => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const {
         register,
         handleSubmit,
@@ -66,12 +66,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                 }
             });
 
-            addToast('Votre message a été envoyé avec succès.', 'success');
+            addToast(t('contact.toast.messageSent', { defaultValue: 'Votre message a été envoyé avec succès.' }), 'success');
             onClose();
             reset();
         } catch (error) {
             ErrorLogger.error(error, 'ContactModal.handleSubmit');
-            addToast("Erreur lors de l'envoi du message.", 'error');
+            addToast(t('contact.toast.sendError', { defaultValue: "Erreur lors de l'envoi du message." }), 'error');
         }
     };
 

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { collection, addDoc, updateDoc, doc, deleteDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
@@ -15,7 +16,7 @@ export const useAuditDetails = (
     documents: Document[], // passed for evidence lookup
     refreshAudits: () => void
 ) => {
-    const { user, addToast, organization } = useStore();
+    const { user, addToast, organization, t } = useStore();
     const [findings, setFindings] = useState<Finding[]>([]);
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -58,7 +59,7 @@ export const useAuditDetails = (
             await updateDoc(doc(db, 'audits', selectedAudit.id), { findingsCount: newCount });
             refreshAudits();
             fetchDetails(); // Reload findings
-            addToast("Constat ajouté", "success");
+            addToast(t('audits.toast.findingAdded', { defaultValue: "Constat ajouté" }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAuditDetails.handleAddFinding', 'CREATE_FAILED');
         } finally {
@@ -74,7 +75,7 @@ export const useAuditDetails = (
             await updateDoc(doc(db, 'audits', selectedAudit.id), { findingsCount: newCount });
             refreshAudits();
             setFindings(prev => prev.filter(f => f.id !== findingId));
-            addToast("Constat supprimé", "info");
+            addToast(t('audits.toast.findingDeleted', { defaultValue: "Constat supprimé" }), "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAuditDetails.handleDeleteFinding', 'DELETE_FAILED');
         }
@@ -84,11 +85,11 @@ export const useAuditDetails = (
 
     const generateChecklist = async () => {
         if (!selectedAudit || !user?.organizationId) return;
-        addToast("Génération de la checklist IA en cours...", "info");
+        addToast(t('audits.toast.generatingChecklist', { defaultValue: "Génération de la checklist IA en cours..." }), "info");
         try {
             const scopeControlIds = selectedAudit.relatedControlIds || [];
             const controlsToAudit = scopeControlIds.length > 0 ? controls.filter(c => scopeControlIds.includes(c.id)) : controls;
-            if (controlsToAudit.length === 0) { addToast("Aucun contrôle dans le périmètre.", "info"); return; }
+            if (controlsToAudit.length === 0) { addToast(t('audits.toast.noControlsInScope', { defaultValue: "Aucun contrôle dans le périmètre." }), "info"); return; }
 
             const aiResponse = await aiService.generateAuditChecklist(
                 `Audit: ${selectedAudit.name} (${selectedAudit.type})`,
@@ -100,10 +101,10 @@ export const useAuditDetails = (
                 const aiData = aiResponse.find(r => r.controlCode === c.code);
                 if (aiData && aiData.questions.length > 0) {
                     aiData.questions.forEach(qText => {
-                        questions.push({ id: Math.random().toString(36).substr(2, 9), controlCode: c.code, question: qText, response: 'Non-applicable' });
+                        questions.push({ id: uuidv4(), controlCode: c.code, question: qText, response: 'Non-applicable' });
                     });
                 } else {
-                    questions.push({ id: Math.random().toString(36).substr(2, 9), controlCode: c.code, question: `Le contrôle ${c.code} est-il efficace ?`, response: 'Non-applicable' });
+                    questions.push({ id: uuidv4(), controlCode: c.code, question: `Le contrôle ${c.code} est-il efficace ?`, response: 'Non-applicable' });
                 }
             });
 
@@ -120,9 +121,9 @@ export const useAuditDetails = (
                 setChecklist({ ...checklist, questions });
             } else {
                 const ref = await addDoc(collection(db, 'audit_checklists'), newChecklistData);
-                setChecklist({ ...newChecklistData, id: ref.id, completedAt: serverTimestamp() as unknown as string } as AuditChecklist);
+                setChecklist({ ...newChecklistData, id: ref.id, completedAt: new Date().toISOString() } as AuditChecklist);
             }
-            addToast("Checklist générée", "success");
+            addToast(t('audits.toast.checklistGenerated', { defaultValue: "Checklist générée" }), "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.generateChecklist', 'AI_ERROR'); }
     };
 
@@ -139,7 +140,7 @@ export const useAuditDetails = (
         setChecklist({ ...checklist, questions: updatedQuestions });
         try {
             await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: sanitizeData(updatedQuestions) });
-            addToast("Tout marqué comme conforme", "success");
+            addToast(t('audits.toast.allMarkedConform', { defaultValue: "Tout marqué comme conforme" }), "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.markAllConform', 'UPDATE_FAILED'); }
     };
 
@@ -175,7 +176,7 @@ export const useAuditDetails = (
 
                 // Update local state
                 setFindings(prev => prev.map(f => f.id === findingId ? { ...f, evidenceIds: updatedEvidenceIds } : f));
-                addToast("Preuve ajoutée au constat", "success");
+                addToast(t('audits.toast.evidenceAdded', { defaultValue: "Preuve ajoutée au constat" }), "success");
             }
 
             return docRef.id;
@@ -190,7 +191,7 @@ export const useAuditDetails = (
     const generateAuditReport = async (relatedRisks: Risk[]) => {
         if (!selectedAudit) return;
         setIsGeneratingReport(true);
-        addToast("Génération du rapport...", "info");
+        addToast(t('audits.toast.generatingReport', { defaultValue: "Génération du rapport..." }), "info");
         try {
             const { PdfService } = await import('../../services/PdfService');
             // ... Logic reused ...
@@ -233,14 +234,14 @@ export const useAuditDetails = (
                     });
                 }
             });
-            addToast("Rapport généré", "success");
+            addToast(t('audits.toast.reportGenerated', { defaultValue: "Rapport généré" }), "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.report', 'REPORT_GENERATION_FAILED'); }
         finally { setIsGeneratingReport(false); }
     };
 
     const handleExportPack = async () => {
         if (!selectedAudit) return;
-        addToast("Génération du pack...", "info");
+        addToast(t('audits.toast.generatingPack', { defaultValue: "Génération du pack..." }), "info");
         try {
             const { default: JSZip } = await import('jszip');
             const { PdfService } = await import('../../services/PdfService');
@@ -281,7 +282,7 @@ export const useAuditDetails = (
             link.href = URL.createObjectURL(content);
             link.download = `Audit_Pack.zip`;
             link.click();
-            addToast("Pack téléchargé", "success");
+            addToast(t('audits.toast.packDownloaded', { defaultValue: "Pack téléchargé" }), "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.pack', 'UNKNOWN_ERROR'); }
     };
 
@@ -291,7 +292,14 @@ export const useAuditDetails = (
         try {
             await updateDoc(doc(db, 'audits', selectedAudit.id), { status: newStatus, updatedAt: serverTimestamp(), updatedBy: user.uid });
             await logAction(user, 'UPDATE', 'Audit', `Statut audit modifié: ${selectedAudit.name} → ${newStatus}`);
-            addToast(`Statut mis à jour: ${newStatus}`, "success");
+            // Contextual guidance toast based on target status
+            if (newStatus === 'En cours') {
+                addToast(t('audits.statusGuidance.inProgress', { defaultValue: 'Audit démarré. Ajoutez des constats au fur et à mesure.' }), 'success');
+            } else if (newStatus === 'Terminé') {
+                addToast(t('audits.statusGuidance.completed', { defaultValue: 'Audit terminé. Vous pouvez maintenant le valider.' }), 'success');
+            } else {
+                addToast(t('audits.toast.statusUpdated', { defaultValue: "Statut mis à jour: {{status}}", status: newStatus }), "success");
+            }
             refreshAudits();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.changeStatus', 'UPDATE_FAILED'); }
         finally { setIsValidating(false); }
@@ -300,14 +308,14 @@ export const useAuditDetails = (
     const validateAudit = async () => {
         if (!selectedAudit || !user?.organizationId) return;
         if (selectedAudit.createdBy === user?.uid) {
-            addToast("Ségrégation des tâches : Vous ne pouvez pas valider un audit que vous avez créé.", "error");
+            addToast(t('audits.toast.segregationOfDuties', { defaultValue: "Ségrégation des tâches : Vous ne pouvez pas valider un audit que vous avez créé." }), "error");
             return;
         }
         setIsValidating(true);
         try {
             await updateDoc(doc(db, 'audits', selectedAudit.id), { status: 'Validé' });
             await logAction(user, 'VALIDATE', 'Audit', `Audit validé: ${selectedAudit.name}`);
-            addToast("Audit validé", "success");
+            addToast(t('audits.statusGuidance.validated', { defaultValue: 'Audit validé. Il est maintenant archivé.' }), 'success');
             refreshAudits();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.validate', 'UPDATE_FAILED'); }
         finally { setIsValidating(false); }
@@ -326,7 +334,7 @@ export const useAuditDetails = (
                 updatedBy: user.uid
             });
             await logAction(user, 'UPDATE', 'Audit', `Audit mis à jour: ${cleanData.name || selectedAudit.name}`);
-            addToast("Audit mis à jour", "success");
+            addToast(t('audits.toast.updated', { defaultValue: "Audit mis à jour" }), "success");
             refreshAudits();
             return true;
         } catch (e) {

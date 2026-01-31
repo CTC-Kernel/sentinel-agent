@@ -53,7 +53,7 @@ export class BackupService {
     this.checkPermission(user);
     if (!user.organizationId) throw new Error('Organisation non définie');
 
-    const backupId = `backup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const backupId = `backup_${crypto.randomUUID()}`;
     const metadata: BackupMetadata = {
       id: backupId,
       organizationId: user.organizationId,

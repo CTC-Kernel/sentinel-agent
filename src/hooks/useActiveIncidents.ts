@@ -18,6 +18,7 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
+import { calculateTrend } from '../utils/trendUtils';
 import type { Criticality } from '../types/common';
 
 /**
@@ -58,21 +59,6 @@ export interface ActiveIncidentsResult {
  * Incident statuses that count as "active"
  */
 const ACTIVE_INCIDENT_STATUSES = ['Nouveau', 'Analyse', 'Contenu'];
-
-/**
- * Calculate trend based on count comparison
- */
-function calculateTrend(current: number, previous: number): TrendType {
-  if (previous === 0 && current === 0) return 'stable';
-  if (previous === 0) return current > 0 ? 'up' : 'stable';
-
-  const percentChange = ((current - previous) / previous) * 100;
-
-  // Use 5% threshold for significant change
-  if (percentChange > 5) return 'up'; // More incidents = worse = up (red arrow)
-  if (percentChange < -5) return 'down'; // Fewer incidents = better = down (green arrow)
-  return 'stable';
-}
 
 /**
  * Get severity color scheme

@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { Control, Risk, Asset, StatsHistoryEntry } from '../../types';
+import { CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, RISK_THRESHOLDS } from '../../constants/complianceConfig';
+import { RISK_LEVELS } from '../../constants/RiskConstants';
 
 interface MetricInputs {
     controls: Control[];
@@ -61,18 +63,18 @@ export const useDashboardMetrics = ({
     }, [historyStats, userOrgId]);
 
     // Top Risks
-    const topRisks = useMemo(() => [...allRisks].filter(r => r.score >= 10).sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
+    const topRisks = useMemo(() => [...allRisks].filter(r => r.score >= RISK_LEVELS.HIGH.min).sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
 
     // Stats and Radar Logic
     const { stats, radarData, complianceScore, globalScore } = useMemo(() => {
-        const implemented = controls.filter(c => c.status === 'Implémenté').length;
-        const partial = controls.filter(c => c.status === 'Partiel').length;
-        const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
+        const implemented = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partial = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+        const actionable = controls.filter(c => c.status !== CONTROL_STATUS.EXCLUDED && c.status !== CONTROL_STATUS.NOT_APPLICABLE).length;
 
         // "Conformité" KPI -> Matches Compliance Module (Controls Only)
         // Formula: (Implemented + (Partial * 0.5)) / Actionable * 100
         const controlComplianceScore = actionable > 0
-            ? Math.round(((implemented + (partial * 0.5)) / actionable) * 100)
+            ? Math.round(((implemented + (partial * PARTIAL_CONTROL_WEIGHT)) / actionable) * 100)
             : 0;
 
         // "Global Security Score" -> Composite (from ScoreService/AI)
@@ -89,9 +91,9 @@ export const useDashboardMetrics = ({
 
         const domains = { 'Org.': { total: 0, implemented: 0, prefix: 'A.5' }, 'Humain': { total: 0, implemented: 0, prefix: 'A.6' }, 'Physique': { total: 0, implemented: 0, prefix: 'A.7' }, 'Techno': { total: 0, implemented: 0, prefix: 'A.8' } };
         controls.forEach(c => {
-            if (c.status === 'Exclu' || c.status === 'Non applicable') return;
+            if (c.status === CONTROL_STATUS.EXCLUDED || c.status === CONTROL_STATUS.NOT_APPLICABLE) return;
             const key = Object.keys(domains).find(k => c.code.startsWith(domains[k as keyof typeof domains].prefix));
-            if (key) { domains[key as keyof typeof domains].total++; if (c.status === 'Implémenté') domains[key as keyof typeof domains].implemented++; }
+            if (key) { domains[key as keyof typeof domains].total++; if (c.status === CONTROL_STATUS.IMPLEMENTED) domains[key as keyof typeof domains].implemented++; }
         });
         const rData = Object.entries(domains).map(([subject, data]) => ({ subject, A: data.total > 0 ? Math.round((data.implemented / data.total) * 100) : 0, fullMark: 100 }));
 
@@ -133,7 +135,7 @@ export const useDashboardMetrics = ({
         // Note: topRisksData in useDashboardData fetches score >= 8.
 
         allRisks.forEach(risk => {
-            if (risk.score >= 10) {
+            if (risk.score >= RISK_LEVELS.HIGH.min) {
                 if (risk.assetId) {
                     const asset = allAssets.find(a => a.id === risk.assetId);
                     if (asset) {
@@ -150,8 +152,8 @@ export const useDashboardMetrics = ({
 
         // Use aggregated counts if available
         const totalRisksCount = aggregatedStats?.totalRisks ?? allRisks.length;
-        const criticalRisksCount = aggregatedStats?.criticalRisks ?? allRisks.filter(r => r.score >= 15).length;
-        const highRisksCount = aggregatedStats?.highRisks ?? allRisks.filter(r => r.score >= 10 && r.score < 15).length;
+        const criticalRisksCount = aggregatedStats?.criticalRisks ?? allRisks.filter(r => r.score >= RISK_THRESHOLDS.CRITICAL).length;
+        const highRisksCount = aggregatedStats?.highRisks ?? allRisks.filter(r => r.score >= RISK_THRESHOLDS.HIGH && r.score < RISK_THRESHOLDS.CRITICAL).length;
 
         return {
             stats: {

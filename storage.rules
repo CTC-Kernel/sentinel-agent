@@ -25,7 +25,7 @@ service firebase.storage {
     }
     
     function isAdmin() {
-      return getUserRole() == 'admin';
+      return request.auth != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'super_admin');
     }
     
     function isRSSI() {
@@ -73,7 +73,7 @@ service firebase.storage {
     // Incident attachments - Restricted write
     match /incidents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(15);
+      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(15) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*');
     }
     
     // Exports - organization-based, read-only after creation

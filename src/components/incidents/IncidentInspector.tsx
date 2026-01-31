@@ -6,6 +6,7 @@ import { Siren, BookOpen, CalendarDays, BrainCircuit, Trash2 } from '../ui/Icons
 import { IncidentForm } from './IncidentForm';
 import { IncidentFormData } from '../../schemas/incidentSchema';
 import { useStore } from '../../store';
+import { Loader2 } from '../ui/Icons';
 
 import { IncidentTimeline } from './IncidentTimeline';
 import { IncidentPlaybook } from './IncidentPlaybook';
@@ -40,7 +41,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     onDelete,
     isSubmitting = false
 }) => {
-    const { t } = useStore();
+    const { t, addToast } = useStore();
     const [activeTab, setActiveTab] = useState('details');
     const [isEditing, setIsEditing] = useState(false);
     const [isFormDirty, setIsFormDirty] = useState(false);
@@ -51,10 +52,18 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
         setIsStatusUpdating(true);
         try {
             await onUpdate({ ...incident, status: newStatus } as IncidentFormData);
+            const statusGuidance: Record<string, string> = {
+                'Analyse': t('incidents.statusGuidance.analysis', { defaultValue: 'Statut : Analyse. Consultez le playbook pour les prochaines étapes.' }),
+                'Contenu': t('incidents.statusGuidance.contained', { defaultValue: 'Statut : Contenu. Préparez le rapport de résolution.' }),
+                'Résolu': t('incidents.statusGuidance.resolved', { defaultValue: 'Statut : Résolu. Documentez les corrections apportées.' }),
+                'Fermé': t('incidents.statusGuidance.closed', { defaultValue: 'Incident fermé.' }),
+            };
+            const message = statusGuidance[newStatus] || t('incidents.inspector.statusUpdated', { defaultValue: `Statut mis à jour : ${newStatus}`, status: newStatus });
+            addToast(message, 'success');
         } finally {
             setIsStatusUpdating(false);
         }
-    }, [incident, onUpdate, isStatusUpdating]);
+    }, [incident, onUpdate, isStatusUpdating, addToast, t]);
 
     // Reset editing state and dirty state when incident changes or closes
     React.useEffect(() => {
@@ -147,7 +156,14 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                 <div className="space-y-6">
                     {activeTab === 'details' && (
                         <div className="space-y-6 sm:space-y-8">
-                            <IncidentGeneralDetails incident={incident} onStatusChange={canEdit ? handleStatusChange : undefined} isUpdating={isStatusUpdating} />
+                            <div className="relative">
+                                {isStatusUpdating && (
+                                    <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 z-10 flex items-center justify-center rounded-xl">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                    </div>
+                                )}
+                                <IncidentGeneralDetails incident={incident} onStatusChange={canEdit ? handleStatusChange : undefined} isUpdating={isStatusUpdating} />
+                            </div>
                             <IncidentImpactDetails
                                 incident={incident}
                                 assets={assets}

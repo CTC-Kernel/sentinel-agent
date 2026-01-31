@@ -32,7 +32,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
     isEditing,
     isLoading
 }) => {
-    const { handleSubmit, control, setValue, formState: { errors, isSubmitting } } = useZodForm<typeof strategySchema>({
+    const { handleSubmit, control, setValue, formState: { errors, isSubmitting, isDirty } } = useZodForm<typeof strategySchema>({
         schema: strategySchema,
         mode: 'onChange',
         defaultValues: {
@@ -79,6 +79,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             subtitle="Définissez les paramètres de résilience et de reprise."
             icon={ShieldCheck}
             width="max-w-2xl"
+            hasUnsavedChanges={isDirty}
             footer={
                 <div className="flex justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>

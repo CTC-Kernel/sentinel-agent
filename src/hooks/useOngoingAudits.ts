@@ -15,6 +15,7 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
+import { calculateTrend } from '../utils/trendUtils';
 
 /**
  * Result type for useOngoingAudits hook
@@ -32,22 +33,6 @@ export interface OngoingAuditsResult {
   error: Error | null;
   /** Function to manually refetch */
   refetch: () => void;
-}
-
-/**
- * Calculate trend based on count comparison
- * For audits, more ongoing audits is neutral (just informational)
- */
-function calculateTrend(current: number, previous: number): TrendType {
-  if (previous === 0 && current === 0) return 'stable';
-  if (previous === 0) return current > 0 ? 'up' : 'stable';
-
-  const percentChange = ((current - previous) / previous) * 100;
-
-  // Use 5% threshold for significant change
-  if (percentChange > 5) return 'up';
-  if (percentChange < -5) return 'down';
-  return 'stable';
 }
 
 /**
