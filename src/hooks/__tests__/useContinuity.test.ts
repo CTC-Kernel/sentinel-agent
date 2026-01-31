@@ -305,7 +305,7 @@ describe('useContinuity', () => {
                 await result.current.importProcesses('empty');
             });
 
-            expect(mockAddToast).toHaveBeenCalledWith("Fichier vide ou invalide", "error");
+            expect(mockAddToast).toHaveBeenCalledWith('common.toast.emptyOrInvalidFile', 'error');
         });
     });
 
@@ -321,7 +321,7 @@ describe('useContinuity', () => {
             });
 
             expect(mockAddDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith("Campagne TLPT créée", 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('continuity.toast.tlptCreated', 'success');
         });
 
         it('updates TLPT campaign', async () => {
@@ -332,7 +332,7 @@ describe('useContinuity', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith("Campagne mise à jour", 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('continuity.toast.tlptUpdated', 'success');
         });
 
         it('deletes TLPT campaign', async () => {
@@ -343,7 +343,7 @@ describe('useContinuity', () => {
             });
 
             expect(mockDeleteDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith("Campagne supprimée", 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('continuity.toast.tlptDeleted', 'success');
         });
     });
 
@@ -364,7 +364,7 @@ describe('useContinuity', () => {
             });
 
             expect(mockAddDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith("Plan de reprise créé", 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('continuity.toast.recoveryCreated', 'success');
         });
 
         it('updates recovery plan', async () => {
@@ -375,7 +375,7 @@ describe('useContinuity', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith("Plan de reprise mis à jour", 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('continuity.toast.recoveryUpdated', 'success');
         });
 
         it('deletes recovery plan', async () => {
@@ -386,7 +386,7 @@ describe('useContinuity', () => {
             });
 
             expect(mockDeleteDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith("Plan de reprise supprimé", 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('continuity.toast.recoveryDeleted', 'success');
         });
     });
 });

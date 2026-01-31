@@ -74,10 +74,10 @@ export const COMPLIANCE_WEIGHTS = {
  * Score = Probability × Impact (1-25 scale)
  */
 export const RISK_THRESHOLDS = {
-  CRITICAL: 15,  // score >= 15
-  HIGH: 10,      // score >= 10 && < 15
-  MEDIUM: 5,     // score >= 5 && < 10
-  LOW: 0,        // score < 5
+  CRITICAL: 20,  // score >= 20
+  HIGH: 15,      // score >= 15 && < 20
+  MEDIUM: 10,    // score >= 10 && < 15
+  LOW: 0,        // score < 10
 } as const;
 
 /**
