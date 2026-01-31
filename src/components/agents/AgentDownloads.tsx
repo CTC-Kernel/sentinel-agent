@@ -53,12 +53,12 @@ const AgentDownloads: React.FC = () => {
     {
       platform: 'Windows',
       version: '2.0.0',
-      size: 'Coming Soon',
-      url: '#',
-      status: 'coming-soon',
+      size: '8.5MB',
+      url: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-latest.msi',
+      status: 'available',
       icon: <Monitor className="w-8 h-8" />,
       instructions: [
-        'Download the .msi installer',
+        'Download the SentinelAgentSetup-latest.msi file',
         'Run the installer as Administrator',
         'Follow the installation wizard',
         'Launch from Start Menu',

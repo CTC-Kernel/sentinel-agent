@@ -444,7 +444,7 @@ export const AgentManagement: React.FC = () => {
                     releaseDate: '2026-01-29',
                     changelogUrl: 'https://github.com/CTC-Kernel/sentinel-agent/releases',
                     platforms: {
-                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: '/releases/agent/windows/latest', directUrl: null },
+                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-latest.msi', directUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-latest.msi' },
                         macos: { displayName: 'macOS (PKG)', available: true, downloadUrl: 'https://sentinel-grc-a8701.web.app/downloads/agents/SentinelAgent.pkg', directUrl: 'https://sentinel-grc-a8701.web.app/downloads/agents/SentinelAgent.pkg' },
                         linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: '/releases/agent/linux_deb/latest', directUrl: null },
                         linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: '/releases/agent/linux_rpm/latest', directUrl: null },

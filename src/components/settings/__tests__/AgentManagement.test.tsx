@@ -13,8 +13,8 @@ vi.mock('firebase/functions', () => ({
         data: {
             version: '1.0.0',
             platforms: {
+                windows: { available: true, filename: 'SentinelAgentSetup-latest.msi', size: 8500000 },
                 macos: { available: true, filename: 'SentinelAgent-2.0.0.pkg', size: 9764108 },
-                windows: { available: false },
                 linux: { available: false }
             }
         }
