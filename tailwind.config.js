@@ -28,6 +28,10 @@ export default {
         'dropdown': '55',   // AUDIT FIX: Dropdowns above modals
         'popover': '60',    // AUDIT FIX: Popovers above dropdowns
         'tooltip': '70',    // AUDIT FIX: Tooltips always on top
+        'voxel-ui': '100',  // AUDIT FIX: Voxel UI Interface layer
+        'voxel-panel': '200', // AUDIT FIX: Voxel Side Panels
+        'toast': '900',     // AUDIT FIX: Toasts above everything (except supreme)
+        'supreme': '9999',  // AUDIT FIX: The absolute top (cursor, drag, critical overlays)
         'max': '9999',
       },
       fontFamily: {
