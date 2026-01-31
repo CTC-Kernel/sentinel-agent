@@ -40,7 +40,7 @@
       Schedule="afterInstallInitialize" />
 
     <!-- Embedded UI for progress during silent install -->
-    <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+    <WixVariable Id="WixUILicenseRtf" Value="wix\license.rtf" />
 
     <!-- Custom properties for configuration -->
     <Property Id="SERVERURL" Value="https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi" />
