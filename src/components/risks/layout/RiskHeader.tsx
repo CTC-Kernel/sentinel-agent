@@ -27,7 +27,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({ role }) => {
             <PageHeader
                 title={risksTitle}
                 subtitle={risksSubtitle}
-                icon={<img src="/images/gouvernance.png" alt="GOUVERNANCE" className="w-full h-full object-contain" />}
+                icon={<img src="/images/pilotage.png" alt="PILOTAGE" className="w-full h-full object-contain" />}
                 trustType="integrity"
             />
         </>

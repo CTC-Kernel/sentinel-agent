@@ -94,7 +94,9 @@ export const RSSI_DEFAULT_LAYOUT: WidgetLayout[] = [
   createWidget('rssi-incidents', 1),
   createWidget('rssi-actions', 1),
   createWidget('risk-heatmap', 1),
+  createWidget('maturity-radar', 1),
   createWidget('compliance-score', 1),
+  createWidget('cyber-news', 1),
   createWidget('priority-risks', 1),
 ];
 
@@ -131,8 +133,10 @@ export const AUDITOR_DEFAULT_LAYOUT: WidgetLayout[] = [
 export const ADMIN_DEFAULT_LAYOUT: WidgetLayout[] = [
   createWidget('stats-overview', 3),
   createWidget('compliance-score', 1),
+  createWidget('maturity-radar', 1),
   createWidget('health-check', 1),
   createWidget('risk-heatmap', 1),
+  createWidget('cyber-news', 1),
   createWidget('my-workspace', 2),
   createWidget('recent-activity', 1),
 ];

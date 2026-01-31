@@ -53,9 +53,11 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
             title={risksTitle}
             subtitle={risksSubtitle}
             icon={
-                <div className="p-3 bg-brand-50 rounded-2xl">
-                    <ShieldAlert className="w-8 h-8 text-brand-500 animate-pulse-subtle" />
-                </div>
+                <img
+                    src="/images/pilotage.png"
+                    alt="PILOTAGE"
+                    className="w-full h-full object-contain"
+                />
             }
             breadcrumbs={[{ label: 'Risques' }]}
             trustType="integrity"
