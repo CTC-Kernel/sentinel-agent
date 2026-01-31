@@ -315,7 +315,7 @@ const VRQualityControl: React.FC<VRQualityControlProps> = ({
         <div className="flex flex-col gap-1">
           {levels.map((level) => (
             <button
-              key={level}
+              key={level || 'unknown'}
               onClick={() => onQualityChange(level)}
               className={`
                 px-3 py-1.5 rounded text-xs font-medium transition-colors

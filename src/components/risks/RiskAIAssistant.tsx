@@ -235,7 +235,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                         )}
                         {mode === 'mitigate' && Array.isArray(response.measures) && (
                             <ul className="list-disc pl-4 space-y-1">
-                                {response.measures.map((m: unknown, i: number) => <li key={`measure-${i}`}>{String(m)}</li>)}
+                                {response.measures.map((m: unknown, i: number) => <li key={`measure-${i || 'unknown'}`}>{String(m)}</li>)}
                             </ul>
                         )}
                         {mode === 'improve' && typeof response.threat === 'string' && (

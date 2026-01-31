@@ -396,7 +396,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                 <span className="text-xs font-medium">{t('homologation.ai.keyFactors', 'Facteurs clés')}:</span>
                 <ul className="list-disc pl-4 text-xs mt-1">
                   {response.levelAnalysis.keyFactors.map((f, i) => (
-                    <li key={i}>{f}</li>
+                    <li key={i || 'unknown'}>{f}</li>
                   ))}
                 </ul>
               </div>
@@ -407,7 +407,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   </span>
                   <ul className="list-disc pl-4 text-xs mt-1 text-warning">
                     {response.levelAnalysis.missingInfo.map((m, i) => (
-                      <li key={i}>{m}</li>
+                      <li key={i || 'unknown'}>{m}</li>
                     ))}
                   </ul>
                 </div>
@@ -428,12 +428,12 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
           {response.strategyOutline && (
             <div className="space-y-3">
               {response.strategyOutline.sections.map((section, i) => (
-                <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <span className="font-medium">{section.title}</span>
                   <p className="text-xs text-muted-foreground mt-1">{section.description}</p>
                   <ul className="list-disc pl-4 text-xs mt-2">
                     {section.keyPoints.map((p, j) => (
-                      <li key={j}>{p}</li>
+                      <li key={j || 'unknown'}>{p}</li>
                     ))}
                   </ul>
                 </div>
@@ -443,7 +443,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1 text-brand-600 dark:text-brand-400">
                     {response.strategyOutline.recommendations.map((r, i) => (
-                      <li key={i}>{r}</li>
+                      <li key={i || 'unknown'}>{r}</li>
                     ))}
                   </ul>
                 </div>
@@ -459,7 +459,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium text-success">{t('homologation.ai.coveredRisks', 'Risques couverts')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.riskAnalysis.coveredRisks.map((r, i) => (
-                      <li key={i}>{r}</li>
+                      <li key={i || 'unknown'}>{r}</li>
                     ))}
                   </ul>
                 </div>
@@ -469,7 +469,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium text-error">{t('homologation.ai.gaps', 'Lacunes identifiées')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1 text-error">
                     {response.riskAnalysis.gaps.map((g, i) => (
-                      <li key={i}>{g}</li>
+                      <li key={i || 'unknown'}>{g}</li>
                     ))}
                   </ul>
                 </div>
@@ -479,7 +479,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.riskAnalysis.recommendations.map((r, i) => (
-                      <li key={i}>{r}</li>
+                      <li key={i || 'unknown'}>{r}</li>
                     ))}
                   </ul>
                 </div>
@@ -496,7 +496,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
           {response.actionPlan && (
             <div className="space-y-2">
               {response.actionPlan.items.map((item, i) => (
-                <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg flex items-start gap-2">
+                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg flex items-start gap-2">
                   <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
                     item.priority === 'high' ? 'bg-error' :
                     item.priority === 'medium' ? 'bg-warning' :
@@ -556,7 +556,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium text-success">{t('homologation.ai.strengths', 'Points forts')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.readinessAssessment.strengths.map((s, i) => (
-                      <li key={i}>{s}</li>
+                      <li key={i || 'unknown'}>{s}</li>
                     ))}
                   </ul>
                 </div>
@@ -567,7 +567,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium text-warning">{t('homologation.ai.weaknesses', 'Points à améliorer')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.readinessAssessment.weaknesses.map((w, i) => (
-                      <li key={i}>{w}</li>
+                      <li key={i || 'unknown'}>{w}</li>
                     ))}
                   </ul>
                 </div>
@@ -578,7 +578,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium text-error">{t('homologation.ai.blockers', 'Bloquants')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1 text-error">
                     {response.readinessAssessment.blockers.map((b, i) => (
-                      <li key={i}>{b}</li>
+                      <li key={i || 'unknown'}>{b}</li>
                     ))}
                   </ul>
                 </div>
@@ -589,7 +589,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.readinessAssessment.recommendations.map((r, i) => (
-                      <li key={i}>{r}</li>
+                      <li key={i || 'unknown'}>{r}</li>
                     ))}
                   </ul>
                 </div>
@@ -627,7 +627,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
         {ACTIONS.map(({ action, label, icon }) => (
           <button
-            key={action}
+            key={action || 'unknown'}
             onClick={() => handleAction(action)}
             disabled={loading}
             className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${

@@ -222,7 +222,7 @@ const HourlyPatternChart: React.FC<{
 
                     return (
                         <div
-                            key={hour}
+                            key={hour || 'unknown'}
                             className="flex-1 relative group"
                         >
                             <div
@@ -296,7 +296,7 @@ const WeeklyPatternChart: React.FC<{
                     const isTrough = day === pattern.troughDay;
 
                     return (
-                        <div key={day} className="flex-1 flex flex-col items-center">
+                        <div key={day || 'unknown'} className="flex-1 flex flex-col items-center">
                             <div className="w-full relative group flex-1 flex items-end">
                                 <div
                                     className={cn(
@@ -345,7 +345,7 @@ const KnownProcessesList: React.FC<{
             <div className="space-y-2">
                 {displayProcesses.map((process, idx) => (
                     <div
-                        key={idx}
+                        key={idx || 'unknown'}
                         className="flex items-center justify-between text-sm py-1 border-b border-border/30 last:border-0"
                     >
                         <div className="flex items-center gap-2">
@@ -404,7 +404,7 @@ const KnownConnectionsList: React.FC<{
             <div className="space-y-2">
                 {displayConnections.map((conn, idx) => (
                     <div
-                        key={idx}
+                        key={idx || 'unknown'}
                         className="flex items-center justify-between text-sm py-1 border-b border-border/30 last:border-0"
                     >
                         <div className="flex items-center gap-2">
@@ -532,7 +532,7 @@ const AgentBaselineView: React.FC<{
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {baseline.metrics.map(metric => (
                             <MetricBaselineCard
-                                key={metric.metric}
+                                key={metric.metric || 'unknown'}
                                 baseline={metric}
                             />
                         ))}
@@ -551,7 +551,7 @@ const AgentBaselineView: React.FC<{
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {baseline.hourlyPatterns.map(pattern => (
                                         <HourlyPatternChart
-                                            key={pattern.metric}
+                                            key={pattern.metric || 'unknown'}
                                             pattern={pattern}
                                         />
                                     ))}
@@ -569,7 +569,7 @@ const AgentBaselineView: React.FC<{
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {baseline.weeklyPatterns.map(pattern => (
                                         <WeeklyPatternChart
-                                            key={pattern.metric}
+                                            key={pattern.metric || 'unknown'}
                                             pattern={pattern}
                                         />
                                     ))}
@@ -741,7 +741,7 @@ export const BehavioralBaseline: React.FC<BehavioralBaselineProps> = ({
             {/* Baselines List */}
             {baselines.map(baseline => (
                 <AgentBaselineView
-                    key={baseline.id}
+                    key={baseline.id || 'unknown'}
                     baseline={baseline}
                     onRecalculate={() => handleRecalculate(baseline.agentId)}
                     isRecalculating={recalculating === baseline.agentId}

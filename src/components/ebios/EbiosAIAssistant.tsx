@@ -511,7 +511,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
           {response.fearedEvents && (
             <div className="space-y-2">
               {response.fearedEvents.map((e, i) => (
-                <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{e.name}</span>
                     <span className="text-xs px-2 py-0.5 bg-warning/10 text-warning rounded">
@@ -532,7 +532,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                 <span className="font-medium text-success">{t('ebios.ai.relevant', 'Pertinentes')}:</span>
                 <ul className="list-disc pl-4 text-xs mt-1">
                   {response.riskSourceAnalysis.relevantSources.map((s, i) => (
-                    <li key={i}>{s}</li>
+                    <li key={i || 'unknown'}>{s}</li>
                   ))}
                 </ul>
               </div>
@@ -541,7 +541,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                   <span className="font-medium">{t('ebios.ai.recommendations', 'Recommandations')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.riskSourceAnalysis.recommendations.map((r, i) => (
-                      <li key={i}>{r}</li>
+                      <li key={i || 'unknown'}>{r}</li>
                     ))}
                   </ul>
                 </div>
@@ -553,7 +553,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
           {response.strategicScenarios && (
             <div className="space-y-2">
               {response.strategicScenarios.map((s, i) => (
-                <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{s.name}</span>
                     <span className="text-xs px-2 py-0.5 bg-error/10 text-error rounded">
@@ -574,7 +574,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
           {response.operationalScenarios && (
             <div className="space-y-2">
               {response.operationalScenarios.map((s, i) => (
-                <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{s.name}</span>
                     <span className="text-xs px-2 py-0.5 bg-warning/10 text-warning rounded">
@@ -584,7 +584,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                   <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{s.description}</p>
                   <div className="mt-2 space-y-1">
                     {s.attackSteps.map((step, j) => (
-                      <div key={j} className="flex items-start gap-2 text-xs">
+                      <div key={j || 'unknown'} className="flex items-start gap-2 text-xs">
                         <span className="font-mono bg-slate-200 dark:bg-slate-600 px-1 rounded">{j + 1}</span>
                         <span>{step.description}</span>
                         {step.mitreId && (
@@ -604,7 +604,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
           {response.treatmentSuggestions && (
             <div className="space-y-2">
               {response.treatmentSuggestions.map((s, i) => (
-                <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{s.scenarioName}</span>
                     <span className={`text-xs px-2 py-0.5 rounded ${s.strategy === 'mitigate' ? 'bg-info/10 text-info' :
@@ -621,7 +621,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                       <span className="text-xs font-medium">{t('ebios.ai.controls', 'Contrôles suggérés')}:</span>
                       <ul className="list-disc pl-4 text-xs">
                         {s.suggestedControls.map((c, j) => (
-                          <li key={j}>{c}</li>
+                          <li key={j || 'unknown'}>{c}</li>
                         ))}
                       </ul>
                     </div>
@@ -663,7 +663,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
       <div className="flex flex-wrap gap-2 mb-4">
         {actions.map(({ action, label, icon }) => (
           <button
-            key={action}
+            key={action || 'unknown'}
             onClick={() => handleAction(action)}
             disabled={loading}
             className={`flex items-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${activeAction === action

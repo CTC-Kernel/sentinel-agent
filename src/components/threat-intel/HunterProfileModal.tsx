@@ -381,7 +381,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                     </h3>
                                                     <div className="flex flex-wrap gap-2">
                                                         {expertise.map((skill: string, index: number) => (
-                                                            <Badge key={index} status="info" variant="soft">
+                                                            <Badge key={index || 'unknown'} status="info" variant="soft">
                                                                 {skill}
                                                             </Badge>
                                                         ))}
@@ -396,7 +396,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                     </h3>
                                                     <div className="space-y-3">
                                                         {recentActivity.map((activity: RecentActivity, index: number) => (
-                                                            <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
+                                                            <div key={index || 'unknown'} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
                                                                 <div className={`p-2 rounded-lg ${
                                                                     activity.type === 'threat' ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/20' :
                                                                     activity.type === 'verification' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' :
@@ -463,7 +463,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                         </h3>
                                                         <div className="space-y-3">
                                                             {achievements.map((achievement: Achievement, index: number) => (
-                                                                <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
+                                                                <div key={index || 'unknown'} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
                                                                     <div className="p-2 rounded-lg bg-white dark:bg-slate-900">
                                                                         {achievement.icon}
                                                                     </div>

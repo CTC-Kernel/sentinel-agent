@@ -114,7 +114,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     <div className="grid grid-cols-2 gap-3">
                         {(['feature', 'bug', 'improvement', 'other'] as FeedbackType[]).map((t) => (
                             <button
-                                key={t}
+                                key={t || 'unknown'}
                                 type="button"
                                 aria-label={`Type de retour : ${getTypeLabel(t)}`}
                                 aria-pressed={formValues.type === t}
@@ -139,7 +139,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             </span>
                             <div role="radiogroup" aria-labelledby="priority-label" className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700 w-fit">
                                 {(['low', 'medium', 'high'] as const).map((p) => (
-                                    <label key={p} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                    <label key={p || 'unknown'} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                                         <input {...register('priority')}
                                             checked={formValues.priority === p}
                                             type="radio"

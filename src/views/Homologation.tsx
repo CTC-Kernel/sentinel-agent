@@ -240,7 +240,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
               const percentage = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
 
               return (
-                <div key={level} className="flex items-center gap-3">
+                <div key={level || 'unknown'} className="flex items-center gap-3">
                   <div
                     className="p-3 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm"
                     style={{ backgroundColor: `${info.color}20`, color: info.color }}
@@ -281,7 +281,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
           <TabsTrigger value="expired" isLoading={loading}>{t('homologation.expired', 'Expirés')}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-4">
+        <TabsContent value="all" key="all" className="mt-4">
           <HomologationDossierList
             dossiers={dossiers}
             loading={loading}
@@ -291,7 +291,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
           />
         </TabsContent>
 
-        <TabsContent value="active" className="mt-4">
+        <TabsContent value="active" key="active" className="mt-4">
           <HomologationDossierList
             dossiers={dossiers.filter((d) => d.status === 'homologated')}
             loading={loading}
@@ -301,7 +301,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
           />
         </TabsContent>
 
-        <TabsContent value="pending" className="mt-4">
+        <TabsContent value="pending" key="pending" className="mt-4">
           <HomologationDossierList
             dossiers={dossiers.filter(
               (d) => d.status === 'draft' || d.status === 'in_progress' || d.status === 'pending_decision'
@@ -313,7 +313,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
           />
         </TabsContent>
 
-        <TabsContent value="expired" className="mt-4">
+        <TabsContent value="expired" key="expired" className="mt-4">
           <HomologationDossierList
             dossiers={dossiers.filter((d) => d.status === 'expired' || d.status === 'revoked')}
             loading={loading}

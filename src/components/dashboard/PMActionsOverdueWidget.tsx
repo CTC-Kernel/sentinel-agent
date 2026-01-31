@@ -175,7 +175,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <div
-              key={i}
+              key={i || 'unknown'}
               className="h-16 bg-slate-200 dark:bg-slate-700 rounded"
             />
           ))}
@@ -329,7 +329,7 @@ export function PMActionsOverdueWidget({
         <div className={cn('flex flex-col', sizeConfig.gap)}>
           {actions.map((action) => (
             <ActionItem
-              key={action.id}
+              key={action.id || 'unknown'}
               action={action}
               size={size}
               onClick={onActionClick ? () => onActionClick(action.id) : undefined}

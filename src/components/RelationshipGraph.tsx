@@ -30,7 +30,7 @@ export const RelationshipGraph = React.memo<RelationshipGraphProps>(({ rootId, r
                     if (!source || !target) return null;
                     return (
                         <line
-                            key={`${link.source}-${link.target}`}
+                            key={`${link.source || 'unknown'}-${link.target}`}
                             x1={source.x}
                             y1={source.y}
                             x2={target.x}
@@ -44,7 +44,7 @@ export const RelationshipGraph = React.memo<RelationshipGraphProps>(({ rootId, r
 
                 {/* Nodes */}
                 {nodes.map((node) => (
-                    <g key={node.id} transform={`translate(${node.x},${node.y})`}>
+                    <g key={node.id || 'unknown'} transform={`translate(${node.x},${node.y})`}>
                         <g className="transition-all duration-500 hover:scale-110 cursor-pointer">
                             <circle
                                 r={node.type === rootType ? 30 : 20}

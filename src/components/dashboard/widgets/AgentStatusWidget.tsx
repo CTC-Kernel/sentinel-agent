@@ -166,7 +166,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                         <div className="space-y-2">
                             {displayAgents.map(agent => (
                                 <div
-                                    key={agent.id}
+                                    key={agent.id || 'unknown'}
                                     className={cn(
                                         "flex items-center p-3 rounded-3xl border transition-all hover:scale-[1.01]",
                                         agent.status === 'active'

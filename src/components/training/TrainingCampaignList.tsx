@@ -384,7 +384,7 @@ export const TrainingCampaignList: React.FC<TrainingCampaignListProps> = ({
             const isActive = statusFilter === btn.value;
             return (
               <button
-                key={btn.value}
+                key={btn.value || 'unknown'}
                 onClick={() => setStatusFilter(btn.value)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-3xl text-sm font-medium transition-all ${isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
@@ -408,7 +408,7 @@ export const TrainingCampaignList: React.FC<TrainingCampaignListProps> = ({
       {isLoading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <CampaignCardSkeleton key={i} />
+            <CampaignCardSkeleton key={i || 'unknown'} />
           ))}
         </div>
       ) : filteredCampaigns.length === 0 ? (
@@ -440,7 +440,7 @@ export const TrainingCampaignList: React.FC<TrainingCampaignListProps> = ({
           <AnimatePresence>
             {filteredCampaigns.map((campaign) => (
               <CampaignCard
-                key={campaign.id}
+                key={campaign.id || 'unknown'}
                 campaign={campaign}
                 coursesCount={getCourseCount(campaign.courseIds)}
                 onView={() => onViewCampaign(campaign)}

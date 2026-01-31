@@ -324,7 +324,7 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
                                 </span>
                             </th>
                             {DEFAULT_CHECKS.map((check) => (
-                                <th key={check.id} className="px-1 py-3 text-center">
+                                <th key={check.id || 'unknown'} className="px-1 py-3 text-center">
                                     <Tooltip
                                         content={
                                             <div className="text-xs">
@@ -352,7 +352,7 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
                     <tbody>
                         {displayedAgents.map((agent) => (
                             <tr
-                                key={agent.id}
+                                key={agent.id || 'unknown'}
                                 className={cn(
                                     'border-b border-border/20 transition-colors',
                                     'hover:bg-muted/50 cursor-pointer'
@@ -389,7 +389,7 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
 
                                 {/* Check Status Cells */}
                                 {DEFAULT_CHECKS.map((check) => (
-                                    <td key={check.id} className="px-1 py-2 text-center">
+                                    <td key={check.id || 'unknown'} className="px-1 py-2 text-center">
                                         <div className="flex items-center justify-center">
                                             <HeatmapCell
                                                 status={getStatus(agent, check.id)}

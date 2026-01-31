@@ -177,7 +177,7 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
       </div>
 
       <div className="h-[300px] relative z-10 -ml-4">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
           <AreaChart
             data={aggregatedData}
             margin={{ top: 10, right: 10, left: 10, bottom: 0 }}

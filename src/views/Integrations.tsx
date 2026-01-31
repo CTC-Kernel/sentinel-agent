@@ -214,7 +214,7 @@ export const Integrations: React.FC = () => {
                                 { id: 'security', label: t('integrations.categories.security'), icon: ShieldCheck },
                             ].map((cat) => (
                                 <Button
-                                    key={cat.id}
+                                    key={cat.id || 'unknown'}
                                     variant="ghost"
                                     aria-label={cat.label}
                                     onClick={() => setCategoryFilter(cat.id)}
@@ -255,7 +255,7 @@ export const Integrations: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {filteredProviders.map((provider) => (
                                 <IntegrationCard
-                                    key={provider.id}
+                                    key={provider.id || 'unknown'}
                                     provider={provider}
                                     onConnect={handleConnect}
                                     onDisconnect={(p) => setDisconnectTarget(p)}

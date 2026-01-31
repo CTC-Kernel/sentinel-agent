@@ -237,7 +237,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                                 </div>
                                                 <ul className="text-sm text-red-600 dark:text-red-400 space-y-1 max-h-32 overflow-y-auto">
                                                     {result.errors.map((err, i) => (
-                                                        <li key={i}>{err}</li>
+                                                        <li key={i || 'unknown'}>{err}</li>
                                                     ))}
                                                 </ul>
                                             </div>

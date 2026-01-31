@@ -194,7 +194,7 @@ export const AdminDashboard: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                 {filteredOrgs.map(org => (
-                                    <tr key={org.id} className="hover:bg-slate-50/80 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 transition-colors group">
+                                    <tr key={org.id || 'unknown'} className="hover:bg-slate-50/80 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 transition-colors group">
                                         <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">{org.name}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30' :

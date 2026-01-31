@@ -81,7 +81,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
 
             <div className="space-y-6 overflow-y-auto flex-1 pr-1 custom-scrollbar">
                 {categorizedNodes.map((category) => (
-                    <div key={category.id} className="animate-[fadeIn_0.5s_ease-out]">
+                    <div key={category.id || 'unknown'} className="animate-[fadeIn_0.5s_ease-out]">
                         <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] font-bold text-white/40 mb-3 px-1">
                             <span className="flex items-center gap-2">
                                 <span className={`w-1.5 h-1.5 rounded-full ${category.color} shadow-[0_0_8px_currentColor]`}></span>
@@ -117,7 +117,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
                             ) : (
                                 category.items.map((item) => (
                                     <button
-                                        key={item.id}
+                                        key={item.id || 'unknown'}
                                         onClick={() => onNodeSelect(item.id, category.id as LayerType)}
                                         className={`w-full text-left px-3 py-2 rounded-lg transition-all text-xs border group relative overflow-hidden ${selectedNodeId === item.id
                                             ? 'bg-brand-100 border-brand-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]'

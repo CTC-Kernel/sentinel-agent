@@ -143,7 +143,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                                 </summary>
                                 <div className="mt-2 text-xs bg-slate-50 dark:bg-white/5 p-2 rounded-lg border border-border/40 dark:border-white/5 space-y-1 max-w-sm overflow-x-auto">
                                     {changes.map((change, i) => (
-                                        <div key={`change-${i}`} className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center">
+                                        <div key={`change-${i || 'unknown'}`} className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center">
                                             <span className="font-semibold text-slate-700 dark:text-slate-300 truncate" title={change.field}>{change.field}</span>
                                             <span className="text-muted-foreground">→</span>
                                             <div className="flex items-center gap-2">

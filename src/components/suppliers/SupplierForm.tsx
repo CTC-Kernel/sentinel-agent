@@ -295,7 +295,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             <div className="col-span-1 md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-border/40 dark:border-slate-700 overflow-hidden z-50 max-h-60 overflow-y-auto">
                                 {searchResults.map((company) => (
                                     <button
-                                        key={company.siren}
+                                        key={company.siren || 'unknown'}
                                         type="button"
                                         onClick={() => selectCompany(company)}
                                         className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-border/40 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"

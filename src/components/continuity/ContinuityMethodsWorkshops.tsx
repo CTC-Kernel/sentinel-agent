@@ -710,7 +710,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
 
                     return (
                         <motion.div
-                            key={template.id}
+                            key={template.id || 'unknown'}
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
                         >
@@ -788,7 +788,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
             </div>
 
             {/* Selected Template Detail */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
                 {selectedTemplate && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -835,7 +835,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                     </h4>
                                     <ul className="space-y-2">
                                         {selectedTemplate.bestPractices.map((practice, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
+                                            <li key={i || 'unknown'} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                                                 <CheckCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                                                 {practice}
                                             </li>
@@ -850,7 +850,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                     </h4>
                                     <ul className="space-y-2">
                                         {selectedTemplate.deliverables.map((deliverable, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
+                                            <li key={i || 'unknown'} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                                                 <FileCheck className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                                                 {deliverable}
                                             </li>
@@ -878,7 +878,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                 const phaseProgress = Math.round((completedTasks / totalTasks) * 100);
 
                                 return (
-                                    <PremiumCard glass key={phase.id} className="overflow-hidden">
+                                    <PremiumCard glass key={phase.id || 'unknown'} className="overflow-hidden">
                                         <button
                                             className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                             onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
@@ -922,7 +922,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                                 const isWorkshopActive = activeWorkshop?.templateId === selectedTemplate.id;
                                                                 return (
                                                                     <div
-                                                                        key={task.id}
+                                                                        key={task.id || 'unknown'}
                                                                         className={cn(
                                                                             "flex items-start gap-3 p-3 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                                                                             isWorkshopActive ? "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" : "opacity-70",
@@ -967,7 +967,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                                 </div>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {phase.deliverables.map((deliverable, i) => (
-                                                                        <Badge key={i} variant="outline" size="sm">
+                                                                        <Badge key={i || 'unknown'} variant="outline" size="sm">
                                                                             {deliverable}
                                                                         </Badge>
                                                                     ))}

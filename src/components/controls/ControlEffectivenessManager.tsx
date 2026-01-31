@@ -61,7 +61,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-40" />
+            <Skeleton key={i || 'unknown'} className="h-40" />
           ))}
         </div>
       </div>
@@ -89,7 +89,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
 
           return (
             <motion.button
-              key={domain.id}
+              key={domain.id || 'unknown'}
               onClick={() => setSelectedDomain(selectedDomain === domain.id ? null : domain.id)}
               aria-label={`${domain.id} - ${domain.title} - ${t('compliance.maturityLevel', { defaultValue: 'Niveau de maturité' })} ${maturityLevel}`}
               className={cn(
@@ -147,7 +147,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
       </div>
 
       {/* Domain Detail Panel */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {selectedDomain && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -214,7 +214,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
 
           return (
             <div
-              key={control.code}
+              key={control.code || 'unknown'}
               className={cn(
                 "flex items-center gap-4 p-3 rounded-3xl border transition-all",
                 hasAssessment

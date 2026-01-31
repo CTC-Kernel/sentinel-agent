@@ -230,9 +230,9 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                 <div className="relative flex justify-center"><span className="px-4 bg-background/80 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-muted-foreground">{t('auth.orEmail')}</span></div>
                             </div>
 
-                            <AnimatePresence mode="wait">
+                            <AnimatePresence mode="popLayout">
                                 <motion.form
-                                    key={isLogin ? 'login' : 'register'}
+                                    key={isLogin ? 'login' : 'register' || 'unknown'}
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}

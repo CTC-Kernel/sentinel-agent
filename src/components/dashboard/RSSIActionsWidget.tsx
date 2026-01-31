@@ -177,7 +177,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <div
-              key={i}
+              key={i || 'unknown'}
               className="h-14 bg-muted rounded"
             />
           ))}
@@ -330,7 +330,7 @@ export function RSSIActionsWidget({
         <div className={cn('flex flex-col', sizeConfig.gap)}>
           {actions.map((action) => (
             <ActionItem
-              key={action.id}
+              key={action.id || 'unknown'}
               action={action}
               size={size}
               onClick={onActionClick ? () => onActionClick(action.id) : undefined}

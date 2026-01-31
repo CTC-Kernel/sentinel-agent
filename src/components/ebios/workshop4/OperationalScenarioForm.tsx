@@ -152,7 +152,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
             >
               <option value="">{t('ebios.workshop4.selectStrategicScenario')}</option>
               {strategicScenarios.map((ss) => (
-                <option key={ss.id} value={ss.id}>
+                <option key={ss.id || 'unknown'} value={ss.id}>
                   {ss.name} (G{ss.gravity})
                 </option>
               ))}

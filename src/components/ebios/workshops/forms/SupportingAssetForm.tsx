@@ -133,7 +133,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
             <div className="grid grid-cols-3 gap-2">
               {SUPPORTING_ASSET_TYPES.map((type) => (
                 <button
-                  key={type}
+                  key={type || 'unknown'}
                   type="button"
                   onClick={() => setValue('type', type)}
                   className={cn(
@@ -183,7 +183,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {essentialAssets.map((essentialAsset) => (
                   <label
-                    key={essentialAsset.id}
+                    key={essentialAsset.id || 'unknown'}
                     htmlFor={`essential-asset-${essentialAsset.id}`}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-colors",

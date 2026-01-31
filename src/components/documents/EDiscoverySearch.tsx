@@ -333,7 +333,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {savedSearches.map(search => (
               <div
-                key={search.id}
+                key={search.id || 'unknown'}
                 className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-border/40 dark:border-slate-700 hover:border-brand-300 transition-colors"
               >
                 <div
@@ -431,7 +431,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
               const isSelected = selectedActions.includes(value);
               return (
                 <button
-                  key={value}
+                  key={value || 'unknown'}
                   onClick={() => {
                     if (isSelected) {
                       setSelectedActions(prev => prev.filter(a => a !== value));
@@ -616,7 +616,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
                 return (
                   <div
-                    key={entry.id}
+                    key={entry.id || 'unknown'}
                     className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -639,7 +639,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                         {entry.highlights && entry.highlights.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {entry.highlights.map((highlight, idx) => (
-                              <p key={idx} className="text-xs text-slate-600 dark:text-slate-300 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded">
+                              <p key={idx || 'unknown'} className="text-xs text-slate-600 dark:text-slate-300 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded">
                                 {highlight}
                               </p>
                             ))}

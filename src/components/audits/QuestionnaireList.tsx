@@ -98,7 +98,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                     </div>
                 )}
                 {questionnaires.map(q => (
-                    <div key={q.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
+                    <div key={q.id || 'unknown'} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
                         <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-3xl">
                                 <FileText className="w-6 h-6" />

@@ -54,7 +54,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
                     />
                 </div>
                 <datalist id="threatsList">
-                    {STANDARD_THREATS.map((t) => <option key={t} value={t} />)}
+                    {STANDARD_THREATS.map((t) => <option key={t || 'unknown'} value={t} />)}
                 </datalist>
             </div>
 

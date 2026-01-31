@@ -316,7 +316,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                 const isSelected = selectedActions.includes(value);
                 return (
                   <button
-                    key={value}
+                    key={value || 'unknown'}
                     onClick={() => {
                       if (isSelected) {
                         setSelectedActions(prev => prev.filter(a => a !== value));
@@ -418,7 +418,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
 
               return (
                 <button
-                  key={entry.id}
+                  key={entry.id || 'unknown'}
                   className={`w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${onEntryClick ? 'cursor-pointer' : ''
                     }`}
                   onClick={() => onEntryClick?.(entry)}

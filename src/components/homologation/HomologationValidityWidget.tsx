@@ -302,7 +302,7 @@ export const HomologationValidityWidget: React.FC<HomologationValidityWidgetProp
 
               return (
                 <div
-                  key={item.dossier.id}
+                  key={item.dossier.id || 'unknown'}
                   className={cn(
                     'flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer relative',
                     compact && 'p-2'

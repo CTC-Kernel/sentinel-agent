@@ -106,7 +106,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {RISK_TEMPLATES.map(template => (
                                                     <button
-                                                        key={template.id}
+                                                        key={template.id || 'unknown'}
                                                         onClick={() => setSelectedTemplate(template)}
                                                         className="text-left p-6 rounded-3xl border-2 border-border/40 dark:border-border/40 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 w-full"
                                                     >
@@ -187,7 +187,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                 </h4>
                                                 <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                                                     {selectedTemplate.risks.map((risk) => (
-                                                        <div key={risk.threat} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 rounded-lg text-xs border border-border/40 dark:border-white/5">
+                                                        <div key={risk.threat || 'unknown'} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 rounded-lg text-xs border border-border/40 dark:border-white/5">
                                                             <span className="font-medium text-slate-700 dark:text-slate-300 flex-1 truncate">
                                                                 {risk.threat}
                                                             </span>

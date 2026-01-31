@@ -113,7 +113,7 @@ export const AuditLogList: React.FC = () => {
                         <tbody className="divide-y divide-slate-800">
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
-                                    <tr key={i}>
+                                    <tr key={i || 'unknown'}>
                                         <td colSpan={5} className="px-6 py-4">
                                             <div className="h-6 bg-slate-800/50 rounded animate-pulse" />
                                         </td>
@@ -121,7 +121,7 @@ export const AuditLogList: React.FC = () => {
                                 ))
                             ) : filteredLogs.length > 0 ? (
                                 filteredLogs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-white/5 transition-colors group">
+                                    <tr key={log.id || 'unknown'} className="hover:bg-white/5 transition-colors group">
                                         <td className="px-6 py-4 text-sm text-muted-foreground font-mono">
                                             {new Date(log.timestamp).toLocaleString()}
                                         </td>

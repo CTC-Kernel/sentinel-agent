@@ -99,7 +99,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                             </select>
                             <select {...findingForm.register('relatedControlId')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-all outline-none">
                                 <option value="">{t('audits.findingsSection.form.linkControl')}</option>
-                                {controls.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name.substring(0, 30)}...</option>)}
+                                {controls.map(c => <option key={c.id || 'unknown'} value={c.id}>{c.code} - {c.name.substring(0, 30)}...</option>)}
                             </select>
                         </div>
                         <div className="flex justify-end">
@@ -122,7 +122,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                     />
                 ) : (
                     findings.map(f => (
-                        <div key={f.id} className="p-4 glass-premium rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all flex justify-between items-start group">
+                        <div key={f.id || 'unknown'} className="p-4 glass-premium rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all flex justify-between items-start group">
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${f.type === 'Majeure' ? 'bg-red-50 text-red-600 dark:text-red-400 ring-1 ring-red-500/20' : f.type === 'Opportunité' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-amber-50 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20'}`}>

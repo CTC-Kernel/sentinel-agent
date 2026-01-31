@@ -230,7 +230,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
               {data.scope.missions.map((mission) => (
                 <button
-                  key={mission.id}
+                  key={mission.id || 'unknown'}
                   type="button"
                   onClick={() => !readOnly && handleEditMission(mission)}
                   disabled={readOnly}
@@ -323,7 +323,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
               {data.scope.essentialAssets.map((asset) => (
                 <button
-                  key={asset.id}
+                  key={asset.id || 'unknown'}
                   type="button"
                   onClick={() => !readOnly && handleEditEssentialAsset(asset)}
                   disabled={readOnly}
@@ -425,7 +425,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
               {data.scope.supportingAssets.map((asset) => (
                 <button
-                  key={asset.id}
+                  key={asset.id || 'unknown'}
                   type="button"
                   onClick={() => !readOnly && handleEditSupportingAsset(asset)}
                   disabled={readOnly}
@@ -537,7 +537,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
               {data.fearedEvents.map((event) => (
                 <button
-                  key={event.id}
+                  key={event.id || 'unknown'}
                   type="button"
                   onClick={() => !readOnly && handleEditFearedEvent(event)}
                   disabled={readOnly}

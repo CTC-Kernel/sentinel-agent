@@ -385,7 +385,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
 
           return (
             <motion.div
-              key={template.id}
+              key={template.id || 'unknown'}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
@@ -462,7 +462,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
       </div>
 
       {/* Selected Template Detail */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {selectedTemplate && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -509,7 +509,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                   </h4>
                   <ul className="space-y-2">
                     {selectedTemplate.bestPractices.map((practice, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
+                      <li key={i || 'unknown'} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                         <CheckCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                         {practice}
                       </li>
@@ -524,7 +524,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                   </h4>
                   <ul className="space-y-2">
                     {selectedTemplate.deliverables.map((deliverable, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
+                      <li key={i || 'unknown'} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                         <FileCheck className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                         {deliverable}
                       </li>
@@ -551,7 +551,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                 const phaseProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
                 return (
-                  <PremiumCard glass key={phase.id} className="overflow-hidden">
+                  <PremiumCard glass key={phase.id || 'unknown'} className="overflow-hidden">
                     <button
                       onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
                       className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -609,7 +609,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
 
                               return (
                                 <div
-                                  key={task.id}
+                                  key={task.id || 'unknown'}
                                   className={cn(
                                     "flex items-start gap-3 p-3 rounded-3xl border transition-colors relative",
                                     task.isCompleted
@@ -665,7 +665,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                 </h6>
                                 <div className="flex flex-wrap gap-2">
                                   {phase.deliverables.map((d, i) => (
-                                    <Badge key={i} variant="outline" size="sm" className="gap-1">
+                                    <Badge key={i || 'unknown'} variant="outline" size="sm" className="gap-1">
                                       <FileText className="w-3 h-3" />
                                       {d}
                                     </Badge>

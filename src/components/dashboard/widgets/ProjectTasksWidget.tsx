@@ -91,7 +91,7 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                     const isOverdue = project.dueDate && new Date(project.dueDate) < new Date();
                     return (
                         <div
-                            key={project.id}
+                            key={project.id || 'unknown'}
                             className="group flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border border-transparent hover:border-border/40 dark:hover:border-slate-700"
                             onClick={() => {
                                 const path = `/projects?id=${project.id}`;

@@ -260,7 +260,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
                 )}
               >
                 {PARTY_TYPES.map((type) => (
-                  <option key={type} value={type}>
+                  <option key={type || 'unknown'} value={type}>
                     {PARTY_TYPE_LABELS[type]?.[locale] || type}
                   </option>
                 ))}

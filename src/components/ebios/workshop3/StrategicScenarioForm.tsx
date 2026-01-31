@@ -234,7 +234,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
             >
               <option value="">{t('ebios.workshop3.selectPair', 'Sélectionner un couple SR/OV...')}</option>
               {retainedPairs.map((pair) => (
-                <option key={pair.id} value={pair.id}>
+                <option key={pair.id || 'unknown'} value={pair.id}>
                   SR/OV - Pertinence: {pair.relevance}/4 {pair.justification ? `(${pair.justification.slice(0, 30)}...)` : ''}
                 </option>
               ))}
@@ -259,7 +259,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                   const isSelected = watchedFearedEventIds?.includes(event.id);
                   return (
                     <button
-                      key={event.id}
+                      key={event.id || 'unknown'}
                       type="button"
                       onClick={() => toggleFearedEvent(event.id)}
                       className={cn(
@@ -294,7 +294,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                   const isSelected = watchedAttackPathIds?.includes(path.id);
                   return (
                     <button
-                      key={path.id}
+                      key={path.id || 'unknown'}
                       type="button"
                       onClick={() => toggleAttackPath(path.id)}
                       className={cn(
@@ -349,7 +349,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
             <div className="grid grid-cols-4 gap-2 mb-3">
               {GRAVITY_SCALE.map((g) => (
                 <button
-                  key={g.level}
+                  key={g.level || 'unknown'}
                   type="button"
                   onClick={() => setValue('gravity', g.level)}
                   className={cn(

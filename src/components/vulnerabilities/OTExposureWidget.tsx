@@ -251,7 +251,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
   return (
     <div className="flex items-center gap-4">
       <div className="w-20 h-20">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
           <PieChart>
             <Pie
               data={chartData}
@@ -263,7 +263,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
               dataKey="value"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+                <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
               ))}
             </Pie>
           </PieChart>
@@ -271,7 +271,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
       </div>
       <div className="flex flex-col gap-1">
         {chartData.map((entry) => (
-          <div key={entry.name} className="flex items-center gap-2 text-xs">
+          <div key={entry.name || 'unknown'} className="flex items-center gap-2 text-xs">
             <span
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: entry.color }}
@@ -305,7 +305,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-10 w-full" />
+          <Skeleton key={i || 'unknown'} className="h-10 w-full" />
         ))}
       </div>
     );
@@ -323,7 +323,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
     <div className="space-y-2">
       {assets.map((asset, index) => (
         <button
-          key={asset.assetId}
+          key={asset.assetId || 'unknown'}
           onClick={() => onAssetClick?.(asset.assetId)}
           className={cn(
             'flex items-center justify-between w-full p-2 rounded-lg',

@@ -445,7 +445,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" key="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             {/* Age Distribution Chart */}
             <Card>
@@ -461,7 +461,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
               <CardContent>
                 <div className="space-y-3">
                   {ageChartData.map((item) => (
-                    <div key={item.label} className="space-y-1">
+                    <div key={item.label || 'unknown'} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span>{item.label}</span>
                         <span className="text-muted-foreground">
@@ -497,7 +497,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                     <div className="space-y-2">
                       {nearExpiry.slice(0, 5).map((item) => (
                         <div
-                          key={item.documentId}
+                          key={item.documentId || 'unknown'}
                           className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
                         >
                           <div className="flex items-center gap-2 min-w-0">
@@ -527,7 +527,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
         </TabsContent>
 
         {/* Policies Tab */}
-        <TabsContent value="policies" className="space-y-4">
+        <TabsContent value="policies" key="policies" className="space-y-4">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -558,7 +558,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                   {policies.map((policy) => {
                     const ActionIcon = ACTION_CONFIG[policy.action].icon;
                     return (
-                      <TableRow key={policy.id}>
+                      <TableRow key={policy.id || 'unknown'}>
                         <TableCell>
                           <div>
                             <p className="font-medium">{policy.name}</p>
@@ -581,7 +581,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {policy.scope?.documentTypes?.map((type) => (
-                              <Badge key={type} variant="outline" className="text-xs">
+                              <Badge key={type || 'unknown'} variant="outline" className="text-xs">
                                 {type}
                               </Badge>
                             ))}
@@ -629,7 +629,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
         </TabsContent>
 
         {/* Expiring Documents Tab */}
-        <TabsContent value="expiring" className="space-y-4">
+        <TabsContent value="expiring" key="expiring" className="space-y-4">
           <div className="flex items-center gap-4">
             <Select
               value={String(expiryFilter)}
@@ -671,7 +671,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                       {expired.map((item) => {
                         const ActionIcon = ACTION_CONFIG[item.action].icon;
                         return (
-                          <TableRow key={item.documentId}>
+                          <TableRow key={item.documentId || 'unknown'}>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-muted-foreground" />
@@ -740,7 +740,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                       {nearExpiry.map((item) => {
                         const ActionIcon = ACTION_CONFIG[item.action].icon;
                         return (
-                          <TableRow key={item.documentId}>
+                          <TableRow key={item.documentId || 'unknown'}>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-muted-foreground" />
@@ -856,7 +856,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                       {Object.entries(ACTION_CONFIG).map(([key, config]) => {
                         const Icon = config.icon;
                         return (
-                          <SelectItem key={key} value={key}>
+                          <SelectItem key={key || 'unknown'} value={key}>
                             <div className="flex items-center gap-2">
                               <Icon className={cn('h-4 w-4', config.color)} />
                               {config.label}
@@ -892,7 +892,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                 <div className="flex flex-wrap gap-2">
                   {DOCUMENT_TYPES.map((type) => (
                     <Badge
-                      key={type}
+                      key={type || 'unknown'}
                       variant={formData.documentTypes.includes(type) ? 'default' : 'outline'}
                       className="cursor-pointer"
                       onClick={() => toggleDocumentType(type)}
@@ -911,7 +911,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                 <div className="flex flex-wrap gap-2">
                   {CLASSIFICATION_LEVELS.map((level) => (
                     <Badge
-                      key={level}
+                      key={level || 'unknown'}
                       variant={formData.classifications.includes(level) ? 'default' : 'outline'}
                       className="cursor-pointer capitalize"
                       onClick={() => toggleClassification(level)}

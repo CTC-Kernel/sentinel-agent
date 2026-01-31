@@ -69,7 +69,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {strategies.map((strategy: Strategy) => (
-                    <div key={strategy.id} className="glass-premium p-4 sm:p-6 rounded-2xl relative group hover:border-brand-300 border border-border/40">
+                    <div key={strategy.id || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-2xl relative group hover:border-brand-300 border border-border/40">
                         {canManage && (
                             <Button
                                 variant="ghost"
@@ -108,7 +108,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                                 {strategy.linkedAssets?.map((assetId: string) => {
                                     const asset = assets.find(a => a.id === assetId);
                                     return asset ? (
-                                        <span key={assetId} className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-100">
+                                        <span key={assetId || 'unknown'} className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-100">
                                             <Server className="w-3 h-3" /> {asset.name}
                                         </span>
                                     ) : null;

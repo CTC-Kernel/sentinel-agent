@@ -137,7 +137,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                         if (editingId === action.id) {
                             return (
                                 <TreatmentActionForm
-                                    key={action.id}
+                                    key={action.id || 'unknown'}
                                     action={action}
                                     users={users}
                                     onSave={handleSaveEdit}
@@ -152,7 +152,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
 
                         return (
                             <div
-                                key={action.id}
+                                key={action.id || 'unknown'}
                                 className={`flex items-start gap-3 p-3 rounded-3xl border transition-colors ${action.status === 'Terminé'
                                     ? 'bg-success-bg/50 dark:bg-success-bg/10 border-success-border dark:border-success-border/30'
                                     : 'bg-white dark:bg-slate-800 border-border/40 dark:border-slate-700 hover:shadow-sm'

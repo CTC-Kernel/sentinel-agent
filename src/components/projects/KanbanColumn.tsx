@@ -59,7 +59,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 ) : (
                     tasks.map(task => (
                         <div
-                            key={task.id}
+                            key={task.id || 'unknown'}
                             draggable={canEdit}
                             onDragStart={(e) => onDragStart(e, task.id)}
                             className={`p-4 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-lg transition-all group cursor-grab active:cursor-grabbing relative overflow-hidden ${draggedTaskId === task.id ? 'opacity-60 scale-95' : 'hover:scale-[1.02] hover:bg-white/60 dark:hover:bg-white/10'}`}

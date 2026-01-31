@@ -110,7 +110,7 @@ export const SystemHealth: React.FC = () => {
 
                 <div className="space-y-3">
                     {services.map((service) => (
-                        <ServiceStatus key={service.name} {...service} />
+                        <ServiceStatus key={service.name || 'unknown'} {...service} />
                     ))}
                     {services.length === 0 && loading && (
                         <div className="text-center py-8 text-muted-foreground text-sm">

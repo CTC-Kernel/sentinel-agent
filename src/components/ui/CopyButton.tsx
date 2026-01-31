@@ -113,7 +113,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
                 whileTap={{ scale: 0.95 }}
                 aria-label={copied ? copiedLabel : label}
             >
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                     {copied ? (
                         <motion.div
                             key="check"
@@ -138,9 +138,9 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
                 </AnimatePresence>
 
                 {!iconOnly && (
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence mode="popLayout">
                         <motion.span
-                            key={copied ? 'copied' : 'copy'}
+                            key={copied ? 'copied' : 'copy' || 'unknown'}
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -5 }}

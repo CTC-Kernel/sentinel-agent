@@ -287,7 +287,7 @@ export const SegmentZones: React.FC<SegmentZonesProps> = React.memo(
             ];
 
             return (
-              <group key={zone.segment} position={position}>
+              <group key={zone.segment || 'unknown'} position={position}>
                 {/* Floor grid */}
                 {showGrid && (
                   <ZoneFloorGrid

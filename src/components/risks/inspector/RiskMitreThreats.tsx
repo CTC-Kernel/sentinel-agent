@@ -38,7 +38,7 @@ export const RiskMitreThreats: React.FC<RiskMitreThreatsProps> = ({
                 </div>
                 <div className="space-y-2">
                     {mitreResults.map(t => (
-                        <div key={t.id} className="flex justify-between p-2 border rounded-lg">
+                        <div key={t.id || 'unknown'} className="flex justify-between p-2 border rounded-lg">
                             <span>{t.name}</span>
                             <button aria-label="Ajouter la technique" onClick={() => onMitreAdd(t)}>Ajouter</button>
                         </div>
@@ -51,7 +51,7 @@ export const RiskMitreThreats: React.FC<RiskMitreThreatsProps> = ({
                 <div className="space-y-2 mt-4">
                     <h4 className="text-sm font-bold">Techniques Liées</h4>
                     {risk.mitreTechniques.map((t, idx) => (
-                        <div key={`${t.id}-${idx}`} className="text-sm p-2 bg-slate-100 dark:bg-slate-800 rounded">
+                        <div key={`${t.id || 'unknown'}-${idx}`} className="text-sm p-2 bg-slate-100 dark:bg-slate-800 rounded">
                             {t.name} ({t.id})
                         </div>
                     ))}

@@ -74,7 +74,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
                     const isCurrent = step.status === 'current';
 
                     return (
-                        <div key={step.id} className="relative">
+                        <div key={step.id || 'unknown'} className="relative">
                             {/* Dot */}
                             <div className={`absolute -left-[21.5px] top-1 h-3 w-3 rounded-full border-2 transition-all duration-normal ease-apple ${isCompleted ? 'bg-primary border-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]' :
                                 isCurrent ? 'bg-background border-primary animate-pulse' :

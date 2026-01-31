@@ -205,7 +205,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                     {/* Progress Steps */}
                     <div className="hidden md:flex items-center gap-2">
                         {STEPS.map((step, idx) => (
-                            <div key={step.id} className="flex items-center">
+                            <div key={step.id || 'unknown'} className="flex items-center">
                                 <div className={`
                                     flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all
                                     ${idx === currentStep ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20 scale-110' :
@@ -356,7 +356,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                         <div className="flex p-1 bg-slate-100 dark:bg-black/20 rounded-3xl" role="radiogroup" aria-labelledby="status">
                                             {['Brouillon', 'Publié'].map((s) => (
                                                 <button
-                                                    key={s}
+                                                    key={s || 'unknown'}
                                                     type="button"
                                                     id={`status-${s}`}
                                                     onClick={() => setValue('status', s as DocumentFormData['status'])}

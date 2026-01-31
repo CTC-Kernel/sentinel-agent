@@ -607,7 +607,7 @@ export function IntegrityCertificate({
                 <div className="space-y-2">
                   {history.map((event) => (
                     <div
-                      key={event.id}
+                      key={event.id || 'unknown'}
                       className={cn(
                         'flex items-start gap-3 p-2 rounded-lg text-sm',
                         'bg-slate-50 dark:bg-slate-900/50'

@@ -376,7 +376,7 @@ export const InteractiveTimeline: React.FC = () => {
             <div className="flex gap-2">
                 {(['day', 'week', 'month', 'year'] as const).map((level) => (
                     <button
-                        key={level}
+                        key={level || 'unknown'}
                         aria-label={`Zoom niveau ${level}`}
                         onClick={() => applyZoom(level)}
                         className={`px-4 py-2 rounded-3xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${zoomLevel === level

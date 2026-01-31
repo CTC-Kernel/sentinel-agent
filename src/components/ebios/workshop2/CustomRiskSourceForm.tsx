@@ -204,7 +204,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
               )}
             >
               {RISK_SOURCE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
+                <option key={cat || 'unknown'} value={cat}>
                   {RISK_SOURCE_CATEGORY_LABELS[cat]?.[locale] || cat}
                 </option>
               ))}

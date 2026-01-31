@@ -136,7 +136,7 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
 
     return (
       <Card
-        key={dossier.id}
+        key={dossier.id || 'unknown'}
         className="p-4 hover:shadow-md transition-shadow cursor-pointer"
         onClick={() => onView(dossier)}
       >
@@ -247,7 +247,7 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="p-4 animate-pulse">
+          <Card key={i || 'unknown'} className="p-4 animate-pulse">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-muted rounded-lg" />
               <div className="flex-1 space-y-2">
@@ -275,7 +275,7 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
           {(['all', 'draft', 'in_progress', 'pending_decision', 'homologated', 'expired'] as const).map(
             (status) => (
               <Button
-                key={status}
+                key={status || 'unknown'}
                 variant={statusFilter === status ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setStatusFilter(status)}

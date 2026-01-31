@@ -48,7 +48,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('continuity.recoveryPlan')}</h3>
                 <div className="space-y-3">
                     {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (
-                        <div key={`dep-${i}`} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-3xl border border-border/40 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
+                        <div key={`dep-${i || 'unknown'}`} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-3xl border border-border/40 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
                             <div className="flex-none">
                                 <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-300 border border-border/40 dark:border-border/40 shadow-sm">
                                     {i + 1}

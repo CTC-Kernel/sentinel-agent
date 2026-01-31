@@ -178,7 +178,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, pl
       <div className="grid grid-cols-3 gap-2">
         {qualities.map((q) => (
           <button
-            key={q.value}
+            key={q.value || 'unknown'}
             onClick={() => onChange(q.value)}
             className={`
               p-3 rounded-lg border transition-all text-center
@@ -259,7 +259,7 @@ const InstructionsPanel: React.FC<InstructionsPanelProps> = ({ platform }) => {
       <h4 className="text-sm font-medium text-slate-300 mb-3">How to use on {VR_PLATFORM_SETTINGS[platform].name}</h4>
       <ol className="space-y-2">
         {instructions.map((instruction, index) => (
-          <li key={index} className="flex gap-3 text-xs text-muted-foreground">
+          <li key={index || 'unknown'} className="flex gap-3 text-xs text-muted-foreground">
             <span className="flex-shrink-0 w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-xs font-medium">
               {index + 1}
             </span>
@@ -387,7 +387,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
             <div className="grid grid-cols-3 gap-3">
               {(['quest', 'visionPro', 'generic'] as VRTargetPlatform[]).map((p) => (
                 <PlatformCard
-                  key={p}
+                  key={p || 'unknown'}
                   platform={p}
                   isSelected={platform === p}
                   onSelect={() => setPlatform(p)}
@@ -449,7 +449,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
               </div>
               <ul className="text-xs text-amber-300/80 space-y-1">
                 {validation.warnings.map((warning, i) => (
-                  <li key={i}>- {warning}</li>
+                  <li key={i || 'unknown'}>- {warning}</li>
                 ))}
               </ul>
             </div>

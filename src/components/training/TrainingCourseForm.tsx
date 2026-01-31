@@ -408,7 +408,7 @@ export const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({
           <div className="flex flex-wrap gap-2">
             {selectedFrameworks.map((fw) => (
               <span
-                key={fw}
+                key={fw || 'unknown'}
                 className="px-2 py-1 rounded-lg text-xs font-bold uppercase bg-primary/10 text-primary border border-primary/20"
               >
                 {fw.toUpperCase()}

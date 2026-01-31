@@ -201,7 +201,7 @@ export const PulseSkeleton: React.FC<PulseSkeletonProps> = ({
     <>
       {Array.from({ length: count }).map((_, i) => (
         <div
-          key={`pulse-${i}`}
+          key={`pulse-${i || 'unknown'}`}
           className={`${baseClasses} ${variantClasses[variant]} ${className}`}
           style={{ animationDelay: `${i * 100}ms` }}
         />
@@ -310,7 +310,7 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
           </span>
           <motion.span
             className="text-sm font-bold text-slate-900 dark:text-white tabular-nums"
-            key={Math.round(percentage)}
+            key={Math.round(percentage) || 'unknown'}
             initial={{ scale: 1.2, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 300 }}

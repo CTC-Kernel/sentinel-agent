@@ -130,7 +130,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <div
-              key={i}
+              key={i || 'unknown'}
               className="h-14 bg-slate-200 dark:bg-slate-700 rounded"
             />
           ))}
@@ -267,7 +267,7 @@ export function RSSICriticalRisksWidget({
         <div className={cn('flex flex-col', sizeConfig.gap)}>
           {risks.map((risk) => (
             <RiskItem
-              key={risk.id}
+              key={risk.id || 'unknown'}
               risk={risk}
               size={size}
               onClick={onRiskClick ? () => onRiskClick(risk.id) : undefined}

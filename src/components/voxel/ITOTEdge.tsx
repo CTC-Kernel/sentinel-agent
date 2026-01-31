@@ -143,7 +143,7 @@ const GradientLine: React.FC<GradientLineProps> = React.memo(
       <group>
         {segments.map((segment, index) => (
           <Line
-            key={index}
+            key={index || 'unknown'}
             ref={index === 0 ? lineRef : undefined}
             points={[segment.start, segment.end]}
             color={segment.color}
@@ -514,7 +514,7 @@ export const ITOTEdgeCollection: React.FC<ITOTEdgeCollectionProps> = React.memo(
 
           return (
             <ITOTEdge
-              key={edge.id}
+              key={edge.id || 'unknown'}
               edge={edge}
               sourceNode={sourceNode}
               targetNode={targetNode}

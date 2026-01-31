@@ -156,7 +156,7 @@ const NotificationContainer: React.FC = () => {
       <AnimatePresence>
         {notifications.map((notification) => (
           <motion.div
-            key={notification.id}
+            key={notification.id || 'unknown'}
             initial={{ opacity: 0, x: 100, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 100, scale: 0.9 }}

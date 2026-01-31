@@ -277,7 +277,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                         </p>
                     ) : (
                         maintenanceRecords.map(rec => (
-                            <div key={rec.id} className="flex items-start p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                            <div key={rec.id || 'unknown'} className="flex items-start p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl shadow-sm hover:shadow-md transition-all">
                                 <div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div>
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between mb-1">

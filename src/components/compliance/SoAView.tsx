@@ -273,7 +273,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                             {versions.map((version) => (
                                 <button
-                                    key={version.id}
+                                    key={version.id || 'unknown'}
                                     onClick={() => {
                                         setSelectedVersion(version);
                                         setShowHistory(false);
@@ -381,7 +381,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                 const missingJustification = isNonApplicable && (!item.justification || item.justification.trim() === '');
 
                                 return (
-                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
+                                    <tr key={item.id || 'unknown'} className="hover:bg-slate-50 dark:hover:bg-white/5">
                                         <td className="px-4 py-3 font-medium">{item.code}</td>
                                         <td className="px-4 py-3 max-w-sm">
                                             <div className="font-medium text-slate-900 dark:text-white">{item.name}</div>
@@ -463,7 +463,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                 {item.maturity ? (
                                                     <div className="flex gap-1">
                                                         {[1, 2, 3, 4, 5].map(i => (
-                                                            <div key={`star-${i}`} className={`h-1.5 w-3 rounded-sm ${i <= item.maturity! ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                                                            <div key={`star-${i || 'unknown'}`} className={`h-1.5 w-3 rounded-sm ${i <= item.maturity! ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
                                                         ))}
                                                     </div>
                                                 ) : '-'}

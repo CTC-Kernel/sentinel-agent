@@ -89,7 +89,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 aria-label="Nombre d'éléments par page"
                             >
                                 {itemsPerPageOptions.map(option => (
-                                    <option key={option} value={option}>{option}</option>
+                                    <option key={option || 'unknown'} value={option}>{option}</option>
                                 ))}
                             </select>
                             <ChevronDown
@@ -120,7 +120,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                         if (page === '...') {
                             return (
                                 <span
-                                    key={`ellipsis-${index}`}
+                                    key={`ellipsis-${index || 'unknown'}`}
                                     className="px-3 py-2 text-slate-500 dark:text-slate-400 font-medium select-none"
                                     aria-hidden="true"
                                 >
@@ -134,7 +134,7 @@ export const Pagination: React.FC<PaginationProps> = ({
 
                         return (
                             <Button
-                                key={pageNum}
+                                key={pageNum || 'unknown'}
                                 onClick={() => onPageChange(pageNum)}
                                 variant={isActive ? 'default' : 'ghost'}
                                 className={`min-w-[44px] min-h-[44px] px-4 py-2 rounded-3xl text-sm font-bold transition-all ${isActive

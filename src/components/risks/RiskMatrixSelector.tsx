@@ -168,7 +168,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                 {/* Grid */}
                 <div className={`grid grid-rows-5 ${cellGap} w-full aspect-square ${gridSize} mx-auto`}>
                     {[5, 4, 3, 2, 1].map(p => (
-                        <div key={p} className={`grid grid-cols-5 ${cellGap}`}>
+                        <div key={p || 'unknown'} className={`grid grid-cols-5 ${cellGap}`}>
                             {[1, 2, 3, 4, 5].map(i => {
                                 const isCurrent = isCurrentPosition(p, i);
                                 const isResidual = isResidualPosition(p, i);
@@ -176,7 +176,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
 
                                 return (
                                     <button
-                                        key={`${p}-${i}`}
+                                        key={`${p || 'unknown'}-${i}`}
                                         type="button"
                                         onClick={() => handleCellClick(p, i)}
                                         disabled={readOnly}

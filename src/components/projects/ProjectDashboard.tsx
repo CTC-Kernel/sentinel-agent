@@ -159,7 +159,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="flex items-center gap-6">
                         <div className="relative">
                             <div className="h-[120px] w-[120px]">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                     <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="100%" barSize={10} data={healthGaugeData} startAngle={180} endAngle={0}>
                                         <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#projectGlow)' }} />
                                     </RadialBarChart>
@@ -255,11 +255,11 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                         {(!project.tasks || project.tasks.length === 0) ? (
                             <EmptyChartState variant="pie" message="Aucune tâche" description="Ajoutez des tâches au projet pour voir la distribution." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <defs>
                                         {taskDistribution.map((entry, idx) => (
-                                            <linearGradient key={idx} id={`projectTaskGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
+                                            <linearGradient key={idx || 'unknown'} id={`projectTaskGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
                                                 <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                                 <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                             </linearGradient>
@@ -281,7 +281,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                         onMouseLeave={() => setActiveTaskIndex(null)}
                                     >
                                         {taskDistribution.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#projectTaskGrad${index})`} className="cursor-pointer" />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={`url(#projectTaskGrad${index})`} className="cursor-pointer" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} />
@@ -315,7 +315,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                         {(!project.tasks || project.tasks.length === 0) ? (
                             <EmptyChartState variant="bar" message="Priorités non définies" description="Les priorités s'afficheront une fois les tâches créées." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={tasksByPriority} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }} dy={10} />
@@ -323,7 +323,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
                                     <Bar dataKey="value" name="Tâches" radius={[8, 8, 0, 0]} barSize={40} animationDuration={1200}>
                                         {tasksByPriority.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -373,7 +373,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="space-y-4">
                         {milestones.map((milestone, index) => (
                             <motion.div
-                                key={milestone.id}
+                                key={milestone.id || 'unknown'}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.25 + index * 0.05 }}

@@ -65,7 +65,7 @@ const RiskMatrixCell: React.FC<{
       <div className="flex flex-wrap gap-1 overflow-y-auto max-h-full">
         {vendors.slice(0, 6).map((vendor) => (
           <button
-            key={vendor.supplierId}
+            key={vendor.supplierId || 'unknown'}
             onClick={() => onClick?.(vendor.supplierId)}
             className="px-2 py-1 bg-white dark:bg-slate-800 rounded text-xs font-medium text-slate-700 dark:text-slate-300 hover:ring-2 hover:ring-brand-500 transition-all truncate max-w-full"
             title={vendor.supplierName}
@@ -131,7 +131,7 @@ const RiskMatrixView: React.FC<{
           </div>
           {criticalityLevels.map((level) => (
             <div
-              key={level}
+              key={level || 'unknown'}
               className="text-sm font-medium text-slate-700 dark:text-slate-300 text-center"
             >
               {t(`vendorScoring.criticality.${level.toLowerCase()}`, level)}
@@ -141,7 +141,7 @@ const RiskMatrixView: React.FC<{
 
         {/* Matrix rows */}
         {riskLevels.map((riskLevel) => (
-          <div key={riskLevel} className="grid grid-cols-4 gap-2 mb-2">
+          <div key={riskLevel || 'unknown'} className="grid grid-cols-4 gap-2 mb-2">
             <div
               className={`flex items-center justify-center rounded-lg ${getRiskLevelConfig(riskLevel).bgColor} ${getRiskLevelConfig(riskLevel).color} text-sm font-medium`}
             >
@@ -149,7 +149,7 @@ const RiskMatrixView: React.FC<{
             </div>
             {criticalityLevels.map((critLevel) => (
               <RiskMatrixCell
-                key={critLevel}
+                key={critLevel || 'unknown'}
                 vendors={matrix[riskLevel][critLevel]}
                 riskLevel={riskLevel}
                 criticalityLevel={critLevel}
@@ -403,7 +403,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
             </span>
             {(['score', 'name', 'trend'] as SortField[]).map((field) => (
               <button
-                key={field}
+                key={field || 'unknown'}
                 onClick={() => handleSort(field)}
                 className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   sortField === field
@@ -435,7 +435,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
         <div className="space-y-3">
           {sortedVendors.map((vendor) => (
             <VendorListItem
-              key={vendor.supplierId}
+              key={vendor.supplierId || 'unknown'}
               vendor={vendor}
               onClick={() => onVendorClick?.(vendor.supplierId)}
             />

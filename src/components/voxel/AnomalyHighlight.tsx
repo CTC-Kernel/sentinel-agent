@@ -378,7 +378,7 @@ export const AnomalyHighlight: React.FC<AnomalyHighlightProps> = React.memo(({
       {/* Circular dependency lines */}
       {showCycleLines && cyclePaths.map((path, index) => (
         <CycleDependencyLines
-          key={`cycle-${node.id}-${index}`}
+          key={`cycle-${node.id || 'unknown'}-${index}`}
           nodes={allNodes}
           cyclePath={path}
           severity="critical"
@@ -431,7 +431,7 @@ export const AnomalyOverlay: React.FC<AnomalyOverlayProps> = React.memo(({
 
         return (
           <AnomalyHighlight
-            key={`anomaly-highlight-${nodeId}`}
+            key={`anomaly-highlight-${nodeId || 'unknown'}`}
             node={node}
             anomalies={anomalies}
             allNodes={nodes}

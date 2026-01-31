@@ -160,7 +160,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                         {(['audit', 'project', 'maintenance', 'drill'] as EventType[]).map((type) => (
                             <button
                                 type="button"
-                                key={type}
+                                key={type || 'unknown'}
                                 aria-label={`Sélectionner le type ${type}`}
                                 aria-pressed={eventType === type}
                                 onClick={() => setEventType(type)}

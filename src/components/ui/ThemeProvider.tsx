@@ -56,7 +56,7 @@ export const ThemeSelector: React.FC = () => {
         <div className="grid grid-cols-2 gap-2">
           {(['light', 'dark', 'system'] as Theme[]).map((t) => (
             <button
-              key={t}
+              key={t || 'unknown'}
               onClick={() => setTheme(t)}
               className={cn(
                 "px-3 py-2 rounded-lg border transition-colors",
@@ -82,7 +82,7 @@ export const ThemeSelector: React.FC = () => {
         <div className="grid grid-cols-3 gap-2">
           {Object.keys(colorSchemes).map((scheme) => (
             <button
-              key={scheme}
+              key={scheme || 'unknown'}
               onClick={() => setColorScheme(scheme as ColorScheme)}
               className={cn(
                 "px-3 py-2 rounded-lg border transition-colors capitalize",

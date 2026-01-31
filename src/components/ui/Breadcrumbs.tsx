@@ -70,10 +70,10 @@ export const Breadcrumbs: React.FC = () => {
                 <span className="sr-only">Accueil</span>
             </Link>
 
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
                 {crumbs.map((crumb, index) => {
                     return (
-                        <React.Fragment key={crumb.path}>
+                        <motion.div key={crumb.path || 'unknown'}>
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -106,7 +106,7 @@ export const Breadcrumbs: React.FC = () => {
                                     </Link>
                                 )}
                             </motion.div>
-                        </React.Fragment>
+                        </motion.div>
                     );
                 })}
             </AnimatePresence>

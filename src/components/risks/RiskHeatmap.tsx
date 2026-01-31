@@ -45,7 +45,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
                 {/* The Grid */}
                 <div className="grid grid-rows-5 gap-1.5">
                     {[5, 4, 3, 2, 1].map(p => (
-                        <div key={`row-${p}`} className="grid grid-cols-5 gap-1.5">
+                        <div key={`row-${p || 'unknown'}`} className="grid grid-cols-5 gap-1.5">
                             {[1, 2, 3, 4, 5].map(i => {
                                 const count = matrixData[p][i];
                                 const hasData = count > 0;
@@ -53,7 +53,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
 
                                 return (
                                     <motion.div
-                                        key={`${p}-${i}`}
+                                        key={`${p || 'unknown'}-${i}`}
                                         className={`
                                             w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center
                                             text-xs font-bold transition-all

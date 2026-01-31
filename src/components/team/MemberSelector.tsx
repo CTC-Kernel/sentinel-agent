@@ -18,7 +18,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = React.memo(({ users
                 const isSelected = selectedMembers.includes(u.uid);
                 return (
                     <div
-                        key={u.uid}
+                        key={u.uid || 'unknown'}
                         role="button"
                         tabIndex={0}
                         onClick={() => onToggle(u.uid)}

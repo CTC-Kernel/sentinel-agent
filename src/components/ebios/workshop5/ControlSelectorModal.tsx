@@ -226,7 +226,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
             const suggestedInDomain = domainControls.filter((c) => c.isSuggested).length;
 
             return (
-              <div key={domain.id} className="border border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden">
+              <div key={domain.id || 'unknown'} className="border border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden">
                 {/* Domain Header */}
                 <button
                   onClick={() => toggleDomain(domain.id)}
@@ -268,7 +268,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                       const isSelected = localSelection.includes(ctrl.code);
                       return (
                         <button
-                          key={ctrl.code}
+                          key={ctrl.code || 'unknown'}
                           onClick={() => toggleControl(ctrl.code)}
                           className={cn(
                             "w-full flex items-center justify-between p-3 rounded-lg transition-colors text-left",

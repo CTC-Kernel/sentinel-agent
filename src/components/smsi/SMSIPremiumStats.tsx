@@ -114,7 +114,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                 {/* Gauge Section */}
                 <div className="flex-shrink-0 flex items-center gap-4">
                     <div className="relative w-32 h-32">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"
@@ -187,7 +187,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className="mt-3 flex items-center gap-1.5">
                             {phases.map((phase, idx) => (
                                 <div
-                                    key={phase}
+                                    key={phase || 'unknown'}
                                     className={cn(
                                         "h-1.5 flex-1 rounded-full transition-colors",
                                         idx <= currentPhaseIndex
@@ -315,7 +315,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
 
                         return (
                             <div
-                                key={phase}
+                                key={phase || 'unknown'}
                                 className={cn(
                                     "flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all",
                                     isActive && cn(colors.bg, "ring-1", colors.border),

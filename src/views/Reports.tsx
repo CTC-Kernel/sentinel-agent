@@ -470,7 +470,7 @@ export const Reports: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {documents.filter(d => d.type === 'Rapport').length > 0 ? (
                         documents.filter(d => d.type === 'Rapport').map(doc => (
-                            <div key={doc.id} className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 hover:border-brand-400/50 transition-all duration-300 group">
+                            <div key={doc.id || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 hover:border-brand-400/50 transition-all duration-300 group">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-muted-foreground">
                                         <FileText className="h-6 w-6" />
@@ -515,7 +515,7 @@ export const Reports: React.FC = () => {
                     {loadingScheduled ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="glass-premium p-4 sm:p-6 rounded-2xl animate-pulse">
+                                <div key={i || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-2xl animate-pulse">
                                     <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4"></div>
                                     <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-2"></div>
                                     <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
@@ -526,7 +526,7 @@ export const Reports: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {scheduledReports.map(report => (
                                 <div
-                                    key={report.id}
+                                    key={report.id || 'unknown'}
                                     className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all duration-300 ${report.status === 'active'
                                         ? 'border-success-border/50 shadow-md shadow-success/5'
                                         : 'border-border/40 opacity-60'

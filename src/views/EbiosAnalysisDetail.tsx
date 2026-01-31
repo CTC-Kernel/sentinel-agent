@@ -435,7 +435,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
             </div>
             <div className="hidden lg:flex gap-4">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                <div key={i || 'unknown'} className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
               ))}
             </div>
             <div className="w-32 h-10 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />

@@ -135,7 +135,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
 
                     <div className="space-y-4">
                         {questions.map((q, index) => (
-                            <div key={q.id} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-border/40 relative group">
+                            <div key={q.id || 'unknown'} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-border/40 dark:border-border/40 relative group">
                                 <div className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-300 cursor-move opacity-0 group-hover:opacity-70 transition-opacity">
                                     <Move className="w-5 h-5" />
                                 </div>
@@ -180,7 +180,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                             <div className="text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-2 block">Options de réponse</div>
                                             <div className="space-y-2">
                                                 {q.options?.map((opt, optIndex) => (
-                                                    <div key={optIndex} className="flex gap-2">
+                                                    <div key={optIndex || 'unknown'} className="flex gap-2">
                                                         <input
                                                             value={opt}
                                                             aria-label={`Option ${optIndex + 1}`}

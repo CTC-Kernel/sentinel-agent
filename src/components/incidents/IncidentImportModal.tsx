@@ -140,7 +140,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                         ) : (
                             events.map(event => (
                                 <div
-                                    key={event.id}
+                                    key={event.id || 'unknown'}
                                     onClick={() => toggleSelection(event.id)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {

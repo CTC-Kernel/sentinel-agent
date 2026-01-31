@@ -126,7 +126,7 @@ export const SSOManager: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {(['google', 'microsoft', 'okta', 'saml'] as SsoProvider[]).map(provider => (
                             <button
-                                key={provider}
+                                key={provider || 'unknown'}
                                 type="button"
                                 onClick={() => toggleProvider(provider)}
                                 className={cn(

@@ -306,12 +306,12 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 {loading ? (
                     // Skeletons
                     [1, 2, 3].map(i => (
-                        <div key={`skeleton-${i}`} className="h-24 bg-slate-100 dark:bg-white/5 rounded-2xl animate-pulse" />
+                        <div key={`skeleton-${i || 'unknown'}`} className="h-24 bg-slate-100 dark:bg-white/5 rounded-2xl animate-pulse" />
                     ))
                 ) : (
                     requests.map(req => (
                         <EvidenceRequestItem
-                            key={req.id}
+                            key={req.id || 'unknown'}
                             req={req}
                             user={user}
                             users={users}

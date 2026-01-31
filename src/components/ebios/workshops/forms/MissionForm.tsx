@@ -130,7 +130,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
             <div className="grid grid-cols-4 gap-2">
               {GRAVITY_SCALE.map((level) => (
                 <button
-                  key={level.level}
+                  key={level.level || 'unknown'}
                   type="button"
                   onClick={() => setValue('criticality', level.level as 1 | 2 | 3 | 4)}
                   className={cn(

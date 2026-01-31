@@ -566,7 +566,7 @@ export function SignatureWorkflow({
         </TabsList>
 
         {/* Existing Requests Tab */}
-        <TabsContent value="requests" className="mt-4">
+        <TabsContent value="requests" key="requests" className="mt-4">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -591,7 +591,7 @@ export function SignatureWorkflow({
           ) : (
             <div className="space-y-4">
               {requests.map((request) => (
-                <Card key={request.id}>
+                <Card key={request.id || 'unknown'}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div>
@@ -654,7 +654,7 @@ export function SignatureWorkflow({
                     <div className="space-y-2">
                       {request.signers.map((signer, index) => (
                         <div
-                          key={signer.id}
+                          key={signer.id || 'unknown'}
                           className={cn(
                             'flex items-center gap-3 p-3 rounded-lg border',
                             signer.status === 'signed'
@@ -750,7 +750,7 @@ export function SignatureWorkflow({
         </TabsContent>
 
         {/* Create Request Tab */}
-        <TabsContent value="create" className="mt-4">
+        <TabsContent value="create" key="create" className="mt-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Nouvelle demande de signature</CardTitle>
@@ -840,7 +840,7 @@ export function SignatureWorkflow({
                     <div className="space-y-2">
                       {formSigners.map((signer, index) => (
                         <SortableSigner
-                          key={`signer-${index}`}
+                          key={`signer-${index || 'unknown'}`}
                           signer={signer}
                           index={index}
                           onRemove={() => removeSigner(index)}

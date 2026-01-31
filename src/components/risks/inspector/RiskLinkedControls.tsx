@@ -166,7 +166,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
 
                         return (
                             <div
-                                key={ctrl.id}
+                                key={ctrl.id || 'unknown'}
                                 className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm group hover:shadow-md transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">

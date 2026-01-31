@@ -21,7 +21,7 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
             ) : (
                 <div className="grid gap-4">
                     {linkedProjects.map(proj => (
-                        <div key={proj.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
+                        <div key={proj.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
                                 <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-3xl ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20' : 'bg-slate-500/10 text-slate-600 dark:text-slate-300 ring-1 ring-slate-500/20'}`}>

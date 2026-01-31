@@ -165,7 +165,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
               <div className="flex flex-wrap gap-1">
                 {alert.affectedServices.slice(0, 5).map((service, idx) => (
                   <span
-                    key={idx}
+                    key={idx || 'unknown'}
                     className="px-2 py-1 rounded-md text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                   >
                     {service}
@@ -267,7 +267,7 @@ export const SPOFAlerts: React.FC<SPOFAlertsProps> = ({
       <div className="space-y-3 max-h-[400px] overflow-y-auto">
         {summary.alerts.map(alert => (
           <AlertCard
-            key={alert.id}
+            key={alert.id || 'unknown'}
             alert={alert}
             onClick={() => onAlertClick?.(alert)}
           />

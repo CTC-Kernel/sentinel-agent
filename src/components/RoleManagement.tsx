@@ -90,7 +90,7 @@ export const RoleManagement: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user'] as Role[]).map((role) => (
                     <RoleCard
-                        key={role}
+                        key={role || 'unknown'}
                         role={role}
                         count={users.filter((u) => u.role === role).length}
                     />
@@ -129,7 +129,7 @@ export const RoleManagement: React.FC = () => {
                             <tbody className="divide-y divide-slate-200 dark:divide-white/10">
                                 {users.map((u) => (
                                     <UserRow
-                                        key={u.uid}
+                                        key={u.uid || 'unknown'}
                                         user={u}
                                         currentUser={user}
                                         isEditing={editingUser === u.uid}

@@ -673,7 +673,7 @@ export const AgentManagement: React.FC = () => {
                         <Activity className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[140px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"
@@ -813,7 +813,7 @@ export const AgentManagement: React.FC = () => {
                     </div>
                     {statusDistribution.length > 0 ? (
                         <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <Pie
                                         activeIndex={activeStatusIndex}
@@ -827,7 +827,7 @@ export const AgentManagement: React.FC = () => {
                                         onMouseEnter={(_, index) => setActiveStatusIndex(index)}
                                     >
                                         {statusDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
                                         ))}
                                     </Pie>
                                 </PieChart>
@@ -840,7 +840,7 @@ export const AgentManagement: React.FC = () => {
                     )}
                     <div className="flex justify-center gap-4 mt-4">
                         {statusDistribution.map((entry, index) => (
-                            <div key={index} className="flex items-center gap-2 text-xs">
+                            <div key={index || 'unknown'} className="flex items-center gap-2 text-xs">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
                                 <span className="text-slate-600 dark:text-slate-300">{entry.name}</span>
                             </div>
@@ -862,7 +862,7 @@ export const AgentManagement: React.FC = () => {
                     </div>
                     {osDistribution.length > 0 ? (
                         <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <Pie
                                         activeIndex={activeOSIndex}
@@ -876,7 +876,7 @@ export const AgentManagement: React.FC = () => {
                                         onMouseEnter={(_, index) => setActiveOSIndex(index)}
                                     >
                                         {osDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
                                         ))}
                                     </Pie>
                                 </PieChart>
@@ -889,7 +889,7 @@ export const AgentManagement: React.FC = () => {
                     )}
                     <div className="flex justify-center gap-4 mt-4 flex-wrap">
                         {osDistribution.map((entry, index) => (
-                            <div key={index} className="flex items-center gap-2 text-xs">
+                            <div key={index || 'unknown'} className="flex items-center gap-2 text-xs">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
                                 <span className="text-slate-600 dark:text-slate-300">{entry.name}</span>
                             </div>
@@ -910,7 +910,7 @@ export const AgentManagement: React.FC = () => {
                         <TrendingUp className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[200px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <AreaChart data={activityTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorActifs" x1="0" y1="0" x2="0" y2="1">
@@ -1008,7 +1008,7 @@ export const AgentManagement: React.FC = () => {
                                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                     {loading ? (
                                         Array.from({ length: 3 }).map((_, i) => (
-                                            <tr key={i} className="animate-pulse">
+                                            <tr key={i || 'unknown'} className="animate-pulse">
                                                 <td className="px-6 py-5"><div className="h-4 w-32 bg-slate-200 dark:bg-white/10 rounded-full" /></td>
                                                 <td className="px-6 py-5"><div className="h-4 w-16 bg-slate-200 dark:bg-white/10 rounded-full" /></td>
                                                 <td className="px-6 py-5"><div className="h-6 w-20 bg-slate-200 dark:bg-white/10 rounded-full" /></td>
@@ -1041,7 +1041,7 @@ export const AgentManagement: React.FC = () => {
                                             const styles = getStatusStyles(agent.status);
                                             return (
                                                 <tr
-                                                    key={agent.id}
+                                                    key={agent.id || 'unknown'}
                                                     onClick={() => setSelectedAgentId(agent.id)}
                                                     className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors cursor-pointer"
                                                 >
@@ -1127,7 +1127,7 @@ export const AgentManagement: React.FC = () => {
                                         </tr>
                                     ) : (
                                         enrollmentTokens.map((token) => (
-                                            <tr key={token.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                            <tr key={token.id || 'unknown'} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div>
                                                         <div className="font-medium text-slate-900 dark:text-white text-sm">
@@ -1253,7 +1253,7 @@ export const AgentManagement: React.FC = () => {
                                 { id: 'support' as const, label: 'Support', icon: Headset },
                             ].map((tab) => (
                                 <button
-                                    key={tab.id}
+                                    key={tab.id || 'unknown'}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={cn(
                                         "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-3xl text-xs font-medium transition-all",
@@ -1269,7 +1269,7 @@ export const AgentManagement: React.FC = () => {
                         </div>
 
                         {/* Download Tab */}
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence mode="popLayout">
                             {activeTab === 'download' && (
                                 <motion.div
                                     key="download"
@@ -1512,7 +1512,7 @@ export const AgentManagement: React.FC = () => {
                                         </h4>
                                         <div className="space-y-3">
                                             {Object.entries(systemRequirements).map(([os, req]) => (
-                                                <div key={os} className="p-3 rounded-3xl bg-slate-50 dark:bg-white/5">
+                                                <div key={os || 'unknown'} className="p-3 rounded-3xl bg-slate-50 dark:bg-white/5">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         {os === 'windows' && <Monitor className="w-4 h-4 text-blue-500" />}
                                                         {os === 'macos' && <Cpu className="w-4 h-4 text-slate-600" />}
@@ -1577,7 +1577,7 @@ export const AgentManagement: React.FC = () => {
                                     <div className="space-y-0">
                                         {faqItems.map((item, index) => (
                                             <FAQItem
-                                                key={index}
+                                                key={index || 'unknown'}
                                                 question={item.question}
                                                 answer={item.answer}
                                                 isOpen={openFAQ === index}

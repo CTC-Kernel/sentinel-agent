@@ -167,7 +167,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
                         <div className="relative">
                             <div className="h-[140px] w-[140px]">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                     <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="100%" barSize={14} data={successGaugeData} startAngle={180} endAngle={0}>
                                         <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={12} style={{ filter: 'url(#continuityGlow)' }} />
                                     </RadialBarChart>
@@ -217,11 +217,11 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                 description="Définissez vos processus business."
                             />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <defs>
                                         {criticalityData.map((entry, idx) => (
-                                            <linearGradient key={idx} id={`contCritGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
+                                            <linearGradient key={idx || 'unknown'} id={`contCritGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
                                                 <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                                 <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                             </linearGradient>
@@ -243,7 +243,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                         onMouseLeave={() => setActiveCriticalityIndex(null)}
                                     >
                                         {criticalityData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#contCritGrad${index})`} className="cursor-pointer" />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={`url(#contCritGrad${index})`} className="cursor-pointer" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
@@ -282,7 +282,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                 description="Lancez des exercices de continuité."
                             />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={drillResultsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }} dy={10} />
@@ -290,7 +290,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
                                     <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40} animationDuration={1200}>
                                         {drillResultsData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -321,7 +321,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                 description="L'historique des exercices apparaîtra ici."
                             />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={drillsEvolutionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 600 }} dy={10} />

@@ -49,7 +49,7 @@ vi.mock('../../KanbanColumn', () => ({
             <h3>{status}</h3>
             <p>{tasks.length} tasks</p>
             {tasks.map(task => (
-                <div key={task.id} data-testid={`kanban-task-${task.id}`}>
+                <div key={task.id || 'unknown'} data-testid={`kanban-task-${task.id}`}>
                     <span>{task.title}</span>
                     <button onClick={() => onEditTask(task)} data-testid={`edit-${task.id}`}>Edit</button>
                     <button onClick={() => onDeleteTask(task.id)} data-testid={`delete-${task.id}`}>Delete</button>

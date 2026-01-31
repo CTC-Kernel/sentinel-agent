@@ -182,7 +182,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                         >
                             <option value="">{t('risks.filters.allCategories', { defaultValue: 'Toutes les catégories' })}</option>
                             {availableCategories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
+                                <option key={cat || 'unknown'} value={cat}>{cat}</option>
                             ))}
                         </select>
                     )}

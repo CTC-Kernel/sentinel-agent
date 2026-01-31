@@ -505,22 +505,22 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     </div>
 
                     <div className="flex-1 overflow-auto p-4">
-                        <AnimatePresence mode="wait">
-                            <TabsContent value="metrics" className="mt-0 h-full">
+                        <AnimatePresence mode="popLayout">
+                            <TabsContent value="metrics" key="metrics" className="mt-0 h-full">
                                 <AgentMetricsChart
                                     metrics={metricsHistory}
                                     loading={historyLoading}
                                 />
                             </TabsContent>
 
-                            <TabsContent value="processes" className="mt-0 h-full">
+                            <TabsContent value="processes" key="processes" className="mt-0 h-full">
                                 <AgentProcessList
                                     processes={realtimeData?.processes || []}
                                     loading={historyLoading}
                                 />
                             </TabsContent>
 
-                            <TabsContent value="network" className="mt-0 h-full">
+                            <TabsContent value="network" key="network" className="mt-0 h-full">
                                 <AgentNetworkConnections
                                     connections={realtimeData?.connections || []}
                                     loading={historyLoading}

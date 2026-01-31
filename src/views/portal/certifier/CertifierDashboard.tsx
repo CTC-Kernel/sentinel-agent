@@ -105,7 +105,7 @@ export const CertifierDashboard: React.FC = () => {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     {stats.map((stat, i) => (
-                        <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
+                        <div key={i || 'unknown'} className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">{stat.label}</p>
@@ -139,7 +139,7 @@ export const CertifierDashboard: React.FC = () => {
                                 <div className="divide-y divide-slate-100 dark:divide-white/5">
                                     {data.assignments.map((audit) => (
                                         <Link
-                                            key={audit.shareId}
+                                            key={audit.shareId || 'unknown'}
                                             to={`/portal/audit/${audit.shareId}`}
                                             className="block p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
                                         >
@@ -185,7 +185,7 @@ export const CertifierDashboard: React.FC = () => {
                             {data.clients.length > 0 ? (
                                 <div className="space-y-3">
                                     {data.clients.map(client => (
-                                        <div key={client.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                        <div key={client.id || 'unknown'} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-300 font-bold text-xs">
                                                     {client.tenantName.substring(0, 2).toUpperCase()}

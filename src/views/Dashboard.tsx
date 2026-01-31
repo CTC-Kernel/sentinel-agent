@@ -262,7 +262,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                     )}
 
                     <motion.div variants={slideUpVariants}>
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence mode="popLayout">
                         {(() => {
                             const role = user?.role || 'user';
 

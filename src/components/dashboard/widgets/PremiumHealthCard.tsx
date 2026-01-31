@@ -80,7 +80,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-64" />
                         <div className="grid grid-cols-3 gap-4">
                             {[...Array(3)].map((_, i) => (
-                                <div key={i} className="h-20 bg-slate-200 dark:bg-slate-700 rounded-3xl" />
+                                <div key={i || 'unknown'} className="h-20 bg-slate-200 dark:bg-slate-700 rounded-3xl" />
                             ))}
                         </div>
                     </div>
@@ -315,7 +315,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                 </span>
                                 <div className="flex items-center gap-3">
                                     {riskDistribution.map((item) => (
-                                        <div key={item.name} className="flex items-center gap-1.5 text-[11px]">
+                                        <div key={item.name || 'unknown'} className="flex items-center gap-1.5 text-[11px]">
                                             <div
                                                 className="w-2 h-2 rounded-full"
                                                 style={{ backgroundColor: item.fill }}
@@ -328,7 +328,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             <div className="flex-1 max-w-[200px] h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex">
                                 {riskDistribution.map((item, index) => (
                                     <motion.div
-                                        key={item.name}
+                                        key={item.name || 'unknown'}
                                         initial={{ width: 0 }}
                                         animate={{ width: `${(item.value / stats.totalRisks) * 100}%` }}
                                         transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}

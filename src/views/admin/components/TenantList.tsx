@@ -43,7 +43,7 @@ export const TenantList: React.FC = () => {
     if (loading && tenants.length === 0) return (
         <div className="space-y-4">
             {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-white/5 rounded-xl animate-pulse" />
+                <div key={i || 'unknown'} className="h-16 bg-white/5 rounded-xl animate-pulse" />
             ))}
         </div>
     );
@@ -87,7 +87,7 @@ export const TenantList: React.FC = () => {
                     <tbody className="divide-y divide-slate-800">
                         {filteredTenants.map((tenant) => (
                             <tr
-                                key={tenant.id}
+                                key={tenant.id || 'unknown'}
                                 className="hover:bg-white/5 transition-colors group cursor-pointer"
                                 onClick={() => setSelectedTenant(tenant)}
                             >

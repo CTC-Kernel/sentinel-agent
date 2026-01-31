@@ -19,7 +19,7 @@ vi.mock('../../ui/Skeleton', () => ({
     CardSkeleton: ({ count }: { count: number }) => (
         <div data-testid="card-skeleton" data-count={count}>
             {Array.from({ length: count }).map((_, i) => (
-                <div key={i} data-testid={`card-${i}`} />
+                <div key={i || 'unknown'} data-testid={`card-${i}`} />
             ))}
         </div>
     )

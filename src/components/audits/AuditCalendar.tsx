@@ -65,14 +65,14 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
             <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-white/10 border border-border/40 dark:border-border/40 rounded-3xl overflow-hidden">
                 {/* Weekdays */}
                 {[0, 1, 2, 3, 4, 5, 6].map(d => (
-                    <div key={d} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                    <div key={d || 'unknown'} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                         {new Date(2024, 0, d).toLocaleString(i18n.language, { weekday: 'short' })}
                     </div>
                 ))}
 
                 {/* Loading State */}
                 {loading && Array.from({ length: 35 }).map((_, i) => (
-                    <div key={`skeleton-${i}`} className="bg-white dark:bg-slate-900/30 p-2 min-h-[120px]">
+                    <div key={`skeleton-${i || 'unknown'}`} className="bg-white dark:bg-slate-900/30 p-2 min-h-[120px]">
                         <Skeleton className="h-6 w-6 rounded-full mb-2" />
                         <div className="space-y-2">
                             <Skeleton className="h-4 w-full rounded" />
@@ -83,7 +83,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
 
                 {/* Empty Cells */}
                 {!loading && Array.from({ length: firstDay }).map((_, i) => (
-                    <div key={`empty-${i}`} className="bg-white dark:bg-slate-900/30 min-h-[120px]" />
+                    <div key={`empty-${i || 'unknown'}`} className="bg-white dark:bg-slate-900/30 min-h-[120px]" />
                 ))}
 
                 {/* Days */}
@@ -92,14 +92,14 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                     const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
 
                     return (
-                        <div key={day} className={`bg-white dark:bg-slate-900/30 p-2 min-h-[120px] relative group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors ${isToday ? 'bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900' : ''}`}>
+                        <div key={day || 'unknown'} className={`bg-white dark:bg-slate-900/30 p-2 min-h-[120px] relative group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors ${isToday ? 'bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900' : ''}`}>
                             <span className={`absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-400'}`}>
                                 {day}
                             </span>
                             <div className="mt-8 space-y-1.5">
                                 {dayAudits.map(audit => (
                                     <button
-                                        key={audit.id}
+                                        key={audit.id || 'unknown'}
                                         onClick={() => onAuditClick(audit)}
                                         className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' :
                                             audit.status === 'En cours' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' :

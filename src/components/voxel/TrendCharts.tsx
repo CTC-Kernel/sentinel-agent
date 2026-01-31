@@ -216,7 +216,7 @@ function TimeRangeSelector({
     <div className="flex bg-muted rounded-lg p-1 gap-1">
       {ranges.map((range) => (
         <Button
-          key={range.value}
+          key={range.value || 'unknown'}
           variant={value === range.value ? 'secondary' : 'ghost'}
           size="sm"
           className="px-3 py-1 h-7 text-xs"
@@ -239,7 +239,7 @@ function TrendWarningBanner({ warnings }: { warnings: TrendWarning[] }) {
     <div className="space-y-2">
       {warnings.map((warning, index) => (
         <div
-          key={`${warning.metric}-${index}`}
+          key={`${warning.metric || 'unknown'}-${index}`}
           className={cn(
             'flex items-center gap-2 p-3 rounded-lg text-sm',
             warning.severity === 'critical'
@@ -277,7 +277,7 @@ function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
     <div className="bg-popover border rounded-lg shadow-lg p-3 text-sm">
       <p className="font-medium mb-2">{label}</p>
       {payload.map((entry, index: number) => (
-        <div key={index} className="flex items-center gap-2">
+        <div key={index || 'unknown'} className="flex items-center gap-2">
           <div
             className="w-2 h-2 rounded-full"
             style={{ backgroundColor: entry.color }}
@@ -565,8 +565,8 @@ export function TrendCharts({
         )}
 
         {/* Main chart */}
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 min-h-64">
+          <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
             <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
               <defs>
                 <linearGradient id={`${gradientId}-nodes`} x1="0" y1="0" x2="0" y2="1">
@@ -652,9 +652,9 @@ export function TrendCharts({
         </div>
 
         {/* Compliance chart (separate for clarity) */}
-        <div className="h-48">
+        <div className="h-48 min-h-48">
           <p className="text-sm font-medium mb-2">Evolution de la conformite</p>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
             <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
               <defs>
                 <linearGradient id={`${gradientId}-compliance`} x1="0" y1="0" x2="0" y2="1">

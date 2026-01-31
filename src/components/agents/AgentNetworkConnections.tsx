@@ -120,7 +120,7 @@ export const AgentNetworkConnections: React.FC<AgentNetworkConnectionsProps> = (
                 </div>
                 <div className="space-y-2">
                     {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-12 bg-muted/50 rounded-lg" />
+                        <div key={i || 'unknown'} className="h-12 bg-muted/50 rounded-lg" />
                     ))}
                 </div>
             </div>
@@ -239,7 +239,7 @@ export const AgentNetworkConnections: React.FC<AgentNetworkConnectionsProps> = (
                         ) : (
                             filteredConnections.map((connection, index) => (
                                 <motion.div
-                                    key={connection.id}
+                                    key={connection.id || 'unknown'}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}

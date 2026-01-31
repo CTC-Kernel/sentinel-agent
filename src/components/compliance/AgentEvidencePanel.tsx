@@ -284,7 +284,7 @@ const LoadingSkeleton: React.FC = () => (
         <div className="h-32 bg-muted/50 rounded-2xl" />
         <div className="space-y-2">
             {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-muted/50 rounded-3xl" />
+                <div key={i || 'unknown'} className="h-16 bg-muted/50 rounded-3xl" />
             ))}
         </div>
     </div>
@@ -416,7 +416,7 @@ export const AgentEvidencePanel: React.FC<AgentEvidencePanelProps> = ({
                         <AnimatePresence mode="popLayout">
                             {evidence.slice(0, 10).map((e) => (
                                 <EvidenceRow
-                                    key={e.id}
+                                    key={e.id || 'unknown'}
                                     evidence={e}
                                     onClick={onEvidenceClick ? () => onEvidenceClick(e) : undefined}
                                 />

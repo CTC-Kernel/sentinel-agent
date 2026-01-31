@@ -31,9 +31,9 @@ export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = React.mem
                 className="lg:col-span-2"
             >
                 <div className="p-6 space-y-3 h-full overflow-y-auto custom-scrollbar">
-                    {loading ? [1, 2].map(i => <Skeleton key={`skeleton-${i}`} className="h-16 w-full rounded-2xl" />) : displayRisks.map(risk => (
+                    {loading ? [1, 2].map(i => <Skeleton key={`skeleton-${i || 'unknown'}`} className="h-16 w-full rounded-2xl" />) : displayRisks.map(risk => (
                         <div
-                            key={risk.id}
+                            key={risk.id || 'unknown'}
                             onClick={() => navigate(`/risks?id=${risk.id}`)}
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/risks?id=${risk.id}`); } }}
                             role="button"

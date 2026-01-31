@@ -31,7 +31,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
             ) : (
                 <div className="grid gap-4">
                     {linkedControls.map(ctrl => (
-                        <div key={ctrl.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
+                        <div key={ctrl.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     {ctrl.code}
@@ -58,7 +58,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                     return supported.length > 0 ? (
                         <div className="space-y-2">
                             {supported.map(p => (
-                                <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5 flex justify-between items-center">
+                                <div key={p.id || 'unknown'} className="p-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5 flex justify-between items-center">
                                     <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
                                     <span className={`text-[11px] px-2 py-0.5 rounded-3xl font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
                                 </div>

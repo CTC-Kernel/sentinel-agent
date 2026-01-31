@@ -58,7 +58,7 @@ export const SystemHealth: React.FC = () => {
                     { label: t('systemHealth.metrics.activeUsers'), value: loading ? '...' : userCount, icon: Users, color: 'text-brand-500', sub: t('systemHealth.metrics.totalAccounts') },
                 ].map((metric) => (
                     <motion.div
-                        key={metric.label}
+                        key={metric.label || 'unknown'}
                         variants={slideUpVariants}
                         className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 relative overflow-hidden group"
                     >
@@ -92,7 +92,7 @@ export const SystemHealth: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {services.map((service) => (
-                        <div key={service.name} className="p-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl flex items-center gap-4 hover:shadow-md transition-all group">
+                        <div key={service.name || 'unknown'} className="p-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl flex items-center gap-4 hover:shadow-md transition-all group">
                             <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <service.icon className="h-6 w-6 text-slate-600 dark:text-slate-300" />
                             </div>

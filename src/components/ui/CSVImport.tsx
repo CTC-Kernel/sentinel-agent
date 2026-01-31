@@ -240,7 +240,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     </div>
                                     <div className="max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
                                         {errors.slice(0, 10).map((err, i) => (
-                                            <p key={`err-${i}`} className="text-sm text-red-700 dark:text-red-300">
+                                            <p key={`err-${i || 'unknown'}`} className="text-sm text-red-700 dark:text-red-300">
                                                 Ligne {err.row}: {err.message}
                                             </p>
                                         ))}
@@ -258,7 +258,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     <thead className="bg-slate-50 dark:bg-slate-800/50">
                                         <tr>
                                             {fields.map(field => (
-                                                <th key={field.key} className="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
+                                                <th key={field.key || 'unknown'} className="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
                                                     {field.label} {field.required && <span className="text-red-500">*</span>}
                                                 </th>
                                             ))}
@@ -266,9 +266,9 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     </thead>
                                     <tbody>
                                         {parsedData.slice(0, 5).map((row, i) => (
-                                            <tr key={`row-${i}`} className="border-t border-border/40 dark:border-white/5">
+                                            <tr key={`row-${i || 'unknown'}`} className="border-t border-border/40 dark:border-white/5">
                                                 {fields.map(field => (
-                                                    <td key={field.key} className="px-4 py-3 text-slate-600 dark:text-muted-foreground">
+                                                    <td key={field.key || 'unknown'} className="px-4 py-3 text-slate-600 dark:text-muted-foreground">
                                                         {String(row[field.key] || '-')}
                                                     </td>
                                                 ))}

@@ -185,7 +185,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 <div className="glass-premium p-6 md:p-8 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 border border-border/40" />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {[...Array(4)].map((_, i) => (
-                        <div key={i} className="glass-premium p-4 sm:p-6 rounded-4xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50 border border-border/40" />
+                        <div key={i || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-4xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50 border border-border/40" />
                     ))}
                 </div>
             </div>
@@ -245,7 +245,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="flex items-center gap-6">
                         <div className="relative">
                             <div className="h-[120px] w-[120px]">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                     <RadialBarChart
                                         cx="50%"
                                         cy="50%"
@@ -382,11 +382,11 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         {assets.length === 0 ? (
                             <EmptyChartState variant="pie" message="Aucune donnée" description="Ajoutez des actifs pour voir la répartition." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <defs>
                                         {distributionData.map((entry, idx) => (
-                                            <linearGradient key={idx} id={`assetCritGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
+                                            <linearGradient key={idx || 'unknown'} id={`assetCritGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
                                                 <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                                 <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                             </linearGradient>
@@ -408,7 +408,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         onMouseLeave={() => setActiveCriticalityIndex(null)}
                                     >
                                         {distributionData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#assetCritGrad${index})`} className="cursor-pointer" />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={`url(#assetCritGrad${index})`} className="cursor-pointer" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} />
@@ -442,7 +442,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         {typeChartData.length === 0 ? (
                             <EmptyChartState variant="bar" message="Aucun type" description="Les types d'actifs s'afficheront ici." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
                                     <XAxis
@@ -487,11 +487,11 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         {scopeChartData.length === 0 ? (
                             <EmptyChartState variant="pie" message="Aucun périmètre" description="Définissez le périmètre de vos actifs." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <defs>
                                         {scopeChartData.map((_, idx) => (
-                                            <linearGradient key={idx} id={`assetScopeGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
+                                            <linearGradient key={idx || 'unknown'} id={`assetScopeGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
                                                 <stop offset="0%" stopColor={SCOPE_COLORS[idx % SCOPE_COLORS.length]} stopOpacity={1} />
                                                 <stop offset="100%" stopColor={SCOPE_COLORS[idx % SCOPE_COLORS.length]} stopOpacity={0.7} />
                                             </linearGradient>
@@ -513,7 +513,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         onMouseLeave={() => setActiveScopeIndex(null)}
                                     >
                                         {scopeChartData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#assetScopeGrad${index})`} className="cursor-pointer" />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={`url(#assetScopeGrad${index})`} className="cursor-pointer" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} />
@@ -547,7 +547,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         {acquisitionData.every(d => d.count === 0) ? (
                             <EmptyChartState variant="bar" message="Pas d'acquisitions récentes" description="L'historique des achats s'affichera ici." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <ComposedChart data={acquisitionData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
                                     <XAxis

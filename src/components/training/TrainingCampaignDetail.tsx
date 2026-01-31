@@ -201,7 +201,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
         <Skeleton className="h-40 w-full rounded-2xl" />
         <div className="grid grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-3xl" />
+            <Skeleton key={i || 'unknown'} className="h-24 rounded-3xl" />
           ))}
         </div>
       </div>
@@ -369,7 +369,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
         <div className="space-y-3">
           {campaignCourses.map((course) => (
             <div
-              key={course.id}
+              key={course.id || 'unknown'}
               className="flex items-center justify-between p-3 rounded-3xl bg-muted/30 border border-white/5"
             >
               <div className="flex items-center gap-3">

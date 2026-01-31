@@ -356,7 +356,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
         <AnimatePresence mode="popLayout">
           {priorityActions.map((action, index) => (
             <ActionCard
-              key={action.id}
+              key={action.id || 'unknown'}
               action={action}
               index={index}
               onClick={() => handleActionClick(action)}

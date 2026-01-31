@@ -64,7 +64,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
 
           return (
             <button
-              key={num}
+              key={num || 'unknown'}
               onClick={() => handleClick(num)}
               disabled={locked}
               className={cn(
@@ -103,7 +103,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
         <div className="absolute top-6 left-0 right-0 flex px-10">
           {WORKSHOP_NUMBERS.slice(0, -1).map((num) => (
             <div
-              key={`line-${num}`}
+              key={`line-${num || 'unknown'}`}
               className={cn(
                 "flex-1 h-0.5 mx-2 rounded-full transition-colors duration-500",
                 getLineColor(num)
@@ -122,7 +122,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
 
           return (
             <div
-              key={num}
+              key={num || 'unknown'}
               className="flex flex-col items-center relative z-10 flex-1 group"
             >
               <button
@@ -185,7 +185,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
 
           return (
             <button
-              key={num}
+              key={num || 'unknown'}
               onClick={() => handleClick(num)}
               disabled={locked}
               className={cn(

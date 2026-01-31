@@ -61,7 +61,7 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = React.memo(({
                 ) : (
                     <div className="space-y-3">
                         {displayIssues.map(issue => (
-                            <CustomTooltip key={issue.id} content={t('dashboard.clickToResolve')} position="top" className="w-full">
+                            <CustomTooltip key={issue.id || 'unknown'} content={t('dashboard.clickToResolve')} position="top" className="w-full">
                                 <div
                                     onClick={() => {
                                         const safeUrl = validateUrl(issue.link);

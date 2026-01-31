@@ -179,7 +179,7 @@ vi.mock('../../components/ui/ScrollableTabs', () => ({
     ScrollableTabs: ({ tabs, onTabChange }: { tabs: Array<{ id: string; label: string }>, onTabChange: (id: string) => void }) => (
         <div>
             {tabs.map((t: { id: string; label: string }) => (
-                <button aria-label={t.label} key={t.id} onClick={() => onTabChange(t.id)}>{t.label}</button>
+                <button aria-label={t.label} key={t.id || 'unknown'} onClick={() => onTabChange(t.id)}>{t.label}</button>
             ))}
         </div>
     )
@@ -200,7 +200,7 @@ vi.mock('../../components/continuity/ContinuityDashboard', () => ({
 vi.mock('../../components/continuity/ContinuityBIA', () => ({
     ContinuityBIA: ({ processes }: { processes: Array<{ id: string; name: string }> }) => (
         <div data-testid="continuity-bia">
-            {processes.map((p: { id: string; name: string }) => <div key={p.id}>{p.name}</div>)}
+            {processes.map((p: { id: string; name: string }) => <div key={p.id || 'unknown'}>{p.name}</div>)}
         </div>
     )
 }));

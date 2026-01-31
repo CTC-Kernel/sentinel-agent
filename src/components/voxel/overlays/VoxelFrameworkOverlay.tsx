@@ -255,7 +255,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
                     : framework.breakdown[key as keyof typeof framework.breakdown];
 
               return (
-                <div key={key} className="flex items-center justify-between">
+                <div key={key || 'unknown'} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <config.icon className="w-3.5 h-3.5" style={{ color: config.color }} />
                     <span className="text-xs text-muted-foreground">{config.label}</span>
@@ -388,7 +388,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
           <div className="p-2 space-y-2 max-h-[60vh] overflow-y-auto">
             {frameworks.map((framework) => (
               <FrameworkCard
-                key={framework.id}
+                key={framework.id || 'unknown'}
                 framework={framework}
                 isSelected={selectedFrameworkId === framework.id}
                 isExpanded={showBreakdown && expandedId === framework.id}
@@ -411,7 +411,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
           <div className="p-2 space-y-2">
             {frameworks.slice(0, 4).map((framework) => (
               <button
-                key={framework.id}
+                key={framework.id || 'unknown'}
                 onClick={() => handleSelect(framework.id)}
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${selectedFrameworkId === framework.id ? 'ring-2' : 'hover:bg-slate-700/50'
                   }`}

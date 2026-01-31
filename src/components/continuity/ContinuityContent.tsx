@@ -75,9 +75,9 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
     const { t } = useTranslation();
 
     return (
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
             <motion.div
-                key={activeTab}
+                key={activeTab || 'unknown'}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}

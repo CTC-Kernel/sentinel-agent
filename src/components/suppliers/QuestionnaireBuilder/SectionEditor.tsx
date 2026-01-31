@@ -68,7 +68,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
             <div className="space-y-3 pl-4 border-l-2 border-border/40 dark:border-slate-700">
                 {questions.map((q, qIndex) => (
                     <QuestionItem
-                        key={q.id}
+                        key={q.id || 'unknown'}
                         sIndex={sIndex}
                         qIndex={qIndex}
                         register={register}

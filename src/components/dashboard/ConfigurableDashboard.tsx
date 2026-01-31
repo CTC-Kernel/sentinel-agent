@@ -131,7 +131,7 @@ export function ConfigurableDashboard({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
-              key={i}
+              key={i || 'unknown'}
               className="h-48 bg-muted rounded-2xl"
             />
           ))}

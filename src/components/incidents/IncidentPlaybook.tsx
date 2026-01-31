@@ -138,7 +138,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                 className="w-full rounded-xl border-border/40 bg-background text-foreground p-3 focus:outline-none focus:ring-2 focus-visible:ring-primary transition-all duration-normal ease-apple"
                             >
                                 {availablePlaybooks.map(pb => (
-                                    <option key={pb.id} value={pb.id}>{pb.title} ({pb.severity})</option>
+                                    <option key={pb.id || 'unknown'} value={pb.id}>{pb.title} ({pb.severity})</option>
                                 ))}
                             </select>
                         </div>
@@ -229,7 +229,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
 
                         return (
                             <div
-                                key={step.id}
+                                key={step.id || 'unknown'}
                                 onClick={() => isNext && !readOnly && handleStepToggle(step)}
                                 onKeyDown={(e) => {
                                     if (isNext && !readOnly && (e.key === 'Enter' || e.key === ' ')) {

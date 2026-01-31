@@ -70,7 +70,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                 >
                     {(['30d', '90d', '1y', 'all'] as const).map(range => (
                         <button
-                            key={range}
+                            key={range || 'unknown'}
                             onClick={(e) => { e.stopPropagation(); setTimeRange(range); }}
                             className={`px-2 py-1 text-[11px] font-bold rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${timeRange === range
                                 ? 'bg-white dark:bg-slate-700 shadow-sm text-foreground'
@@ -126,9 +126,9 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                                     dot={(props: { cx: number; cy: number; index: number }) => {
                                         const { cx, cy, index } = props;
                                         const isLast = index === filteredData.length - 1;
-                                        if (!isLast) return <circle key={`dot-${index}`} cx={cx} cy={cy} r={0} />;
+                                        if (!isLast) return <circle key={`dot-${index || 'unknown'}`} cx={cx} cy={cy} r={0} />;
                                         return (
-                                            <g key={`dot-group-${index}`}>
+                                            <g key={`dot-group-${index || 'unknown'}`}>
                                                 <circle cx={cx} cy={cy} r={6} fill={chartColors.stroke} className="animate-ping opacity-75" />
                                                 <circle cx={cx} cy={cy} r={4} fill={chartColors.fill} stroke={chartColors.stroke} strokeWidth={2} />
                                             </g>

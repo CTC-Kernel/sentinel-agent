@@ -236,7 +236,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                     <div className="flex flex-wrap gap-2 flex-1">
                         {activeFilters.status?.map(s => (
                             <FilterPill
-                                key={`status-${s}`}
+                                key={`status-${s || 'unknown'}`}
                                 label="Statut"
                                 value={s}
                                 onRemove={() => onClearFilter('status', s)}
@@ -245,7 +245,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                         ))}
                         {activeFilters.category?.map(c => (
                             <FilterPill
-                                key={`cat-${c}`}
+                                key={`cat-${c || 'unknown'}`}
                                 label="Catégorie"
                                 value={c}
                                 onRemove={() => onClearFilter('category', c)}
@@ -254,7 +254,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                         ))}
                         {activeFilters.criticality?.map(crit => (
                             <FilterPill
-                                key={`crit-${crit}`}
+                                key={`crit-${crit || 'unknown'}`}
                                 label="Criticité"
                                 value={crit}
                                 onRemove={() => onClearFilter('criticality', crit)}

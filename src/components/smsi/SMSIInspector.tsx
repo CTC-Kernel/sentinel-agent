@@ -171,7 +171,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         </h3>
                         <div className="space-y-2">
                             {linkedItems.map(item => (
-                                <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                                <div key={item.id || 'unknown'} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
                                     <FileText className="w-4 h-4 text-muted-foreground" />
                                     <span className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{item.title}</span>
                                     <Badge variant="outline" size="sm" className="ml-auto capitalize">{item.type}</Badge>
@@ -221,7 +221,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                             const style = MILESTONE_STATUS_STYLES[status as Milestone['status']];
                                             return (
                                                 <Button
-                                                    key={status}
+                                                    key={status || 'unknown'}
                                                     variant={isActive ? 'default' : 'outline'}
                                                     size="sm"
                                                     onClick={() => onStatusChange(milestone.id, status as Milestone['status'])}

@@ -282,7 +282,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
             const isSyncing = syncing[connector.id];
 
             return (
-              <Card key={connector.id} className="p-4">
+              <Card key={connector.id || 'unknown'} className="p-4">
                 <div className="flex items-start gap-4">
                   {/* Type icon */}
                   <div className={cn(

@@ -617,7 +617,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {['confidentiality', 'integrity', 'availability'].map((field) => (
-                            <div key={field}>
+                            <div key={field || 'unknown'}>
                                 <Controller
                                     name={field as keyof AssetFormData}
                                     control={control}
@@ -643,7 +643,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     <div className="flex flex-wrap gap-3">
                         {COMPLIANCE_SCOPES.map((scope) => (
                             <label
-                                key={scope}
+                                key={scope || 'unknown'}
                                 htmlFor={`scope-${scope}`}
                                 className={`cursor-pointer px-4 py-2 rounded-3xl border transition-all ${(watch('scope') || []).includes(scope)
                                     ? 'bg-brand-50/50 dark:bg-brand-900/20 border-brand-500/50 text-brand-700 dark:text-brand-300 font-bold shadow-sm'

@@ -31,7 +31,7 @@ vi.mock('../../ui/PageHeader', () => ({
             <p>{subtitle}</p>
             <div data-testid="header-icon">{icon}</div>
             <div data-testid="breadcrumbs">
-                {breadcrumbs.map((b, i) => <span key={i}>{b.label}</span>)}
+                {breadcrumbs.map((b, i) => <span key={i || 'unknown'}>{b.label}</span>)}
             </div>
             <div data-testid="header-actions">{actions}</div>
         </div>

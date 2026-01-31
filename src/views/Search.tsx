@@ -152,7 +152,7 @@ export const Search: React.FC = () => {
                 ].map(filter => (
                     <button
                         aria-label={filter.label}
-                        key={filter.id}
+                        key={filter.id || 'unknown'}
                         onClick={() => setActiveFilter(filter.id)}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeFilter === filter.id
                             ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
@@ -224,7 +224,7 @@ export const Search: React.FC = () => {
                         <div
                             role="button"
                             tabIndex={0}
-                            key={`${result.type}-${result.id}`}
+                            key={`${result.type || 'unknown'}-${result.id}`}
                             onClick={() => handleNavigate(result)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {

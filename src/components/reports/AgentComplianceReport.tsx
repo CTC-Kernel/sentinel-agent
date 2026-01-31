@@ -215,7 +215,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
 
                 return (
                     <div
-                        key={index}
+                        key={index || 'unknown'}
                         className="flex-1 flex flex-col items-center gap-1 group"
                     >
                         <div className="relative w-full">
@@ -257,7 +257,7 @@ const ScoreDistribution: React.FC<ScoreDistributionProps> = ({ data }) => {
     return (
         <div className="space-y-2">
             {data.map((item, index) => (
-                <div key={index} className="flex items-center gap-3">
+                <div key={index || 'unknown'} className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground w-16">{item.range}</span>
                     <div className="flex-1 h-4 bg-muted rounded-full overflow-hidden">
                         <div
@@ -575,7 +575,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                     </h3>
                     <div className="max-h-64 overflow-y-auto">
                         {data.byFramework.map((framework) => (
-                            <FrameworkRow key={framework.frameworkId} framework={framework} />
+                            <FrameworkRow key={framework.frameworkId || 'unknown'} framework={framework} />
                         ))}
                     </div>
                 </div>
@@ -593,7 +593,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                 <div className="divide-y divide-border/50">
                     {data.topIssues.slice(0, 5).map((issue) => (
                         <IssueRow
-                            key={issue.checkId}
+                            key={issue.checkId || 'unknown'}
                             issue={issue}
                             totalAgents={data.summary.totalAgents}
                         />

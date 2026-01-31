@@ -119,7 +119,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                                 const height = (val / maxVal) * 100;
                                 return (
                                     <div
-                                        key={`spark-${idx}`}
+                                        key={`spark-${idx || 'unknown'}`}
                                         className={`flex-1 rounded-t ${colorClass} opacity-60 transition-all hover:opacity-80`}
                                         style={{ height: `${height}%` }}
                                     />

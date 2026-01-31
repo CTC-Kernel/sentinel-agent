@@ -102,7 +102,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                 const label = statusLabels[s] || s;
                                 return (
                                     <Button
-                                        key={s}
+                                        key={s || 'unknown'}
                                         aria-label={t('compliance.changeStatusTo', { defaultValue: 'Changer le statut à', status: label })}
                                         aria-pressed={control.status === s}
                                         onClick={async () => {
@@ -173,7 +173,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                     {/* Mapped Framework Badges */}
                     {control.mappedFrameworks?.map(fw => (
                         <span
-                            key={fw}
+                            key={fw || 'unknown'}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-border/40 dark:border-slate-700"
                         >
                             {getFrameworkLabel(fw)}

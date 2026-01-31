@@ -31,7 +31,7 @@ export const SeveritySelector: React.FC<SeveritySelectorProps> = ({
 
                     return (
                         <button
-                            key={opt.value}
+                            key={opt.value || 'unknown'}
                             type="button"
                             onClick={() => onChange(opt.value)}
                             className={`

@@ -259,7 +259,7 @@ const CheckRow: React.FC<CheckRowProps> = ({
                         if (!mapping) {
                             return (
                                 <div
-                                    key={code}
+                                    key={code || 'unknown'}
                                     className="w-8 h-8 rounded-lg bg-muted/10 flex items-center justify-center"
                                 >
                                     <span className="text-xs text-muted-foreground">-</span>
@@ -268,7 +268,7 @@ const CheckRow: React.FC<CheckRowProps> = ({
                         }
                         return (
                             <StatusCell
-                                key={code}
+                                key={code || 'unknown'}
                                 hasEvidence={mapping.hasEvidence}
                                 evidenceStatus={mapping.evidenceStatus}
                                 coverageType={mapping.coverageType}
@@ -299,7 +299,7 @@ const CheckRow: React.FC<CheckRowProps> = ({
                             <div className="flex flex-wrap gap-2">
                                 {entry.frameworkMappings.map(mapping => (
                                     <div
-                                        key={`${mapping.frameworkCode}-${mapping.requirementId}`}
+                                        key={`${mapping.frameworkCode || 'unknown'}-${mapping.requirementId}`}
                                         className={cn(
                                             'flex items-center gap-2 px-2 py-1 rounded-lg text-xs',
                                             mapping.hasEvidence && mapping.evidenceStatus === 'pass'
@@ -512,7 +512,7 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
                     <div className="flex gap-1">
                         {(['all', 'verified', 'partial', 'missing'] as const).map(status => (
                             <Button
-                                key={status}
+                                key={status || 'unknown'}
                                 variant={filterStatus === status ? 'default' : 'ghost'}
                                 size="sm"
                                 onClick={() => setFilterStatus(status)}
@@ -538,7 +538,7 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
                             const config = CATEGORY_CONFIG[cat];
                             return (
                                 <Button
-                                    key={cat}
+                                    key={cat || 'unknown'}
                                     variant={filterCategory === cat ? 'default' : 'ghost'}
                                     size="sm"
                                     onClick={() => setFilterCategory(cat)}
@@ -563,7 +563,7 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
                     <div className="flex items-center gap-1 flex-1 justify-center">
                         {frameworkCodes.map(code => (
                             <div
-                                key={code}
+                                key={code || 'unknown'}
                                 className="w-8 text-center"
                             >
                                 <Tooltip content={FRAMEWORK_ABBREV[code]}>
@@ -594,7 +594,7 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
                     >
                         {filteredEntries.map(entry => (
                             <CheckRow
-                                key={entry.checkId}
+                                key={entry.checkId || 'unknown'}
                                 entry={entry}
                                 frameworkCodes={frameworkCodes}
                                 isExpanded={expandedCheckIds.has(entry.checkId)}

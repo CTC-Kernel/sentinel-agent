@@ -54,7 +54,7 @@ vi.mock('../../components/projects/PortfolioDashboard', () => ({
 vi.mock('../../components/projects/ProjectList', () => ({
     ProjectList: ({ projects }: { projects: Array<{ id: string; name: string }> }) => (
         <div data-testid="project-list">
-            {projects.map((p: { id: string; name: string }) => <div key={p.id}>{p.name}</div>)}
+            {projects.map((p: { id: string; name: string }) => <div key={p.id || 'unknown'}>{p.name}</div>)}
         </div>
     )
 }));
@@ -97,7 +97,7 @@ vi.mock('../../components/ui/ScrollableTabs', () => ({
     ScrollableTabs: ({ tabs, activeTab: _activeTab, onTabChange }: { tabs: Array<{ id: string; label: string }>, activeTab: string, onTabChange: (id: string) => void }) => (
         <div data-testid="scrollable-tabs">
             {tabs.map((t: { id: string; label: string }) => (
-                <button aria-label={t.label} key={t.id} onClick={() => onTabChange(t.id)}>
+                <button aria-label={t.label} key={t.id || 'unknown'} onClick={() => onTabChange(t.id)}>
                     {t.label}
                 </button>
             ))}

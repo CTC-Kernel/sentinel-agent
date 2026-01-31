@@ -341,7 +341,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                   return (
                     <div
-                      key={party.id}
+                      key={party.id || 'unknown'}
                       className={cn(
                         "group relative p-5 rounded-2xl border transition-all duration-300",
                         "bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1",
@@ -406,7 +406,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
                         <div className="flex gap-1.5">
                           {[1, 2, 3, 4, 5].map((level) => (
                             <div
-                              key={level}
+                              key={level || 'unknown'}
                               className={cn(
                                 "w-2 h-2 rounded-full ring-2 ring-white dark:ring-slate-800", // Add ring for separation
                                 level <= party.trustLevel
@@ -498,7 +498,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                     return (
                       <div
-                        key={path.id}
+                        key={path.id || 'unknown'}
                         className="group relative p-5 rounded-2xl border border-border/40 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:shadow-lg hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-300"
                       >
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -646,7 +646,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
                     return (
                       <div
-                        key={scenario.id}
+                        key={scenario.id || 'unknown'}
                         className="group relative p-5 rounded-2xl border border-border/40 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:shadow-lg hover:border-error/30 transition-all duration-300"
                       >
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">

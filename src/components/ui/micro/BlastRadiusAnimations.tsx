@@ -200,7 +200,7 @@ const AnimatedAffectedNode: React.FC<{
       <div className="flex items-center gap-1">
         {Array.from({ length: node.depth }).map((_, i) => (
           <motion.div
-            key={i}
+            key={i || 'unknown'}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: delay + i * 0.05 }}
@@ -333,7 +333,7 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
           {revealed &&
             sortedNodes.map((node, index) => (
               <AnimatedAffectedNode
-                key={node.id}
+                key={node.id || 'unknown'}
                 node={node}
                 index={index}
                 speed={speed}

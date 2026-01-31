@@ -10,7 +10,7 @@ export const RiskDashboardSkeleton: React.FC = () => {
             {/* Top Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="glass-premium p-4 sm:p-6 rounded-3xl h-32 flex flex-col justify-between">
+                    <div key={i || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-3xl h-32 flex flex-col justify-between">
                         <div className="flex justify-between items-start">
                             <Skeleton className="h-4 w-24" variant="text" />
                             <Skeleton variant="circular" className="h-8 w-8" />
@@ -53,7 +53,7 @@ export const RiskMatrixSkeleton: React.FC = () => {
                 {/* Matrix Grid Simulation */}
                 <div className="grid grid-cols-5 gap-4 h-full">
                     {Array.from({ length: 25 }).map((_, i) => (
-                        <Skeleton key={i} className="h-full w-full rounded-3xl opacity-60" />
+                        <Skeleton key={i || 'unknown'} className="h-full w-full rounded-3xl opacity-60" />
                     ))}
                 </div>
             </div>

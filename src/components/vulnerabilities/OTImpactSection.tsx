@@ -275,7 +275,7 @@ const ScorePreview: React.FC<{
           </p>
           {adjustedScore.factors.map((factor, i) => (
             <div
-              key={`${factor.factor}-${i}`}
+              key={`${factor.factor || 'unknown'}-${i}`}
               className={`flex items-center justify-between p-2 rounded-lg ${factor.adjustment > 0 ? 'bg-red-50' : 'bg-green-50'}`}
             >
               <div className="flex items-center gap-2">
@@ -528,7 +528,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
             ) : (
               filteredAvailableAssets.map((asset) => (
                 <button
-                  key={asset.id}
+                  key={asset.id || 'unknown'}
                   type="button"
                   onClick={() => handleLinkAsset(asset.id)}
                   className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left"
@@ -555,7 +555,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
         <div className={`space-y-2 ${compact ? '' : 'space-y-3'}`}>
           {allMatchedAssets.map((asset) => (
             <AssetMatchCard
-              key={asset.assetId}
+              key={asset.assetId || 'unknown'}
               asset={asset}
               onRemove={() => handleRemoveAsset(asset.assetId)}
               compact={compact}

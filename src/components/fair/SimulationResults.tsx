@@ -161,7 +161,7 @@ const Histogram: React.FC<HistogramProps> = ({ bins, frequencies, percentiles, c
 
           return (
             <Tooltip
-              key={i}
+              key={i || 'unknown'}
               content={
                 <div>
                   <p className="font-medium">{formatCurrency(bins[i], currency)}</p>
@@ -265,7 +265,7 @@ export const SimulationResults: React.FC<SimulationResultsProps> = ({
               </p>
               <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
                 {results.warnings.map((warning, i) => (
-                  <li key={i} className="flex items-center gap-2">
+                  <li key={i || 'unknown'} className="flex items-center gap-2">
                     <ChevronRight className="h-3 w-3" />
                     {warning}
                   </li>
@@ -409,7 +409,7 @@ export const SimulationResults: React.FC<SimulationResultsProps> = ({
             {Object.entries(results.statistics.percentiles)
               .sort(([a], [b]) => Number(a) - Number(b))
               .map(([p, value]) => (
-                <Badge key={p} variant="outline" className="font-mono">
+                <Badge key={p || 'unknown'} variant="outline" className="font-mono">
                   P{p}: {formatCurrency(value, currency, true)}
                 </Badge>
               ))}

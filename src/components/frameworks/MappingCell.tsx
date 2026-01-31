@@ -148,7 +148,7 @@ export const MappingCell: React.FC<MappingCellProps> = ({
               {/* Requirements list */}
               <div className="space-y-1.5 max-h-32 overflow-y-auto">
                 {requirements.slice(0, 5).map((req) => (
-                  <div key={req.id} className="flex items-start gap-2 text-xs">
+                  <div key={req.id || 'unknown'} className="flex items-start gap-2 text-xs">
                     <span className="font-mono font-semibold text-slate-500 dark:text-muted-foreground flex-shrink-0">
                       {req.articleRef}
                     </span>

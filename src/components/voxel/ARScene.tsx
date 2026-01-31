@@ -433,7 +433,7 @@ const ARSceneContent: React.FC<ARSceneContentProps> = ({
           {/* Nodes */}
           {nodes.map((node) => (
             <ARNode
-              key={node.id}
+              key={node.id || 'unknown'}
               node={node}
               isSelected={selectedNode?.id === node.id}
               onTap={handleNodeTap}

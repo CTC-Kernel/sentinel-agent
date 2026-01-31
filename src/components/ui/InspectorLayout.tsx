@@ -113,7 +113,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
                             <LoadingIndicator type="pulse" message={t('common.ui.loading')} />
                         </div>
                     ) : (
-                        <div key={activeTab} className="animate-in fade-in duration-300 slide-in-from-bottom-2 h-full">
+                        <div key={activeTab || 'unknown'} className="animate-in fade-in duration-300 slide-in-from-bottom-2 h-full">
                             {children}
                         </div>
                     )}

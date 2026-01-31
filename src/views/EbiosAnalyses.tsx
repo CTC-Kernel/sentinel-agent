@@ -255,7 +255,7 @@ export const EbiosAnalyses: React.FC = () => {
             <AnimatePresence>
               {filteredAnalyses.map((analysis) => (
                 <motion.div
-                  key={analysis.id}
+                  key={analysis.id || 'unknown'}
                   variants={slideUpVariants}
                   layout
                 >
@@ -376,7 +376,7 @@ export const EbiosAnalyses: React.FC = () => {
                           const isActive = workshop.status === 'in_progress';
 
                           return (
-                            <Tooltip key={num} content={`${label} - ${t(`ebios.status.${workshop.status}`)}`}>
+                            <Tooltip key={num || 'unknown'} content={`${label} - ${t(`ebios.status.${workshop.status}`)}`}>
                               <div
                                 className={cn(
                                   "flex-1 h-2 rounded-full transition-all duration-300",

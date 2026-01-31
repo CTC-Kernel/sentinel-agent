@@ -364,7 +364,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 {/* Main Gauge - RadialBarChart */}
                 <div className="flex items-center gap-8 relative z-10">
                     <div className="relative w-36 h-36">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"
@@ -520,11 +520,11 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                             <EmptyChartState variant="pie" message="Aucune donnée" className="scale-75" />
                         ) : (
                             <>
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                     <PieChart>
                                         <defs>
                                             {severityData.map((entry, index) => (
-                                                <linearGradient key={`gradient-${index}`} id={`severityGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                                                <linearGradient key={`gradient-${index || 'unknown'}`} id={`severityGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
                                                     <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                                     <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                                 </linearGradient>
@@ -546,7 +546,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         >
                                             {severityData.map((_, index) => (
                                                 <Cell
-                                                    key={`sev-${index}`}
+                                                    key={`sev-${index || 'unknown'}`}
                                                     fill={`url(#severityGradient-${index})`}
                                                     stroke="rgba(255,255,255,0.2)"
                                                     strokeWidth={2}
@@ -575,7 +575,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                     <div className="flex justify-center gap-4 mt-4 flex-wrap">
                         {severityData.map((item, i) => (
                             <div
-                                key={`sev-leg-${i}`}
+                                key={`sev-leg-${i || 'unknown'}`}
                                 className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer transition-all duration-normal ease-apple ${activeIndex === i ? 'bg-muted/20 scale-105' : 'hover:bg-muted/10'}`}
                                 onMouseEnter={() => setActiveIndex(i)}
                                 onMouseLeave={() => setActiveIndex(null)}
@@ -609,7 +609,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 const isHovered = hoveredCategory === cat.name;
                                 return (
                                     <div
-                                        key={cat.name}
+                                        key={cat.name || 'unknown'}
                                         className={`relative transition-all duration-300 ${isHovered ? 'scale-[1.02]' : ''}`}
                                         onMouseEnter={() => setHoveredCategory(cat.name)}
                                         onMouseLeave={() => setHoveredCategory(null)}
@@ -654,7 +654,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         {statusData.length === 0 ? (
                             <EmptyChartState variant="bar" message="Aucun statut" />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart
                                     data={statusData}
                                     layout="vertical"
@@ -662,7 +662,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 >
                                     <defs>
                                         {statusData.map((entry, index) => (
-                                            <linearGradient key={`status-grad-${index}`} id={`statusGradient-${index}`} x1="0" y1="0" x2="1" y2="0">
+                                            <linearGradient key={`status-grad-${index || 'unknown'}`} id={`statusGradient-${index}`} x1="0" y1="0" x2="1" y2="0">
                                                 <stop offset="0%" stopColor={entry.fill} stopOpacity={0.8} />
                                                 <stop offset="100%" stopColor={entry.fill} stopOpacity={1} />
                                             </linearGradient>
@@ -675,7 +675,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                     <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={20}>
                                         {statusData.map((_, index) => (
                                             <Cell
-                                                key={`status-${index}`}
+                                                key={`status-${index || 'unknown'}`}
                                                 fill={`url(#statusGradient-${index})`}
                                                 style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
                                             />
@@ -701,7 +701,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         {timelineData.every(d => d.nouveaux === 0 && d.resolus === 0) ? (
                             <EmptyChartState variant="line" message="Aucune activité récente" />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <ComposedChart data={timelineData} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="gradientNewAdvanced" x1="0" y1="0" x2="0" y2="1">
@@ -755,10 +755,10 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                             <span>Sam</span>
                         </div>
                         {weeklyHeatData.map((week, wi) => (
-                            <div key={wi} className="flex gap-1.5 justify-between">
+                            <div key={wi || 'unknown'} className="flex gap-1.5 justify-between">
                                 {week.days.map((day, di) => (
                                     <div
-                                        key={di}
+                                        key={di || 'unknown'}
                                         className={`flex-1 aspect-square rounded-lg ${getHeatColor(day.count)} transition-all duration-normal ease-apple hover:scale-110 hover:shadow-md cursor-pointer relative group/cell border border-border/10`}
                                         title={`${day.date.toLocaleDateString('fr-FR')}: ${day.count} incident(s)`}
                                     >

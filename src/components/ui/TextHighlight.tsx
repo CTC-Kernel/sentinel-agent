@@ -67,7 +67,7 @@ export const TextHighlight: React.FC<TextHighlightProps> = ({
         <span className={className}>
             {parts.map((part, i) =>
                 part.toLowerCase() === query.toLowerCase() ? (
-                    <span key={i} className={highlightClassName}>
+                    <span key={i || 'unknown'} className={highlightClassName}>
                         {part}
                     </span>
                 ) : (

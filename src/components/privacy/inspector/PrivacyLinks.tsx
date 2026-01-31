@@ -86,7 +86,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                             >
                                 <option value="" disabled>Lier un actif...</option>
                                 {availableAssets.map(asset => (
-                                    <option key={asset.id} value={asset.id}>{asset.name}</option>
+                                    <option key={asset.id || 'unknown'} value={asset.id}>{asset.name}</option>
                                 ))}
                             </select>
                             <Plus className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -97,7 +97,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                 {linkedAssets.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {linkedAssets.map(asset => (
-                            <div key={asset.id} className="group p-4 bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-3xl hover:border-brand-300 transition-colors">
+                            <div key={asset.id || 'unknown'} className="group p-4 bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-3xl hover:border-brand-300 transition-colors">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-brand-50 rounded-lg flex items-center justify-center text-brand-600">
@@ -144,7 +144,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                             >
                                 <option value="" disabled>Lier un risque...</option>
                                 {availableRisks.map(risk => (
-                                    <option key={risk.id} value={risk.id}>{risk.threat}</option>
+                                    <option key={risk.id || 'unknown'} value={risk.id}>{risk.threat}</option>
                                 ))}
                             </select>
                             <Plus className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -155,7 +155,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                 {linkedRisks.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {linkedRisks.map(risk => (
-                            <div key={risk.id} className="group p-4 bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-3xl hover:border-orange-300 transition-colors">
+                            <div key={risk.id || 'unknown'} className="group p-4 bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-3xl hover:border-orange-300 transition-colors">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600">

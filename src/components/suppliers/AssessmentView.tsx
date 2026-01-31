@@ -196,9 +196,9 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-6 lg:p-10">
                     <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8">
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence mode="popLayout">
                             <motion.div
-                                key={currentSectionIndex}
+                                key={currentSectionIndex || 'unknown'}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
@@ -213,7 +213,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
 
                                 <div className="space-y-6">
                                     {currentSection?.questions.map((question) => (
-                                        <div key={question.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-slate-700 shadow-sm">
+                                        <div key={question.id || 'unknown'} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-slate-700 shadow-sm">
                                             <label className="block text-base font-semibold text-slate-800 dark:text-slate-200 mb-2">
                                                 {question.text}
                                                 {question.required && <span className="text-red-500 ml-1">*</span>}

@@ -210,7 +210,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                 <div className="flex flex-wrap gap-2 mt-4">
                   {workshopInfo.objectives[locale].map((objective, index) => (
                     <div
-                      key={index}
+                      key={index || 'unknown'}
                       className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-slate-100/50 dark:bg-slate-800/50 border border-border/40 text-sm text-slate-600 dark:text-slate-300"
                     >
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />

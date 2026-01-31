@@ -109,7 +109,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                 const Icon = option.icon;
                                 return (
                                     <button
-                                        key={option.id}
+                                        key={option.id || 'unknown'}
                                         onClick={() => onViewChange(option.id)}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
                                             ? 'bg-white text-slate-900 dark:text-white shadow-sm dark:bg-slate-800 dark:text-white font-bold'

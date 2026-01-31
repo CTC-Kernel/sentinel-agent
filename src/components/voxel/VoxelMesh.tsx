@@ -129,7 +129,7 @@ const VoxelModelGeometry: React.FC<{
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
                     {[0, 0.25, 0.5].map(offset => (
-                        <mesh key={`asset-light-${node.id}-${offset}`} position={[offset * node.size, node.size * 0.28, node.size * 0.18]}>
+                        <mesh key={`asset-light-${node.id || 'unknown'}-${offset}`} position={[offset * node.size, node.size * 0.28, node.size * 0.18]}>
                             <boxGeometry args={[node.size * 0.08, node.size * 0.06, node.size * 0.02]} />
                             <meshBasicMaterial color="#facc15" transparent opacity={0.8} />
                         </mesh>
@@ -148,7 +148,7 @@ const VoxelModelGeometry: React.FC<{
                         const angle = (Math.PI / 2) * index;
                         return (
                             <mesh
-                                key={`risk-spike-${node.id}-${index}`}
+                                key={`risk-spike-${node.id || 'unknown'}-${index}`}
                                 position={[Math.cos(angle) * node.size * 0.55, 0, Math.sin(angle) * node.size * 0.55]}
                                 rotation={[Math.PI / 2, angle, 0]}
                             >

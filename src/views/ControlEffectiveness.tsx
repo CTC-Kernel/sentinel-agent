@@ -85,7 +85,7 @@ export const ControlEffectivenessView: React.FC = () => {
           />
         </motion.div>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           {activeTab === 'overview' ? (
             <motion.div
               key="overview"

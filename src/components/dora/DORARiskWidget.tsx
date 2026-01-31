@@ -35,7 +35,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                 <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-40 mb-4" />
                 <div className="grid grid-cols-2 gap-4">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-3xl" />
+                        <div key={i || 'unknown'} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-3xl" />
                     ))}
                 </div>
             </div>
@@ -167,7 +167,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                     <div className="space-y-2">
                         {highRiskProviders.slice(0, 3).map(provider => (
                             <div
-                                key={provider.id}
+                                key={provider.id || 'unknown'}
                                 className="flex items-center justify-between p-2 bg-red-500 dark:bg-red-50 dark:bg-red-900 rounded-lg"
                             >
                                 <div className="flex items-center gap-2">

@@ -102,7 +102,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
 
                     return (
                         <button
-                            key={tab.id}
+                            key={tab.id || 'unknown'}
                             role="tab"
                             aria-selected={isActive}
                             aria-controls={`panel-${tab.id}`}

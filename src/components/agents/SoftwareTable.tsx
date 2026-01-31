@@ -267,7 +267,7 @@ const SoftwareRow: React.FC<{
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                         {software.versions.map((version, idx) => (
                                             <div
-                                                key={idx}
+                                                key={idx || 'unknown'}
                                                 className={cn(
                                                     'p-3 rounded-lg border',
                                                     version.isLatest ? 'border-success/50 bg-success/5' :
@@ -294,7 +294,7 @@ const SoftwareRow: React.FC<{
                                                 {version.cveIds.length > 0 && (
                                                     <div className="mt-2 flex flex-wrap gap-1">
                                                         {version.cveIds.slice(0, 2).map(cve => (
-                                                            <Badge key={cve} variant="soft" status="error" className="text-xs">
+                                                            <Badge key={cve || 'unknown'} variant="soft" status="error" className="text-xs">
                                                                 {cve}
                                                             </Badge>
                                                         ))}
@@ -354,7 +354,7 @@ const LoadingSkeleton: React.FC<{ viewMode: 'table' | 'grid' }> = ({ viewMode })
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                    <div key={i} className="h-40 bg-muted/50 rounded-2xl animate-pulse" />
+                    <div key={i || 'unknown'} className="h-40 bg-muted/50 rounded-2xl animate-pulse" />
                 ))}
             </div>
         );
@@ -364,7 +364,7 @@ const LoadingSkeleton: React.FC<{ viewMode: 'table' | 'grid' }> = ({ viewMode })
         <div className="space-y-2 animate-pulse">
             <div className="h-12 bg-muted/50 rounded-lg" />
             {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-16 bg-muted/30 rounded-lg" />
+                <div key={i || 'unknown'} className="h-16 bg-muted/30 rounded-lg" />
             ))}
         </div>
     );
@@ -454,7 +454,7 @@ const AgentSoftwareGroup: React.FC<{
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     {software.map((sw: SoftwareInventoryEntry) => (
                                         <SoftwareCard
-                                            key={sw.id}
+                                            key={sw.id || 'unknown'}
                                             software={sw}
                                             onClick={() => onSoftwareClick(sw)}
                                         />
@@ -477,7 +477,7 @@ const AgentSoftwareGroup: React.FC<{
                                                 const latestVersion = sw.versions.find(v => v.isLatest);
                                                 return (
                                                     <tr
-                                                        key={sw.id}
+                                                        key={sw.id || 'unknown'}
                                                         onClick={() => onSoftwareClick(sw)}
                                                         className="group cursor-pointer hover:bg-muted/30 transition-colors"
                                                     >
@@ -601,7 +601,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
             <div className="space-y-4">
                 {softwareByAgent.map((group) => (
                     <AgentSoftwareGroup
-                        key={group.agent.id}
+                        key={group.agent.id || 'unknown'}
                         agent={group.agent}
                         software={group.software}
                         onSoftwareClick={onSoftwareClick}
@@ -617,7 +617,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {sortedSoftware.map((sw: SoftwareInventoryEntry) => (
                     <SoftwareCard
-                        key={sw.id}
+                        key={sw.id || 'unknown'}
                         software={sw}
                         onClick={() => onSoftwareClick(sw)}
                     />
@@ -694,7 +694,7 @@ export const SoftwareTable: React.FC<SoftwareTableProps> = ({
                     <tbody>
                         {sortedSoftware.map((sw: SoftwareInventoryEntry) => (
                             <SoftwareRow
-                                key={sw.id}
+                                key={sw.id || 'unknown'}
                                 software={sw}
                                 onClick={() => onSoftwareClick(sw)}
                                 isExpanded={expandedRows.has(sw.id)}

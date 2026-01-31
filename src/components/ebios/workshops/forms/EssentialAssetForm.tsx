@@ -126,7 +126,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
             <div className="grid grid-cols-3 gap-2">
               {ASSET_TYPES.map((type) => (
                 <button
-                  key={type}
+                  key={type || 'unknown'}
                   type="button"
                   onClick={() => setValue('type', type)}
                   className={cn(
@@ -171,7 +171,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
             <div className="grid grid-cols-4 gap-2">
               {GRAVITY_SCALE.map((level) => (
                 <button
-                  key={level.level}
+                  key={level.level || 'unknown'}
                   type="button"
                   onClick={() => setValue('criticality', level.level as 1 | 2 | 3 | 4)}
                   className={cn(
@@ -215,7 +215,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {missions.map((mission) => (
                   <label
-                    key={mission.id}
+                    key={mission.id || 'unknown'}
                     htmlFor={`mission-${mission.id}`}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-colors",

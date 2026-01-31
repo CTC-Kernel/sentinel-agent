@@ -411,7 +411,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
           {/* KPIs */}
           <div className="col-span-6 grid grid-cols-4 gap-3">
             {kpis.slice(0, 4).map((kpi) => (
-              <KPICard key={kpi.id} kpi={kpi} />
+              <KPICard key={kpi.id || 'unknown'} kpi={kpi} />
             ))}
           </div>
 
@@ -435,7 +435,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
             <div className="p-2 max-h-32 overflow-y-auto">
               {criticalItems.slice(0, 3).map((item) => (
                 <CriticalItemRow
-                  key={item.id}
+                  key={item.id || 'unknown'}
                   item={item}
                   onClick={() => onCriticalItemClick?.(item.id)}
                 />

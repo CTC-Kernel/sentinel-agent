@@ -30,7 +30,7 @@ export const SavedViewsBar: React.FC<SavedViewsBarProps> = ({
 
                     return (
                         <button
-                            key={view.id}
+                            key={view.id || 'unknown'}
                             onClick={() => onViewSelect(view)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-xs font-bold transition-all duration-300 whitespace-nowrap ${isActive
                                 ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md ring-1 ring-black/5'

@@ -66,7 +66,7 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
                     </div>
                 ) : (
                     stats.map(stat => (
-                        <div key={stat.id}>
+                        <div key={stat.id || 'unknown'}>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm font-bold text-foreground">{stat.name}</span>
                                 <span className="text-xs font-bold text-muted-foreground">{stat.score}% ({stat.implemented}/{stat.total})</span>

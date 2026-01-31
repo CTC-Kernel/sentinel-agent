@@ -64,7 +64,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
     return (
         <div className="flex h-full gap-6 overflow-x-auto pb-6 custom-scrollbar px-1">
             {COLUMNS.map(column => (
-                <div key={column.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex flex-col h-full rounded-xl bg-[var(--glass-bg)] backdrop-blur-xl border border-border/40 shadow-premium">
+                <div key={column.id || 'unknown'} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex flex-col h-full rounded-xl bg-[var(--glass-bg)] backdrop-blur-xl border border-border/40 shadow-premium">
                     {/* Column Header */}
                     <div className="p-4 border-b border-border/20 flex items-center justify-between sticky top-0 bg-background/40 rounded-t-xl z-20 backdrop-blur-xl">
                         <div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                         {loading ? (
                             // Loading Skeletons
                             Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="bg-background/40 p-4 rounded-xl border border-border/40 shadow-sm space-y-3">
+                                <div key={i || 'unknown'} className="bg-background/40 p-4 rounded-xl border border-border/40 shadow-sm space-y-3">
                                     <div className="flex justify-between">
                                         <Skeleton className="h-4 w-16 rounded-full" />
                                         <Skeleton className="h-3 w-12 rounded" />
@@ -106,7 +106,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                         ) : (
                             groupedIncidents[column.id]?.map(incident => (
                                 <div
-                                    key={incident.id}
+                                    key={incident.id || 'unknown'}
                                     onClick={() => onSelect(incident)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {

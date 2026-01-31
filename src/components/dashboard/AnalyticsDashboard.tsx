@@ -229,7 +229,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <div className="h-8 bg-accent rounded w-1/4"></div>
                     <div className="grid grid-cols-4 gap-6">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={`chart-${i}`} className="h-32 bg-accent rounded-2xl"></div>
+                            <div key={`chart-${i || 'unknown'}`} className="h-32 bg-accent rounded-2xl"></div>
                         ))}
                     </div>
                 </div>
@@ -264,7 +264,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     {/* Time range selector */}
                     <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-3xl border border-white/20 dark:border-white/5 backdrop-blur-md">
                         {(['7d', '30d', '90d', '1y'] as const).map((range) => (
-                            <UiTooltip key={range} content={`Afficher les données sur ${range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}`} position="top">
+                            <UiTooltip key={range || 'unknown'} content={`Afficher les données sur ${range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}`} position="top">
                                 <button
                                     onClick={() => setTimeRange(range)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range
@@ -341,7 +341,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                     variant="line"
                                 />
                             ) : (
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                     <AreaChart data={trendData}>
                                         <defs>
                                             <linearGradient id="colorRisks" x1="0" y1="0" x2="0" y2="1">
@@ -462,7 +462,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                 onAction={() => navigate('/risks')}
                             />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <Pie
                                         data={risksByCategory}
@@ -476,7 +476,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                         dataKey="value"
                                     >
                                         {risksByCategory.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} strokeWidth={0} />
                                         ))}
                                     </Pie>
                                     <Tooltip

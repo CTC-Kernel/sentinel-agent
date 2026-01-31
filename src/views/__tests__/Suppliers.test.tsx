@@ -92,9 +92,9 @@ vi.mock('../../components/ui/DataTable', () => ({
             <table>
                 <tbody>
                     {data.map((row, i) => (
-                        <tr key={`row-${i}`}>
+                        <tr key={`row-${i || 'unknown'}`}>
                             {columns.map((col, j) => (
-                                <td key={`cell-${i}-${j}`}>
+                                <td key={`cell-${i || 'unknown'}-${j}`}>
                                     {col.cell ? col.cell({ row: { original: row } }) : String(row[col.accessorKey] || '')}
                                 </td>
                             ))}

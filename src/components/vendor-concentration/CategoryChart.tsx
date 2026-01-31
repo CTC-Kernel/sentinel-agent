@@ -246,7 +246,7 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
       <div className="space-y-2">
         {category.vendors.map((vendor) => (
           <div
-            key={vendor.supplierId}
+            key={vendor.supplierId || 'unknown'}
             className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50"
           >
             <div className="flex items-center gap-3">
@@ -348,7 +348,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
             >
               {chartData.map((entry, index) => (
                 <Cell
-                  key={`cell-${entry.category}`}
+                  key={`cell-${entry.category || 'unknown'}`}
                   fill={CHART_COLORS[index % CHART_COLORS.length]}
                   stroke={entry.hasSPOF ? SEVERITY_COLORS.critical : 'transparent'}
                   strokeWidth={entry.hasSPOF ? 3 : 0}
@@ -382,7 +382,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
         </p>
         {categories.map((category, index) => (
           <LegendItem
-            key={category.category}
+            key={category.category || 'unknown'}
             category={category}
             color={CHART_COLORS[index % CHART_COLORS.length]}
             onClick={() => handleCategoryClick(category)}

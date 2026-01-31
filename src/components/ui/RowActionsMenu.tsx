@@ -134,7 +134,7 @@ export function RowActionsMenu({
               >
                 <div className="py-1">
                   {items.map((item, index) => (
-                    <Menu.Item key={`${item.label}-${index}`} disabled={item.disabled}>
+                    <Menu.Item key={`${item.label || 'unknown'}-${index}`} disabled={item.disabled}>
                       {({ active }) => (
                         <button
                           type="button"

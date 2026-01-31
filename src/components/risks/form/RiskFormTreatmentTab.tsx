@@ -132,7 +132,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                             .map(ctrl => {
                                 const isSuggested = suggestedControlIds.includes(ctrl.id);
                                 return (
-                                    <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-background transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-background shadow-sm border border-border/40' : ''} ${isSuggested ? 'bg-primary/5' : ' '}`}>
+                                    <label key={ctrl.id || 'unknown'} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-background transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-background shadow-sm border border-border/40' : ''} ${isSuggested ? 'bg-primary/5' : ' '}`}>
                                         <input
                                             id={`control-${ctrl.id}`}
                                             checked={mitigationControlIds?.includes(ctrl.id) || false}

@@ -273,7 +273,7 @@ export const AnnotationOverlay: React.FC<AnnotationOverlayProps> = React.memo(({
     <group name="annotation-overlay">
       {visibleAnnotations.map((annotation) => (
         <AnnotationMarker
-          key={annotation.id}
+          key={annotation.id || 'unknown'}
           annotation={annotation}
           isSelected={selectedAnnotationId === annotation.id}
           currentUserId={currentUserId}
@@ -369,7 +369,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
             <div className="flex flex-wrap gap-2">
               {allTypes.map((type) => (
                 <button
-                  key={type}
+                  key={type || 'unknown'}
                   onClick={() => onToggleType(type)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeTypes.includes(type)
                       ? 'bg-brand-100 text-brand-400 border border-brand-400'

@@ -103,7 +103,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
 
                 return (
                     <PremiumCard glass
-                        key={risk.id}
+                        key={risk.id || 'unknown'}
                         onClick={() => onSelect(risk)}
                         role="button"
                         tabIndex={0}

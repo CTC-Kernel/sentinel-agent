@@ -142,7 +142,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
 
                         return (
                             <div
-                                key={exportRecord.id}
+                                key={exportRecord.id || 'unknown'}
                                 className="bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl p-4"
                             >
                                 <div className="flex items-start justify-between">

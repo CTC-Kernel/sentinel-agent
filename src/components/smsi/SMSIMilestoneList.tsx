@@ -58,7 +58,7 @@ export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
             ) : (
                 <div className="space-y-3">
                     {displayedMilestones.map((milestone) => (
-                        <MilestoneCard key={milestone.id} milestone={milestone} onClick={() => onSelect?.(milestone)} />
+                        <MilestoneCard key={milestone.id || 'unknown'} milestone={milestone} onClick={() => onSelect?.(milestone)} />
                     ))}
                 </div>
             )}

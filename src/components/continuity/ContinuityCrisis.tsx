@@ -127,7 +127,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {crisisTeam.map(member => (
-                            <div key={member.uid} className="flex items-center p-4 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
+                            <div key={member.uid || 'unknown'} className="flex items-center p-4 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
                                 <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 mr-3">
                                     <User className="w-5 h-5" />
                                 </div>

@@ -151,7 +151,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                 <div className="space-y-1">
                   {suggestions.slice(0, 5).map((technique) => (
                     <button
-                      key={technique.id}
+                      key={technique.id || 'unknown'}
                       onClick={() => handleSelectTechnique(technique)}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-purple-50 dark:hover:bg-purple-900/20 text-sm"
                     >
@@ -187,7 +187,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                   <div className="space-y-1">
                     {searchResults.map((technique) => (
                       <button
-                        key={technique.id}
+                        key={technique.id || 'unknown'}
                         onClick={() => handleSelectTechnique(technique)}
                         className={cn(
                           "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm",
@@ -216,7 +216,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                 <div className="space-y-1">
                   {MITRE_TACTICS.map((tactic) => (
                     <button
-                      key={tactic.id}
+                      key={tactic.id || 'unknown'}
                       onClick={() => setSelectedTacticId(tactic.id)}
                       className={cn(
                         "w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-sm transition-colors",
@@ -255,7 +255,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                 <div className="space-y-3">
                   {tacticTechniques.map((technique) => (
                     <div
-                      key={technique.id}
+                      key={technique.id || 'unknown'}
                       className="rounded-3xl border border-border/40 dark:border-slate-700 overflow-hidden"
                     >
                       {/* Technique Header */}
@@ -286,7 +286,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                           <div className="space-y-1">
                             {technique.subtechniques.map((sub) => (
                               <button
-                                key={sub.id}
+                                key={sub.id || 'unknown'}
                                 onClick={() => handleSelectTechnique(technique, sub)}
                                 className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-white dark:hover:bg-slate-800"
                               >
@@ -319,7 +319,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
               <div className="space-y-3">
                 {searchResults.map((technique) => (
                   <div
-                    key={technique.id}
+                    key={technique.id || 'unknown'}
                     className="rounded-3xl border border-border/40 dark:border-slate-700 overflow-hidden"
                   >
                     <button
@@ -348,7 +348,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                         <div className="space-y-1">
                           {technique.subtechniques.map((sub) => (
                             <button
-                              key={sub.id}
+                              key={sub.id || 'unknown'}
                               onClick={() => handleSelectTechnique(technique, sub)}
                               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-white dark:hover:bg-slate-800"
                             >

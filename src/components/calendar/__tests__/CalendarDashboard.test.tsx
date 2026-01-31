@@ -29,7 +29,7 @@ vi.mock('react-big-calendar', () => ({
                 <div data-testid="events-container">
                     {events.map((event: unknown, idx: number) => (
                         <div
-                            key={idx}
+                            key={idx || 'unknown'}
                             data-testid="calendar-event"
                             onClick={() => onSelectEvent(event)}
                             onKeyDown={(e) => {

@@ -51,7 +51,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
                     const isCurrent = index === currentStep;
 
                     return (
-                        <div key={step.id} className="flex flex-col items-center group">
+                        <div key={step.id || 'unknown'} className="flex flex-col items-center group">
                             <div className={`
                                 w-10 h-10 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10
                                 ${isCompleted

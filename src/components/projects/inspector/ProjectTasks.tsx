@@ -113,7 +113,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
             {viewMode === 'list' ? (
                 <div className="space-y-2">
                     {project.tasks?.map(task => (
-                        <div key={task.id} className="flex items-center p-3 glass-premium rounded-3xl border border-border/40 group hover:shadow-apple transition-all">
+                        <div key={task.id || 'unknown'} className="flex items-center p-3 glass-premium rounded-3xl border border-border/40 group hover:shadow-apple transition-all">
                             <button
                                 onClick={() => toggleTaskStatus(task.id)}
                                 disabled={!canEdit}
@@ -135,7 +135,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                 <div className="flex gap-4 overflow-x-auto pb-4 h-full">
                     {['A faire', 'En cours', 'Terminé'].map(status => (
                         <KanbanColumn
-                            key={status}
+                            key={status || 'unknown'}
                             status={status as 'A faire' | 'En cours' | 'Terminé'}
                             tasks={project.tasks?.filter(t => t.status === status) || []}
                             canEdit={canEdit}

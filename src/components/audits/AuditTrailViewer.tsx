@@ -186,7 +186,7 @@ export const AuditTrailViewer: React.FC = () => {
                     >
                         <option value="all">Tous les types</option>
                         {entityTypes.map(type => (
-                            <option key={type} value={type}>{type}</option>
+                            <option key={type || 'unknown'} value={type}>{type}</option>
                         ))}
                     </select>
 
@@ -199,7 +199,7 @@ export const AuditTrailViewer: React.FC = () => {
                     >
                         <option value="all">Tous les utilisateurs</option>
                         {users.map(u => (
-                            <option key={u.id} value={u.id}>{u.name}</option>
+                            <option key={u.id || 'unknown'} value={u.id}>{u.name}</option>
                         ))}
                     </select>
                 </div>
@@ -247,7 +247,7 @@ export const AuditTrailViewer: React.FC = () => {
                         filteredLogs.map(log => (
                             <button
                                 type="button"
-                                key={log.id}
+                                key={log.id || 'unknown'}
                                 onClick={() => setSelectedLog(log)}
                                 className={`w-full text-left p-4 rounded-3xl border transition-all ${selectedLog?.id === log.id
                                     ? 'bg-brand-50 dark:bg-brand-800 border-brand-200 dark:border-brand-800'
@@ -360,7 +360,7 @@ export const AuditTrailViewer: React.FC = () => {
                                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Champs modifiés</h4>
                                     <ul className="space-y-1">
                                         {selectedLog.changes.map((change, idx) => (
-                                            <li key={`${idx}-${change}`} className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                            <li key={`${idx || 'unknown'}-${change}`} className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2">
                                                 <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
                                                 {change}
                                             </li>

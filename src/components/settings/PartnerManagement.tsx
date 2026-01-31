@@ -190,7 +190,7 @@ export const PartnerManagement: React.FC = () => {
                     ) : (
                         partners.map((partner, index) => (
                             <motion.div
-                                key={partner.id}
+                                key={partner.id || 'unknown'}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}

@@ -188,7 +188,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                             {/* Y Axis Numbers */}
                             <div className="flex flex-col justify-between pr-1">
                                 {[5, 4, 3, 2, 1].map(num => (
-                                    <div key={num} className="h-10 flex items-center justify-center">
+                                    <div key={num || 'unknown'} className="h-10 flex items-center justify-center">
                                         <span className="text-[11px] font-bold text-slate-600">{num}</span>
                                     </div>
                                 ))}
@@ -197,12 +197,12 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                             {/* Matrix */}
                             <div className="flex-1 grid grid-rows-5 gap-1.5">
                                 {matrixData.map((row, rowIndex) => (
-                                    <div key={rowIndex} className="grid grid-cols-5 gap-1.5 h-10">
+                                    <div key={rowIndex || 'unknown'} className="grid grid-cols-5 gap-1.5 h-10">
                                         {row.map((count, colIndex) => {
                                             const { bgColor, glowColor, hasData } = getCellStyle(rowIndex, colIndex, count);
                                             return (
                                                 <motion.div
-                                                    key={`${rowIndex}-${colIndex}`}
+                                                    key={`${rowIndex || 'unknown'}-${colIndex}`}
                                                     initial={{ opacity: 0, scale: 0.8 }}
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     transition={{
@@ -231,7 +231,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                         {/* X Axis Numbers */}
                         <div className="flex gap-1.5 pl-6">
                             {[1, 2, 3, 4, 5].map(num => (
-                                <div key={num} className="flex-1 flex items-center justify-center">
+                                <div key={num || 'unknown'} className="flex-1 flex items-center justify-center">
                                     <span className="text-[11px] font-bold text-slate-600">{num}</span>
                                 </div>
                             ))}

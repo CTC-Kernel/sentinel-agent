@@ -178,7 +178,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 </div>
                 {rootFolders.map(f => (
                     <FolderNode
-                        key={f.id}
+                        key={f.id || 'unknown'}
                         folder={f}
                         folders={folders}
                         depth={0}
@@ -418,7 +418,7 @@ const FolderNode = React.memo(({
 
             {isExpanded && children.map(child => (
                 <FolderNode
-                    key={child.id}
+                    key={child.id || 'unknown'}
                     folder={child}
                     folders={folders}
                     depth={depth + 1}

@@ -96,7 +96,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </h3>
                     <div className="space-y-3">
                         {vulnerabilities.map(vuln => (
-                            <div key={vuln.cveId} className="p-4 bg-white/80 dark:bg-slate-800/40 backdrop-blur-md rounded-2xl border border-red-200/40 dark:border-red-900/40 shadow-sm hover:shadow-md transition-all group">
+                            <div key={vuln.cveId || 'unknown'} className="p-4 bg-white/80 dark:bg-slate-800/40 backdrop-blur-md rounded-2xl border border-red-200/40 dark:border-red-900/40 shadow-sm hover:shadow-md transition-all group">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
                                     <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
-                            <div key={risk.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
+                            <div key={risk.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
                                     <span className={`text-[11px] px-2 py-1 rounded-3xl font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
@@ -170,7 +170,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (
-                            <div key={inc.id} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
+                            <div key={inc.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
                                     <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-3xl ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>

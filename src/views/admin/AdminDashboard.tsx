@@ -25,7 +25,7 @@ const AdminDashboard: React.FC = () => {
             <div className="flex space-x-2 border-b border-border/40 pb-4 overflow-x-auto no-scrollbar">
                 {(['overview', 'tenants', 'users', 'system', 'audit'] as const).map((tab) => (
                     <button
-                        key={tab}
+                        key={tab || 'unknown'}
                         onClick={() => setActiveTab(tab)}
                         className={cn(
                             "px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all whitespace-nowrap",

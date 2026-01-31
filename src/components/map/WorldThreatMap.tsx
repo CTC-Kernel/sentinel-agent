@@ -79,7 +79,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
 
                                     return (
                                         <Geography
-                                            key={geo.rsmKey}
+                                            key={geo.rsmKey || 'unknown'}
                                             geography={geo}
                                             fill={hasThreats ? colorScale(intensity) : "#0f172a"}
                                             stroke={hasThreats ? "rgba(255,255,255,0.2)" : "#1e293b"}
@@ -144,7 +144,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                                     </div>
                                                                     <div className="space-y-1.5">
                                                                         {topThreats.map((t: Threat, idx) => (
-                                                                            <div key={idx} className="flex items-start gap-2 text-xs text-slate-200 group">
+                                                                            <div key={idx || 'unknown'} className="flex items-start gap-2 text-xs text-slate-200 group">
                                                                                 <div className={`mt-0.5 p-1 rounded flex-shrink-0 ${t.severity === 'Critical' ? 'bg-red-50 text-red-500' : 'bg-orange-500/10 text-orange-500'}`}>
                                                                                     {t.type === 'Malware' ? <Activity size={10} /> :
                                                                                         t.type === 'Vulnerability' ? <Shield size={10} /> :
@@ -195,7 +195,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                         {/* Markers for specific threats/events */}
                         {data.flatMap(d => d.markers).map((marker, i) => (
                             <Marker
-                                key={`${marker.name}-${i}`}
+                                key={`${marker.name || 'unknown'}-${i}`}
                                 coordinates={marker.coordinates}
                                 onMouseEnter={() => {
                                     // Use native event to position

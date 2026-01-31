@@ -25,13 +25,13 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
 
   return (
     <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1 text-sm", className)}>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           const isActive = item.path === location.pathname;
 
           return (
-            <React.Fragment key={item.label}>
+            <React.Fragment key={item.label || 'unknown'}>
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -88,12 +88,12 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
 export const CompactBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({ items, className = '' }) => {
   return (
     <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1", className)}>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
 
           return (
-            <React.Fragment key={item.label}>
+            <React.Fragment key={item.label || 'unknown'}>
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}

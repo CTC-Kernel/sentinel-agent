@@ -12,7 +12,7 @@ vi.mock('recharts', () => ({
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     RadarChart: ({ children, data }: { children: React.ReactNode; data: Array<{ subject: string }> }) => (
         <div data-testid="radar-chart">
-            {data?.map((d) => <div key={d.subject}>{d.subject}</div>)}
+            {data?.map((d) => <div key={d.subject || 'unknown'}>{d.subject}</div>)}
             {children}
         </div>
     ),

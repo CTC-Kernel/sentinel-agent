@@ -120,9 +120,9 @@ export const RiskContextManager: React.FC = () => {
       />
 
       {/* Tab Content */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         <motion.div
-          key={activeTab}
+          key={activeTab || 'unknown'}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
@@ -251,7 +251,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.activities.map((activity, index) => (
-              <Badge key={index} variant="soft" className="gap-1.5 py-1.5">
+              <Badge key={index || 'unknown'} variant="soft" className="gap-1.5 py-1.5">
                 {activity}
                 <button
                   onClick={() => removeItem('activities', index)}
@@ -286,7 +286,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.objectives.map((objective, index) => (
-              <Badge key={index} variant="soft" className="gap-1.5 py-1.5">
+              <Badge key={index || 'unknown'} variant="soft" className="gap-1.5 py-1.5">
                 {objective}
                 <button
                   onClick={() => removeItem('objectives', index)}
@@ -321,7 +321,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.criticalProcesses.map((process, index) => (
-              <Badge key={index} variant="soft" className="gap-1.5 py-1.5 bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text">
+              <Badge key={index || 'unknown'} variant="soft" className="gap-1.5 py-1.5 bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text">
                 <AlertTriangle className="w-3 h-3" />
                 {process}
                 <button
@@ -447,7 +447,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 >
                   <option value="">Sélectionner...</option>
                   {FRAMEWORKS.map(fw => (
-                    <option key={fw} value={fw}>{fw}</option>
+                    <option key={fw || 'unknown'} value={fw}>{fw}</option>
                   ))}
                 </select>
               </div>
@@ -490,7 +490,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
           ) : (
             data.applicableRegulations.map((reg) => (
               <div
-                key={reg.id}
+                key={reg.id || 'unknown'}
                 className="flex items-center gap-4 p-4 rounded-3xl bg-white dark:bg-slate-800/50 border border-border/40 dark:border-slate-700"
               >
                 <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
@@ -647,7 +647,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
             {(Object.entries(LEVEL_CONFIG) as [keyof typeof LEVEL_CONFIG, typeof LEVEL_CONFIG.low][]).map(([level, config]) => {
               const styles = LEVEL_STYLES[config.color] || LEVEL_STYLES.emerald;
               return (
-                <div key={level} className={`p-4 rounded-3xl border-2 ${styles.border} ${styles.bg}`}>
+                <div key={level || 'unknown'} className={`p-4 rounded-3xl border-2 ${styles.border} ${styles.bg}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-3 h-3 rounded-full ${styles.dot}`} />
                     <label htmlFor={`threshold-${level}`} className={`font-medium ${styles.text} cursor-pointer`}>{config.label}</label>
@@ -767,7 +767,7 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
     <div className="space-y-3">
       {items.map((item, index) => (
         <div
-          key={item.level}
+          key={item.level || 'unknown'}
           className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700"
         >
           <div className="flex items-center gap-4 mb-3">
@@ -797,7 +797,7 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
           {item.criteria && (
             <div className="mt-2 flex flex-wrap gap-1">
               {item.criteria.map((criterion, ci) => (
-                <Badge key={ci} variant="outline" size="sm">{criterion}</Badge>
+                <Badge key={ci || 'unknown'} variant="outline" size="sm">{criterion}</Badge>
               ))}
             </div>
           )}

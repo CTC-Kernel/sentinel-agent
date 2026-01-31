@@ -227,7 +227,7 @@ export const ROICalculator: React.FC<ROICalculatorProps> = ({
             <div className="flex gap-2">
               {[1, 2, 3, 5].map((year) => (
                 <Button
-                  key={year}
+                  key={year || 'unknown'}
                   type="button"
                   variant={inputs.analysisYears === year ? 'default' : 'outline'}
                   size="sm"
@@ -300,7 +300,7 @@ export const ROICalculator: React.FC<ROICalculatorProps> = ({
             </h4>
             <div className="space-y-3">
               {yearlyBreakdown.map((year) => (
-                <div key={year.year} className="flex items-center gap-3">
+                <div key={year.year || 'unknown'} className="flex items-center gap-3">
                   <span className="text-sm w-16 text-muted-foreground">
                     {t('roi.year', 'An')} {year.year}
                   </span>

@@ -67,7 +67,7 @@ const CoverageLegend: React.FC = () => {
   return (
     <div className="flex items-center gap-4 text-xs">
       {items.map((item) => (
-        <div key={item.status} className="flex items-center gap-1.5">
+        <div key={item.status || 'unknown'} className="flex items-center gap-1.5">
           <div className={cn('w-6 h-6 rounded flex items-center justify-center', item.color)}>
             <item.icon className="w-3.5 h-3.5" />
           </div>
@@ -336,7 +336,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                 </th>
                 {frameworks.map((framework) => (
                   <th
-                    key={framework.id}
+                    key={framework.id || 'unknown'}
                     className="px-3 py-3 text-center text-sm font-semibold text-slate-700 dark:text-slate-300 min-w-[100px]"
                   >
                     <div className="flex flex-col items-center gap-1">
@@ -352,7 +352,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
             <tbody>
               {filteredControls.map((control, index) => (
                 <motion.tr
-                  key={control.controlId}
+                  key={control.controlId || 'unknown'}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.02 }}
@@ -377,7 +377,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                   {frameworks.map((framework) => {
                     const mapping = getMapping(control.controlId, framework.id);
                     return (
-                      <td key={framework.id} className="px-3 py-2">
+                      <td key={framework.id || 'unknown'} className="px-3 py-2">
                         <MappingCell
                           coverageStatus={getCoverageStatus(mapping?.coveragePercentage)}
                           coveragePercentage={mapping?.coveragePercentage || 0}
@@ -401,7 +401,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
           <AnimatePresence mode="popLayout">
             {filteredControls.map((control) => (
               <ControlMappingCard
-                key={control.controlId}
+                key={control.controlId || 'unknown'}
                 control={control}
                 onClick={handleControlSelect}
                 isSelected={selectedControlId === control.controlId}

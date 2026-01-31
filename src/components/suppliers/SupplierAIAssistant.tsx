@@ -161,7 +161,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                                 <p className="mt-1"><em>{String(response.justification)}</em></p>
                                 {Array.isArray(response.recommendations) && (
                                     <ul className="list-disc pl-4 mt-2 space-y-1">
-                                        {response.recommendations.map((r: unknown, i: number) => <li key={`rec-${i}`}>{String(r)}</li>)}
+                                        {response.recommendations.map((r: unknown, i: number) => <li key={`rec-${i || 'unknown'}`}>{String(r)}</li>)}
                                     </ul>
                                 )}
                                 {onUpdate && (
@@ -184,7 +184,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                         {mode === 'clauses' && Array.isArray(response.clauses) && (
                             <div className="space-y-3">
                                 {response.clauses.map((c: AIClause, i: number) => (
-                                    <div key={`risk-${i}`} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-border/40 dark:border-white/5">
+                                    <div key={`risk-${i || 'unknown'}`} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-border/40 dark:border-white/5">
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-bold text-slate-800 dark:text-slate-200">{c.title}</span>
                                             <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold uppercase ${c.importance === 'High' ? 'bg-error/10 text-error' : 'bg-info/10 text-info'}`}>{c.importance}</span>
@@ -202,7 +202,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                                     <div className="mt-2">
                                         <p className="font-bold mb-1">Exigences clés :</p>
                                         <ul className="list-disc pl-4 space-y-1">
-                                            {response.requirements.map((r: unknown, i: number) => <li key={`req-${i}`}>{String(r)}</li>)}
+                                            {response.requirements.map((r: unknown, i: number) => <li key={`req-${i || 'unknown'}`}>{String(r)}</li>)}
                                         </ul>
                                     </div>
                                 )}

@@ -209,7 +209,7 @@ export const ExternalAuditPortal: React.FC = () => {
                             </div>
                         ) : (
                             auditData.findings.map((f, i) => (
-                                <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                <div key={i || 'unknown'} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
                                         <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>{f.type}</span>
                                         <span className="text-xs text-muted-foreground">{new Date(f.createdAt).toLocaleDateString()}</span>
@@ -239,7 +239,7 @@ export const ExternalAuditPortal: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {auditData.documents && auditData.documents.length > 0 ? (
                                     auditData.documents.map(doc => (
-                                        <div key={doc.id} className="p-4 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors group">
+                                        <div key={doc.id || 'unknown'} className="p-4 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors group">
                                             <div className="flex items-start justify-between mb-2">
                                                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg">
                                                     <FileText className="w-5 h-5" />

@@ -42,7 +42,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                 const isActive = currentTab === tab.id;
                                 return (
                                     <button
-                                        key={tab.id}
+                                        key={tab.id || 'unknown'}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
                                             "relative flex items-center whitespace-nowrap px-4 py-2 rounded-2xl font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
@@ -73,7 +73,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                 const isActive = currentTab === tab.id;
                                 return (
                                     <button
-                                        key={tab.id}
+                                        key={tab.id || 'unknown'}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
                                             "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset",
@@ -102,9 +102,9 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
             {/* Content Area */}
             <main className="flex-1 min-w-0">
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                     <motion.div
-                        key={currentTab}
+                        key={currentTab || 'unknown'}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}

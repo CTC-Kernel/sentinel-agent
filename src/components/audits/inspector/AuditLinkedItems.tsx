@@ -142,7 +142,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
                             return (
                                 <div
-                                    key={ctrl.id}
+                                    key={ctrl.id || 'unknown'}
                                     className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
@@ -193,7 +193,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                     <div className="space-y-2">
                         {linkedRisks.map(risk => (
                             <div
-                                key={risk.id}
+                                key={risk.id || 'unknown'}
                                 className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
@@ -245,7 +245,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                     <div className="space-y-2">
                         {linkedAssets.map(asset => (
                             <div
-                                key={asset.id}
+                                key={asset.id || 'unknown'}
                                 className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
@@ -296,7 +296,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                     <div className="space-y-2">
                         {linkedProjects.map(project => (
                             <div
-                                key={project.id}
+                                key={project.id || 'unknown'}
                                 className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40 shadow-sm group hover:shadow-md hover:border-brand-200 transition-all"
                             >
                                 <div className="flex items-center gap-3 min-w-0">

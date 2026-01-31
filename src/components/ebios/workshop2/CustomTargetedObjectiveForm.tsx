@@ -193,7 +193,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
                 const info = IMPACT_TYPE_LABELS[type];
                 return (
                   <label
-                    key={type}
+                    key={type || 'unknown'}
                     className={cn(
                       "flex flex-col items-center p-3 rounded-3xl border cursor-pointer transition-all",
                       "hover:border-border/40 dark:hover:border-slate-600"

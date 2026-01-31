@@ -190,7 +190,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                 <div className="h-10 bg-muted/50 rounded-lg w-64" />
                 <div className="space-y-2">
                     {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-12 bg-muted/50 rounded-lg" />
+                        <div key={i || 'unknown'} className="h-12 bg-muted/50 rounded-lg" />
                     ))}
                 </div>
             </div>
@@ -297,7 +297,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                         ) : (
                             filteredProcesses.map((process, index) => (
                                 <motion.div
-                                    key={`${process.pid}-${process.name}`}
+                                    key={`${process.pid || 'unknown'}-${process.name || 'unknown'}`}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}

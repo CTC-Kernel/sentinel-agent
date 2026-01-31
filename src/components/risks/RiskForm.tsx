@@ -334,7 +334,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {TABS.map((tab) => {
                         const Icon = tab.icon;
                         return (
-                            <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all duration-normal ease-apple ${activeTab === tab.id ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+                            <button key={tab.id || 'unknown'} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all duration-normal ease-apple ${activeTab === tab.id ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
                                 <Icon className={`h-4 w-4 transition-colors ${activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`} />
                                 {tab.label}
                             </button>
@@ -358,7 +358,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 <p className="font-bold text-error text-sm">{t('validation.formErrors', 'Erreurs de validation')}</p>
                                 <ul className="text-xs text-muted-foreground mt-1 list-disc ml-4">
                                     {Object.entries(errors).map(([field, error]) => (
-                                        <li key={field}>{String(error?.message || field)}</li>
+                                        <li key={field || 'unknown'}>{String(error?.message || field)}</li>
                                     ))}
                                 </ul>
                             </div>
@@ -419,7 +419,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     <div className="relative mb-4"><FloatingLabelInput label="Rechercher une menace..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={Search} /></div>
                     <div className="max-h-[60vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
                         {filteredLibraryThreats.map((t) => (
-                            <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(t)} role="button" tabIndex={0} aria-label={`Sélectionner la menace ${t.name}`} className="border border-border/40 p-4 rounded-xl hover:border-primary/50 cursor-pointer bg-background transition-all duration-normal ease-apple hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                            <div key={t.id || 'unknown'} onClick={() => handleSelectThreatFromLibrary(t)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(t)} role="button" tabIndex={0} aria-label={`Sélectionner la menace ${t.name}`} className="border border-border/40 p-4 rounded-xl hover:border-primary/50 cursor-pointer bg-background transition-all duration-normal ease-apple hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /><span className="font-bold text-foreground line-clamp-1">{t.name}</span></div>
                                     <span className="text-[11px] uppercase font-bold text-muted-foreground border px-1.5 py-0.5 rounded-lg">{t.framework}</span>

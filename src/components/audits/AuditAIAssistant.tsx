@@ -152,7 +152,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                                     <div className="mt-2">
                                         <p className="font-bold mb-1">Points Clés :</p>
                                         <ul className="list-disc pl-4 space-y-1">
-                                            {response.keyTakeaways.map((r: unknown, i: number) => <li key={`takeaway-${i}`}>{String(r)}</li>)}
+                                            {response.keyTakeaways.map((r: unknown, i: number) => <li key={`takeaway-${i || 'unknown'}`}>{String(r)}</li>)}
                                         </ul>
                                     </div>
                                 )}
@@ -163,11 +163,11 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                             <div>
                                 <p className="font-bold mb-1">Causes Racines :</p>
                                 <ul className="list-disc pl-4 mb-2 space-y-1">
-                                    {response.rootCauses.map((r: unknown, i: number) => <li key={`cause-${i}`}>{String(r)}</li>)}
+                                    {response.rootCauses.map((r: unknown, i: number) => <li key={`cause-${i || 'unknown'}`}>{String(r)}</li>)}
                                 </ul>
                                 <p className="font-bold mb-1">Recommandations :</p>
                                 <ul className="list-disc pl-4 space-y-1">
-                                    {Array.isArray(response.recommendations) && response.recommendations.map((r: unknown, i: number) => <li key={`rec-${i}`}>{String(r)}</li>)}
+                                    {Array.isArray(response.recommendations) && response.recommendations.map((r: unknown, i: number) => <li key={`rec-${i || 'unknown'}`}>{String(r)}</li>)}
                                 </ul>
                             </div>
                         )}
@@ -175,13 +175,13 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                             <div>
                                 <p className="font-bold mb-1">Suggestions :</p>
                                 <ul className="list-disc pl-4 mb-2 space-y-1">
-                                    {response.suggestions.map((r: unknown, i: number) => <li key={`sugg-${i}`}>{String(r)}</li>)}
+                                    {response.suggestions.map((r: unknown, i: number) => <li key={`sugg-${i || 'unknown'}`}>{String(r)}</li>)}
                                 </ul>
                                 {Array.isArray(response.missingAreas) && response.missingAreas.length > 0 && (
                                     <>
                                         <p className="font-bold mb-1">Zones Manquantes :</p>
                                         <ul className="list-disc pl-4 space-y-1">
-                                            {response.missingAreas.map((r: unknown, i: number) => <li key={`missing-${i}`}>{String(r)}</li>)}
+                                            {response.missingAreas.map((r: unknown, i: number) => <li key={`missing-${i || 'unknown'}`}>{String(r)}</li>)}
                                         </ul>
                                     </>
                                 )}

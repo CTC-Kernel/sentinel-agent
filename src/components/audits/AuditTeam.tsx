@@ -140,7 +140,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                         audit.collaborators.map(userId => {
                             const userObj = safeUsers.find(u => u.uid === userId);
                             return (
-                                <div key={userId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-3xl">
+                                <div key={userId || 'unknown'} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-3xl">
                                     <div className="flex items-center">
                                         <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 mr-3">
                                             <User className="h-4 w-4" />
@@ -195,7 +195,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 <div className="space-y-2">
                     {audit.externalAuditors && audit.externalAuditors.length > 0 ? (
                         audit.externalAuditors.map(email => (
-                            <div key={email} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-3xl">
+                            <div key={email || 'unknown'} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-3xl">
                                 <div className="flex items-center">
                                     <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mr-3">
                                         <Mail className="h-4 w-4" />

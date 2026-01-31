@@ -150,7 +150,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                             const isCurrent = stepIdx === currentIdx;
 
                             return (
-                                <div key={step} className="relative">
+                                <div key={step || 'unknown'} className="relative">
                                     <div className={`absolute -left-[41px] top-0 h-5 w-5 rounded-full border-2 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm ${isCompleted ? 'border-brand-500 text-brand-500' : 'border-border/40 dark:border-slate-600 text-transparent'
                                         }`}>
                                         <div className={`h-2.5 w-2.5 rounded-full ${isCompleted ? 'bg-brand-500' : 'bg-slate-300'}`}></div>

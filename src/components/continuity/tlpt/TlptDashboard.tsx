@@ -40,7 +40,7 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
     if (loading) return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[1, 2, 3].map((i) => (
-                <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+                <div key={i || 'unknown'} className="h-48 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
             ))}
         </div>
     );
@@ -72,7 +72,7 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {campaigns.map(campaign => (
                         <div
-                            key={campaign.id}
+                            key={campaign.id || 'unknown'}
                             className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-border/40 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             onClick={() => canEdit && handleEdit(campaign)}
                             onKeyDown={(e) => {

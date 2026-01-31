@@ -223,11 +223,11 @@ export function DataTable<TData extends { id: string }, TValue>({
                     </caption>
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id} className="border-b border-muted/50 bg-muted/20">
+                            <tr key={headerGroup.id || 'unknown'} className="border-b border-muted/50 bg-muted/20">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <th
-                                            key={header.id}
+                                            key={header.id || 'unknown'}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
                                                 "px-4 py-4 sm:px-6 sm:py-4 text-left text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground whitespace-nowrap transition-colors",
@@ -253,9 +253,9 @@ export function DataTable<TData extends { id: string }, TValue>({
                     <tbody className="divide-y divide-border/50">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
-                                <tr key={`skeleton-row-${i}`}>
+                                <tr key={`skeleton-row-${i || 'unknown'}`}>
                                     {tableColumns.map((column, j) => (
-                                        <td key={`skeleton-cell-${j}`} className={cn("px-3 py-3 sm:px-6 sm:py-4", (column.meta as { className?: string })?.className)}>
+                                        <td key={`skeleton-cell-${j || 'unknown'}`} className={cn("px-3 py-3 sm:px-6 sm:py-4", (column.meta as { className?: string })?.className)}>
                                             <Skeleton className="h-4 w-full" />
                                         </td>
                                     ))}
@@ -264,7 +264,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         ) : table.getRowModel().rows.length > 0 ? (
                             table.getRowModel().rows.map((row, index) => (
                                 <motion.tr
-                                    key={row.id}
+                                    key={row.id || 'unknown'}
                                     initial={animateRows ? { opacity: 0, y: 10 } : false}
                                     animate={animateRows ? { opacity: 1, y: 0 } : undefined}
                                     transition={animateRows ? {
@@ -284,7 +284,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className={cn("px-3 py-4 sm:px-6 sm:py-4 text-sm text-foreground font-medium", (cell.column.columnDef.meta as { className?: string })?.className)}>
+                                        <td key={cell.id || 'unknown'} className={cn("px-3 py-4 sm:px-6 sm:py-4 text-sm text-foreground font-medium", (cell.column.columnDef.meta as { className?: string })?.className)}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}
@@ -347,7 +347,7 @@ export function DataTable<TData extends { id: string }, TValue>({
 
                                 return (
                                     <Button
-                                        key={pageNum}
+                                        key={pageNum || 'unknown'}
                                         aria-label={`Page ${pageNum}`}
                                         aria-current={currentPage === pageNum ? 'page' : undefined}
                                         onClick={() => table.setPageIndex(pageNum - 1)}

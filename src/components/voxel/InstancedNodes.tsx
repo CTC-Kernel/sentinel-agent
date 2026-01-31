@@ -313,7 +313,7 @@ export const InstancedNodes: React.FC<InstancedNodesProps> = ({
         ([type, typeNodes]) =>
           typeNodes.length > 0 && (
             <InstanceGroup
-              key={type}
+              key={type || 'unknown'}
               nodeType={type}
               nodes={typeNodes}
               maxInstances={perGroupMaxInstances}

@@ -139,7 +139,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
             <div className="flex gap-1 px-6 py-3 border-b border-border/40 dark:border-white/5 overflow-x-auto">
                 {tabs.map((tab) => (
                     <button
-                        key={tab.id}
+                        key={tab.id || 'unknown'}
                         type="button"
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium transition-all ${activeTab === tab.id
@@ -320,7 +320,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                 <div className="space-y-4">
                                     {serviceFields.map((field, index) => (
                                         <div
-                                            key={field.id}
+                                            key={field.id || 'unknown'}
                                             className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5"
                                         >
                                             <div className="flex items-start justify-between mb-4">
@@ -743,7 +743,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
                                                         return (
                                                             <button
-                                                                key={level}
+                                                                key={level || 'unknown'}
                                                                 type="button"
                                                                 disabled={readOnly}
                                                                 onClick={() => field.onChange(level)}

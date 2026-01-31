@@ -48,7 +48,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
     };
 
     return (
-        <div key={req.id} className="bg-white dark:bg-slate-800 border border-border/40 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-600 group">
+        <div key={req.id || 'unknown'} className="bg-white dark:bg-slate-800 border border-border/40 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-600 group">
             <div
                 className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-3xl"
                 onClick={() => onExpand(isExpanded ? null : req.id)}
@@ -107,7 +107,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                     const docObj = documents.find(d => d.id === docId);
                                     if (!docObj) return null;
                                     return (
-                                        <div key={docId} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40 text-sm hover:border-brand-300 transition-colors group">
+                                        <div key={docId || 'unknown'} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40 text-sm hover:border-brand-300 transition-colors group">
                                             <div className="flex items-center overflow-hidden">
                                                 <FileText className="w-4 h-4 text-brand-500 mr-2 flex-shrink-0" />
                                                 <span className="truncate font-medium text-slate-700 dark:text-slate-200">{docObj.title}</span>

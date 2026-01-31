@@ -162,7 +162,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                         ].map((option) => (
                                                             <button
                                                                 type="button"
-                                                                key={option.id}
+                                                                key={option.id || 'unknown'}
                                                                 aria-label={`Définir la portée sur ${option.label}`}
                                                                 onClick={() => handleScopeChange(option.id as SharingPreferences['defaultScope'])}
                                                                 className={`flex items-center gap-3 p-3 rounded-3xl border text-left transition-all ${settings.defaultScope === option.id
@@ -242,7 +242,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                 {partners.filter(p =>
                                                     p.targetOrgName.toLowerCase().includes(searchQuery.toLowerCase())
                                                 ).map(partner => (
-                                                    <div key={partner.id} className="flex items-center justify-between p-4 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-950">
+                                                    <div key={partner.id || 'unknown'} className="flex items-center justify-between p-4 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
                                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white
                                                             ${partner.status === 'trusted' ? 'bg-green-500' : partner.status === 'blocked' ? 'bg-red-500' : 'bg-slate-400'}

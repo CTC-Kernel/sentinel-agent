@@ -31,7 +31,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="w-[180px] h-[100px]">
+                            <div key={i || 'unknown'} className="w-[180px] h-[100px]">
                                 <CardSkeleton count={1} className="h-full" />
                             </div>
                         ))}

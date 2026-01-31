@@ -213,7 +213,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
-                key={i}
+                key={i || 'unknown'}
                 className="flex-1 h-2 rounded-full transition-all"
                 style={{
                   backgroundColor: i <= probability ? '#3B82F6' : '#334155',
@@ -228,7 +228,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
-                key={i}
+                key={i || 'unknown'}
                 className="flex-1 h-2 rounded-full transition-all"
                 style={{
                   backgroundColor: i <= impact ? '#EF4444' : '#334155',
@@ -690,7 +690,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
   const statusConfig = STATUS_CONFIG[node.status];
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout">
       {isOpen && (
         <>
           {/* Backdrop */}
@@ -800,7 +800,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
                   <div className="divide-y divide-slate-700/30">
                     {linkedEntities.slice(0, 8).map((linkedNode) => (
                       <LinkedEntityItem
-                        key={linkedNode.id}
+                        key={linkedNode.id || 'unknown'}
                         node={linkedNode}
                         onClick={() => onSelectLinkedEntity?.(linkedNode.id)}
                       />

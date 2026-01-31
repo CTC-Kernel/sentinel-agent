@@ -318,7 +318,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
           <div className="flex flex-wrap gap-2">
             {categories.map(({ key, count }) => (
               <button
-                key={key}
+                key={key || 'unknown'}
                 type="button"
                 onClick={() => setSelectedCategory(key)}
                 className={cn(
@@ -362,7 +362,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                 {(Object.entries(widgetsByCategory) as [WidgetCategory, typeof filteredWidgets][])
                   .filter(([, widgets]) => widgets.length > 0)
                   .map(([category, widgets]) => (
-                    <div key={category}>
+                    <div key={category || 'unknown'}>
                       <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                         <span className={cn('p-1.5 rounded-lg', CATEGORY_COLORS[category])}>
                           {CATEGORY_ICONS[category]}
@@ -375,7 +375,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {widgets.map((widget) => (
                           <WidgetCard
-                            key={widget.id}
+                            key={widget.id || 'unknown'}
                             id={widget.id}
                             titleKey={widget.titleKey}
                             category={widget.category}
@@ -392,7 +392,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {filteredWidgets.map((widget) => (
                   <WidgetCard
-                    key={widget.id}
+                    key={widget.id || 'unknown'}
                     id={widget.id}
                     titleKey={widget.titleKey}
                     category={widget.category}

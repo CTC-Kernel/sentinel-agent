@@ -239,7 +239,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                                 <span className="text-xs text-slate-500 dark:text-slate-300 block mb-2">{t('dora.compliance.certifications')}</span>
                                 <div className="flex flex-wrap gap-2">
                                     {provider.compliance.certifications.map((cert, i) => (
-                                        <Badge key={i} status="brand" variant="outline" size="sm">
+                                        <Badge key={i || 'unknown'} status="brand" variant="outline" size="sm">
                                             {cert}
                                         </Badge>
                                     ))}

@@ -63,7 +63,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                         const phaseMilestones = getMilestonesByPhase(phase);
 
                         return (
-                            <React.Fragment key={phase}>
+                            <React.Fragment key={phase || 'unknown'}>
                                 <motion.button
                                     onClick={() => setSelectedPhase(selectedPhase === phase ? null : phase)}
                                     className={cn(
@@ -118,10 +118,10 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
             </PremiumCard>
 
             {/* Phase Details */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
                 {selectedPhase && (
                     <motion.div
-                        key={selectedPhase}
+                        key={selectedPhase || 'unknown'}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}

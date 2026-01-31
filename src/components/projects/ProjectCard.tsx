@@ -129,7 +129,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                     {displayMembers.length > 0 ? (
                         <>
                             {displayMembers.map(m => (
-                                <ProjectCardTooltip key={m.uid} content={m.displayName || m.email}>
+                                <ProjectCardTooltip key={m.uid || 'unknown'} content={m.displayName || m.email}>
                                     <div className="relative">
                                         <img
                                             src={getUserAvatarUrl(m.photoURL, m.role)}

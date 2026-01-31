@@ -84,7 +84,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {PROJECT_TEMPLATES.map(template => (
                                     <button
-                                        key={template.id}
+                                        key={template.id || 'unknown'}
                                         aria-label={`Sélectionner le modèle ${template.name}`}
                                         onClick={() => setSelectedTemplate(template)}
                                         className="text-left p-6 rounded-3xl border-2 border-border/40 dark:border-border/40 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group"

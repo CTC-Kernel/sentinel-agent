@@ -172,7 +172,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
             ref={containerRef}
             className={cn('relative group', className)}
         >
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
                 {isEditing ? (
                     <motion.div
                         key="edit"

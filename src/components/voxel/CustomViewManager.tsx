@@ -84,7 +84,7 @@ function LayerPreview({ layers }: { layers: string[] }) {
     <div className="flex flex-wrap gap-1">
       {layers.map((layer) => (
         <span
-          key={layer}
+          key={layer || 'unknown'}
           className={cn(
             'px-1.5 py-0.5 text-[11px] font-medium rounded text-white',
             layerColors[layer] || 'bg-slate-500'
@@ -386,7 +386,7 @@ export function CustomViewManager({
         <div className="grid gap-3">
           {customViews.map((view) => (
             <CustomViewCard
-              key={view.id}
+              key={view.id || 'unknown'}
               view={view}
               onApply={() => handleApply(view)}
               onEdit={() => handleEdit(view)}

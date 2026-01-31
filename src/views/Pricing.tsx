@@ -235,7 +235,7 @@ const Pricing = () => {
 
             return (
               <motion.div
-                key={plan.id}
+                key={plan.id || 'unknown'}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.3 }}
@@ -299,7 +299,7 @@ const Pricing = () => {
                   {/* Features */}
                   <div className="space-y-4 mb-8 flex-grow">
                     {(plan.featuresList || []).slice(0, 6).map((feature, i) => (
-                      <div key={i} className="flex items-start gap-3">
+                      <div key={i || 'unknown'} className="flex items-start gap-3">
                         <div className="mt-0.5 p-1 rounded-full bg-success-bg dark:bg-success-500/20">
                           <Check className="w-3 h-3 text-success-600 dark:text-success-400" />
                         </div>
@@ -378,7 +378,7 @@ const Pricing = () => {
             {/* Feature Categories */}
             <div className="divide-y divide-slate-200/50 dark:divide-white/5">
               {featureCategories.map((category) => (
-                <div key={category.id}>
+                <div key={category.id || 'unknown'}>
                   <button
                     onClick={() => toggleCategory(category.id)}
                     className="w-full flex items-center justify-between p-6 bg-slate-50/80 dark:bg-slate-900/40 font-bold text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
@@ -401,7 +401,7 @@ const Pricing = () => {
                         <div className="divide-y divide-slate-100/50 dark:divide-white/5">
                           {category.features.map((feature, idx) => (
                             <div
-                              key={idx}
+                              key={idx || 'unknown'}
                               className="grid grid-cols-4 p-4 items-center hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
                             >
                               <div className="col-span-1 flex items-center gap-3 pl-4">
@@ -456,7 +456,7 @@ const Pricing = () => {
 
             <div className="divide-y divide-slate-100/50 dark:divide-white/5">
               {faqs.map((faq, i) => (
-                <div key={i} className="group">
+                <div key={i || 'unknown'} className="group">
                   <button
                     onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
                     className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"

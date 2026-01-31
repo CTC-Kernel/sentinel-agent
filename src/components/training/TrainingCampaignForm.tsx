@@ -311,7 +311,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
           const isCompleted = index < currentStepIndex;
 
           return (
-            <React.Fragment key={step.id}>
+            <React.Fragment key={step.id || 'unknown'}>
               <div className="flex flex-col items-center">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isActive
@@ -341,9 +341,9 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
 
       {/* Step Content */}
       <form onSubmit={handleSubmit(onSubmit)}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.div
-            key={currentStep}
+            key={currentStep || 'unknown'}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
@@ -439,7 +439,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
                     <div className="flex gap-2 mt-3">
                       {FREQUENCY_OPTIONS.map((opt) => (
                         <Controller
-                          key={opt.value}
+                          key={opt.value || 'unknown'}
                           name="recurrence.frequency"
                           control={control}
                           render={({ field }) => (
@@ -485,7 +485,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
                   <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
                     {courses.map((course) => (
                       <CourseSelectCard
-                        key={course.id}
+                        key={course.id || 'unknown'}
                         course={course}
                         selected={selectedCourseIds.includes(course.id)}
                         onToggle={() => toggleCourse(course.id)}
@@ -509,7 +509,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
 
                       return (
                         <Controller
-                          key={opt.value}
+                          key={opt.value || 'unknown'}
                           name="scope"
                           control={control}
                           render={({ field }) => (
@@ -585,7 +585,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
                   </h4>
                   <div className="space-y-2">
                     {selectedCourses.map((course) => (
-                      <div key={course.id} className="flex items-center gap-2">
+                      <div key={course.id || 'unknown'} className="flex items-center gap-2">
                         <GraduationCap className="w-4 h-4 text-primary" />
                         <span className="text-foreground">{course.title}</span>
                       </div>

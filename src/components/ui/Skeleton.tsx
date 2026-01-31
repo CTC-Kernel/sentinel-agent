@@ -70,19 +70,19 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ r
         variants={{ hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 } }}
       >
         {Array.from({ length: columns }).map((_, i) => (
-          <Skeleton key={`header-col-${i}`} className="h-10" noAnimation />
+          <Skeleton key={`header-col-${i || 'unknown'}`} className="h-10" noAnimation />
         ))}
       </motion.div>
       {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <motion.div
-          key={`table-row-${rowIndex}`}
+          key={`table-row-${rowIndex || 'unknown'}`}
           className="grid gap-4"
           style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
           variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}
         >
           {Array.from({ length: columns }).map((_, colIndex) => (
-            <Skeleton key={`cell-${rowIndex}-col-${colIndex}`} className="h-16" noAnimation />
+            <Skeleton key={`cell-${rowIndex || 'unknown'}-col-${colIndex}`} className="h-16" noAnimation />
           ))}
         </motion.div>
       ))}
@@ -113,7 +113,7 @@ export const CardSkeleton: React.FC<{ count?: number; className?: string }> = ({
   return (
     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
-        <SkeletonCard key={`card-skeleton-${i}`} delay={i * 0.1} />
+        <SkeletonCard key={`card-skeleton-${i || 'unknown'}`} delay={i * 0.1} />
       ))}
     </div>
   );
@@ -133,7 +133,7 @@ export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => {
     >
       {Array.from({ length: items }).map((_, i) => (
         <motion.div
-          key={`list-item-skeleton-${i}`}
+          key={`list-item-skeleton-${i || 'unknown'}`}
           className="bg-[var(--glass-bg)] backdrop-blur-xl border border-border/40 p-4 rounded-xl flex items-center space-x-4"
           variants={{
             hidden: { opacity: 0, x: -30 },

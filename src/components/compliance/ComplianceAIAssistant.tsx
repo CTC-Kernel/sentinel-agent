@@ -87,7 +87,7 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
                 <div className="animate-fade-in relative z-10">
                     <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 text-sm text-slate-700 dark:text-slate-300 leading-relaxed shadow-sm border border-white/50 dark:border-white/5 mb-4 max-h-60 overflow-y-auto custom-scrollbar">
                         <div className="prose dark:prose-invert max-w-none text-sm">
-                            {response.split('\n').map((line, i) => <p key={`line-${i}`} className="mb-2 last:mb-0">{line}</p>)}
+                            {response.split('\n').map((line, i) => <p key={`line-${i || 'unknown'}`} className="mb-2 last:mb-0">{line}</p>)}
                         </div>
                     </div>
                     <div className="flex gap-2">

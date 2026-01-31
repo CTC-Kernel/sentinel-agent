@@ -243,7 +243,7 @@ export const CommandPalette: React.FC = () => {
                         <div className="space-y-1.5">
                             {filteredItems.map((item, index) => (
                                 <button
-                                    key={item.id}
+                                    key={item.id || 'unknown'}
                                     onClick={() => handleSelect(item)}
                                     onMouseEnter={() => setSelectedIndex(index)}
                                     className={`w-full flex items-center px-4 py-3.5 rounded-3xl group transition-all duration-200 ${index === selectedIndex

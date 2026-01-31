@@ -234,7 +234,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
               <div className="space-y-1">
                 {NODE_TYPE_LEGEND.map(({ type, label, color, shape, icon, shapeIcon }) => (
                   <div
-                    key={type}
+                    key={type || 'unknown'}
                     className="flex items-center gap-3 py-1.5"
                     role="listitem"
                   >
@@ -275,7 +275,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
                 <div className="space-y-1">
                   {STATUS_LEGEND.map(({ status, label, color, description }) => (
                     <div
-                      key={status}
+                      key={status || 'unknown'}
                       className="flex items-center gap-3 py-1.5"
                       role="listitem"
                     >
@@ -305,7 +305,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
                 <div className="space-y-1">
                   {EDGE_TYPE_LEGEND.map(({ type, label, color, description }) => (
                     <div
-                      key={type}
+                      key={type || 'unknown'}
                       className="flex items-center gap-3 py-1.5"
                       role="listitem"
                     >

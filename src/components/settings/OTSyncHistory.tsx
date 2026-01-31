@@ -297,7 +297,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                 const hasErrors = sync.errors && sync.errors.length > 0;
 
                 return (
-                  <Card key={sync.id} className="overflow-hidden">
+                  <Card key={sync.id || 'unknown'} className="overflow-hidden">
                     {/* Header */}
                     <button
                       type="button"
@@ -360,7 +360,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                           </h4>
                           <ul className="space-y-2 max-h-40 overflow-y-auto">
                             {sync.errors.map((error, i) => (
-                              <li key={i} className="text-sm">
+                              <li key={i || 'unknown'} className="text-sm">
                                 <span className={cn(
                                   'inline-block px-1.5 py-0.5 rounded text-xs font-medium mr-2',
                                   error.severity === 'error'

@@ -186,7 +186,7 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
 
                   return (
                     <button
-                      key={severity}
+                      key={severity || 'unknown'}
                       onClick={() => handleSeverityChange(severity)}
                       className={`
                         px-2.5 py-1 rounded text-[11px] font-medium uppercase transition-all
@@ -481,7 +481,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                 <div className="space-y-3">
                   {thresholds.map((threshold, index) => (
                     <ThresholdRow
-                      key={threshold.anomalyType}
+                      key={threshold.anomalyType || 'unknown'}
                       threshold={threshold}
                       onChange={(updated) => handleThresholdChange(index, updated)}
                     />

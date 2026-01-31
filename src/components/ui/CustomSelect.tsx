@@ -93,7 +93,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                             >
                                 {options.map((option, optionIdx) => (
                                     <ListboxOption
-                                        key={optionIdx}
+                                        key={optionIdx || 'unknown'}
                                         className={({ focus }) =>
                                             `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-brand-50 dark:bg-brand-900/50 text-foreground' : 'text-muted-foreground'
                                             }`

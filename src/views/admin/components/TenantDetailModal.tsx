@@ -147,7 +147,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                     <Tab.List className="flex space-x-6">
                                         {['Overview', 'Subscription'].map((category) => (
                                             <Tab
-                                                key={category}
+                                                key={category || 'unknown'}
                                                 className={({ selected }) =>
                                                     `py-4 text-sm font-medium border-b-2 transition-colors focus:outline-none ${selected
                                                         ? 'border-brand-500 text-brand-400'

@@ -370,7 +370,7 @@ const CausalPath: React.FC<CausalPathProps> = React.memo(({
         const midpoint = new Vector3().addVectors(point, nextPoint).multiplyScalar(0.5);
 
         return (
-          <group key={i} position={midpoint.toArray()}>
+          <group key={i || 'unknown'} position={midpoint.toArray()}>
             <mesh
               rotation={[
                 Math.atan2(direction.y, Math.sqrt(direction.x ** 2 + direction.z ** 2)),
@@ -483,7 +483,7 @@ export const RootCauseVisualization: React.FC<RootCauseVisualizationProps> = Rea
       {/* Causal paths */}
       {allPaths.map((pathData, index) => (
         <CausalPath
-          key={`path-${index}`}
+          key={`path-${index || 'unknown'}`}
           path={pathData.path}
           nodes={allNodes}
           likelihood={pathData.likelihood}
@@ -496,7 +496,7 @@ export const RootCauseVisualization: React.FC<RootCauseVisualizationProps> = Rea
       {/* Root cause node highlights */}
       {topCauses.map((cause, index) => (
         <RootCauseNodeHighlight
-          key={cause.nodeId}
+          key={cause.nodeId || 'unknown'}
           cause={cause}
           active={isActive}
           delay={cause.depth * 150 + index * 50}

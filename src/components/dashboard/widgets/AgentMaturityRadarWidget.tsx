@@ -150,7 +150,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
 
                     {blips.map(blip => (
                         <div
-                            key={blip.id}
+                            key={blip.id || 'unknown'}
                             className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-ping"
                             style={{
                                 left: `${blip.x}%`,

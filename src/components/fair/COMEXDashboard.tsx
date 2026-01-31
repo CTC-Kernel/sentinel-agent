@@ -169,7 +169,7 @@ const RiskTable: React.FC<RiskTableProps> = ({ risks, currency, onDrillDown }) =
           {risks.map((risk, index) => {
             const riskLevel = getRiskLevel(risk.ale);
             return (
-              <tr key={risk.id} className="border-b last:border-0 hover:bg-muted/50">
+              <tr key={risk.id || 'unknown'} className="border-b last:border-0 hover:bg-muted/50">
                 <td className="py-3">
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-bold text-muted-foreground">
@@ -407,7 +407,7 @@ export const COMEXDashboard: React.FC<COMEXDashboardProps> = ({
                     ? (data.ale / summary.totalALE) * 100
                     : 0;
                   return (
-                    <div key={category}>
+                    <div key={category || 'unknown'}>
                       <div className="flex items-center justify-between text-sm mb-1">
                         <span className="capitalize">{category}</span>
                         <span className="font-medium">

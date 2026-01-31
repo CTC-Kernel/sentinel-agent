@@ -82,7 +82,7 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
                     {layout.map((widget) => (
                         !widget.isHidden && (
                             <SortableWidget
-                                key={widget.id}
+                                key={widget.id || 'unknown'}
                                 widget={widget}
                                 isEditing={isEditing}
                                 onRemove={handleRemoveWidget}

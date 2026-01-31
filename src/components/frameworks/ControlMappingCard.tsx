@@ -100,7 +100,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
             <div className="flex flex-wrap items-center gap-1.5 mt-3">
               {control.mappings.map((mapping) => (
                 <div
-                  key={mapping.frameworkId}
+                  key={mapping.frameworkId || 'unknown'}
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800"
                 >
                   <div className={cn('w-2 h-2 rounded-full', FRAMEWORK_COLORS[mapping.frameworkCode])} />

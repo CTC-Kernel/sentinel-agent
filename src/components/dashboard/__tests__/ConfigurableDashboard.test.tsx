@@ -116,7 +116,7 @@ vi.mock('../configurable/ConfigurableDashboardGrid', () => ({
   ConfigurableDashboardGrid: vi.fn(({ layout, isEditing }) => (
     <div data-testid="dashboard-grid" data-editing={isEditing}>
       {layout.map((w: WidgetLayout) => (
-        <div key={w.id} data-testid={`widget-${w.widgetId}`}>
+        <div key={w.id || 'unknown'} data-testid={`widget-${w.widgetId}`}>
           {w.widgetId}
         </div>
       ))}

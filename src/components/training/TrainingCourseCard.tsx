@@ -277,7 +277,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
         <div className="flex flex-wrap gap-1.5">
           {frameworkBadges.map((badge) => (
             <span
-              key={badge.label}
+              key={badge.label || 'unknown'}
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${badge.color}`}
             >
               {badge.label}

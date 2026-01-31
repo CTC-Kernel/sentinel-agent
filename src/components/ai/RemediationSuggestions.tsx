@@ -127,7 +127,7 @@ const ImpactSummaryCard: React.FC<{
                             const Icon = CategoryIcons[cat.category];
                             return (
                                 <Badge
-                                    key={cat.category}
+                                    key={cat.category || 'unknown'}
                                     variant="outline"
                                     className="gap-1"
                                 >
@@ -241,7 +241,7 @@ const ActionCard: React.FC<{
                                     <div className="space-y-2">
                                         {action.steps.map((step) => (
                                             <div
-                                                key={step.stepNumber}
+                                                key={step.stepNumber || 'unknown'}
                                                 className="flex items-start gap-3 text-sm"
                                             >
                                                 <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0 text-xs font-medium">
@@ -286,7 +286,7 @@ const ActionCard: React.FC<{
                                     <div className="flex flex-wrap gap-2">
                                         {action.resources.map((resource, idx) => (
                                             <Button
-                                                key={idx}
+                                                key={idx || 'unknown'}
                                                 variant="outline"
                                                 size="sm"
                                                 className="gap-1"
@@ -370,7 +370,7 @@ const FilterControls: React.FC<{
                 <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
                     {sortOptions.map((option) => (
                         <Button
-                            key={option.value}
+                            key={option.value || 'unknown'}
                             variant={sortBy === option.value ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => onSortChange(option.value)}
@@ -587,7 +587,7 @@ export const RemediationSuggestions: React.FC<RemediationSuggestionsProps> = ({
                 <div className="space-y-3">
                     {displayActions.map((action) => (
                         <ActionCard
-                            key={action.id}
+                            key={action.id || 'unknown'}
                             action={action}
                             onExecute={action.hasAutomatedRemediation ? () => handleExecute(action) : undefined}
                             onDownloadScript={action.remediationScriptId ? () => handleDownloadScript(action) : undefined}

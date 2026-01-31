@@ -208,7 +208,7 @@ const PresetDropdown: React.FC<PresetDropdownProps> = React.memo(
           <DropdownMenuGroup>
             {presets.map((preset) => (
               <DropdownMenuItem
-                key={preset.key}
+                key={preset.key || 'unknown'}
                 onClick={() => onPresetChange(preset.key)}
                 className="gap-3 cursor-pointer py-2"
               >
@@ -296,7 +296,7 @@ export const SegmentFilter: React.FC<SegmentFilterProps> = React.memo(
         <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-900/50 backdrop-blur-sm border border-slate-800">
           {(['IT', 'OT', 'DMZ'] as NetworkSegment[]).map((segment) => (
             <SegmentToggle
-              key={segment}
+              key={segment || 'unknown'}
               segment={segment}
               isActive={visibility[segment]}
               nodeCount={nodeCounts?.[segment]}

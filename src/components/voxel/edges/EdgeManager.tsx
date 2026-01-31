@@ -134,7 +134,7 @@ export const EdgeManager: React.FC<EdgeManagerProps> = ({
 
         return (
           <VoxelEdge
-            key={edge.id}
+            key={edge.id || 'unknown'}
             data={edge}
             sourcePosition={sourcePos}
             targetPosition={targetPos}

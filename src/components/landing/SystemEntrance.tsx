@@ -49,7 +49,7 @@ export const SystemEntrance: React.FC = () => {
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-green-600 dark:text-green-400 font-mono flex items-center justify-center p-8 transition-colors duration-500">
                 <div className="w-full max-w-lg">
                     {bootSequence.map((line, i) => (
-                        <div key={`msg-${i}`} className="mb-2 animate-fade-in font-bold">
+                        <div key={`msg-${i || 'unknown'}`} className="mb-2 animate-fade-in font-bold">
                             <span className="opacity-60 mr-2">{`>`}</span>
                             {line}
                         </div>

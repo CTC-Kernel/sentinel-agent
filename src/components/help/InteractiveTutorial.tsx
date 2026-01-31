@@ -149,7 +149,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
       <div className="space-y-3">
         {steps.map((step, index) => (
           <TutorialStep
-            key={index}
+            key={index || 'unknown'}
             step={index + 1}
             title={step.title}
             description={step.description}

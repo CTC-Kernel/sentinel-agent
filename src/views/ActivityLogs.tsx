@@ -67,7 +67,7 @@ export const ActivityLogs: React.FC = () => {
                             { label: t('activity.stats.critical'), value: stats?.criticalAlerts || 0, icon: AlertTriangle, color: 'text-red-500' },
                             { label: t('activity.stats.admins'), value: stats?.activeAdmins || 0, icon: Shield, color: 'text-emerald-500' },
                         ].map((stat) => (
-                            <div key={stat.label} className="glass-premium p-5 rounded-2xl flex items-center gap-4">
+                            <div key={stat.label || 'unknown'} className="glass-premium p-5 rounded-2xl flex items-center gap-4">
                                 <div className={`p-3 rounded-xl bg-white/50 dark:bg-white/5 ${stat.color}`}>
                                     <stat.icon className="h-6 w-6" />
                                 </div>

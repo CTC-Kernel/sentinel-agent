@@ -86,7 +86,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                 {/* Gauge Section */}
                 <div className="flex-shrink-0 flex items-center gap-4">
                     <div className="relative w-32 h-32">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"

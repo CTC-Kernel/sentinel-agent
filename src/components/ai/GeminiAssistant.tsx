@@ -270,7 +270,7 @@ export const GeminiAssistant: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar scroll-smooth bg-slate-50/30 dark:bg-black/20">
                 {messages.map((msg) => (
                     <ChatMessage
-                        key={msg.id}
+                        key={msg.id || 'unknown'}
                         message={msg}
                         onCopy={copyToClipboard}
                         copiedId={copiedId}
@@ -301,7 +301,7 @@ export const GeminiAssistant: React.FC = () => {
                     {QUICK_PROMPTS.map((qp) => (
                         <button
                             type="button"
-                            key={qp.label}
+                            key={qp.label || 'unknown'}
                             onClick={(e) => handleSend(e, qp.prompt)}
                             className="whitespace-nowrap flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-200 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 transition-all"
                             aria-label={`Prompt rapide : ${qp.label}`}

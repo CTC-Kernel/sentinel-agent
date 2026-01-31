@@ -121,7 +121,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                     <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pb-6">
                         {filteredPartners.map(partner => (
                             <button
-                                key={partner.id}
+                                key={partner.id || 'unknown'}
                                 onClick={() => handleAssign(partner)}
                                 disabled={!!assigning}
                                 className="w-full flex items-center justify-between p-4 rounded-3xl border border-border/40 dark:border-white/5 hover:border-brand-400 dark:hover:border-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"

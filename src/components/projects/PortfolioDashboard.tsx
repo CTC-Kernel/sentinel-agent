@@ -92,7 +92,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                         </div>
                         <div className="flex-1 grid grid-cols-3 gap-4 border-l border-border/40 dark:border-border/40 px-6 mx-2">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="space-y-2">
+                                <div key={i || 'unknown'} className="space-y-2">
                                     <Skeleton className="h-4 w-16 rounded" />
                                     <Skeleton className="h-8 w-12 rounded" />
                                 </div>
@@ -110,7 +110,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {/* Secondary Charts Loading State */}
                     {[1, 2].map(i => (
-                        <div key={i} className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 animate-pulse">
+                        <div key={i || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 animate-pulse">
                             <Skeleton className="h-4 w-48 rounded mb-4" />
                             <Skeleton className="h-[250px] w-full rounded" />
                         </div>
@@ -189,7 +189,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                 className="scale-75 origin-top"
                             />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <Pie
                                         data={statusData}
@@ -203,7 +203,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                         stroke="none"
                                     >
                                         {statusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.1)" strokeWidth={2} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} stroke="rgba(255,255,255,0.1)" strokeWidth={2} />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
@@ -229,7 +229,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                 className="scale-75 origin-top"
                             />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={progressData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
@@ -260,7 +260,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                 className="scale-75 origin-top"
                             />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={deadlineData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="deadlineGradient" x1="0" y1="0" x2="0" y2="1">

@@ -51,7 +51,7 @@ export const MigrationTool: React.FC = () => {
                 {logs.length === 0 ? (
                     <span className="text-slate-500 italic">Prêt à démarrer...</span>
                 ) : (
-                    logs.map((l, i) => <div key={`${i}-${l}`} className="mb-1 text-slate-600 dark:text-muted-foreground">{l}</div>)
+                    logs.map((l, i) => <div key={`${i || 'unknown'}-${l}`} className="mb-1 text-slate-600 dark:text-muted-foreground">{l}</div>)
                 )}
             </div>
 

@@ -142,7 +142,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
                 {filteredResults.length > 0 ? (
                   filteredResults.map((result, index) => (
                     <motion.button
-                      key={result.id}
+                      key={result.id || 'unknown'}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}

@@ -92,7 +92,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
         // const isMe = comment.userId === user?.uid; // Unused for now but good for styling in future
 
         return (
-            <div key={comment.id} className={cn("flex gap-3", isReply ? "ml-8 mt-2" : "mt-4")}>
+            <div key={comment.id || 'unknown'} className={cn("flex gap-3", isReply ? "ml-8 mt-2" : "mt-4")}>
                 <div className="flex-shrink-0">
                     <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-muted-foreground">
                         {comment.userName.charAt(0).toUpperCase()}
@@ -111,7 +111,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                             {comment.content.split(' ').map((word, i) => {
                                 if (word.startsWith('@')) {
-                                    return <span key={`${i}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-900 px-1 rounded">{word} </span>
+                                    return <span key={`${i || 'unknown'}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-900 px-1 rounded">{word} </span>
                                 }
                                 return word + ' ';
                             })}
@@ -142,7 +142,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                     </div>
                 ) : (
                     organizedComments.map((root) => (
-                        <div key={root.id}>
+                        <div key={root.id || 'unknown'}>
                             {renderComment(root)}
                             {(root as Comment & { replies?: Comment[] }).replies?.map((reply: Comment) => renderComment(reply, true))}
                         </div>

@@ -133,7 +133,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                             <div className="grid gap-3" role="radiogroup" aria-labelledby="template-label">
                                 {PROGRAM_TEMPLATES.map((template) => (
                                     <button
-                                        key={template.id}
+                                        key={template.id || 'unknown'}
                                         type="button"
                                         onClick={() => setValue('template', template.id)}
                                         aria-checked={selectedTemplate === template.id}

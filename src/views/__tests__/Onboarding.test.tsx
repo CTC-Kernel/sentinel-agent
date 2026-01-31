@@ -184,7 +184,7 @@ vi.mock('../../components/ui/CustomSelect', () => ({
             <label>{label}</label>
             <select value={value} onChange={(e) => onChange(e.target.value)}>
                 {options.map((opt: { value: string; label: string }) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value || 'unknown'} value={opt.value}>{opt.label}</option>
                 ))}
             </select>
         </div>

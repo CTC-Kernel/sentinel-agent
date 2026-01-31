@@ -112,7 +112,7 @@ const StatsSummary: React.FC<{
         return (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-24 bg-muted/50 rounded-2xl" />
+                    <div key={i || 'unknown'} className="h-24 bg-muted/50 rounded-2xl" />
                 ))}
             </div>
         );
@@ -177,7 +177,7 @@ const RiskDistribution: React.FC<{
                     if (width === 0) return null;
                     return (
                         <div
-                            key={key}
+                            key={key || 'unknown'}
                             className={cn(color, 'transition-all duration-500')}
                             style={{ width: `${width}%` }}
                         />
@@ -186,7 +186,7 @@ const RiskDistribution: React.FC<{
             </div>
             <div className="flex flex-wrap gap-4 mt-4">
                 {levels.map(({ key, label, color }) => (
-                    <div key={key} className="flex items-center gap-2 text-sm">
+                    <div key={key || 'unknown'} className="flex items-center gap-2 text-sm">
                         <div className={cn('w-3 h-3 rounded-full', color)} />
                         <span className="text-muted-foreground">{label}</span>
                         <span className="font-medium">{byRiskLevel[key]}</span>
@@ -252,7 +252,7 @@ const FilterDropdown: React.FC<{
                     >
                         {options.map(option => (
                             <button
-                                key={option.value}
+                                key={option.value || 'unknown'}
                                 onClick={() => toggleOption(option.value)}
                                 role="checkbox"
                                 aria-checked={selected.includes(option.value)}
@@ -304,7 +304,7 @@ const SoftwareInventorySkeleton: React.FC = () => (
     <div className="flex flex-col gap-6 animate-pulse">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-24 bg-muted/50 rounded-2xl" />
+                <div key={i || 'unknown'} className="h-24 bg-muted/50 rounded-2xl" />
             ))}
         </div>
         <div className="h-16 bg-muted/50 rounded-2xl" />
@@ -792,7 +792,7 @@ export const SoftwareInventory: React.FC = () => {
                             <div className="space-y-2">
                                 {selectedSoftware.versions.map((version, idx) => (
                                     <div
-                                        key={idx}
+                                        key={idx || 'unknown'}
                                         className={cn(
                                             'flex items-center justify-between p-3 rounded-lg',
                                             version.isLatest ? 'bg-success/10' : 'bg-muted/50'
@@ -852,7 +852,7 @@ export const SoftwareInventory: React.FC = () => {
                                 {selectedSoftware.linkedCveIds.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
                                         {selectedSoftware.linkedCveIds.slice(0, 5).map(cveId => (
-                                            <Badge key={cveId} variant="outline">
+                                            <Badge key={cveId || 'unknown'} variant="outline">
                                                 {cveId}
                                             </Badge>
                                         ))}

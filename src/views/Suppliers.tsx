@@ -496,7 +496,7 @@ export const Suppliers: React.FC = () => {
                 />
             </motion.div>
 
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
                 {activeTab === 'overview' && (
                     <motion.div
                         key="overview"
@@ -693,7 +693,7 @@ export const Suppliers: React.FC = () => {
                                 ) : (
                                     filteredSuppliers.map(supplier => (
                                         <SupplierCard
-                                            key={supplier.id}
+                                            key={supplier.id || 'unknown'}
                                             supplier={supplier}
                                             onClick={handleCardClick}
                                             onDelete={canEdit ? () => handleDeleteClick(supplier) : undefined}

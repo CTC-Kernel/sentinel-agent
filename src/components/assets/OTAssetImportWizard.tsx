@@ -260,7 +260,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         const Icon = step.icon;
 
         return (
-          <React.Fragment key={step.key}>
+          <React.Fragment key={step.key || 'unknown'}>
             {index > 0 && (
               <div className={cn(
                 'w-12 h-0.5 mx-2',
@@ -365,7 +365,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
     };
 
     const renderFieldMapping = (fieldName: string, isRequired: boolean) => (
-      <div key={fieldName} className="flex items-center gap-4 py-2">
+      <div key={fieldName || 'unknown'} className="flex items-center gap-4 py-2">
         <div className="w-40">
           <span className="text-sm font-medium">
             {t(`otImport.fields.${fieldName}`, fieldName)}
@@ -382,7 +382,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         >
           <option value="">{t('otImport.mapping.selectColumn', '-- Sélectionner --')}</option>
           {csvData.headers.map(header => (
-            <option key={header} value={header}>{header}</option>
+            <option key={header || 'unknown'} value={header}>{header}</option>
           ))}
         </select>
         {getMappedColumn(fieldName) && (
@@ -471,7 +471,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
               </thead>
               <tbody className="divide-y">
                 {validatedRows.slice(0, 20).map(row => (
-                  <tr key={row.rowNumber} className={cn(
+                  <tr key={row.rowNumber || 'unknown'} className={cn(
                     !row.isValid && 'bg-red-50',
                     row.isValid && row.warnings.length > 0 && 'bg-amber-50'
                   )}>
@@ -582,7 +582,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
             </h4>
             <div className="max-h-40 overflow-y-auto space-y-2">
               {importResult.errors.slice(0, 10).map((err, i) => (
-                <div key={i} className="text-sm">
+                <div key={i || 'unknown'} className="text-sm">
                   <span className="font-medium">Ligne {err.rowNumber}:</span>{' '}
                   {err.errors.map(e => e.message).join(', ')}
                 </div>

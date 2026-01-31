@@ -162,7 +162,7 @@ const ARReticle: React.FC<ARReticleProps> = ({
       {/* Cross markers */}
       {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((angle, i) => (
         <mesh
-          key={i}
+          key={i || 'unknown'}
           position={[Math.cos(angle) * 0.2, 0.001, Math.sin(angle) * 0.2]}
           rotation={[-Math.PI / 2, 0, 0]}
         >

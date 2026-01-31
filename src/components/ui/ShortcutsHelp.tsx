@@ -69,20 +69,20 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
 
                 <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
                     {shortcutGroups.map((group) => (
-                        <div key={group.title}>
+                        <div key={group.title || 'unknown'}>
                             <h4 className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-3">
                                 {group.title}
                             </h4>
                             <div className="space-y-2">
                                 {group.shortcuts.map((shortcut) => (
-                                    <div key={shortcut.description} className="flex items-center justify-between group">
+                                    <div key={shortcut.description || 'unknown'} className="flex items-center justify-between group">
                                         <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                                             {shortcut.description}
                                         </span>
                                         <div className="flex items-center gap-1">
                                             {shortcut.keys.map((key, i) => (
                                                 <kbd
-                                                    key={`key-${i}-${key}`}
+                                                    key={`key-${i || 'unknown'}-${key}`}
                                                     className="min-w-[24px] px-2 py-1 flex items-center justify-center bg-slate-100 dark:bg-slate-800 border-b-2 border-border/40 dark:border-slate-700 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider font-mono"
                                                 >
                                                     {key === 'Cmd' ? <Command className="h-3 w-3" /> : key}

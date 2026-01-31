@@ -200,7 +200,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                     <div className="grid grid-cols-3 gap-2">
                         {templateIds.map((tid) => (
                             <button
-                                key={tid}
+                                key={tid || 'unknown'}
                                 type="button"
                                 onClick={() => setValue('templateId', tid, { shouldDirty: true })}
                                 aria-pressed={watchedTemplateId === tid}
@@ -226,7 +226,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                     <div className="grid grid-cols-3 gap-2">
                         {frequencies.map((freq) => (
                             <button
-                                key={freq}
+                                key={freq || 'unknown'}
                                 type="button"
                                 onClick={() => setValue('frequency', freq, { shouldDirty: true })}
                                 aria-pressed={watchedFrequency === freq}
@@ -257,7 +257,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
                         >
                             {Object.entries(dayOfWeekLabels).map(([value, label]) => (
-                                <option key={value} value={value}>{label}</option>
+                                <option key={value || 'unknown'} value={value}>{label}</option>
                             ))}
                         </select>
                     </div>
@@ -274,7 +274,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
                         >
                             {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
-                                <option key={day} value={day}>
+                                <option key={day || 'unknown'} value={day}>
                                     {day === 1 ? '1er' : day}
                                 </option>
                             ))}
@@ -303,7 +303,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                     </span>
                     <div className="space-y-2">
                         {fields.map((field, index) => (
-                            <div key={field.id} className="flex gap-2">
+                            <div key={field.id || 'unknown'} className="flex gap-2">
                                 <input
                                     type="email"
                                     {...register(`recipients.${index}`)}
@@ -347,7 +347,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                 { key: 'config.includeProjects', label: 'Projets' },
                                 { key: 'config.includeIncidents', label: 'Incidents' }
                             ].map(({ key, label }) => (
-                                <label key={key} className="flex items-center gap-2 cursor-pointer">
+                                <label key={key || 'unknown'} className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
                                         {...register(key as keyof ScheduledReportFormData)}

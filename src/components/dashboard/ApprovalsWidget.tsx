@@ -61,7 +61,7 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
             <div className="space-y-3">
                 {pendingApprovals.slice(0, 3).map(doc => (
                     <div
-                        key={doc.id}
+                        key={doc.id || 'unknown'}
                         onClick={() => handleDocumentClick(doc.id)}
                         role="button"
                         tabIndex={0}

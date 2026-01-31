@@ -101,7 +101,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
         </div>
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <OverdueItemSkeleton key={i} />
+            <OverdueItemSkeleton key={i || 'unknown'} />
           ))}
         </div>
       </div>
@@ -162,7 +162,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
 
               return (
                 <motion.div
-                  key={assignment.id}
+                  key={assignment.id || 'unknown'}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}

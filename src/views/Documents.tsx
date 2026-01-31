@@ -66,7 +66,7 @@ const DocumentCardSkeleton = () => (
 const DocumentGridSkeleton = ({ count = 6 }) => (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {Array.from({ length: count }).map((_, i) => (
-            <DocumentCardSkeleton key={i} />
+            <DocumentCardSkeleton key={i || 'unknown'} />
         ))}
     </div>
 );
@@ -449,7 +449,7 @@ export const Documents: React.FC = () => {
                 />
             </div>
 
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
                 {/* Overview Tab - Charts Dashboard */}
                 {activeTab === 'overview' && (
                     <motion.div
@@ -462,7 +462,7 @@ export const Documents: React.FC = () => {
                         {loading ? (
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                                 {[...Array(4)].map((_, i) => (
-                                    <div key={i} className="glass-premium p-6 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                                    <div key={i || 'unknown'} className="glass-premium p-6 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
                                 ))}
                             </div>
                         ) : (
@@ -628,7 +628,7 @@ export const Documents: React.FC = () => {
                                     >
                                         {filteredDocuments.map(doc => (
                                             <MemoizedDocumentCard
-                                                key={doc.id}
+                                                key={doc.id || 'unknown'}
                                                 doc={doc}
                                                 viewMode={viewMode}
                                                 onSelect={setSelectedDocument}

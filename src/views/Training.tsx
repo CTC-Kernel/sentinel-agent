@@ -245,7 +245,7 @@ export const Training: React.FC = () => {
       case 'dashboard':
         return (
           <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
-            <TrainingDashboard key={refreshKey} />
+            <TrainingDashboard key={refreshKey || 'unknown'} />
           </React.Suspense>
         );
 
@@ -253,7 +253,7 @@ export const Training: React.FC = () => {
         return (
           <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
             <TrainingCatalog
-              key={refreshKey}
+              key={refreshKey || 'unknown'}
               onCreateCourse={() => setViewState({ type: 'create-course' })}
               onViewCourse={(course) => setViewState({ type: 'edit-course', course })}
               onEditCourse={(course) => setViewState({ type: 'edit-course', course })}
@@ -268,7 +268,7 @@ export const Training: React.FC = () => {
       case 'my-training':
         return (
           <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
-            <MyTrainingPage key={refreshKey} />
+            <MyTrainingPage key={refreshKey || 'unknown'} />
           </React.Suspense>
         );
 
@@ -276,7 +276,7 @@ export const Training: React.FC = () => {
         return (
           <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
             <TrainingCampaignList
-              key={refreshKey}
+              key={refreshKey || 'unknown'}
               onCreateCampaign={() => setViewState({ type: 'create-campaign' })}
               onViewCampaign={(campaign) => setViewState({ type: 'view-campaign', campaign })}
             />
@@ -329,9 +329,9 @@ export const Training: React.FC = () => {
         )}
 
         {/* Content */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.div
-            key={viewState.type === 'list' ? activeTab : viewState.type}
+            key={viewState.type === 'list' ? activeTab : viewState.type || 'unknown'}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

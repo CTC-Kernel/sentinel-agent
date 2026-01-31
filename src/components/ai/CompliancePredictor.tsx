@@ -426,7 +426,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
             <div className="space-y-4">
                 {displayPredictions.map((prediction) => (
                     <motion.div
-                        key={prediction.id}
+                        key={prediction.id || 'unknown'}
                         variants={slideUpVariants}
                         className="glass-premium rounded-2xl overflow-hidden border border-border/40"
                     >
@@ -497,7 +497,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
                                             <div className="space-y-3">
                                                 {prediction.predictions.map((target, idx) => (
                                                     <PredictionCard
-                                                        key={idx}
+                                                        key={idx || 'unknown'}
                                                         prediction={target}
                                                         isPrimary={idx === 0}
                                                     />
@@ -514,7 +514,7 @@ export const CompliancePredictor: React.FC<CompliancePredictorProps> = ({
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     {prediction.factors.map((factor, idx) => (
                                                         <div
-                                                            key={idx}
+                                                            key={idx || 'unknown'}
                                                             className={cn(
                                                                 'p-3 rounded-lg text-sm',
                                                                 factor.type === 'positive' && 'bg-success/10',

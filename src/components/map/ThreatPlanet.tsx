@@ -239,7 +239,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             {markers.map((m, i) => {
                 return (
                     <ThreatMarker
-                        key={i}
+                        key={i || 'unknown'}
                         position={m.vec3}
                         name={m.name}
                         intensity={m.intensity}

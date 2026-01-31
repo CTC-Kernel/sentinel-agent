@@ -345,7 +345,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
               <div className="space-y-0.5">
                 {ALL_NODE_TYPES.map((type) => (
                   <CheckboxFilter
-                    key={type}
+                    key={type || 'unknown'}
                     label={NODE_TYPE_CONFIG[type].label}
                     checked={filters.nodeTypes.includes(type)}
                     onChange={() => toggleNodeType(type)}
@@ -366,7 +366,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
               <div className="space-y-0.5">
                 {ALL_STATUSES.map((status) => (
                   <CheckboxFilter
-                    key={status}
+                    key={status || 'unknown'}
                     label={STATUS_CONFIG[status].label}
                     checked={filters.statuses.includes(status)}
                     onChange={() => toggleStatus(status)}
@@ -397,7 +397,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
                   {getActiveFilterBadges.map((badge, index) => (
                     <FilterBadge
-                      key={index}
+                      key={index || 'unknown'}
                       label={badge.label}
                       onRemove={badge.onRemove}
                       color={badge.color}

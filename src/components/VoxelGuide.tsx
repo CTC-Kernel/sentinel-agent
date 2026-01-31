@@ -94,7 +94,7 @@ const GUIDE_SECTIONS = [
                         { label: 'Incidents', color: 'bg-red-500', desc: 'Événements de sécurité' },
                         { label: 'Fournisseurs', color: 'bg-amber-500', desc: 'Tiers et partenaires' },
                     ].map(item => (
-                        <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                        <div key={item.label || 'unknown'} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
                             <span className={`w-3 h-3 rounded-full ${item.color}`} />
                             <div>
                                 <span className="text-xs font-medium text-white">{item.label}</span>
@@ -166,7 +166,7 @@ const GUIDE_SECTIONS = [
                         { icon: Maximize2, label: 'Plein écran (F)', desc: 'Mode immersif' },
                         { icon: Camera, label: 'Capture (S)', desc: 'Télécharger une image' },
                     ].map(item => (
-                        <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                        <div key={item.label || 'unknown'} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
                             <item.icon className="w-4 h-4 text-muted-foreground" />
                             <span className="text-xs font-medium text-white w-24">{item.label}</span>
                             <span className="text-xs text-slate-500">{item.desc}</span>
@@ -229,7 +229,7 @@ const GUIDE_SECTIONS = [
                     { key: 'L', action: 'Ouvrir le menu des calques' },
                     { key: 'S', action: 'Capturer l\'écran' },
                 ].map(item => (
-                    <div key={item.key} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                    <div key={item.key || 'unknown'} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
                         <span className="text-xs text-muted-foreground">{item.action}</span>
                         <kbd className="px-2 py-1 rounded bg-slate-800 text-xs font-mono text-white">{item.key}</kbd>
                     </div>
@@ -337,9 +337,9 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
 
                         {/* Content */}
                         <div className="p-5 max-h-[50vh] overflow-y-auto">
-                            <AnimatePresence mode="wait">
+                            <AnimatePresence mode="popLayout">
                                 <motion.div
-                                    key={currentSection}
+                                    key={currentSection || 'unknown'}
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
@@ -355,7 +355,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                             <div className="flex items-center gap-1">
                                 {GUIDE_SECTIONS.map((_, idx) => (
                                     <button
-                                        key={idx}
+                                        key={idx || 'unknown'}
                                         onClick={() => setCurrentSection(idx)}
                                         className={`w-2 h-2 rounded-full transition-all ${idx === currentSection
                                             ? 'w-6 bg-indigo-500'

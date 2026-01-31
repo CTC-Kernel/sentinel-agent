@@ -108,7 +108,7 @@ const HighDetailAsset: React.FC<DetailGeometryProps> = ({ color, emissiveColor, 
     </mesh>
     {/* Status lights */}
     {[0, 0.25, 0.5].map((offset, i) => (
-      <mesh key={i} position={[(offset - 0.25) * 0.8, 0.25, 0.28]}>
+      <mesh key={i || 'unknown'} position={[(offset - 0.25) * 0.8, 0.25, 0.28]}>
         <boxGeometry args={[0.06, 0.04, 0.02]} />
         <meshBasicMaterial color="#22c55e" transparent opacity={0.9} />
       </mesh>
@@ -135,7 +135,7 @@ const HighDetailRisk: React.FC<DetailGeometryProps> = ({ color, emissiveColor, o
       const angle = (Math.PI / 2) * i;
       return (
         <mesh
-          key={i}
+          key={i || 'unknown'}
           position={[Math.cos(angle) * 0.55, 0, Math.sin(angle) * 0.55]}
           rotation={[Math.PI / 2, angle, 0]}
         >

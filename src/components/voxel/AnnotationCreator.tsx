@@ -334,7 +334,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
               <div className="flex gap-2" id="anno-type">
                 {TYPE_OPTIONS.map((option) => (
                   <button
-                    key={option.value}
+                    key={option.value || 'unknown'}
                     onClick={() => setType(option.value)}
                     aria-pressed={type === option.value}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-3xl transition-all ${type === option.value
@@ -374,7 +374,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
               <div className="flex gap-2" id="anno-color">
                 {COLOR_PRESETS.map((presetColor) => (
                   <button
-                    key={presetColor}
+                    key={presetColor || 'unknown'}
                     onClick={() => setColor(presetColor)}
                     aria-label={`Sélectionner la couleur ${presetColor}`}
                     aria-pressed={color === presetColor}
@@ -394,7 +394,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
               <div className="flex gap-2" id="anno-visibility">
                 {VISIBILITY_OPTIONS.map((option) => (
                   <button
-                    key={option.value}
+                    key={option.value || 'unknown'}
                     onClick={() => setVisibility(option.value)}
                     aria-pressed={visibility === option.value}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-3xl transition-all ${visibility === option.value

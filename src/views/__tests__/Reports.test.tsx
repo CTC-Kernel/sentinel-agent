@@ -134,7 +134,7 @@ vi.mock('../../components/ui/ScrollableTabs', () => ({
     ScrollableTabs: ({ tabs, onTabChange }: { tabs: Array<{ id: string; label: string }>, onTabChange: (id: string) => void }) => (
         <div>
             {tabs.map((t: { id: string; label: string }) => (
-                <button aria-label={t.label} key={t.id} onClick={() => onTabChange(t.id)}>{t.label}</button>
+                <button aria-label={t.label} key={t.id || 'unknown'} onClick={() => onTabChange(t.id)}>{t.label}</button>
             ))}
         </div>
     )

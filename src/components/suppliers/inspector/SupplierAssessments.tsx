@@ -202,7 +202,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
             const isActive = statusFilter === status;
             return (
               <button
-                key={status}
+                key={status || 'unknown'}
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   isActive
@@ -247,7 +247,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
 
             return (
               <div
-                key={assessment.id}
+                key={assessment.id || 'unknown'}
                 className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-border/40 dark:border-border/40 hover:border-brand-300 dark:hover:border-brand-700 transition-colors group"
               >
                 <div className="flex justify-between items-start">

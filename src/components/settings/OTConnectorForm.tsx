@@ -259,7 +259,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
         const Icon = step.icon;
 
         return (
-          <React.Fragment key={step.key}>
+          <React.Fragment key={step.key || 'unknown'}>
             {index > 0 && (
               <div className={cn(
                 'w-12 h-0.5 mx-2',
@@ -337,7 +337,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
 
             return (
               <button
-                key={type}
+                key={type || 'unknown'}
                 type="button"
                 onClick={() => !isDisabled && updateField('type', type)}
                 disabled={isDisabled}
@@ -485,7 +485,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
         <div className="space-y-2">
           {(['manual', 'interval', 'cron'] as ScheduleType[]).map(type => (
             <label
-              key={type}
+              key={type || 'unknown'}
               htmlFor={`schedule-type-${type}`}
               className={cn(
                 'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors',
@@ -537,7 +537,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             {SYNC_INTERVALS.map(opt => (
-              <option key={opt.value} value={opt.value}>
+              <option key={opt.value || 'unknown'} value={opt.value}>
                 {opt.label}
               </option>
             ))}
@@ -656,7 +656,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           </h4>
           <ul className="list-disc list-inside text-sm text-red-600">
             {validationResult.errors.map((err, i) => (
-              <li key={i}>{err.message}</li>
+              <li key={i || 'unknown'}>{err.message}</li>
             ))}
           </ul>
         </Card>

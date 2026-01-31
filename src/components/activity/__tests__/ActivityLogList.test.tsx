@@ -37,7 +37,7 @@ vi.mock('../../ui/DataTable', () => ({
                     <tbody>
                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {data.map((item: any, index: number) => (
-                            <tr key={index} data-testid={`row-${item.id || index}`}>
+                            <tr key={index || 'unknown'} data-testid={`row-${item.id || index}`}>
                                 <td>Row {index}</td>
                             </tr>
                         ))}

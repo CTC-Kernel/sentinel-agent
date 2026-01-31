@@ -195,7 +195,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                 };
 
                 return (
-                  <div key={phase} className="group">
+                  <div key={phase || 'unknown'} className="group">
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <span className={cn("w-2 h-2 rounded-full", phaseColors[phase])} />
@@ -276,7 +276,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
             </h4>
             <ul className="space-y-1">
               {readiness.blockers.map((blocker, i) => (
-                <li key={i} className="text-sm text-red-600 dark:text-red-400">• {blocker}</li>
+                <li key={i || 'unknown'} className="text-sm text-red-600 dark:text-red-400">• {blocker}</li>
               ))}
             </ul>
           </div>
@@ -290,7 +290,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
             </h4>
             <ul className="space-y-1">
               {readiness.warnings.map((warning, i) => (
-                <li key={i} className="text-sm text-amber-600 dark:text-amber-400">• {warning}</li>
+                <li key={i || 'unknown'} className="text-sm text-amber-600 dark:text-amber-400">• {warning}</li>
               ))}
             </ul>
           </div>
@@ -325,7 +325,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
           >
             {readiness.checklist.map((item, i) => (
               <div
-                key={i}
+                key={i || 'unknown'}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-3xl border",
                   item.status === 'passed' && "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800",
@@ -383,7 +383,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
               className="mt-6 space-y-3"
             >
               {maturity.recommendations.map((rec) => (
-                <RecommendationCard key={rec.id} recommendation={rec} />
+                <RecommendationCard key={rec.id || 'unknown'} recommendation={rec} />
               ))}
             </motion.div>
           )}
@@ -432,7 +432,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         <div className="flex flex-wrap gap-2">
           {MATURITY_LEVELS.map((level) => (
             <div
-              key={level.level}
+              key={level.level || 'unknown'}
               className={cn(
                 "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium",
                 levelColors[level.color]

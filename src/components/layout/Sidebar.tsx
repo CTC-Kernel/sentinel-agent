@@ -212,14 +212,14 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             const groupIconColor = NAV_GROUP_COLORS[group.title] || 'text-muted-foreground';
 
             return (
-              <div key={groupIndex}>
+              <div key={groupIndex || 'unknown'}>
                 <div className="px-1 mb-2">
                   <p className="mono-label px-2">{group.title}</p>
                 </div>
                 <div className="space-y-1">
                   {visibleItems.map((item) => (
                     <NavLink
-                      key={item.to}
+                      key={item.to || 'unknown'}
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
                       data-tour={`${item.key}-nav`}

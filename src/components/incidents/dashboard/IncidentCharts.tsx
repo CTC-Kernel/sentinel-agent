@@ -20,7 +20,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                     {categoryData.length === 0 ? (
                         <EmptyChartState variant="pie" message="Aucune catégorie" />
                     ) : (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <PieChart>
                                 <Pie
                                     data={categoryData}
@@ -34,7 +34,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                                     cornerRadius={6}
                                 >
                                     {categoryData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={DONUT_COLORS.category[index % DONUT_COLORS.category.length]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
+                                        <Cell key={`cell-${index || 'unknown'}`} fill={DONUT_COLORS.category[index % DONUT_COLORS.category.length]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
@@ -52,7 +52,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                     {timelineData.length === 0 ? (
                         <EmptyChartState variant="bar" message="Aucun historique récent" />
                     ) : (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <BarChart
                                 data={timelineData}
                                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}

@@ -47,7 +47,7 @@ export const VoxelNodeRenderer: React.FC<VoxelNodeRendererProps> = ({
     <group name="voxel-nodes">
       {nodesToRender.map((node) => (
         <VoxelNode
-          key={node.id}
+          key={node.id || 'unknown'}
           data={node}
           disabled={disabled}
           onClick={onNodeClick}

@@ -288,7 +288,7 @@ export const Privacy: React.FC = () => {
                 ) : (
                     filteredActivities.map(activity => (
                         <ActivityCard
-                            key={activity.id}
+                            key={activity.id || 'unknown'}
                             activity={activity}
                             onClick={openInspector}
                             onDelete={initiateDelete}

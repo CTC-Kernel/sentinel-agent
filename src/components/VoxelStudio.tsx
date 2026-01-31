@@ -874,14 +874,14 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                 />
               )}
               {impactPosition && (
-                <ImpactWave key={impactKey} position={impactPosition} />
+                <ImpactWave key={impactKey || 'unknown'} position={impactPosition} />
               )}
               {connectionPairs.map((pair, i) => {
                 const isRelevant = !selectedNode || pair.sourceId === selectedNode.id || pair.targetId === selectedNode.id;
                 if (selectedNode && !isRelevant && !impactMode) return null;
                 return (
                   <DataFlowParticles
-                    key={`conn-${i}`}
+                    key={`conn-${i || 'unknown'}`}
                     start={new Vector3(...pair.start)}
                     end={new Vector3(...pair.end)}
                     color={pair.type === 'risk' ? '#f87171' : defaultLinkColor}
@@ -894,7 +894,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
               {aiConnectionPairs.map((pair, i) => {
                 const isRelevant = !selectedNode || pair.sourceId === selectedNode.id || pair.targetId === selectedNode.id;
-                return <DataFlowParticles key={`ai-conn-${i}`} start={new Vector3(...pair.start)} end={new Vector3(...pair.end)} color="#fbbf24" opacity={isRelevant ? 0.6 : 0.1} />;
+                return <DataFlowParticles key={`ai-conn-${i || 'unknown'}`} start={new Vector3(...pair.start)} end={new Vector3(...pair.end)} color="#fbbf24" opacity={isRelevant ? 0.6 : 0.1} />;
               })}
 
               {voxelNodes.length === 0 ? <EmptyState3D /> : voxelNodes.map(node => {
@@ -904,7 +904,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                 const isHighlighted = Boolean(selectedNode && (node.id === selectedNode.id || isRelated));
                 return (
                   <VoxelMesh
-                    key={node.id}
+                    key={node.id || 'unknown'}
                     node={node}
                     onClick={handleNodeClick}
                     isSelected={selectedNode?.id === node.id}

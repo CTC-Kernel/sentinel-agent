@@ -161,7 +161,7 @@ export const FAIRSimpleForm: React.FC<FAIRSimpleFormProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {SCENARIO_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
+                  <SelectItem key={type.value || 'unknown'} value={type.value}>
                     <div className="flex items-center gap-2">
                       <type.icon className="h-4 w-4" />
                       {isEnglish ? type.label : type.labelFr}
@@ -230,7 +230,7 @@ export const FAIRSimpleForm: React.FC<FAIRSimpleFormProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {CURRENCIES.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
+                    <SelectItem key={c.value || 'unknown'} value={c.value}>
                       {c.label}
                     </SelectItem>
                   ))}
@@ -326,7 +326,7 @@ export const FAIRSimpleForm: React.FC<FAIRSimpleFormProps> = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {CONTROL_EFFECTIVENESS.map((level) => (
                 <button
-                  key={level.value}
+                  key={level.value || 'unknown'}
                   type="button"
                   onClick={() => field.onChange(level.value)}
                   className={cn(

@@ -131,7 +131,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
 
                     return (
                         <button
-                            key={req.key}
+                            key={req.key || 'unknown'}
                             type="button"
                             onClick={() => handleToggle(req.key as keyof typeof clauses)}
                             className={`

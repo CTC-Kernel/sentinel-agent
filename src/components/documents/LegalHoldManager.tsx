@@ -399,7 +399,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
             const holdDocs = getDocumentsForHold(hold.id);
 
             return (
-              <Card key={hold.id} className={cn(hold.status === 'released' && 'opacity-75')}>
+              <Card key={hold.id || 'unknown'} className={cn(hold.status === 'released' && 'opacity-75')}>
                 <Collapsible open={isExpanded} onOpenChange={() => toggleHoldExpanded(hold.id)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
@@ -506,7 +506,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
                           <div className="space-y-2">
                             {holdDocs.map((doc) => (
                               <div
-                                key={doc.id}
+                                key={doc.id || 'unknown'}
                                 className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
                               >
                                 <div className="flex items-center gap-2">
@@ -618,7 +618,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
                   ) : (
                     filteredDocuments.map((doc: Document) => (
                       <div
-                        key={doc.id}
+                        key={doc.id || 'unknown'}
                         className={cn(
                           'flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors',
                           formData.selectedDocuments.includes(doc.id)

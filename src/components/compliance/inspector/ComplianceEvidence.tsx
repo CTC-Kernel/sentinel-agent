@@ -87,7 +87,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                         const doc = safeDocuments.find(d => d.id === docId);
                         if (!doc) return null;
                         return (
-                            <div key={docId} className="flex items-center p-3 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl hover:shadow-md transition-all">
+                            <div key={docId || 'unknown'} className="flex items-center p-3 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl hover:shadow-md transition-all">
                                 <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg mr-3">
                                     <FileText className="h-5 w-5" />
                                 </div>

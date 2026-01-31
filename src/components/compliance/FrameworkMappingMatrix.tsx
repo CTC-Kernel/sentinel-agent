@@ -117,7 +117,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {frameworkCoverage.map(fw => (
                     <button
-                        key={fw.id}
+                        key={fw.id || 'unknown'}
                         onClick={() => setExpandedFramework(expandedFramework === fw.id ? null : fw.id)}
                         className={cn(
                             "glass-premium p-4 rounded-3xl text-left transition-all hover:shadow-md border border-border/40",
@@ -232,7 +232,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                 </th>
                                 {activeFrameworks.map(fw => (
                                     <th
-                                        key={fw.id}
+                                        key={fw.id || 'unknown'}
                                         className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-300 min-w-[100px]"
                                     >
                                         <span className="block text-xs">{fw.id}</span>
@@ -243,7 +243,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {displayedControls.slice(0, 50).map(control => (
                                 <tr
-                                    key={control.id}
+                                    key={control.id || 'unknown'}
                                     className="group hover:bg-slate-50 dark:hover:bg-slate-800/30 cursor-pointer transition-colors"
                                     onClick={() => onControlClick?.(control)}
                                 >
@@ -260,7 +260,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                         const isPrimary = control.framework === fw.id;
 
                                         return (
-                                            <td key={fw.id} className="px-4 py-3 text-center">
+                                            <td key={fw.id || 'unknown'} className="px-4 py-3 text-center">
                                                 {isMapped ? (
                                                     <div className={cn(
                                                         "inline-flex items-center justify-center w-6 h-6 rounded-full",

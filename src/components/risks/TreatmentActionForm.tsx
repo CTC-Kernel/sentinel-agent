@@ -128,7 +128,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                         >
                             <option value="">{t('risks.treatment.not_assigned')}</option>
                             {users.map(u => (
-                                <option key={u.uid} value={u.uid}>{u.displayName}</option>
+                                <option key={u.uid || 'unknown'} value={u.uid}>{u.displayName}</option>
                             ))}
                         </select>
                     </div>

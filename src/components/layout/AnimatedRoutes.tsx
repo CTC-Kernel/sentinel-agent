@@ -83,7 +83,7 @@ export const AnimatedRoutes: React.FC = () => {
 
     return (
         <AnimatePresence mode="popLayout">
-            <Routes location={location} key={location.pathname}>
+            <Routes location={location} key={location.pathname || 'unknown'}>
                 <Route path="/" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><DashboardWithQuickActions /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/analytics" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><AnalyticsDashboard /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/timeline" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><InteractiveTimeline /></AnimatedPage></RoleGuardComponent>} />

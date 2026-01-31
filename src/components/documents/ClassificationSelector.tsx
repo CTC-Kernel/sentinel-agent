@@ -119,7 +119,7 @@ export function ClassificationSelector({
 
             return (
               <DropdownMenuItem
-                key={level}
+                key={level || 'unknown'}
                 onClick={() => handleSelect(level)}
                 disabled={!canAccess}
                 className={cn(

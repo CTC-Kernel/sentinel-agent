@@ -78,7 +78,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                 {/* Maturity Scale Legend */}
                 <div className="flex justify-center gap-4 mt-6 flex-wrap">
                     {([1, 2, 3, 4, 5] as const).map((level) => (
-                        <div key={level} className="flex items-center gap-1.5">
+                        <div key={level || 'unknown'} className="flex items-center gap-1.5">
                             <div className={cn(
                                 "w-3 h-3 rounded-full",
                                 level === 5 ? 'bg-emerald-500' :
@@ -105,7 +105,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                         </div>
                         <div className="space-y-2">
                             {lowEffectivenessControls.slice(0, 3).map((a: { controlId: string; id: string; effectivenessScore: number; }) => (
-                                <div key={a.id} className="text-sm text-amber-600 dark:text-amber-400 flex items-center justify-between">
+                                <div key={a.id || 'unknown'} className="text-sm text-amber-600 dark:text-amber-400 flex items-center justify-between">
                                     <span>{a.controlId}</span>
                                     <Badge variant="outline" size="sm">{a.effectivenessScore}%</Badge>
                                 </div>
@@ -128,7 +128,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                         </div>
                         <div className="space-y-2">
                             {dueForReview.slice(0, 3).map((a: { id: string; controlId: string; }) => (
-                                <div key={a.id} className="text-sm text-blue-600 dark:text-blue-400">
+                                <div key={a.id || 'unknown'} className="text-sm text-blue-600 dark:text-blue-400">
                                     {a.controlId}
                                 </div>
                             ))}

@@ -68,7 +68,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
       <div className="absolute inset-0 grid grid-cols-6 gap-4 p-4">
         {Array.from({ length: 24 }).map((_, i) => (
           <div
-            key={i}
+            key={i || 'unknown'}
             className="border border-dashed border-border/40 dark:border-slate-700 rounded-lg"
           />
         ))}
@@ -77,7 +77,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
       {/* Widgets */}
       {widgets.map((widget) => (
         <DraggableWidget
-          key={widget.id}
+          key={widget.id || 'unknown'}
           widget={widget}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
@@ -208,7 +208,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           <div className="flex gap-1">
             {(['small', 'medium', 'large', 'full'] as const).map((size) => (
               <button
-                key={size}
+                key={size || 'unknown'}
                 onClick={() => {
                   onResize(widget.id, size);
                   setShowControls(false);

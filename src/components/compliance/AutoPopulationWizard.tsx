@@ -700,7 +700,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                         >
                             {REGULATORY_FRAMEWORK_CODES.map(code => (
                                 <FrameworkCard
-                                    key={code}
+                                    key={code || 'unknown'}
                                     code={code}
                                     summary={frameworkSummaries.get(code) || null}
                                     isSelected={selectedFramework === code}
@@ -768,7 +768,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                                 <div className="flex gap-1">
                                     {(['all', 'pending', 'approved', 'rejected', 'modified'] as const).map(status => (
                                         <Button
-                                            key={status}
+                                            key={status || 'unknown'}
                                             variant={filterStatus === status ? 'default' : 'ghost'}
                                             size="sm"
                                             onClick={() => setFilterStatus(status)}
@@ -787,7 +787,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                                 <div className="flex gap-1">
                                     {(['all', 'high', 'medium', 'low'] as const).map(level => (
                                         <Button
-                                            key={level}
+                                            key={level || 'unknown'}
                                             variant={filterConfidence === level ? 'default' : 'ghost'}
                                             size="sm"
                                             onClick={() => setFilterConfidence(level)}
@@ -822,7 +822,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
                             >
                                 {filteredSuggestions.map(suggestion => (
                                     <SuggestionCard
-                                        key={suggestion.id}
+                                        key={suggestion.id || 'unknown'}
                                         suggestion={suggestion}
                                         onApprove={() => handleApproveSuggestion(suggestion.id)}
                                         onReject={() => handleRejectSuggestion(suggestion.id)}
@@ -938,7 +938,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
             )}
 
             {/* Content */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
                 {renderStepContent()}
             </AnimatePresence>
 

@@ -264,7 +264,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                             { id: 'support', label: 'Support', icon: Headset },
                         ].map((tab) => (
                             <button
-                                key={tab.id}
+                                key={tab.id || 'unknown'}
                                 onClick={() => setActiveTab(tab.id as 'download' | 'docs' | 'faq' | 'support')}
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200",
@@ -281,7 +281,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
 
                     {/* Content Area */}
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence mode="popLayout">
                             {activeTab === 'download' && (
                                 <motion.div
                                     key="download"
@@ -369,7 +369,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Requis</h4>
                                         <div className="space-y-2 text-[11px]">
                                             {Object.entries(systemRequirements).map(([os, req]) => (
-                                                <div key={os} className="flex items-center justify-between py-1.5 border-b border-slate-50 dark:border-white/5 last:border-0">
+                                                <div key={os || 'unknown'} className="flex items-center justify-between py-1.5 border-b border-slate-50 dark:border-white/5 last:border-0">
                                                     <span className="font-medium text-slate-700 dark:text-slate-300 capitalize flex items-center gap-2">
                                                         {os === 'windows' && <Monitor className="w-3 h-3" />}
                                                         {os === 'macos' && <Cpu className="w-3 h-3" />}
@@ -394,7 +394,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                 >
                                     {faqItems.map((item, index) => (
                                         <FAQItem
-                                            key={index}
+                                            key={index || 'unknown'}
                                             question={item.question}
                                             answer={item.answer}
                                             isOpen={openFAQ === index}

@@ -211,7 +211,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
               >
                 <option value="">{t('ebios.workshop3.selectSource', 'Sélectionner...')}</option>
                 {parties.map((party) => (
-                  <option key={party.id} value={party.id}>
+                  <option key={party.id || 'unknown'} value={party.id}>
                     {party.name}
                   </option>
                 ))}
@@ -236,7 +236,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
               >
                 <option value="">{t('ebios.workshop3.selectTarget', 'Sélectionner...')}</option>
                 {assets.map((asset) => (
-                  <option key={asset.id} value={asset.id}>
+                  <option key={asset.id || 'unknown'} value={asset.id}>
                     {asset.name}
                   </option>
                 ))}
@@ -256,7 +256,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                   {getPartyName(watchedSourceId)}
                 </span>
                 {watchedIntermediates?.map((id) => (
-                  <React.Fragment key={id}>
+                  <React.Fragment key={id || 'unknown'}>
                     <ArrowRight className="w-4 h-4 text-muted-foreground" />
                     <span className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm">
                       {getPartyName(id)}
@@ -285,7 +285,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                   const isSelected = watchedIntermediates?.includes(party.id);
                   return (
                     <button
-                      key={party.id}
+                      key={party.id || 'unknown'}
                       type="button"
                       onClick={() => toggleIntermediate(party.id)}
                       className={cn(

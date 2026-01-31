@@ -132,7 +132,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux Traitement</span>
                     </div>
                     <div className="h-[140px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"
@@ -174,7 +174,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Réduction Risque</span>
                     </div>
                     <div className="h-[140px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"
@@ -215,7 +215,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         { label: 'Résiduel', value: metrics.avgResidual.toFixed(1), icon: Shield, color: 'emerald', gradient: 'from-emerald-500 to-emerald-400' }
                     ].map((item, idx) => (
                         <div
-                            key={idx}
+                            key={idx || 'unknown'}
                             className="glass-premium p-4 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group"
                         >
                             <div className={`p-2.5 bg-${item.color}-500/10 rounded-3xl mb-3 group-hover:scale-110 transition-transform`}>
@@ -265,11 +265,11 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         Distribution par Niveau
                     </h3>
                     <div className="h-[280px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <PieChart>
                                 <defs>
                                     {distributionData.map((entry, idx) => (
-                                        <linearGradient key={idx} id={`riskPieGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
+                                        <linearGradient key={idx || 'unknown'} id={`riskPieGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
                                             <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                             <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                         </linearGradient>
@@ -292,7 +292,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                 >
                                     {distributionData.map((_, index) => (
                                         <Cell
-                                            key={`cell-${index}`}
+                                            key={`cell-${index || 'unknown'}`}
                                             fill={`url(#riskPieGrad${index})`}
                                             className="cursor-pointer transition-all duration-300"
                                         />
@@ -378,7 +378,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             .slice(0, 6)
                             .map((risk, index) => (
                                 <motion.div
-                                    key={`risk-card-${index}`}
+                                    key={`risk-card-${index || 'unknown'}`}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.4 + index * 0.05 }}

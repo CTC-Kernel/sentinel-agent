@@ -213,7 +213,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
             <div className={`space-y-1 transition-all duration-300 ${isExpanded ? 'opacity-70 max-h-96' : 'opacity-60 max-h-12 overflow-hidden'}`}>
                 {steps.map((step) => (
                     <div
-                        key={step.id}
+                        key={step.id || 'unknown'}
                         role="button"
                         tabIndex={step.isCompleted ? -1 : 0}
                         onClick={() => {

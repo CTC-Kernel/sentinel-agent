@@ -220,7 +220,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
                 <div className="space-y-2 pt-2 border-t border-border/40 dark:border-slate-700">
                     {steps.map((step, index) => (
                         <motion.div
-                            key={step.id}
+                            key={step.id || 'unknown'}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.05 }}

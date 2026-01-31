@@ -190,7 +190,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
 
               return (
                 <button
-                  key={section.id}
+                  key={section.id || 'unknown'}
                   onClick={() => goToSection(index)}
                   className={`w-full text-left p-3 rounded-lg transition-colors ${
                     isActive
@@ -265,7 +265,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
         <div className="space-y-6">
           {currentSection.questions.map((question, qIndex) => (
             <QuestionCard
-              key={question.id}
+              key={question.id || 'unknown'}
               question={question}
               index={qIndex}
               answer={answers[question.id]}
@@ -376,7 +376,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 { value: false, label: t('common.no', 'No') },
               ].map((option) => (
                 <button
-                  key={String(option.value)}
+                  key={String(option.value) || 'unknown'}
                   onClick={() => !isReadOnly && handleValueChange(option.value)}
                   disabled={isReadOnly}
                   className={`px-6 py-2.5 rounded-lg border-2 transition-all font-medium ${
@@ -395,7 +395,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((rating) => (
                 <button
-                  key={rating}
+                  key={rating || 'unknown'}
                   onClick={() => !isReadOnly && handleValueChange(rating)}
                   disabled={isReadOnly}
                   className={`w-12 h-12 rounded-lg border-2 transition-all font-medium ${
@@ -414,7 +414,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <div className="space-y-2">
               {question.options.map((option) => (
                 <button
-                  key={option}
+                  key={option || 'unknown'}
                   onClick={() => !isReadOnly && handleValueChange(option)}
                   disabled={isReadOnly}
                   className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${

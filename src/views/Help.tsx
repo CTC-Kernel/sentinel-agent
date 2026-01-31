@@ -803,7 +803,7 @@ export const Help: React.FC = () => {
                         <nav className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-2">
                             {filteredContent.map(category => (
                                 <Button
-                                    key={category.id}
+                                    key={category.id || 'unknown'}
                                     variant="ghost"
                                     aria-label={category.title}
                                     onClick={() => {
@@ -884,7 +884,7 @@ export const Help: React.FC = () => {
                                 <div className="grid gap-6">
                                     {activeCategory.articles.map(article => (
                                         <div
-                                            key={article.id}
+                                            key={article.id || 'unknown'}
                                             id={article.id}
                                             className={`group rounded-2xl border transition-all duration-300 overflow-hidden ${selectedArticle === article.id
                                                 ? 'bg-brand-50 dark:bg-brand-900 border-brand-200 dark:border-brand-300 ring-1 ring-brand-300'
@@ -930,7 +930,7 @@ export const Help: React.FC = () => {
                                                     <div className="px-6 pb-6 pt-0 space-y-6">
                                                         <div className="h-px w-full bg-slate-200 dark:bg-slate-700/50 mb-6" />
                                                         {article.sections.map((section, idx) => (
-                                                            <div key={`section-${idx}-${section.title || 'untitled'}`} className="prose prose-slate dark:prose-invert max-w-none">
+                                                            <div key={`section-${idx || 'unknown'}-${section.title || 'untitled'}`} className="prose prose-slate dark:prose-invert max-w-none">
                                                                 {section.title && (
                                                                     <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />

@@ -64,7 +64,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                         {[1, 2, 3].map(i => (
-                            <Skeleton key={`skeleton-${i}`} className="h-24 w-full rounded-2xl" />
+                            <Skeleton key={`skeleton-${i || 'unknown'}`} className="h-24 w-full rounded-2xl" />
                         ))}
                     </div>
                 </div>
@@ -72,7 +72,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Charts Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={`skeleton-${i}`} className="glass-premium p-4 sm:p-6 rounded-3xl h-[350px] border border-border/40">
+                        <div key={`skeleton-${i || 'unknown'}`} className="glass-premium p-4 sm:p-6 rounded-3xl h-[350px] border border-border/40">
                             <Skeleton className="h-6 w-48 mb-6" />
                             <Skeleton className="h-full w-full rounded-2xl" />
                         </div>

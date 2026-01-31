@@ -149,7 +149,7 @@ const RuleEditorRow: React.FC<{
                             className="bg-background border border-input rounded-md px-3 py-2"
                         >
                             {rule.allowedValues.map(opt => (
-                                <option key={String(opt.value)} value={String(opt.value)}>
+                                <option key={String(opt.value) || 'unknown'} value={String(opt.value)}>
                                     {opt.label}
                                 </option>
                             ))}
@@ -258,7 +258,7 @@ const RulesCategorySection: React.FC<{
                     >
                         {rules.map(rule => (
                             <RuleEditorRow
-                                key={rule.id}
+                                key={rule.id || 'unknown'}
                                 rule={rule}
                                 onChange={(updates) => onChange(rule.id, updates)}
                                 disabled={disabled}
@@ -377,7 +377,7 @@ const PolicyForm: React.FC<{
                     </div>
                     <ul className="list-disc list-inside text-sm">
                         {errors.map((error, idx) => (
-                            <li key={idx}>{error}</li>
+                            <li key={idx || 'unknown'}>{error}</li>
                         ))}
                     </ul>
                 </div>
@@ -423,7 +423,7 @@ const PolicyForm: React.FC<{
                             disabled={!!policy}
                         >
                             {POLICY_SCOPES.map(s => (
-                                <option key={s} value={s}>{getScopeLabel(s)}</option>
+                                <option key={s || 'unknown'} value={s}>{getScopeLabel(s)}</option>
                             ))}
                         </select>
                     </div>
@@ -436,7 +436,7 @@ const PolicyForm: React.FC<{
                             className="w-full bg-background border border-input rounded-md px-3 py-2"
                         >
                             {POLICY_PRIORITIES.map(p => (
-                                <option key={p} value={p}>
+                                <option key={p || 'unknown'} value={p}>
                                     {p === 'critical' ? 'Critique' :
                                         p === 'high' ? 'Haute' :
                                             p === 'medium' ? 'Moyenne' : 'Basse'}
@@ -453,7 +453,7 @@ const PolicyForm: React.FC<{
                             className="w-full bg-background border border-input rounded-md px-3 py-2"
                         >
                             {ENFORCEMENT_MODES.map(m => (
-                                <option key={m} value={m}>{getEnforcementLabel(m)}</option>
+                                <option key={m || 'unknown'} value={m}>{getEnforcementLabel(m)}</option>
                             ))}
                         </select>
                     </div>
@@ -466,7 +466,7 @@ const PolicyForm: React.FC<{
                         <div className="flex flex-wrap gap-2">
                             {groups.map(group => (
                                 <Badge
-                                    key={group.id}
+                                    key={group.id || 'unknown'}
                                     variant={targetGroupIds.includes(group.id) ? 'default' : 'outline'}
                                     className="cursor-pointer"
                                     onClick={() => {
@@ -491,7 +491,7 @@ const PolicyForm: React.FC<{
 
                 {RULE_CATEGORIES.map(category => (
                     <RulesCategorySection
-                        key={category}
+                        key={category || 'unknown'}
                         category={category}
                         rules={rulesByCategory.get(category) || []}
                         onChange={handleRuleChange}
@@ -939,7 +939,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                         </Button>
                         {POLICY_SCOPES.map(scope => (
                             <Button
-                                key={scope}
+                                key={scope || 'unknown'}
                                 variant={scopeFilter === scope ? 'default' : 'ghost'}
                                 size="sm"
                                 onClick={() => setScopeFilter(scope)}
@@ -994,7 +994,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredPolicies.map(policy => (
                         <PolicyCard
-                            key={policy.id}
+                            key={policy.id || 'unknown'}
                             policy={policy}
                             isSelected={selectedPolicyId === policy.id}
                             onSelect={() => onSelectPolicy?.(
@@ -1143,7 +1143,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                                 if (count === 0) return null;
                                 const Icon = CategoryIcons[category];
                                 return (
-                                    <div key={category} className="bg-accent/30 rounded-lg p-3">
+                                    <div key={category || 'unknown'} className="bg-accent/30 rounded-lg p-3">
                                         <div className="flex items-center gap-2 mb-1">
                                             <Icon className="h-4 w-4 text-primary" />
                                             <span className="text-sm font-medium">

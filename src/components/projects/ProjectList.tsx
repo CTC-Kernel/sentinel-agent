@@ -124,7 +124,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 return (
                     <div className="flex -space-x-2">
                         {displayMembers.map(m => (
-                            <CustomTooltip key={m.uid} content={m.displayName || m.email}>
+                            <CustomTooltip key={m.uid || 'unknown'} content={m.displayName || m.email}>
                                 <div className="relative">
                                     <img
                                         src={getUserAvatarUrl(m.photoURL, m.role)}

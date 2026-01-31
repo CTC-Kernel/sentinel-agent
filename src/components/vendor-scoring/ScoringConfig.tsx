@@ -169,7 +169,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
 
         {sectionWeights.map((section) => (
           <div
-            key={section.sectionId}
+            key={section.sectionId || 'unknown'}
             className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl"
           >
             <div className="flex-1">
@@ -227,7 +227,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
         <div className="grid grid-cols-4 gap-2">
           {RISK_LEVEL_CONFIGS.map((config) => (
             <div
-              key={config.level}
+              key={config.level || 'unknown'}
               className={`p-2 rounded-lg text-center ${config.bgColor}`}
             >
               <p className={`font-medium text-sm ${config.color}`}>{config.level}</p>

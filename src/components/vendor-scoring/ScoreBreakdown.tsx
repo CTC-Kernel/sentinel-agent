@@ -218,7 +218,7 @@ const SectionScoreBar: React.FC<{
 
             return (
               <div
-                key={qs.questionId}
+                key={qs.questionId || 'unknown'}
                 className="flex items-start gap-3 text-sm"
               >
                 <div
@@ -388,7 +388,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
           <div className="flex flex-wrap gap-2">
             {score.mitigatingFactors.map((factor, idx) => (
               <span
-                key={idx}
+                key={idx || 'unknown'}
                 className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-slate-800 rounded-lg text-sm text-green-700 dark:text-green-400"
               >
                 <CheckCircle className="w-3 h-3" />
@@ -413,7 +413,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
           <div className="space-y-3">
             {score.sectionScores.map((section) => (
               <SectionScoreBar
-                key={section.sectionId}
+                key={section.sectionId || 'unknown'}
                 section={section}
                 expanded={expandedSection === section.sectionId}
                 onToggle={() =>

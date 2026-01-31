@@ -118,7 +118,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                 onChange={(e) => setSelectedReviewers(Array.from(e.target.selectedOptions, option => option.value))}
                             >
                                 {safeUsers.filter(u => u.uid !== user?.uid).map(u => (
-                                    <option key={u.uid} value={u.uid}>{u.displayName || u.email}</option>
+                                    <option key={u.uid || 'unknown'} value={u.uid}>{u.displayName || u.email}</option>
                                 ))}
                             </select>
                             <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
@@ -159,7 +159,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                     <div className="text-sm text-slate-500 dark:text-slate-300 italic pl-2">Aucun historique de workflow.</div>
                 )}
                 {history.map((item) => (
-                    <div key={item.id} className="relative">
+                    <div key={item.id || 'unknown'} className="relative">
                         <div className={`absolute -left-[31px] w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${item.action === 'approuver' || item.action === 'publier' ? 'bg-success-500' :
                             item.action === 'rejeter' ? 'bg-error-500' : 'bg-brand-500'
                             }`}></div>

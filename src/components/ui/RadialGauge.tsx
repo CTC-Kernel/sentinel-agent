@@ -113,7 +113,7 @@ export const RadialGauge: React.FC<RadialGaugeProps> = ({
 
                             return (
                                 <line
-                                    key={tick}
+                                    key={tick || 'unknown'}
                                     x1={x1}
                                     y1={y1}
                                     x2={x2}

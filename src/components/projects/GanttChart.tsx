@@ -235,7 +235,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     const originalTask = (t as unknown as { projectTask: ProjectTask }).projectTask;
                     return (
                         <div
-                            key={t.id}
+                            key={t.id || 'unknown'}
                             style={{ height: rowHeight }}
                             className="flex items-center px-4 border-b border-border/40 dark:border-slate-800/50 hover:bg-blue-500 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
                             onClick={() => handleTaskClick(t)}
@@ -310,7 +310,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-3xl">
                         {(['Day', 'Week', 'Month'] as const).map(mode => (
                             <button
-                                key={mode}
+                                key={mode || 'unknown'}
                                 onClick={() => onViewModeChange(mode)}
                                 className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
                                     ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-105'

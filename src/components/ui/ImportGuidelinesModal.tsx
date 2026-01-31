@@ -110,7 +110,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                                     </span>
                                     <div className="flex flex-wrap gap-2">
                                         {guidelines.required.map(col => (
-                                            <span key={col} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white dark:bg-black/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-600">
+                                            <span key={col || 'unknown'} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white dark:bg-black/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-600">
                                                 {col}
                                             </span>
                                         ))}
@@ -123,7 +123,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                                         </span>
                                         <div className="flex flex-wrap gap-2">
                                             {guidelines.optional.map(col => (
-                                                <span key={col} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-border/40 dark:border-slate-700">
+                                                <span key={col || 'unknown'} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-border/40 dark:border-slate-700">
                                                     {col}
                                                 </span>
                                             ))}

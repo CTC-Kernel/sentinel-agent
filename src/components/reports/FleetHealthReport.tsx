@@ -118,7 +118,7 @@ const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({ data 
             <div className="h-4 rounded-full overflow-hidden flex">
                 {data.map((item) => (
                     <div
-                        key={item.status}
+                        key={item.status || 'unknown'}
                         className={`${statusConfig[item.status].color} transition-all duration-500`}
                         style={{ width: `${item.percentage}%` }}
                     />
@@ -128,7 +128,7 @@ const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({ data 
             {/* Legend */}
             <div className="grid grid-cols-2 gap-2">
                 {data.map((item) => (
-                    <div key={item.status} className="flex items-center gap-2">
+                    <div key={item.status || 'unknown'} className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${statusConfig[item.status].color}`} />
                         <span className="text-xs text-muted-foreground">
                             {statusConfig[item.status].label}
@@ -164,7 +164,7 @@ const OSDistributionChart: React.FC<OSDistributionChartProps> = ({ data }) => {
             {data.map((item) => {
                 const config = osConfig[item.os.toLowerCase()] || osConfig.unknown;
                 return (
-                    <div key={item.os} className="space-y-1">
+                    <div key={item.os || 'unknown'} className="space-y-1">
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-foreground flex items-center gap-2">
                                 <span>{config.icon}</span>
@@ -201,7 +201,7 @@ const VersionList: React.FC<VersionListProps> = ({ data }) => {
         <div className="space-y-2">
             {data.map((item) => (
                 <div
-                    key={item.version}
+                    key={item.version || 'unknown'}
                     className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
                 >
                     <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ const UptimeChart: React.FC<UptimeChartProps> = ({ data }) => {
 
                 return (
                     <div
-                        key={index}
+                        key={index || 'unknown'}
                         className="flex-1 flex flex-col items-center gap-1 group"
                     >
                         <div className="relative w-full h-24 bg-muted/50 rounded overflow-hidden flex flex-col justify-end">

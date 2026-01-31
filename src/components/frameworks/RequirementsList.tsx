@@ -141,7 +141,7 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({
             <div className="px-4 pb-4 pt-1 space-y-2">
               {requirements.map((requirement) => (
                 <RequirementCard
-                  key={requirement.id}
+                  key={requirement.id || 'unknown'}
                   requirement={requirement}
                   onClick={onRequirementClick}
                   linkedControlsCount={linkedControlsCounts?.get(requirement.id) || 0}
@@ -379,7 +379,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
           >
             <option value="all">{t('requirements.allCategories')}</option>
             {availableCategories.map((cat) => (
-              <option key={cat.value} value={cat.value}>
+              <option key={cat.value || 'unknown'} value={cat.value}>
                 {cat.label}
               </option>
             ))}
@@ -414,7 +414,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div
-              key={i}
+              key={i || 'unknown'}
               className="h-20 rounded-3xl bg-slate-100 dark:bg-slate-800/50 animate-pulse"
             />
           ))}
@@ -455,7 +455,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
         <div className="space-y-3">
           {filteredGroups.map((group) => (
             <CategoryAccordion
-              key={group.category}
+              key={group.category || 'unknown'}
               category={group.category}
               categoryLabel={group.categoryLabel}
               requirements={group.requirements}

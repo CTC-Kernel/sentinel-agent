@@ -79,7 +79,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                 ) : filteredRequests.length > 0 ? (
                     filteredRequests.map(req => (
                         <motion.div
-                            key={req.id}
+                            key={req.id || 'unknown'}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-border/40 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 cursor-pointer transition-all shadow-sm group"

@@ -34,7 +34,7 @@ const AgentsSkeleton: React.FC = () => (
         <div className="h-20 bg-muted/50 rounded-2xl" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-muted/50 rounded-2xl" />
+                <div key={i || 'unknown'} className="h-32 bg-muted/50 rounded-2xl" />
             ))}
         </div>
         <div className="h-96 bg-muted/50 rounded-2xl" />
@@ -219,7 +219,7 @@ export const Agents: React.FC = () => {
                         </TabsList>
                     </div>
 
-                    <TabsContent value="overview">
+                    <TabsContent value="overview" key="overview">
                         <motion.div
                             variants={slideUpVariants}
                             className="flex flex-col gap-6 sm:gap-8"
@@ -408,27 +408,27 @@ export const Agents: React.FC = () => {
                         </motion.div>
                     </TabsContent>
 
-                    <TabsContent value="policies" className="mt-0">
+                    <TabsContent value="policies" key="policies" className="mt-0">
                         <AgentPolicies agents={agents} />
                     </TabsContent>
 
-                    <TabsContent value="software" className="mt-0">
+                    <TabsContent value="software" key="software" className="mt-0">
                         <SoftwareInventory />
                     </TabsContent>
 
-                    <TabsContent value="anomalies" className="mt-0">
+                    <TabsContent value="anomalies" key="anomalies" className="mt-0">
                         {user?.organizationId && (
                             <AnomalyAlerts />
                         )}
                     </TabsContent>
 
-                    <TabsContent value="baselines" className="mt-0">
+                    <TabsContent value="baselines" key="baselines" className="mt-0">
                         {user?.organizationId && (
                             <BehavioralBaseline showAllAgents />
                         )}
                     </TabsContent>
 
-                    <TabsContent value="reports" className="mt-0">
+                    <TabsContent value="reports" key="reports" className="mt-0">
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                             <h3 className="text-lg font-semibold mb-2">{t('agents.reports.title', { defaultValue: 'Rapports Agent' })}</h3>

@@ -78,7 +78,7 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
                     <PieChart>
                         <defs>
                             {data.map((entry, index) => (
-                                <linearGradient key={`grad-${index}`} id={`auditPieGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                <linearGradient key={`grad-${index || 'unknown'}`} id={`auditPieGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                     <stop offset="100%" stopColor={entry.color} stopOpacity={0.8} />
                                 </linearGradient>
@@ -101,7 +101,7 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
                             animationEasing="ease-out"
                         >
                             {data.map((_entry, index) => (
-                                <Cell key={`cell-${index}`} fill={`url(#auditPieGradient-${index})`} className="drop-shadow-sm" />
+                                <Cell key={`cell-${index || 'unknown'}`} fill={`url(#auditPieGradient-${index})`} className="drop-shadow-sm" />
                             ))}
                         </Pie>
                         <Tooltip content={<ChartTooltip />} />

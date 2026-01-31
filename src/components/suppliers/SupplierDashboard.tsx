@@ -114,7 +114,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                     <div className="glass-premium p-4 sm:p-6 rounded-3xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                     <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                            <div key={i || 'unknown'} className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                         ))}
                     </div>
                 </div>
@@ -179,7 +179,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Score Moyen</span>
                     </div>
                     <div className="h-[120px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={scoreGaugeData} startAngle={180} endAngle={0}>
                                 <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#supplierGlow)' }} />
                             </RadialBarChart>
@@ -202,7 +202,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Conformité</span>
                     </div>
                     <div className="h-[120px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={complianceGaugeData} startAngle={180} endAngle={0}>
                                 <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#supplierGlow)' }} />
                             </RadialBarChart>
@@ -224,7 +224,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         { label: 'Conformes', value: metrics.compliant, icon: CheckCircle2, color: 'emerald', gradient: 'from-emerald-500 to-emerald-400' }
                     ].map((item, idx) => (
                         <button
-                            key={idx}
+                            key={idx || 'unknown'}
                             type="button"
                             onClick={item.onClick}
                             className={`glass-premium p-4 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group ${item.onClick ? 'cursor-pointer' : ''}`}
@@ -257,11 +257,11 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         {criticalityData.length === 0 ? (
                             <EmptyChartState variant="pie" message="Aucune donnée" description="Ajoutez des fournisseurs pour voir la répartition par criticité." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <defs>
                                         {criticalityData.map((entry, idx) => (
-                                            <linearGradient key={idx} id={`supplierCritGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
+                                            <linearGradient key={idx || 'unknown'} id={`supplierCritGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
                                                 <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                                 <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                             </linearGradient>
@@ -283,7 +283,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                         onMouseLeave={() => setActivePieIndex(null)}
                                     >
                                         {criticalityData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#supplierCritGrad${index})`} className="cursor-pointer" />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={`url(#supplierCritGrad${index})`} className="cursor-pointer" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} />
@@ -312,7 +312,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         {categoryData.length === 0 ? (
                             <EmptyChartState variant="bar" message="Aucune catégorie" description="Les catégories s'afficheront ici." />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />
                                     <XAxis
@@ -349,7 +349,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         Distribution des Scores
                     </h4>
                     <div className="h-[280px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <BarChart data={scoreDistribution} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 10 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border) / 0.3)" />
                                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
@@ -357,7 +357,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
                                 <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={20} animationDuration={1200}>
                                     {scoreDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))' }} />
+                                        <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))' }} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -382,7 +382,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         ) : (
                             topSuppliers.map((supplier, index) => (
                                 <motion.div
-                                    key={supplier.id}
+                                    key={supplier.id || 'unknown'}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.1 }}

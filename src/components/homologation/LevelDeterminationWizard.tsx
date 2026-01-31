@@ -244,7 +244,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
     const helpText = isEnglish && question.helpTextEn ? question.helpTextEn : question.helpText;
 
     return (
-      <Card key={question.id} className="p-4 mb-4">
+      <Card key={question.id || 'unknown'} className="p-4 mb-4">
         <div className="flex items-start gap-2 mb-3">
           <span className="font-medium text-foreground">{questionText}</span>
           {helpText && (
@@ -275,7 +275,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
                 const optionLabel =
                   isEnglish && option.labelEn ? option.labelEn : option.label;
                 return (
-                  <div key={option.value} className="flex items-center space-x-2">
+                  <div key={option.value || 'unknown'} className="flex items-center space-x-2">
                     <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
                     <Label
                       htmlFor={`${question.id}-${option.value}`}
@@ -305,7 +305,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
               const isChecked = selectedValues.includes(option.value);
 
               return (
-                <div key={option.value} className="flex items-center space-x-2">
+                <div key={option.value || 'unknown'} className="flex items-center space-x-2">
                   <Checkbox
                     id={`${question.id}-${option.value}`}
                     checked={isChecked}
@@ -358,7 +358,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
 
     return (
       <Card
-        key={level}
+        key={level || 'unknown'}
         className={cn(
           'p-4 cursor-pointer transition-all border-2',
           isSelected ? 'border-primary bg-primary/5' : 'border-transparent hover:border-muted',
@@ -421,10 +421,10 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
       </div>
 
       {/* Content */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {currentStep === 'questions' && (
           <motion.div
-            key={`category-${currentCategory}`}
+            key={`category-${currentCategory || 'unknown'}`}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
@@ -484,7 +484,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
                   </span>
                   <ul className="mt-1 space-y-1">
                     {recommendation.keyFactors.map((factor, idx) => (
-                      <li key={idx} className="text-sm flex items-start gap-2">
+                      <li key={idx || 'unknown'} className="text-sm flex items-start gap-2">
                         <span className="text-muted-foreground">•</span>
                         {factor}
                       </li>
@@ -675,7 +675,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
                 {REQUIRED_DOCUMENTS[selectedLevel].map((docType) => {
                   const docInfo = DOCUMENT_TYPE_INFO[docType];
                   return (
-                    <div key={docType} className="flex items-center gap-2 text-sm">
+                    <div key={docType || 'unknown'} className="flex items-center gap-2 text-sm">
                       <FileText className="h-4 w-4 text-muted-foreground" />
                       <span>{isEnglish ? docInfo.labelEn : docInfo.label}</span>
                     </div>

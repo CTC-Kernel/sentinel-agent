@@ -500,7 +500,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
                     const config = SEVERITY_CONFIG[severity];
                     return (
                       <button
-                        key={severity}
+                        key={severity || 'unknown'}
                         onClick={() => toggleSeverityFilter(severity)}
                         className={`
                     flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
@@ -599,7 +599,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
                   <div className="flex flex-wrap gap-1.5">
                     {availableTypes.map((type) => (
                       <button
-                        key={type}
+                        key={type || 'unknown'}
                         onClick={() => toggleTypeFilter(type)}
                         className={`
                     px-2 py-1 rounded text-[11px] transition-colors
@@ -661,7 +661,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
                 ) : (
                   filteredAnomalies.map((anomaly) => (
                     <AnomalyItem
-                      key={anomaly.id}
+                      key={anomaly.id || 'unknown'}
                       anomaly={anomaly}
                       node={nodes.get(anomaly.nodeId)}
                       isSelected={selectedIds.has(anomaly.id)}

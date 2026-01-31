@@ -64,7 +64,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                     ) : recommendations.length > 0 ? (
                         <div className="grid gap-6">
                             {recommendations.map((rec) => (
-                                <div key={rec.title} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-border/40 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
+                                <div key={rec.title || 'unknown'} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-border/40 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${rec.priority === 'urgent' ? 'bg-error-bg text-error-text dark:bg-error-bg/30 dark:text-error-text' :
@@ -91,7 +91,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Actions Suggérées</h4>
                                         <ul className="space-y-3">
                                             {rec.suggested_actions.map((action) => (
-                                                <li key={action.action} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                                <li key={action.action || 'unknown'} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
                                                     <div className="mt-0.5 p-1 bg-brand-100 dark:bg-brand-900 rounded-full text-brand-600 dark:text-brand-400">
                                                         <CheckCircle2 className="w-3 h-3" />
                                                     </div>

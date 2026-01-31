@@ -125,7 +125,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
                         {/* Row Labels & Matrix Cells */}
                         {PROBABILITY_LABELS.map((probObj) => (
-                            <React.Fragment key={probObj.val}>
+                            <React.Fragment key={probObj.val || 'unknown'}>
                                 {/* Row Label */}
                                 <div className="flex flex-col justify-center items-end pr-4 py-2">
                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
@@ -177,7 +177,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
                                     return (
                                         <CustomTooltip
-                                            key={`${probObj.val}-${impactObj.val}`}
+                                            key={`${probObj.val || 'unknown'}-${impactObj.val}`}
                                             content={
                                                 <div className="text-center">
                                                     <div className="font-bold">Score: {score}</div>
@@ -228,7 +228,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         {/* X-Axis Labels */}
                         <div className="col-span-2" /> {/* Spacer for Y-Axis and Row Labels */}
                         {IMPACT_LABELS.map(label => (
-                            <div key={label.val} className="flex flex-col items-center pt-4">
+                            <div key={label.val || 'unknown'} className="flex flex-col items-center pt-4">
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{label.label}</span>
                                 <span className="text-xs font-bold text-muted-foreground mt-1">{t('risks.matrix.level', { defaultValue: 'Niveau' })} {label.val}</span>
                             </div>

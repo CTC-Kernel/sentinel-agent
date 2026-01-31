@@ -37,7 +37,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         { icon: Users, label: 'Équipe & Rôles', active: false },
                     ].map((item) => (
                         <div
-                            key={item.label}
+                            key={item.label || 'unknown'}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-3xl transition-all ${item.active
                                 ? 'bg-brand-600 text-white shadow-md shadow-brand-500/25'
                                 : 'hover:bg-white/5 hover:text-slate-200'
@@ -173,7 +173,7 @@ export const LandingDashboardMockup: React.FC = () => {
                             </div>
                             <div className="flex-1 flex items-end justify-between gap-4 px-2 pb-2 relative z-10">
                                 {[40, 55, 45, 60, 75, 65, 80, 70, 85, 90, 82, 88].map((h, i) => (
-                                    <div key={`bar-${i}`} className="w-full bg-white/5 rounded-t-sm relative group h-full flex items-end overflow-hidden">
+                                    <div key={`bar-${i || 'unknown'}`} className="w-full bg-white/5 rounded-t-sm relative group h-full flex items-end overflow-hidden">
                                         <div
                                             className="w-full bg-brand-100 group-hover:bg-brand-200 transition-all duration-500 rounded-t-sm relative"
                                             style={{ height: `${h}%` }}

@@ -141,7 +141,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
 
                 return (
                   <button
-                    key={phase}
+                    key={phase || 'unknown'}
                     type="button"
                     onClick={() => setValue('phase', phase)}
                     className={cn(
@@ -206,7 +206,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
             >
               <option value="">Non assigné</option>
               {teamMembers.map((member) => (
-                <option key={member.id} value={member.id}>
+                <option key={member.id || 'unknown'} value={member.id}>
                   {member.displayName || member.email}
                 </option>
               ))}

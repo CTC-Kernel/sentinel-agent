@@ -226,7 +226,7 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
             <AnimatePresence mode="popLayout">
               {formattedValue.split('').map((char, index) => (
                 <motion.span
-                  key={`${index}-${char}`}
+                  key={`${index || 'unknown'}-${char}`}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -20, opacity: 0 }}

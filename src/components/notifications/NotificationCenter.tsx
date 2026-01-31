@@ -107,7 +107,7 @@ export const NotificationCenter: React.FC = () => {
                                 <div className="space-y-1">
                                     {filteredNotifications.map((notification) => (
                                         <NotificationItem
-                                            key={notification.id}
+                                            key={notification.id || 'unknown'}
                                             notification={notification}
                                             onRead={markAsRead}
                                         />

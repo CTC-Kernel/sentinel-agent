@@ -180,7 +180,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                 <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
                     <div className="relative">
                         <div className="h-[140px] w-[140px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="100%" barSize={14} data={scoreGaugeData} startAngle={180} endAngle={0}>
                                     <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={12} style={{ filter: 'url(#complianceGlow)' }} />
                                 </RadialBarChart>
@@ -227,11 +227,11 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         {t('compliance.dashboard.distributionTitle')}
                     </h4>
                     <div className="h-[280px] w-full relative z-10">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <PieChart>
                                 <defs>
                                     {statusData.map((entry, index) => (
-                                        <linearGradient key={`grad-${index}`} id={`pieStatusGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                                        <linearGradient key={`grad-${index || 'unknown'}`} id={`pieStatusGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
                                             <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                             <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                         </linearGradient>
@@ -253,7 +253,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                                     onMouseLeave={() => setActiveStatusIndex(null)}
                                 >
                                     {statusData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={`url(#pieStatusGradient-${index})`} className="cursor-pointer drop-shadow-sm" />
+                                        <Cell key={`cell-${index || 'unknown'}`} fill={`url(#pieStatusGradient-${index})`} className="cursor-pointer drop-shadow-sm" />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} cursor={false} />
@@ -284,7 +284,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         {t('compliance.dashboard.domainConformityTitle')}
                     </h4>
                     <div className="h-[280px] w-full relative z-10">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
                                 <XAxis
@@ -307,7 +307,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                                 <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[8, 8, 0, 0]} barSize={24} animationDuration={1200}>
                                     {domainChartData.map((entry, index) => (
                                         <Cell
-                                            key={`cell-${index}`}
+                                            key={`cell-${index || 'unknown'}`}
                                             fill={entry.rate >= 80 ? `url(#${barGradientSuccessId})` : entry.rate >= 50 ? chartTheme.colors.partial : `url(#${barGradientPrimaryId})`}
                                             style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}
                                         />
@@ -333,7 +333,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         {t('compliance.dashboard.radarTitle')}
                     </h4>
                     <div className="h-[280px] w-full relative z-10">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                 <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />
                                 <PolarAngleAxis dataKey="domain" tick={{ fill: chartTheme.text, fontSize: 10, fontWeight: 600 }} />

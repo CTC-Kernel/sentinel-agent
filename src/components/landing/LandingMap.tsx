@@ -46,7 +46,7 @@ export const LandingMap: React.FC<LandingMapProps> = memo(({ className }) => {
                         {({ geographies }) =>
                             geographies.map((geo) => (
                                 <Geography
-                                    key={geo.rsmKey}
+                                    key={geo.rsmKey || 'unknown'}
                                     geography={geo}
                                     className="fill-slate-300/80 dark:fill-slate-800/80 stroke-slate-400/60 dark:stroke-slate-700/60 outline-none transition-colors duration-700"
                                     style={{
@@ -61,7 +61,7 @@ export const LandingMap: React.FC<LandingMapProps> = memo(({ className }) => {
 
                     {/* Animated "Pulse" Markers */}
                     {visualThreats.map((marker, i) => (
-                        <Marker key={`marker-${i}`} coordinates={marker.coordinates as [number, number]}>
+                        <Marker key={`marker-${i || 'unknown'}`} coordinates={marker.coordinates as [number, number]}>
                             <circle r={2} fill="#94a3b8" className="animate-ping opacity-75" />
                             <circle r={1} fill="#e2e8f0" />
                         </Marker>

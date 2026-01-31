@@ -200,7 +200,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
         <div className="h-5 w-40 bg-muted rounded mb-4" />
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex">
+            <div key={i || 'unknown'} className="flex">
               <div className="w-3 h-3 bg-muted rounded-full mr-3" />
               <div className="flex-1 h-16 bg-muted rounded" />
             </div>
@@ -359,7 +359,7 @@ export function PMTimelineWidget({
         <div className="flex flex-col">
           {items.map((item, index) => (
             <TimelineItemRow
-              key={item.id}
+              key={item.id || 'unknown'}
               item={item}
               size={size}
               onClick={onItemClick ? () => onItemClick(item.id) : undefined}

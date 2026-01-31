@@ -20,7 +20,7 @@ export const ProjectTeam: React.FC<ProjectTeamProps> = ({ project, usersList }) 
             {hasMembers ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {safeUsersList.filter(u => project.members?.includes(u.uid)).map(member => (
-                        <div key={member.uid} className="glass-premium p-4 rounded-3xl border border-border/40 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                        <div key={member.uid || 'unknown'} className="glass-premium p-4 rounded-3xl border border-border/40 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
                             <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-lg border-2 border-white dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform overflow-hidden">
                                 <img
                                     src={getUserAvatarUrl(member.photoURL, member.role)}

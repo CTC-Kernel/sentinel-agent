@@ -448,7 +448,7 @@ export const BlastRadiusVisualization: React.FC<BlastRadiusVisualizationProps> =
       {/* Expanding rings */}
       {showRings && Array.from({ length: Math.min(maxDepth, 5) }, (_, i) => (
         <ExpandingRing
-          key={`ring-${i}`}
+          key={`ring-${i || 'unknown'}`}
           position={sourcePosition}
           depth={i}
           maxDepth={maxDepth}
@@ -462,7 +462,7 @@ export const BlastRadiusVisualization: React.FC<BlastRadiusVisualizationProps> =
         const lastNode = affectedNodes.find((n) => n.nodeId === path[path.length - 1]);
         return (
           <ImpactPath
-            key={`path-${index}`}
+            key={`path-${index || 'unknown'}`}
             path={path}
             nodes={allNodes}
             active={isActive}
@@ -475,7 +475,7 @@ export const BlastRadiusVisualization: React.FC<BlastRadiusVisualizationProps> =
       {/* Affected node highlights */}
       {affectedNodes.map((node, index) => (
         <AffectedNodeHighlight
-          key={node.nodeId}
+          key={node.nodeId || 'unknown'}
           affectedNode={node}
           active={isActive}
           delay={node.depth * 200 + (index % 10) * 30}

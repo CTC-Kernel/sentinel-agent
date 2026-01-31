@@ -35,7 +35,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {linkedControls.map(ctrl => (
                             <div
-                                key={ctrl.id}
+                                key={ctrl.id || 'unknown'}
                                 className="p-3 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl flex items-center justify-between group hover:border-brand-200 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                                 role="button"
                                 tabIndex={0}

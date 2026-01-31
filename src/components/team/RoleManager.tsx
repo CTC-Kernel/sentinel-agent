@@ -163,7 +163,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {roles.map(role => (
                         <RoleCard
-                            key={role.id}
+                            key={role.id || 'unknown'}
                             role={role}
                             onEdit={handleOpenDrawer}
                             onDelete={handleConfirmDelete}
@@ -205,17 +205,17 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                                     <tr>
                                         <th scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider rounded-tl-lg">{t('team.roles.resource', { defaultValue: 'Ressource' })}</th>
                                         {ACTIONS.map(action => (
-                                            <th key={action} scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-center">{action}</th>
+                                            <th key={action || 'unknown'} scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-center">{action}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                     {RESOURCES.map(resource => (
-                                        <tr key={resource} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                        <tr key={resource || 'unknown'} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                             <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{resource}</td>
                                             {ACTIONS.map(action => (
                                                 <PermissionCheck
-                                                    key={action}
+                                                    key={action || 'unknown'}
                                                     resource={resource}
                                                     action={action}
                                                     isChecked={((formValues.permissions || {})[resource] as ActionType[] || []).includes(action) || false}

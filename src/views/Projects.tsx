@@ -409,7 +409,7 @@ export const Projects: React.FC = () => {
                             ) : (
                                 filteredProjects.map(p => (
                                     <ProjectCard
-                                        key={p.id}
+                                        key={p.id || 'unknown'}
                                         project={p}
                                         canEdit={canEdit}
                                         user={user}
@@ -465,7 +465,7 @@ export const Projects: React.FC = () => {
                         });
 
                         return (
-                            <div key={statusKey} className="flex flex-col glass-premium rounded-3xl p-5 h-full border border-border/40">
+                            <div key={statusKey || 'unknown'} className="flex flex-col glass-premium rounded-3xl p-5 h-full border border-border/40">
                                 <h4 className="flex justify-between px-1 mb-4 text-sm font-bold tracking-wider uppercase text-slate-600 dark:text-muted-foreground">
                                     {statusLabel}
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">
@@ -485,7 +485,7 @@ export const Projects: React.FC = () => {
                                     ) : (
                                         columnProjects.map(p => (
                                             <ProjectCard
-                                                key={p.id}
+                                                key={p.id || 'unknown'}
                                                 project={p}
                                                 canEdit={canEdit}
                                                 user={user}

@@ -140,7 +140,7 @@ const ReplyItem: React.FC<{
             <div className="flex items-center gap-1 mt-2">
               {reply.mentions.map((mention, idx) => (
                 <span
-                  key={idx}
+                  key={idx || 'unknown'}
                   className="px-1.5 py-0.5 bg-brand-100 text-brand-400 text-xs rounded"
                 >
                   @{mention}
@@ -527,7 +527,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
               <div className="flex items-center gap-2 mt-3 flex-wrap">
                 {annotation.mentions.map((mention, idx) => (
                   <span
-                    key={idx}
+                    key={idx || 'unknown'}
                     className="px-2 py-1 bg-brand-100 text-brand-400 text-xs rounded-lg"
                   >
                     @{mention}
@@ -623,7 +623,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     <div className="divide-y divide-slate-700/30">
                       {replies.map((reply) => (
                         <ReplyItem
-                          key={reply.id}
+                          key={reply.id || 'unknown'}
                           reply={reply}
                           currentUserId={user?.uid}
                           onEdit={handleEditReply}

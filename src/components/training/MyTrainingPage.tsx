@@ -375,7 +375,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
           const isActive = filter === btn.value;
           return (
             <button
-              key={btn.value}
+              key={btn.value || 'unknown'}
               onClick={() => setFilter(btn.value)}
               className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium transition-all ${isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
@@ -403,7 +403,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
       {isLoading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <TrainingCardSkeleton key={i} />
+            <TrainingCardSkeleton key={i || 'unknown'} />
           ))}
         </div>
       ) : filteredAssignments.length === 0 ? (
@@ -435,7 +435,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
 
               return (
                 <motion.div
-                  key={assignment.id}
+                  key={assignment.id || 'unknown'}
                   variants={staggerItem}
                   layout
                 >

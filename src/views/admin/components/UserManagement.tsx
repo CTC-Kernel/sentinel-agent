@@ -94,7 +94,7 @@ export const UserManagement: React.FC = () => {
 
                     <div className="grid gap-4">
                         {users.map(user => (
-                            <div key={user.uid} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between hover:bg-slate-800 transition-colors group">
+                            <div key={user.uid || 'unknown'} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between hover:bg-slate-800 transition-colors group">
                                 <div className="flex items-center">
                                     <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center mr-4 overflow-hidden">
                                         {user.photoURL ? (

@@ -106,7 +106,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                 <h4 className="text-sm font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
                 <div className="h-[200px] w-full relative z-10">
                     {findings.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <PieChart>
                                 <Pie
                                     data={findingsByType}
@@ -119,7 +119,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                                     stroke="none"
                                 >
                                     {findingsByType.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                        <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} />
@@ -137,7 +137,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                 {/* Legend */}
                 <div className="flex flex-wrap gap-4 justify-center mt-4 relative z-10">
                     {findingsByType.map((item) => (
-                        <div key={item.name} className="flex items-center gap-2">
+                        <div key={item.name || 'unknown'} className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                             <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">
                                 {item.name} ({item.value})

@@ -236,7 +236,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
 
             {/* Framework Groups */}
             {frameworkGroups.map(group => (
-                <div key={group.framework} className="glass-premium rounded-3xl overflow-hidden border border-border/40">
+                <div key={group.framework || 'unknown'} className="glass-premium rounded-3xl overflow-hidden border border-border/40">
                     {/* Group Header */}
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-border/40 dark:border-slate-800">
                         <div className="flex items-center justify-between">
@@ -263,7 +263,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
 
                             return (
                                 <button
-                                    key={control.id}
+                                    key={control.id || 'unknown'}
                                     onClick={() => onControlClick?.(control)}
                                     className="w-full p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
                                 >
@@ -282,7 +282,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                                             <div className="flex flex-wrap gap-1.5">
                                                 {frameworks.map((fw, idx) => (
                                                     <span
-                                                        key={fw}
+                                                        key={fw || 'unknown'}
                                                         className={cn(
                                                             "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
                                                             idx === 0

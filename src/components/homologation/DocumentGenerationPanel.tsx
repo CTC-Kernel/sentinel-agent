@@ -242,7 +242,7 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
 
     return (
       <div
-        key={type}
+        key={type || 'unknown'}
         className="flex items-center gap-4 p-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors"
       >
         {/* Status icon */}

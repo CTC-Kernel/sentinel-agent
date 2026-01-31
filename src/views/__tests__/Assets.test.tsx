@@ -141,7 +141,7 @@ vi.mock('../../hooks/usePersistedState', () => ({
 vi.mock('../../components/assets/AssetList', () => ({
     AssetList: ({ assets }: { assets: Array<{ id: string; name: string }> }) => (
         <div data-testid="asset-list">
-            {assets.length === 0 ? "Aucun actif trouvé" : assets.map(a => <div key={a.id}>{a.name}</div>)}
+            {assets.length === 0 ? "Aucun actif trouvé" : assets.map(a => <div key={a.id || 'unknown'}>{a.name}</div>)}
         </div>
     )
 }));

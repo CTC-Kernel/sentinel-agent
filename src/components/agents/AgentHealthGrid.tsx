@@ -477,7 +477,7 @@ export const AgentHealthGrid: React.FC<AgentHealthGridProps> = ({
             >
                 {sortedAgents.map((agent) => (
                     <AgentHealthCard
-                        key={agent.id}
+                        key={agent.id || 'unknown'}
                         agent={agent}
                         compact
                         reliableScore={reliableScores.get(agent.id)}
@@ -501,7 +501,7 @@ export const AgentHealthGrid: React.FC<AgentHealthGridProps> = ({
             <AnimatePresence mode="popLayout">
                 {sortedAgents.map((agent) => (
                     <AgentHealthCard
-                        key={agent.id}
+                        key={agent.id || 'unknown'}
                         agent={agent}
                         reliableScore={reliableScores.get(agent.id)}
                         onClick={() => onAgentClick?.(agent)}

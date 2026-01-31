@@ -106,7 +106,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                             <span className="caption">Taux de Complétion</span>
                         </div>
                         <div className="h-[120px] relative">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={completionGaugeData} startAngle={180} endAngle={0}>
                                     <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#auditGlow)' }} />
                                 </RadialBarChart>
@@ -132,7 +132,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                             <span className="caption">Taux de Conformité</span>
                         </div>
                         <div className="h-[120px] relative">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={complianceGaugeData} startAngle={180} endAngle={0}>
                                     <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#auditGlow)' }} />
                                 </RadialBarChart>
@@ -168,11 +168,11 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                         {statusData.length === 0 ? (
                             <EmptyChartState variant="pie" message="Aucune donnée" />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <defs>
                                         {statusData.map((entry, idx) => (
-                                            <linearGradient key={idx} id={`auditStatusGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
+                                            <linearGradient key={idx || 'unknown'} id={`auditStatusGrad${idx}`} x1="0" y1="0" x2="1" y2="1">
                                                 <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                                 <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                             </linearGradient>
@@ -194,7 +194,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                                         onMouseLeave={() => setActiveStatusIndex(null)}
                                     >
                                         {statusData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#auditStatusGrad${index})`} className="cursor-pointer" />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={`url(#auditStatusGrad${index})`} className="cursor-pointer" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} />
@@ -229,7 +229,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                         {findingsByType.length === 0 ? (
                             <EmptyChartState variant="bar" message="Aucun constat" />
                         ) : (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <BarChart data={findingSeverityData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />
                                     <XAxis
@@ -243,7 +243,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
                                     <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40} animationDuration={1200}>
                                         {findingSeverityData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
                                         ))}
                                     </Bar>
                                 </BarChart>

@@ -336,7 +336,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
               const count = data.treatmentPlan.filter(tp => tp.strategy === strategy.value).length;
               return (
                 <div
-                  key={strategy.value}
+                  key={strategy.value || 'unknown'}
                   className={cn(
                     "flex flex-col items-center p-3 rounded-3xl border transition-all duration-300 hover:shadow-md",
                     `bg-${strategy.color}-50/50 dark:bg-${strategy.color}-900/10`,
@@ -397,7 +397,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
               const residualRiskColor = getRiskColor(residualRiskLevel);
 
               return (
-                <div key={opScenario.id} className={`animate-fade-in-up delay-${(index + 3) * 100}`}>
+                <div key={opScenario.id || 'unknown'} className={`animate-fade-in-up delay-${(index + 3) * 100}`}>
                   <PremiumCard glass className={cn(
                     "overflow-hidden transition-all duration-300 hover:shadow-lg border-border/40 rounded-3xl",
                     isExpanded ? "ring-1 ring-brand-300" : ""
@@ -545,7 +545,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                       const StrategyIcon = strategy.icon;
                                       return (
                                         <button
-                                          key={strategy.value}
+                                          key={strategy.value || 'unknown'}
                                           onClick={() => !readOnly && handleUpdateTreatment(opScenario.id, { strategy: strategy.value })}
                                           disabled={readOnly}
                                           className={cn(
@@ -681,7 +681,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                           <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
                                             {treatment.selectedControlIds.map((code) => (
                                               <div
-                                                key={code}
+                                                key={code || 'unknown'}
                                                 className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm"
                                               >
                                                 <div className="flex items-center gap-3">
@@ -717,7 +717,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                         <div className="flex gap-2">
                                           {TREATMENT_STATUS_OPTIONS.map((status) => (
                                             <button
-                                              key={status.value}
+                                              key={status.value || 'unknown'}
                                               onClick={() => !readOnly && handleUpdateTreatment(opScenario.id, { status: status.value })}
                                               disabled={readOnly}
                                               className={cn(

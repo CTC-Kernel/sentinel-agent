@@ -141,7 +141,7 @@ export const TrainingKPICards: React.FC<TrainingKPICardsProps> = ({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
-          <KPICardSkeleton key={i} />
+          <KPICardSkeleton key={i || 'unknown'} />
         ))}
       </div>
     );
@@ -186,7 +186,7 @@ export const TrainingKPICards: React.FC<TrainingKPICardsProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {kpis.map((kpi, index) => (
-        <KPICard key={index} {...kpi} />
+        <KPICard key={index || 'unknown'} {...kpi} />
       ))}
     </div>
   );

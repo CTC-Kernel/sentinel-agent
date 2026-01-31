@@ -191,7 +191,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
           <div className="h-8 bg-slate-200 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <div key={`skeleton-${i}`} className="h-20 bg-slate-200 rounded"></div>
+              <div key={`skeleton-${i || 'unknown'}`} className="h-20 bg-slate-200 rounded"></div>
             ))}
           </div>
         </div>
@@ -234,7 +234,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                 <div className="space-y-4">
                   {playbooks.map((playbook) => (
                     <div
-                      key={playbook.id}
+                      key={playbook.id || 'unknown'}
                       className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPlaybook?.id === playbook.id
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-border/40 dark:border-slate-700 hover:border-border/40 dark:hover:border-slate-600'
@@ -335,7 +335,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               {/* Current Step */}
               {selectedPlaybook?.steps.map((step, index) => (
                 <div
-                  key={step.id}
+                  key={step.id || 'unknown'}
                   className={`border rounded-3xl p-3 mb-3 transition-colors ${index === currentStep
                     ? 'border-blue-500/30 bg-blue-500'
                     : index < currentStep
@@ -430,7 +430,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                 <h4 className="font-bold text-sm uppercase tracking-wide text-slate-500 dark:text-slate-300 mb-4">Timeline de réponse</h4>
                 <div className="relative pl-4 border-l-2 border-border/40 space-y-4">
                   {response.timeline.map((event) => (
-                    <div key={event.id} className="relative pl-4">
+                    <div key={event.id || 'unknown'} className="relative pl-4">
                       <div className="absolute -left-[21px] top-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full"></div>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                         <span className="text-xs font-bold text-slate-700">{event.type}</span>

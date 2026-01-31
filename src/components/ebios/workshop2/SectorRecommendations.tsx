@@ -140,7 +140,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
               <div className="flex flex-wrap gap-2">
                 {pendingSourceRecommendations.map((source) => (
                   <div
-                    key={source.code}
+                    key={source.code || 'unknown'}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-red-600 dark:text-red-400">{source.code}</span>
@@ -193,7 +193,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
               <div className="flex flex-wrap gap-2">
                 {pendingObjectiveRecommendations.map((obj) => (
                   <div
-                    key={obj.code}
+                    key={obj.code || 'unknown'}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-amber-600 dark:text-amber-400">{obj.code}</span>

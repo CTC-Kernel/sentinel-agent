@@ -104,7 +104,7 @@ const CourseCardSkeleton: React.FC = () => (
 const CatalogSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     {Array.from({ length: count }).map((_, i) => (
-      <CourseCardSkeleton key={i} />
+      <CourseCardSkeleton key={i || 'unknown'} />
     ))}
   </div>
 );
@@ -277,7 +277,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
                     const isActive = filters.category === option.value;
                     return (
                       <button
-                        key={option.value}
+                        key={option.value || 'unknown'}
                         onClick={() => handleCategoryChange(option.value)}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-3xl text-sm font-medium transition-all ${isActive
                           ? 'bg-primary text-primary-foreground shadow-sm'
@@ -305,7 +305,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
                     className="px-3 py-2 rounded-3xl bg-muted/50 border border-muted text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   >
                     {sourceOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
+                      <option key={option.value || 'unknown'} value={option.value}>
                         {t(option.label)}
                       </option>
                     ))}
@@ -378,7 +378,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
           }
         >
           {courses.map((course) => (
-            <motion.div key={course.id} variants={staggerItem}>
+            <motion.div key={course.id || 'unknown'} variants={staggerItem}>
               <TrainingCourseCard
                 course={course}
                 onView={onViewCourse}

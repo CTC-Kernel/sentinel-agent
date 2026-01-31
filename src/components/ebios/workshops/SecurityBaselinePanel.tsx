@@ -202,7 +202,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
       <div className="space-y-3">
         {Object.entries(filteredByCategory).map(([category, measures]) => (
           <div
-            key={category}
+            key={category || 'unknown'}
             className="rounded-3xl border border-border/40 dark:border-slate-700 overflow-hidden"
           >
             <button
@@ -238,7 +238,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
 
                   return (
                     <div
-                      key={measure.id}
+                      key={measure.id || 'unknown'}
                       className="p-4 bg-white dark:bg-slate-900/50"
                     >
                       <div className="flex items-start gap-4">
@@ -261,7 +261,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
                                 const Icon = config.icon;
                                 return (
                                   <button
-                                    key={status}
+                                    key={status || 'unknown'}
                                     onClick={() => updateMeasureStatus(measure.id, status)}
                                     className={cn(
                                       "p-2 rounded-lg transition-colors",

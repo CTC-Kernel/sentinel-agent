@@ -302,7 +302,7 @@ const WhatIfBuilder: React.FC<{
           >
             <option value="">Sélectionner un contrôle...</option>
             {controlNodes.map((node) => (
-              <option key={node.id} value={node.id}>
+              <option key={node.id || 'unknown'} value={node.id}>
                 {node.label || node.id.substring(0, 20)}
               </option>
             ))}
@@ -611,7 +611,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                     { label: 'Faible', count: stats.lowCount, color: IMPACT_COLORS.low },
                   ].map(({ label, count, color }) => (
                     <div
-                      key={label}
+                      key={label || 'unknown'}
                       className={`flex-1 px-2 py-1.5 rounded-lg ${color.bg} ${color.border} border text-center`}
                     >
                       <div className={`text-lg font-bold ${color.text}`}>{count}</div>
@@ -627,7 +627,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                     const Icon = NODE_TYPE_ICONS[type as VoxelNodeType];
                     return (
                       <button
-                        key={type}
+                        key={type || 'unknown'}
                         onClick={() => setFilterType(filterType === type ? 'all' : type as VoxelNodeType)}
                         className={`
                     flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] transition-colors
@@ -767,7 +767,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                 ) : (
                   filteredNodes.map((node) => (
                     <AffectedNodeItem
-                      key={node.nodeId}
+                      key={node.nodeId || 'unknown'}
                       node={node}
                       isSelected={selectedNodeId === node.nodeId}
                       onSelect={() => setSelectedNodeId(selectedNodeId === node.nodeId ? null : node.nodeId)}

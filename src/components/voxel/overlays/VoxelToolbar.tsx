@@ -166,7 +166,7 @@ export const VoxelToolbar: React.FC<VoxelToolbarProps> = ({
         <div className="flex items-center gap-0.5">
           {LAYOUT_OPTIONS.map((option) => (
             <ToolbarButton
-              key={option.value}
+              key={option.value || 'unknown'}
               icon={option.icon}
               label={`${option.label} Layout`}
               onClick={() => handleLayoutChange(option.value)}

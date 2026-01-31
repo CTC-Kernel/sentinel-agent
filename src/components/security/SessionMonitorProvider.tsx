@@ -155,7 +155,7 @@ const SecurityAnomalyBanner: React.FC<SecurityAnomalyBannerProps> = ({ count, on
             <h4 className="font-semibold mb-2">Détails des anomalies:</h4>
             <ul className="space-y-2 text-sm">
               {anomalies.map((anomaly, index) => (
-                <li key={index} className="bg-red-700/50 rounded px-3 py-2">
+                <li key={index || 'unknown'} className="bg-red-700/50 rounded px-3 py-2">
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="font-medium">{anomaly.type.replace(/_/g, ' ')}</span>

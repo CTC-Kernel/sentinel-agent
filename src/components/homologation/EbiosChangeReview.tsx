@@ -229,7 +229,7 @@ export const EbiosChangeReview: React.FC<EbiosChangeReviewProps> = ({
                 </p>
                 <ul className="text-xs text-amber-700 dark:text-amber-400 list-disc list-inside space-y-0.5">
                   {changes.details.map((detail, i) => (
-                    <li key={i}>{detail}</li>
+                    <li key={i || 'unknown'}>{detail}</li>
                   ))}
                 </ul>
                 {renderComparison()}

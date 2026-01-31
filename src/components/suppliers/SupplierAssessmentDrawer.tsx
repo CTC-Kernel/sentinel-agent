@@ -297,7 +297,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                 </p>
                 {selectedTemplatePreview.sections.map((section, idx) => (
                   <div
-                    key={section.id}
+                    key={section.id || 'unknown'}
                     className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/50 rounded-lg border border-border/40 dark:border-white/5"
                   >
                     <div className="flex items-center gap-3">

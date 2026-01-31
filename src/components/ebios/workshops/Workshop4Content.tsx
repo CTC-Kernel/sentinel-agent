@@ -376,7 +376,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
               const gravityScale = GRAVITY_SCALE.find(g => g.level === strategicScenario.gravity);
 
               return (
-                <div key={strategicScenario.id} className={`animate-fade-in-up delay-${(index + 2) * 100}`}>
+                <div key={strategicScenario.id || 'unknown'} className={`animate-fade-in-up delay-${(index + 2) * 100}`}>
                   <PremiumCard glass className="overflow-visible hover:shadow-lg transition-shadow duration-300 border-border/40 rounded-3xl">
                     {/* Strategic Scenario Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/40">
@@ -443,7 +443,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
 
                           return (
                             <div
-                              key={opScenario.id}
+                              key={opScenario.id || 'unknown'}
                               className={cn(
                                 "rounded-2xl border transition-all duration-300 overflow-hidden",
                                 isExpanded
@@ -506,7 +506,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                       {!readOnly ? (
                                         LIKELIHOOD_SCALE.map((level) => (
                                           <button
-                                            key={level.level}
+                                            key={level.level || 'unknown'}
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               handleUpdateLikelihood(opScenario.id, level.level as 1 | 2 | 3 | 4);
@@ -576,7 +576,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                         </div>
                                       ) : (
                                         opScenario.attackSequence.map((step) => (
-                                          <div key={step.id} className="relative flex items-start group/step">
+                                          <div key={step.id || 'unknown'} className="relative flex items-start group/step">
                                             {/* Step Number Bubble */}
                                             <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-brand-500 text-white text-[11px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-slate-50 dark:ring-slate-800/80">
                                               {step.order}

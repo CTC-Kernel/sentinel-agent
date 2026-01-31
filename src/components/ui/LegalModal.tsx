@@ -49,7 +49,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 <div className="px-8 border-b border-border/40 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900">
                     {tabs.map(tab => (
                         <button
-                            key={tab.id}
+                            key={tab.id || 'unknown'}
                             aria-label={`Onglet ${tab.label}`}
                             aria-selected={activeTab === tab.id}
                             role="tab"

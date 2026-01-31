@@ -211,10 +211,10 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
     </div>
 
     {/* Center - Selected Node (hidden on small screens) */}
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout">
       {selectedNode && (
         <motion.div
-          key={selectedNode.id}
+          key={selectedNode.id || 'unknown'}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
@@ -827,7 +827,7 @@ export const VoxelView: React.FC = () => {
               >
                 <option value="" className="bg-slate-900">Tous les frameworks</option>
                 {activeFrameworks?.map(af => (
-                  <option key={af.frameworkId} value={af.frameworkCode} className="bg-slate-900">
+                  <option key={af.frameworkId || 'unknown'} value={af.frameworkCode} className="bg-slate-900">
                     {af.frameworkCode}
                   </option>
                 ))}
@@ -916,7 +916,7 @@ export const VoxelView: React.FC = () => {
                   const count = categorizedNodes.find(c => c.id === layer.id)?.items.length || 0;
                   return (
                     <button
-                      key={layer.id}
+                      key={layer.id || 'unknown'}
                       onClick={() => handleLayerToggle(layer.id)}
                       className={`w - full flex items - center justify - between px - 2 py - 1 rounded - lg text - [11px] transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
                         } `}
@@ -989,7 +989,7 @@ export const VoxelView: React.FC = () => {
               <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">Types</span>
               <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5">
                 {LAYER_CONFIG.map(layer => (
-                  <div key={layer.id} className="flex items-center gap-1 py-0.5">
+                  <div key={layer.id || 'unknown'} className="flex items-center gap-1 py-0.5">
                     <span className={`w - 2 h - 2 rounded - full ${layer.bgColor} `} />
                     <span className="text-[11px] text-white/80 truncate">{layer.label}</span>
                   </div>
@@ -1051,7 +1051,7 @@ export const VoxelView: React.FC = () => {
             </div>
             <div className="space-y-1">
               {KEYBOARD_SHORTCUTS.map(({ key, action }) => (
-                <div key={key} className="flex items-center justify-between text-[11px]">
+                <div key={key || 'unknown'} className="flex items-center justify-between text-[11px]">
                   <span className="text-white/60">{action}</span>
                   <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/80 font-mono">{key}</kbd>
                 </div>
@@ -1108,7 +1108,7 @@ export const VoxelView: React.FC = () => {
                         const layer = LAYER_CONFIG.find(l => l.id === node.type);
                         return (
                           <button
-                            key={node.id}
+                            key={node.id || 'unknown'}
                             onClick={() => handleCommandSelect(node)}
                             className={`w - full flex items - center gap - 3 px - 3 py - 2.5 rounded - xl text - left transition - all duration - 150 ${index === 0 ? 'bg-brand-100 border border-brand-300' : 'hover:bg-white/5'
                               } `}

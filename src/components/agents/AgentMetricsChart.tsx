@@ -128,7 +128,7 @@ export const AgentMetricsChart: React.FC<AgentMetricsChartProps> = ({
             <div className={cn('space-y-4 animate-pulse', className)}>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-20 bg-muted/50 rounded-3xl" />
+                        <div key={i || 'unknown'} className="h-20 bg-muted/50 rounded-3xl" />
                     ))}
                 </div>
                 <div className="h-64 bg-muted/50 rounded-2xl" />
@@ -193,8 +193,8 @@ export const AgentMetricsChart: React.FC<AgentMetricsChartProps> = ({
                     </div>
                 </div>
 
-                <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
+                <div className="h-56 min-h-56">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                         <AreaChart data={chartData}>
                             <GradientDefs />
                             <XAxis

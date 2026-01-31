@@ -109,7 +109,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                     <div className="flex flex-wrap gap-2">
                         {activity.dataCategories && activity.dataCategories.length > 0 ? (
                             activity.dataCategories.map((cat, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-brand-50 dark:bg-brand-800 text-brand-700 dark:text-brand-300 rounded-full text-xs font-medium border border-brand-100 dark:border-brand-800">
+                                <span key={idx || 'unknown'} className="px-3 py-1 bg-brand-50 dark:bg-brand-800 text-brand-700 dark:text-brand-300 rounded-full text-xs font-medium border border-brand-100 dark:border-brand-800">
                                     {cat}
                                 </span>
                             ))

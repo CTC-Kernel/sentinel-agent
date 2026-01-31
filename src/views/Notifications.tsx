@@ -104,7 +104,7 @@ export const Notifications: React.FC = () => {
                     <div className="space-y-4">
                         {filteredNotifications.map(notif => (
                             <motion.div
-                                key={notif.id}
+                                key={notif.id || 'unknown'}
                                 layout
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}

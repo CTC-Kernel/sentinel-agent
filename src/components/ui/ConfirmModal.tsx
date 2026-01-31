@@ -140,7 +140,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         </p>
                         <ul className="space-y-1">
                           {affectedItems.slice(0, maxAffectedItemsShown).map((item, index) => (
-                            <li key={index} className="text-xs text-slate-500 dark:text-muted-foreground flex items-center gap-2">
+                            <li key={index || 'unknown'} className="text-xs text-slate-500 dark:text-muted-foreground flex items-center gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
                               <span className="font-medium">{item.type}:</span>
                               <span className="truncate">{item.name}</span>

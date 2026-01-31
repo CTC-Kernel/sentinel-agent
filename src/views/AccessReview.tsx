@@ -252,7 +252,7 @@ export const AccessReview: React.FC = () => {
       </motion.div>
 
       {/* Content */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {activeTab === 'dashboard' && (
           <motion.div
             key="dashboard"
@@ -370,7 +370,7 @@ export const AccessReview: React.FC = () => {
 
                     return (
                       <div
-                        key={campaign.id}
+                        key={campaign.id || 'unknown'}
                         className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
                       >
                         <div>
@@ -407,7 +407,7 @@ export const AccessReview: React.FC = () => {
             {loading ? (
               <div className="animate-pulse space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-24 bg-muted/20 rounded-2xl" />
+                  <div key={i || 'unknown'} className="h-24 bg-muted/20 rounded-2xl" />
                 ))}
               </div>
             ) : campaigns.length === 0 ? (
@@ -428,7 +428,7 @@ export const AccessReview: React.FC = () => {
 
                   return (
                     <div
-                      key={campaign.id}
+                      key={campaign.id || 'unknown'}
                       className="glass-premium rounded-2xl p-6 border border-white/60 dark:border-white/5"
                     >
                       <div className="flex items-start justify-between mb-4">
@@ -501,7 +501,7 @@ export const AccessReview: React.FC = () => {
             {loading ? (
               <div className="animate-pulse space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-24 bg-muted/20 rounded-2xl" />
+                  <div key={i || 'unknown'} className="h-24 bg-muted/20 rounded-2xl" />
                 ))}
               </div>
             ) : dormantAccounts.length === 0 ? (
@@ -517,7 +517,7 @@ export const AccessReview: React.FC = () => {
 
                   return (
                     <div
-                      key={account.id}
+                      key={account.id || 'unknown'}
                       className="glass-premium rounded-2xl p-6 border border-white/60 dark:border-white/5"
                     >
                       <div className="flex items-start justify-between">

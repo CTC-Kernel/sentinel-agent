@@ -186,7 +186,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
       {/* Progress Steps */}
       <div className="flex items-center justify-center gap-2">
         {['select', 'preview', 'confirm'].map((s, i) => (
-          <React.Fragment key={s}>
+          <React.Fragment key={s || 'unknown'}>
             <div
               className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-colors ${step === s
                   ? 'bg-primary text-primary-foreground'
@@ -213,7 +213,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {/* Step 1: Select */}
         {step === 'select' && (
           <motion.div
@@ -416,7 +416,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
               <div className="max-h-48 overflow-y-auto space-y-2 p-1">
                 {preview.users.map((user) => (
                   <div
-                    key={user.uid}
+                    key={user.uid || 'unknown'}
                     className="flex items-center gap-3 p-3 rounded-3xl bg-muted/30 border border-muted"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">

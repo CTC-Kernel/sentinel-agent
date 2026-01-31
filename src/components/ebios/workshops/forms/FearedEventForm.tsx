@@ -141,7 +141,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 const typeInfo = IMPACT_TYPE_LABELS[type];
                 return (
                   <button
-                    key={type}
+                    key={type || 'unknown'}
                     type="button"
                     onClick={() => setValue('impactType', type)}
                     className={cn(
@@ -187,7 +187,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
             <div className="grid grid-cols-4 gap-2">
               {GRAVITY_SCALE.map((level) => (
                 <button
-                  key={level.level}
+                  key={level.level || 'unknown'}
                   type="button"
                   onClick={() => setValue('gravity', level.level as 1 | 2 | 3 | 4)}
                   className={cn(
@@ -236,7 +236,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 <div className="space-y-2 max-h-32 overflow-y-auto">
                   {missions.map((mission) => (
                     <label
-                      key={mission.id}
+                      key={mission.id || 'unknown'}
                       htmlFor={`mission-${mission.id}`}
                       className={cn(
                         "flex items-center gap-2 p-2.5 rounded-3xl border cursor-pointer transition-colors text-sm",
@@ -274,7 +274,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                 <div className="space-y-2 max-h-32 overflow-y-auto">
                   {essentialAssets.map((asset) => (
                     <label
-                      key={asset.id}
+                      key={asset.id || 'unknown'}
                       htmlFor={`asset-${asset.id}`}
                       className={cn(
                         "flex items-center gap-2 p-2.5 rounded-3xl border cursor-pointer transition-colors text-sm",

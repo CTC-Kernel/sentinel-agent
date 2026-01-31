@@ -354,7 +354,7 @@ export const VRScene: React.FC<VRSceneProps> = ({
             <group scale={sceneScale}>
               {nodes.map((node) => (
                 <VRInteractiveNode
-                  key={node.id}
+                  key={node.id || 'unknown'}
                   nodeId={node.id}
                   node={node}
                   onSelect={handleNodeSelect}

@@ -321,7 +321,7 @@ export const ThreatIntelligence: React.FC = () => {
                             <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
                                 <div className="p-1">
                                     {filterOptions.map(f => (
-                                        <Menu.Item key={f}>
+                                        <Menu.Item key={f || 'unknown'}>
                                             {({ active }) => (
                                                 <button aria-label={`Filter by ${f}`} onClick={() => handleTypeFilterChange(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} title={`Filter by ${f}`}>
                                                     {f}
@@ -403,7 +403,7 @@ export const ThreatIntelligence: React.FC = () => {
                             ) : (
                                 filteredThreats.map((threat) => (
                                     <ThreatCard
-                                        key={threat.id}
+                                        key={threat.id || 'unknown'}
                                         threat={threat}
                                         onSelect={handleThreatSelect}
                                         onConfirmSighting={handleConfirmSighting}
@@ -461,7 +461,7 @@ export const ThreatIntelligence: React.FC = () => {
                             <div className="space-y-6">
                                 {topContributors.map((c, i) => (
                                     <div
-                                        key={c.name}
+                                        key={c.name || 'unknown'}
                                         role="button"
                                         tabIndex={0}
                                         className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer"

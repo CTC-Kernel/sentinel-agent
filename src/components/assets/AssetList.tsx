@@ -295,7 +295,7 @@ export const AssetList = React.memo<AssetListProps>(({
                     const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
                     return (
                         <div
-                            key={asset.id}
+                            key={asset.id || 'unknown'}
                             onClick={() => onEdit(asset)}
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit(asset); }}
                             role="button"

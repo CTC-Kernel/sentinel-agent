@@ -95,7 +95,7 @@ const EffortBadge: React.FC<EffortBadgeProps> = ({ effort }) => {
     <div className={`flex items-center gap-1 ${styles[effort]}`}>
       {Array.from({ length: 3 }).map((_, i) => (
         <div
-          key={i}
+          key={i || 'unknown'}
           className={`w-2 h-2 rounded-full ${
             i < dots[effort]
               ? effort === 'low'
@@ -314,7 +314,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
               <div className="space-y-2">
                 {recommendation.actions.map(action => (
                   <ActionItem
-                    key={action.id}
+                    key={action.id || 'unknown'}
                     action={action}
                     completed={completedActions.has(action.id)}
                     onToggle={() => toggleAction(action.id)}
@@ -398,7 +398,7 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
       <div className="space-y-3">
         {recommendations.recommendations.map(rec => (
           <RecommendationCard
-            key={rec.id}
+            key={rec.id || 'unknown'}
             recommendation={rec}
             onActionComplete={(actionId) => onActionComplete?.(rec.id, actionId)}
           />

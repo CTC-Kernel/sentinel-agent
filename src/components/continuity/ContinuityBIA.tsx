@@ -83,7 +83,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
 
                                 return (
                                     <tr
-                                        key={proc.id}
+                                        key={proc.id || 'unknown'}
                                         onClick={() => onOpenInspector(proc)}
                                         className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
                                         tabIndex={0}
@@ -165,7 +165,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
 
                 return (
                     <div
-                        key={proc.id}
+                        key={proc.id || 'unknown'}
                         onClick={() => onOpenInspector(proc)}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenInspector(proc); } }}
                         role="button"

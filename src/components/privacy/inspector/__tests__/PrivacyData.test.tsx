@@ -72,7 +72,7 @@ vi.mock('../../../ui/CustomSelect', () => ({
                 multiple={multiple}
             >
                 {options.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value || 'unknown'} value={opt.value}>{opt.label}</option>
                 ))}
             </select>
         </div>

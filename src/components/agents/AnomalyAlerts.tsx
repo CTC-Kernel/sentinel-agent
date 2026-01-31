@@ -753,7 +753,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                             <div className="flex flex-wrap gap-2">
                                 {ANOMALY_STATUSES.map(status => (
                                     <Badge
-                                        key={status}
+                                        key={status || 'unknown'}
                                         variant={statusFilter.includes(status) ? 'default' : 'outline'}
                                         className="cursor-pointer"
                                         onClick={() => {
@@ -780,7 +780,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                             <div className="flex flex-wrap gap-2">
                                 {ANOMALY_SEVERITIES.map(severity => (
                                     <Badge
-                                        key={severity}
+                                        key={severity || 'unknown'}
                                         variant={severityFilter.includes(severity) ? 'default' : 'outline'}
                                         className={cn(
                                             'cursor-pointer',
@@ -810,7 +810,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                             <div className="flex flex-wrap gap-2">
                                 {ANOMALY_TYPES.map(type => (
                                     <Badge
-                                        key={type}
+                                        key={type || 'unknown'}
                                         variant={typeFilter.includes(type) ? 'default' : 'outline'}
                                         className="cursor-pointer"
                                         onClick={() => {
@@ -882,7 +882,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                 ) : (
                     filteredAnomalies.map(anomaly => (
                         <AnomalyCard
-                            key={anomaly.id}
+                            key={anomaly.id || 'unknown'}
                             anomaly={anomaly}
                             expanded={expandedId === anomaly.id}
                             onToggle={() => setExpandedId(expandedId === anomaly.id ? null : anomaly.id)}

@@ -232,7 +232,7 @@ const BaselineCard: React.FC<{
                                 <h4 className="text-sm font-medium mb-3">Conformité par catégorie</h4>
                                 <div className="space-y-2">
                                     {baseline.categoryResults.map((cat) => (
-                                        <div key={cat.categoryId}>
+                                        <div key={cat.categoryId || 'unknown'}>
                                             <button
                                                 onClick={() => toggleCategory(cat.categoryId)}
                                                 className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors"
@@ -288,7 +288,7 @@ const BaselineCard: React.FC<{
                                                                 .filter(r => r.checkId.startsWith(cat.categoryId))
                                                                 .map((check) => (
                                                                     <CheckResultItem
-                                                                        key={check.id}
+                                                                        key={check.id || 'unknown'}
                                                                         check={check}
                                                                     />
                                                                 ))}
@@ -320,7 +320,7 @@ const BaselineCard: React.FC<{
                                     </div>
                                     <div className="space-y-2">
                                         {displayedChecks.map((check) => (
-                                            <FailedCheckCard key={check.id} check={check} />
+                                            <FailedCheckCard key={check.id || 'unknown'} check={check} />
                                         ))}
                                     </div>
                                 </div>
@@ -553,7 +553,7 @@ export const CISBenchmarkView: React.FC<CISBenchmarkViewProps> = ({
             ) : (
                 sortedBaselines.map((baseline) => (
                     <BaselineCard
-                        key={baseline.id}
+                        key={baseline.id || 'unknown'}
                         baseline={baseline}
                         isExpanded={expandedBaselines.has(baseline.id)}
                         onToggle={() => toggleBaseline(baseline.id)}

@@ -407,7 +407,7 @@ const Team: React.FC = () => {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {joinRequests.map(req => (
-                                        <JoinRequestCard key={req.id} req={req} onApprove={handleApproveRequest} onReject={handleRejectRequest} />
+                                        <JoinRequestCard key={req.id || 'unknown'} req={req} onApprove={handleApproveRequest} onReject={handleRejectRequest} />
                                     ))}
                                 </div>
                                 <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-10 opacity-60" />
@@ -434,7 +434,7 @@ const Team: React.FC = () => {
                             </div>
                         ) : (
                             filteredUsers.map((u) => (
-                                <UserCard key={u.uid} user={u} canAdmin={canAdmin} onEdit={openEditModal} onDelete={initiateDelete} />
+                                <UserCard key={u.uid || 'unknown'} user={u} canAdmin={canAdmin} onEdit={openEditModal} onDelete={initiateDelete} />
                             ))
                         )}
                     </div>

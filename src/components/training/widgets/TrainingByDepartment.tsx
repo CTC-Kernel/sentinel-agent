@@ -126,7 +126,7 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
       </div>
 
       <div className="h-[300px] relative z-10">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
           <BarChart
             data={displayData}
             margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
@@ -177,7 +177,7 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
             >
               {displayData.map((entry, index) => (
                 <Cell
-                  key={`cell-${index}`}
+                  key={`cell-${index || 'unknown'}`}
                   fill={getBarColor(entry.completionRate)}
                   style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
                 />

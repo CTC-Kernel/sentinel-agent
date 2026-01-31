@@ -56,7 +56,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                             layout
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            key={backup.id}
+                            key={backup.id || 'unknown'}
                             onClick={() => onSelect(backup)}
                             className={`p-4 rounded-3xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-brand-50 border-brand-200 dark:bg-brand-800 dark:border-brand-300 ring-1 ring-brand-300' : 'bg-white/50 dark:bg-white/5 border-border/40 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
                         >
@@ -111,7 +111,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                             </div>
                             <div className="flex flex-wrap gap-1">
                                 {backup.collections.slice(0, 3).map(c => (
-                                    <span key={c} className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-300 capitalize">{c}</span>
+                                    <span key={c || 'unknown'} className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-300 capitalize">{c}</span>
                                 ))}
                                 {backup.collections.length > 3 && (
                                     <span className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>

@@ -290,7 +290,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                     ) : (
                         filteredIncidents.map((inc) => (
                             <PremiumCard glass
-                                key={inc.id}
+                                key={inc.id || 'unknown'}
                                 onClick={() => onSelect(inc)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {

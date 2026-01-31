@@ -181,7 +181,7 @@ function IntensityLegend() {
       <span>Moins</span>
       {([0, 1, 2, 3, 4] as IntensityLevel[]).map((level) => (
         <div
-          key={level}
+          key={level || 'unknown'}
           className={cn('w-3 h-3 rounded-sm', INTENSITY_COLORS[level])}
         />
       ))}
@@ -199,9 +199,9 @@ function HeatmapSkeleton() {
       <Skeleton className="h-4 w-full" />
       <div className="flex gap-1">
         {Array.from({ length: 52 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-1">
+          <div key={i || 'unknown'} className="flex flex-col gap-1">
             {Array.from({ length: 7 }).map((_, j) => (
-              <Skeleton key={j} className="w-3 h-3 rounded-sm" />
+              <Skeleton key={j || 'unknown'} className="w-3 h-3 rounded-sm" />
             ))}
           </div>
         ))}
@@ -430,7 +430,7 @@ export function CalendarHeatmap({
               </SelectTrigger>
               <SelectContent>
                 {availableYears.map((y) => (
-                  <SelectItem key={y} value={y.toString()}>
+                  <SelectItem key={y || 'unknown'} value={y.toString()}>
                     {y}
                   </SelectItem>
                 ))}
@@ -457,7 +457,7 @@ export function CalendarHeatmap({
             <div className="relative h-4 ml-8">
               {monthLabels.map(({ month, weekIndex }, i) => (
                 <span
-                  key={`${month}-${i}`}
+                  key={`${month || 'unknown'}-${i}`}
                   className="absolute text-xs text-muted-foreground"
                   style={{ left: `${(weekIndex / 53) * 100}%` }}
                 >
@@ -472,7 +472,7 @@ export function CalendarHeatmap({
               <div className="flex flex-col gap-1 pr-2">
                 {DAYS_OF_WEEK.map((day, i) => (
                   <div
-                    key={day}
+                    key={day || 'unknown'}
                     className="h-3 text-[11px] text-muted-foreground leading-3"
                     style={{ visibility: i % 2 === 1 ? 'visible' : 'hidden' }}
                   >
@@ -484,13 +484,13 @@ export function CalendarHeatmap({
               {/* Week columns */}
               <div className="flex gap-1 overflow-x-auto">
                 {weeks.map((week, weekIndex) => (
-                  <div key={weekIndex} className="flex flex-col gap-1">
+                  <div key={weekIndex || 'unknown'} className="flex flex-col gap-1">
                     {/* Create 7 slots for days of week */}
                     {Array.from({ length: 7 }).map((_, dayOfWeekIndex) => {
                       const dayData = week.find((d) => d.dayOfWeek === dayOfWeekIndex);
 
                       if (!dayData) {
-                        return <div key={dayOfWeekIndex} className="w-3 h-3" />;
+                        return <div key={dayOfWeekIndex || 'unknown'} className="w-3 h-3" />;
                       }
 
                       const dateStr = format(dayData.date, 'yyyy-MM-dd');
@@ -501,7 +501,7 @@ export function CalendarHeatmap({
 
                       return (
                         <DayCell
-                          key={dateStr}
+                          key={dateStr || 'unknown'}
                           date={dayData.date}
                           data={data}
                           intensity={intensity}

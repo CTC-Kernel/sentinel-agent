@@ -225,7 +225,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                   <div className="flex flex-wrap gap-2">
                     {requirement.keywords.map((keyword, index) => (
                       <span
-                        key={index}
+                        key={index || 'unknown'}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300"
                       >
                         <Tag className="w-3 h-3" />
@@ -258,7 +258,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                   <div className="space-y-2">
                     {linkedControls.map((control) => (
                       <motion.button
-                        key={control.id}
+                        key={control.id || 'unknown'}
                         onClick={() => onNavigateToControl?.(control.id)}
                         className="w-full p-3 rounded-3xl bg-white dark:bg-slate-800/50 border border-border/40 dark:border-border/40 hover:border-border/40 dark:hover:border-white/20 transition-all text-left group"
                         whileHover={{ x: 2 }}

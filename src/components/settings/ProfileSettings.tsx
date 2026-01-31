@@ -362,7 +362,7 @@ export const ProfileSettings: React.FC = () => {
                                     { key: 'tasks', label: t('common.tasks') },
                                     { key: 'system', label: t('common.system') }
                                 ] as const).map((category) => (
-                                    <div key={category.key} className="p-5 rounded-3xl bg-brand-50 dark:bg-white/5 border border-border/40 shadow-sm group/notif hover:bg-brand-50 dark:hover:bg-white/10 transition-all">
+                                    <div key={category.key || 'unknown'} className="p-5 rounded-3xl bg-brand-50 dark:bg-white/5 border border-border/40 shadow-sm group/notif hover:bg-brand-50 dark:hover:bg-white/10 transition-all">
                                         <h4 className="text-xs font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest mb-4 group-hover/notif:text-brand-600 transition-colors">{category.label}</h4>
                                         <div className="flex gap-6 flex-wrap">
                                             <Controller

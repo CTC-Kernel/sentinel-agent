@@ -253,7 +253,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
 
         return (
             <div
-                key={comment.id}
+                key={comment.id || 'unknown'}
                 className={cn(
                     "flex gap-3 transition-all duration-300",
                     isReply && `ml-${Math.min(level * 8, 24)}`,
@@ -314,7 +314,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                         <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                             {comment.content.split(' ').map((word, i) => {
                                 if (word.startsWith('@')) {
-                                    return <span key={`${i}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-900 px-1 rounded">{word} </span>;
+                                    return <span key={`${i || 'unknown'}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-900 px-1 rounded">{word} </span>;
                                 }
                                 return word + ' ';
                             })}
@@ -456,7 +456,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                 <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                     {(['all', 'mentions', 'myComments', 'unread'] as FilterOption[]).map(filter => (
                                         <button
-                                            key={filter}
+                                            key={filter || 'unknown'}
                                             onClick={() => setFilterBy(filter)}
                                             className={cn(
                                                 "px-3 py-1 rounded-md text-xs font-medium transition-colors",
@@ -508,7 +508,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                     </div>
                 ) : (
                     sortedComments.map((root) => (
-                        <div key={root.id}>
+                        <div key={root.id || 'unknown'}>
                             {renderComment(root)}
                             {expandedComments.has(root.id) && (root as Comment & { replies?: Comment[] }).replies?.map((reply: Comment) =>
                                 renderComment(reply, true, 1)

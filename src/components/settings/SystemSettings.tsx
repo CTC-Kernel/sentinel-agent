@@ -180,7 +180,7 @@ export const SystemSettings: React.FC = () => {
                             <div className="space-y-3 p-4 animate-pulse">
                                 <div className="h-10 bg-muted/50 rounded-lg" />
                                 {[1, 2, 3, 4, 5].map((i) => (
-                                    <div key={i} className="h-12 bg-muted/30 rounded-lg" />
+                                    <div key={i || 'unknown'} className="h-12 bg-muted/30 rounded-lg" />
                                 ))}
                             </div>
                         ) : (

@@ -184,7 +184,7 @@ export const FrameworkSettings: React.FC = () => {
             {Object.entries(frameworksByType).map(([type, frameworks]) => {
                 const Icon = FRAMEWORK_TYPE_ICONS[type] || Shield;
                 return (
-                    <div key={type} className="space-y-4">
+                    <div key={type || 'unknown'} className="space-y-4">
                         <div className="flex items-center gap-2">
                             <Icon className="w-5 h-5 text-slate-500" />
                             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
@@ -201,7 +201,7 @@ export const FrameworkSettings: React.FC = () => {
 
                                 return (
                                     <button
-                                        key={fw.id}
+                                        key={fw.id || 'unknown'}
                                         onClick={() => handleToggleFramework(fw.id as Framework)}
                                         disabled={isDisabled}
                                         className={`

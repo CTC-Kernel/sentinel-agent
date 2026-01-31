@@ -134,7 +134,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('common.toGetStarted', { defaultValue: 'Pour commencer' })}</p>
                     <ol className="space-y-2">
                         {quickSteps.map((step, index) => (
-                            <li key={index} className="flex items-start gap-3 text-sm text-foreground/80">
+                            <li key={index || 'unknown'} className="flex items-start gap-3 text-sm text-foreground/80">
                                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
                                     {index + 1}
                                 </span>

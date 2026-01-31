@@ -84,7 +84,7 @@ const ConflictAlert: React.FC<ConflictAlertProps> = ({ conflicts, onResolve }) =
                     </h4>
                     <ul className="mt-2 space-y-1">
                         {conflicts.slice(0, 3).map((conflict, index) => (
-                            <li key={index} className="text-xs text-muted-foreground flex items-center gap-2">
+                            <li key={index || 'unknown'} className="text-xs text-muted-foreground flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-warning" />
                                 <span>
                                     <strong>{conflict.ruleKey}</strong> : {conflict.values.map(v => v.policyName).join(' vs ')}
@@ -116,7 +116,7 @@ const PoliciesSkeleton: React.FC = () => (
     <div className="flex flex-col gap-6 animate-pulse">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-24 bg-muted/50 rounded-2xl" />
+                <div key={i || 'unknown'} className="h-24 bg-muted/50 rounded-2xl" />
             ))}
         </div>
         <div className="h-12 bg-muted/50 rounded-xl w-64" />
@@ -441,7 +441,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                             </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="groups" className="mt-6">
+                        <TabsContent value="groups" key="groups" className="mt-6">
                             <GroupManager
                                 agents={agents}
                                 onSelectGroup={(groupId: string | null) => {
@@ -450,7 +450,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                             />
                         </TabsContent>
 
-                        <TabsContent value="policies" className="mt-6">
+                        <TabsContent value="policies" key="policies" className="mt-6">
                             <PolicyEditor
                                 groups={groups}
                                 onSelectPolicy={(policyId: string | null) => {

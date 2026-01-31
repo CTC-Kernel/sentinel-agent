@@ -275,9 +275,9 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                             >
                                 <option value="">{t('common.selectTemplate')}</option>
                                 {ISO_DOMAINS.map(domain => (
-                                    <optgroup key={domain.id} label={`${domain.id} - ${domain.title}`}>
+                                    <optgroup key={domain.id || 'unknown'} label={`${domain.id} - ${domain.title}`}>
                                         {controls.filter(c => c.code.startsWith(domain.id)).map(c => (
-                                            <option key={c.code} value={c.code}>{c.code} - {c.name}</option>
+                                            <option key={c.code || 'unknown'} value={c.code}>{c.code} - {c.name}</option>
                                         ))}
                                     </optgroup>
                                 ))}
@@ -329,7 +329,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 aria-describedby={validationErrors.assessmentMethod ? 'assessment-method-error' : undefined}
                             >
                                 {ASSESSMENT_METHODS.map(m => (
-                                    <option key={m.value} value={m.value}>{t(m.label)}</option>
+                                    <option key={m.value || 'unknown'} value={m.value}>{t(m.label)}</option>
                                 ))}
                             </select>
                             {validationErrors.assessmentMethod && (

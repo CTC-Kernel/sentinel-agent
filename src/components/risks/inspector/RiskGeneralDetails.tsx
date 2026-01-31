@@ -101,7 +101,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                             {['Ouvert', 'En cours', 'Fermé', 'En attente de validation'].map(s => (
                                 <button
                                     aria-label={t('risks.changeStatusTo', { defaultValue: 'Changer le statut à', status: s })}
-                                    key={s}
+                                    key={s || 'unknown'}
                                     onClick={() => onStatusChangeRequest(s as Risk['status'])}
                                     disabled={updating}
                                     className={`px-4 py-2 rounded-3xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-border/40 dark:border-border/40 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'} ${updating ? 'opacity-60 cursor-wait' : ''}`}

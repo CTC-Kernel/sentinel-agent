@@ -337,7 +337,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
 
               <div className="space-y-6">
                 {Object.entries(riskSourcesByCategory).map(([category, sources]) => (
-                  <div key={category} className="space-y-3">
+                  <div key={category || 'unknown'} className="space-y-3">
                     <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
                       <span className={cn(
                         "w-2.5 h-2.5 rounded-full ring-4 ring-opacity-20",
@@ -354,7 +354,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {sources.map((source) => (
                         <button
-                          key={source.id}
+                          key={source.id || 'unknown'}
                           onClick={() => toggleRiskSource(source.id)}
                           disabled={readOnly}
                           className={cn(
@@ -457,7 +457,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                 {Object.entries(objectivesByImpact).map(([impactType, objectives]) => {
                   const impactInfo = IMPACT_TYPE_LABELS[impactType as keyof typeof IMPACT_TYPE_LABELS];
                   return (
-                    <div key={impactType} className="space-y-3">
+                    <div key={impactType || 'unknown'} className="space-y-3">
                       <h4 className={cn(
                         "flex items-center gap-2 text-sm font-bold uppercase tracking-wider",
                         `text-${impactInfo?.color || 'gray'}-600 dark:text-${impactInfo?.color || 'gray'}-400`
@@ -471,7 +471,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {objectives.map((objective) => (
                           <button
-                            key={objective.id}
+                            key={objective.id || 'unknown'}
                             onClick={() => toggleTargetedObjective(objective.id)}
                             disabled={readOnly}
                             className={cn(
@@ -612,7 +612,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
 
                         return (
                           <div
-                            key={pair.id}
+                            key={pair.id || 'unknown'}
                             className={cn(
                               "group p-5 rounded-2xl border transition-all duration-300",
                               pair.retainedForAnalysis
@@ -670,7 +670,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                                     <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-100 dark:bg-slate-900/50">
                                       {GRAVITY_SCALE.map((level) => (
                                         <button
-                                          key={level.level}
+                                          key={level.level || 'unknown'}
                                           onClick={() => updatePair(pair.id, { relevance: level.level as 1 | 2 | 3 | 4 })}
                                           className={cn(
                                             "w-8 h-8 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center transform hover:scale-105",

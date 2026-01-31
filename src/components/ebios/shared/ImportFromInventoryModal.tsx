@@ -166,7 +166,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
             </button>
             {assetTypes.map((type) => (
               <button
-                key={type}
+                key={type || 'unknown'}
                 onClick={() => setTypeFilter(type)}
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
@@ -220,14 +220,14 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
             </div>
           ) : (
             Object.entries(groupedAssets).map(([type, typeAssets]) => (
-              <div key={type}>
+              <div key={type || 'unknown'}>
                 <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide mb-2">
                   {type} ({typeAssets.length})
                 </h4>
                 <div className="space-y-2">
                   {typeAssets.map((asset) => (
                     <label
-                      key={asset.id}
+                      key={asset.id || 'unknown'}
                       className={cn(
                         'flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-all',
                         selectedAssetIds.has(asset.id)

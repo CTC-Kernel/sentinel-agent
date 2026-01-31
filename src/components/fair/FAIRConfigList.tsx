@@ -282,7 +282,7 @@ export const FAIRConfigList: React.FC<FAIRConfigListProps> = ({
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="p-4 animate-pulse">
+          <Card key={i || 'unknown'} className="p-4 animate-pulse">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-muted rounded-lg" />
               <div className="flex-1 space-y-2">
@@ -317,7 +317,7 @@ export const FAIRConfigList: React.FC<FAIRConfigListProps> = ({
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {configurations.map((config) => (
         <ConfigCard
-          key={config.id}
+          key={config.id || 'unknown'}
           config={config}
           onView={() => onView(config)}
           onEdit={() => onEdit(config)}

@@ -247,7 +247,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
         return (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {[...Array(4)].map((_, i) => (
-                    <div key={i} className="glass-premium p-6 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div key={i || 'unknown'} className="glass-premium p-6 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
                 ))}
             </div>
         );
@@ -290,7 +290,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <FileCheck className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[140px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"
@@ -430,7 +430,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     </div>
                     {statusDistribution.length > 0 ? (
                         <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <Pie
                                         activeIndex={activeStatusIndex}
@@ -444,7 +444,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                         onMouseEnter={(_, index) => setActiveStatusIndex(index)}
                                     >
                                         {statusDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
                                         ))}
                                     </Pie>
                                 </PieChart>
@@ -457,7 +457,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     )}
                     <div className="flex justify-center gap-3 mt-4 flex-wrap">
                         {statusDistribution.slice(0, 4).map((entry, index) => (
-                            <div key={index} className="flex items-center gap-2 text-xs">
+                            <div key={index || 'unknown'} className="flex items-center gap-2 text-xs">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
                                 <span className="text-slate-600 dark:text-slate-300">{entry.name}</span>
                             </div>
@@ -479,7 +479,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     </div>
                     {typeDistribution.length > 0 ? (
                         <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                 <PieChart>
                                     <Pie
                                         activeIndex={activeTypeIndex}
@@ -493,7 +493,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                         onMouseEnter={(_, index) => setActiveTypeIndex(index)}
                                     >
                                         {typeDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
                                         ))}
                                     </Pie>
                                 </PieChart>
@@ -506,7 +506,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                     )}
                     <div className="flex justify-center gap-3 mt-4 flex-wrap">
                         {typeDistribution.slice(0, 4).map((entry, index) => (
-                            <div key={index} className="flex items-center gap-2 text-xs">
+                            <div key={index || 'unknown'} className="flex items-center gap-2 text-xs">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
                                 <span className="text-slate-600 dark:text-slate-300">{entry.name}</span>
                             </div>
@@ -527,7 +527,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <TrendingUp className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[200px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                             <AreaChart data={activityTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <XAxis
                                     dataKey="month"
@@ -607,7 +607,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                 const daysUntil = Math.ceil((new Date(doc.nextReviewDate!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                                 return (
                                     <div
-                                        key={doc.id}
+                                        key={doc.id || 'unknown'}
                                         className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-border/40"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">

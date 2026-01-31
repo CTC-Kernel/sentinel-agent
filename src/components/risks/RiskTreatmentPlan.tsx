@@ -326,7 +326,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                             >
                                 <option value="">Sélectionner un responsable</option>
                                 {users.map(u => (
-                                    <option key={u.uid} value={u.uid}>{u.displayName}</option>
+                                    <option key={u.uid || 'unknown'} value={u.uid}>{u.displayName}</option>
                                 ))}
                             </select>
                         </div>
@@ -400,7 +400,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     </h3>
                     <div className="grid gap-2">
                         {treatment.measures.map((measure, idx) => (
-                            <div key={idx} className="flex items-start justify-between p-3 bg-violet-50/50 dark:bg-violet-900/10 rounded-3xl border border-violet-100 dark:border-violet-900/30">
+                            <div key={idx || 'unknown'} className="flex items-start justify-between p-3 bg-violet-50/50 dark:bg-violet-900/10 rounded-3xl border border-violet-100 dark:border-violet-900/30">
                                 <p className="text-sm text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{measure}</p>
                                 <button onClick={() => removeMeasure(idx)} className="text-muted-foreground hover:text-red-500 p-1">
                                     <X className="h-4 w-4" />
@@ -452,7 +452,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
                                 const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
                                 return (
-                                    <div key={ctrl.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm group hover:shadow-md transition-shadow">
+                                    <div key={ctrl.id || 'unknown'} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-3">
                                             <Shield className={`h-4 w-4 ${isImplemented ? 'text-success-text' : isPartial ? 'text-warning-text' : 'text-slate-400'}`} />
                                             <div>
@@ -513,7 +513,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                     >
                                         <option value="">Tous</option>
                                         {availableFrameworks.map(fw => (
-                                            <option key={fw} value={fw}>{fw}</option>
+                                            <option key={fw || 'unknown'} value={fw}>{fw}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -534,7 +534,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                     const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
                                     return (
                                         <button
-                                            key={ctrl.id}
+                                            key={ctrl.id || 'unknown'}
                                             type="button"
                                             onClick={() => toggleControl(ctrl.id)}
                                             className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors text-left group"

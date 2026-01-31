@@ -196,7 +196,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <div className="space-y-2">
                                             {CRISIS_DOCUMENTS.map((doc) => (
                                                 <button
-                                                    key={doc.id}
+                                                    key={doc.id || 'unknown'}
                                                     onClick={() => openDocument(doc)}
                                                     className="group w-full flex items-center justify-between p-3 rounded-3xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all text-left"
                                                 >
@@ -254,7 +254,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                 <p className="text-xs text-slate-500">Aucun participant</p>
                                             ) : (
                                                 presence.map((p) => (
-                                                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                                                    <div key={p.id || 'unknown'} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
                                                         <div className="relative">
                                                             {p.photoURL ? (
                                                                 <img
@@ -310,7 +310,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            key={msg.id}
+                                            key={msg.id || 'unknown'}
                                             className={`flex ${msg.isSystem ? 'justify-center' : msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}
                                         >
                                             {msg.isSystem ? (
@@ -335,7 +335,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                         <div className="mt-2 space-y-1">
                                                             {msg.attachments.map((att, idx) => (
                                                                 <a
-                                                                    key={idx}
+                                                                    key={idx || 'unknown'}
                                                                     href={att.url}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
@@ -362,7 +362,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <div className="mb-3 flex flex-wrap gap-2">
                                             {pendingAttachments.map((file, idx) => (
                                                 <div
-                                                    key={idx}
+                                                    key={idx || 'unknown'}
                                                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-sm"
                                                 >
                                                     {getFileIcon(file.type)}

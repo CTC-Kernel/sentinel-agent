@@ -85,7 +85,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                 >
                     <option value="" disabled></option>
                     {options.map((option) => (
-                        <option key={option.value} value={option.value}>
+                        <option key={option.value || 'unknown'} value={option.value}>
                             {option.label}
                         </option>
                     ))}

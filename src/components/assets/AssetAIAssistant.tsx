@@ -240,13 +240,13 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                                 <div>
                                     <p className="mb-1"><strong>Fréquence suggérée :</strong> {String(response.frequency)}</p>
                                     <ul className="list-disc pl-4 space-y-1">
-                                        {response.tasks.map((t: unknown, i: number) => <li key={`task-${i}`}>{String(t)}</li>)}
+                                        {response.tasks.map((t: unknown, i: number) => <li key={`task-${i || 'unknown'}`}>{String(t)}</li>)}
                                     </ul>
                                 </div>
                             )}
                             {mode === 'optimize' && Array.isArray(response.suggestions) && (
                                 <ul className="list-disc pl-4 space-y-1">
-                                    {response.suggestions.map((s: unknown, i: number) => <li key={`sugg-${i}`}>{String(s)}</li>)}
+                                    {response.suggestions.map((s: unknown, i: number) => <li key={`sugg-${i || 'unknown'}`}>{String(s)}</li>)}
                                 </ul>
                             )}
                             {typeof response.text === 'string' && <p>{response.text}</p>}

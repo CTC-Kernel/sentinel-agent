@@ -58,7 +58,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                     const isValidDate = (d: Date) => d instanceof Date && !isNaN(d.getTime());
 
                     return (
-                        <div key={log.id} className="relative pl-6">
+                        <div key={log.id || 'unknown'} className="relative pl-6">
                             {/* Timeline Dot */}
                             <div className={`absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 border-white dark:border-slate-900 ${log.action === 'create' ? 'bg-green-500' :
                                 log.action === 'delete' ? 'bg-red-500' :
@@ -82,7 +82,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                     {log.changes && log.changes.length > 0 && (
                                         <div className="mt-2 text-xs bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/40 dark:border-white/5">
                                             {log.changes.map((change, idx) => (
-                                                <div key={`${idx}-${change.field}`} className="flex gap-2 font-mono">
+                                                <div key={`${idx || 'unknown'}-${change.field}`} className="flex gap-2 font-mono">
                                                     <span className="text-slate-500 dark:text-slate-400">{change.field}:</span>
                                                     <span className="text-red-400 line-through">{String(change.oldValue)}</span>
                                                     <span className="text-muted-foreground">→</span>

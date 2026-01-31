@@ -62,7 +62,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                                 {drills.map(drill => {
                                     const proc = processes.find(p => p.id === drill.processId);
                                     return (
-                                        <tr key={drill.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors group">
+                                        <tr key={drill.id || 'unknown'} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors group">
                                             <td className="px-4 sm:px-8 py-5 text-slate-900 dark:text-white font-bold flex items-center">
                                                 <div className="p-2 bg-white dark:bg-slate-800 rounded-3xl mr-3 shadow-sm border border-border/40 dark:border-white/5 group-hover:scale-110 transition-transform">
                                                     <CalendarDays className="h-4 w-4 text-slate-600" />

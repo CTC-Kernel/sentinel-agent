@@ -161,7 +161,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
         <div className="flex items-center gap-1 p-1 rounded-3xl bg-slate-100 dark:bg-slate-800/50">
           {(['all', 'active', 'inactive'] as FilterMode[]).map((mode) => (
             <button
-              key={mode}
+              key={mode || 'unknown'}
               onClick={() => setFilterMode(mode)}
               className={cn(
                 'px-4 py-2 rounded-lg text-sm font-medium transition-all',
@@ -183,7 +183,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
-              key={i}
+              key={i || 'unknown'}
               className="h-48 rounded-2xl bg-slate-100 dark:bg-slate-800/50 animate-pulse"
             />
           ))}
@@ -212,7 +212,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
           <AnimatePresence mode="popLayout">
             {filteredFrameworks.map((framework) => (
               <FrameworkCard
-                key={framework.id}
+                key={framework.id || 'unknown'}
                 framework={framework}
                 activeFramework={activeFrameworkMap.get(framework.id)}
                 onActivate={handleActivate}

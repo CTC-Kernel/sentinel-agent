@@ -212,7 +212,7 @@ export const SMSIProgramView: React.FC = () => {
         <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-40" />
+            <Skeleton key={i || 'unknown'} className="h-40" />
           ))}
         </div>
         <Skeleton className="h-64" />
@@ -350,7 +350,7 @@ export const SMSIProgramView: React.FC = () => {
         </GlassCard>
       )}
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {activeTab === 'overview' && (
           <motion.div
             key="overview"
@@ -520,7 +520,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
           const PhaseIcon = config.icon as React.ComponentType<{ className?: string }>;
 
           return (
-            <div key={phase} className="relative">
+            <div key={phase || 'unknown'} className="relative">
               {/* Phase Header */}
               <div className={cn(
                 "flex items-center gap-4 p-4 rounded-xl border-2 mb-4",
@@ -555,7 +555,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
 
                     return (
                       <motion.div
-                        key={milestone.id}
+                        key={milestone.id || 'unknown'}
                         className={cn(
                           "relative flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.02]",
                           isOverdue ? "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30" :

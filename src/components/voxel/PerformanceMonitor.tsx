@@ -367,7 +367,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               <div>
                 <SectionHeader title="Custom" icon="..." />
                 {Object.entries(customMetrics).map(([key, value]) => (
-                  <MetricRow key={key} label={key} value={value} />
+                  <MetricRow key={key || 'unknown'} label={key} value={value} />
                 ))}
               </div>
             )}

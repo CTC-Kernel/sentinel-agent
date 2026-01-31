@@ -159,7 +159,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 {inspectorTab === 'history' && (
                     <div className="relative border-l-2 border-border/40 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
                         {activityHistory.map((log, i) => (
-                            <div key={`${log.timestamp}-${i}`} className="relative">
+                            <div key={`${log.timestamp || 'unknown'}-${i}`} className="relative">
                                 <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-2 border-brand-200 dark:border-brand-800">
                                     <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                 </span>

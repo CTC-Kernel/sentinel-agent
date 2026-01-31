@@ -260,7 +260,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                             { id: 'logs', label: 'Logs & Diagnostics', icon: FileText },
                         ].map(tab => (
                             <button
-                                key={tab.id}
+                                key={tab.id || 'unknown'}
                                 onClick={() => setActiveTab(tab.id as 'overview' | 'compliance' | 'config' | 'logs')}
                                 className={cn(
                                     "pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors",
@@ -283,7 +283,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                             <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
                         </div>
                     ) : agentDetails ? (
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence mode="popLayout">
                             {activeTab === 'overview' && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
@@ -334,7 +334,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                                 Tendance des métriques (6h)
                                             </h3>
                                             <div className="h-[180px]">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                                     <AreaChart data={metricsHistory.map((m) => ({
                                                         time: new Date(m.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                                                         cpu: m.cpuPercent,
@@ -448,7 +448,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                         <div className="p-6 rounded-2xl border border-border/40 dark:border-border/40 flex flex-col items-center justify-center">
                                             <h3 className="text-sm font-bold mb-4 w-full text-left">Résumé des Contrôles</h3>
                                             <div className="h-[200px] w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                                     <PieChart>
                                                         <Pie
                                                             data={[
@@ -468,7 +468,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                                                 { name: 'Fail', value: agentDetails.resultsSummary?.fail || 0, color: SENTINEL_PALETTE.danger },
                                                                 { name: 'Error', value: agentDetails.resultsSummary?.error || 0, color: SENTINEL_PALETTE.warning },
                                                             ].map((entry, index) => (
-                                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                                                <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
                                                             ))}
                                                         </Pie>
                                                     </PieChart>
@@ -513,7 +513,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             <div className="space-y-2 max-h-[300px] overflow-y-auto">
                                                 {agentDetails.checkResults.map((result) => (
                                                     <div
-                                                        key={result.id}
+                                                        key={result.id || 'unknown'}
                                                         className={cn(
                                                             "flex items-center justify-between p-3 rounded-xl border transition-colors",
                                                             result.status === 'pass'

@@ -178,7 +178,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                         <div className="mb-3 space-y-1">
                             {fileIds.length > 0 ? (
                                 fileIds.map((fid, idx) => (
-                                    <div key={fid} className="flex items-center text-xs text-slate-600 dark:text-muted-foreground">
+                                    <div key={fid || 'unknown'} className="flex items-center text-xs text-slate-600 dark:text-muted-foreground">
                                         <FileText className="h-3 w-3 mr-2" />
                                         Preuve #{idx + 1} (ID: {fid.substring(0, 8)}...)
                                     </div>
@@ -219,7 +219,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 return (
                     <div className="flex gap-4">
                         {['Oui', 'Non'].map((opt) => (
-                            <label key={opt} className={`flex - 1 cursor - pointer p - 4 rounded - xl border transition - all ${value === opt ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white dark:bg-slate-800 border-border/40 dark:border-border/40 hover:border-brand-300'} `}>
+                            <label key={opt || 'unknown'} className={`flex - 1 cursor - pointer p - 4 rounded - xl border transition - all ${value === opt ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white dark:bg-slate-800 border-border/40 dark:border-border/40 hover:border-brand-300'} `}>
                                 <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
@@ -235,7 +235,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 return (
                     <div className="space-y-2">
                         {question.options?.map((opt) => (
-                            <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
+                            <label key={opt || 'unknown'} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
                                 <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
@@ -254,7 +254,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                             const currentValues = (value as string[]) || [];
                             const isChecked = currentValues.includes(opt);
                             return (
-                                <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
+                                <label key={opt || 'unknown'} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
                                     <input checked={isChecked} onChange={(e) => {
                                         const newValues = e.target.checked
                                             ? [...currentValues, opt]
@@ -276,7 +276,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map((rating) => (
                             <button
-                                key={rating}
+                                key={rating || 'unknown'}
                                 aria-label={`Note ${rating} sur 5`}
                                 onClick={() => handleAnswerChange(question.id, rating)}
                                 disabled={readOnly || status === 'Submitted'}
@@ -317,7 +317,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 sm:space-y-8">
                     {questionnaire.questions.map((q, index) => (
-                        <div key={q.id} className="space-y-3">
+                        <div key={q.id || 'unknown'} className="space-y-3">
                             <div className="flex items-start justify-between">
                                 <label className="text-base font-bold text-slate-800 dark:text-slate-200">
                                     <span className="text-slate-500 mr-2">{index + 1}.</span>

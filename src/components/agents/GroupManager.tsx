@@ -222,7 +222,7 @@ const GroupFormModal: React.FC<{
                                 </div>
 
                                 {criteria.map((c, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 bg-accent/50 rounded-lg p-2">
+                                    <div key={idx || 'unknown'} className="flex items-center gap-2 bg-accent/50 rounded-lg p-2">
                                         <select
                                             value={c.type}
                                             onChange={(e) => updateCriteria(idx, { type: e.target.value as MembershipCriteriaType })}
@@ -460,7 +460,7 @@ const GroupTreeNode: React.FC<{
                         >
                             {node.children.map(child => (
                                 <GroupTreeNode
-                                    key={child.group.id}
+                                    key={child.group.id || 'unknown'}
                                     node={child}
                                     selectedId={selectedId}
                                     expandedIds={expandedIds}
@@ -505,7 +505,7 @@ const GroupAgentList: React.FC<{
         <div className="space-y-2">
             {groupAgents.map(agent => (
                 <div
-                    key={agent.id}
+                    key={agent.id || 'unknown'}
                     className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg"
                 >
                     <Monitor className="h-4 w-4 text-muted-foreground" />
@@ -786,7 +786,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
                     ) : (
                         filteredHierarchy.map(node => (
                             <GroupTreeNode
-                                key={node.group.id}
+                                key={node.group.id || 'unknown'}
                                 node={node}
                                 selectedId={selectedGroupId}
                                 expandedIds={expandedIds}

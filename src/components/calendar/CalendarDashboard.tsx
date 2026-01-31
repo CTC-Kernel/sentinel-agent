@@ -262,7 +262,7 @@ export const CalendarDashboard: React.FC = () => {
                             { v: Views.DAY, l: 'Jour' }
                         ].map(opt => (
                             <button
-                                key={opt.v}
+                                key={opt.v || 'unknown'}
                                 aria-label={`Vue ${opt.l}`}
                                 aria-pressed={view === opt.v}
                                 onClick={() => { setView(opt.v); toolbar.onView(opt.v); }}
@@ -313,7 +313,7 @@ export const CalendarDashboard: React.FC = () => {
                 </div>
                 {Object.keys(filters).map(key => (
                     <button
-                        key={key}
+                        key={key || 'unknown'}
                         aria-label={`Filtrer par ${key}`}
                         aria-pressed={filters[key as keyof typeof filters]}
                         onClick={() => setFilters(prev => ({ ...prev, [key]: !prev[key as keyof typeof filters] }))}

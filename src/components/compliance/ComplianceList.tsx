@@ -144,7 +144,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
         return (
             <div className="space-y-4">
                 {[1, 2, 3, 4].map(i => (
-                    <div key={`skel-${i}`} className="glass-premium p-6 flex items-center gap-4 rounded-4xl">
+                    <div key={`skel-${i || 'unknown'}`} className="glass-premium p-6 flex items-center gap-4 rounded-4xl">
                         <Skeleton className="w-12 h-12 rounded-2xl" />
                         <div className="space-y-2 flex-1">
                             <Skeleton className="h-5 w-48" />
@@ -180,7 +180,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                 const fwStyles = getFrameworkStyles(currentFramework);
 
                 return (
-                    <div key={domain.id} className="glass-premium rounded-3xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative border border-border/40">
+                    <div key={domain.id || 'unknown'} className="glass-premium rounded-3xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative border border-border/40">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div
                             data-testid={`domain-header-${domain.id}`}
@@ -232,7 +232,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
 
                                         return (
                                             <div
-                                                key={control.id}
+                                                key={control.id || 'unknown'}
                                                 data-testid={`control-row-${control.code}`}
                                                 onClick={() => {
                                                     onSelectControl(control);

@@ -131,7 +131,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                         </button>
                                         {categories.map(category => (
                                             <button
-                                                key={category}
+                                                key={category || 'unknown'}
                                                 onClick={() => setSelectedCategory(category)}
                                                 className={cn(
                                                     "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
@@ -173,7 +173,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                         const Icon = getIcon(template.icon);
                                                         return (
                                                             <button
-                                                                key={template.id}
+                                                                key={template.id || 'unknown'}
                                                                 onClick={() => setPreviewTemplate(template)}
                                                                 className={cn(
                                                                     "text-left p-4 rounded-3xl border transition-all",

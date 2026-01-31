@@ -122,7 +122,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
         </div>
         <ul className="space-y-1">
           {items.map((item) => (
-            <li key={item.key} className="flex items-center gap-2 text-xs">
+            <li key={item.key || 'unknown'} className="flex items-center gap-2 text-xs">
               {item.completed ? (
                 <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
               ) : (

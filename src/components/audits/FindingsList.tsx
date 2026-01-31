@@ -83,7 +83,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                     <div className="flex gap-2">
                         {['Majeure', 'Mineure', 'Observation', 'Opportunité'].map(type => (
                             <button
-                                key={type}
+                                key={type || 'unknown'}
                                 onClick={() => setTypeFilter(typeFilter === type ? null : type)}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${typeFilter === type
                                     ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-800 dark:border-brand-800 dark:text-brand-300'
@@ -112,7 +112,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
-                                    <tr key={`skeleton-${i}`} className="animate-pulse">
+                                    <tr key={`skeleton-${i || 'unknown'}`} className="animate-pulse">
                                         <td className="py-4 px-6"><Skeleton className="h-5 w-20 rounded" /></td>
                                         <td className="py-4 px-6"><Skeleton className="h-4 w-full rounded" /></td>
                                         <td className="py-4 px-6"><Skeleton className="h-5 w-24 rounded-full" /></td>
@@ -132,7 +132,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                         variants={slideUpVariants}
                                         initial="initial"
                                         animate="visible"
-                                        key={`${finding.auditId}-${finding.id}`}
+                                        key={`${finding.auditId || 'unknown'}-${finding.id}`}
                                         className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group"
                                     >
                                         <td className="py-4 px-6">

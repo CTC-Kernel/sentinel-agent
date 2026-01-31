@@ -36,7 +36,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                     </div>
                 ) : (
                     topRisks.map(risk => (
-                        <div key={risk.id} className="group p-4 bg-card/40 hover:bg-card border border-border/60 rounded-2xl transition-all cursor-pointer">
+                        <div key={risk.id || 'unknown'} className="group p-4 bg-card/40 hover:bg-card border border-border/60 rounded-2xl transition-all cursor-pointer">
                             <div className="flex justify-between items-start mb-2">
                                 <h4 className="text-sm font-bold text-foreground line-clamp-1">{risk.threat}</h4>
                                 <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-destructive/10 text-destructive' :

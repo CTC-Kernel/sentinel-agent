@@ -29,7 +29,7 @@ export const ComplianceCriticalControls: React.FC<ComplianceCriticalControlsProp
             </h4>
             <div className="space-y-3 relative z-10">
                 {criticalControls.slice(0, 5).map((control, index) => (
-                    <div key={`task-${index}`} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 hover:bg-white/70 dark:hover:bg-white/10 transition-colors shadow-sm shadow-black/5">
+                    <div key={`task-${index || 'unknown'}`} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 dark:border-border/40 hover:bg-white/70 dark:hover:bg-white/10 transition-colors shadow-sm shadow-black/5">
                         <div className="flex-1">
                             <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>

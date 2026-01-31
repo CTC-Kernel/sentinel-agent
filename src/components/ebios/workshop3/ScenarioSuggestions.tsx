@@ -107,7 +107,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
 
             return (
               <div
-                key={template.id}
+                key={template.id || 'unknown'}
                 className="p-4 rounded-3xl bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-all"
               >
                 <div className="flex items-start justify-between gap-4">

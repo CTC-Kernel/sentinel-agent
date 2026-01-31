@@ -108,7 +108,7 @@ const SentinelChat: React.FC = () => {
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto pr-2 space-y-4 mb-4 custom-scrollbar">
                 {messages.map((msg) => (
                     <div
-                        key={msg.id}
+                        key={msg.id || 'unknown'}
                         className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                     >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'user' ? 'bg-primary' : 'bg-primary'}`}>

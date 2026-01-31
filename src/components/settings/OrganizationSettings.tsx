@@ -505,7 +505,7 @@ export const OrganizationSettings: React.FC = () => {
                     <div className="relative z-10 divide-y divide-white/20 dark:divide-white/5">
                         {filteredUsers.map(u => (
                             <UserRow
-                                key={u.uid}
+                                key={u.uid || 'unknown'}
                                 user={u}
                                 currentUser={user}
                                 currentOrg={currentOrg}

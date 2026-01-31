@@ -58,7 +58,7 @@ function PresetThumbnail({ config }: { config: ExtendedViewPresetConfig }) {
     <div className="flex gap-0.5 mt-1">
       {config.layers.slice(0, 5).map((layer, i) => (
         <div
-          key={`${layer}-${i}`}
+          key={`${layer || 'unknown'}-${i}`}
           className={cn('w-1.5 h-1.5 rounded-full', layerColors[layer] || 'bg-slate-400')}
           title={layer}
         />
@@ -151,7 +151,7 @@ export function ViewSelector({
         <DropdownMenuGroup>
           {presets.map(({ key, config }) => (
             <DropdownMenuItem
-              key={key}
+              key={key || 'unknown'}
               onClick={() => applyPreset(key)}
               className="gap-3 cursor-pointer py-2"
             >

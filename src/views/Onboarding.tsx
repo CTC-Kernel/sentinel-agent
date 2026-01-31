@@ -525,7 +525,7 @@ export const Onboarding: React.FC = () => {
                                     {/* Results Logic */}
                                     <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
                                         {searchResults.map(org => (
-                                            <div key={org.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/5 backdrop-blur-sm">
+                                            <div key={org.id || 'unknown'} className="flex items-center justify-between p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/5 backdrop-blur-sm">
                                                 <div>
                                                     <h4 className="font-bold text-slate-900 dark:text-white">{org.name}</h4>
                                                     <p className="text-xs text-slate-600">{org.industry || 'Non spécifié'}</p>
@@ -731,7 +731,7 @@ export const Onboarding: React.FC = () => {
                                             const features = t(`pricing.plans.${planId}Features`, { returnObjects: true }) as unknown as string[];
                                             return (
                                                 <div
-                                                    key={planId}
+                                                    key={planId || 'unknown'}
                                                     onClick={() => setSelectedPlan(planId)}
                                                     role="button"
                                                     tabIndex={0}
@@ -766,7 +766,7 @@ export const Onboarding: React.FC = () => {
                                                     <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
                                                     <ul className="space-y-2">
                                                         {features && features.slice(0, 3).map((f) => (
-                                                            <li key={f} className="flex items-center text-xs font-medium text-slate-600 dark:text-muted-foreground">
+                                                            <li key={f || 'unknown'} className="flex items-center text-xs font-medium text-slate-600 dark:text-muted-foreground">
                                                                 <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-brand-100 dark:bg-slate-900/30 text-brand-600 dark:text-brand-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>
                                                                     <Check className="h-2.5 w-2.5" strokeWidth={3} />
                                                                 </div>
@@ -819,7 +819,7 @@ export const Onboarding: React.FC = () => {
                                         <div className="grid grid-cols-2 gap-3">
                                             {getIndustryFrameworks().map(fw => (
                                                 <div
-                                                    key={fw.id}
+                                                    key={fw.id || 'unknown'}
                                                     role="button"
                                                     tabIndex={0}
                                                     onClick={() => handleToggleStandard(fw.name)}
@@ -907,7 +907,7 @@ export const Onboarding: React.FC = () => {
                                     {invitedUsers.length > 0 && (
                                         <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
                                             {invitedUsers.map(userInvite => (
-                                                <div key={userInvite.email} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                                <div key={userInvite.email || 'unknown'} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-600 flex items-center justify-center font-bold text-xs">
                                                             {userInvite.email.charAt(0).toUpperCase()}
@@ -1029,7 +1029,7 @@ export const Onboarding: React.FC = () => {
                                         {initialAssets.length > 0 && (
                                             <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
                                                 {initialAssets.map((asset, i) => (
-                                                    <div key={`${asset.name}-${i}`} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                                    <div key={`${asset.name || 'unknown'}-${i}`} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
                                                                 <Server className="h-4 w-4" />

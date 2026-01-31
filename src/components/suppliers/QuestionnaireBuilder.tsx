@@ -117,7 +117,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
             <div className="space-y-4">
                 {fields.map((field, index) => (
                     <SectionEditor
-                        key={field.id}
+                        key={field.id || 'unknown'}
                         control={control}
                         register={register}
                         sIndex={index}

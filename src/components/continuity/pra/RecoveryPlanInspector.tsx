@@ -271,7 +271,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
 
                         <div className="space-y-3">
                             {fields.map((field, index) => (
-                                <div key={field.id} className="group relative bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-300">
+                                <div key={field.id || 'unknown'} className="group relative bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-border/40 dark:border-border/40 rounded-3xl p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-300">
                                     <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-70 transition-opacity">
                                         <button
                                             type="button"

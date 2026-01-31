@@ -278,7 +278,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
       const pathD = `M ${sourcePos.x} ${sourcePos.y} Q ${controlX} ${controlY} ${targetPos.x} ${targetPos.y}`;
 
       return (
-        <g key={path.id}>
+        <g key={path.id || 'unknown'}>
           {/* Path background for better visibility */}
           <path
             d={pathD}
@@ -367,7 +367,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
 
       return (
         <motion.g
-          key={party.id}
+          key={party.id || 'unknown'}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
@@ -441,7 +441,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
 
       return (
         <motion.g
-          key={asset.id}
+          key={asset.id || 'unknown'}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -537,7 +537,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
 
                   return (
                     <button
-                      key={type}
+                      key={type || 'unknown'}
                       onClick={() => toggleTypeVisibility(type)}
                       className={cn(
                         'flex items-center gap-2 w-full px-2 py-1 rounded text-left transition-colors',
@@ -568,7 +568,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
             </h4>
             <div className="space-y-1">
               {[1, 2, 3, 4].map((level) => (
-                <div key={level} className="flex items-center gap-2">
+                <div key={level || 'unknown'} className="flex items-center gap-2">
                   <div
                     className="w-4 h-0.5 rounded"
                     style={{

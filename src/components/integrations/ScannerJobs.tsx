@@ -114,7 +114,7 @@ export const ScannerJobs: React.FC = () => {
                 <div className="grid gap-4">
                     {jobs.map((job) => (
                         <motion.div
-                            key={job.id}
+                            key={job.id || 'unknown'}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="group flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-white dark:bg-slate-950 rounded-2xl border border-border/40 dark:border-white/5 hover:border-brand-300 transition-all shadow-sm hover:shadow-md"

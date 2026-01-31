@@ -251,7 +251,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
         </div>
         <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i}>
+            <div key={i || 'unknown'}>
               <div className="flex justify-between mb-1">
                 <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded" />
                 <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded" />

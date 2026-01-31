@@ -33,13 +33,13 @@ export const AuditChecklist: React.FC<AuditChecklistProps> = ({
             {checklist ? (
                 <div className="space-y-4">
                     {checklist.questions.map(q => (
-                        <div key={q.id} className="p-5 glass-premium rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all">
+                        <div key={q.id || 'unknown'} className="p-5 glass-premium rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all">
                             <p className="font-medium text-slate-900 dark:text-white mb-4">{q.question}</p>
                             <div className="flex flex-wrap gap-2">
                                 {(['Conforme', 'Non-conforme', 'Non-applicable'] as const).map(opt => (
                                     <button
                                         type="button"
-                                        key={opt}
+                                        key={opt || 'unknown'}
                                         onClick={() => onAnswer(q.id, opt)}
                                         aria-label={`Marquer comme ${opt}`}
                                         className={`px-4 py-2 rounded-3xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${q.response === opt

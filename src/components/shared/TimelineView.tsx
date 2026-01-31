@@ -162,7 +162,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                 <div className="relative border-l-2 border-border/40 dark:border-slate-800 ml-3 space-y-6 pb-4">
                     {logs.map((log) => (
                         <button
-                            key={log.id}
+                            key={log.id || 'unknown'}
                             type="button"
                             className={`relative pl-6 group transition-all focus:outline-none w-full text-left`}
                             onClick={() => setSelectedLog(log)}
@@ -206,7 +206,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 {log.changes && log.changes.length > 0 && (
                                     <div className="space-y-1 pt-2 border-t border-border/40 dark:border-white/5">
                                         {log.changes.slice(0, 3).map((change, idx) => (
-                                            <div key={`${idx}-${change}`} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-muted-foreground">
+                                            <div key={`${idx || 'unknown'}-${change}`} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-muted-foreground">
                                                 <div className="w-1 h-1 rounded-full bg-slate-400"></div>
                                                 <span className="truncate">{change}</span>
                                             </div>
@@ -227,10 +227,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
             {/* Diff Viewer / Details Panel */}
             <div className="relative">
                 <div className="sticky top-4">
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence mode="popLayout">
                         {selectedLog ? (
                             <motion.div
-                                key={selectedLog.id}
+                                key={selectedLog.id || 'unknown'}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}

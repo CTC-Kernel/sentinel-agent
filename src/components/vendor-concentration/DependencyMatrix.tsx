@@ -118,7 +118,7 @@ const VendorRow: React.FC<VendorRowProps> = ({ vendor, services, cells, onClick 
         const cell = vendorCells.find(c => c.serviceId === service.id);
         return (
           <DependencyCell
-            key={`${vendor.supplierId}-${service.id}`}
+            key={`${vendor.supplierId || 'unknown'}-${service.id}`}
             cell={cell}
           />
         );
@@ -195,7 +195,7 @@ const ListItem: React.FC<ListItemProps> = ({ vendor, cells, expanded, onToggle }
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {vendorCells.map(cell => (
               <div
-                key={cell.serviceId}
+                key={cell.serviceId || 'unknown'}
                 className={`flex items-center justify-between p-2 rounded-lg ${getDependencyLevelBgColor(cell.dependencyLevel)}`}
               >
                 <div className="flex items-center gap-2">
@@ -408,7 +408,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
                 </th>
                 {filteredData.services.map(service => (
                   <th
-                    key={service.id}
+                    key={service.id || 'unknown'}
                     className="p-2 text-center text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide min-w-[80px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
                     onClick={() => onServiceClick?.(service.id)}
                   >
@@ -427,7 +427,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredData.vendors.map(vendor => (
                 <VendorRow
-                  key={vendor.supplierId}
+                  key={vendor.supplierId || 'unknown'}
                   vendor={vendor}
                   services={filteredData.services}
                   cells={filteredData.cells}
@@ -442,7 +442,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
         <div className="space-y-3">
           {filteredData.vendors.map(vendor => (
             <ListItem
-              key={vendor.supplierId}
+              key={vendor.supplierId || 'unknown'}
               vendor={vendor}
               cells={filteredData.cells}
               expanded={expandedVendors.has(vendor.supplierId)}

@@ -181,7 +181,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                                 const isSelected = selectedFormat === option.value;
                                 return (
                                     <button
-                                        key={option.value}
+                                        key={option.value || 'unknown'}
                                         type="button"
                                         onClick={() => setSelectedFormat(option.value)}
                                         className={cn(

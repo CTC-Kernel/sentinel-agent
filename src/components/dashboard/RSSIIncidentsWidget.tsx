@@ -149,7 +149,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <div
-              key={i}
+              key={i || 'unknown'}
               className="h-14 bg-slate-200 dark:bg-slate-700 rounded"
             />
           ))}
@@ -292,7 +292,7 @@ export function RSSIIncidentsWidget({
         <div className={cn('flex flex-col', sizeConfig.gap)}>
           {incidents.map((incident) => (
             <IncidentItem
-              key={incident.id}
+              key={incident.id || 'unknown'}
               incident={incident}
               size={size}
               onClick={onIncidentClick ? () => onIncidentClick(incident.id) : undefined}

@@ -57,7 +57,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = React.memo(({
                     <div className="divide-y divide-border">
                         {displayItems.map(item => (
                             <div
-                                key={item.id}
+                                key={item.id || 'unknown'}
                                 onClick={() => handleItemClick(item.link)}
                                 onKeyDown={(e) => handleItemKeyDown(e, item.link)}
                                 role="button"

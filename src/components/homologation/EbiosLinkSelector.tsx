@@ -266,7 +266,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
             const isComplete = status === 'completed' || status === 'validated';
             return (
               <Badge
-                key={ws}
+                key={ws || 'unknown'}
                 variant="outline"
                 className={cn(
                   'text-xs',
@@ -290,7 +290,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
               {changeStatus.details && changeStatus.details.length > 0 && (
                 <ul className="mt-1 text-xs text-amber-700 dark:text-amber-400 list-disc list-inside">
                   {changeStatus.details.slice(0, 3).map((detail, i) => (
-                    <li key={i}>{detail}</li>
+                    <li key={i || 'unknown'}>{detail}</li>
                   ))}
                 </ul>
               )}
@@ -412,7 +412,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
             ) : (
               filteredAnalyses.map(({ analysis, eligible, reason }) => (
                 <button
-                  key={analysis.id}
+                  key={analysis.id || 'unknown'}
                   onClick={() => eligible && setSelectedAnalysisId(analysis.id)}
                   disabled={!eligible}
                   className={cn(
