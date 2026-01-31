@@ -12,7 +12,7 @@ import { GoogleCalendarService } from '../../services/googleCalendarService';
 import { toast } from '@/lib/toast';
 import { useCalendarData } from '../../hooks/calendar/useCalendarData';
 import { ErrorLogger } from '../../services/errorLogger';
-import { Drawer } from '../ui/Drawer';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { Button } from '../ui/button';
 
 const createEventSchema = z.object({
@@ -144,18 +144,19 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
     };
 
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
             title="Nouvel Événement"
             subtitle="Planifiez une nouvelle activité ou échéance"
-            width="max-w-2xl"
+            width="max-w-6xl"
+            icon={LinkIcon} // Using LinkIcon as generic placeholder, ideally import Calendar
         >
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full pt-6 px-1">
-                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pb-6 pr-2">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
+                <div className="space-y-6 max-w-5xl mx-auto w-full">
 
                     {/* Event Type Toggle */}
-                    <div className="flex space-x-2 bg-slate-100 dark:bg-white/5 p-1 rounded-3xl">
+                    <div className="flex space-x-2 bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-3xl">
                         {(['audit', 'project', 'maintenance', 'drill'] as EventType[]).map((type) => (
                             <button
                                 type="button"
@@ -163,9 +164,9 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                 aria-label={`Sélectionner le type ${type}`}
                                 aria-pressed={eventType === type}
                                 onClick={() => setEventType(type)}
-                                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all capitalize ${eventType === type
-                                    ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm'
-                                    : 'text-slate-600 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-200'
+                                className={`flex-1 py-2.5 px-4 rounded-2xl text-sm font-medium transition-all capitalize ${eventType === type
+                                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                                    : 'text-slate-600 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
                                     }`}
                             >
                                 {type === 'drill' ? 'Exercice BCP' : type}
@@ -424,7 +425,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                     </div>
                 </div>
 
-                <div className="pt-6 border-t border-border/40 dark:border-border/40 shrink-0 flex justify-end gap-3">
+                <div className="pt-6 border-t border-border/40 dark:border-border/40 shrink-0 flex justify-end gap-3 mt-8">
                     <Button
                         type="button"
                         variant="ghost"
@@ -441,7 +442,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                     </Button>
                 </div>
             </form>
-        </Drawer>
+        </InspectorLayout>
     );
 };
 

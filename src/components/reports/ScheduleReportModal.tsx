@@ -88,9 +88,15 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                     includeIncidents: true
                 }
             });
-            setFormError(null);
         }
     }, [isOpen, defaultTemplateId, reset]);
+
+    // Reset form error when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setFormError(null);
+        }
+    }, [isOpen]);
 
     const validateEmail = (email: string): boolean => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

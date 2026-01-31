@@ -286,6 +286,12 @@ const ConnectionLine: React.FC<{
 ConnectionLine.displayName = 'ConnectionLine';
 
 // ============================================================================
+// Static Components
+// ============================================================================
+
+const AnimatedGroup = animated('group');
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -352,8 +358,6 @@ export const AnnotationMarker: React.FC<AnnotationMarkerProps> = React.memo(({
       groupRef.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.1;
     }
   });
-
-  const AnimatedGroup = animated('group');
 
   return (
     <group position={[annotation.position.x, annotation.position.y, annotation.position.z]}>

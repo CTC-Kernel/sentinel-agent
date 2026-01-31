@@ -13,6 +13,7 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
+import { InspectorLayout } from '../components/ui/InspectorLayout';
 import { Badge } from '../components/ui/Badge';
 
 import { Target } from '../components/ui/Icons';
@@ -368,21 +369,25 @@ export const Privacy: React.FC = () => {
             }
 
             {/* Create Drawer */}
-            < Drawer
+            <InspectorLayout
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 title={t('privacy.newActivity')}
                 subtitle={t('privacy.newActivitySubtitle')}
                 width="max-w-6xl"
+                icon={Fingerprint}
+                disableContentPadding={true}
             >
-                <CreateActivityForm
-                    usersList={usersList}
-                    assetsList={assetsList}
-                    risksList={risksList}
-                    onSubmit={handleCreate}
-                    onCancel={() => setShowCreateModal(false)}
-                />
-            </Drawer >
+                <div className="max-w-5xl mx-auto w-full">
+                    <CreateActivityForm
+                        usersList={usersList}
+                        assetsList={assetsList}
+                        risksList={risksList}
+                        onSubmit={handleCreate}
+                        onCancel={() => setShowCreateModal(false)}
+                    />
+                </div>
+            </InspectorLayout>
         </motion.div >
     );
 };

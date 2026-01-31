@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useZodForm } from '../../hooks/useZodForm';
 import { Controller } from 'react-hook-form';
-import { Drawer } from '../ui/Drawer';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -64,68 +64,70 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
     ];
 
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
-            title={
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-border/40">
-                        <Shield className="h-5 w-5" />
-                    </div>
-                    {t('ebios.createAnalysis')}
-                </div>
-            }
+            title={t('ebios.createAnalysis')}
             subtitle={t('ebios.createAnalysisInfo')}
-            width="max-w-xl"
+            width="max-w-6xl"
+            icon={Shield}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
-                <div className="flex-1 space-y-6 pt-6 px-1">
-                    {/* Name */}
-                    <FloatingLabelInput
-                        label={t('ebios.analysisName')}
-                        placeholder={t('ebios.analysisNamePlaceholder')}
-                        error={errors.name?.message}
-                        {...register('name')}
-                    />
+                <div className="flex-1 space-y-8 pt-2 px-1 max-w-5xl mx-auto w-full">
 
-                    {/* Description */}
-                    <FloatingLabelInput
-                        label={t('ebios.analysisDescription')}
-                        placeholder={t('ebios.analysisDescriptionPlaceholder')}
-                        textarea
-                        rows={4}
-                        error={errors.description?.message}
-                        {...register('description')}
-                    />
-
-                    {/* Sector */}
-                    <Controller
-                        name="sector"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label={t('ebios.sector')}
-                                options={[
-                                    { value: "", label: t('ebios.selectSector') },
-                                    ...sectorOptions
-                                ]}
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                error={errors.sector?.message}
+                    {/* Header Section in Form */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Name */}
+                        <div className="space-y-6">
+                            <FloatingLabelInput
+                                label={t('ebios.analysisName')}
+                                placeholder={t('ebios.analysisNamePlaceholder')}
+                                error={errors.name?.message}
+                                {...register('name')}
                             />
-                        )}
-                    />
 
-                    {/* Target Date */}
-                    <FloatingLabelInput
-                        type="date"
-                        label={t('ebios.targetCertificationDate')}
-                        error={errors.targetCertificationDate?.message}
-                        {...register('targetCertificationDate')}
-                    />
+                            {/* Sector */}
+                            <Controller
+                                name="sector"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label={t('ebios.sector')}
+                                        options={[
+                                            { value: "", label: t('ebios.selectSector') },
+                                            ...sectorOptions
+                                        ]}
+                                        value={field.value || ""}
+                                        onChange={field.onChange}
+                                        error={errors.sector?.message}
+                                    />
+                                )}
+                            />
+
+                            {/* Target Date */}
+                            <FloatingLabelInput
+                                type="date"
+                                label={t('ebios.targetCertificationDate')}
+                                error={errors.targetCertificationDate?.message}
+                                {...register('targetCertificationDate')}
+                            />
+                        </div>
+
+                        {/* Description - Right Side */}
+                        <div>
+                            <FloatingLabelInput
+                                label={t('ebios.analysisDescription')}
+                                placeholder={t('ebios.analysisDescriptionPlaceholder')}
+                                textarea
+                                className="h-full min-h-[200px]"
+                                error={errors.description?.message}
+                                {...register('description')}
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/40">
+                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/40 shrink-0">
                     <Button
                         type="button"
                         variant="ghost"
@@ -142,7 +144,7 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
                     </Button>
                 </div>
             </form>
-        </Drawer>
+        </InspectorLayout>
     );
 };
 

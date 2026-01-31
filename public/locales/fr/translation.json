@@ -1421,7 +1421,9 @@
       "today": "Aujourd'hui",
       "placeholder_title": "Ex: Mettre à jour la politique de sécurité",
       "placeholder_description": "Décrivez l'action à réaliser..."
-    }
+    },
+    "context": "Contexte",
+    "ebios": "EBIOS"
   },
   "settings": {
     "mentionsLegales": "Mentions Légales",
@@ -1570,12 +1572,35 @@
       "enableMfa": "Activer MFA",
       "disableMfa": "Désactiver MFA",
       "scanQr": "Scannez ce Code QR",
-      "verifyCode": "Code de Vérification (6 chiffres)",
-      "verify": "Vérifier",
+      "verifyCode": "Code de vérification",
       "cancel": "Annuler",
-      "mfaSuccess": "MFA activé avec succès",
-      "mfaDisabled": "MFA désactivé"
+      "verify": "Vérifier"
     },
+    "doraCompliance": "Conformité DORA",
+    "doraComplianceDesc": "Informations requises pour la conformité au règlement DORA (Digital Operational Resilience Act) - Article 3.",
+    "lei": "LEI (Legal Entity Identifier)",
+    "country": "Pays (UE)",
+    "selectCountry": "Sélectionner un pays",
+    "mfa": {
+      "title": "Authentification à deux facteurs",
+      "description": "Sécurisez votre compte en ajoutant une seconde étape de validation.",
+      "enable": "Activer MFA",
+      "disable": "Désactiver MFA",
+      "disableTitle": "Désactiver l'authentification à deux facteurs",
+      "disableMessage": "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ? Votre compte sera moins sécurisé.",
+      "disableConfirm": "Désactiver",
+      "toggleTitle": "Double Authentification (MFA)",
+      "disabledDescription": "Ajoutez une couche de sécurité supplémentaire à votre compte."
+    },
+    "demoMode": {
+      "title": "Mode Démo",
+      "description": "Activez le mode démo pour explorer l'application avec des données fictives complètes.",
+      "enable": "Activer le Mode Démo",
+      "replaceData": "Ceci remplacera temporairement vos données par des données de démonstration. Aucune donnée réelle ne sera modifiée."
+    },
+    "disableMFATitle": "Désactiver l'authentification à deux facteurs",
+    "disableMFAMessage": "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ? Votre compte sera moins sécurisé.",
+    "disableMFAConfirm": "Désactiver",
     "integrationsPage": {
       "googleCalendar": "Google Calendar",
       "googleCalendarDesc": "Synchronisez vos audits et tâches avec votre agenda.",
@@ -2455,6 +2480,7 @@
     "viewList": "Liste",
     "viewGrid": "Grille",
     "exportCsv": "Exporter CSV",
+    "importCsv": "Importer CSV",
     "printLabel": "Imprimer Étiquette",
     "kioskLink": "Lien Kiosque",
     "kioskCopied": "Lien copié",
