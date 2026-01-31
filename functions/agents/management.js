@@ -24,7 +24,8 @@ exports.listAgents = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, status, limit = 50, startAfter } = request.data;
+    const { organizationId, status, limit: requestLimit = 50, startAfter } = request.data;
+    const limit = Math.min(requestLimit, 200);
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
@@ -38,14 +39,21 @@ exports.listAgents = onCall(
       }
 
       const userData = userDoc.data();
-      if (userData.organizationId !== organizationId && !userData.isAdmin) {
+      if (userData.organizationId !== organizationId) {
         throw new HttpsError('permission-denied', 'Access denied to this organization');
       }
 
-      let query = db
+      let agentsQuery = db
         .collection('organizations')
         .doc(organizationId)
-        .collection('agents')
+        .collection('agents');
+
+      // Apply status filter at query level instead of in-memory
+      if (status && status !== 'all') {
+        agentsQuery = agentsQuery.where('status', '==', status);
+      }
+
+      let query = agentsQuery
         .orderBy('enrolledAt', 'desc')
         .limit(limit);
 
@@ -86,13 +94,8 @@ exports.listAgents = onCall(
         };
       });
 
-      // Filter by status if requested
-      const filteredAgents = status
-        ? agents.filter((a) => a.status === status)
-        : agents;
-
       return {
-        agents: filteredAgents,
+        agents,
         hasMore: agents.length === limit,
         lastId: agents.length > 0 ? agents[agents.length - 1].id : null,
       };
@@ -132,7 +135,7 @@ exports.getAgentDetails = onCall(
       }
 
       const userData = userDoc.data();
-      if (userData.organizationId !== organizationId && !userData.isAdmin) {
+      if (userData.organizationId !== organizationId) {
         throw new HttpsError('permission-denied', 'Access denied to this organization');
       }
 
@@ -282,40 +285,46 @@ exports.getAgentComplianceResults = onCall(
         .collection('agents')
         .get();
 
-      // For each agent, get latest results (in parallel)
+      // For each agent, get latest results (in parallel, batched in chunks of 10)
       const resultsByAgent = {};
-      const promises = agentsSnapshot.docs.map(async (agentDoc) => {
-        const resultsSnapshot = await db
-          .collection('organizations')
-          .doc(organizationId)
-          .collection('agents')
-          .doc(agentDoc.id)
-          .collection('results')
-          .orderBy('createdAt', 'desc')
-          .limit(20)
-          .get();
+      const agentDocs = agentsSnapshot.docs;
+      const CHUNK_SIZE = 10;
 
-        // Deduplicate by checkId (keep latest)
-        const latestByCheck = new Map();
-        resultsSnapshot.docs.forEach((doc) => {
-          const d = doc.data();
-          const checkId = d.checkId;
-          if (checkId && !latestByCheck.has(checkId)) {
-            latestByCheck.set(checkId, {
-              id: doc.id,
-              checkId,
-              status: d.status,
-              framework: d.framework || null,
-              controlId: d.controlId || null,
-              timestamp: d.agentTimestamp || d.createdAt?.toDate?.()?.toISOString() || null,
-            });
-          }
+      for (let i = 0; i < agentDocs.length; i += CHUNK_SIZE) {
+        const chunk = agentDocs.slice(i, i + CHUNK_SIZE);
+        const promises = chunk.map(async (agentDocItem) => {
+          const resultsSnapshot = await db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agents')
+            .doc(agentDocItem.id)
+            .collection('results')
+            .orderBy('createdAt', 'desc')
+            .limit(20)
+            .get();
+
+          // Deduplicate by checkId (keep latest)
+          const latestByCheck = new Map();
+          resultsSnapshot.docs.forEach((doc) => {
+            const d = doc.data();
+            const checkId = d.checkId;
+            if (checkId && !latestByCheck.has(checkId)) {
+              latestByCheck.set(checkId, {
+                id: doc.id,
+                checkId,
+                status: d.status,
+                framework: d.framework || null,
+                controlId: d.controlId || null,
+                timestamp: d.agentTimestamp || d.createdAt?.toDate?.()?.toISOString() || null,
+              });
+            }
+          });
+
+          resultsByAgent[agentDocItem.id] = Array.from(latestByCheck.values());
         });
 
-        resultsByAgent[agentDoc.id] = Array.from(latestByCheck.values());
-      });
-
-      await Promise.all(promises);
+        await Promise.all(promises);
+      }
 
       return { resultsByAgent };
     } catch (error) {
@@ -354,8 +363,12 @@ exports.deleteAgent = onCall(
       }
 
       const userData = userDoc.data();
-      if (userData.organizationId !== organizationId && !userData.isAdmin) {
+      if (userData.organizationId !== organizationId) {
         throw new HttpsError('permission-denied', 'Access denied to this organization');
+      }
+
+      if (!userData.role || !['admin', 'manager'].includes(userData.role)) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions');
       }
 
       const agentRef = db
@@ -371,19 +384,12 @@ exports.deleteAgent = onCall(
 
       const agentData = agentDoc.data();
 
-      // Delete subcollections if requested
+      // Delete subcollections if requested (in batches to stay under 500 limit)
       if (deleteResults) {
-        // Delete results
-        const resultsSnapshot = await agentRef.collection('results').get();
-        const batch1 = db.batch();
-        resultsSnapshot.docs.forEach((doc) => batch1.delete(doc.ref));
-        if (!resultsSnapshot.empty) await batch1.commit();
-
-        // Delete commands
-        const commandsSnapshot = await agentRef.collection('commands').get();
-        const batch2 = db.batch();
-        commandsSnapshot.docs.forEach((doc) => batch2.delete(doc.ref));
-        if (!commandsSnapshot.empty) await batch2.commit();
+        const subcollections = ['results', 'logs', 'diagnostics', 'networkSnapshots', 'metrics_history', 'commands'];
+        for (const subcol of subcollections) {
+          await deleteSubcollection(agentRef, subcol);
+        }
       }
 
       // Delete the agent document
@@ -408,3 +414,16 @@ exports.deleteAgent = onCall(
     }
   }
 );
+
+/**
+ * Helper: Delete a subcollection in batches of 500
+ */
+async function deleteSubcollection(parentRef, subcollectionName) {
+  let snapshot = await parentRef.collection(subcollectionName).limit(500).get();
+  while (!snapshot.empty) {
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+    snapshot = await parentRef.collection(subcollectionName).limit(500).get();
+  }
+}

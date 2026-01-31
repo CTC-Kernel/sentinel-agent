@@ -14,21 +14,21 @@ const db = admin.firestore();
  * Severity levels with CVSS score mappings.
  */
 const SEVERITY_LEVELS = {
-    Critical: { min: 9.0, max: 10.0 },
-    High: { min: 7.0, max: 8.9 },
-    Medium: { min: 4.0, max: 6.9 },
-    Low: { min: 0.1, max: 3.9 },
+    critical: { min: 9.0, max: 10.0 },
+    high: { min: 7.0, max: 8.9 },
+    medium: { min: 4.0, max: 6.9 },
+    low: { min: 0.1, max: 3.9 },
 };
 
 /**
  * Map CVSS score to severity level.
  */
 function cvssToSeverity(cvss) {
-    if (cvss >= 9.0) return 'Critical';
-    if (cvss >= 7.0) return 'High';
-    if (cvss >= 4.0) return 'Medium';
-    if (cvss >= 0.1) return 'Low';
-    return 'Low';
+    if (cvss >= 9.0) return 'critical';
+    if (cvss >= 7.0) return 'high';
+    if (cvss >= 4.0) return 'medium';
+    if (cvss >= 0.1) return 'low';
+    return 'low';
 }
 
 /**
@@ -70,16 +70,26 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
         }
 
         const organizationId = agentData.organizationId;
-        const batch = db.batch();
-        const vulnsCollection = db
-            .collection('organizations')
-            .doc(organizationId)
-            .collection('vulnerabilities');
+        const BATCH_LIMIT = 400;
+        let batch = db.batch();
+        let opCount = 0;
+        const orgRef = db.collection('organizations').doc(organizationId);
+        const vulnsCollection = orgRef.collection('vulnerabilities');
 
         let createdCount = 0;
         let updatedCount = 0;
         let skippedCount = 0;
         const processedKeys = new Set();
+
+        // Pre-fetch all existing vulnerabilities for this agent to avoid N+1 queries
+        const existingVulnsSnapshot = await vulnsCollection
+            .where('agentId', '==', agentId)
+            .get();
+        const existingVulnsByDedup = new Map();
+        existingVulnsSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.dedupKey) existingVulnsByDedup.set(data.dedupKey, doc);
+        });
 
         for (const vuln of vulnerabilities) {
             // Validate required fields
@@ -99,7 +109,7 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
             processedKeys.add(dedupKey);
 
             // Determine severity from CVSS or provided severity
-            const severity = vuln.severity || (vuln.cvss_score ? cvssToSeverity(vuln.cvss_score) : 'Medium');
+            const severity = vuln.severity?.toLowerCase() || (vuln.cvss_score ? cvssToSeverity(vuln.cvss_score) : 'medium');
 
             // Build vulnerability data
             const vulnData = {
@@ -111,7 +121,7 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
                 severity,
                 score: vuln.cvss_score || null,
                 cveId: vuln.cve_id || null,
-                status: 'Open',
+                status: 'open',
 
                 // Source tracking
                 source: 'agent',
@@ -135,20 +145,18 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
                 organizationId,
             };
 
-            // Check if vulnerability already exists (same agent + package + CVE)
-            const existingQuery = await vulnsCollection
-                .where('dedupKey', '==', dedupKey)
-                .limit(1)
-                .get();
+            // Check if vulnerability already exists using pre-fetched Map
+            const existingDoc = existingVulnsByDedup.get(dedupKey);
 
-            if (!existingQuery.empty) {
-                // Update existing vulnerability
-                const existingDoc = existingQuery.docs[0];
+            if (existingDoc) {
+                // Update existing vulnerability but don't overwrite analyst-set status
+                const { status: _status, ...updateData } = vulnData;
                 batch.update(existingDoc.ref, {
-                    ...vulnData,
+                    ...updateData,
                     lastSeenAt: admin.firestore.FieldValue.serverTimestamp(),
                     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                 });
+                opCount++;
                 updatedCount++;
             } else {
                 // Create new vulnerability
@@ -161,10 +169,11 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                 });
+                opCount++;
                 createdCount++;
 
-                // Alert on Critical severity
-                if (severity === 'Critical') {
+                // Alert on critical severity
+                if (severity === 'critical') {
                     const alertRef = db
                         .collection('organizations')
                         .doc(organizationId)
@@ -175,14 +184,21 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
                         type: 'critical_vulnerability',
                         title: `Critical vulnerability detected: ${vuln.cve_id || vuln.package_name}`,
                         message: `Agent ${agentData.hostname} detected a critical vulnerability in ${vuln.package_name}.`,
-                        severity: 'Critical',
+                        severity: 'critical',
                         source: 'agent',
                         agentId,
                         vulnerabilityId: newRef.id,
                         read: false,
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     });
+                    opCount++;
                 }
+            }
+
+            if (opCount >= BATCH_LIMIT) {
+                await batch.commit();
+                batch = db.batch();
+                opCount = 0;
             }
         }
 
@@ -191,8 +207,9 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
             lastVulnScanAt: admin.firestore.FieldValue.serverTimestamp(),
             vulnScanType: scan_type || 'packages',
         });
+        opCount++;
 
-        await batch.commit();
+        if (opCount > 0) await batch.commit();
 
         logger.info(`Agent ${agentId} uploaded ${vulnerabilities.length} vulnerabilities: ${createdCount} created, ${updatedCount} updated, ${skippedCount} skipped`);
 

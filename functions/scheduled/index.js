@@ -160,7 +160,7 @@ exports.exportAuditLogs = onCall({
         return { success: true, data };
     } catch (error) {
         logger.error("Audit export failed", error);
-        throw new HttpsError('internal', 'Export failed: ' + error.message);
+        throw new HttpsError('internal', 'Export failed');
     }
 });
 

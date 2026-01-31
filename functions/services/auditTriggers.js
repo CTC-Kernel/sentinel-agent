@@ -94,7 +94,7 @@ const generateAuditTrigger = (collectionPath, resourceNameField) => {
     // Extract collection name for logging tag
     const collectionName = collectionPath.split('/')[0];
 
-    return onDocumentWritten(collectionPath, (event) => {
+    return onDocumentWritten({ document: collectionPath, region: 'europe-west1' }, (event) => {
         return createAuditLog(event, collectionName, resourceNameField);
     });
 };

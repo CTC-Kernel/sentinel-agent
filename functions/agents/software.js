@@ -142,14 +142,25 @@ async function uploadSoftwareInventory(req, res, agentId, agentDoc, agentData) {
         }
 
         const organizationId = agentData.organizationId;
-        const softwareCollection = db
-            .collection('organizations')
-            .doc(organizationId)
-            .collection('softwareInventory');
+        const orgRef = db.collection('organizations').doc(organizationId);
+        const softwareCollection = orgRef.collection('softwareInventory');
 
         let addedCount = 0;
         let updatedCount = 0;
         const processedNames = new Set();
+
+        // Pre-fetch all existing software for this agent to avoid N+1 queries
+        const existingSoftwareSnapshot = await softwareCollection
+            .where('agentIds', 'array-contains', agentId)
+            .get();
+        const existingByName = new Map();
+        existingSoftwareSnapshot.forEach(doc => {
+            const data = doc.data();
+            existingByName.set(data.name, doc);
+        });
+
+        // Also fetch software by normalized names that might not have this agent yet
+        // We'll still do a lookup for truly new software, but batch what we can
 
         // Get total agent count for exposure calculation
         const agentsSnapshot = await db
@@ -175,16 +186,23 @@ async function uploadSoftwareInventory(req, res, agentId, agentDoc, agentData) {
             }
             processedNames.add(normalizedName);
 
-            // Check if software already exists
-            const existingQuery = await softwareCollection
-                .where('name', '==', normalizedName)
-                .limit(1)
-                .get();
+            // Check if software already exists using pre-fetched Map or fallback query
+            let existingDocResult = existingByName.get(normalizedName);
+            if (!existingDocResult) {
+                // Fallback: query for software not yet linked to this agent
+                const existingQuery = await softwareCollection
+                    .where('name', '==', normalizedName)
+                    .limit(1)
+                    .get();
+                if (!existingQuery.empty) {
+                    existingDocResult = existingQuery.docs[0];
+                }
+            }
 
             const now = new Date().toISOString();
             const category = detectCategory(normalizedName);
 
-            if (existingQuery.empty) {
+            if (!existingDocResult) {
                 // Create new software entry
                 const newRef = softwareCollection.doc();
 
@@ -232,7 +250,7 @@ async function uploadSoftwareInventory(req, res, agentId, agentDoc, agentData) {
                 logger.debug(`Added new software: ${normalizedName} (${sw.version || 'Unknown'})`);
             } else {
                 // Update existing software entry
-                const existingDoc = existingQuery.docs[0];
+                const existingDoc = existingDocResult;
                 const existingData = existingDoc.data();
 
                 // Check if agent already recorded
@@ -474,7 +492,7 @@ async function uploadCISResults(req, res, agentId, agentDoc, agentData) {
                 type: 'low_cis_compliance',
                 title: `Low CIS compliance on ${agentData.hostname}`,
                 message: `Agent ${agentData.hostname} has a CIS compliance score of ${complianceScore}% (${benchmark_name || benchmark_id}).`,
-                severity: complianceScore < 30 ? 'Critical' : 'High',
+                severity: complianceScore < 30 ? 'critical' : 'high',
                 source: 'agent',
                 agentId,
                 complianceScore,

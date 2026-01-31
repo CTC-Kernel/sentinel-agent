@@ -408,15 +408,26 @@ async function checkComplianceScoreRateLimit(organizationId) {
  * Main Cloud Function: Calculate Compliance Score
  */
 const calculateComplianceScore = onCall({
-  region: 'us-west1',
+  region: 'europe-west1',
   memory: '256MiB',
   timeoutSeconds: 60,
 }, async (request) => {
+  // Authentication check
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Authentication required');
+  }
+
   const { organizationId } = request.data || {};
 
   // Validate organizationId
   if (!organizationId) {
     throw new HttpsError('invalid-argument', 'organizationId is required');
+  }
+
+  // Verify the organizationId matches the caller's token claim
+  const tokenOrgId = request.auth.token.organizationId;
+  if (!tokenOrgId || tokenOrgId !== organizationId) {
+    throw new HttpsError('permission-denied', 'Access denied');
   }
   if (typeof organizationId !== 'string') {
     throw new HttpsError('invalid-argument', 'organizationId must be a string');

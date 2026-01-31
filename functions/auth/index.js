@@ -242,6 +242,10 @@ exports.logAuthAttempt = onCall({
 /**
  * Before User Signed In validation
  */
+// NOTE: enforceAppCheck is intentionally false here because this function is called
+// during the sign-in flow before the client has fully initialized App Check.
+// Blocking auth functions (or their callable equivalents) cannot enforce App Check
+// as the token may not yet be available when the user is authenticating for the first time.
 exports.beforeUserSignedIn = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
