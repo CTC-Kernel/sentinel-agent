@@ -93,33 +93,30 @@ function docToAgent(docId: string, data: Record<string, unknown>, organizationId
         os: (data.os as SentinelAgent['os']) || 'linux',
         osVersion: data.osVersion as string | undefined,
         status: computeAgentStatus(lastHeartbeat),
-        version: (data.version as string) || '0.0.0',
+        version: (validatedData.version as string) || '0.0.0',
         lastHeartbeat: lastHeartbeat
             ? lastHeartbeat.toISOString()
-            : ((data.lastHeartbeat as string) || null) as unknown as string,
-        ipAddress: data.ipAddress as string | undefined,
-        hostname: data.hostname as string | undefined,
+            : ((validatedData.lastHeartbeat as string) || null) as unknown as string,
+        ipAddress: validatedData.ipAddress as string | undefined,
+        hostname: validatedData.hostname as string | undefined,
         organizationId,
-        machineId: data.machineId as string | undefined,
-        complianceScore: data.complianceScore as number | null | undefined,
-        lastCheckAt: data.lastCheckAt instanceof Timestamp
-            ? data.lastCheckAt.toDate().toISOString()
-            : (data.lastCheckAt as string | null | undefined) ?? null,
+        machineId: validatedData.machineId as string | undefined,
+        complianceScore: validatedData.complianceScore as number | null | undefined,
+        lastCheckAt: validatedData.lastCheckAt instanceof Timestamp
+            ? validatedData.lastCheckAt.toDate().toISOString()
+            : (validatedData.lastCheckAt as string | null | undefined) ?? null,
         enrolledAt,
-        // Validate CPU values - agent cannot function above 100%
-        // This ensures data reliability and prevents display of impossible values
-        cpuPercent: typeof data.cpuPercent === 'number' ? Math.min(100, Math.max(0, data.cpuPercent)) : undefined,
-        memoryBytes: data.memoryBytes as number | undefined,
-        // Validate percentage values for data reliability
-        memoryPercent: typeof data.memoryPercent === 'number' ? Math.min(100, Math.max(0, data.memoryPercent)) : undefined,
-        memoryTotalBytes: data.memoryTotalBytes as number | undefined,
-        diskPercent: typeof data.diskPercent === 'number' ? Math.min(100, Math.max(0, data.diskPercent)) : undefined,
-        diskUsedBytes: data.diskUsedBytes as number | undefined,
-        diskTotalBytes: data.diskTotalBytes as number | undefined,
-        uptimeSeconds: data.uptimeSeconds as number | undefined,
-        config: data.config as AgentConfig | undefined,
-        configVersion: data.configVersion as number | undefined,
-        rulesVersion: data.rulesVersion as number | undefined,
+        cpuPercent: validatedData.cpuPercent,
+        memoryBytes: validatedData.memoryBytes as number | undefined,
+        memoryPercent: validatedData.memoryPercent,
+        memoryTotalBytes: validatedData.memoryTotalBytes as number | undefined,
+        diskPercent: validatedData.diskPercent,
+        diskUsedBytes: validatedData.diskUsedBytes as number | undefined,
+        diskTotalBytes: validatedData.diskTotalBytes as number | undefined,
+        uptimeSeconds: validatedData.uptimeSeconds as number | undefined,
+        config: validatedData.config as AgentConfig | undefined,
+        configVersion: validatedData.configVersion as number | undefined,
+        rulesVersion: validatedData.rulesVersion as number | undefined,
     };
 }
 
