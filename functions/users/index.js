@@ -8,6 +8,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
 const { user } = require("firebase-functions/v1/auth");
 const admin = require("firebase-admin");
+const crypto = require("crypto");
 const cors = require("cors");
 const { checkCallableRateLimit } = require("../utils/rateLimiter");
 
@@ -217,7 +218,7 @@ exports.refreshUserToken = onCall({
         return { success: true, message: 'Token refreshed successfully', permissions: { organizationId: userData.organizationId, role } };
     } catch (error) {
         logger.error('Error refreshing token:', error);
-        throw new HttpsError('internal', 'Failed to refresh token: ' + error.message);
+        throw new HttpsError('internal', 'Failed to refresh token');
     }
 });
 
@@ -289,7 +290,7 @@ exports.healMe = onCall({
         return { success: false, error: 'No organization found' };
     } catch (e) {
         logger.error('HealMe failed', e);
-        throw new HttpsError('internal', e.message);
+        throw new HttpsError('internal', 'An internal error occurred');
     }
 });
 
@@ -388,7 +389,7 @@ exports.grantSuperAdmin = onCall({
 
     } catch (error) {
         logger.error("Error granting Super Admin:", error);
-        throw new HttpsError('internal', 'Failed to grant role: ' + error.message);
+        throw new HttpsError('internal', 'Failed to grant role');
     }
 });
 
@@ -453,7 +454,7 @@ exports.switchOrganization = onCall({
 
     } catch (error) {
         logger.error("Error switching organization:", error);
-        throw new HttpsError('internal', 'Failed to switch organization: ' + error.message);
+        throw new HttpsError('internal', 'Failed to switch organization');
     }
 });
 
@@ -511,7 +512,7 @@ exports.transferOwnership = onCall({
         return { success: true, message: 'Ownership transferred successfully.' };
     } catch (error) {
         logger.error('Transfer Ownership Failed', error);
-        throw new HttpsError('internal', error.message);
+        throw new HttpsError('internal', 'An internal error occurred');
     }
 });
 
@@ -718,6 +719,49 @@ exports.deleteUserAccount = onCall({
             await anonymizeOwnedItems(db, uid, organizationId);
         }
 
+        // 5a. Delete auth_audit_logs (contains email, IP)
+        logger.info(`[GDPR] Deleting auth_audit_logs for ${uid}`);
+        await deleteUserCollectionData(db, 'auth_audit_logs', 'userId', uid);
+
+        // 5b. Delete system_logs (contains userEmail, userId, IP)
+        logger.info(`[GDPR] Deleting system_logs for ${uid}`);
+        await deleteUserCollectionData(db, 'system_logs', 'userId', uid);
+
+        // 5c. Anonymize audit_logs (keep records but remove identity)
+        logger.info(`[GDPR] Anonymizing audit_logs for ${uid}`);
+        await anonymizeCollectionData(db, 'audit_logs', 'userId', uid, {
+            userEmail: 'deleted_user',
+            userId: 'deleted'
+        });
+
+        // 5d. Anonymize document_audit_logs
+        logger.info(`[GDPR] Anonymizing document_audit_logs for ${uid}`);
+        await anonymizeCollectionData(db, 'document_audit_logs', 'userId', uid, {
+            userEmail: 'deleted_user',
+            userId: 'deleted'
+        });
+
+        // 5e. Delete training_assignments
+        logger.info(`[GDPR] Deleting training_assignments for ${uid}`);
+        await deleteUserCollectionData(db, 'training_assignments', 'userId', uid);
+
+        // 5f. Delete questionnaire_responses
+        logger.info(`[GDPR] Deleting questionnaire_responses for ${uid}`);
+        await deleteUserCollectionData(db, 'questionnaire_responses', 'userId', uid);
+
+        // 5g. Delete access_reviews (where userId or reviewerId matches)
+        logger.info(`[GDPR] Deleting access_reviews for ${uid}`);
+        await deleteUserCollectionData(db, 'access_reviews', 'userId', uid);
+        await deleteUserCollectionData(db, 'access_reviews', 'reviewerId', uid);
+
+        // 5h. Delete dormant_accounts
+        logger.info(`[GDPR] Deleting dormant_accounts for ${uid}`);
+        await deleteUserCollectionData(db, 'dormant_accounts', 'userId', uid);
+
+        // 5i. Delete join_requests
+        logger.info(`[GDPR] Deleting join_requests for ${uid}`);
+        await deleteUserCollectionData(db, 'join_requests', 'userId', uid);
+
         // 6. Delete user's personal files from storage
         logger.info(`[GDPR] Deleting storage files for ${uid}`);
         try {
@@ -733,9 +777,10 @@ exports.deleteUserAccount = onCall({
         }
 
         // 7. Log the erasure request (required for compliance audit trail)
+        const hashedEmail = crypto.createHash('sha256').update(userData.email).digest('hex');
         await db.collection('gdpr_erasure_log').add({
             userId: uid,
-            email: userData.email, // Stored briefly for audit, can be hashed
+            emailHash: hashedEmail, // Hashed for GDPR compliance - no plaintext PII
             organizationId: organizationId || null,
             requestedAt: admin.firestore.FieldValue.serverTimestamp(),
             completedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -773,7 +818,7 @@ exports.deleteUserAccount = onCall({
     } catch (error) {
         logger.error(`[GDPR] User data erasure failed for ${uid}:`, error);
         if (error instanceof HttpsError) throw error;
-        throw new HttpsError('internal', 'Échec de la suppression du compte: ' + error.message);
+        throw new HttpsError('internal', 'Échec de la suppression du compte');
     }
 });
 
@@ -792,6 +837,26 @@ async function deleteUserCollectionData(db, collectionName, fieldName, userId) {
 
         const batch = db.batch();
         snap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+    }
+}
+
+/**
+ * Helper: Anonymize documents in a collection where field matches userId
+ * Sets the specified fields to anonymized values instead of deleting the documents
+ */
+async function anonymizeCollectionData(db, collectionName, fieldName, userId, anonymizedFields) {
+    const batchSize = 500;
+    while (true) {
+        const snap = await db.collection(collectionName)
+            .where(fieldName, '==', userId)
+            .limit(batchSize)
+            .get();
+
+        if (snap.empty) break;
+
+        const batch = db.batch();
+        snap.docs.forEach(doc => batch.update(doc.ref, anonymizedFields));
         await batch.commit();
     }
 }
@@ -842,6 +907,78 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
             snap.docs.forEach(doc => {
                 batch.update(doc.ref, {
                     ownerId: null,
+                    owner: 'Utilisateur supprimé',
+                    ownerEmail: null
+                });
+            });
+            await batch.commit();
+        }
+    }
+
+    // Anonymize controls (ownerId, createdBy)
+    const controlsBatchSize = 500;
+    for (const fieldName of ['ownerId', 'createdBy']) {
+        while (true) {
+            const snap = await db.collection('controls')
+                .where('organizationId', '==', organizationId)
+                .where(fieldName, '==', userId)
+                .limit(controlsBatchSize)
+                .get();
+
+            if (snap.empty) break;
+
+            const batch = db.batch();
+            snap.docs.forEach(doc => {
+                batch.update(doc.ref, {
+                    [fieldName]: null,
+                    owner: 'Utilisateur supprimé',
+                    ownerEmail: null
+                });
+            });
+            await batch.commit();
+        }
+    }
+
+    // Anonymize suppliers (createdBy)
+    {
+        const batchSize = 500;
+        while (true) {
+            const snap = await db.collection('suppliers')
+                .where('organizationId', '==', organizationId)
+                .where('createdBy', '==', userId)
+                .limit(batchSize)
+                .get();
+
+            if (snap.empty) break;
+
+            const batch = db.batch();
+            snap.docs.forEach(doc => {
+                batch.update(doc.ref, {
+                    createdBy: null,
+                    owner: 'Utilisateur supprimé',
+                    ownerEmail: null
+                });
+            });
+            await batch.commit();
+        }
+    }
+
+    // Anonymize processing_activities (managerId, createdBy)
+    for (const fieldName of ['managerId', 'createdBy']) {
+        const batchSize = 500;
+        while (true) {
+            const snap = await db.collection('processing_activities')
+                .where('organizationId', '==', organizationId)
+                .where(fieldName, '==', userId)
+                .limit(batchSize)
+                .get();
+
+            if (snap.empty) break;
+
+            const batch = db.batch();
+            snap.docs.forEach(doc => {
+                batch.update(doc.ref, {
+                    [fieldName]: null,
                     owner: 'Utilisateur supprimé',
                     ownerEmail: null
                 });

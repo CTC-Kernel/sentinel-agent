@@ -39,7 +39,14 @@ exports.generateAgentReport = onCall(
       throw new HttpsError('invalid-argument', 'reportId, organizationId, and config are required');
     }
 
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
+    }
+
     try {
+      const startTime = Date.now();
       const reportRef = db
         .collection('organizations')
         .doc(organizationId)
@@ -81,8 +88,8 @@ exports.generateAgentReport = onCall(
           break;
         case 'excel':
           fileBuffer = await generateExcel(config, reportData);
-          contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-          fileName = `${config.name.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`;
+          contentType = 'text/csv';
+          fileName = `${config.name.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
           break;
         case 'csv':
           fileBuffer = await generateCSV(config, reportData);
@@ -123,7 +130,7 @@ exports.generateAgentReport = onCall(
         fileName,
         fileSize: parseInt(metadata.size, 10),
         completedAt: admin.firestore.FieldValue.serverTimestamp(),
-        durationMs: Date.now() - (await reportRef.get()).data().startedAt?.toMillis?.() || 0,
+        durationMs: Date.now() - startTime,
         metadata: {
           agentCount: reportData.summary?.totalAgents || reportData.agentDetails?.length || 0,
           groupCount: reportData.byGroup?.length || 0,
@@ -188,6 +195,12 @@ exports.fetchComplianceReportData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
+    }
+
     try {
       return await fetchComplianceData(organizationId, filters || {}, dateRange || {});
     } catch (error) {
@@ -218,6 +231,12 @@ exports.fetchFleetHealthReportData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
+    }
+
     try {
       return await fetchFleetHealthData(organizationId, filters || {}, dateRange || {});
     } catch (error) {
@@ -246,6 +265,12 @@ exports.fetchExecutiveSummaryData = onCall(
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
+    }
+
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {
@@ -316,8 +341,13 @@ exports.processScheduledReports = onSchedule(
                 downloadCount: 0,
               });
 
-            // Trigger report generation (simplified - in production, use a queue)
-            // For now, we'll generate inline
+            // Trigger report generation inline
+            try {
+              await generateReportContent(reportRef.id, organizationId, schedule.config);
+            } catch (genError) {
+              console.error(`Report generation failed for ${reportRef.id}:`, genError);
+              await reportRef.update({ status: 'failed', errorMessage: genError.message });
+            }
 
             // Calculate next run
             const nextRun = calculateNextRunDate(schedule);
@@ -432,30 +462,35 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
     filteredAgents = filteredAgents.filter(a => filters.osTypes.includes(a.os));
   }
 
-  // Get latest results for each agent
+  // Get latest results for each agent (batched in chunks of 10 for parallelism)
   const agentResults = [];
-  for (const agent of filteredAgents.slice(0, 100)) { // Limit for performance
-    const resultsSnapshot = await db
-      .collection('organizations')
-      .doc(organizationId)
-      .collection('agents')
-      .doc(agent.id)
-      .collection('results')
-      .orderBy('createdAt', 'desc')
-      .limit(1)
-      .get();
+  const limitedAgents = filteredAgents.slice(0, 100); // Limit for performance
+  const CHUNK_SIZE = 10;
 
-    if (!resultsSnapshot.empty) {
-      agentResults.push({
-        agent,
-        result: resultsSnapshot.docs[0].data(),
-      });
-    }
+  for (let i = 0; i < limitedAgents.length; i += CHUNK_SIZE) {
+    const chunk = limitedAgents.slice(i, i + CHUNK_SIZE);
+    const chunkResults = await Promise.all(chunk.map(async (agent) => {
+      const resultsSnapshot = await db
+        .collection('organizations')
+        .doc(organizationId)
+        .collection('agents')
+        .doc(agent.id)
+        .collection('results')
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .get();
+
+      if (!resultsSnapshot.empty) {
+        return { agent, result: resultsSnapshot.docs[0].data() };
+      }
+      return null;
+    }));
+    agentResults.push(...chunkResults.filter(Boolean));
   }
 
   // Calculate summary
   const totalAgents = filteredAgents.length;
-  const scores = agentResults.map(ar => ar.result?.complianceScore || 0);
+  const scores = agentResults.map(ar => ar.agent?.complianceScore || 0);
   const averageScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
   const compliantAgents = scores.filter(s => s >= 80).length;
   const nonCompliantAgents = totalAgents - compliantAgents;
@@ -489,7 +524,7 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
     osCounts[os].count++;
     const result = agentResults.find(ar => ar.agent.id === agent.id);
     if (result) {
-      osCounts[os].totalScore += result.result?.complianceScore || 0;
+      osCounts[os].totalScore += result.agent?.complianceScore || 0;
     }
   });
 
@@ -504,8 +539,8 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
     agentId: ar.agent.id,
     hostname: ar.agent.hostname || ar.agent.name,
     os: ar.agent.os,
-    score: ar.result?.complianceScore || 0,
-    status: (ar.result?.complianceScore || 0) >= 80 ? 'compliant' : 'non_compliant',
+    score: ar.agent?.complianceScore || 0,
+    status: (ar.agent?.complianceScore || 0) >= 80 ? 'compliant' : 'non_compliant',
     lastCheck: ar.result?.createdAt || ar.agent.lastSeen,
     issues: ar.result?.failedChecks?.length || 0,
   }));
@@ -582,16 +617,15 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
     isLatest: version === latestVersion,
   }));
 
-  // Performance metrics (average from latest metrics)
-  let avgCpu = 0, avgMemory = 0, avgDisk = 0, avgLatency = 0;
+  // Performance metrics (average from agent document fields)
+  let avgCpu = 0, avgMemory = 0, avgDisk = 0;
   let metricsCount = 0;
 
   for (const agent of agents.slice(0, 50)) {
-    if (agent.metrics) {
-      avgCpu += agent.metrics.cpu || 0;
-      avgMemory += agent.metrics.memory || 0;
-      avgDisk += agent.metrics.disk || 0;
-      avgLatency += agent.metrics.networkLatency || 0;
+    if (typeof agent.cpuPercent === 'number' || typeof agent.memoryPercent === 'number' || typeof agent.diskPercent === 'number') {
+      avgCpu += agent.cpuPercent || 0;
+      avgMemory += agent.memoryPercent || 0;
+      avgDisk += agent.diskPercent || 0;
       metricsCount++;
     }
   }
@@ -600,7 +634,6 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
     avgCpu /= metricsCount;
     avgMemory /= metricsCount;
     avgDisk /= metricsCount;
-    avgLatency /= metricsCount;
   }
 
   // Get anomaly summary
@@ -644,7 +677,6 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
       avgCpuUsage: avgCpu,
       avgMemoryUsage: avgMemory,
       avgDiskUsage: avgDisk,
-      avgNetworkLatency: avgLatency,
     },
     anomalySummary: {
       totalAnomalies,
@@ -661,8 +693,8 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
       status: agent.status,
       lastSeen: agent.lastSeen,
       uptime: 0,
-      cpuUsage: agent.metrics?.cpu || 0,
-      memoryUsage: agent.metrics?.memory || 0,
+      cpuUsage: agent.cpuPercent || 0,
+      memoryUsage: agent.memoryPercent || 0,
     })),
   };
 }
@@ -819,42 +851,44 @@ async function generatePDF(config, data) {
   return Buffer.from(await pdfDoc.save());
 }
 
+// NOTE: generateExcel actually produces CSV with semicolon delimiters (text/csv; charset=utf-8 with BOM)
 async function generateExcel(config, data) {
-  // Simple CSV-like format for Excel compatibility
-  // In production, use a library like exceljs
+  const BOM = '\uFEFF';
   const rows = [];
 
-  // Headers
   if (data.agentDetails) {
-    rows.push(['Hostname', 'OS', 'Score', 'Status', 'Last Check', 'Issues'].join('\t'));
-
+    rows.push(['Hostname', 'OS', 'Score', 'Status', 'Dernier Check', 'Problemes'].join(';'));
     for (const agent of data.agentDetails) {
       rows.push([
-        agent.hostname || '',
-        agent.os || '',
+        sanitizeCSVCell(agent.hostname || ''), sanitizeCSVCell(agent.os || ''),
         agent.score?.toFixed(1) || '0',
-        agent.status || '',
-        agent.lastCheck || '',
+        sanitizeCSVCell(agent.status || ''), sanitizeCSVCell(agent.lastCheck || ''),
         agent.issues || '0',
-      ].join('\t'));
+      ].join(';'));
     }
   } else if (data.agentList) {
-    rows.push(['Hostname', 'OS', 'Version', 'Status', 'Last Seen', 'CPU', 'Memory'].join('\t'));
-
+    rows.push(['Hostname', 'OS', 'Version', 'Status', 'Dernier Contact', 'CPU', 'Memoire'].join(';'));
     for (const agent of data.agentList) {
       rows.push([
-        agent.hostname || '',
-        agent.os || '',
-        agent.version || '',
-        agent.status || '',
-        agent.lastSeen || '',
-        `${agent.cpuUsage?.toFixed(1) || 0}%`,
-        `${agent.memoryUsage?.toFixed(1) || 0}%`,
-      ].join('\t'));
+        sanitizeCSVCell(agent.hostname || ''), sanitizeCSVCell(agent.os || ''),
+        sanitizeCSVCell(agent.version || ''),
+        sanitizeCSVCell(agent.status || ''), sanitizeCSVCell(agent.lastSeen || ''),
+        `${agent.cpuUsage?.toFixed(1) || 0}%`, `${agent.memoryUsage?.toFixed(1) || 0}%`,
+      ].join(';'));
     }
   }
 
-  return Buffer.from(rows.join('\n'), 'utf-8');
+  return Buffer.from(BOM + rows.join('\n'), 'utf-8');
+}
+
+// Sanitize CSV cell to prevent formula injection
+function sanitizeCSVCell(value) {
+  const str = String(value || '');
+  // Prefix cells starting with formula characters to prevent CSV injection
+  if (/^[=+\-@]/.test(str)) {
+    return "'" + str;
+  }
+  return str;
 }
 
 async function generateCSV(config, data) {
@@ -865,11 +899,11 @@ async function generateCSV(config, data) {
 
     for (const agent of data.agentDetails) {
       rows.push([
-        `"${agent.hostname || ''}"`,
-        `"${agent.os || ''}"`,
+        `"${sanitizeCSVCell(agent.hostname)}"`,
+        `"${sanitizeCSVCell(agent.os)}"`,
         agent.score?.toFixed(1) || '0',
-        `"${agent.status || ''}"`,
-        `"${agent.lastCheck || ''}"`,
+        `"${sanitizeCSVCell(agent.status)}"`,
+        `"${sanitizeCSVCell(agent.lastCheck)}"`,
         agent.issues || '0',
       ].join(','));
     }
@@ -878,11 +912,11 @@ async function generateCSV(config, data) {
 
     for (const agent of data.agentList) {
       rows.push([
-        `"${agent.hostname || ''}"`,
-        `"${agent.os || ''}"`,
-        `"${agent.version || ''}"`,
-        `"${agent.status || ''}"`,
-        `"${agent.lastSeen || ''}"`,
+        `"${sanitizeCSVCell(agent.hostname)}"`,
+        `"${sanitizeCSVCell(agent.os)}"`,
+        `"${sanitizeCSVCell(agent.version)}"`,
+        `"${sanitizeCSVCell(agent.status)}"`,
+        `"${sanitizeCSVCell(agent.lastSeen)}"`,
         agent.cpuUsage?.toFixed(1) || '0',
         agent.memoryUsage?.toFixed(1) || '0',
       ].join(','));
@@ -890,6 +924,84 @@ async function generateCSV(config, data) {
   }
 
   return Buffer.from(rows.join('\n'), 'utf-8');
+}
+
+/**
+ * Helper: Generate report content for a scheduled report
+ */
+async function generateReportContent(reportId, organizationId, config) {
+  const reportRef = db
+    .collection('organizations')
+    .doc(organizationId)
+    .collection('agentReports')
+    .doc(reportId);
+
+  await reportRef.update({ status: 'generating' });
+
+  let reportData;
+  switch (config.type) {
+    case 'compliance':
+      reportData = await fetchComplianceData(organizationId, config.filters || {}, config.dateRange || {});
+      break;
+    case 'fleet_health':
+      reportData = await fetchFleetHealthData(organizationId, config.filters || {}, config.dateRange || {});
+      break;
+    case 'executive':
+      reportData = await fetchExecutiveData(organizationId, config.dateRange || {});
+      break;
+    default:
+      throw new Error(`Unknown report type: ${config.type}`);
+  }
+
+  let fileBuffer;
+  let contentType;
+  let fileName;
+
+  switch (config.format) {
+    case 'pdf':
+      fileBuffer = await generatePDF(config, reportData);
+      contentType = 'application/pdf';
+      fileName = `${(config.name || 'report').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      break;
+    case 'excel':
+      fileBuffer = await generateExcel(config, reportData);
+      contentType = 'text/csv; charset=utf-8';
+      fileName = `${(config.name || 'report').replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+      break;
+    case 'csv':
+      fileBuffer = await generateCSV(config, reportData);
+      contentType = 'text/csv; charset=utf-8';
+      fileName = `${(config.name || 'report').replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+      break;
+    default:
+      fileBuffer = Buffer.from(JSON.stringify(reportData, null, 2));
+      contentType = 'application/json';
+      fileName = `${(config.name || 'report').replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+  }
+
+  const bucket = storage.bucket();
+  const filePath = `organizations/${organizationId}/reports/${reportId}/${fileName}`;
+  const file = bucket.file(filePath);
+
+  await file.save(fileBuffer, { contentType });
+  const [metadata] = await file.getMetadata();
+
+  await reportRef.update({
+    status: 'completed',
+    fileUrl: filePath,
+    fileName,
+    fileSize: parseInt(metadata.size, 10),
+    completedAt: admin.firestore.FieldValue.serverTimestamp(),
+    metadata: {
+      agentCount: reportData.summary?.totalAgents || reportData.agentDetails?.length || 0,
+      groupCount: reportData.byGroup?.length || 0,
+      dateRange: config.dateRange,
+    },
+  });
+}
+
+function daysInMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 }
 
 function calculateNextRunDate(schedule) {
@@ -906,24 +1018,34 @@ function calculateNextRunDate(schedule) {
     case 'daily':
       break;
 
-    case 'weekly':
-      while (next.getDay() !== schedule.dayOfWeek) {
+    case 'weekly': {
+      let guard = 0;
+      while (guard++ < 8 && next.getDay() !== schedule.dayOfWeek) {
         next.setDate(next.getDate() + 1);
       }
       break;
+    }
 
-    case 'monthly':
-      next.setDate(schedule.dayOfMonth || 1);
+    case 'monthly': {
+      const targetDay = Math.min(schedule.dayOfMonth || 1, daysInMonth(next));
+      next.setDate(targetDay);
       if (next <= now) {
         next.setMonth(next.getMonth() + 1);
+        next.setDate(Math.min(schedule.dayOfMonth || 1, daysInMonth(next)));
       }
       break;
+    }
 
-    case 'quarterly':
+    case 'quarterly': {
       const quarterMonth = Math.floor(next.getMonth() / 3) * 3;
       next.setMonth(quarterMonth + 3);
-      next.setDate(schedule.dayOfMonth || 1);
+      next.setDate(Math.min(schedule.dayOfMonth || 1, daysInMonth(next)));
+      if (next <= now) {
+        next.setMonth(next.getMonth() + 3);
+        next.setDate(Math.min(schedule.dayOfMonth || 1, daysInMonth(next)));
+      }
       break;
+    }
   }
 
   return next;

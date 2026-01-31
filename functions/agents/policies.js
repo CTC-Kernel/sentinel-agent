@@ -8,15 +8,23 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
+const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 
 const db = admin.firestore();
 
 /**
+ * Escape special regex characters to prevent ReDoS attacks
+ */
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Deploy a policy to target agents
  * This creates a deployment record and updates agent configs
  */
-exports.deployPolicy = onCall(
+exports.deployAgentPolicy = onCall(
   {
     region: 'europe-west1',
     memory: '512MiB',
@@ -32,6 +40,16 @@ exports.deployPolicy = onCall(
 
     if (!policyId || !organizationId) {
       throw new HttpsError('invalid-argument', 'policyId and organizationId are required');
+    }
+
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
+    }
+
+    if (!userData.role || !['admin', 'manager'].includes(userData.role)) {
+      throw new HttpsError('permission-denied', 'Insufficient permissions for this operation');
     }
 
     try {
@@ -185,7 +203,7 @@ exports.deployPolicy = onCall(
 /**
  * Rollback a policy deployment
  */
-exports.rollbackPolicy = onCall(
+exports.rollbackAgentPolicy = onCall(
   {
     region: 'europe-west1',
     memory: '512MiB',
@@ -203,6 +221,12 @@ exports.rollbackPolicy = onCall(
       throw new HttpsError('invalid-argument', 'deploymentId and organizationId are required');
     }
 
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
+    }
+
     try {
       // Get the deployment
       const deploymentRef = db
@@ -218,21 +242,25 @@ exports.rollbackPolicy = onCall(
 
       const deployment = deploymentDoc.data();
 
-      // Clear pending config from target agents
-      const updatePromises = deployment.targetAgentIds.map(agentId =>
-        db
-          .collection('organizations')
-          .doc(organizationId)
-          .collection('agents')
-          .doc(agentId)
-          .update({
+      // Clear pending config from target agents (batched to stay under 500 limit)
+      const BATCH_SIZE = 400;
+      for (let i = 0; i < deployment.targetAgentIds.length; i += BATCH_SIZE) {
+        const chunk = deployment.targetAgentIds.slice(i, i + BATCH_SIZE);
+        const rollbackBatch = db.batch();
+        for (const agentId of chunk) {
+          const agentRef = db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agents')
+            .doc(agentId);
+          rollbackBatch.update(agentRef, {
             pendingPolicyId: admin.firestore.FieldValue.delete(),
             pendingConfig: admin.firestore.FieldValue.delete(),
             pendingConfigAt: admin.firestore.FieldValue.delete(),
-          })
-      );
-
-      await Promise.all(updatePromises);
+          });
+        }
+        await rollbackBatch.commit();
+      }
 
       // Update deployment status
       await deploymentRef.update({
@@ -282,6 +310,12 @@ exports.getEffectivePolicy = onCall(
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
+    }
+
+    const userDoc = await db.collection('users').doc(auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.organizationId !== organizationId) {
+      throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {
@@ -397,7 +431,13 @@ exports.autoAssignAgentsToGroups = onSchedule(
 
         const dynamicGroups = groupsSnapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(group => group.membershipCriteria?.type !== 'manual');
+          .filter(group => {
+            const criteria = group.membershipCriteria;
+            const isManual = Array.isArray(criteria)
+              ? criteria.some(c => c.type === 'manual')
+              : criteria?.type === 'manual';
+            return criteria && !isManual;
+          });
 
         if (dynamicGroups.length === 0) continue;
 
@@ -418,30 +458,37 @@ exports.autoAssignAgentsToGroups = onSchedule(
           const matchingAgentIds = [];
 
           for (const agent of agents) {
-            if (evaluateMembershipCriteria(agent, group.membershipCriteria)) {
+            if (evaluateAllCriteria(agent, group.membershipCriteria)) {
               matchingAgentIds.push(agent.id);
             }
           }
 
-          // Update group if membership changed
+          // Update group if membership changed using arrayUnion/arrayRemove to avoid race conditions
           const currentAgentIds = group.agentIds || [];
-          const hasChanges =
-            matchingAgentIds.length !== currentAgentIds.length ||
-            !matchingAgentIds.every(id => currentAgentIds.includes(id));
+          const newAgentIds = matchingAgentIds.filter(id => !currentAgentIds.includes(id));
+          const removedAgentIds = currentAgentIds.filter(id => !matchingAgentIds.includes(id));
+          const groupRef = db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agentGroups')
+            .doc(group.id);
 
-          if (hasChanges) {
-            await db
-              .collection('organizations')
-              .doc(organizationId)
-              .collection('agentGroups')
-              .doc(group.id)
-              .update({
-                agentIds: matchingAgentIds,
-                lastAutoAssignAt: admin.firestore.FieldValue.serverTimestamp(),
-              });
+          if (newAgentIds.length > 0) {
+            await groupRef.update({
+              agentIds: admin.firestore.FieldValue.arrayUnion(...newAgentIds),
+              lastAutoAssignAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          }
+          if (removedAgentIds.length > 0) {
+            await groupRef.update({
+              agentIds: admin.firestore.FieldValue.arrayRemove(...removedAgentIds),
+              lastAutoAssignAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          }
 
+          if (newAgentIds.length > 0 || removedAgentIds.length > 0) {
             console.log(
-              `Updated group ${group.name} in org ${organizationId}: ${matchingAgentIds.length} agents`
+              `Updated group ${group.name} in org ${organizationId}: +${newAgentIds.length} -${removedAgentIds.length} agents`
             );
           }
         }
@@ -466,10 +513,17 @@ exports.onAgentUpdated = onDocumentWritten(
     const organizationId = event.params.organizationId;
     const agentId = event.params.agentId;
 
+    // Null check for event.data
+    if (!event.data) return;
+
     // Skip if agent was deleted
     if (!event.data.after.exists) return;
 
-    const agentData = event.data.after.data();
+    const afterData = event.data.after.data();
+
+    // Debounce guard: skip if updated within 5 seconds to prevent infinite loops
+    const lastGroupUpdate = afterData.lastGroupUpdateAt?.toMillis?.() || 0;
+    if (Date.now() - lastGroupUpdate < 5000) return;
 
     try {
       // Get all dynamic groups
@@ -481,11 +535,17 @@ exports.onAgentUpdated = onDocumentWritten(
 
       const dynamicGroups = groupsSnapshot.docs
         .map(doc => ({ id: doc.id, ref: doc.ref, ...doc.data() }))
-        .filter(group => group.membershipCriteria?.type !== 'manual');
+        .filter(group => {
+          const criteria = group.membershipCriteria;
+          const isManual = Array.isArray(criteria)
+            ? criteria.some(c => c.type === 'manual')
+            : criteria?.type === 'manual';
+          return criteria && !isManual;
+        });
 
       // Evaluate membership for each dynamic group
       for (const group of dynamicGroups) {
-        const shouldBeMember = evaluateMembershipCriteria(agentData, group.membershipCriteria);
+        const shouldBeMember = evaluateAllCriteria(afterData, group.membershipCriteria);
         const currentMembers = group.agentIds || [];
         const isMember = currentMembers.includes(agentId);
 
@@ -511,8 +571,13 @@ exports.onAgentUpdated = onDocumentWritten(
         }
       }
 
+      const currentGroupIds = (afterData.groupIds || []).sort();
+      const newGroupIds = memberGroups.sort();
+      if (JSON.stringify(currentGroupIds) === JSON.stringify(newGroupIds)) return null;
+
       await event.data.after.ref.update({
         groupIds: memberGroups,
+        lastGroupUpdateAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } catch (error) {
       console.error('On agent updated error:', error);
@@ -617,7 +682,25 @@ function rulesToAgentConfig(rules) {
 }
 
 /**
- * Helper: Evaluate if an agent matches group membership criteria
+ * Helper: Evaluate all membership criteria (handles array or single object)
+ */
+function evaluateAllCriteria(agent, criteriaArray) {
+  if (!criteriaArray || (Array.isArray(criteriaArray) && criteriaArray.length === 0)) {
+    return false;
+  }
+  if (!Array.isArray(criteriaArray)) {
+    // Handle single object for backward compatibility
+    if (criteriaArray && typeof criteriaArray === 'object') {
+      return evaluateMembershipCriteria(agent, criteriaArray);
+    }
+    return false;
+  }
+  // Default to AND logic: all criteria must match
+  return criteriaArray.every(c => evaluateMembershipCriteria(agent, c));
+}
+
+/**
+ * Helper: Evaluate if an agent matches a single membership criterion
  */
 function evaluateMembershipCriteria(agent, criteria) {
   if (!criteria || criteria.type === 'manual') return false;
@@ -627,20 +710,24 @@ function evaluateMembershipCriteria(agent, criteria) {
       return agent.os?.toLowerCase() === criteria.value?.toLowerCase() ||
              agent.os?.toLowerCase().includes(criteria.value?.toLowerCase());
 
-    case 'hostname_pattern':
+    case 'hostname_pattern': {
+      if (!criteria.value || criteria.value.length > 200) return false;
       try {
-        const pattern = new RegExp(criteria.value, 'i');
-        return pattern.test(agent.hostname || '');
-      } catch {
+        const regex = new RegExp(escapeRegExp(criteria.value), 'i');
+        return regex.test(agent.hostname || '');
+      } catch (e) {
+        logger.warn('Invalid regex pattern in membership criteria', { pattern: criteria.value });
         return false;
       }
+    }
 
     case 'ip_range':
       return isIpInRange(agent.ipAddress, criteria.value);
 
-    case 'tag':
+    case 'tag': {
       const agentTags = agent.tags || [];
       return agentTags.includes(criteria.value);
+    }
 
     case 'department':
       return agent.department?.toLowerCase() === criteria.value?.toLowerCase();
@@ -658,7 +745,7 @@ function isIpInRange(ip, cidr) {
 
   try {
     const [range, bits] = cidr.split('/');
-    const mask = ~(2 ** (32 - parseInt(bits, 10)) - 1);
+    const mask = (~(2 ** (32 - parseInt(bits, 10)) - 1)) >>> 0;
 
     const ipNum = ipToNumber(ip);
     const rangeNum = ipToNumber(range);

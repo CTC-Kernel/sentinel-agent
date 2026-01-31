@@ -20,8 +20,9 @@ const ALLOWED_ORIGINS = [
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, etc.)
-        if (!origin) return callback(null, true);
+        // SECURITY: Reject requests with no origin header to prevent CSRF.
+        // Server-to-server calls should use service accounts, not this API.
+        if (!origin) return callback(null, false);
 
         if (ALLOWED_ORIGINS.includes(origin)) {
             callback(null, true);

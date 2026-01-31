@@ -65,7 +65,7 @@ exports.checkTrainingDeadlines = onSchedule(
             .where('dueDate', '<', now)
             .get();
 
-          const batch = db.batch();
+          let batch = db.batch();
           let batchCount = 0;
 
           for (const assignmentDoc of assignmentsQuery.docs) {
@@ -83,9 +83,10 @@ exports.checkTrainingDeadlines = onSchedule(
               batchCount++;
             }
 
-            // Commit batch in chunks of 500
+            // Commit batch in chunks of 500 and reinitialize
             if (batchCount >= 500) {
               await batch.commit();
+              batch = db.batch();
               batchCount = 0;
             }
           }

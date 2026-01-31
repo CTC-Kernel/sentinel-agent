@@ -137,7 +137,8 @@ exports.processOTConnectorSyncs = onSchedule(
 exports.triggerOTSync = onCall(
   {
     memory: '512MiB',
-    timeoutSeconds: 300
+    timeoutSeconds: 300,
+    region: 'europe-west1'
   },
   async (request) => {
     // Verify authentication
@@ -145,7 +146,15 @@ exports.triggerOTSync = onCall(
       throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
 
-    const { organizationId, connectorId } = request.data;
+    // Verify organizationId from token claims instead of request.data
+    const tokenOrgId = request.auth.token.organizationId;
+    const requestedOrgId = request.data.organizationId;
+    if (requestedOrgId && requestedOrgId !== tokenOrgId) {
+      throw new HttpsError('permission-denied', 'Organization mismatch');
+    }
+    const organizationId = tokenOrgId || requestedOrgId;
+
+    const { connectorId } = request.data;
 
     if (!organizationId || !connectorId) {
       throw new HttpsError('invalid-argument', 'organizationId and connectorId are required');

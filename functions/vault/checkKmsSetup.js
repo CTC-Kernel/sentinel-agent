@@ -1,5 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { KeyManagementServiceClient } = require("@google-cloud/kms");
+const admin = require("firebase-admin");
 
 /**
  * Cloud KMS configuration for Sentinel Vault
@@ -29,6 +30,13 @@ const checkKmsSetup = onCall(
     // Require authentication
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Authentication required');
+    }
+
+    // Verify user has admin/super_admin/rssi role
+    const userDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || (userData.role !== 'admin' && userData.role !== 'super_admin' && userData.role !== 'rssi')) {
+      throw new HttpsError('permission-denied', 'Insufficient permissions');
     }
 
     const kmsClient = new KeyManagementServiceClient();

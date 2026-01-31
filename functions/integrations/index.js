@@ -20,7 +20,7 @@ const { N8NService, n8nWebhookSecret } = require('../services/n8nService');
  */
 function encryptData(text, secretKey) {
     const iv = crypto.randomBytes(16);
-    const key = crypto.scryptSync(secretKey, 'salt', 32);
+    const key = crypto.scryptSync(secretKey, 'sentinel-grc-integration-salt-v2', 32);
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     let encrypted = cipher.update(text);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
@@ -34,7 +34,7 @@ function decryptData(text, secretKey) {
     const textParts = text.split(':');
     const iv = Buffer.from(textParts.shift(), 'hex');
     const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    const key = crypto.scryptSync(secretKey, 'salt', 32);
+    const key = crypto.scryptSync(secretKey, 'sentinel-grc-integration-salt-v2', 32);
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     let decrypted = decipher.update(encryptedText);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
@@ -142,7 +142,7 @@ exports.connectIntegration = onCall({
         return { success: true };
     } catch (error) {
         logger.error('Error connecting integration:', error);
-        throw new HttpsError('internal', 'Failed to connect integration: ' + error.message);
+        throw new HttpsError('internal', 'Failed to connect integration');
     }
 });
 
@@ -262,7 +262,7 @@ exports.fetchEvidence = onCall({
 
     } catch (error) {
         logger.error('Error fetching evidence:', error);
-        throw new HttpsError('internal', 'Failed to fetch evidence: ' + error.message);
+        throw new HttpsError('internal', 'Failed to fetch evidence');
     }
 });
 
@@ -514,7 +514,7 @@ exports.fetchThreatFeed = onCall({
         } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
             throw new HttpsError('unavailable', 'External service unavailable.');
         } else {
-            throw new HttpsError('internal', 'Failed to fetch threat feed: ' + error.message);
+            throw new HttpsError('internal', 'Failed to fetch threat feed');
         }
     }
 });
@@ -603,7 +603,7 @@ exports.fetchRssFeed = onCall({
         }
         const message = error instanceof Error ? error.message : String(error);
         logger.error('Error fetching RSS feed:', { message, error });
-        throw new HttpsError('internal', 'Failed to fetch RSS feed: ' + message);
+        throw new HttpsError('internal', 'Failed to fetch RSS feed');
     }
 });
 
@@ -646,7 +646,7 @@ exports.fetchExternalSecurityEvents = onCall({
         throw new HttpsError('unimplemented', `Connector implementation for ${source} is not available.`);
     } catch (error) {
         logger.error(`External API call to ${source} failed`, error);
-        throw new HttpsError('internal', `Failed to fetch events from ${source}: ${error.message}`);
+        throw new HttpsError('internal', `Failed to fetch events from external source`);
     }
 });
 
@@ -658,7 +658,7 @@ exports.ingestWebhook = onRequest({
     timeoutSeconds: 60,
     region: 'europe-west1',
     secrets: [n8nWebhookSecret],
-    cors: true
+    cors: false
 }, async (req, res) => {
     if (req.method !== 'POST') {
         res.status(405).send('Method Not Allowed');
@@ -676,7 +676,7 @@ exports.ingestWebhook = onRequest({
         res.status(200).json(result);
     } catch (error) {
         logger.error('N8N Ingest Error', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -744,7 +744,7 @@ exports.fetchScannerVulnerabilities = onCall({
     } catch (error) {
         logger.error(`Scanner ${scanner} fetch error:`, error);
         if (error instanceof HttpsError) throw error;
-        throw new HttpsError('internal', `Failed to fetch vulnerabilities from ${scanner}: ${error.message}`);
+        throw new HttpsError('internal', `Failed to fetch vulnerabilities from scanner`);
     }
 });
 

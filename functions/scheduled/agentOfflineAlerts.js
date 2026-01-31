@@ -205,7 +205,8 @@ const checkAgentOfflineAlerts = onSchedule(
 
                 // Find newly offline agents
                 const offlineAgents = [];
-                const batch = db.batch();
+                const BATCH_LIMIT = 499;
+                let batch = db.batch();
                 let batchCount = 0;
 
                 for (const agentDoc of agentsSnapshot.docs) {
@@ -237,9 +238,16 @@ const checkAgentOfflineAlerts = onSchedule(
                         });
                         batchCount++;
                     }
+
+                    // Firestore batch limit is 500 operations; commit and reset if approaching limit
+                    if (batchCount >= BATCH_LIMIT) {
+                        await batch.commit();
+                        batch = db.batch();
+                        batchCount = 0;
+                    }
                 }
 
-                // Commit batch updates
+                // Commit remaining batch updates
                 if (batchCount > 0) {
                     await batch.commit();
                 }

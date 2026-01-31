@@ -308,17 +308,20 @@ exports.sendSignatureNotifications = onCall(
 
       // Send notifications (using existing email service pattern)
       const notificationPromises = signersToNotify.map(async (signer) => {
+        const maskedEmail = signer.email
+          ? signer.email.replace(/(.{2}).*(@.*)/, '$1***$2')
+          : 'unknown';
         try {
           // In a real implementation, this would call an email service
           // For MVP, we just update the signer status
-          console.log(`Would send notification to ${signer.email} for request ${requestId}`);
+          console.log(`Would send notification to ${maskedEmail} for request ${requestId}`);
 
           return {
             email: signer.email,
             success: true,
           };
         } catch (error) {
-          console.error(`Failed to notify ${signer.email}:`, error);
+          console.error(`Failed to notify ${maskedEmail}:`, error);
           return {
             email: signer.email,
             success: false,
@@ -378,6 +381,15 @@ exports.handleSignatureWebhook = onRequest(
     // Only allow POST
     if (req.method !== 'POST') {
       res.status(405).send('Method Not Allowed');
+      return;
+    }
+
+    // Authenticate webhook request
+    const webhookSecret = process.env.SIGNATURE_WEBHOOK_SECRET;
+    const providedSecret = req.headers['x-webhook-secret'];
+    if (!webhookSecret || !providedSecret || providedSecret !== webhookSecret) {
+      console.warn('Unauthorized webhook attempt', { ip: req.ip });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 

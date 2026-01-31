@@ -29,7 +29,7 @@ const INCIDENT_TYPE_MAPPING = {
 /**
  * Valid incident severities.
  */
-const VALID_SEVERITIES = ['Critical', 'High', 'Medium', 'Low'];
+const VALID_SEVERITIES = ['critical', 'high', 'medium', 'low'];
 
 /**
  * Valid incident types from agent.
@@ -89,7 +89,7 @@ async function reportIncident(req, res, agentId, agentDoc, agentData) {
         }
 
         // Validate severity
-        const incidentSeverity = severity || 'Medium';
+        const incidentSeverity = severity?.toLowerCase() || 'medium';
         if (!VALID_SEVERITIES.includes(incidentSeverity)) {
             return res.status(400).json({
                 error: `Invalid severity. Must be one of: ${VALID_SEVERITIES.join(', ')}`,
@@ -120,7 +120,7 @@ async function reportIncident(req, res, agentId, agentDoc, agentData) {
             title: title || generateIncidentTitle(incident_type, evidence),
             description: description || `Security incident detected by agent on ${agentData.hostname}.`,
             severity: incidentSeverity,
-            status: 'Open',
+            status: 'open',
             category,
 
             // Source tracking
@@ -140,7 +140,7 @@ async function reportIncident(req, res, agentId, agentDoc, agentData) {
             // Standard fields
             organizationId,
             assignee: null,
-            priority: incidentSeverity === 'Critical' ? 1 : incidentSeverity === 'High' ? 2 : 3,
+            priority: incidentSeverity === 'critical' ? 1 : incidentSeverity === 'high' ? 2 : 3,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
 
@@ -156,7 +156,7 @@ async function reportIncident(req, res, agentId, agentDoc, agentData) {
         batch.set(incidentRef, incidentData);
 
         // Create alert for Critical/High incidents
-        if (incidentSeverity === 'Critical' || incidentSeverity === 'High') {
+        if (incidentSeverity === 'critical' || incidentSeverity === 'high') {
             const alertRef = db
                 .collection('organizations')
                 .doc(organizationId)
@@ -259,8 +259,8 @@ async function checkAndTriggerPlaybook(organizationId, incidentId, incidentType,
         const playbookData = playbook.data();
 
         // Check severity threshold
-        const severityOrder = ['Critical', 'High', 'Medium', 'Low'];
-        const playbookMinSeverity = playbookData.minSeverity || 'Low';
+        const severityOrder = ['critical', 'high', 'medium', 'low'];
+        const playbookMinSeverity = (playbookData.minSeverity || 'low').toLowerCase();
 
         if (severityOrder.indexOf(severity) > severityOrder.indexOf(playbookMinSeverity)) {
             return false;

@@ -22,22 +22,19 @@ exports.generateEnrollmentToken = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, name, expiresInDays = 30, maxUses = null } = request.data;
+    const { name, expiresInDays = 30, maxUses = null } = request.data;
 
+    // Use organizationId from token claims instead of request.data
+    const organizationId = auth.token.organizationId;
     if (!organizationId) {
-      throw new HttpsError('invalid-argument', 'organizationId is required');
+      throw new HttpsError('permission-denied', 'Organization not found in token');
     }
 
     try {
-      // Verify user has access to this organization
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('permission-denied', 'User not found');
-      }
-
-      const userData = userDoc.data();
-      if (userData.organizationId !== organizationId && !userData.isAdmin) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
+      // Verify user role from token claims
+      const userRole = auth.token.role || '';
+      if (!['admin', 'manager'].includes(userRole)) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions');
       }
 
       // Generate secure token
@@ -107,35 +104,44 @@ exports.listEnrollmentTokens = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, includeRevoked = false } = request.data;
+    const { includeRevoked = false } = request.data;
 
+    // Use organizationId from token claims instead of request.data
+    const organizationId = auth.token.organizationId;
     if (!organizationId) {
-      throw new HttpsError('invalid-argument', 'organizationId is required');
+      throw new HttpsError('permission-denied', 'Organization not found in token');
     }
 
     try {
-      // Verify user has access
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('permission-denied', 'User not found');
+      // Verify user role from token claims
+      const userRole = auth.token.role || '';
+      if (!['admin', 'manager', 'viewer'].includes(userRole)) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions');
       }
 
-      const userData = userDoc.data();
-      if (userData.organizationId !== organizationId && !userData.isAdmin) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
-      }
-
-      let query = db
+      // Build query with .where() before .orderBy() for Firestore composite index compatibility
+      const tokensRef = db
         .collection('organizations')
         .doc(organizationId)
-        .collection('enrollmentTokens')
-        .orderBy('createdAt', 'desc');
+        .collection('enrollmentTokens');
+
+      let tokensQuery = tokensRef.where('organizationId', '==', organizationId);
 
       if (!includeRevoked) {
-        query = query.where('revoked', '==', false);
+        tokensQuery = tokensQuery.where('revoked', '==', false);
       }
 
-      const snapshot = await query.get();
+      tokensQuery = tokensQuery.orderBy('createdAt', 'desc');
+
+      // Add pagination
+      const limit = Math.min(request.data.limit || 50, 200);
+      tokensQuery = tokensQuery.limit(limit);
+
+      if (request.data.startAfter) {
+        tokensQuery = tokensQuery.startAfter(request.data.startAfter);
+      }
+
+      const snapshot = await tokensQuery.get();
 
       const tokens = snapshot.docs.map((doc) => {
         const data = doc.data();
@@ -187,22 +193,23 @@ exports.revokeEnrollmentToken = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { organizationId, tokenId } = request.data;
+    const { tokenId } = request.data;
 
-    if (!organizationId || !tokenId) {
-      throw new HttpsError('invalid-argument', 'organizationId and tokenId are required');
+    // Use organizationId from token claims instead of request.data
+    const organizationId = auth.token.organizationId;
+    if (!organizationId) {
+      throw new HttpsError('permission-denied', 'Organization not found in token');
+    }
+
+    if (!tokenId) {
+      throw new HttpsError('invalid-argument', 'tokenId is required');
     }
 
     try {
-      // Verify user has access
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('permission-denied', 'User not found');
-      }
-
-      const userData = userDoc.data();
-      if (userData.organizationId !== organizationId && !userData.isAdmin) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
+      // Verify user role from token claims
+      const userRole = auth.token.role || '';
+      if (!['admin', 'manager'].includes(userRole)) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions');
       }
 
       const tokenRef = db
