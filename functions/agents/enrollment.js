@@ -67,6 +67,7 @@ exports.enrollAgent = onRequest(
         os_version,
         machine_id,
         agent_version,
+        organization_id,
       } = req.body;
 
       // Validate required fields
@@ -80,9 +81,16 @@ exports.enrollAgent = onRequest(
         });
       }
 
-      // Find and validate the enrollment token
+      if (!organization_id) {
+        return res.status(400).json({ error: 'organization_id is required' });
+      }
+
+      // Find and validate the enrollment token scoped to the specified organization
+      // Uses org-scoped subcollection instead of collectionGroup to prevent cross-org token scanning
       const tokensSnapshot = await db
-        .collectionGroup('enrollmentTokens')
+        .collection('organizations')
+        .doc(organization_id)
+        .collection('enrollmentTokens')
         .where('token', '==', enrollment_token)
         .where('revoked', '==', false)
         .limit(1)

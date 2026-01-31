@@ -186,21 +186,25 @@ exports.getCertifierDashboard = onCall(async (request) => {
             .get();
 
         const assignments = [];
-        for (const share of sharesSnap.docs) {
-            const sData = share.data();
-            // Fetch minimal audit info (requires reading other org's doc - needs proper rules or Admin SDK bypass which Cloud Functions has)
-            const auditDoc = await db.collection('audits').doc(sData.auditId).get();
-            if (auditDoc.exists) {
-                const aData = auditDoc.data();
-                assignments.push({
-                    shareId: share.id, // Token/ID
-                    auditId: sData.auditId,
-                    auditName: aData.name,
-                    tenantName: clients.find(c => c.tenantId === sData.organizationId)?.tenantName || 'Unknown Client',
-                    status: aData.status,
-                    assignedAt: sData.createdAt
-                });
-            }
+        if (!sharesSnap.empty) {
+            const auditRefs = sharesSnap.docs.map(d => db.doc(`audits/${d.data().auditId}`));
+            const auditDocs = await db.getAll(...auditRefs);
+
+            sharesSnap.docs.forEach((share, index) => {
+                const sData = share.data();
+                const auditDoc = auditDocs[index];
+                if (auditDoc.exists) {
+                    const aData = auditDoc.data();
+                    assignments.push({
+                        shareId: share.id,
+                        auditId: sData.auditId,
+                        auditName: aData.name,
+                        tenantName: clients.find(c => c.tenantId === sData.organizationId)?.tenantName || 'Unknown Client',
+                        status: aData.status,
+                        assignedAt: sData.createdAt
+                    });
+                }
+            });
         }
 
         return {

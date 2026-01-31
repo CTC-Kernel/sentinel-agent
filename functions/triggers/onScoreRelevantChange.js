@@ -138,21 +138,18 @@ async function executeQueuedRecalculation(organizationId) {
       breakdown.training.weight;
     const globalScore = Math.round((weightedSum / totalWeight) * 100) / 100;
 
-    // Calculate trend
-    const trend = await calculateModule.calculateTrend(db, organizationId, globalScore);
+    // Calculate trend and per-framework scores in parallel
+    const [trend, byFramework] = await Promise.all([
+      calculateModule.calculateTrend(db, organizationId, globalScore),
+      typeof calculateModule.calculateFrameworkScores === 'function'
+        ? calculateModule.calculateFrameworkScores(db, organizationId)
+        : Promise.resolve({ iso27001: globalScore, nis2: globalScore, dora: globalScore, rgpd: globalScore }),
+    ]);
 
     // Save the score
     const scoreDoc = {
       global: globalScore,
-      // TODO: Implement per-framework score calculation based on framework-specific
-      // control mappings. Currently all frameworks share the same global score as a
-      // placeholder until framework-weighted scoring is available (see ADR-005).
-      byFramework: {
-        iso27001: globalScore,
-        nis2: globalScore,
-        dora: globalScore,
-        rgpd: globalScore,
-      },
+      byFramework,
       trend,
       lastCalculated: admin.firestore.FieldValue.serverTimestamp(),
       breakdown,

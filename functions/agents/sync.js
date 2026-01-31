@@ -4,6 +4,7 @@
  */
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const db = admin.firestore();
 
@@ -21,7 +22,7 @@ exports.onAgentCreated = onDocumentCreated(
     async (event) => {
         const snapshot = event.data;
         if (!snapshot) {
-            console.log("No data associated with the event");
+            logger.log("No data associated with the event");
             return;
         }
 
@@ -29,7 +30,7 @@ exports.onAgentCreated = onDocumentCreated(
         const { organizationId, agentId } = event.params;
         const { hostname, ipAddress, os, osVersion, machineId } = agentData;
 
-        console.log(`[CTC Engine] New Agent detected: ${agentId} (${hostname}). Starting hydration...`);
+        logger.log(`[CTC Engine] New Agent detected: ${agentId} (${hostname}). Starting hydration...`);
 
         try {
             // 1. Check if an Asset already exists for this machine (deduplication)
@@ -49,7 +50,7 @@ exports.onAgentCreated = onDocumentCreated(
 
             if (!existingByMachine.empty) {
                 assetRef = existingByMachine.docs[0].ref;
-                console.log(`[CTC Engine] Found existing asset by machineId: ${assetRef.id}`);
+                logger.log(`[CTC Engine] Found existing asset by machineId: ${assetRef.id}`);
             } else {
                 const existingByHostname = await assetsCollection
                     .where("name", "==", hostname)
@@ -58,7 +59,7 @@ exports.onAgentCreated = onDocumentCreated(
 
                 if (!existingByHostname.empty) {
                     assetRef = existingByHostname.docs[0].ref;
-                    console.log(`[CTC Engine] Found existing asset by hostname: ${assetRef.id}`);
+                    logger.log(`[CTC Engine] Found existing asset by hostname: ${assetRef.id}`);
                 }
             }
 
@@ -94,11 +95,11 @@ exports.onAgentCreated = onDocumentCreated(
                 });
                 assetRef = newAssetRef;
                 isNewAsset = true;
-                console.log(`[CTC Engine] Created new Asset: ${assetRef.id}`);
+                logger.log(`[CTC Engine] Created new Asset: ${assetRef.id}`);
             } else {
                 // Update existing Asset
                 await assetRef.set(assetData, { merge: true });
-                console.log(`[CTC Engine] Updated existing Asset: ${assetRef.id}`);
+                logger.log(`[CTC Engine] Updated existing Asset: ${assetRef.id}`);
             }
 
             // Link asset to agent (set linkedAssetId for vulnerability/report correlation)
@@ -126,7 +127,7 @@ exports.onAgentCreated = onDocumentCreated(
             });
 
         } catch (error) {
-            console.error(`[CTC Engine] Error syncing agent ${agentId}:`, error);
+            logger.error(`[CTC Engine] Error syncing agent ${agentId}:`, error);
             // Log failure but don't retry endlessly (idempotency needed if retrying)
         }
     }
@@ -149,7 +150,7 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
         }
     }
 
-    console.log(`[CTC Engine] Starting Auto-Linking for Asset ${assetId}...`);
+    logger.log(`[CTC Engine] Starting Auto-Linking for Asset ${assetId}...`);
 
     // A. Link Standard Controls based on OS
     // e.g. "Antivirus", "Patch Management", "Disk Encryption"
@@ -232,9 +233,9 @@ async function performAutoLinking(organizationId, assetId, os, agentData) {
     // Commit if any operations
     if (operationCount > 0) {
         await batch.commit();
-        console.log(`[CTC Engine] Auto-linked ${operationCount} items to Asset ${assetId}`);
+        logger.log(`[CTC Engine] Auto-linked ${operationCount} items to Asset ${assetId}`);
     } else {
-        console.log(`[CTC Engine] No auto-links found for Asset ${assetId}`);
+        logger.log(`[CTC Engine] No auto-links found for Asset ${assetId}`);
     }
 }
 
@@ -283,7 +284,7 @@ exports.onResultUploaded = onDocumentCreated(
             }
 
             if (!assetRef) {
-                console.warn(`[CTC Engine] Result uploaded for unknown asset (Agent: ${agentId})`);
+                logger.warn(`[CTC Engine] Result uploaded for unknown asset (Agent: ${agentId})`);
                 return;
             }
 
@@ -306,7 +307,7 @@ exports.onResultUploaded = onDocumentCreated(
                         });
                     });
                     await resolveBatch.commit();
-                    console.log(`[CTC Engine] Resolved ${openVulns.size} vulns for agent ${agentId} check ${controlId}`);
+                    logger.log(`[CTC Engine] Resolved ${openVulns.size} vulns for agent ${agentId} check ${controlId}`);
                 }
             }
 
@@ -355,7 +356,7 @@ exports.onResultUploaded = onDocumentCreated(
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                         updatedAt: admin.firestore.FieldValue.serverTimestamp()
                     });
-                    console.log(`[CTC Engine] Created Vulnerability for Asset ${assetRef.id}`);
+                    logger.log(`[CTC Engine] Created Vulnerability for Asset ${assetRef.id}`);
 
                     // Also write to agentVulnerabilities for the Agent module frontend
                     const agentVulnRef = db
@@ -379,7 +380,7 @@ exports.onResultUploaded = onDocumentCreated(
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                     });
-                    console.log(`[CTC Engine] Created agentVulnerability for Agent ${agentId}`);
+                    logger.log(`[CTC Engine] Created agentVulnerability for Agent ${agentId}`);
                 }
             }
 
@@ -393,7 +394,7 @@ exports.onResultUploaded = onDocumentCreated(
             }
 
         } catch (error) {
-            console.error(`[CTC Engine] Error processing result for agent ${agentId}:`, error);
+            logger.error(`[CTC Engine] Error processing result for agent ${agentId}:`, error);
         }
     }
 );

@@ -15,6 +15,22 @@ const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
 // Services
 const { N8NService, n8nWebhookSecret } = require('../services/n8nService');
 
+// In-memory rate limiter for external API calls (Shodan, HIBP)
+const apiCallCounts = new Map();
+const API_RATE_LIMIT = 5; // per hour per user per API
+
+function checkApiRateLimit(userId, apiName) {
+    const key = `${userId}:${apiName}`;
+    const now = Date.now();
+    const calls = apiCallCounts.get(key) || [];
+    const recentCalls = calls.filter(t => now - t < 3600000);
+    if (recentCalls.length >= API_RATE_LIMIT) {
+        throw new HttpsError('resource-exhausted', `Rate limit exceeded for ${apiName}. Try again later.`);
+    }
+    recentCalls.push(now);
+    apiCallCounts.set(key, recentCalls);
+}
+
 /**
  * Encrypt data using the USER_SECRETS_ENCRYPTION_KEY
  */
@@ -190,6 +206,7 @@ exports.fetchEvidence = onCall({
 
         if (providerId === 'shodan') {
             if (!apiKey) throw new HttpsError('failed-precondition', 'Missing API Key for Shodan');
+            checkApiRateLimit(request.auth.uid, 'shodan');
 
             const response = await fetch(`https://api.shodan.io/shodan/host/${encodeURIComponent(resourceId)}?key=${apiKey}`);
             if (!response.ok) {
@@ -219,6 +236,7 @@ exports.fetchEvidence = onCall({
 
         if (providerId === 'hibp') {
             if (!apiKey) throw new HttpsError('failed-precondition', 'Missing API Key for HIBP');
+            checkApiRateLimit(request.auth.uid, 'hibp');
 
             const response = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(resourceId)}`, {
                 headers: {
@@ -286,6 +304,8 @@ exports.scanAssetWithShodan = onCall({
     }
 
     try {
+        checkApiRateLimit(uid, 'shodan');
+
         const db = admin.firestore();
         const userKeysSnap = await db.collection('user_api_keys').doc(uid).get();
         const userKeys = userKeysSnap.data() || {};
@@ -335,6 +355,8 @@ exports.checkBreachWithHIBP = onCall({
     }
 
     try {
+        checkApiRateLimit(uid, 'hibp');
+
         const db = admin.firestore();
         const userKeysSnap = await db.collection('user_api_keys').doc(uid).get();
         const userKeys = userKeysSnap.data() || {};

@@ -10,6 +10,7 @@
  * - hold_applied, hold_released
  */
 
+const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const crypto = require('crypto');
 
@@ -82,7 +83,7 @@ async function getPreviousLogHash(db, documentId) {
     return lastLog.integrity?.hash || 'GENESIS';
   } catch (error) {
     // If query fails (e.g., no index), start fresh
-    console.warn('Failed to get previous log hash:', error.message);
+    logger.warn('Failed to get previous log hash:', error.message);
     return 'GENESIS';
   }
 }
@@ -151,11 +152,11 @@ async function logDocumentAction({
     // Store the log entry
     const docRef = await db.collection(DOCUMENT_AUDIT_LOGS_COLLECTION).add(logEntry);
 
-    console.log(`Audit log created: ${action} on ${documentId} by ${userId}`);
+    logger.log(`Audit log created: ${action} on ${documentId} by ${userId}`);
 
     return docRef.id;
   } catch (error) {
-    console.error('Failed to log document action:', error);
+    logger.error('Failed to log document action:', error);
     // Don't throw - audit logging should not break the main operation
     // But log the error for monitoring
     return null;
