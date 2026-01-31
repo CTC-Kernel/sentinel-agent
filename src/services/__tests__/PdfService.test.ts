@@ -45,10 +45,11 @@ vi.mock('jspdf', () => {
         setGState: vi.fn(),
     }));
 
-    (mockJsPDF as any).prototype = {
+    const mockConstructor = mockJsPDF as unknown as { prototype: unknown; API: unknown };
+    mockConstructor.prototype = {
         autoTable: vi.fn()
     };
-    (mockJsPDF as any).API = {
+    mockConstructor.API = {
         autoTable: vi.fn()
     };
 
