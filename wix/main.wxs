@@ -79,8 +79,8 @@
       </Dialog>
 
       <!-- Insert enrollment dialog in sequence -->
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="EnrollmentDlg" Order="4">1</Publish>
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="EnrollmentDlg" Order="1">NOT Installed</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="EnrollmentDlg" Order="4" Condition="1" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="EnrollmentDlg" Order="1" Condition="NOT Installed" />
     </UI>
 
     <!-- Auto-start property default -->
