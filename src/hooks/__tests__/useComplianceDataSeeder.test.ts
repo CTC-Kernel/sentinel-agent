@@ -37,7 +37,8 @@ vi.mock('../../store', () => {
             email: 'test@example.com',
             organizationId: 'org-123',
             role: 'admin'
-        }
+        },
+        t: (key: string, fallback?: string) => fallback || key
     });
     useStore.getState = mockGetState;
     return { useStore };
@@ -118,7 +119,10 @@ describe('useComplianceDataSeeder', () => {
             expect(mockBatchSet).toHaveBeenCalledTimes(2);
             expect(mockBatchCommit).toHaveBeenCalled();
             expect(mockToastSuccess).toHaveBeenCalledWith(
-                expect.stringContaining('ISO27001')
+                expect.objectContaining({
+                    count: 2,
+                    framework: 'ISO27001'
+                })
             );
         });
 
@@ -202,7 +206,7 @@ describe('useComplianceDataSeeder', () => {
             });
 
             expect(mockToastError).toHaveBeenCalledWith(
-                expect.stringContaining('HDS')
+                'compliance.noSeedData'
             );
             expect(mockBatchSet).not.toHaveBeenCalled();
         });
@@ -239,7 +243,7 @@ describe('useComplianceDataSeeder', () => {
             });
 
             expect(mockToastError).toHaveBeenCalledWith(
-                expect.stringContaining("Erreur")
+                'compliance.importError'
             );
         });
     });
