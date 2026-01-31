@@ -2,9 +2,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PdfService } from '../PdfService';
 
+vi.mock('../store', () => ({
+    useStore: {
+        getState: () => ({
+            user: {
+                uid: 'test-user',
+                organizationId: 'org-123',
+                role: 'admin'
+            }
+        })
+    }
+}));
+
 // Mock jsPDF
 vi.mock('jspdf', () => {
-    const mockJsPDF = {
+    const mockJsPDF = vi.fn().mockImplementation(() => ({
         save: vi.fn(),
         text: vi.fn(),
         rect: vi.fn(),
@@ -26,11 +38,22 @@ vi.mock('jspdf', () => {
         autoTable: vi.fn(),
         splitTextToSize: vi.fn((text) => [text]), // Simple mock
         getTextWidth: vi.fn(() => 10),
+        savePoints: vi.fn(),
+        restorePoints: vi.fn(),
         saveGraphicsState: vi.fn(),
-        restoreGraphicsState: vi.fn()
+        restoreGraphicsState: vi.fn(),
+        setGState: vi.fn(),
+    }));
+
+    (mockJsPDF as any).prototype = {
+        autoTable: vi.fn()
     };
+    (mockJsPDF as any).API = {
+        autoTable: vi.fn()
+    };
+
     return {
-        jsPDF: vi.fn(() => mockJsPDF)
+        jsPDF: mockJsPDF
     };
 });
 

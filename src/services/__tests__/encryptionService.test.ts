@@ -17,8 +17,23 @@ vi.mock('crypto-js', () => ({
             }))
         },
         enc: {
-            Utf8: 'utf8'
-        }
+            Utf8: 'utf8',
+            Hex: {
+                parse: vi.fn((hex: string) => ({
+                    toString: () => hex
+                }))
+            }
+        },
+        lib: {
+            WordArray: {
+                random: vi.fn((size: number) => ({
+                    toString: () => '0'.repeat(size * 2)
+                }))
+            }
+        },
+        PBKDF2: vi.fn(() => ({
+            toString: () => 'mocked_key'
+        }))
     }
 }));
 
@@ -26,6 +41,18 @@ vi.mock('crypto-js', () => ({
 vi.mock('../errorLogger', () => ({
     ErrorLogger: {
         error: vi.fn()
+    }
+}));
+
+vi.mock('../store', () => ({
+    useStore: {
+        getState: () => ({
+            user: {
+                uid: 'test-user',
+                organizationId: 'org-123',
+                role: 'admin'
+            }
+        })
     }
 }));
 
@@ -50,11 +77,11 @@ describe('EncryptionService', () => {
             expect(result).toBe('');
         });
 
-        it('should encrypt data with ENC:: prefix', async () => {
+        it('should encrypt data with ENC2:: prefix', async () => {
             const { EncryptionService } = await import('../encryptionService');
 
             const result = EncryptionService.encrypt('test data');
-            expect(result).toMatch(/^ENC::/);
+            expect(result).toMatch(/^ENC2::/);
         });
 
         it('should produce encrypted output', async () => {
@@ -62,7 +89,7 @@ describe('EncryptionService', () => {
 
             const result = EncryptionService.encrypt('sensitive data');
             expect(result).not.toBe('sensitive data');
-            expect(result.startsWith('ENC::')).toBe(true);
+            expect(result.startsWith('ENC2::')).toBe(true);
         });
     });
 
@@ -85,7 +112,10 @@ describe('EncryptionService', () => {
             const { EncryptionService } = await import('../encryptionService');
 
             // The mock just removes the encrypted_ prefix
-            const result = EncryptionService.decrypt('ENC::encrypted_test data');
+            // New format: ENC2::<salt:32><iv:32><ciphertext>
+            const saltHex = '0'.repeat(32);
+            const ivHex = '0'.repeat(32);
+            const result = EncryptionService.decrypt(`ENC2::${saltHex}${ivHex}encrypted_test data`);
             expect(result).toBe('test data');
         });
     });
@@ -94,7 +124,8 @@ describe('EncryptionService', () => {
         it('should return true for encrypted data', async () => {
             const { EncryptionService } = await import('../encryptionService');
 
-            expect(EncryptionService.isEncrypted('ENC::some-encrypted-data')).toBe(true);
+            expect(EncryptionService.isEncrypted('ENC2::some-encrypted-data')).toBe(true);
+            expect(EncryptionService.isEncrypted('ENC::some-legacy-data')).toBe(true);
         });
 
         it('should return false for plaintext data', async () => {

@@ -12,6 +12,21 @@ import { createUser } from '../../tests/factories/userFactory';
 vi.mock('../../firebase', () => ({
     db: {},
     functions: {},
+    auth: {
+        currentUser: { uid: 'user-123' }
+    }
+}));
+
+vi.mock('../store', () => ({
+    useStore: {
+        getState: () => ({
+            user: {
+                uid: 'test-user',
+                organizationId: 'org-123',
+                role: 'admin'
+            }
+        })
+    }
 }));
 
 vi.mock('firebase/firestore', () => ({
