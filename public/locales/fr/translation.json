@@ -2567,8 +2567,21 @@
       "total": "Total Analyses",
       "inProgress": "En cours",
       "completed": "Terminées",
-      "avgProgress": "Progression moyenne"
+      "avgProgress": "Progression moyenne",
+      "maturity": "Maturité Socle",
+      "riskSources": "Sources de Risque",
+      "scenarios": "Scénarios",
+      "treatmentRate": "Taux de Traitement"
     },
+    "workshops": {
+      "w1": "Atelier 1 : Socle de Sécurité",
+      "w2": "Atelier 2 : Sources de Risque",
+      "w3": "Atelier 3 : Scénarios Stratégiques",
+      "w4": "Atelier 4 : Scénarios Opérationnels",
+      "w5": "Atelier 5 : Traitement du Risque",
+      "w34": "Scénarios Strat. & Ops."
+    },
+    "cycle": "Cycle EBIOS",
     "createAnalysisSubtitle": "Nouvelle analyse EBIOS Risk Manager",
     "title": "EBIOS Risk Manager",
     "description": "Méthodologie ANSSI d'analyse de risques cyber",

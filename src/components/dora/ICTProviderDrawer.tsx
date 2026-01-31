@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
-import { Drawer } from '../ui/Drawer';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { ICTProviderForm } from './ICTProviderForm';
 import { ICTProvider, ICTProviderFormData } from '../../types/dora';
 import { useICTProviders } from '../../hooks/useICTProviders';
@@ -103,13 +103,13 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
     } as Partial<ICTProviderFormData> : undefined;
 
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
             title={isEditing ? t('dora.providers.edit') : t('dora.providers.new')}
             subtitle={t('dora.subtitle')}
-            width="max-w-3xl"
-            disableScroll
+            width="max-w-4xl"
+            icon={isEditing ? undefined : undefined} // Add icon if available
         >
             <ICTProviderForm
                 onSubmit={handleSubmit}
@@ -118,6 +118,6 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
                 isEditing={isEditing}
                 isLoading={isLoading}
             />
-        </Drawer>
+        </InspectorLayout>
     );
 };

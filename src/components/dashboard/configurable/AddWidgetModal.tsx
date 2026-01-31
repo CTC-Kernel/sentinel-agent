@@ -7,8 +7,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Modal } from '../../ui/Modal';
 import { WIDGET_REGISTRY, WidgetId } from './WidgetRegistry';
 import { getWidgetCategory, type WidgetCategory } from '../../../config/dashboardDefaults';
 import { Plus, X, Search, LayoutGrid, AlertTriangle, Clock, FileText, Grid3X3 } from '../../ui/Icons';
@@ -252,202 +251,179 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
     onClose();
   };
 
-  return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-          style={{ pointerEvents: 'auto' }}
-        >
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          />
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      maxWidth="max-w-3xl"
+      scrollable={false}
+    >
+      <div className="flex flex-col max-h-[85vh] h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border/40 dark:border-white/5 shrink-0">
+          <div>
+            <h2
+              id="add-widget-title"
+              className="text-xl font-bold text-slate-900 dark:text-white"
+            >
+              {t('dashboard.addWidget')}
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
+              {t('dashboard.customizeDashboard')}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {onReset && (
+              <button
+                onClick={() => {
+                  onReset();
+                  handleClose();
+                }}
+                className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors border border-border/40"
+              >
+                {t('common.reset')}
+              </button>
+            )}
+            <button
+              onClick={handleClose}
+              className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              aria-label={t('common.close')}
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
 
-          {/* Modal */}
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-            className="relative z-10 bg-white dark:bg-slate-900 border border-border/40 dark:border-border/40 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[85vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="add-widget-title"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border/40 dark:border-white/5 shrink-0">
-              <div>
-                <h2
-                  id="add-widget-title"
-                  className="text-xl font-bold text-slate-900 dark:text-white"
-                >
-                  {t('dashboard.addWidget')}
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
-                  {t('dashboard.customizeDashboard')}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {onReset && (
-                  <button
-                    onClick={() => {
-                      onReset();
-                      handleClose();
-                    }}
-                    className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors border border-border/40"
-                  >
-                    {t('common.reset')}
-                  </button>
+        {/* Search and filters */}
+        <div className="px-6 py-4 border-b border-border/40 dark:border-white/5 shrink-0 space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder={t('common.search')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={cn(
+                'w-full pl-10 pr-4 py-2.5 rounded-lg',
+                'bg-slate-50 dark:bg-slate-800',
+                'border border-border/40 dark:border-slate-700',
+                'text-slate-900 dark:text-white placeholder-slate-400',
+                'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent'
+              )}
+            />
+          </div>
+
+          {/* Category tabs */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map(({ key, count }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSelectedCategory(key)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                  selectedCategory === key
+                    ? 'bg-brand-500 text-white'
+                    : [
+                      'bg-slate-100 dark:bg-slate-800',
+                      'text-slate-600 dark:text-slate-300',
+                      'hover:bg-slate-200 dark:hover:bg-slate-700',
+                    ]
                 )}
-                <button
-                  onClick={handleClose}
-                  className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                  aria-label={t('common.close')}
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
-            {/* Search and filters */}
-            <div className="px-6 py-4 border-b border-border/40 dark:border-white/5 shrink-0 space-y-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={t('common.search')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+              >
+                {key !== 'all' && CATEGORY_ICONS[key as WidgetCategory]}
+                <span>
+                  {key === 'all'
+                    ? t('common.all')
+                    : t(`dashboard.widgetCategories.${key}`)}
+                </span>
+                <span
                   className={cn(
-                    'w-full pl-10 pr-4 py-2.5 rounded-lg',
-                    'bg-slate-50 dark:bg-slate-800',
-                    'border border-border/40 dark:border-slate-700',
-                    'text-slate-900 dark:text-white placeholder-slate-400',
-                    'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent'
+                    'text-xs px-1.5 py-0.5 rounded-full',
+                    selectedCategory === key
+                      ? 'bg-white/20'
+                      : 'bg-slate-200 dark:bg-slate-700'
                   )}
-                />
-              </div>
+                >
+                  {count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-              {/* Category tabs */}
-              <div className="flex flex-wrap gap-2">
-                {categories.map(({ key, count }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setSelectedCategory(key)}
-                    className={cn(
-                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                      selectedCategory === key
-                        ? 'bg-brand-500 text-white'
-                        : [
-                          'bg-slate-100 dark:bg-slate-800',
-                          'text-slate-600 dark:text-slate-300',
-                          'hover:bg-slate-200 dark:hover:bg-slate-700',
-                        ]
-                    )}
-                  >
-                    {key !== 'all' && CATEGORY_ICONS[key as WidgetCategory]}
-                    <span>
-                      {key === 'all'
-                        ? t('common.all')
-                        : t(`dashboard.widgetCategories.${key}`)}
-                    </span>
-                    <span
-                      className={cn(
-                        'text-xs px-1.5 py-0.5 rounded-full',
-                        selectedCategory === key
-                          ? 'bg-white/20'
-                          : 'bg-slate-200 dark:bg-slate-700'
-                      )}
-                    >
-                      {count}
-                    </span>
-                  </button>
+        {/* Widget list */}
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+          {filteredWidgets.length > 0 ? (
+            selectedCategory === 'all' ? (
+              // Group by category when showing all
+              <div className="space-y-6">
+                {(Object.entries(widgetsByCategory) as [WidgetCategory, typeof filteredWidgets][])
+                  .filter(([, widgets]) => widgets.length > 0)
+                  .map(([category, widgets]) => (
+                    <div key={category}>
+                      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                        <span className={cn('p-1.5 rounded-lg', CATEGORY_COLORS[category])}>
+                          {CATEGORY_ICONS[category]}
+                        </span>
+                        {t(`dashboard.widgetCategories.${category}`)}
+                        <span className="text-xs text-muted-foreground font-normal">
+                          ({widgets.length})
+                        </span>
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {widgets.map((widget) => (
+                          <WidgetCard
+                            key={widget.id}
+                            id={widget.id}
+                            titleKey={widget.titleKey}
+                            category={widget.category}
+                            onAdd={() => handleAddWidget(widget.id)}
+                            isDisabled={widget.isInUse}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              // Flat list when filtered by category
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {filteredWidgets.map((widget) => (
+                  <WidgetCard
+                    key={widget.id}
+                    id={widget.id}
+                    titleKey={widget.titleKey}
+                    category={widget.category}
+                    onAdd={() => handleAddWidget(widget.id)}
+                    isDisabled={widget.isInUse}
+                  />
                 ))}
               </div>
+            )
+          ) : (
+            // Empty state
+            <div className="col-span-full py-12 text-center flex flex-col items-center justify-center text-muted-foreground">
+              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                <Search className="w-8 h-8 opacity-20" />
+              </div>
+              <p className="font-medium">
+                {searchQuery
+                  ? t('common.noResults', { defaultValue: 'Aucun résultat' })
+                  : t('dashboard.allWidgetsAdded')}
+              </p>
+              <p className="text-sm opacity-70 mt-1">
+                {searchQuery
+                  ? t('common.tryDifferentSearch', {
+                    defaultValue: 'Essayez une autre recherche',
+                  })
+                  : t('dashboard.allWidgetsDisplayed', { defaultValue: 'Tous les widgets disponibles sont déjà affichés.' })}
+              </p>
             </div>
-
-            {/* Widget list */}
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-              {filteredWidgets.length > 0 ? (
-                selectedCategory === 'all' ? (
-                  // Group by category when showing all
-                  <div className="space-y-6">
-                    {(Object.entries(widgetsByCategory) as [WidgetCategory, typeof filteredWidgets][])
-                      .filter(([, widgets]) => widgets.length > 0)
-                      .map(([category, widgets]) => (
-                        <div key={category}>
-                          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-                            <span className={cn('p-1.5 rounded-lg', CATEGORY_COLORS[category])}>
-                              {CATEGORY_ICONS[category]}
-                            </span>
-                            {t(`dashboard.widgetCategories.${category}`)}
-                            <span className="text-xs text-muted-foreground font-normal">
-                              ({widgets.length})
-                            </span>
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {widgets.map((widget) => (
-                              <WidgetCard
-                                key={widget.id}
-                                id={widget.id}
-                                titleKey={widget.titleKey}
-                                category={widget.category}
-                                onAdd={() => handleAddWidget(widget.id)}
-                                isDisabled={widget.isInUse}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  // Flat list when filtered by category
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {filteredWidgets.map((widget) => (
-                      <WidgetCard
-                        key={widget.id}
-                        id={widget.id}
-                        titleKey={widget.titleKey}
-                        category={widget.category}
-                        onAdd={() => handleAddWidget(widget.id)}
-                        isDisabled={widget.isInUse}
-                      />
-                    ))}
-                  </div>
-                )
-              ) : (
-                // Empty state
-                <div className="col-span-full py-12 text-center flex flex-col items-center justify-center text-muted-foreground">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
-                    <Search className="w-8 h-8 opacity-20" />
-                  </div>
-                  <p className="font-medium">
-                    {searchQuery
-                      ? t('common.noResults', { defaultValue: 'Aucun résultat' })
-                      : t('dashboard.allWidgetsAdded')}
-                  </p>
-                  <p className="text-sm opacity-70 mt-1">
-                    {searchQuery
-                      ? t('common.tryDifferentSearch', {
-                        defaultValue: 'Essayez une autre recherche',
-                      })
-                      : t('dashboard.allWidgetsDisplayed', { defaultValue: 'Tous les widgets disponibles sont déjà affichés.' })}
-                  </p>
-                </div>
-              )}
-            </div>
-          </motion.div>
+          )}
         </div>
-      )}
-    </AnimatePresence>,
-    document.body
+      </div>
+    </Modal>
   );
 };

@@ -126,9 +126,19 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
         }
     };
 
+    // Validate and normalize process data for reliability
+    // Individual processes cannot exceed 100% CPU usage
+    const normalizedProcesses = useMemo(() => {
+        return processes.map(process => ({
+            ...process,
+            cpuPercent: Math.min(100, Math.max(0, process.cpuPercent)),
+            memoryPercent: Math.min(100, Math.max(0, process.memoryPercent))
+        }));
+    }, [processes]);
+
     // Filter and sort processes
     const filteredProcesses = useMemo(() => {
-        let result = [...processes];
+        let result = [...normalizedProcesses];
 
         // Filter by search
         if (search) {
@@ -161,15 +171,18 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
         });
 
         return result.slice(0, maxItems);
-    }, [processes, search, sortField, sortDirection, maxItems]);
+    }, [normalizedProcesses, search, sortField, sortDirection, maxItems]);
 
     // Stats
+    // NOTE: CPU values are validated to never exceed 100% for reliability
+    // Individual processes are capped at 100% as they cannot exceed this limit
     const stats = useMemo(() => {
-        const totalCpu = processes.reduce((sum, p) => sum + p.cpuPercent, 0);
-        const totalMemory = processes.reduce((sum, p) => sum + p.memoryBytes, 0);
-        const highCpuCount = processes.filter(p => p.cpuPercent > 50).length;
-        return { totalCpu, totalMemory, highCpuCount, total: processes.length };
-    }, [processes]);
+        const validProcesses = normalizedProcesses.filter((p: AgentProcess) => p.cpuPercent >= 0);
+        const totalCpu = validProcesses.reduce((sum: number, p: AgentProcess) => sum + p.cpuPercent, 0);
+        const totalMemory = normalizedProcesses.reduce((sum: number, p: AgentProcess) => sum + p.memoryBytes, 0);
+        const highCpuCount = normalizedProcesses.filter((p: AgentProcess) => p.cpuPercent > 80).length;
+        return { totalCpu, totalMemory, highCpuCount, total: normalizedProcesses.length };
+    }, [normalizedProcesses]);
 
     if (loading) {
         return (
@@ -218,6 +231,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                         <Activity className="h-3.5 w-3.5 text-primary" />
                         <span className="text-muted-foreground">CPU Total:</span>
                         <span className="font-bold text-foreground">{stats.totalCpu.toFixed(1)}%</span>
+                        <span className="text-xs text-muted-foreground ml-1" title="Somme des processus validés (max 100% par processus)">ⓘ</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <span className="text-muted-foreground">Mémoire:</span>

@@ -41,16 +41,51 @@ function computeAgentStatus(lastHeartbeat: Date | null): AgentStatus {
 }
 
 /**
+ * Validate and normalize agent metrics for reliability
+ * Logs anomalous values for debugging
+ */
+function validateAgentMetrics(data: any): any {
+    const validated = { ...data };
+    
+    // Validate CPU - log if value exceeds 100% (indicates agent bug)
+    if (typeof data.cpuPercent === 'number') {
+        if (data.cpuPercent > 100) {
+            console.warn(`[AgentService] Anomalous CPU value detected: ${data.cpuPercent}% (agent: ${data.hostname || data.machineId}) - capping at 100%`);
+        }
+        validated.cpuPercent = Math.min(100, Math.max(0, data.cpuPercent));
+    }
+    
+    // Validate Memory - log if value exceeds 100%
+    if (typeof data.memoryPercent === 'number') {
+        if (data.memoryPercent > 100) {
+            console.warn(`[AgentService] Anomalous memory value detected: ${data.memoryPercent}% (agent: ${data.hostname || data.machineId}) - capping at 100%`);
+        }
+        validated.memoryPercent = Math.min(100, Math.max(0, data.memoryPercent));
+    }
+    
+    // Validate Disk - log if value exceeds 100%
+    if (typeof data.diskPercent === 'number') {
+        if (data.diskPercent > 100) {
+            console.warn(`[AgentService] Anomalous disk value detected: ${data.diskPercent}% (agent: ${data.hostname || data.machineId}) - capping at 100%`);
+        }
+        validated.diskPercent = Math.min(100, Math.max(0, data.diskPercent));
+    }
+    
+    return validated;
+}
+
+/**
  * Convert Firestore document to SentinelAgent
  */
 function docToAgent(docId: string, data: Record<string, unknown>, organizationId: string): SentinelAgent {
-    const lastHeartbeat = data.lastHeartbeat instanceof Timestamp
-        ? data.lastHeartbeat.toDate()
-        : data.lastHeartbeat ? new Date(data.lastHeartbeat as string) : null;
+    const validatedData = validateAgentMetrics(data);
+    const lastHeartbeat = validatedData.lastHeartbeat instanceof Timestamp
+        ? validatedData.lastHeartbeat.toDate()
+        : validatedData.lastHeartbeat ? new Date(validatedData.lastHeartbeat as string) : null;
 
-    const enrolledAt = data.enrolledAt instanceof Timestamp
-        ? data.enrolledAt.toDate().toISOString()
-        : data.enrolledAt as string | undefined;
+    const enrolledAt = validatedData.enrolledAt instanceof Timestamp
+        ? validatedData.enrolledAt.toDate().toISOString()
+        : validatedData.enrolledAt as string | undefined;
 
     return {
         id: docId,
@@ -71,11 +106,14 @@ function docToAgent(docId: string, data: Record<string, unknown>, organizationId
             ? data.lastCheckAt.toDate().toISOString()
             : (data.lastCheckAt as string | null | undefined) ?? null,
         enrolledAt,
-        cpuPercent: data.cpuPercent as number | undefined,
+        // Validate CPU values - agent cannot function above 100%
+        // This ensures data reliability and prevents display of impossible values
+        cpuPercent: typeof data.cpuPercent === 'number' ? Math.min(100, Math.max(0, data.cpuPercent)) : undefined,
         memoryBytes: data.memoryBytes as number | undefined,
-        memoryPercent: data.memoryPercent as number | undefined,
+        // Validate percentage values for data reliability
+        memoryPercent: typeof data.memoryPercent === 'number' ? Math.min(100, Math.max(0, data.memoryPercent)) : undefined,
         memoryTotalBytes: data.memoryTotalBytes as number | undefined,
-        diskPercent: data.diskPercent as number | undefined,
+        diskPercent: typeof data.diskPercent === 'number' ? Math.min(100, Math.max(0, data.diskPercent)) : undefined,
         diskUsedBytes: data.diskUsedBytes as number | undefined,
         diskTotalBytes: data.diskTotalBytes as number | undefined,
         uptimeSeconds: data.uptimeSeconds as number | undefined,

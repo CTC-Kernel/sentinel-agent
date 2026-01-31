@@ -7,7 +7,7 @@ import { useStore } from '../../store';
 import { useThreatIntelActions } from '../../hooks/threats/useThreatIntelActions';
 import { Button } from '../ui/button';
 import { ErrorLogger } from '../../services/errorLogger';
-import { Drawer } from '../ui/Drawer';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 
@@ -69,15 +69,16 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
     };
 
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
             title="Signaler une Menace"
             subtitle="Partagez une observation avec la communauté."
-            width="max-w-2xl"
+            width="max-w-4xl"
+            icon={AlertTriangle}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="h-full flex flex-col">
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6">
                     <Controller
                         name="title"
                         control={control}
@@ -190,6 +191,6 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                     </Button>
                 </div>
             </form>
-        </Drawer>
+        </InspectorLayout>
     );
 };

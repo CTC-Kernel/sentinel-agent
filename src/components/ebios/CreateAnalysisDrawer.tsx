@@ -73,7 +73,7 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
             icon={Shield}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
-                <div className="flex-1 space-y-8 pt-2 px-1 max-w-5xl mx-auto w-full">
+                <div className="flex-1 space-y-8 pt-2 max-w-5xl mx-auto w-full">
 
                     {/* Header Section in Form */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -144,7 +144,7 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
                     </Button>
                 </div>
             </form>
-        </InspectorLayout>
+        </InspectorLayout >
     );
 };
 

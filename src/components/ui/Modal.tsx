@@ -15,6 +15,8 @@ interface ModalProps {
     hasUnsavedChanges?: boolean;
     /** Custom message for unsaved changes dialog */
     unsavedChangesMessage?: string;
+    /** If true, the modal content will scroll internally. Set to false for custom scrolling layouts. */
+    scrollable?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -25,7 +27,8 @@ export const Modal: React.FC<ModalProps> = ({
     maxWidth = 'max-w-4xl',
     initialFocus,
     hasUnsavedChanges = false,
-    unsavedChangesMessage
+    unsavedChangesMessage,
+    scrollable = true
 }) => {
     const { t } = useStore();
     const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
@@ -92,7 +95,7 @@ export const Modal: React.FC<ModalProps> = ({
                                             </Button>
                                         </div>
                                     )}
-                                    <div className="p-0 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
+                                    <div className={scrollable ? "p-0 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]" : ""}>
                                         {children}
                                     </div>
                                 </Dialog.Panel>

@@ -3,7 +3,7 @@ import { Target } from '../ui/Icons';
 import { ProjectTask, UserProfile } from '../../types';
 import { AddToCalendar } from '../../components/ui/AddToCalendar';
 import { useForm, useWatch, Controller, Resolver } from 'react-hook-form';
-import { Drawer } from '../ui/Drawer';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -102,16 +102,17 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
     const watchedDueDate = useWatch({ control, name: 'dueDate' });
 
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={handleClose}
             title={existingTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
             subtitle="Définissez les détails de la tâche du projet"
-            width="max-w-2xl"
+            width="max-w-4xl"
             hasUnsavedChanges={isFormDirty}
+            icon={Target}
         >
-            <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col h-full pt-6 px-1">
-                <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-2 pb-6">
+            <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col h-full">
+                <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar pb-6">
                     {/* Title */}
                     <div>
                         <Controller
@@ -340,7 +341,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                     </Button>
                 </div>
             </form>
-        </Drawer>
+        </InspectorLayout>
     );
 };
 

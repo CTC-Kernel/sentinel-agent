@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { TlptCampaign } from '../../../types';
 import { tlptSchema, TlptFormData } from '../../../schemas/tlptSchema';
 import { TlptFindings } from './TlptFindings';
-import { Drawer } from '../../ui/Drawer';
+import { InspectorLayout } from '../../ui/InspectorLayout';
 import { Button } from '../../ui/button';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialData, title, isLoading, onDelete }) => {
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<TlptFormData>({
+    const { control, handleSubmit, reset, formState: { errors, isDirty } } = useForm<TlptFormData>({
         resolver: zodResolver(tlptSchema),
         defaultValues: {
             name: '',
@@ -70,196 +70,176 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
         await onSubmit(data as unknown as Partial<TlptCampaign>);
     };
 
+    const tabs = initialData ? [
+        { id: 'details', label: 'Informations', icon: FileText },
+        { id: 'findings', label: 'Constatations', icon: AlertTriangle }
+    ] : [];
+
+    const footer = (
+        <div className="flex justify-end gap-3 w-full">
+            {onDelete && initialData && (
+                <Button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    variant="ghost"
+                    className="mr-auto text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
+                >
+                    <Trash className="w-4 h-4 mr-2" />
+                    Supprimer
+                </Button>
+            )}
+            <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+            <Button
+                type="submit"
+                form="tlpt-form"
+                disabled={isLoading}
+                className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+            >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowRight className="w-4 h-4 mr-2" />}
+                {initialData ? "Mettre à jour" : "Créer la campagne"}
+            </Button>
+        </div>
+    );
+
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
             title={title || (initialData ? "Modifier Campagne TLPT" : "Nouvelle Campagne TLPT")}
             subtitle={initialData ? "Gérez les détails, le périmètre et les résultats de l'exercice." : "Planifiez une nouvelle campagne de tests."}
-            width={activeTab === 'findings' ? 'max-w-4xl' : 'max-w-2xl'}
+            width={activeTab === 'findings' ? 'max-w-4xl' : 'max-w-xl'}
+            icon={AlertTriangle} // Or another relevant icon
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={(id) => setActiveTab(id as 'details' | 'findings')}
+            footer={activeTab === 'details' ? footer : undefined}
+            hasUnsavedChanges={isDirty}
         >
-            <div className="flex flex-col h-full">
-                {initialData && (
-                    <div className="px-6 border-b border-border/40 dark:border-border/40 shrink-0">
-                        <div className="flex space-x-6">
-                            <button
-                                onClick={() => setActiveTab('details')}
-                                className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'details'
-                                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                                    }`}
-                            >
-                                <FileText className="w-4 h-4" />
-                                Informations
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('findings')}
-                                className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'findings'
-                                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                                    }`}
-                            >
-                                <AlertTriangle className="w-4 h-4" />
-                                Constatations
-                            </button>
-                        </div>
+            {activeTab === 'details' ? (
+                <form id="tlpt-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <Controller
+                            name="name"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput
+                                    label="Nom de la campagne"
+                                    {...field}
+                                    error={errors.name?.message}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Statut"
+                                    options={[
+                                        { value: "Planned", label: "Planifié" },
+                                        { value: "In Progress", label: "En cours" },
+                                        { value: "Analysis", label: "Analyse" },
+                                        { value: "Remediation", label: "Remédiation" },
+                                        { value: "Closed", label: "Clôturé" }
+                                    ]}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.status?.message}
+                                />
+                            )}
+                        />
                     </div>
-                )}
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                    {activeTab === 'details' ? (
-                        <form id="tlpt-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                <Controller
-                                    name="name"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <FloatingLabelInput
-                                            label="Nom de la campagne"
-                                            {...field}
-                                            error={errors.name?.message}
-                                        />
-                                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <Controller
+                            name="methodology"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Méthodologie"
+                                    options={[
+                                        { value: "TIBER-EU", label: "TIBER-EU" },
+                                        { value: "Red Team", label: "Red Team" },
+                                        { value: "Purple Team", label: "Purple Team" },
+                                        { value: "Other", label: "Autre" }
+                                    ]}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.methodology?.message}
                                 />
-                                <Controller
-                                    name="status"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <CustomSelect
-                                            label="Statut"
-                                            options={[
-                                                { value: "Planned", label: "Planifié" },
-                                                { value: "In Progress", label: "En cours" },
-                                                { value: "Analysis", label: "Analyse" },
-                                                { value: "Remediation", label: "Remédiation" },
-                                                { value: "Closed", label: "Clôturé" }
-                                            ]}
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            error={errors.status?.message}
-                                        />
-                                    )}
+                            )}
+                        />
+                        <Controller
+                            name="provider"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput
+                                    label="Prestataire / Auditeur"
+                                    {...field}
+                                    error={errors.provider?.message}
                                 />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                <Controller
-                                    name="methodology"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <CustomSelect
-                                            label="Méthodologie"
-                                            options={[
-                                                { value: "TIBER-EU", label: "TIBER-EU" },
-                                                { value: "Red Team", label: "Red Team" },
-                                                { value: "Purple Team", label: "Purple Team" },
-                                                { value: "Other", label: "Autre" }
-                                            ]}
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            error={errors.methodology?.message}
-                                        />
-                                    )}
-                                />
-                                <Controller
-                                    name="provider"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <FloatingLabelInput
-                                            label="Prestataire / Auditeur"
-                                            {...field}
-                                            error={errors.provider?.message}
-                                        />
-                                    )}
-                                />
-                            </div>
-
-                            <div>
-                                <Controller
-                                    name="scope"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <FloatingLabelInput
-                                            label="Périmètre (Scope)"
-                                            {...field}
-                                            error={errors.scope?.message}
-                                        />
-                                    )}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                <Controller
-                                    name="startDate"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <DatePicker
-                                            label="Date de début"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            error={errors.startDate?.message}
-                                        />
-                                    )}
-                                />
-                                <Controller
-                                    name="endDate"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <DatePicker
-                                            label="Date de fin (estimée)"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                        />
-                                    )}
-                                />
-                            </div>
-
-                            <div>
-                                <Controller
-                                    name="notes"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <FloatingLabelInput
-                                            label="Notes & Observations"
-                                            {...field}
-                                            textarea
-                                            className="min-h-[120px]"
-                                        />
-                                    )}
-                                />
-                            </div>
-                        </form>
-                    ) : (
-                        initialData && <TlptFindings campaign={initialData as TlptCampaign} />
-                    )}
-                </div>
-
-                {activeTab === 'details' && (
-                    <div className="px-6 py-4 border-t border-border/40 dark:border-border/40 shrink-0 flex justify-end gap-3">
-                        {onDelete && initialData && (
-                            <Button
-                                type="button"
-                                onClick={() => setShowDeleteConfirm(true)}
-                                variant="ghost"
-                                className="mr-auto text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
-                            >
-                                <Trash className="w-4 h-4 mr-2" />
-                                Supprimer
-                            </Button>
-                        )}
-                        <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
-                        <Button
-                            type="submit"
-                            form="tlpt-form"
-                            disabled={isLoading}
-                            className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
-                        >
-                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowRight className="w-4 h-4 mr-2" />}
-                            {initialData ? "Mettre à jour" : "Créer la campagne"}
-                        </Button>
+                            )}
+                        />
                     </div>
-                )}
-            </div>
+
+                    <div>
+                        <Controller
+                            name="scope"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput
+                                    label="Périmètre (Scope)"
+                                    {...field}
+                                    error={errors.scope?.message}
+                                />
+                            )}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <Controller
+                            name="startDate"
+                            control={control}
+                            render={({ field }) => (
+                                <DatePicker
+                                    label="Date de début"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.startDate?.message}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="endDate"
+                            control={control}
+                            render={({ field }) => (
+                                <DatePicker
+                                    label="Date de fin (estimée)"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
+                    </div>
+
+                    <div>
+                        <Controller
+                            name="notes"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput
+                                    label="Notes & Observations"
+                                    {...field}
+                                    textarea
+                                    className="min-h-[120px]"
+                                />
+                            )}
+                        />
+                    </div>
+                </form>
+            ) : (
+                initialData && <TlptFindings campaign={initialData as TlptCampaign} />
+            )}
 
             <ConfirmModal
                 isOpen={showDeleteConfirm}
@@ -284,6 +264,6 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                 loading={isDeleting}
                 closeOnConfirm={false}
             />
-        </Drawer>
+        </InspectorLayout>
     );
 };

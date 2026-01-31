@@ -150,7 +150,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
             title="Nouvel Événement"
             subtitle="Planifiez une nouvelle activité ou échéance"
             width="max-w-6xl"
-            icon={LinkIcon} // Using LinkIcon as generic placeholder, ideally import Calendar
+            icon={LinkIcon}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
                 <div className="space-y-6 max-w-5xl mx-auto w-full">

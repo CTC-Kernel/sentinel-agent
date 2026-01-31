@@ -340,6 +340,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                         <div className="flex items-center gap-1.5 mb-1">
                             <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">CPU</span>
+                            <span className="text-xs text-muted-foreground" title="Utilisation CPU validée (max 100%)">ⓘ</span>
                         </div>
                         <span className={cn(
                             'text-xl font-bold block',

@@ -21,7 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/button';
 import { Tooltip } from '../components/ui/Tooltip';
 import { PageHeader } from '../components/ui/PageHeader';
-import { PremiumCard } from '../components/ui/PremiumCard';
+import { GlassCard } from '../components/ui/GlassCard';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Spinner } from '../components/ui/Spinner';
@@ -259,10 +259,8 @@ export const EbiosAnalyses: React.FC = () => {
                   variants={slideUpVariants}
                   layout
                 >
-                  <PremiumCard
-                    glass
-                    glow
-                    hover
+                  <GlassCard
+                    hoverEffect={true}
                     className="relative cursor-pointer h-full flex flex-col"
                     onClick={() => navigate(`/ebios/${analysis.id}`)}
                   >
@@ -396,7 +394,7 @@ export const EbiosAnalyses: React.FC = () => {
                         <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString() })}</span>
                       </div>
                     </div>
-                  </PremiumCard>
+                  </GlassCard>
                 </motion.div>
               ))}
             </AnimatePresence>
