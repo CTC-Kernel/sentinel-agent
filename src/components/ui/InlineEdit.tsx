@@ -142,7 +142,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
         } finally {
             setIsSaving(false);
         }
-    }, [editValue, value, minLength, validate, onSave]);
+    }, [editValue, value, minLength, validate, onSave, t]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && saveOnEnter && !multiline) {

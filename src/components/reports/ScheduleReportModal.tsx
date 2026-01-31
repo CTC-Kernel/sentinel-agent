@@ -59,7 +59,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
 
     const { fields, append, remove } = useFieldArray({
         control: control as any,
-        name: "recipients" as any
+        name: "recipients"
     });
 
     const watchedFrequency = useWatch({ control, name: 'frequency' });
@@ -304,7 +304,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             <div key={field.id} className="flex gap-2">
                                 <input
                                     type="email"
-                                    {...register(`recipients.${index}` as any)}
+                                    {...register(`recipients.${index}`)}
                                     placeholder="email@example.com"
                                     aria-label={`Email du destinataire ${index + 1}`}
                                     className="flex-1 px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
@@ -348,7 +348,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                 <label key={key} className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
-                                        {...register(key as any)}
+                                        {...register(key as keyof ScheduledReportFormData)}
                                         className="rounded text-brand-600 focus-visible:ring-brand-500"
                                     />
                                     <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>

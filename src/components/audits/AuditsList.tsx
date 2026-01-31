@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { DataTable } from '../ui/DataTable';
 import { Audit, UserProfile } from '../../types';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Row, Table } from '@tanstack/react-table';
 import { CalendarDays, ClipboardCheck, AlertOctagon, UserCheck, Globe, Award, Truck, Shield } from '../ui/Icons';
 import { Edit, Trash2, Copy } from '../ui/Icons';
 import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
@@ -59,7 +59,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
     const columns = useMemo<ColumnDef<Audit>[]>(() => [
         ...(canDelete ? [{
             id: 'select',
-            header: ({ table }: { table: any }) => {
+            header: ({ table }: { table: Table<Audit> }) => {
                 const isAllSelected = table.getIsAllPageRowsSelected();
                 const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
                     const allIds = audits.map(a => a.id);
@@ -73,7 +73,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                     </div>
                 );
             },
-            cell: ({ row }: { row: any }) => {
+            cell: ({ row }: { row: Row<Audit> }) => {
                 const isSelected = selectedIds.includes(row.original.id);
                 const handleSelectRow = (e: React.ChangeEvent<HTMLInputElement>) => {
                     if (e.target.checked) {

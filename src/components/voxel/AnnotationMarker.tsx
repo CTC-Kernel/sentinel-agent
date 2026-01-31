@@ -353,7 +353,7 @@ export const AnnotationMarker: React.FC<AnnotationMarkerProps> = React.memo(({
     }
   });
 
-  const AnimatedGroup = animated('group' as any) as any;
+  const AnimatedGroup = animated('group');
 
   return (
     <group position={[annotation.position.x, annotation.position.y, annotation.position.z]}>

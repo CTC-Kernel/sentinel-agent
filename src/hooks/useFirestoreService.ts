@@ -16,6 +16,12 @@ import { useStore } from '../store';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from '../services/errorLogger';
 
+interface EnrichedData extends DocumentData {
+    organizationId?: string;
+    updatedAt: Date;
+    updatedBy?: string;
+}
+
 /**
  * Centered Firestore Write Service Hook
  * 
@@ -30,7 +36,7 @@ export const useFirestoreService = () => {
      * Internal helper to verify organization context
      * (Basic check, actual enforcement should be in rules/backend)
      */
-    const getEnrichedData = useCallback((data: any) => {
+    const getEnrichedData = useCallback((data: WithFieldValue<DocumentData>): EnrichedData => {
         // Automatically inject organizationId if available and missing
         if (user?.organizationId && !data.organizationId) {
             return {
