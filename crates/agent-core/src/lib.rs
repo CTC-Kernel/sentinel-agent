@@ -625,6 +625,16 @@ impl AgentRuntime {
         // Check if we have an agent ID in config
         if let Some(ref agent_id) = self.config.agent_id {
             client.set_agent_id(agent_id.clone());
+            
+            // Try to restore organization ID from stored credentials
+            if let Some(ref db) = self.db {
+                let auth_client = agent_sync::AuthenticatedClient::new(self.config.clone(), db.clone());
+                if let Ok(organization_id) = auth_client.organization_id().await {
+                    client.set_organization_id(organization_id.to_string());
+                    info!("Restored organization ID: {}", organization_id);
+                }
+            }
+            
             info!("Using existing agent ID: {}", agent_id);
             return Ok(());
         }
@@ -659,9 +669,17 @@ impl AgentRuntime {
         let mut interval = self.heartbeat_interval_secs.write().await;
         *interval = response.config.heartbeat_interval_secs;
 
+        // Store organization ID in API client for subsequent requests
+        {
+            let mut api_client = self.api_client.write().await;
+            if let Some(client) = api_client.as_mut() {
+                client.set_organization_id(response.organization_id.clone());
+            }
+        }
+
         info!(
-            "Enrolled successfully. Agent ID: {}, Heartbeat interval: {}s",
-            response.agent_id, response.config.heartbeat_interval_secs
+            "Enrolled successfully. Agent ID: {}, Organization ID: {}, Heartbeat interval: {}s",
+            response.agent_id, response.organization_id, response.config.heartbeat_interval_secs
         );
 
         Ok(())

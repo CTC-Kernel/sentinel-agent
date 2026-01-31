@@ -180,6 +180,8 @@ pub struct ApiClient {
     client_certificate: Option<String>,
     /// Client private key for HMAC signature authentication.
     client_key: Option<String>,
+    /// Organization ID for X-Organization-Id header authentication.
+    organization_id: Option<String>,
 }
 
 impl ApiClient {
@@ -220,6 +222,7 @@ impl ApiClient {
             agent_id: config.agent_id.clone(),
             client_certificate: config.client_certificate.clone(),
             client_key: config.client_key.clone(),
+            organization_id: None, // Will be set after enrollment
         })
     }
 
@@ -239,16 +242,28 @@ impl ApiClient {
         self.client_key = Some(key);
     }
 
+    /// Set the organization ID after enrollment.
+    pub fn set_organization_id(&mut self, organization_id: String) {
+        self.organization_id = Some(organization_id);
+    }
+
     /// Add authentication headers to a request builder.
     fn authenticate(
         &self,
         builder: reqwest::RequestBuilder,
     ) -> reqwest::RequestBuilder {
-        if let Some(ref cert) = self.client_certificate {
+        let mut builder = if let Some(ref cert) = self.client_certificate {
             builder.header("X-Agent-Certificate", cert)
         } else {
             builder
+        };
+
+        // Add organization ID header if available
+        if let Some(ref org_id) = self.organization_id {
+            builder = builder.header("X-Organization-Id", org_id);
         }
+
+        builder
     }
 
     /// Enroll the agent with the server.
