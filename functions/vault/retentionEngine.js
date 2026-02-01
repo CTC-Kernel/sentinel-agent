@@ -148,7 +148,7 @@ async function archiveDocument(db, document, policy) {
   // Update original document to mark as archived
   const docRef = db.collection('documents').doc(document.id);
   batch.update(docRef, {
-    status: 'Archive',
+    status: 'Archivé',
     archivedAt: admin.firestore.FieldValue.serverTimestamp(),
     archivedByRetention: true,
     retentionPolicyId: policy.id,
@@ -169,7 +169,7 @@ async function deleteDocument(db, document, policy) {
   const docRef = db.collection('documents').doc(document.id);
 
   await docRef.update({
-    status: 'Supprime',
+    status: 'Supprimé',
     deletedAt: admin.firestore.FieldValue.serverTimestamp(),
     deletedByRetention: true,
     retentionPolicyId: policy.id,
@@ -250,7 +250,7 @@ async function processOrganization(db, organizationId, dryRun = false) {
 
     try {
       // Skip already archived/deleted documents
-      if (document.status === 'Archive' || document.status === 'Supprime') {
+      if (document.status === 'Archivé' || document.status === 'Supprimé') {
         results.skipped++;
         continue;
       }
@@ -471,7 +471,7 @@ exports.previewRetentionActions = onCall(
         for (const docSnap of docsSnap.docs) {
           const document = { id: docSnap.id, ...docSnap.data() };
 
-          if (document.status === 'Archive' || document.status === 'Supprime') {
+          if (document.status === 'Archivé' || document.status === 'Supprimé') {
             continue;
           }
 

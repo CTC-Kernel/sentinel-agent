@@ -241,7 +241,7 @@ class NotificationManager {
                         const riskRef = db.collection('risks').doc(doc.id);
                         batch.update(riskRef, {
                             'treatment.status': 'Retard',
-                            'treatment.slaStatus': 'Breached',
+                            'treatment.slaStatus': 'Dépassé',
                             'updatedAt': new Date().toISOString()
                         });
                         batchCount++;

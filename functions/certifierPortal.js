@@ -1,13 +1,14 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { logger } = require("firebase-functions");
-const { defineSecret } = require("firebase-functions/params");
+const { defineSecret, defineString } = require("firebase-functions/params");
 const sgMail = require("@sendgrid/mail");
 const { getCertifierInvitationHtml, getAuditAssignmentHtml } = require('./services/emailTemplates');
 
 // Secrets
 const sendgridApiKey = defineSecret("SENDGRID_API_KEY");
 const sendgridSender = defineSecret("SENDGRID_SENDER");
+const appBaseUrl = defineString("APP_BASE_URL");
 
 /**
  * Sanitize HTML to remove dangerous elements as a defense-in-depth measure
@@ -97,11 +98,11 @@ exports.inviteCertifier = onCall({ region: 'europe-west1', secrets: [sendgridApi
         const docRef = await db.collection('partnerships').add(inviteData);
 
         // Send Email
-        const link = `https://sentinel-grc.web.app/#/portal/register?invite=${docRef.id}`;
+        const link = `${appBaseUrl.value()}/#/portal/register?invite=${docRef.id}`;
         // Send Email
         const htmlContent = getCertifierInvitationHtml(inviteData.tenantName, message, link);
 
-        await sendEmail(email, 'Partnership Invitation - Sentinel GRC', htmlContent, message);
+        await sendEmail(email, 'Invitation de Partenariat - Sentinel GRC', htmlContent, message);
 
         return { success: true };
     } catch (error) {
@@ -319,9 +320,9 @@ exports.assignAuditToPartner = onCall({ region: 'europe-west1', secrets: [sendgr
         const partnerEmail = partnershipData.contactEmail; // Assuming contactEmail is reliable, otherwise fetch Certifier Org Owner
 
         if (partnerEmail) {
-            const link = `https://sentinel-grc.web.app/#/portal/audit/${token}`; // Or dashboard link
+            const link = `${appBaseUrl.value()}/#/portal/audit/${token}`;
             const htmlContent = getAuditAssignmentHtml(shareData.organizationId, link);
-            await sendEmail(partnerEmail, 'New Audit Assignment - Sentinel GRC', htmlContent, `A new audit has been assigned to you.`);
+            await sendEmail(partnerEmail, 'Nouvel Audit Assigné - Sentinel GRC', htmlContent, `Un nouvel audit vous a été assigné.`);
         } else {
             logger.warn(`No email found for partner ${partnerId}`);
         }

@@ -294,7 +294,7 @@ exports.onResultUploaded = onDocumentCreated(
                 const openVulns = await orgRef.collection("agentVulnerabilities")
                     .where("agentId", "==", agentId)
                     .where("checkId", "==", controlId)
-                    .where("status", "==", "open")
+                    .where("status", "==", "Ouvert")
                     .limit(10)
                     .get();
                 if (!openVulns.empty) {
@@ -314,19 +314,20 @@ exports.onResultUploaded = onDocumentCreated(
             // 2b. Handle Failed Checks -> Vulnerability / Incident
             if (status === 'fail' || status === 'error') {
                 // Determine severity: use result data if available, otherwise derive from check type
-                let severity = "medium";
+                const severityFrMap = {'critical': 'Critique', 'high': 'Élevée', 'medium': 'Moyenne', 'low': 'Faible'};
+                let severity = "Moyenne";
                 if (resultData.severity && typeof resultData.severity === "string") {
-                    severity = resultData.severity.toLowerCase();
+                    severity = severityFrMap[resultData.severity.toLowerCase()] || "Moyenne";
                 } else {
                     // Derive severity from check type
                     const checkLower = (controlId || "").toLowerCase();
                     if (checkLower.includes("mfa_enabled") || checkLower.includes("mfa-enabled")) {
-                        severity = "critical";
+                        severity = "Critique";
                     } else if (
                         checkLower.includes("disk_encryption") || checkLower.includes("disk-encryption") ||
                         checkLower.includes("firewall_active") || checkLower.includes("firewall-active")
                     ) {
-                        severity = "high";
+                        severity = "Élevée";
                     }
                 }
 
@@ -339,7 +340,7 @@ exports.onResultUploaded = onDocumentCreated(
                 const vulnSnap = await vulnCollection
                     .where("assetId", "==", assetRef.id)
                     .where("sourceId", "==", controlId)
-                    .where("status", "==", "open")
+                    .where("status", "==", "Ouvert")
                     .limit(1)
                     .get();
 
@@ -350,7 +351,7 @@ exports.onResultUploaded = onDocumentCreated(
                         title: `Compliance Failure: ${controlId}`,
                         description: `Agent ${hostname} failed check for ${controlId} (${framework})`,
                         severity,
-                        status: "open",
+                        status: "Ouvert",
                         source: "AGENT_COMPLIANCE",
                         sourceId: controlId,
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -371,7 +372,7 @@ exports.onResultUploaded = onDocumentCreated(
                         title: `Compliance Failure: ${controlId}`,
                         description: `Agent ${hostname} failed check for ${controlId} (${framework})`,
                         severity,
-                        status: "open",
+                        status: "Ouvert",
                         source: "AGENT_COMPLIANCE",
                         sourceId: controlId,
                         assetId: assetRef.id,
