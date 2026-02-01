@@ -40,16 +40,15 @@ exports.updateAgentConfig = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { agentId, organizationId, config } = request.data;
+    const { agentId, config } = request.data;
+    const organizationId = request.auth.token.organizationId;
 
     if (!agentId || !organizationId || !config) {
       throw new HttpsError('invalid-argument', 'agentId, organizationId, and config are required');
     }
 
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
+    if (!['admin', 'rssi'].includes(request.auth.token.role)) {
+      throw new HttpsError('permission-denied', 'Admin or RSSI role required');
     }
 
     try {

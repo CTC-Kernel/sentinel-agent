@@ -33,10 +33,9 @@ const checkKmsSetup = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    // Verify user has admin/super_admin/rssi role
-    const userDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || (userData.role !== 'admin' && userData.role !== 'super_admin' && userData.role !== 'rssi')) {
+    // Verify user has admin/super_admin/rssi role via token
+    const role = request.auth.token.role;
+    if (!role || !['admin', 'super_admin', 'rssi'].includes(role)) {
       throw new HttpsError('permission-denied', 'Insufficient permissions');
     }
 

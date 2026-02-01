@@ -287,15 +287,10 @@ exports.createVoxelSnapshot = onCall({
 
     const db = admin.firestore();
 
-    // Get user's organization
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    if (!userDoc.exists) {
-        throw new HttpsError('not-found', 'User not found');
-    }
-
-    const organizationId = userDoc.data()?.organizationId;
+    // Get organizationId from token
+    const organizationId = request.auth.token.organizationId;
     if (!organizationId) {
-        throw new HttpsError('failed-precondition', 'User has no organization');
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
     }
 
     const snapshotDate = data?.date || new Date().toISOString().split('T')[0];
@@ -323,15 +318,10 @@ exports.getVoxelSnapshots = onCall({
 
     const db = admin.firestore();
 
-    // Get user's organization
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    if (!userDoc.exists) {
-        throw new HttpsError('not-found', 'User not found');
-    }
-
-    const organizationId = userDoc.data()?.organizationId;
+    // Get organizationId from token
+    const organizationId = request.auth.token.organizationId;
     if (!organizationId) {
-        throw new HttpsError('failed-precondition', 'User has no organization');
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
     }
 
     const { startDate, endDate, limit = 30 } = data || {};
@@ -382,15 +372,10 @@ exports.getVoxelSnapshotByDate = onCall({
 
     const db = admin.firestore();
 
-    // Get user's organization
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    if (!userDoc.exists) {
-        throw new HttpsError('not-found', 'User not found');
-    }
-
-    const organizationId = userDoc.data()?.organizationId;
+    // Get organizationId from token
+    const organizationId = request.auth.token.organizationId;
     if (!organizationId) {
-        throw new HttpsError('failed-precondition', 'User has no organization');
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
     }
 
     const snapshotId = `${organizationId}_${data.date}`;
@@ -435,15 +420,10 @@ exports.compareVoxelSnapshots = onCall({
 
     const db = admin.firestore();
 
-    // Get user's organization
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    if (!userDoc.exists) {
-        throw new HttpsError('not-found', 'User not found');
-    }
-
-    const organizationId = userDoc.data()?.organizationId;
+    // Get organizationId from token
+    const organizationId = request.auth.token.organizationId;
     if (!organizationId) {
-        throw new HttpsError('failed-precondition', 'User has no organization');
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
     }
 
     try {

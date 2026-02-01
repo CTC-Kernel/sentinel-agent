@@ -151,17 +151,18 @@ exports.generateTrainingCertificate = onCall(
     const storage = getStorage();
 
     try {
-      // Get user's organization
+      // Get organizationId from token
+      const organizationId = request.auth.token.organizationId;
+      if (!organizationId) {
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
+      }
+
+      // Get user data for role check
       const userDoc = await db.collection('users').doc(auth.uid).get();
       if (!userDoc.exists) {
         throw new HttpsError('not-found', 'User not found');
       }
       const userData = userDoc.data();
-      const organizationId = userData.organizationId;
-
-      if (!organizationId) {
-        throw new HttpsError('failed-precondition', 'User has no organization');
-      }
 
       // Get assignment
       const assignmentRef = db
