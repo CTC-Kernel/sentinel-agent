@@ -269,7 +269,7 @@ exports.portal_submitFinding = onCall({ region: 'europe-west1', enforceAppCheck:
         const findingData = {
             title: title || '',
             description: description || '',
-            severity: severity || 'medium',
+            severity: severity || 'Moyenne',
             category: category || '',
             recommendation: recommendation || '',
             evidence: evidence || '',

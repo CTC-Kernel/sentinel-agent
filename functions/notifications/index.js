@@ -885,7 +885,7 @@ async function checkOverdueRisks(db, organizationId) {
 async function checkCriticalRisks(db, organizationId) {
     const risksSnap = await db.collection('risks')
         .where('organizationId', '==', organizationId)
-        .where('riskLevel', 'in', ['Critique', 'Critical'])
+        .where('riskLevel', 'in', ['Critique'])
         .get();
 
     const criticalRisksWithoutMitigation = [];
@@ -906,18 +906,18 @@ async function checkCriticalRisks(db, organizationId) {
             const adminId = adminDoc.id;
             const adminData = adminDoc.data();
 
-            if (await shouldNotify(db, adminId, '/risks', criticalRisksWithoutMitigation.length + ' risque(s) critique(s) sans attenuation')) {
+            if (await shouldNotify(db, adminId, '/risks', criticalRisksWithoutMitigation.length + ' risque(s) critique(s) sans atténuation')) {
                 await sendNotificationAndEmail(db, {
                     organizationId,
                     userId: adminId,
                     type: 'danger',
-                    title: criticalRisksWithoutMitigation.length + ' risque(s) critique(s) sans attenuation',
-                    message: 'Des risques critiques n\'ont pas de controles d\'attenuation associes',
+                    title: criticalRisksWithoutMitigation.length + ' risque(s) critique(s) sans atténuation',
+                    message: 'Des risques critiques n\'ont pas de contrôles d\'atténuation associés',
                     link: '/risks',
                     email: adminData.email,
                     emailSubject: 'Action requise : ' + criticalRisksWithoutMitigation.length + ' Risques Critiques',
                     emailHtml: Templates.getRiskTreatmentDueTemplate(
-                        'Risques Critiques non traites',
+                        'Risques Critiques non traités',
                         new Date().toISOString(),
                         adminData.displayName || 'Admin',
                         appBaseUrl.value() + '/risks'

@@ -119,8 +119,8 @@ async function reportIncident(req, res, agentId, agentDoc, agentData) {
             // Core fields
             title: title || generateIncidentTitle(incident_type, evidence),
             description: description || `Security incident detected by agent on ${agentData.hostname}.`,
-            severity: incidentSeverity,
-            status: 'open',
+            severity: ({'critical': 'Critique', 'high': 'Élevée', 'medium': 'Moyenne', 'low': 'Faible'}[incidentSeverity] || 'Moyenne'),
+            status: 'Ouvert',
             category,
 
             // Source tracking

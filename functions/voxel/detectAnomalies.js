@@ -773,7 +773,7 @@ exports.convertAnomalyToIncident = onCall({
             const incidentData = {
                 title: title || `Remédiation: ${anomaly.message}`,
                 description: `Incident généré automatiquement par Voxel Intelligence suite à la détection d'une anomalie.\n\nType: ${anomaly.type}\nMessage: ${anomaly.message}\nDétails: ${JSON.stringify(anomaly.details, null, 2)}`,
-                severity: overrideSeverity || (anomaly.severity === 'critical' ? 'Critique' : anomaly.severity === 'high' ? 'Haute' : 'Moyenne'),
+                severity: overrideSeverity || (anomaly.severity === 'critical' ? 'Critique' : anomaly.severity === 'high' ? 'Élevée' : 'Moyenne'),
                 status: 'Ouvert',
                 category: 'Anomalie de Conformité',
                 organizationId,
