@@ -108,7 +108,7 @@ const detectOrphanControls = async (db, organizationId) => {
             anomalies.push(createAnomaly(
                 'orphan_control',
                 doc.id,
-                `Controle "${control.name || control.code}" n'est lié à aucun risque`,
+                `Contrôle "${control.name || control.code}" n'est lié à aucun risque`,
                 { controlCode: control.code, controlName: control.name },
                 organizationId
             ));
