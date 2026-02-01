@@ -46,17 +46,12 @@ exports.getAgentResults = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const { agentId, organizationId, framework, limit, startAfter } = request.data;
+    const { agentId, framework, limit, startAfter } = request.data;
+    const organizationId = request.auth.token.organizationId;
     const safeLimit = Math.min(Number(limit) || 50, 200);
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
-    }
-
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {

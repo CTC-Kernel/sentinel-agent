@@ -278,12 +278,7 @@ exports.getAgentComplianceResults = onCall(
 
 
     try {
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('permission-denied', 'User not found');
-      }
-      const userData = userDoc.data();
-      if (userData.organizationId !== organizationId && !userData.isAdmin) {
+      if (!['admin', 'rssi'].includes(request.auth.token.role)) {
         throw new HttpsError('permission-denied', 'Access denied');
       }
 
@@ -379,7 +374,7 @@ exports.deleteAgent = onCall(
         throw new HttpsError('permission-denied', 'Access denied to this organization');
       }
 
-      if (!userData.role || !['admin', 'manager'].includes(userData.role)) {
+      if (!request.auth.token.role || !['admin', 'manager'].includes(request.auth.token.role)) {
         throw new HttpsError('permission-denied', 'Insufficient permissions');
       }
 

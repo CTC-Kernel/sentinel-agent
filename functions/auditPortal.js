@@ -2,6 +2,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { logger } = require("firebase-functions");
 const crypto = require("crypto");
+const { checkCallableRateLimit } = require('./utils/rateLimiter');
 
 // Rate limiting for token validation (prevents brute-force attacks)
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
@@ -160,6 +161,9 @@ exports.generateAuditShareLink = onCall(async (request) => {
 
 // 2. Get Shared Audit Data (External Public Access via Token)
 exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) => {
+    // Rate limiting for external endpoint
+    checkCallableRateLimit(request, 'standard');
+
     const { token } = request.data;
     const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
     const shareData = await validatePortalToken(token, clientIp);
@@ -241,6 +245,9 @@ exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) 
 
 // 3. Submit Finding (External)
 exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request) => {
+    // Rate limiting for external endpoint
+    checkCallableRateLimit(request, 'standard');
+
     const { token, finding } = request.data;
     const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
     const shareData = await validatePortalToken(token, clientIp);
@@ -290,6 +297,9 @@ exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request
 
 // 4. Update Status / Certify
 exports.portal_updateStatus = onCall({ enforceAppCheck: false }, async (request) => {
+    // Rate limiting for external endpoint
+    checkCallableRateLimit(request, 'standard');
+
     const { token, status, certificationData } = request.data;
     const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
     const shareData = await validatePortalToken(token, clientIp);
