@@ -40,6 +40,7 @@ vi.mock('../useFirestore', () => ({
 vi.mock('firebase/firestore', () => ({
     orderBy: vi.fn(),
     limit: vi.fn(),
+    where: vi.fn(),
     increment: vi.fn((value: number) => ({ _increment: value }))
 }));
 

@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ContinuitySummaryCard } from '../ContinuitySummaryCard';
 import { BusinessProcess, BcpDrill } from '../../../../types';
 
@@ -49,19 +50,31 @@ describe('ContinuitySummaryCard', () => {
 
     describe('rendering', () => {
         it('renders BCP health title', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Santé BCP')).toBeInTheDocument();
         });
 
         it('renders description text', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Couverture des tests et validité des plans.')).toBeInTheDocument();
         });
 
         it('renders process count', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Processus')).toBeInTheDocument();
             // Multiple numbers may appear, verify at least one '3' is present
@@ -69,7 +82,11 @@ describe('ContinuitySummaryCard', () => {
         });
 
         it('renders critical count', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Critiques')).toBeInTheDocument();
             // Multiple '1' values may exist, verify at least one is present
@@ -77,13 +94,21 @@ describe('ContinuitySummaryCard', () => {
         });
 
         it('renders drill count', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Exercices')).toBeInTheDocument();
         });
 
         it('renders expired tests count', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Expirés')).toBeInTheDocument();
         });
@@ -91,14 +116,22 @@ describe('ContinuitySummaryCard', () => {
 
     describe('coverage rate calculation', () => {
         it('calculates coverage rate correctly', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             // 1 out of 3 processes tested in last 12 months = 33%
             expect(screen.getByText('33%')).toBeInTheDocument();
         });
 
         it('shows 0% coverage for empty processes', () => {
-            render(<ContinuitySummaryCard processes={[]} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={[]} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             // Multiple 0 values may appear
             expect(screen.getAllByText('0').length).toBeGreaterThan(0);
@@ -109,7 +142,11 @@ describe('ContinuitySummaryCard', () => {
                 createProcess({ id: '1', lastTestDate: new Date().toISOString() }),
                 createProcess({ id: '2', lastTestDate: new Date().toISOString() })
             ];
-            render(<ContinuitySummaryCard processes={allTestedProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={allTestedProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('100%')).toBeInTheDocument();
         });
@@ -117,14 +154,22 @@ describe('ContinuitySummaryCard', () => {
 
     describe('drill success rate calculation', () => {
         it('calculates success rate correctly', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             // 2 success out of 3 drills = 67%
             expect(screen.getByText('67%')).toBeInTheDocument();
         });
 
         it('shows 0% success rate for empty drills', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={[]} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={[]} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('0%')).toBeInTheDocument();
         });
@@ -134,7 +179,11 @@ describe('ContinuitySummaryCard', () => {
                 createDrill({ id: '1', result: 'Succès' }),
                 createDrill({ id: '2', result: 'Succès' })
             ];
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={allSuccessDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={allSuccessDrills} />
+                </MemoryRouter>
+            );
 
             // Success rate should be 100%
             const successRateText = screen.getByText('Taux de réussite');
@@ -144,13 +193,21 @@ describe('ContinuitySummaryCard', () => {
 
     describe('labels', () => {
         it('renders success drill label', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Succès Drills')).toBeInTheDocument();
         });
 
         it('renders success rate label', () => {
-            render(<ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={mockProcesses} drills={mockDrills} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Taux de réussite')).toBeInTheDocument();
         });
@@ -158,7 +215,11 @@ describe('ContinuitySummaryCard', () => {
 
     describe('empty states', () => {
         it('handles empty processes and drills', () => {
-            render(<ContinuitySummaryCard processes={[]} drills={[]} />);
+            render(
+                <MemoryRouter>
+                    <ContinuitySummaryCard processes={[]} drills={[]} />
+                </MemoryRouter>
+            );
 
             // Should render without errors
             expect(screen.getByText('Santé BCP')).toBeInTheDocument();

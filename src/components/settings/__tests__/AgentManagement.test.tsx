@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { AgentManagement } from '../AgentManagement';
 import { AgentService } from '../../../services/AgentService';
 import { useStore } from '../../../store';
@@ -86,7 +87,11 @@ describe('AgentManagement', () => {
     });
 
     it('renders agent list', async () => {
-        render(<AgentManagement />);
+        render(
+            <MemoryRouter>
+                <AgentManagement />
+            </MemoryRouter>
+        );
 
         await waitFor(() => {
             expect(screen.getByText('SRV-PROD-01')).toBeDefined();
@@ -101,7 +106,11 @@ describe('AgentManagement', () => {
             organizationId: 'test-org'
         } as unknown as AgentEnrollmentToken);
 
-        render(<AgentManagement />);
+        render(
+            <MemoryRouter>
+                <AgentManagement />
+            </MemoryRouter>
+        );
 
         const enrollButton = screen.getByText('Enrôler un Agent');
         fireEvent.click(enrollButton);
@@ -113,7 +122,11 @@ describe('AgentManagement', () => {
     });
 
     it('handles agent deletion', async () => {
-        render(<AgentManagement />);
+        render(
+            <MemoryRouter>
+                <AgentManagement />
+            </MemoryRouter>
+        );
 
         await waitFor(() => screen.getByText('SRV-PROD-01'));
 

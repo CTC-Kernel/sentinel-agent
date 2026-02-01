@@ -39,7 +39,7 @@ describe('useCriticalRisks', () => {
   it('should return count from snapshot', async () => {
     const mockUnsubscribe = vi.fn();
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
-      // Simulate snapshot with 3 critical risks
+      // Simulate snapshot with 3 risks: 2 are critical (score >= 15)
       const mockSnapshot = {
         size: 3,
         docs: [
@@ -58,7 +58,7 @@ describe('useCriticalRisks', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.count).toBe(1); // Only 1 critical risk (score >= 15)
+    expect(result.current.count).toBe(2); // 2 critical risks (scores 20 and 16 are >= 15)
   });
 
   it('should set initial trend to stable', async () => {

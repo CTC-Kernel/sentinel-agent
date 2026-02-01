@@ -32,6 +32,7 @@ vi.mock('firebase/firestore', () => ({
     where: vi.fn(),
     orderBy: vi.fn(),
     limit: vi.fn(),
+    serverTimestamp: vi.fn(() => ({ type: 'timestamp' })),
     getCountFromServer: vi.fn(() => Promise.resolve({ data: () => ({ count: 0 }) }))
 }));
 

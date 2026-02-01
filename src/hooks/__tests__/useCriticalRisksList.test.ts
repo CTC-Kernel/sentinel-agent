@@ -134,28 +134,28 @@ describe('useCriticalRisksList', () => {
 });
 
 describe('getCriticalityColorScheme', () => {
-  it('should return danger for critical risks (20-25)', () => {
-    expect(getCriticalityColorScheme(20)).toBe('danger');
+  it('should return danger for critical risks (>= 15)', () => {
+    expect(getCriticalityColorScheme(15)).toBe('danger');
     expect(getCriticalityColorScheme(25)).toBe('danger');
-    expect(getCriticalityColorScheme(22)).toBe('danger');
+    expect(getCriticalityColorScheme(20)).toBe('danger');
   });
 
-  it('should return warning for high risks (15-19)', () => {
-    expect(getCriticalityColorScheme(15)).toBe('warning');
-    expect(getCriticalityColorScheme(19)).toBe('warning');
-    expect(getCriticalityColorScheme(17)).toBe('warning');
+  it('should return warning for high risks (10-14)', () => {
+    expect(getCriticalityColorScheme(10)).toBe('warning');
+    expect(getCriticalityColorScheme(14)).toBe('warning');
+    expect(getCriticalityColorScheme(12)).toBe('warning');
   });
 
-  it('should return caution for medium risks (10-14)', () => {
-    expect(getCriticalityColorScheme(10)).toBe('caution');
-    expect(getCriticalityColorScheme(14)).toBe('caution');
-    expect(getCriticalityColorScheme(12)).toBe('caution');
+  it('should return caution for medium risks (5-9)', () => {
+    expect(getCriticalityColorScheme(5)).toBe('caution');
+    expect(getCriticalityColorScheme(9)).toBe('caution');
+    expect(getCriticalityColorScheme(7)).toBe('caution');
   });
 
-  it('should return success for low risks (1-9)', () => {
-    expect(getCriticalityColorScheme(1)).toBe('success');
-    expect(getCriticalityColorScheme(9)).toBe('success');
-    expect(getCriticalityColorScheme(5)).toBe('success');
+  it('should return success for low risks (0-4)', () => {
+    expect(getCriticalityColorScheme(0)).toBe('success');
+    expect(getCriticalityColorScheme(4)).toBe('success');
+    expect(getCriticalityColorScheme(2)).toBe('success');
   });
 });
 

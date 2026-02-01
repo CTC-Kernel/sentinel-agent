@@ -147,7 +147,7 @@ describe('Pagination', () => {
             />
         );
 
-        expect(screen.getByText('Afficher:')).toBeInTheDocument();
+        expect(screen.getByText('Afficher :')).toBeInTheDocument();
         expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 

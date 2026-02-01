@@ -3,7 +3,8 @@ import { httpsCallable, getFunctions } from 'firebase/functions';
 import { getApp } from 'firebase/app';
 import { ErrorLogger } from '../services/errorLogger';
 
-let tokenJustRefreshed = false;
+// Flag used to prevent infinite refresh loops across reloads
+const SESSION_REFRESH_KEY = 'tokenJustRefreshed';
 
 /**
  * Force refresh the current user's ID token to get updated custom claims
@@ -57,7 +58,8 @@ export const hasCustomClaims = async (): Promise<boolean> => {
  */
 export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
     try {
-        if (tokenJustRefreshed) {
+        if (sessionStorage.getItem(SESSION_REFRESH_KEY)) {
+            sessionStorage.removeItem(SESSION_REFRESH_KEY);
             return;
         }
 
@@ -66,8 +68,7 @@ export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
             const success = await refreshUserToken();
 
             if (success) {
-                tokenJustRefreshed = true;
-                setTimeout(() => { tokenJustRefreshed = false; }, 5000);
+                sessionStorage.setItem(SESSION_REFRESH_KEY, 'true');
                 window.location.reload();
             }
         }

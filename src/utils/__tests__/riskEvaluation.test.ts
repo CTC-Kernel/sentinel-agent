@@ -12,9 +12,9 @@ import {
 import { Control, ControlStatus } from '../../types';
 
 describe('getRiskLevelFromScore', () => {
-    describe('critical level (score >= 20)', () => {
-        it('returns critical for score 20', () => {
-            const result = getRiskLevelFromScore(20);
+    describe('critical level (score >= 15)', () => {
+        it('returns critical for score 15', () => {
+            const result = getRiskLevelFromScore(15);
             expect(result.label).toBe('Critique');
             expect(result.color).toBe('error');
             expect(result.bgColor).toBe('bg-error-text');
@@ -27,57 +27,57 @@ describe('getRiskLevelFromScore', () => {
         });
     });
 
-    describe('high level (score >= 15 and < 20)', () => {
-        it('returns high for score 15', () => {
-            const result = getRiskLevelFromScore(15);
+    describe('high level (score >= 10 and < 15)', () => {
+        it('returns high for score 10', () => {
+            const result = getRiskLevelFromScore(10);
             expect(result.label).toBe('Élevé');
             expect(result.color).toBe('warning');
             expect(result.bgColor).toBe('bg-warning-text');
             expect(result.textColor).toBe('text-warning-text dark:text-warning-text');
         });
 
-        it('returns high for score 17', () => {
-            const result = getRiskLevelFromScore(17);
+        it('returns high for score 12', () => {
+            const result = getRiskLevelFromScore(12);
             expect(result.label).toBe('Élevé');
         });
 
-        it('returns high for score 19', () => {
-            const result = getRiskLevelFromScore(19);
+        it('returns high for score 14', () => {
+            const result = getRiskLevelFromScore(14);
             expect(result.label).toBe('Élevé');
         });
     });
 
-    describe('medium level (score >= 10 and < 15)', () => {
-        it('returns medium for score 10', () => {
-            const result = getRiskLevelFromScore(10);
+    describe('medium level (score >= 5 and < 10)', () => {
+        it('returns medium for score 5', () => {
+            const result = getRiskLevelFromScore(5);
             expect(result.label).toBe('Moyen');
             expect(result.color).toBe('info');
             expect(result.bgColor).toBe('bg-info-text');
             expect(result.textColor).toBe('text-info-text dark:text-info-text');
         });
 
-        it('returns medium for score 12', () => {
-            const result = getRiskLevelFromScore(12);
+        it('returns medium for score 7', () => {
+            const result = getRiskLevelFromScore(7);
             expect(result.label).toBe('Moyen');
         });
 
-        it('returns medium for score 14', () => {
-            const result = getRiskLevelFromScore(14);
+        it('returns medium for score 9', () => {
+            const result = getRiskLevelFromScore(9);
             expect(result.label).toBe('Moyen');
         });
     });
 
-    describe('low level (score < 10)', () => {
-        it('returns low for score 9', () => {
-            const result = getRiskLevelFromScore(9);
+    describe('low level (score < 5)', () => {
+        it('returns low for score 4', () => {
+            const result = getRiskLevelFromScore(4);
             expect(result.label).toBe('Faible');
             expect(result.color).toBe('success');
             expect(result.bgColor).toBe('bg-success-text');
             expect(result.textColor).toBe('text-success-text dark:text-success-text');
         });
 
-        it('returns low for score 5', () => {
-            const result = getRiskLevelFromScore(5);
+        it('returns low for score 2', () => {
+            const result = getRiskLevelFromScore(2);
             expect(result.label).toBe('Faible');
         });
 

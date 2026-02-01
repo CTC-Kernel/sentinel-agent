@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import AdminDashboard from '../admin/AdminDashboard';
 
 // Mock child components
@@ -34,14 +35,22 @@ describe('AdminDashboard', () => {
     });
 
     it('should render header with title', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         expect(screen.getByText('Super Admin Console')).toBeInTheDocument();
         expect(screen.getByText(/Supervision globale/)).toBeInTheDocument();
     });
 
     it('should render all navigation tabs', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         expect(screen.getByText('Overview')).toBeInTheDocument();
         expect(screen.getByText('Tenants')).toBeInTheDocument();
@@ -51,13 +60,21 @@ describe('AdminDashboard', () => {
     });
 
     it('should show GlobalMetrics by default (overview tab)', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         expect(screen.getByTestId('global-metrics')).toBeInTheDocument();
     });
 
     it('should switch to TenantList when tenants tab is clicked', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         fireEvent.click(screen.getByText('Tenants'));
 
@@ -66,7 +83,11 @@ describe('AdminDashboard', () => {
     });
 
     it('should switch to UserManagement when users tab is clicked', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         fireEvent.click(screen.getByText('Users'));
 
@@ -74,7 +95,11 @@ describe('AdminDashboard', () => {
     });
 
     it('should switch to SystemHealth when system tab is clicked', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         fireEvent.click(screen.getByText('System'));
 
@@ -82,7 +107,11 @@ describe('AdminDashboard', () => {
     });
 
     it('should switch to AuditLogList when audit tab is clicked', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         fireEvent.click(screen.getByText('Audit'));
 
@@ -90,7 +119,11 @@ describe('AdminDashboard', () => {
     });
 
     it('should highlight active tab', () => {
-        render(<AdminDashboard />);
+        render(
+            <MemoryRouter>
+                <AdminDashboard />
+            </MemoryRouter>
+        );
 
         const overviewTab = screen.getByText('Overview');
         expect(overviewTab.className).toContain('bg-brand-50');

@@ -69,6 +69,7 @@ describe('Risks View', () => {
             user: { organizationId: 'test-org', role: 'admin' },
             addToast: vi.fn(),
             demoMode: false,
+            language: 'fr',
             t: (k: string) => k,
         } as unknown as ReturnType<typeof useStore>);
         vi.mocked(useFirestoreCollection).mockReturnValue({
@@ -133,7 +134,7 @@ describe('Risks View', () => {
             // Check either the mocked RiskList or the actual empty state text
             const riskList = screen.queryByTestId('risk-list');
             const emptyState = screen.queryByText(/En attente de données/i) ||
-                               screen.queryByText(/Aucun risque/i);
+                screen.queryByText(/Aucun risque/i);
             expect(riskList || emptyState).toBeTruthy();
         });
     });

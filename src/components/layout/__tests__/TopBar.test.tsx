@@ -19,7 +19,11 @@ vi.mock('../../../store', () => ({
             email: 'john@example.com',
             role: 'Admin'
         },
-        t: (key: string) => key,
+        t: (key: string, options?: any) => {
+            if (typeof options === 'string') return options;
+            if (options?.defaultValue) return options.defaultValue;
+            return key;
+        },
         language: 'fr',
         setLanguage: vi.fn()
     })
