@@ -224,7 +224,7 @@ describe('useTeamManagement', () => {
             });
 
             expect(mockAddDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith('Invitation envoyée', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('team.toast.invitationSent', 'success');
         });
 
         it('should return LIMIT_REACHED when at user limit', async () => {
@@ -326,7 +326,7 @@ describe('useTeamManagement', () => {
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith('Mis à jour', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('team.toast.updated', 'success');
         });
 
         it('should not update pending users', async () => {
@@ -428,7 +428,7 @@ describe('useTeamManagement', () => {
             });
 
             expect(mockDeleteDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith('Supprimé', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('team.toast.deleted', 'success');
         });
 
         it('should delete pending invitation', async () => {
@@ -449,7 +449,7 @@ describe('useTeamManagement', () => {
             });
 
             expect(mockDeleteDoc).toHaveBeenCalled();
-            expect(mockAddToast).toHaveBeenCalledWith('Supprimé', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('team.toast.deleted', 'success');
         });
 
         it('should handle delete error', async () => {
@@ -573,7 +573,7 @@ describe('useTeamManagement', () => {
             });
 
             expect(mockHttpsCallable).toHaveBeenCalledWith({ requestId: 'request-1' });
-            expect(mockAddToast).toHaveBeenCalledWith('Approuvé: John Doe', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('team.toast.approved', 'success');
         });
 
         it('should handle server-side limit check via cloud function', async () => {
@@ -645,7 +645,7 @@ describe('useTeamManagement', () => {
                 expect(success).toBe(true);
             });
 
-            expect(mockAddToast).toHaveBeenCalledWith('Refusé', 'info');
+            expect(mockAddToast).toHaveBeenCalledWith('team.toast.rejected', 'info');
         });
 
         it('should handle rejection error', async () => {
@@ -692,7 +692,7 @@ describe('useTeamManagement', () => {
                 await result.current.importUsers('');
             });
 
-            expect(mockAddToast).toHaveBeenCalledWith('Fichier vide', 'error');
+            expect(mockAddToast).toHaveBeenCalledWith('common.toast.emptyFile', 'error');
         });
 
         it('should import users from CSV', async () => {
@@ -733,7 +733,7 @@ describe('useTeamManagement', () => {
             });
 
             // When limit is reached, it breaks the loop and shows success with 0 users imported
-            expect(mockAddToast).toHaveBeenCalledWith('0 utilisateurs importés', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('team.toast.usersImported', 'success');
         });
 
         it('should skip rows without email', async () => {

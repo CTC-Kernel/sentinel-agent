@@ -35,10 +35,25 @@ vi.mock('../../firebase', () => ({
 
 // Mock store
 const mockAddToast = vi.fn();
+const mockT = vi.fn((key: string, options?: { defaultValue?: string; count?: number }) => {
+    // Return default value if provided, otherwise return the key with count substitution
+    if (options?.defaultValue) {
+        return options.defaultValue.replace('{{count}}', String(options.count || 1));
+    }
+    // For specific keys without defaultValue, return the expected format
+    if (key.includes('relatedRisksResolved')) {
+        return `{{count}} risque(s) associé(s) marqué(s) comme Traité`;
+    }
+    if (key.includes('imported')) {
+        return `{{count}} vulnérabilités importées`;
+    }
+    return key;
+});
 const mockStoreState = {
     user: { organizationId: 'org-123', email: 'test@example.com', uid: 'user-1', role: 'admin' },
     addToast: mockAddToast,
     demoMode: false,
+    t: mockT,
     customRoles: []
 };
 
@@ -227,7 +242,7 @@ describe('useVulnerabilities', () => {
 
             // Should update both vulnerability and related risk
             expect(mockUpdateDoc).toHaveBeenCalledTimes(2);
-            expect(mockAddToast).toHaveBeenCalledWith('1 risque associé marqué comme Traité', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('1 risque(s) associé(s) marqué(s) comme Traité', 'success');
         });
 
         it('handles errors', async () => {
