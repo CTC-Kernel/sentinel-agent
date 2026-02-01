@@ -67,7 +67,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText(/Loading history/)).toBeInTheDocument();
+            expect(screen.getByText(/Chargement de l'historique/)).toBeInTheDocument();
         });
     });
 
@@ -75,7 +75,7 @@ describe('ResourceHistory', () => {
         it('shows empty state when no logs', () => {
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText('No history available for this item.')).toBeInTheDocument();
+            expect(screen.getByText('Aucun historique disponible pour cet élément.')).toBeInTheDocument();
         });
     });
 
@@ -111,7 +111,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText('Change History')).toBeInTheDocument();
+            expect(screen.getByText('Historique des modifications')).toBeInTheDocument();
         });
 
         it('shows log actions', () => {
@@ -183,7 +183,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText('View more history')).toBeInTheDocument();
+            expect(screen.getByText("Voir plus d'historique")).toBeInTheDocument();
         });
 
         it('calls loadMore when button clicked', () => {
@@ -196,7 +196,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('View more history'));
+            fireEvent.click(screen.getByText("Voir plus d'historique"));
 
             expect(mockLoadMore).toHaveBeenCalled();
         });
@@ -211,7 +211,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText('Loading...')).toBeInTheDocument();
+            expect(screen.getByText('Chargement...')).toBeInTheDocument();
         });
 
         it('hides load more button when no more logs', () => {
@@ -224,7 +224,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.queryByText('View more history')).not.toBeInTheDocument();
+            expect(screen.queryByText("Voir plus d'historique")).not.toBeInTheDocument();
         });
     });
 

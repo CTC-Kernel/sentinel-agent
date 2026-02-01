@@ -155,7 +155,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                     className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                     onClick={onClose}
                 >
-                    {t('common.cancel', { defaultValue: 'Cancel' })}
+                    {t('common.cancel', { defaultValue: 'Annuler' })}
                 </Button>
                 <div className="w-px bg-slate-200 dark:bg-white/5"></div>
                 <Button

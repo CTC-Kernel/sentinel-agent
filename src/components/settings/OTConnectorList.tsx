@@ -103,7 +103,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       ErrorLogger.error(error, 'OTConnectorList.loadConnectors');
       toast({
         variant: 'destructive',
-        title: t('otConnector.errors.loadFailed', 'Failed to load connectors'),
+        title: t('otConnector.errors.loadFailed', 'Échec du chargement des connecteurs'),
         description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     } finally {
@@ -123,13 +123,13 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       if (connector.status === 'active') {
         await OTConnectorService.pauseConnector(organization.id, connector.id);
         toast({
-          title: t('otConnector.paused', 'Connector paused'),
+          title: t('otConnector.paused', 'Connecteur mis en pause'),
           description: connector.name
         });
       } else if (connector.status === 'paused' || connector.status === 'error') {
         await OTConnectorService.activateConnector(organization.id, connector.id);
         toast({
-          title: t('otConnector.activated', 'Connector activated'),
+          title: t('otConnector.activated', 'Connecteur activé'),
           description: connector.name
         });
       }
@@ -138,7 +138,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       ErrorLogger.error(error, 'OTConnectorList.handleToggleStatus');
       toast({
         variant: 'destructive',
-        title: t('otConnector.errors.statusFailed', 'Failed to update status'),
+        title: t('otConnector.errors.statusFailed', 'Échec de la mise à jour du statut'),
         description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     }
@@ -151,7 +151,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
     try {
       await OTConnectorService.deleteConnector(organization.id, connector.id);
       toast({
-        title: t('otConnector.deleted', 'Connector deleted'),
+        title: t('otConnector.deleted', 'Connecteur supprimé'),
         description: connector.name
       });
       await loadConnectors();
@@ -159,7 +159,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       ErrorLogger.error(error, 'OTConnectorList.handleDelete');
       toast({
         variant: 'destructive',
-        title: t('otConnector.errors.deleteFailed', 'Failed to delete'),
+        title: t('otConnector.errors.deleteFailed', 'Échec de la suppression'),
         description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     } finally {
@@ -177,8 +177,8 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       // TODO: Call Cloud Function to trigger sync
       // For now, just show a placeholder message
       toast({
-        title: t('otConnector.syncTriggered', 'Sync triggered'),
-        description: t('otConnector.syncInProgress', 'Sync is running in the background')
+        title: t('otConnector.syncTriggered', 'Synchronisation déclenchée'),
+        description: t('otConnector.syncInProgress', 'La synchronisation est en cours en arrière-plan')
       });
 
       // Simulate sync delay for demo
@@ -188,7 +188,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       ErrorLogger.error(error, 'OTConnectorList.handleManualSync');
       toast({
         variant: 'destructive',
-        title: t('otConnector.errors.syncFailed', 'Sync failed'),
+        title: t('otConnector.errors.syncFailed', 'Échec de la synchronisation'),
         description: t('errors.operationFailed') || 'Une erreur est survenue'
       });
     } finally {
@@ -230,14 +230,14 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
           <Server className="h-8 w-8 text-slate-400" />
         </div>
         <h3 className="text-lg font-semibold mb-2">
-          {t('otConnector.empty.title', 'No connectors configured')}
+          {t('otConnector.empty.title', 'Aucun connecteur configuré')}
         </h3>
         <p className="text-slate-500 mb-6">
-          {t('otConnector.empty.description', 'Create a connector to automatically sync OT assets')}
+          {t('otConnector.empty.description', 'Créez un connecteur pour synchroniser automatiquement les actifs OT')}
         </p>
         <Button onClick={onCreateNew}>
           <Plus className="h-4 w-4 mr-2" />
-          {t('otConnector.createNew', 'Create Connector')}
+          {t('otConnector.createNew', 'Créer un connecteur')}
         </Button>
       </Card>
     );
@@ -249,20 +249,20 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">
-            {t('otConnector.title', 'OT Connectors')}
+            {t('otConnector.title', 'Connecteurs OT')}
           </h2>
           <p className="text-sm text-slate-500">
-            {t('otConnector.subtitle', 'Configure automated asset synchronization')}
+            {t('otConnector.subtitle', 'Configurez la synchronisation automatique des actifs')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadConnectors} disabled={loading}>
             <RefreshCw className={cn('h-4 w-4 mr-2', loading && 'animate-spin')} />
-            {t('common.refresh', 'Refresh')}
+            {t('common.refresh', 'Actualiser')}
           </Button>
           <Button onClick={onCreateNew}>
             <Plus className="h-4 w-4 mr-2" />
-            {t('otConnector.createNew', 'Create')}
+            {t('otConnector.createNew', 'Créer')}
           </Button>
         </div>
       </div>
@@ -314,7 +314,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                           <span className="text-muted-foreground">|</span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {t('otConnector.lastSync', 'Last sync')}: {getRelativeTime(connector.lastSync.completedAt)}
+                            {t('otConnector.lastSync', 'Dernière sync')}: {getRelativeTime(connector.lastSync.completedAt)}
                           </span>
                           {connector.lastSync.stats && (
                             <span className="text-muted-foreground">
@@ -328,7 +328,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                         <>
                           <span className="text-muted-foreground">|</span>
                           <span>
-                            {t('otConnector.nextSync', 'Next')}: {getRelativeTime(connector.schedule.nextRun)}
+                            {t('otConnector.nextSync', 'Prochaine')}: {getRelativeTime(connector.schedule.nextRun)}
                           </span>
                         </>
                       )}
@@ -349,7 +349,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                       size="sm"
                       onClick={() => handleManualSync(connector)}
                       disabled={isSyncing || connector.status === 'configuring'}
-                      title={t('otConnector.syncNow', 'Sync now')}
+                      title={t('otConnector.syncNow', 'Synchroniser maintenant')}
                     >
                       {isSyncing ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -365,8 +365,8 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                       onClick={() => handleToggleStatus(connector)}
                       disabled={connector.status === 'configuring'}
                       title={connector.status === 'active'
-                        ? t('otConnector.pause', 'Pause')
-                        : t('otConnector.activate', 'Activate')}
+                        ? t('otConnector.pause', 'Mettre en pause')
+                        : t('otConnector.activate', 'Activer')}
                     >
                       {connector.status === 'active' ? (
                         <Pause className="h-4 w-4" />
@@ -380,7 +380,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => onViewHistory(connector)}
-                      title={t('otConnector.viewHistory', 'View history')}
+                      title={t('otConnector.viewHistory', 'Voir l\'historique')}
                     >
                       <Clock className="h-4 w-4" />
                     </Button>
@@ -390,7 +390,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => onEdit(connector)}
-                      title={t('common.edit', 'Edit')}
+                      title={t('common.edit', 'Modifier')}
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
@@ -401,7 +401,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                       size="sm"
                       onClick={() => setDeleteTarget(connector)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
-                      title={t('common.delete', 'Delete')}
+                      title={t('common.delete', 'Supprimer')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

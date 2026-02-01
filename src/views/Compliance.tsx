@@ -477,7 +477,7 @@ export const Compliance: React.FC = () => {
                                             { value: CONTROL_STATUS.NOT_APPLICABLE, label: t('common.statuses.notApplicable') },
                                             { value: CONTROL_STATUS.EXCLUDED, label: t('common.statuses.excluded') }
                                         ]}
-                                        placeholder={t('compliance.filterByStatus', { defaultValue: 'Filter by status' })}
+                                        placeholder={t('compliance.filterByStatus', { defaultValue: 'Filtrer par statut' })}
                                         className="rounded-xl"
                                     />
                                 </div>

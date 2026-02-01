@@ -43,21 +43,21 @@ const SaveStatusIndicator: React.FC<{ saveStatus: SaveStatus; t: (key: string, f
       return (
         <span className="flex items-center gap-1.5 text-sm text-slate-500">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          {t('vendorPortal.saving', 'Saving...')}
+          {t('vendorPortal.saving', 'Enregistrement...')}
         </span>
       );
     case 'saved':
       return (
         <span className="flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400">
           <CheckCircle className="w-3.5 h-3.5" />
-          {t('vendorPortal.saved', 'Saved')}
+          {t('vendorPortal.saved', 'Enregistré')}
         </span>
       );
     case 'error':
       return (
         <span className="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
           <AlertCircle className="w-3.5 h-3.5" />
-          {t('vendorPortal.saveError', 'Save error')}
+          {t('vendorPortal.saveError', 'Erreur de sauvegarde')}
         </span>
       );
     default:
@@ -164,7 +164,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
           <div className="p-4 border-b border-border/40 dark:border-border/40">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-slate-600 dark:text-muted-foreground">
-                {t('vendorPortal.progress', 'Progress')}
+                {t('vendorPortal.progress', 'Progression')}
               </span>
               <span className="font-medium text-slate-900 dark:text-white">
                 {progress.completionPercentage}%
@@ -177,7 +177,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
               />
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">
-              {progress.answeredQuestions}/{progress.totalQuestions} {t('vendorPortal.questionsAnswered', 'questions answered')}
+              {progress.answeredQuestions}/{progress.totalQuestions} {t('vendorPortal.questionsAnswered', 'questions répondues')}
             </p>
           </div>
 
@@ -217,7 +217,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
                         {section.title}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
-                        {sectionProgress?.answeredQuestions || 0}/{sectionProgress?.totalQuestions || section.questions.length} {t('vendorPortal.answered', 'answered')}
+                        {sectionProgress?.answeredQuestions || 0}/{sectionProgress?.totalQuestions || section.questions.length} {t('vendorPortal.answered', 'répondues')}
                       </p>
                     </div>
                   </div>
@@ -255,7 +255,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
             <div className="mt-4 flex items-center gap-2 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4" />
               <span className="text-sm">
-                {t('vendorPortal.readOnlyMode', 'This questionnaire has been submitted and is now read-only.')}
+                {t('vendorPortal.readOnlyMode', 'Ce questionnaire a été soumis et est désormais en lecture seule.')}
               </span>
             </div>
           )}
@@ -283,12 +283,12 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
             disabled={currentSectionIndex === 0}
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
-            {t('vendorPortal.previous', 'Previous')}
+            {t('vendorPortal.previous', 'Précédent')}
           </Button>
 
           {currentSectionIndex < template.sections.length - 1 ? (
             <Button onClick={goToNextSection}>
-              {t('vendorPortal.next', 'Next')}
+              {t('vendorPortal.next', 'Suivant')}
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
@@ -298,7 +298,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              {t('vendorPortal.submit', 'Submit Questionnaire')}
+              {t('vendorPortal.submit', 'Soumettre le questionnaire')}
             </Button>
           )}
         </div>
@@ -372,8 +372,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           {question.type === 'yes_no' && (
             <div className="flex gap-3">
               {[
-                { value: true, label: t('common.yes', 'Yes') },
-                { value: false, label: t('common.no', 'No') },
+                { value: true, label: t('common.yes', 'Oui') },
+                { value: false, label: t('common.no', 'Non') },
               ].map((option) => (
                 <button
                   key={String(option.value) || 'unknown'}
@@ -434,7 +434,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               value={(answer?.value as string) || ''}
               onChange={(e) => handleValueChange(e.target.value)}
               disabled={isReadOnly}
-              placeholder={t('vendorPortal.enterAnswer', 'Enter your answer...')}
+              placeholder={t('vendorPortal.enterAnswer', 'Entrez votre réponse...')}
               rows={4}
               className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
             />
@@ -447,18 +447,18 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 onClick={() => setShowComment(true)}
                 className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400"
               >
-                + {t('vendorPortal.addComment', 'Add comment or evidence')}
+                + {t('vendorPortal.addComment', 'Ajouter un commentaire ou une preuve')}
               </button>
             ) : (
               <div>
                 <label className="block text-sm text-slate-500 dark:text-slate-300 mb-2">
-                  {t('vendorPortal.additionalComments', 'Additional comments or evidence URL')}
+                  {t('vendorPortal.additionalComments', 'Commentaires additionnels ou URL de preuve')}
                 </label>
                 <textarea
                   value={answer?.comment || ''}
                   onChange={(e) => handleCommentChange(e.target.value)}
                   disabled={isReadOnly}
-                  placeholder={t('vendorPortal.commentPlaceholder', 'Add any additional context or link to evidence...')}
+                  placeholder={t('vendorPortal.commentPlaceholder', 'Ajoutez du contexte supplémentaire ou un lien vers une preuve...')}
                   rows={2}
                   className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
                 />

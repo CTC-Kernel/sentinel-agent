@@ -148,7 +148,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
     }, [comments, user]);
 
     const commentSchema = z.object({
-        content: z.string().min(1, 'Comment cannot be empty').max(1000)
+        content: z.string().min(1, 'Le commentaire ne peut pas être vide').max(1000)
     });
 
     type CommentFormData = z.infer<typeof commentSchema>;
@@ -398,7 +398,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         value={searchQuery}
                                         onChange={handleSearch}
                                         type="text"
-                                        placeholder={t('collaboration.searchComments', { defaultValue: 'Search comments...' })}
+                                        placeholder={t('collaboration.searchComments', { defaultValue: 'Rechercher des commentaires...' })}
                                         className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
                                     />
                                     {searchQuery && (
@@ -490,7 +490,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                 {loading ? (
                     <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                         <div className="animate-spin h-6 w-6 mb-2">⌛</div>
-                        <p className="text-sm">{t('common.loading', { defaultValue: 'Loading...' })}</p>
+                        <p className="text-sm">{t('common.loading', { defaultValue: 'Chargement...' })}</p>
                     </div>
                 ) : sortedComments.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
@@ -541,9 +541,9 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                     <div className="flex gap-2">
                         <input
                             {...register('content')}
-                            aria-label={replyTo ? t('collaboration.yourReply', { defaultValue: 'Your reply...' }) : t('collaboration.addComment', { defaultValue: 'Add a comment' })}
+                            aria-label={replyTo ? t('collaboration.yourReply', { defaultValue: 'Votre réponse...' }) : t('collaboration.addComment', { defaultValue: 'Ajouter un commentaire' })}
                             type="text"
-                            placeholder={replyTo ? t('collaboration.yourReply', { defaultValue: 'Your reply...' }) : t('collaboration.addComment', { defaultValue: 'Add a comment' })}
+                            placeholder={replyTo ? t('collaboration.yourReply', { defaultValue: 'Votre réponse...' }) : t('collaboration.addComment', { defaultValue: 'Ajouter un commentaire' })}
                             className={cn(
                                 "flex-1 pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-3xl focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none",
                                 errors.content

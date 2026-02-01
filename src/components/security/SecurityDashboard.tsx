@@ -154,7 +154,7 @@ export const SecurityDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500 dark:text-slate-400">{t('security.loadingMetrics', { defaultValue: 'Loading security metrics...' })}</div>
+        <div className="text-slate-500 dark:text-slate-400">{t('security.loadingMetrics', { defaultValue: 'Chargement des métriques de sécurité...' })}</div>
       </div>
     );
   }
@@ -162,7 +162,7 @@ export const SecurityDashboard: React.FC = () => {
   if (!metrics) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500 dark:text-slate-400">{t('security.loadError', { defaultValue: 'Failed to load metrics' })}</div>
+        <div className="text-slate-500 dark:text-slate-400">{t('security.loadError', { defaultValue: 'Échec du chargement des métriques' })}</div>
       </div>
     );
   }
@@ -174,10 +174,10 @@ export const SecurityDashboard: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Shield className="w-6 h-6" />
-            {t('security.dashboardTitle', { defaultValue: 'BMAD Security Dashboard' })}
+            {t('security.dashboardTitle', { defaultValue: 'Tableau de bord Sécurité BMAD' })}
           </h2>
           <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
-            {t('security.realtimeMonitoring', { defaultValue: 'Real-time monitoring...' })}
+            {t('security.realtimeMonitoring', { defaultValue: 'Surveillance en temps réel...' })}
           </p>
         </div>
 
@@ -239,7 +239,7 @@ export const SecurityDashboard: React.FC = () => {
 
         {metrics.anomalies.recent.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            {t('security.noAnomalies', { defaultValue: 'No anomalies detected' })}
+            {t('security.noAnomalies', { defaultValue: 'Aucune anomalie détectée' })}
           </div>
         ) : (
           <div className="space-y-3">

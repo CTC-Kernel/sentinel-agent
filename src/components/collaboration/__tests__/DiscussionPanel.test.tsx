@@ -128,13 +128,13 @@ describe('DiscussionPanel', () => {
         it('renders search input', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            expect(screen.getByPlaceholderText('Search comments...')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Rechercher des commentaires...')).toBeInTheDocument();
         });
 
         it('filters comments when searching', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            const searchInput = screen.getByPlaceholderText('Search comments...');
+            const searchInput = screen.getByPlaceholderText('Rechercher des commentaires...');
             fireEvent.change(searchInput, { target: { value: 'risks' } });
 
             expect(screen.getByText('First comment about risks')).toBeInTheDocument();
@@ -143,7 +143,7 @@ describe('DiscussionPanel', () => {
         it('shows result count when searching', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            const searchInput = screen.getByPlaceholderText('Search comments...');
+            const searchInput = screen.getByPlaceholderText('Rechercher des commentaires...');
             fireEvent.change(searchInput, { target: { value: 'risks' } });
 
             expect(screen.getByText(/résultat/)).toBeInTheDocument();
@@ -152,7 +152,7 @@ describe('DiscussionPanel', () => {
         it('hides search when disabled', () => {
             render(<DiscussionPanel {...defaultProps} enableSearch={false} />);
 
-            expect(screen.queryByPlaceholderText('Search comments...')).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText('Rechercher des commentaires...')).not.toBeInTheDocument();
         });
     });
 
@@ -266,13 +266,13 @@ describe('DiscussionPanel', () => {
         it('renders comment input', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            expect(screen.getByLabelText('Add a comment')).toBeInTheDocument();
+            expect(screen.getByLabelText('Ajouter un commentaire')).toBeInTheDocument();
         });
 
         it('shows mention hint in placeholder', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            expect(screen.getByPlaceholderText('Add a comment')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Ajouter un commentaire')).toBeInTheDocument();
         });
     });
 

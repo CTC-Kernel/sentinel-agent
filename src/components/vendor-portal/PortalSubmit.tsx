@@ -46,7 +46,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
       onSuccess();
     } catch (err) {
       ErrorLogger.error(err, 'PortalSubmit.handleSubmit');
-      setError(t('vendorPortal.submitError', 'Failed to submit questionnaire. Please try again.'));
+      setError(t('vendorPortal.submitError', 'Échec de la soumission du questionnaire. Veuillez réessayer.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +79,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
               <Send className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              {t('vendorPortal.submitTitle', 'Submit Questionnaire')}
+              {t('vendorPortal.submitTitle', 'Soumettre le questionnaire')}
             </h2>
           </div>
           <button
@@ -95,20 +95,20 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
           {/* Summary */}
           <div className="bg-slate-50 dark:bg-slate-900/50 rounded-3xl p-4 mb-6">
             <h3 className="font-medium text-slate-900 dark:text-white mb-3">
-              {t('vendorPortal.completionSummary', 'Completion Summary')}
+              {t('vendorPortal.completionSummary', 'Résumé de complétion')}
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <FileCheck className="w-4 h-4 text-green-500" />
                 <span className="text-sm text-slate-600 dark:text-muted-foreground">
                   {progress.answeredQuestions}/{progress.totalQuestions}{' '}
-                  {t('vendorPortal.questionsAnswered', 'questions answered')}
+                  {t('vendorPortal.questionsAnswered', 'questions répondues')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-brand-500" />
                 <span className="text-sm text-slate-600 dark:text-muted-foreground">
-                  {progress.completionPercentage}% {t('vendorPortal.complete', 'complete')}
+                  {progress.completionPercentage}% {t('vendorPortal.complete', 'terminé')}
                 </span>
               </div>
             </div>
@@ -131,10 +131,10 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
                 <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-amber-800 dark:text-amber-300">
-                    {t('vendorPortal.incompleteSections', 'Some required questions are incomplete')}
+                    {t('vendorPortal.incompleteSections', 'Certaines questions obligatoires sont incomplètes')}
                   </p>
                   <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                    {t('vendorPortal.incompleteWarning', 'You can still submit, but missing required answers may affect the assessment.')}
+                    {t('vendorPortal.incompleteWarning', 'Vous pouvez tout de même soumettre, mais les réponses manquantes peuvent affecter l\'évaluation.')}
                   </p>
                 </div>
               </div>
@@ -145,27 +145,27 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
           <p className="text-slate-600 dark:text-muted-foreground mb-4">
             {t(
               'vendorPortal.submitConfirmation',
-              'Once submitted, you will not be able to modify your responses. The requesting organization will be notified of your submission.'
+              'Une fois soumis, vous ne pourrez plus modifier vos réponses. L\'organisation demandeuse sera notifiée de votre soumission.'
             )}
           </p>
 
           {/* What happens next */}
           <div className="space-y-2 mb-6">
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
-              {t('vendorPortal.whatHappensNext', 'What happens next:')}
+              {t('vendorPortal.whatHappensNext', 'Prochaines étapes :')}
             </p>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                {t('vendorPortal.nextStep1', 'Your responses will be locked and submitted')}
+                {t('vendorPortal.nextStep1', 'Vos réponses seront verrouillées et soumises')}
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                {t('vendorPortal.nextStep2', 'You will receive a confirmation email')}
+                {t('vendorPortal.nextStep2', 'Vous recevrez un email de confirmation')}
               </li>
               <li className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-blue-500" />
-                {t('vendorPortal.nextStep3', 'The organization will review your assessment')}
+                {t('vendorPortal.nextStep3', 'L\'organisation examinera votre évaluation')}
               </li>
             </ul>
           </div>
@@ -181,7 +181,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t border-border/40 dark:border-border/40 bg-slate-50 dark:bg-slate-900/50">
           <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
-            {t('common.cancel', 'Cancel')}
+            {t('common.cancel', 'Annuler')}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -191,12 +191,12 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {t('vendorPortal.submitting', 'Submitting...')}
+                {t('vendorPortal.submitting', 'Soumission en cours...')}
               </>
             ) : (
               <>
                 <Send className="w-4 h-4 mr-2" />
-                {t('vendorPortal.confirmSubmit', 'Submit Questionnaire')}
+                {t('vendorPortal.confirmSubmit', 'Soumettre le questionnaire')}
               </>
             )}
           </Button>

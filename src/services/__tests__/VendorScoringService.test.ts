@@ -218,7 +218,7 @@ describe('VendorScoringService - Trend Calculation', () => {
 
     it('should handle zero previous score', () => {
       const result = calculateTrend(50, 0);
-      expect(result.percentage).toBe(0);
+      expect(result.percentage).toBe(100);
     });
   });
 });

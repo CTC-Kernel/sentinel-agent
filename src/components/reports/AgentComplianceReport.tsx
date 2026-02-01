@@ -314,7 +314,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                 setData(reportData);
             } catch (err) {
                 ErrorLogger.error(err, 'AgentComplianceReport.fetchData');
-                setError(t('reports.loadError', { defaultValue: 'Error loading data' }));
+                setError(t('reports.loadError', { defaultValue: 'Erreur de chargement des données' }));
             } finally {
                 setLoading(false);
             }
@@ -400,7 +400,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
         return (
             <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <FileCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground">{t('reports.noData', { defaultValue: 'No data available' })}</p>
+                <p className="text-sm text-muted-foreground">{t('reports.noData', { defaultValue: 'Aucune donnée disponible' })}</p>
             </div>
         );
     }

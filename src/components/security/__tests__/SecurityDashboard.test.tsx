@@ -57,7 +57,7 @@ describe('SecurityDashboard', () => {
         it('shows loading message initially', () => {
             render(<SecurityDashboard />);
 
-            expect(screen.getByText('Loading security metrics...')).toBeInTheDocument();
+            expect(screen.getByText('Chargement des métriques de sécurité...')).toBeInTheDocument();
         });
     });
 
@@ -66,7 +66,7 @@ describe('SecurityDashboard', () => {
             render(<SecurityDashboard />);
 
             await waitFor(() => {
-                expect(screen.getByText('BMAD Security Dashboard')).toBeInTheDocument();
+                expect(screen.getByText('Tableau de bord Sécurité BMAD')).toBeInTheDocument();
             });
         });
 

@@ -135,7 +135,7 @@ describe('ReportConfigurationModal', () => {
         it('renders cancel button', () => {
             render(<ReportConfigurationModal {...defaultProps} />);
 
-            expect(screen.getByText('Cancel')).toBeInTheDocument();
+            expect(screen.getByText('Annuler')).toBeInTheDocument();
         });
 
         it('renders generate button', () => {
@@ -147,7 +147,7 @@ describe('ReportConfigurationModal', () => {
         it('calls onClose when cancel clicked', () => {
             render(<ReportConfigurationModal {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('Cancel'));
+            fireEvent.click(screen.getByText('Annuler'));
 
             expect(mockOnClose).toHaveBeenCalled();
         });

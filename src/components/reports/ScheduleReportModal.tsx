@@ -112,13 +112,13 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
         // Validate recipients
         const validRecipients = data.recipients.filter(r => r.trim());
         if (validRecipients.length === 0) {
-            setFormError('Please add at least one recipient');
+            setFormError('Veuillez ajouter au moins un destinataire');
             return;
         }
 
         const invalidEmails = validRecipients.filter(r => !validateEmail(r));
         if (invalidEmails.length > 0) {
-            setFormError(`Invalid email address: ${invalidEmails[0]}`);
+            setFormError(`Adresse email invalide : ${invalidEmails[0]}`);
             return;
         }
 
@@ -139,7 +139,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
             await onSchedule(formData);
             onClose();
         } catch {
-            setFormError(t('reports.scheduleError', { defaultValue: 'Error scheduling report' }));
+            setFormError(t('reports.scheduleError', { defaultValue: 'Erreur lors de la planification du rapport' }));
         }
     };
 
@@ -332,7 +332,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             className="flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 font-medium"
                         >
                             <Plus className="h-4 w-4" />
-                            {t('reports.addRecipient', { defaultValue: 'Add recipient' })}
+                            {t('reports.addRecipient', { defaultValue: 'Ajouter un destinataire' })}
                         </button>
                     </div>
                 </div>

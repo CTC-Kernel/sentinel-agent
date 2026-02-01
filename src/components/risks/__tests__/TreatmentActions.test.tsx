@@ -161,7 +161,7 @@ describe('TreatmentActionForm', () => {
         await user.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText('Title is required')).toBeInTheDocument();
+            expect(screen.getByText('Le titre est requis')).toBeInTheDocument();
         });
         expect(onSave).not.toHaveBeenCalled();
     });

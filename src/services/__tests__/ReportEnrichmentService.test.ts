@@ -732,14 +732,14 @@ describe('ReportEnrichmentService', () => {
             expect(result.audit_readiness).toBe(100);
         });
 
-        it('should return 0 coverage for empty controls', () => {
+        it('should return 100 coverage for empty controls (no actionable = fully compliant)', () => {
             const result = ReportEnrichmentService.calculateComplianceMetrics([]);
 
-            expect(result.compliance_coverage).toBe(0);
-            expect(result.audit_readiness).toBe(0);
+            expect(result.compliance_coverage).toBe(100);
+            expect(result.audit_readiness).toBe(100);
         });
 
-        it('should return 0 when all controls are N/A', () => {
+        it('should return 100 when all controls are N/A', () => {
             const controls = [
                 createMockControl({ status: 'Non applicable' }),
                 createMockControl({ status: 'Non applicable' })
@@ -747,7 +747,7 @@ describe('ReportEnrichmentService', () => {
 
             const result = ReportEnrichmentService.calculateComplianceMetrics(controls);
 
-            expect(result.compliance_coverage).toBe(0);
+            expect(result.compliance_coverage).toBe(100);
         });
     });
 

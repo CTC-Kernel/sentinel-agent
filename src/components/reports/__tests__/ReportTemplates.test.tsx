@@ -30,13 +30,13 @@ describe('ReportTemplates', () => {
         it('renders library header', () => {
             render(<ReportTemplates />);
 
-            expect(screen.getByText('Template Library')).toBeInTheDocument();
+            expect(screen.getByText('Bibliothèque de modèles')).toBeInTheDocument();
         });
 
         it('renders create template button', () => {
             render(<ReportTemplates />);
 
-            expect(screen.getByText('Create Template')).toBeInTheDocument();
+            expect(screen.getByText('Créer un modèle')).toBeInTheDocument();
         });
 
         it('renders description text', () => {

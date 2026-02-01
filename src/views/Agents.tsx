@@ -83,7 +83,7 @@ export const Agents: React.FC = () => {
             },
             (error) => {
                 ErrorLogger.error(error, 'Agents.subscribeToAgents');
-                setError(t('agents.loadError', { defaultValue: 'Error loading data' }));
+                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des données' }));
                 setLoading(false);
             }
         );
@@ -131,7 +131,7 @@ export const Agents: React.FC = () => {
     // Permission gate
     const canRead = hasPermission(user, 'Agent', 'read');
     if (!canRead) {
-        return <div className="p-8 text-center text-muted-foreground">{t('common.accessDenied', { defaultValue: 'Access denied' })}</div>;
+        return <div className="p-8 text-center text-muted-foreground">{t('common.accessDenied', { defaultValue: 'Accès refusé' })}</div>;
     }
 
     if (loading) {
@@ -148,7 +148,7 @@ export const Agents: React.FC = () => {
                 <AlertTriangle className="h-12 w-12 text-destructive" />
                 <p className="text-lg font-medium">{error}</p>
                 <Button onClick={() => { setError(null); setLoading(true); setRetryCount(c => c + 1); }} variant="outline">
-                    {t('common.retry', { defaultValue: 'Retry' })}
+                    {t('common.retry', { defaultValue: 'Réessayer' })}
                 </Button>
             </div>
         );
@@ -167,13 +167,13 @@ export const Agents: React.FC = () => {
                     <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
                         <Shield className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{t('agents.noAgents', { defaultValue: 'No enrolled agents' })}</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t('agents.noAgents', { defaultValue: 'Aucun agent inscrit' })}</h3>
                     <p className="text-muted-foreground max-w-md mb-6">
-                        {t('agents.emptyState.description', { defaultValue: 'Deploy Sentinel Agent on your endpoints to start real-time compliance monitoring.' })}
+                        {t('agents.emptyState.description', { defaultValue: 'Déployez Sentinel Agent sur vos terminaux pour démarrer la surveillance de conformité en temps réel.' })}
                     </p>
                     <Button onClick={() => navigate('/settings?tab=agents')}>
                         <Download className="h-4 w-4 mr-2" />
-                        {t('agents.configureEnrollment', { defaultValue: 'Configure enrollment' })}
+                        {t('agents.configureEnrollment', { defaultValue: 'Configurer l\'inscription' })}
                     </Button>
                 </div>
             </>
@@ -200,15 +200,15 @@ export const Agents: React.FC = () => {
                         <TabsList className="bg-muted/50 p-1 rounded-xl" data-tour="agents-tabs">
                             <TabsTrigger value="overview" className="flex items-center gap-2" isLoading={loading}>
                                 <Layers className="h-4 w-4" />
-                                <span>{t('agents.tabs.supervision', { defaultValue: 'Monitoring' })}</span>
+                                <span>{t('agents.tabs.supervision', { defaultValue: 'Supervision' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="policies" className="flex items-center gap-2" isLoading={loading}>
                                 <Shield className="h-4 w-4" />
-                                <span>{t('agents.tabs.policies', { defaultValue: 'Policies' })}</span>
+                                <span>{t('agents.tabs.policies', { defaultValue: 'Politiques' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="software" className="flex items-center gap-2" isLoading={loading}>
                                 <Package className="h-4 w-4" />
-                                <span>{t('agents.tabs.softwareInventory', { defaultValue: 'Software Inventory' })}</span>
+                                <span>{t('agents.tabs.softwareInventory', { defaultValue: 'Inventaire logiciel' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="anomalies" className="flex items-center gap-2" isLoading={loading}>
                                 <AlertTriangle className="h-4 w-4" />
@@ -216,11 +216,11 @@ export const Agents: React.FC = () => {
                             </TabsTrigger>
                             <TabsTrigger value="baselines" className="flex items-center gap-2" isLoading={loading}>
                                 <Shield className="h-4 w-4" />
-                                <span>{t('agents.tabs.baselines', { defaultValue: 'Baselines' })}</span>
+                                <span>{t('agents.tabs.baselines', { defaultValue: 'Lignes de base' })}</span>
                             </TabsTrigger>
                             <TabsTrigger value="reports" className="flex items-center gap-2" isLoading={loading}>
                                 <FileText className="h-4 w-4" />
-                                <span>{t('agents.tabs.reports', { defaultValue: 'Reports' })}</span>
+                                <span>{t('agents.tabs.reports', { defaultValue: 'Rapports' })}</span>
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -232,7 +232,7 @@ export const Agents: React.FC = () => {
                         >
                             <PageHeader
                                 title="Sentinel Agents"
-                                subtitle={t('agents.subtitle', { defaultValue: 'Sentinel agent fleet management and deployment' })}
+                                subtitle={t('agents.subtitle', { defaultValue: 'Gestion et déploiement de la flotte d\'agents Sentinel' })}
                                 icon={
                                     <img
                                         src="/images/IA.png"
@@ -250,7 +250,7 @@ export const Agents: React.FC = () => {
                                             data-tour="agents-download"
                                         >
                                             <Download className="h-4 w-4" />
-                                            <span className="hidden sm:inline">{t('agents.downloadAgent', { defaultValue: 'Download Agent' })}</span>
+                                            <span className="hidden sm:inline">{t('agents.downloadAgent', { defaultValue: 'Télécharger l\'agent' })}</span>
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -259,7 +259,7 @@ export const Agents: React.FC = () => {
                                             onClick={() => setActiveTab('policies')}
                                         >
                                             <Settings className="h-4 w-4" />
-                                            <span className="hidden sm:inline">{t('agents.configuration', { defaultValue: 'Configuration' })}</span>
+                                            <span className="hidden sm:inline">{t('agents.configuration', { defaultValue: 'Paramétrage' })}</span>
                                         </Button>
                                     </div>
                                 }
@@ -276,7 +276,7 @@ export const Agents: React.FC = () => {
                                     <div className="relative flex-1 max-w-md">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
-                                            placeholder={t('agents.searchPlaceholder', { defaultValue: 'Search for an agent...' })}
+                                            placeholder={t('agents.searchPlaceholder', { defaultValue: 'Rechercher un agent...' })}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="pl-9"
@@ -287,39 +287,39 @@ export const Agents: React.FC = () => {
                                             variant={statusFilter === 'all' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('all')}
-                                            aria-label={t('agents.filter.all', { defaultValue: 'All' })}
+                                            aria-label={t('agents.filter.all', { defaultValue: 'Tous' })}
                                         >
-                                            {t('agents.filter.all', { defaultValue: 'All' })}
+                                            {t('agents.filter.all', { defaultValue: 'Tous' })}
                                         </Button>
                                         <Button
                                             variant={statusFilter === 'active' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('active')}
                                             className="gap-1"
-                                            aria-label={t('agents.filter.active', { defaultValue: 'Active' })}
+                                            aria-label={t('agents.filter.active', { defaultValue: 'Actif' })}
                                         >
                                             <span className="w-2 h-2 rounded-full bg-success" />
-                                            {t('agents.filter.active', { defaultValue: 'Active' })}
+                                            {t('agents.filter.active', { defaultValue: 'Actif' })}
                                         </Button>
                                         <Button
                                             variant={statusFilter === 'offline' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('offline')}
                                             className="gap-1"
-                                            aria-label={t('agents.filter.offline', { defaultValue: 'Offline' })}
+                                            aria-label={t('agents.filter.offline', { defaultValue: 'Hors ligne' })}
                                         >
                                             <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-                                            {t('agents.filter.offline', { defaultValue: 'Offline' })}
+                                            {t('agents.filter.offline', { defaultValue: 'Hors ligne' })}
                                         </Button>
                                         <Button
                                             variant={statusFilter === 'error' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => setStatusFilter('error')}
                                             className="gap-1"
-                                            aria-label={t('agents.filter.error', { defaultValue: 'Error' })}
+                                            aria-label={t('agents.filter.error', { defaultValue: 'Erreur' })}
                                         >
                                             <span className="w-2 h-2 rounded-full bg-destructive" />
-                                            {t('agents.filter.error', { defaultValue: 'Error' })}
+                                            {t('agents.filter.error', { defaultValue: 'Erreur' })}
                                         </Button>
                                     </div>
                                 </div>
@@ -330,8 +330,8 @@ export const Agents: React.FC = () => {
                                         size="sm"
                                         onClick={() => setViewMode('grid')}
                                         className="h-8 w-8 p-0"
-                                        title={t('agents.viewMode.grid', { defaultValue: 'Grid view' })}
-                                        aria-label={t('agents.viewMode.grid', { defaultValue: 'Grid view' })}
+                                        title={t('agents.viewMode.grid', { defaultValue: 'Vue grille' })}
+                                        aria-label={t('agents.viewMode.grid', { defaultValue: 'Vue grille' })}
                                     >
                                         <LayoutGrid className="h-4 w-4" />
                                     </Button>
@@ -340,8 +340,8 @@ export const Agents: React.FC = () => {
                                         size="sm"
                                         onClick={() => setViewMode('compact')}
                                         className="h-8 w-8 p-0"
-                                        title={t('agents.viewMode.compact', { defaultValue: 'List view' })}
-                                        aria-label={t('agents.viewMode.compact', { defaultValue: 'List view' })}
+                                        title={t('agents.viewMode.compact', { defaultValue: 'Vue liste' })}
+                                        aria-label={t('agents.viewMode.compact', { defaultValue: 'Vue liste' })}
                                     >
                                         <List className="h-4 w-4" />
                                     </Button>
@@ -368,10 +368,10 @@ export const Agents: React.FC = () => {
                                                         forceSync: true,
                                                         requestedAt: new Date().toISOString(),
                                                     } as Record<string, unknown> as Partial<import('../types/agent').AgentConfig>);
-                                                    toast.success(t('agents.syncRequested', { defaultValue: 'Sync requested' }), t('agents.syncRequestedDesc', { defaultValue: 'Agent "{{name}}" will synchronize.', name: agent.name || agent.hostname }));
+                                                    toast.success(t('agents.syncRequested', { defaultValue: 'Synchronisation demandée' }), t('agents.syncRequestedDesc', { defaultValue: 'L\'agent "{{name}}" va se synchroniser.', name: agent.name || agent.hostname }));
                                                     ErrorLogger.debug(`Agent action: ${agent.id} refresh`, 'Agents');
                                                 } catch (error) {
-                                                    toast.error(t('common.error', { defaultValue: 'Error' }), t('agents.syncError', { defaultValue: 'Unable to synchronize the agent.' }));
+                                                    toast.error(t('common.error', { defaultValue: 'Erreur' }), t('agents.syncError', { defaultValue: 'Impossible de synchroniser l\'agent.' }));
                                                     ErrorLogger.error(error as Error, 'Agents.refreshAgent');
                                                 }
                                                 break;
@@ -381,7 +381,7 @@ export const Agents: React.FC = () => {
                                                 break;
                                             case 'configure':
                                                 if (!hasPermission(user, 'Asset', 'update')) {
-                                                    toast.error(t('errors.permissionDenied', { defaultValue: 'Permission denied' }));
+                                                    toast.error(t('errors.permissionDenied', { defaultValue: 'Permission refusée' }));
                                                     return;
                                                 }
                                                 setSelectedAgent(agent);
@@ -396,7 +396,7 @@ export const Agents: React.FC = () => {
                             {filteredAgents.length === 0 && !loading && !error && agents.length > 0 && (
                                 <div className="flex flex-col items-center justify-center py-12 text-center glass-premium rounded-2xl border border-dashed border-border/40">
                                     <Search className="h-10 w-10 text-muted-foreground mb-3 opacity-30" />
-                                    <p className="text-muted-foreground font-medium">{t('agents.noMatchingAgents', { defaultValue: 'No agents match your filters' })}</p>
+                                    <p className="text-muted-foreground font-medium">{t('agents.noMatchingAgents', { defaultValue: 'Aucun agent ne correspond à vos filtres' })}</p>
                                 </div>
                             )}
 
@@ -444,15 +444,15 @@ export const Agents: React.FC = () => {
                     <TabsContent value="reports" key="reports" className="mt-0">
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-semibold mb-2">{t('agents.reports.title', { defaultValue: 'Agent Reports' })}</h3>
+                            <h3 className="text-lg font-semibold mb-2">{t('agents.reports.title', { defaultValue: 'Rapports agents' })}</h3>
                             <p className="text-muted-foreground max-w-md mb-4">
-                                {t('agents.reports.description', { defaultValue: 'Generate compliance, fleet health, and software inventory reports.' })}
+                                {t('agents.reports.description', { defaultValue: 'Générez des rapports de conformité, de santé de flotte et d\'inventaire logiciel.' })}
                             </p>
                             <Button onClick={() => {
-                                toast.info(t('agents.reportComingSoon', { defaultValue: 'Feature under development' }), t('agents.reportComingSoonDesc', { defaultValue: 'Report generation will be available soon.' }));
+                                toast.info(t('agents.reportComingSoon', { defaultValue: 'Fonctionnalité en cours de développement' }), t('agents.reportComingSoonDesc', { defaultValue: 'La génération de rapports sera bientôt disponible.' }));
                                 ErrorLogger.debug('Report generation requested', 'Agents.reports');
                             }}>
-                                {t('agents.generateReport', { defaultValue: 'Generate report (coming soon)' })}
+                                {t('agents.generateReport', { defaultValue: 'Générer un rapport (bientôt disponible)' })}
                             </Button>
                         </div>
                     </TabsContent>
@@ -463,22 +463,22 @@ export const Agents: React.FC = () => {
             {deleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="bg-card rounded-2xl p-6 max-w-md mx-4 shadow-apple-xl border border-border/50">
-                        <h3 className="text-lg font-semibold mb-2">{t('agents.deleteConfirm.title', { defaultValue: 'Confirm deletion' })}</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t('agents.deleteConfirm.title', { defaultValue: 'Confirmer la suppression' })}</h3>
                         <p className="text-muted-foreground mb-4">
-                            {t('agents.deleteConfirm.message', { defaultValue: 'Delete agent "{{name}}"? This action is irreversible.', name: deleteConfirm.agent.name || deleteConfirm.agent.hostname })}
+                            {t('agents.deleteConfirm.message', { defaultValue: 'Supprimer l\'agent "{{name}}" ? Cette action est irréversible.', name: deleteConfirm.agent.name || deleteConfirm.agent.hostname })}
                         </p>
                         <div className="flex gap-3 justify-end">
-                            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>{t('common.cancel', { defaultValue: 'Cancel' })}</Button>
+                            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                             <Button variant="destructive" onClick={async () => {
                                 try {
                                     await AgentService.deleteAgent(deleteConfirm.agent.organizationId, deleteConfirm.agent.id);
-                                    toast.success(t('agents.agentDeleted', { defaultValue: 'Agent deleted' }), t('agents.agentDeletedDesc', { defaultValue: 'Agent "{{name}}" has been deleted.', name: deleteConfirm.agent.name || deleteConfirm.agent.hostname }));
+                                    toast.success(t('agents.agentDeleted', { defaultValue: 'Agent supprimé' }), t('agents.agentDeletedDesc', { defaultValue: 'L\'agent "{{name}}" a été supprimé.', name: deleteConfirm.agent.name || deleteConfirm.agent.hostname }));
                                 } catch (err) {
-                                    toast.error(t('common.error', { defaultValue: 'Error' }), t('agents.deleteError', { defaultValue: 'Unable to delete the agent.' }));
+                                    toast.error(t('common.error', { defaultValue: 'Erreur' }), t('agents.deleteError', { defaultValue: 'Impossible de supprimer l\'agent.' }));
                                     ErrorLogger.error(err as Error, 'Agents.deleteAgent');
                                 }
                                 setDeleteConfirm(null);
-                            }}>{t('common.delete', { defaultValue: 'Delete' })}</Button>
+                            }}>{t('common.delete', { defaultValue: 'Supprimer' })}</Button>
                         </div>
                     </div>
                 </div>
@@ -490,7 +490,7 @@ export const Agents: React.FC = () => {
                 onClose={handleCloseLiveView}
                 width="max-w-4xl"
                 title={selectedAgent ? (selectedAgent.name || selectedAgent.hostname || 'Agent') : 'Agent'}
-                subtitle={t('agents.liveView.subtitle', { defaultValue: 'Real-time monitoring' })}
+                subtitle={t('agents.liveView.subtitle', { defaultValue: 'Surveillance en temps réel' })}
             >
                 {selectedAgent && (
                     <AgentLiveView

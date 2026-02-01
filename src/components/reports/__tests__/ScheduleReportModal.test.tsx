@@ -180,7 +180,7 @@ describe('ScheduleReportModal', () => {
         it('renders add recipient button', () => {
             render(<ScheduleReportModal {...defaultProps} />);
 
-            expect(screen.getByText('Add recipient')).toBeInTheDocument();
+            expect(screen.getByText('Ajouter un destinataire')).toBeInTheDocument();
         });
 
         it.skip('adds recipient when button clicked', async () => {
@@ -188,7 +188,7 @@ describe('ScheduleReportModal', () => {
             render(<ScheduleReportModal {...defaultProps} />);
 
             await act(async () => {
-                const addButton = screen.getByText('Add recipient').closest('button');
+                const addButton = screen.getByText('Ajouter un destinataire').closest('button');
                 if (addButton) {
                     await user.click(addButton);
                 }
@@ -252,7 +252,7 @@ describe('ScheduleReportModal', () => {
             fireEvent.click(screen.getByText('Planifier'));
 
             await waitFor(() => {
-                expect(screen.getByText('Please add at least one recipient')).toBeInTheDocument();
+                expect(screen.getByText('Veuillez ajouter au moins un destinataire')).toBeInTheDocument();
             });
         });
 
@@ -270,7 +270,7 @@ describe('ScheduleReportModal', () => {
             fireEvent.click(screen.getByText('Planifier'));
 
             await waitFor(() => {
-                expect(screen.getByText('Invalid email address: invalid-email')).toBeInTheDocument();
+                expect(screen.getByText('Adresse email invalide : invalid-email')).toBeInTheDocument();
             });
         });
     });

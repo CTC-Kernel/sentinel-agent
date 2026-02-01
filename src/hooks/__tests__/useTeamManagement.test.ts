@@ -38,9 +38,10 @@ vi.mock('../../store', () => {
     return { useStore };
 });
 
+const stableT = (key: string) => key;
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string) => key,
+        t: stableT,
     }),
 }));
 

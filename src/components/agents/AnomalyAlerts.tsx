@@ -659,7 +659,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
             <div className={cn('space-y-4', className)}>
                 <div className="glass-premium rounded-2xl p-8 text-center border border-border/40">
                     <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">{t('agents.noAnomalies', { defaultValue: 'No anomalies detected' })}</h3>
+                    <h3 className="font-semibold mb-2">{t('agents.noAnomalies', { defaultValue: 'Aucune anomalie détectée' })}</h3>
                     <p className="text-sm text-muted-foreground">
                         Tous les agents fonctionnent normalement
                     </p>
@@ -876,10 +876,10 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                         className="glass-premium rounded-2xl p-8 text-center border border-border/40"
                     >
                         <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
-                        <h3 className="font-semibold mb-2">{t('agents.noAnomalies', { defaultValue: 'No anomalies' })}</h3>
+                        <h3 className="font-semibold mb-2">{t('agents.noAnomalies', { defaultValue: 'Aucune anomalie' })}</h3>
                         <p className="text-sm text-muted-foreground">
                             {searchTerm || statusFilter.length > 0 || severityFilter.length > 0 || typeFilter.length > 0
-                                ? t('agents.noAnomaliesMatchFilter', { defaultValue: 'No anomalies match the filters' })
+                                ? t('agents.noAnomaliesMatchFilter', { defaultValue: 'Aucune anomalie ne correspond aux filtres' })
                                 : "Tous les agents fonctionnent normalement"}
                         </p>
                     </motion.div>

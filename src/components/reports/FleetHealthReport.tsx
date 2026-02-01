@@ -356,7 +356,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                 setData(reportData);
             } catch (err) {
                 ErrorLogger.error(err, 'FleetHealthReport.fetchData');
-                setError(t('reports.loadError', { defaultValue: 'Error loading data' }));
+                setError(t('reports.loadError', { defaultValue: 'Erreur de chargement des données' }));
             } finally {
                 setLoading(false);
             }
@@ -453,7 +453,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
         return (
             <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground">{t('reports.noData', { defaultValue: 'No data available' })}</p>
+                <p className="text-sm text-muted-foreground">{t('reports.noData', { defaultValue: 'Aucune donnée disponible' })}</p>
             </div>
         );
     }

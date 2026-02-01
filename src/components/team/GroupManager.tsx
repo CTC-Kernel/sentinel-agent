@@ -17,8 +17,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const createGroupSchema = (t: (key: string, options?: { defaultValue: string }) => string) => z.object({
-    name: z.string().min(2, t('team.groups.validation.nameRequired', { defaultValue: 'Name required (min 2 characters)' })).max(100, t('team.groups.validation.nameTooLong', { defaultValue: 'Name is too long' })),
-    description: z.string().max(500, t('team.groups.validation.descriptionTooLong', { defaultValue: 'Description is too long' })).optional(),
+    name: z.string().min(2, t('team.groups.validation.nameRequired', { defaultValue: 'Nom requis (min. 2 caractères)' })).max(100, t('team.groups.validation.nameTooLong', { defaultValue: 'Le nom est trop long' })),
+    description: z.string().max(500, t('team.groups.validation.descriptionTooLong', { defaultValue: 'La description est trop longue' })).optional(),
     members: z.array(z.string()).optional()
 });
 
