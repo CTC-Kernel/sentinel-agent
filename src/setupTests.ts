@@ -147,6 +147,12 @@ vi.mock('firebase/app-check', () => ({
     getToken: vi.fn(),
 }));
 
+// Mock auto-generated config/version module (gitignored, not available in CI)
+vi.mock('./config/version', () => ({
+    BUILD_VERSION: '0.0.0-test',
+    BUILD_TIMESTAMP: '2024-01-01T00:00:00.000Z',
+}));
+
 // Mock the project's firebase module to prevent env var validation errors in CI
 vi.mock('./firebase', () => ({
     app: {},
