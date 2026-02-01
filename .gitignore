@@ -62,5 +62,4 @@ functions/*.secrets
 test-results/
 playwright-report/
 
-# Generated config
-src/config/version.ts
+# Generated config (version.ts committed with defaults, overwritten by scripts/generate-version.js at build time)
