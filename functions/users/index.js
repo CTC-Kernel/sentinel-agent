@@ -476,8 +476,10 @@ exports.transferOwnership = onCall({
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError('unauthenticated', 'User must be logged in.');
 
-    const { organizationId, newOwnerId } = request.data;
-    if (!organizationId || !newOwnerId) throw new HttpsError('invalid-argument', 'Missing parameters.');
+    const { newOwnerId } = request.data;
+    const organizationId = request.auth.token.organizationId;
+    if (!organizationId) throw new HttpsError('failed-precondition', 'Organization ID not found in token');
+    if (!newOwnerId) throw new HttpsError('invalid-argument', 'Missing parameters.');
 
     const db = admin.firestore();
     const orgRef = db.collection('organizations').doc(organizationId);

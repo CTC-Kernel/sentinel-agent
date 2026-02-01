@@ -94,17 +94,15 @@ exports.logEvent = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in to log events.');
     }
 
-    const { action, resource, details, organizationId, resourceId, metadata } = request.data;
+    const { action, resource, details, resourceId, metadata } = request.data;
+    const organizationId = request.auth.token.organizationId;
 
-    if (!action || !resource || !organizationId) {
-        throw new HttpsError('invalid-argument', 'Missing required log fields.');
+    if (!organizationId) {
+        throw new HttpsError('failed-precondition', 'Missing organization');
     }
 
-    const tokenOrgId = request.auth.token.organizationId;
-
-    if (tokenOrgId && tokenOrgId !== organizationId) {
-        logger.warn(`Security Alert: User ${request.auth.uid} attempted to log for org ${organizationId} but belongs to ${tokenOrgId}`);
-        throw new HttpsError('permission-denied', 'You can only log events for your own organization.');
+    if (!action || !resource) {
+        throw new HttpsError('invalid-argument', 'Missing required log fields.');
     }
 
     try {

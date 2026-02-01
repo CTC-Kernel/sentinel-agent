@@ -1,6 +1,7 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
 const { defineSecret } = require('firebase-functions/params');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 
@@ -16,6 +17,9 @@ exports.geminiProxy = onCall(
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
+
+    // Rate limiting: AI operations use the 'heavy' preset (5 req/min)
+    checkCallableRateLimit(request, 'heavy');
 
     const { prompt, model, maxTokens, temperature } = request.data;
     if (!prompt || typeof prompt !== 'string') {

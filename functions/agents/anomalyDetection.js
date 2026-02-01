@@ -512,16 +512,11 @@ exports.recalculateAgentBaseline = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
-    const { organizationId, agentId, window = '7d' } = request.data || {};
+    const { agentId, window = '7d' } = request.data || {};
+    const organizationId = request.auth.token.organizationId;
 
     if (!organizationId || !agentId) {
         throw new HttpsError('invalid-argument', 'organizationId and agentId are required.');
-    }
-
-    const userDoc = await db.collection('users').doc(request.auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {
@@ -717,16 +712,11 @@ exports.runAnomalyDetection = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
-    const { organizationId, agentIds } = request.data || {};
+    const { agentIds } = request.data || {};
+    const organizationId = request.auth.token.organizationId;
 
     if (!organizationId) {
         throw new HttpsError('invalid-argument', 'organizationId is required.');
-    }
-
-    const userDoc = await db.collection('users').doc(request.auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {
