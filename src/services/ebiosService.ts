@@ -18,6 +18,7 @@ import {
   limit,
   getDocs,
   onSnapshot,
+  serverTimestamp,
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -73,7 +74,6 @@ export class EbiosService {
   ): Promise<EbiosAnalysis> {
     try {
       const analysisRef = doc(collection(db, 'organizations', organizationId, 'ebiosAnalyses'));
-      const now = new Date().toISOString();
 
       const analysis: EbiosAnalysis = {
         id: analysisRef.id,
@@ -84,9 +84,9 @@ export class EbiosService {
         currentWorkshop: 1,
         workshops: createWorkshops(),
         completionPercentage: 0,
-        createdAt: now,
+        createdAt: serverTimestamp() as unknown as string,
         createdBy: userId,
-        updatedAt: now,
+        updatedAt: serverTimestamp() as unknown as string,
         updatedBy: userId,
         targetCertificationDate: data.targetCertificationDate,
         sector: data.sector,

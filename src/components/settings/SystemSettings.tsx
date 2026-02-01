@@ -360,7 +360,7 @@ export const SystemSettings: React.FC = () => {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={performDelete}
                 title={t('settings.deleteAccount')}
-                message="Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible et toutes vos données seront perdues."
+                message={t('settings.deleteAccountConfirmMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible et toutes vos données seront perdues.' })}
                 type="danger"
                 cancelText={t('common.cancel')}
                 confirmText={t('common.delete')}
@@ -370,25 +370,25 @@ export const SystemSettings: React.FC = () => {
             <Modal
                 isOpen={isReauthModalOpen}
                 onClose={() => { setIsReauthModalOpen(false); setIsDeleting(false); }}
-                title="Vérification de sécurité"
+                title={t('settings.securityVerification', { defaultValue: 'Vérification de sécurité' })}
                 maxWidth="max-w-md"
             >
                 <div className="p-6 space-y-4">
                     <p className="text-sm text-slate-500 dark:text-muted-foreground">
-                        Pour des raisons de sécurité, veuillez confirmer votre mot de passe pour continuer la suppression du compte.
+                        {t('settings.securityVerificationMessage', { defaultValue: 'Pour des raisons de sécurité, veuillez confirmer votre mot de passe pour continuer la suppression du compte.' })}
                     </p>
                     <FloatingLabelInput
-                        label="Mot de passe"
+                        label={t('common.password', { defaultValue: 'Mot de passe' })}
                         type="password"
                         value={reauthPassword}
                         onChange={(e) => setReauthPassword(e.target.value)}
                     />
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="ghost" onClick={() => setIsReauthModalOpen(false)}>
-                            Annuler
+                            {t('common.cancel', { defaultValue: 'Annuler' })}
                         </Button>
                         <Button variant="destructive" onClick={handleReauth} isLoading={isDeleting}>
-                            Confirmer la suppression
+                            {t('settings.confirmDeletion', { defaultValue: 'Confirmer la suppression' })}
                         </Button>
                     </div>
                 </div>

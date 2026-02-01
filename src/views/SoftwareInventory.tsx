@@ -50,6 +50,7 @@ import { CISBenchmarkView } from '../components/agents/CISBenchmarkView';
 import { cn } from '../utils/cn';
 import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission } from '../utils/permissions';
+import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 
 // KPI Card Component
@@ -118,28 +119,29 @@ const StatsSummary: React.FC<{
         );
     }
 
+    const { t: ti } = useTranslation();
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <KPICard
-                title="Logiciels détectés"
+                title={ti('software.stats.detected', { defaultValue: 'Detected software' })}
                 value={stats.totalSoftware}
                 icon={<Package className="h-5 w-5" />}
-                trend={stats.newThisWeek > 0 ? { value: stats.newThisWeek, label: 'cette semaine' } : undefined}
+                trend={stats.newThisWeek > 0 ? { value: stats.newThisWeek, label: ti('software.stats.thisWeek', { defaultValue: 'this week' }) } : undefined}
             />
             <KPICard
-                title="Autorisés"
+                title={ti('software.stats.authorized', { defaultValue: 'Authorized' })}
                 value={stats.byAuthorization.authorized}
                 icon={<CheckCircle className="h-5 w-5" />}
                 color="success"
             />
             <KPICard
-                title="En attente"
+                title={ti('software.stats.pending', { defaultValue: 'Pending' })}
                 value={stats.byAuthorization.pending + stats.pendingRequests}
                 icon={<Clock className="h-5 w-5" />}
                 color="warning"
             />
             <KPICard
-                title="Avec vulnérabilités"
+                title={ti('software.stats.withVulnerabilities', { defaultValue: 'With vulnerabilities' })}
                 value={stats.withVulnerabilities}
                 icon={<AlertTriangle className="h-5 w-5" />}
                 color="danger"
@@ -155,12 +157,13 @@ const RiskDistribution: React.FC<{
     const total = Object.values(byRiskLevel).reduce((a, b) => a + b, 0);
     if (total === 0) return null;
 
+    const { t: ti } = useTranslation();
     const levels: { key: RiskLevel; label: string; color: string }[] = [
-        { key: 'critical', label: 'Critique', color: 'bg-destructive' },
-        { key: 'high', label: 'Élevé', color: 'bg-orange-500' },
-        { key: 'medium', label: 'Moyen', color: 'bg-warning' },
-        { key: 'low', label: 'Faible', color: 'bg-success' },
-        { key: 'none', label: 'Aucun', color: 'bg-muted' },
+        { key: 'critical', label: ti('software.risk.critical', { defaultValue: 'Critical' }), color: 'bg-destructive' },
+        { key: 'high', label: ti('software.risk.high', { defaultValue: 'High' }), color: 'bg-orange-500' },
+        { key: 'medium', label: ti('software.risk.medium', { defaultValue: 'Medium' }), color: 'bg-warning' },
+        { key: 'low', label: ti('software.risk.low', { defaultValue: 'Low' }), color: 'bg-success' },
+        { key: 'none', label: ti('software.risk.none', { defaultValue: 'None' }), color: 'bg-muted' },
     ];
 
     return (
@@ -169,7 +172,7 @@ const RiskDistribution: React.FC<{
             className="glass-premium rounded-2xl p-4 sm:p-6 border border-border/40 shadow-sm"
         >
             <h3 className="text-sm font-medium text-muted-foreground mb-4">
-                Distribution des risques
+                {ti('software.riskDistribution', { defaultValue: 'Risk distribution' })}
             </h3>
             <div className="flex h-3 rounded-full overflow-hidden gap-0.5">
                 {levels.map(({ key, color }) => {
@@ -205,6 +208,7 @@ const FilterDropdown: React.FC<{
     onChange: (values: string[]) => void;
     icon?: React.ReactNode;
 }> = ({ label, options, selected, onChange, icon }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleOption = (value: string) => {
@@ -279,7 +283,7 @@ const FilterDropdown: React.FC<{
                                 onClick={() => onChange([])}
                                 className="w-full text-center text-sm text-muted-foreground hover:text-foreground mt-2 pt-2 border-t"
                             >
-                                Effacer les filtres
+                                {t('software.clearFilters', { defaultValue: 'Clear filters' })}
                             </button>
                         )}
                     </div>
@@ -372,7 +376,7 @@ export const SoftwareInventory: React.FC = () => {
             },
             (error) => {
                 ErrorLogger.error(error, 'SoftwareInventory.subscribeToSoftwareInventory');
-                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
+                setError(t('agents.loadError', { defaultValue: 'Error loading data' }));
                 setLoading(false);
             },
             {
@@ -460,17 +464,17 @@ export const SoftwareInventory: React.FC = () => {
     // Filter options
     const authOptions = AUTHORIZATION_STATUS.map(status => ({
         value: status,
-        label: status === 'authorized' ? 'Autorisé' :
-            status === 'pending' ? 'En attente' :
-                status === 'unauthorized' ? 'Non autorisé' : 'Bloqué'
+        label: status === 'authorized' ? t('software.auth.authorized', { defaultValue: 'Authorized' }) :
+            status === 'pending' ? t('software.auth.pending', { defaultValue: 'Pending' }) :
+                status === 'unauthorized' ? t('software.auth.unauthorized', { defaultValue: 'Unauthorized' }) : t('software.auth.blocked', { defaultValue: 'Blocked' })
     }));
 
     const riskOptions = RISK_LEVELS.map(level => ({
         value: level,
-        label: level === 'critical' ? 'Critique' :
-            level === 'high' ? 'Élevé' :
-                level === 'medium' ? 'Moyen' :
-                    level === 'low' ? 'Faible' : 'Aucun'
+        label: level === 'critical' ? t('software.risk.critical', { defaultValue: 'Critical' }) :
+            level === 'high' ? t('software.risk.high', { defaultValue: 'High' }) :
+                level === 'medium' ? t('software.risk.medium', { defaultValue: 'Medium' }) :
+                    level === 'low' ? t('software.risk.low', { defaultValue: 'Low' }) : t('software.risk.none', { defaultValue: 'None' })
     }));
 
     const categoryOptions = SOFTWARE_CATEGORIES.map(cat => ({
@@ -481,7 +485,7 @@ export const SoftwareInventory: React.FC = () => {
     // Permission gate
     const canRead = hasPermission(user, 'Agent', 'read');
     if (!canRead) {
-        return <div className="p-8 text-center text-muted-foreground">{t('common.accessDenied', { defaultValue: 'Accès refusé' })}</div>;
+        return <div className="p-8 text-center text-muted-foreground">{t('common.accessDenied', { defaultValue: 'Access denied' })}</div>;
     }
 
     if (loading && !stats) {
@@ -498,7 +502,7 @@ export const SoftwareInventory: React.FC = () => {
                 <AlertTriangle className="h-12 w-12 text-destructive" />
                 <p className="text-lg font-medium">{error}</p>
                 <Button onClick={() => { setError(null); setLoading(true); setRetryCount(c => c + 1); }} variant="outline">
-                    {t('common.retry', { defaultValue: 'Reessayer' })}
+                    {t('common.retry', { defaultValue: 'Retry' })}
                 </Button>
             </div>
         );
@@ -514,8 +518,8 @@ export const SoftwareInventory: React.FC = () => {
             >
                 {/* Header */}
                 <PageHeader
-                    title="Inventaire Logiciels"
-                    subtitle="Cartographie logicielle et conformité CIS Benchmarks"
+                    title={t('software.title', { defaultValue: 'Software Inventory' })}
+                    subtitle={t('software.subtitle', { defaultValue: 'Software mapping and CIS Benchmarks compliance' })}
                     icon={
                         <img
                             src="/images/IA.png"
@@ -532,7 +536,7 @@ export const SoftwareInventory: React.FC = () => {
                                 className="gap-2"
                             >
                                 <RefreshCw className="h-4 w-4" />
-                                <span className="hidden sm:inline">Actualiser</span>
+                                <span className="hidden sm:inline">{t('common.refresh', { defaultValue: 'Refresh' })}</span>
                             </Button>
                             <Button
                                 variant="outline"
@@ -564,7 +568,7 @@ export const SoftwareInventory: React.FC = () => {
                                 }}
                             >
                                 <Download className="h-4 w-4" />
-                                <span className="hidden sm:inline">Exporter</span>
+                                <span className="hidden sm:inline">{t('common.export', { defaultValue: 'Export' })}</span>
                             </Button>
                         </div>
                     }
@@ -595,7 +599,7 @@ export const SoftwareInventory: React.FC = () => {
                         )}
                     >
                         <Package className="h-4 w-4 inline-block mr-2" />
-                        Inventaire ({filteredSoftware.length})
+                        {t('software.tabs.inventory', { defaultValue: 'Inventory' })} ({filteredSoftware.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('cis')}
@@ -620,7 +624,7 @@ export const SoftwareInventory: React.FC = () => {
                         <div className="relative flex-1 max-w-md">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder={activeTab === 'inventory' ? "Rechercher un logiciel..." : "Rechercher un agent..."}
+                                placeholder={activeTab === 'inventory' ? t('software.searchSoftware', { defaultValue: 'Search software...' }) : t('software.searchAgent', { defaultValue: 'Search agent...' })}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9"
@@ -630,21 +634,21 @@ export const SoftwareInventory: React.FC = () => {
                         {activeTab === 'inventory' && (
                             <div className="flex items-center gap-2 flex-wrap">
                                 <FilterDropdown
-                                    label="Statut"
+                                    label={t('software.filter.status', { defaultValue: 'Status' })}
                                     options={authOptions}
                                     selected={authFilters}
                                     onChange={(values) => setAuthFilters(values as AuthorizationStatus[])}
                                     icon={<CheckCircle className="h-4 w-4" />}
                                 />
                                 <FilterDropdown
-                                    label="Risque"
+                                    label={t('software.filter.risk', { defaultValue: 'Risk' })}
                                     options={riskOptions}
                                     selected={riskFilters}
                                     onChange={(values) => setRiskFilters(values as RiskLevel[])}
                                     icon={<AlertTriangle className="h-4 w-4" />}
                                 />
                                 <FilterDropdown
-                                    label="Catégorie"
+                                    label={t('software.filter.category', { defaultValue: 'Category' })}
                                     options={categoryOptions}
                                     selected={categoryFilters}
                                     onChange={(values) => setCategoryFilters(values as SoftwareCategory[])}
@@ -657,7 +661,7 @@ export const SoftwareInventory: React.FC = () => {
                                     className="gap-2"
                                 >
                                     <XCircle className="h-4 w-4" />
-                                    {t('software.filter.vulnerable', { defaultValue: 'Vulnérables' })}
+                                    {t('software.filter.vulnerable', { defaultValue: 'Vulnerable' })}
                                 </Button>
                             </div>
                         )}
@@ -672,19 +676,19 @@ export const SoftwareInventory: React.FC = () => {
                                     size="sm"
                                     onClick={() => setDisplayMode('software')}
                                     className="h-8 px-3 text-xs gap-2"
-                                    title="Vue par logiciel"
-                                    aria-label={t('software.displayMode.software', { defaultValue: 'Vue par logiciel' })}
+                                    title={t('software.displayMode.software', { defaultValue: 'Software view' })}
+                                    aria-label={t('software.displayMode.software', { defaultValue: 'Software view' })}
                                 >
                                     <Package className="h-3.5 w-3.5" />
-                                    {t('software.displayMode.softwareLabel', { defaultValue: 'Logiciels' })}
+                                    {t('software.displayMode.softwareLabel', { defaultValue: 'Software' })}
                                 </Button>
                                 <Button
                                     variant={displayMode === 'agent' ? 'default' : 'ghost'}
                                     size="sm"
                                     onClick={() => setDisplayMode('agent')}
                                     className="h-8 px-3 text-xs gap-2"
-                                    title="Vue par agent"
-                                    aria-label={t('software.displayMode.agent', { defaultValue: 'Vue par agent' })}
+                                    title={t('software.displayMode.agent', { defaultValue: 'Agent view' })}
+                                    aria-label={t('software.displayMode.agent', { defaultValue: 'Agent view' })}
                                 >
                                     <Users className="h-3.5 w-3.5" />
                                     {t('software.displayMode.agentLabel', { defaultValue: 'Agents' })}
@@ -698,8 +702,8 @@ export const SoftwareInventory: React.FC = () => {
                                 size="sm"
                                 onClick={() => setViewMode('table')}
                                 className="h-8 w-8 p-0"
-                                title="Vue tableau"
-                                aria-label={t('software.viewMode.table', { defaultValue: 'Vue tableau' })}
+                                title={t('software.viewMode.table', { defaultValue: 'Table view' })}
+                                aria-label={t('software.viewMode.table', { defaultValue: 'Table view' })}
                             >
                                 <List className="h-4 w-4" />
                             </Button>
@@ -708,8 +712,8 @@ export const SoftwareInventory: React.FC = () => {
                                 size="sm"
                                 onClick={() => setViewMode('grid')}
                                 className="h-8 w-8 p-0"
-                                title="Vue grille"
-                                aria-label={t('software.viewMode.grid', { defaultValue: 'Vue grille' })}
+                                title={t('software.viewMode.grid', { defaultValue: 'Grid view' })}
+                                aria-label={t('software.viewMode.grid', { defaultValue: 'Grid view' })}
                             >
                                 <LayoutGrid className="h-4 w-4" />
                             </Button>
@@ -753,7 +757,7 @@ export const SoftwareInventory: React.FC = () => {
                 isOpen={isDrawerOpen}
                 onClose={handleDrawerClose}
                 width="max-w-2xl"
-                title={selectedSoftware?.name || 'Logiciel'}
+                title={selectedSoftware?.name || t('software.defaultTitle', { defaultValue: 'Software' })}
                 subtitle={selectedSoftware?.vendor}
             >
                 {selectedSoftware && (
@@ -761,30 +765,30 @@ export const SoftwareInventory: React.FC = () => {
                         {/* Basic Info */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-medium">Informations générales</h3>
+                                <h3 className="font-medium">{t('software.detail.generalInfo', { defaultValue: 'General information' })}</h3>
                                 <Badge className={getAuthorizationColor(selectedSoftware.authorizationStatus)}>
-                                    {selectedSoftware.authorizationStatus === 'authorized' ? 'Autorisé' :
-                                        selectedSoftware.authorizationStatus === 'pending' ? 'En attente' :
-                                            selectedSoftware.authorizationStatus === 'unauthorized' ? 'Non autorisé' : 'Bloqué'}
+                                    {selectedSoftware.authorizationStatus === 'authorized' ? t('software.auth.authorized', { defaultValue: 'Authorized' }) :
+                                        selectedSoftware.authorizationStatus === 'pending' ? t('software.auth.pending', { defaultValue: 'Pending' }) :
+                                            selectedSoftware.authorizationStatus === 'unauthorized' ? t('software.auth.unauthorized', { defaultValue: 'Unauthorized' }) : t('software.auth.blocked', { defaultValue: 'Blocked' })}
                                 </Badge>
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <p className="text-muted-foreground">Catégorie</p>
+                                    <p className="text-muted-foreground">{t('software.detail.category', { defaultValue: 'Category' })}</p>
                                     <p className="font-medium">{formatCategoryLabel(selectedSoftware.category)}</p>
                                 </div>
                                 <div>
-                                    <p className="text-muted-foreground">Agents affectés</p>
+                                    <p className="text-muted-foreground">{t('software.detail.affectedAgents', { defaultValue: 'Affected agents' })}</p>
                                     <p className="font-medium">{selectedSoftware.agentCount}</p>
                                 </div>
                                 <div>
-                                    <p className="text-muted-foreground">Score de risque</p>
+                                    <p className="text-muted-foreground">{t('software.detail.riskScore', { defaultValue: 'Risk score' })}</p>
                                     <p className={cn('font-medium', getRiskLevelColor(selectedSoftware.riskLevel))}>
                                         {selectedSoftware.riskScore}/100
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-muted-foreground">Première détection</p>
+                                    <p className="text-muted-foreground">{t('software.detail.firstDetected', { defaultValue: 'First detected' })}</p>
                                     <p className="font-medium">
                                         {selectedSoftware.firstDiscovered ? new Date(selectedSoftware.firstDiscovered).toLocaleDateString('fr-FR') : '-'}
                                     </p>
@@ -794,7 +798,7 @@ export const SoftwareInventory: React.FC = () => {
 
                         {/* Versions */}
                         <div className="space-y-4">
-                            <h3 className="font-medium">Versions installées</h3>
+                            <h3 className="font-medium">{t('software.detail.installedVersions', { defaultValue: 'Installed versions' })}</h3>
                             <div className="space-y-2">
                                 {selectedSoftware.versions.map((version, idx) => (
                                     <div
@@ -808,12 +812,12 @@ export const SoftwareInventory: React.FC = () => {
                                             <span className="font-mono text-sm">{version.version}</span>
                                             {version.isLatest && (
                                                 <Badge variant="outline" className="text-success">
-                                                    Dernière
+                                                    {t('software.detail.latest', { defaultValue: 'Latest' })}
                                                 </Badge>
                                             )}
                                             {version.isOutdated && (
                                                 <Badge variant="outline" className="text-warning">
-                                                    Obsolète
+                                                    {t('software.detail.outdated', { defaultValue: 'Outdated' })}
                                                 </Badge>
                                             )}
                                         </div>
@@ -828,31 +832,31 @@ export const SoftwareInventory: React.FC = () => {
                         {/* Vulnerabilities */}
                         {selectedSoftware.hasVulnerabilities && (
                             <div className="space-y-4">
-                                <h3 className="font-medium text-destructive">Vulnérabilités</h3>
+                                <h3 className="font-medium text-destructive">{t('software.detail.vulnerabilities', { defaultValue: 'Vulnerabilities' })}</h3>
                                 <div className="grid grid-cols-4 gap-2">
                                     <div className="p-3 rounded-lg bg-destructive/10 text-center">
                                         <p className="text-2xl font-bold text-destructive">
                                             {selectedSoftware.vulnerabilitySummary.critical}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">Critiques</p>
+                                        <p className="text-xs text-muted-foreground">{t('software.vuln.critical', { defaultValue: 'Critical' })}</p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-orange-500/10 text-center">
                                         <p className="text-2xl font-bold text-orange-500">
                                             {selectedSoftware.vulnerabilitySummary.high}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">Élevées</p>
+                                        <p className="text-xs text-muted-foreground">{t('software.vuln.high', { defaultValue: 'High' })}</p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-warning/10 text-center">
                                         <p className="text-2xl font-bold text-warning">
                                             {selectedSoftware.vulnerabilitySummary.medium}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">Moyennes</p>
+                                        <p className="text-xs text-muted-foreground">{t('software.vuln.medium', { defaultValue: 'Medium' })}</p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-success/10 text-center">
                                         <p className="text-2xl font-bold text-success">
                                             {selectedSoftware.vulnerabilitySummary.low}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">Faibles</p>
+                                        <p className="text-xs text-muted-foreground">{t('software.vuln.low', { defaultValue: 'Low' })}</p>
                                     </div>
                                 </div>
                                 {selectedSoftware.linkedCveIds.length > 0 && (
@@ -864,7 +868,7 @@ export const SoftwareInventory: React.FC = () => {
                                         ))}
                                         {selectedSoftware.linkedCveIds.length > 5 && (
                                             <Badge variant="outline">
-                                                +{selectedSoftware.linkedCveIds.length - 5} autres
+                                                +{selectedSoftware.linkedCveIds.length - 5} {t('software.detail.more', { defaultValue: 'more' })}
                                             </Badge>
                                         )}
                                     </div>
@@ -886,11 +890,11 @@ export const SoftwareInventory: React.FC = () => {
                                                 setAuthorizingId(selectedSoftware.id);
                                                 try {
                                                     await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'authorized', user.uid);
-                                                    toast.success(t('software.authorized', { defaultValue: 'Logiciel autorisé' }), t('software.authorizedDesc', { defaultValue: `"${selectedSoftware.name}" a été autorisé. Il apparaîtra désormais comme conforme dans l'inventaire.` }));
+                                                    toast.success(t('software.authorized', { defaultValue: 'Software authorized' }), t('software.authorizedDesc', { defaultValue: '"{{name}}" has been authorized. It will now appear as compliant in the inventory.', name: selectedSoftware.name }));
                                                     setSelectedSoftware(null);
                                                     setIsDrawerOpen(false);
                                                 } catch (err) {
-                                                    toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
+                                                    toast.error(t('errors.error', { defaultValue: 'Error' }), t('software.authorizationChangeFailed', { defaultValue: 'Unable to change the authorization status.' }));
                                                     ErrorLogger.error(err, 'SoftwareInventory.authorize');
                                                 } finally {
                                                     setAuthorizingId(null);
@@ -902,7 +906,7 @@ export const SoftwareInventory: React.FC = () => {
                                             ) : (
                                                 <CheckCircle className="h-4 w-4" />
                                             )}
-                                            Autoriser
+                                            {t('software.actions.authorize', { defaultValue: 'Authorize' })}
                                         </Button>
                                         <Button
                                             variant="destructive"
@@ -913,11 +917,11 @@ export const SoftwareInventory: React.FC = () => {
                                                 setAuthorizingId(selectedSoftware.id);
                                                 try {
                                                     await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'blocked', user.uid);
-                                                    toast.success(t('software.blocked', { defaultValue: 'Logiciel bloqué' }), t('software.blockedDesc', { defaultValue: `"${selectedSoftware.name}" a été bloqué. Les agents concernés seront notifiés.` }));
+                                                    toast.success(t('software.blocked', { defaultValue: 'Software blocked' }), t('software.blockedDesc', { defaultValue: '"{{name}}" has been blocked. Affected agents will be notified.', name: selectedSoftware.name }));
                                                     setSelectedSoftware(null);
                                                     setIsDrawerOpen(false);
                                                 } catch (err) {
-                                                    toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
+                                                    toast.error(t('errors.error', { defaultValue: 'Error' }), t('software.authorizationChangeFailed', { defaultValue: 'Unable to change the authorization status.' }));
                                                     ErrorLogger.error(err, 'SoftwareInventory.block');
                                                 } finally {
                                                     setAuthorizingId(null);
@@ -929,7 +933,7 @@ export const SoftwareInventory: React.FC = () => {
                                             ) : (
                                                 <XCircle className="h-4 w-4" />
                                             )}
-                                            Bloquer
+                                            {t('software.actions.block', { defaultValue: 'Block' })}
                                         </Button>
                                     </>
                                 )}
@@ -943,11 +947,11 @@ export const SoftwareInventory: React.FC = () => {
                                             setAuthorizingId(selectedSoftware.id);
                                             try {
                                                 await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'pending', user.uid);
-                                                toast.success(t('software.revoked', { defaultValue: 'Autorisation révoquée' }), t('software.revokedDesc', { defaultValue: `L'autorisation de "${selectedSoftware.name}" a été révoquée. Le logiciel repasse en attente de validation.` }));
+                                                toast.success(t('software.revoked', { defaultValue: 'Authorization revoked' }), t('software.revokedDesc', { defaultValue: 'Authorization for "{{name}}" has been revoked. The software is now pending validation.', name: selectedSoftware.name }));
                                                 setSelectedSoftware(null);
                                                 setIsDrawerOpen(false);
                                             } catch (err) {
-                                                toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
+                                                toast.error(t('errors.error', { defaultValue: 'Error' }), t('software.authorizationChangeFailed', { defaultValue: 'Unable to change the authorization status.' }));
                                                 ErrorLogger.error(err, 'SoftwareInventory.revoke');
                                             } finally {
                                                 setAuthorizingId(null);
@@ -959,7 +963,7 @@ export const SoftwareInventory: React.FC = () => {
                                         ) : (
                                             <XCircle className="h-4 w-4" />
                                         )}
-                                        Révoquer l'autorisation
+                                        {t('software.actions.revokeAuth', { defaultValue: 'Revoke authorization' })}
                                     </Button>
                                 )}
                                 {selectedSoftware.authorizationStatus === 'blocked' && (
@@ -972,11 +976,11 @@ export const SoftwareInventory: React.FC = () => {
                                             setAuthorizingId(selectedSoftware.id);
                                             try {
                                                 await SoftwareInventoryService.updateAuthorizationStatus(user.organizationId, selectedSoftware.id, 'pending', user.uid);
-                                                toast.success(t('software.unblocked', { defaultValue: 'Logiciel débloqué' }), t('software.unblockedDesc', { defaultValue: `"${selectedSoftware.name}" a été débloqué. Le logiciel repasse en attente de validation.` }));
+                                                toast.success(t('software.unblocked', { defaultValue: 'Software unblocked' }), t('software.unblockedDesc', { defaultValue: '"{{name}}" has been unblocked. The software is now pending validation.', name: selectedSoftware.name }));
                                                 setSelectedSoftware(null);
                                                 setIsDrawerOpen(false);
                                             } catch (err) {
-                                                toast.error(t('errors.error', { defaultValue: 'Erreur' }), t('software.authorizationChangeFailed', { defaultValue: "Impossible de modifier le statut d'autorisation." }));
+                                                toast.error(t('errors.error', { defaultValue: 'Error' }), t('software.authorizationChangeFailed', { defaultValue: 'Unable to change the authorization status.' }));
                                                 ErrorLogger.error(err, 'SoftwareInventory.unblock');
                                             } finally {
                                                 setAuthorizingId(null);
@@ -988,7 +992,7 @@ export const SoftwareInventory: React.FC = () => {
                                         ) : (
                                             <CheckCircle className="h-4 w-4" />
                                         )}
-                                        Débloquer
+                                        {t('software.actions.unblock', { defaultValue: 'Unblock' })}
                                     </Button>
                                 )}
                             </div>

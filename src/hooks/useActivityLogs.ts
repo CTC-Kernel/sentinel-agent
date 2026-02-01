@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { collection, query, where, orderBy, limit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { SystemLog } from '../types';
@@ -18,7 +19,8 @@ function safeTimestamp(ts: unknown): string {
 }
 
 export const useActivityLogs = (limitCount: number = 50) => {
-    const { user, t } = useStore();
+    const { user } = useStore();
+    const { t } = useTranslation();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [loading, setLoading] = useState(true);
     const lastDocRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
@@ -148,7 +150,7 @@ export const useActivityLogs = (limitCount: number = 50) => {
             setHasMore(snapshot.docs.length === limitCount);
 
         } catch {
-            toast.error(t('activityLogs.toast.loadError', { defaultValue: 'Impossible de charger le journal d\'activité' }));
+            toast.error(t('activityLogs.toast.loadError', { defaultValue: 'Unable to load activity log' }));
         } finally {
             setLoading(false);
         }
@@ -173,7 +175,15 @@ export const useActivityLogs = (limitCount: number = 50) => {
     const exportLogs = () => {
         if (!filteredLogs.length) return;
 
-        const headers = ['Date', 'Utilisateur', 'Action', 'Ressource', 'Détails', 'IP', 'Sévérité'];
+        const headers = [
+            t('activityLogs.export.date', { defaultValue: 'Date' }),
+            t('activityLogs.export.user', { defaultValue: 'User' }),
+            t('activityLogs.export.action', { defaultValue: 'Action' }),
+            t('activityLogs.export.resource', { defaultValue: 'Resource' }),
+            t('activityLogs.export.details', { defaultValue: 'Details' }),
+            t('activityLogs.export.ip', { defaultValue: 'IP' }),
+            t('activityLogs.export.severity', { defaultValue: 'Severity' }),
+        ];
         const csvContent = [
             headers.join(','),
             ...filteredLogs.map(log => {

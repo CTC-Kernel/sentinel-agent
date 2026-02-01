@@ -91,7 +91,7 @@ export function ConfigurableDashboard({
       if (!widgetConfig) return;
 
       const newWidget: WidgetLayout = {
-        id: `${widgetId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: crypto.randomUUID(),
         widgetId,
         colSpan: widgetConfig.defaultColSpan,
       };

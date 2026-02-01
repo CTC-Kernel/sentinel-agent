@@ -155,7 +155,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(success).toBe(false);
-            expect(toast.error).toHaveBeenCalledWith('errors.updateFailed');
+            expect(toast.error).toHaveBeenCalledWith('Error during update');
         });
     });
 
@@ -168,7 +168,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(updateDoc).toHaveBeenCalled();
-            expect(toast.success).toHaveBeenCalledWith('compliance.statusUpdated.implemented');
+            expect(toast.success).toHaveBeenCalledWith('Status updated. Next step: add evidence.');
         });
     });
 
@@ -181,7 +181,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(updateDoc).toHaveBeenCalled();
-            expect(toast.success).toHaveBeenCalledWith('compliance.assigneeAssigned');
+            expect(toast.success).toHaveBeenCalledWith('Assignee assigned');
         });
     });
 
@@ -200,7 +200,7 @@ describe('useComplianceActions', () => {
             });
 
             expect(riskId).toBe('new-doc-id');
-            expect(toast.success).toHaveBeenCalledWith('compliance.riskCreated');
+            expect(toast.success).toHaveBeenCalledWith('Risk created successfully');
         });
     });
 

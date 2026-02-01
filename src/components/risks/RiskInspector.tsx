@@ -361,10 +361,10 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                 isOpen={confirmClose}
                 onClose={() => setConfirmClose(false)}
                 onConfirm={handleConfirmStatusChange}
-                title="Clôturer le risque ?"
-                message="Êtes-vous sûr de vouloir considérer ce risque comme traité (Fermé) ? Assurez-vous que tous les contrôles nécessaires sont en place."
-                confirmText="Oui, fermer le risque"
-                cancelText="Annuler"
+                title={t('risks.closeRiskTitle', { defaultValue: 'Clôturer le risque ?' })}
+                message={t('risks.closeRiskMessage', { defaultValue: 'Êtes-vous sûr de vouloir considérer ce risque comme traité (Fermé) ? Assurez-vous que tous les contrôles nécessaires sont en place.' })}
+                confirmText={t('risks.closeRiskConfirm', { defaultValue: 'Oui, fermer le risque' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
                 type="info"
             />
         </InspectorLayout >

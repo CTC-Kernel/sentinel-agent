@@ -8,12 +8,12 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   WebAuthnService,
   StoredCredential,
 } from '../services/webAuthnService';
 import { ErrorLogger } from '../services/errorLogger';
-import { useStore } from '../store';
 
 interface UseWebAuthnReturn {
   /** Whether WebAuthn is supported in this browser */
@@ -55,7 +55,7 @@ interface UseWebAuthnReturn {
  * Hook for WebAuthn/Passkey functionality
  */
 export function useWebAuthn(): UseWebAuthnReturn {
-  const { t } = useStore();
+  const { t } = useTranslation();
   const [isSupported, setIsSupported] = useState(false);
   const [isPlatformAvailable, setIsPlatformAvailable] = useState(false);
   const [isAutofillAvailable, setIsAutofillAvailable] = useState(false);
@@ -117,7 +117,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
     authenticatorType: 'platform' | 'cross-platform' = 'platform'
   ): Promise<{ success: boolean; credentialId?: string; error?: string }> => {
     if (!isSupported) {
-      return { success: false, error: t('webauthn.notSupported', { defaultValue: 'WebAuthn n\'est pas support\u00e9 par ce navigateur' }) };
+      return { success: false, error: t('auth.webauthn.notSupported', { defaultValue: 'WebAuthn is not supported by this browser' }) };
     }
 
     setIsLoading(true);
@@ -158,7 +158,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
       }) as PublicKeyCredential;
 
       if (!credential) {
-        const msg = t('webauthn.creationCancelled', { defaultValue: 'Cr\u00e9ation annul\u00e9e' });
+        const msg = t('auth.webauthn.creationCancelled', { defaultValue: 'Creation cancelled' });
         setError(msg);
         return { success: false, error: msg };
       }
@@ -174,28 +174,28 @@ export function useWebAuthn(): UseWebAuthnReturn {
       if (result.success) {
         await refreshCredentials(userId);
       } else {
-        setError(result.error || t('webauthn.verificationError', { defaultValue: 'Erreur de v\u00e9rification' }));
+        setError(result.error || t('auth.webauthn.verificationError', { defaultValue: 'Verification error' }));
       }
 
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t('webauthn.unknownError', { defaultValue: 'Erreur inconnue' });
+      const errorMessage = err instanceof Error ? err.message : t('auth.webauthn.unknownError', { defaultValue: 'Unknown error' });
 
       // Handle specific WebAuthn errors
       if (err instanceof DOMException) {
         if (err.name === 'NotAllowedError') {
-          const msg = t('webauthn.operationCancelled', { defaultValue: 'Op\u00e9ration annul\u00e9e' });
-          setError(t('webauthn.operationCancelledOrDenied', { defaultValue: 'Op\u00e9ration annul\u00e9e ou refus\u00e9e par l\'utilisateur' }));
+          const msg = t('auth.webauthn.operationCancelled', { defaultValue: 'Operation cancelled' });
+          setError(t('auth.webauthn.operationCancelledOrDenied', { defaultValue: 'Operation cancelled or denied by the user' }));
           return { success: false, error: msg };
         }
         if (err.name === 'InvalidStateError') {
-          const msg = t('webauthn.deviceAlreadyRegistered', { defaultValue: 'Appareil d\u00e9j\u00e0 enregistr\u00e9' });
+          const msg = t('auth.webauthn.deviceAlreadyRegistered', { defaultValue: 'Device already registered' });
           setError(msg);
           return { success: false, error: msg };
         }
         if (err.name === 'NotSupportedError') {
-          const msg = t('webauthn.authenticatorNotSupported', { defaultValue: 'Authentificateur non support\u00e9' });
-          setError(t('webauthn.noCompatibleAuthenticator', { defaultValue: 'Aucun authentificateur compatible trouv\u00e9' }));
+          const msg = t('auth.webauthn.authenticatorNotSupported', { defaultValue: 'Authenticator not supported' });
+          setError(t('auth.webauthn.noCompatibleAuthenticator', { defaultValue: 'No compatible authenticator found' }));
           return { success: false, error: msg };
         }
       }
@@ -215,7 +215,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
     userId: string
   ): Promise<{ success: boolean; error?: string }> => {
     if (!isSupported) {
-      return { success: false, error: 'WebAuthn n\'est pas supporté par ce navigateur' };
+      return { success: false, error: t('auth.webauthn.notSupported', { defaultValue: 'WebAuthn is not supported by this browser' }) };
     }
 
     setIsLoading(true);
@@ -226,8 +226,8 @@ export function useWebAuthn(): UseWebAuthnReturn {
       const options = await WebAuthnService.generateAuthenticationOptions(userId);
 
       if (!options) {
-        setError('Aucun passkey enregistré pour cet utilisateur');
-        return { success: false, error: 'Aucun passkey enregistré' };
+        setError(t('auth.webauthn.noPasskeyForUser', { defaultValue: 'No passkey registered for this user' }));
+        return { success: false, error: t('auth.webauthn.noPasskey', { defaultValue: 'No passkey registered' }) };
       }
 
       // Convert options for browser API
@@ -248,30 +248,30 @@ export function useWebAuthn(): UseWebAuthnReturn {
       }) as PublicKeyCredential;
 
       if (!credential) {
-        setError('Authentification annulée');
-        return { success: false, error: 'Authentification annulée' };
+        setError(t('auth.webauthn.authCancelled', { defaultValue: 'Authentication cancelled' }));
+        return { success: false, error: t('auth.webauthn.authCancelled', { defaultValue: 'Authentication cancelled' }) };
       }
 
       // Verify
       const result = await WebAuthnService.verifyAuthentication(userId, credential);
 
       if (!result.success) {
-        setError(result.error || 'Erreur de vérification');
+        setError(result.error || t('auth.webauthn.verificationError', { defaultValue: 'Verification error' }));
       }
 
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+      const errorMessage = err instanceof Error ? err.message : t('auth.webauthn.unknownError', { defaultValue: 'Unknown error' });
 
       // Handle specific WebAuthn errors
       if (err instanceof DOMException) {
         if (err.name === 'NotAllowedError') {
-          setError('Authentification annulée ou refusée');
-          return { success: false, error: 'Authentification annulée' };
+          setError(t('auth.webauthn.authCancelledOrDenied', { defaultValue: 'Authentication cancelled or denied' }));
+          return { success: false, error: t('auth.webauthn.authCancelled', { defaultValue: 'Authentication cancelled' }) };
         }
         if (err.name === 'SecurityError') {
-          setError('Erreur de sécurité - vérifiez que vous êtes sur le bon domaine');
-          return { success: false, error: 'Erreur de sécurité' };
+          setError(t('auth.webauthn.securityError', { defaultValue: 'Security error - verify you are on the correct domain' }));
+          return { success: false, error: t('auth.webauthn.securityErrorShort', { defaultValue: 'Security error' }) };
         }
       }
 
@@ -281,7 +281,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported]);
+  }, [isSupported, t]);
 
   /**
    * Delete a credential

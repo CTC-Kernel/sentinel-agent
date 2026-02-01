@@ -103,7 +103,7 @@ const Team: React.FC = () => {
         const success = await inviteUser(data);
         if (success) {
             setInviteSuccess(data.email);
-            addToast(t('team.invite.success', { defaultValue: 'Invitation envoyée à {{email}}', email: data.email }), 'success');
+            addToast(t('team.invite.success', { defaultValue: 'Invitation sent to {{email}}', email: data.email }), 'success');
             inviteForm.reset({ role: 'user', displayName: '', email: '', department: '' });
         }
     }, [inviteUser, addToast, t, inviteForm]);
@@ -123,7 +123,7 @@ const Team: React.FC = () => {
         if (!selectedUser) return;
         const success = await updateUser(selectedUser.uid, data, !!selectedUser.isPending);
         if (success) {
-            addToast(t('team.userUpdated', { defaultValue: '{{name}} mis à jour avec succès', name: selectedUser.displayName || selectedUser.email }), 'success');
+            addToast(t('team.userUpdated', { defaultValue: '{{name}} updated successfully', name: selectedUser.displayName || selectedUser.email }), 'success');
             setShowEditModal(false);
         }
     }, [selectedUser, updateUser, addToast, t]);
@@ -135,8 +135,8 @@ const Team: React.FC = () => {
                 if (dependencies.length > 0) {
                     setConfirmData({
                         isOpen: true,
-                        title: t('team.delete.cannotDelete', { defaultValue: 'Impossible de supprimer' }),
-                        message: t('team.delete.hasDependenciesDetailed', { defaultValue: 'Cet utilisateur possède des éléments liés : {{dependencies}}. Veuillez réassigner ces éléments à un autre membre depuis les modules concernés (Actifs, Risques, Documents) avant de pouvoir supprimer ce compte.', dependencies: dependencies.join(', ') }),
+                        title: t('team.delete.cannotDelete', { defaultValue: 'Cannot delete' }),
+                        message: t('team.delete.hasDependenciesDetailed', { defaultValue: 'This user has linked items: {{dependencies}}. Please reassign these items to another member from the relevant modules (Assets, Risks, Documents) before deleting this account.', dependencies: dependencies.join(', ') }),
                         onConfirm: () => setConfirmData(prev => ({ ...prev, isOpen: false }))
                     });
                     return;
@@ -153,7 +153,7 @@ const Team: React.FC = () => {
                 }
             });
         } catch {
-            addToast(t('team.delete.error', { defaultValue: "Erreur lors de la préparation de la suppression." }), 'error');
+            addToast(t('team.delete.error', { defaultValue: 'Error preparing deletion.' }), 'error');
         }
     }, [checkDependencies, t, deleteUser, addToast]);
 
@@ -271,13 +271,13 @@ const Team: React.FC = () => {
                             <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-success-text' : activityRate >= 50 ? 'text-brand-600 dark:text-brand-400' : 'text-warning-text'}`}>
                                 {Math.round(activityRate)}%
                             </span>
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Actifs</span>
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">{t('team.stats.activeLabel', { defaultValue: 'Active' })}</span>
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">Vue d'ensemble</h2>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">{t('team.overview', { defaultValue: 'Overview' })}</h2>
                         <p className="text-sm font-medium text-slate-500 dark:text-slate-300 max-w-xs leading-relaxed">
-                            {users.length} comptes gérés sur votre organisation.
+                            {t('team.accountsManaged', { defaultValue: '{{count}} accounts managed in your organization.', count: users.length })}
                         </p>
                     </div>
                 </div>
@@ -403,7 +403,7 @@ const Team: React.FC = () => {
                             <div className="col-span-full mb-4">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
                                     <UserPlus className="h-5 w-5 mr-2 text-brand-500" />
-                                    {t('team.joinRequests.title', { defaultValue: "Demandes d'accès" })} ({joinRequests.length})
+                                    {t('team.joinRequests.title', { defaultValue: 'Access requests' })} ({joinRequests.length})
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {joinRequests.map(req => (
@@ -415,7 +415,7 @@ const Team: React.FC = () => {
                         ) : (
                             <div className="col-span-full mb-4">
                                 <p className="text-sm text-muted-foreground text-center py-4">
-                                    {t('team.joinRequests.empty', { defaultValue: "Aucune demande d'accès en attente." })}
+                                    {t('team.joinRequests.empty', { defaultValue: 'No pending access requests.' })}
                                 </p>
                             </div>
                         )}
@@ -503,15 +503,15 @@ const Team: React.FC = () => {
                     </div>
                     {inviteSuccess && (
                         <div className="p-4 bg-success-bg border border-success-border/30 rounded-2xl text-success-text text-sm font-medium">
-                            {t('team.invite.successMessage', { defaultValue: 'Invitation envoyée à {{email}} !', email: inviteSuccess })}
+                            {t('team.invite.successMessage', { defaultValue: 'Invitation sent to {{email}}!', email: inviteSuccess })}
                         </div>
                     )}
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-white/5">
                         {inviteSuccess ? (
                             <>
-                                <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.invite.done', { defaultValue: 'Terminé' })}</Button>
+                                <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.invite.done', { defaultValue: 'Done' })}</Button>
                                 <Button type="button" onClick={() => setInviteSuccess(null)} className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">
-                                    <Plus className="h-4 w-4 mr-2" />{t('team.invite.inviteAnother', { defaultValue: 'Inviter un autre' })}
+                                    <Plus className="h-4 w-4 mr-2" />{t('team.invite.inviteAnother', { defaultValue: 'Invite another' })}
                                 </Button>
                             </>
                         ) : (

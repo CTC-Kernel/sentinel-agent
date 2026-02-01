@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const profileSchema = z.object({
     displayName: z.string().trim().min(1, 'Display name is required').max(100, 'Name is too long'),
     department: z.string().trim().max(100, 'Department is too long').optional(),
-    role: z.enum(['admin', 'rssi', 'direction', 'project_manager', 'auditor', 'user', 'super_admin']),
+    role: z.enum(['admin', 'rssi', 'direction', 'project_manager', 'auditor', 'user', 'super_admin', 'certifier']),
     shodanApiKey: z.string().trim().optional(),
     hibpApiKey: z.string().trim().optional(),
     safeBrowsingApiKey: z.string().trim().optional(),

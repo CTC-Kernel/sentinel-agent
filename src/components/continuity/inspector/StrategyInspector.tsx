@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Controller } from 'react-hook-form';
 import { useZodForm } from '../../../hooks/useZodForm';
 import { InspectorLayout } from '../../ui/InspectorLayout';
@@ -32,6 +33,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
     isEditing,
     isLoading
 }) => {
+    const { t } = useTranslation();
     const { handleSubmit, control, setValue, formState: { errors, isSubmitting, isDirty } } = useZodForm<typeof strategySchema>({
         schema: strategySchema,
         mode: 'onChange',
@@ -82,7 +84,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             hasUnsavedChanges={isDirty}
             footer={
                 <div className="flex justify-end gap-2">
-                    <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+                    <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                     <Button
                         onClick={handleSubmit(handleFormSubmit)}
                         disabled={isSubmitting || isLoading}

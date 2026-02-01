@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Controller } from 'react-hook-form';
 import { useZodForm } from '../../../hooks/useZodForm';
 import { bcpDrillSchema, BcpDrillFormData } from '../../../schemas/continuitySchema';
@@ -25,6 +26,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
     processes,
     isLoading
 }) => {
+    const { t } = useTranslation();
     const { handleSubmit, control, formState: { errors, isSubmitting, isDirty } } = useZodForm({
         schema: bcpDrillSchema,
         mode: 'onChange'
@@ -46,7 +48,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
             hasUnsavedChanges={isDirty}
             footer={
                 <div className="flex justify-end gap-2">
-                    <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+                    <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                     <Button
                         onClick={handleSubmit(handleFormSubmit)}
                         disabled={isSubmitting || isLoading}

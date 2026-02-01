@@ -6,7 +6,7 @@ import { fr } from 'date-fns/locale';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { TreatmentActionsList } from './TreatmentActionsList';
-import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
+import { RISK_THRESHOLDS, CONTROL_STATUS } from '../../constants/complianceConfig';
 
 
 interface RiskTreatmentPlanProps {
@@ -91,14 +91,16 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         if (linkedControls.length === 0) return 0;
 
         const statusWeightMap: Record<string, number> = {
-            'Implémenté': 1.0,
+            [CONTROL_STATUS.IMPLEMENTED]: 1.0,
             'Actif': 1.0,
-            'Partiel': 0.5,
-            'En cours': 0.3,
+            [CONTROL_STATUS.PARTIAL]: 0.5,
+            [CONTROL_STATUS.IN_PROGRESS]: 0.3,
             'En revue': 0.2,
-            'Non commencé': 0.1,
-            'Non applicable': 0,
-            'Exclu': 0,
+            [CONTROL_STATUS.NOT_STARTED]: 0.1,
+            [CONTROL_STATUS.PLANNED]: 0.1,
+            [CONTROL_STATUS.OVERDUE]: 0.1,
+            [CONTROL_STATUS.NOT_APPLICABLE]: 0,
+            [CONTROL_STATUS.EXCLUDED]: 0,
             'Inactif': 0,
             'Non appliqué': 0
         };
@@ -194,7 +196,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         if (!onRiskUpdate) return;
         const newAction: TreatmentAction = {
             ...actionData,
-            id: `action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: crypto.randomUUID(),
             createdAt: new Date().toISOString()
         };
         const currentActions = risk.treatmentActions || [];
@@ -449,8 +451,8 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                             </p>
                         ) : (
                             linkedControls.map(ctrl => {
-                                const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
-                                const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
+                                const isImplemented = ctrl.status === CONTROL_STATUS.IMPLEMENTED || ctrl.status === 'Actif';
+                                const isPartial = ctrl.status === CONTROL_STATUS.PARTIAL || ctrl.status === CONTROL_STATUS.IN_PROGRESS;
                                 return (
                                     <div key={ctrl.id || 'unknown'} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700 shadow-sm group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-3">
@@ -530,8 +532,8 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 </p>
                             ) : (
                                 filteredControls.slice(0, 20).map(ctrl => {
-                                    const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
-                                    const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
+                                    const isImplemented = ctrl.status === CONTROL_STATUS.IMPLEMENTED || ctrl.status === 'Actif';
+                                    const isPartial = ctrl.status === CONTROL_STATUS.PARTIAL || ctrl.status === CONTROL_STATUS.IN_PROGRESS;
                                     return (
                                         <button
                                             key={ctrl.id || 'unknown'}

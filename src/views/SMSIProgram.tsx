@@ -295,7 +295,7 @@ export const SMSIProgramView: React.FC = () => {
               className="gap-1.5"
             >
               <Settings className="w-4 h-4" />
-              Paramètres
+              {t('smsi.settings', { defaultValue: 'Paramètres' })}
             </Button>
             {nextPhase && (
               <Button
@@ -305,7 +305,7 @@ export const SMSIProgramView: React.FC = () => {
                 className="gap-1.5"
               >
                 <ChevronRight className="w-4 h-4" />
-                Passer à {PHASE_CONFIG[nextPhase].label}
+                {t('smsi.advanceToPhase', { defaultValue: `Passer à ${PHASE_CONFIG[nextPhase].label}`, phase: PHASE_CONFIG[nextPhase].label })}
               </Button>
             )}
             {program.targetCertificationDate && (
@@ -317,7 +317,7 @@ export const SMSIProgramView: React.FC = () => {
             <Badge
               status={program.status === 'active' ? 'success' : program.status === 'paused' ? 'warning' : 'info'}
             >
-              {program.status === 'active' ? 'Actif' : program.status === 'paused' ? 'En pause' : 'Terminé'}
+              {program.status === 'active' ? t('smsi.statusActive', { defaultValue: 'Actif' }) : program.status === 'paused' ? t('smsi.statusPaused', { defaultValue: 'En pause' }) : t('smsi.statusCompleted', { defaultValue: 'Terminé' })}
             </Badge>
           </div>
         }
@@ -463,10 +463,10 @@ export const SMSIProgramView: React.FC = () => {
           isOpen={showAdvancePhaseConfirm}
           onClose={() => setShowAdvancePhaseConfirm(false)}
           onConfirm={handleAdvancePhase}
-          title="Passer à la phase suivante"
-          message={`Êtes-vous sûr de vouloir passer de la phase "${PHASE_CONFIG[program.currentPhase].label}" à la phase "${PHASE_CONFIG[nextPhase].label}" ? Assurez-vous que tous les jalons de la phase actuelle sont terminés.`}
-          confirmText={`Passer à ${PHASE_CONFIG[nextPhase].label}`}
-          cancelText="Annuler"
+          title={t('smsi.advancePhaseTitle', { defaultValue: 'Passer à la phase suivante' })}
+          message={t('smsi.advancePhaseMessage', { defaultValue: `Êtes-vous sûr de vouloir passer de la phase "${PHASE_CONFIG[program.currentPhase].label}" à la phase "${PHASE_CONFIG[nextPhase].label}" ? Assurez-vous que tous les jalons de la phase actuelle sont terminés.`, currentPhase: PHASE_CONFIG[program.currentPhase].label, nextPhase: PHASE_CONFIG[nextPhase].label })}
+          confirmText={t('smsi.advancePhaseConfirm', { defaultValue: `Passer à ${PHASE_CONFIG[nextPhase].label}`, phase: PHASE_CONFIG[nextPhase].label })}
+          cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
           type="info"
         />
       )}
@@ -476,10 +476,10 @@ export const SMSIProgramView: React.FC = () => {
         isOpen={showDeleteProgramConfirm}
         onClose={() => setShowDeleteProgramConfirm(false)}
         onConfirm={handleDeleteProgram}
-        title="Supprimer le programme SMSI"
-        message="Êtes-vous sûr de vouloir supprimer ce programme SMSI ? Cette action supprimera également tous les jalons associés et est irréversible."
-        confirmText="Supprimer"
-        cancelText="Annuler"
+        title={t('smsi.deleteProgramTitle', { defaultValue: 'Supprimer le programme SMSI' })}
+        message={t('smsi.deleteProgramMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer ce programme SMSI ? Cette action supprimera également tous les jalons associés et est irréversible.' })}
+        confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+        cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
         type="danger"
         loading={isDeletingProgram}
       />
@@ -496,6 +496,7 @@ interface SMSITimelineProps {
 }
 
 const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSelect, getPhaseProgress }) => {
+  const { t } = useTranslation();
   const phases: PDCAPhase[] = ['plan', 'do', 'check', 'act'];
 
   // Group milestones by phase
@@ -508,7 +509,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
 
   return (
     <GlassCard className="p-6">
-      <h3 className="text-lg font-semibold text-foreground mb-6">Timeline du Programme SMSI</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-6">{t('smsi.timelineTitle', { defaultValue: 'Timeline du Programme SMSI' })}</h3>
 
       <div className="space-y-6 sm:space-y-8">
         {phases.map((phase, phaseIndex) => {
@@ -535,14 +536,14 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                       {config.label}
                     </h4>
                     {isCurrentPhase && (
-                      <Badge status="info" size="sm">Phase actuelle</Badge>
+                      <Badge status="info" size="sm">{t('smsi.currentPhase', { defaultValue: 'Phase actuelle' })}</Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">{config.description}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-slate-900 dark:text-white">{progress}%</div>
-                  <div className="text-xs text-muted-foreground">Progression</div>
+                  <div className="text-xs text-muted-foreground">{t('smsi.progress', { defaultValue: 'Progression' })}</div>
                 </div>
               </div>
 
@@ -584,10 +585,10 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                               {milestone.name}
                             </span>
                             {isCompleted && (
-                              <Badge status="success" size="sm">Terminé</Badge>
+                              <Badge status="success" size="sm">{t('smsi.statusCompleted', { defaultValue: 'Terminé' })}</Badge>
                             )}
                             {isOverdue && (
-                              <Badge status="error" size="sm">En retard</Badge>
+                              <Badge status="error" size="sm">{t('smsi.statusOverdue', { defaultValue: 'En retard' })}</Badge>
                             )}
                           </div>
                           {milestone.description && (
@@ -609,7 +610,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                 </div>
               ) : (
                 <div className="ml-6 border-l-2 border-slate-200 dark:border-slate-700 pl-6 py-4">
-                  <p className="text-sm text-muted-foreground italic">Aucun jalon pour cette phase</p>
+                  <p className="text-sm text-muted-foreground italic">{t('smsi.noMilestonesForPhase', { defaultValue: 'Aucun jalon pour cette phase' })}</p>
                 </div>
               )}
 

@@ -44,6 +44,10 @@ vi.mock('../../hooks/useAuth', () => ({
 vi.mock('../../store', () => ({
     useStore: () => ({
         addToast: vi.fn(),
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) return (options as { defaultValue: string }).defaultValue;
+            return key;
+        },
     }),
 }));
 

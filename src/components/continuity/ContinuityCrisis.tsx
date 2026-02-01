@@ -108,7 +108,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                             </Button>
                         )}
                         {activationStep > 0 && !crisisActive && (
-                            <button onClick={() => setActivationStep(0)} className="text-sm text-muted-foreground hover:text-foreground">Annuler</button>
+                            <button onClick={() => setActivationStep(0)} className="text-sm text-muted-foreground hover:text-foreground">{t('common.cancel', { defaultValue: 'Annuler' })}</button>
                         )}
                     </div>
                 </div>
@@ -182,10 +182,10 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                 isOpen={confirmDeactivate}
                 onClose={() => setConfirmDeactivate(false)}
                 onConfirm={handleDeactivate}
-                title="Clôturer la crise ?"
-                message="Confirmer la fin de la crise ? Un rapport sera généré automatiquement et le journal des événements sera archivé."
-                confirmText="Clôturer"
-                cancelText="Annuler"
+                title={t('continuity.closeCrisisTitle', { defaultValue: 'Clôturer la crise ?' })}
+                message={t('continuity.closeCrisisMessage', { defaultValue: 'Confirmer la fin de la crise ? Un rapport sera généré automatiquement et le journal des événements sera archivé.' })}
+                confirmText={t('continuity.closeCrisisConfirm', { defaultValue: 'Clôturer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
             />
         </div>
     );

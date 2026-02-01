@@ -352,7 +352,7 @@ describe('useActivityLogs', () => {
 
             await waitFor(() => {
                 expect(mockToastError).toHaveBeenCalledWith(
-                    expect.stringContaining("charger le journal")
+                    expect.stringContaining("Unable to load activity log")
                 );
             });
         });

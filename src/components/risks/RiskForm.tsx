@@ -374,8 +374,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             <div><p className="font-bold text-warning text-sm">{t('risks.draftDetected', { defaultValue: 'Brouillon non enregistré détecté' })}</p><p className="text-xs text-muted-foreground">{t('risks.draftDetectedDesc', { defaultValue: 'Un brouillon de ce formulaire a été trouvé. Voulez-vous le restaurer ?' })}</p></div>
                         </div>
                         <div className="flex gap-2">
-                            <Button type="button" variant="ghost" onClick={handleDiscardDraft} className="text-warning hover:bg-warning/10">Ignorer</Button>
-                            <Button type="button" onClick={handleRestoreDraft} className="bg-warning hover:bg-warning/90 text-white rounded-lg">Restaurer</Button>
+                            <Button type="button" variant="ghost" onClick={handleDiscardDraft} className="text-warning hover:bg-warning/10">{t('riskForm.draftIgnore', { defaultValue: 'Ignorer' })}</Button>
+                            <Button type="button" onClick={handleRestoreDraft} className="bg-warning hover:bg-warning/90 text-white rounded-lg">{t('riskForm.draftRestore', { defaultValue: 'Restaurer' })}</Button>
                         </div>
                     </div>
                 )}
@@ -391,22 +391,22 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {activeTab === 'treatment' && <RiskFormTreatmentTab control={control} errors={errors} existingRisk={existingRisk} controls={controls} usersList={usersList} getValues={getValues} setValue={setValue} strategy={strategy || 'Atténuer'} probability={probability ?? 3} impact={impact ?? 3} mitigationControlIds={mitigationControlIds || []} suggestedControlIds={suggestedControlIds} readOnly={readOnly} />}
                     {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
                 </fieldset>
-                {activeTab === 'history' && !existingRisk?.id && <div className="p-8 text-center text-slate-500">Veuillez enregistrer le risque pour voir l'historique.</div>}
+                {activeTab === 'history' && !existingRisk?.id && <div className="p-8 text-center text-slate-500">{t('riskForm.saveToSeeHistory', { defaultValue: 'Veuillez enregistrer le risque pour voir l\'historique.' })}</div>}
             </div>
 
             {/* Footer Buttons */}
             {!readOnly && (
                 <div className="border-t border-border/40 p-6 bg-background/80 backdrop-blur-xl flex justify-between items-center shrink-0">
-                    <Button type="button" onClick={onCancel} variant="ghost">Annuler</Button>
+                    <Button type="button" onClick={onCancel} variant="ghost">{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                     <div className="flex gap-3">
-                        {activeTab !== 'context' && <Button type="button" variant="secondary" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx > 0) setActiveTab(TABS[idx - 1].id); }}>Précédent</Button>}
+                        {activeTab !== 'context' && <Button type="button" variant="secondary" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx > 0) setActiveTab(TABS[idx - 1].id); }}>{t('common.previous', { defaultValue: 'Précédent' })}</Button>}
                         {activeTab !== 'treatment' ? (
-                            <Button type="button" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id); }}>Suivant</Button>
+                            <Button type="button" onClick={() => { const idx = TABS.findIndex(t => t.id === activeTab); if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id); }}>{t('common.next', { defaultValue: 'Suivant' })}</Button>
                         ) : (
                             <div className="flex gap-2">
-                                {onSaveDraft && (!isEditing || isDraft) && <Button type="button" variant="secondary" onClick={handleSaveAsDraft} isLoading={isSavingDraft} disabled={isSavingDraft || isLoading} className="px-6 py-3 border border-warning/50 text-warning hover:bg-warning/10 rounded-xl font-bold text-sm transition-all duration-normal ease-apple">Enregistrer brouillon</Button>}
-                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-success hover:bg-success/90 text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-normal ease-apple shadow-lg shadow-success/20 font-bold text-sm">Publier le Risque</Button>}
-                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-normal ease-apple shadow-lg shadow-primary/20 font-bold text-sm">{isEditing ? 'Sauvegarder' : 'Créer le Risque'}</Button>}
+                                {onSaveDraft && (!isEditing || isDraft) && <Button type="button" variant="secondary" onClick={handleSaveAsDraft} isLoading={isSavingDraft} disabled={isSavingDraft || isLoading} className="px-6 py-3 border border-warning/50 text-warning hover:bg-warning/10 rounded-xl font-bold text-sm transition-all duration-normal ease-apple">{t('riskForm.saveDraft', { defaultValue: 'Enregistrer brouillon' })}</Button>}
+                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-success hover:bg-success/90 text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-normal ease-apple shadow-lg shadow-success/20 font-bold text-sm">{t('riskForm.publishRisk', { defaultValue: 'Publier le Risque' })}</Button>}
+                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-normal ease-apple shadow-lg shadow-primary/20 font-bold text-sm">{isEditing ? t('common.save', { defaultValue: 'Sauvegarder' }) : t('riskForm.createRisk', { defaultValue: 'Créer le Risque' })}</Button>}
                             </div>
                         )}
                     </div>
@@ -414,7 +414,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             )}
 
             {/* Threat Library Modal */}
-            <Modal isOpen={showLibraryModal} onClose={() => setShowLibraryModal(false)} title="Bibliothèque de Menaces" maxWidth="max-w-4xl">
+            <Modal isOpen={showLibraryModal} onClose={() => setShowLibraryModal(false)} title={t('riskForm.threatLibrary', { defaultValue: 'Bibliothèque de Menaces' })} maxWidth="max-w-4xl">
                 <div className="p-4">
                     <div className="relative mb-4"><FloatingLabelInput label="Rechercher une menace..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={Search} /></div>
                     <div className="max-h-[60vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -436,7 +436,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             </Modal>
 
             {/* Navigation Blocking Confirmation Modal */}
-            <ConfirmModal isOpen={isNavigationBlocked} onClose={cancelNavigation} onConfirm={proceedNavigation} title="Modifications non enregistrées" message="Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter cette page ?" type="warning" confirmText="Quitter sans enregistrer" cancelText="Rester sur la page" />
+            <ConfirmModal isOpen={isNavigationBlocked} onClose={cancelNavigation} onConfirm={proceedNavigation} title={t('riskForm.unsavedChangesTitle', { defaultValue: 'Modifications non enregistrées' })} message={t('riskForm.unsavedChangesMessage', { defaultValue: 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter cette page ?' })} type="warning" confirmText={t('riskForm.leaveWithoutSaving', { defaultValue: 'Quitter sans enregistrer' })} cancelText={t('riskForm.stayOnPage', { defaultValue: 'Rester sur la page' })} />
         </form>
     );
 };

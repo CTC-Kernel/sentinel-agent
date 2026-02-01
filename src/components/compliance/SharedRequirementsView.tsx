@@ -11,6 +11,7 @@ import { Check, TrendingUp, Layers, Clock, Target, ChevronRight } from '../ui/Ic
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';
+import { CONTROL_STATUS } from '../../constants/complianceConfig';
 
 interface SharedRequirementsViewProps {
     controls: Control[];
@@ -68,7 +69,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
             (sum, c) => sum + (c.mappedFrameworks?.length || 0), 0
         );
         const implementedShared = sharedControls.filter(
-            c => c.status === 'Implémenté' || c.status === 'Partiel'
+            c => c.status === CONTROL_STATUS.IMPLEMENTED || c.status === CONTROL_STATUS.PARTIAL
         ).length;
 
         // Savings = additional frameworks covered without new controls
@@ -258,8 +259,8 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                     <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {group.controls.map(control => {
                             const frameworks = getControlFrameworks(control);
-                            const isImplemented = control.status === 'Implémenté';
-                            const isPartial = control.status === 'Partiel';
+                            const isImplemented = control.status === CONTROL_STATUS.IMPLEMENTED;
+                            const isPartial = control.status === CONTROL_STATUS.PARTIAL;
 
                             return (
                                 <button

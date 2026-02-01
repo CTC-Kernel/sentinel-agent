@@ -306,7 +306,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
 
     // Permission check before creating risk
     if (!hasPermission(user, 'Risk', 'create')) {
-      toast.error(t('errors.noCreateRiskPermission') || 'Vous n\'avez pas la permission de créer un risque');
+      toast.error(t('errors.noCreateRiskPermission') || t('ebios.errors.noCreatePermission', { defaultValue: 'You do not have permission to create a risk' }));
       return null;
     }
 
@@ -317,7 +317,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
         organizationId,
         threat: riskData.threat,
         scenario: riskData.scenario,
-        vulnerability: 'Identifié via analyse EBIOS RM',
+        vulnerability: t('ebios.identifiedViaEbios', { defaultValue: 'Identified via EBIOS RM analysis' }),
         probability: riskData.probability,
         impact: riskData.impact,
         score,
@@ -332,8 +332,8 @@ export const EbiosAnalysisDetail: React.FC = () => {
         history: [{
           date: new Date().toISOString(),
           user: user.displayName || user.email,
-          action: 'Création depuis EBIOS RM',
-          changes: `Créé à partir du scénario opérationnel ${riskData.ebiosReference.scenarioCode || scenarioId}`,
+          action: t('ebios.history.createdFromEbios', { defaultValue: 'Created from EBIOS RM' }),
+          changes: t('ebios.history.createdFromScenario', { defaultValue: 'Created from operational scenario {{code}}', code: riskData.ebiosReference.scenarioCode || scenarioId }),
           previousScore: 0,
           newScore: score,
           changedBy: user.uid
@@ -341,7 +341,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
       });
 
       const docRef = await addDoc(collection(db, 'risks'), newRisk);
-      toast.success(t('ebios.riskCreatedFromScenario') || 'Risque créé depuis le scénario EBIOS');
+      toast.success(t('ebios.riskCreatedFromScenario') || t('ebios.riskCreatedSuccess', { defaultValue: 'Risk created from EBIOS scenario' }));
       return docRef.id;
     } catch (error) {
       ErrorLogger.error(error, 'EbiosAnalysisDetail.handleCreateRisk', {
@@ -349,7 +349,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
         action: 'createRiskFromEbios',
         metadata: { scenarioId }
       });
-      toast.error(t('ebios.errors.riskCreationFailed') || 'Erreur lors de la création du risque');
+      toast.error(t('ebios.errors.riskCreationFailed') || t('ebios.errors.riskCreationError', { defaultValue: 'Error creating the risk' }));
       return null;
     }
   }, [organizationId, user, t]);
@@ -476,10 +476,10 @@ export const EbiosAnalysisDetail: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-xl max-w-md w-full space-y-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              {t('ebios.confirmComplete') || 'Finaliser l\'analyse'}
+              {t('ebios.confirmComplete') || t('ebios.finalizeAnalysis', { defaultValue: 'Finalize analysis' })}
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Voulez-vous finaliser cette analyse EBIOS RM ? Cette action marquera l'analyse comme terminee.
+              {t('ebios.confirmCompleteMessage', { defaultValue: 'Do you want to finalize this EBIOS RM analysis? This action will mark the analysis as completed.' })}
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <button
@@ -492,7 +492,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
                 onClick={handleConfirmComplete}
                 className="px-4 py-2 rounded-2xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/20 transition-all"
               >
-                {t('ebios.complete') || 'Finaliser'}
+                {t('ebios.complete') || t('ebios.finalize', { defaultValue: 'Finalize' })}
               </button>
             </div>
           </div>

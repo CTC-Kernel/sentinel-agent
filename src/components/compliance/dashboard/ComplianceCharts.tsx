@@ -87,17 +87,17 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
     };
 
     const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
-    const inProgressControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+    const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
     const notImplementedControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length;
     const notApplicableControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_APPLICABLE).length;
 
     const actionableControls = controls.filter(c => c.status !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.EXCLUDED).length;
-    const overallScore = actionableControls > 0 ? Math.round(((implementedControls + (inProgressControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100) : 0;
+    const overallScore = actionableControls > 0 ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100) : 100;
 
     // Status distribution
     const statusData = [
         { name: t('compliance.dashboard.implemented'), value: implementedControls, color: chartTheme.colors.implemented },
-        { name: t('compliance.dashboard.partial'), value: inProgressControls, color: chartTheme.colors.partial },
+        { name: t('compliance.dashboard.partial'), value: partialControls, color: chartTheme.colors.partial },
         { name: t('compliance.dashboard.notStarted'), value: notImplementedControls, color: chartTheme.colors.notStarted },
         { name: t('compliance.dashboard.notApplicable'), value: notApplicableControls, color: chartTheme.colors.notApplicable }
     ].filter(d => d.value > 0);

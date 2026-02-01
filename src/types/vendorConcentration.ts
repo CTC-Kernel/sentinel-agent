@@ -390,7 +390,7 @@ export function getTrendIndicator(direction: 'improving' | 'stable' | 'worsening
 /**
  * Category labels for display
  */
-export const CATEGORY_LABELS: Record<string, string> = {
+export const VENDOR_CATEGORY_LABELS: Record<string, string> = {
   cloud: 'Cloud & Infrastructure',
   security: 'Cybersecurity',
   software: 'Software & SaaS',
@@ -408,5 +408,5 @@ export const CATEGORY_LABELS: Record<string, string> = {
  * Get category label
  */
 export function getCategoryLabel(category: string): string {
-  return CATEGORY_LABELS[category.toLowerCase()] || category;
+  return VENDOR_CATEGORY_LABELS[category.toLowerCase()] || category;
 }

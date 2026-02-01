@@ -54,6 +54,7 @@ vi.mock('firebase/firestore', () => ({
   where: mockWhere,
   orderBy: mockOrderBy,
   limit: mockLimit,
+  serverTimestamp: vi.fn(() => 'mock-server-timestamp'),
 }));
 
 // Mock ErrorLogger

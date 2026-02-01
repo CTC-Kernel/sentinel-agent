@@ -557,11 +557,11 @@ export function SignatureWorkflow({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="requests" className="gap-2">
             <History className="h-4 w-4" />
-            Demandes ({requests.length})
+            {t('signatures.requests', { defaultValue: 'Demandes' })} ({requests.length})
           </TabsTrigger>
           <TabsTrigger value="create" className="gap-2">
             <Plus className="h-4 w-4" />
-            Nouvelle demande
+            {t('signatures.newRequest', { defaultValue: 'Nouvelle demande' })}
           </TabsTrigger>
         </TabsList>
 
@@ -576,7 +576,7 @@ export function SignatureWorkflow({
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <PenTool className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground text-center">
-                  Aucune demande de signature pour ce document
+                  {t('signatures.noRequests', { defaultValue: 'Aucune demande de signature pour ce document' })}
                 </p>
                 <Button
                   variant="outline"
@@ -584,7 +584,7 @@ export function SignatureWorkflow({
                   onClick={() => setActiveTab('create')}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Créer une demande
+                  {t('signatures.createRequest', { defaultValue: 'Créer une demande' })}
                 </Button>
               </CardContent>
             </Card>
@@ -630,7 +630,7 @@ export function SignatureWorkflow({
                     {/* Progress bar */}
                     <div className="mt-3">
                       <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">Progression</span>
+                        <span className="text-muted-foreground">{t('signatures.progress', { defaultValue: 'Progression' })}</span>
                         <span className="font-medium">{getProgress(request)}%</span>
                       </div>
                       <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -707,7 +707,7 @@ export function SignatureWorkflow({
                                   className="gap-1"
                                 >
                                   <PenTool className="h-3 w-3" />
-                                  Signer
+                                  {t('signatures.sign', { defaultValue: 'Signer' })}
                                 </Button>
                                 <Button
                                   size="sm"
@@ -739,7 +739,7 @@ export function SignatureWorkflow({
                     <CardFooter className="border-t pt-4">
                       <Button variant="outline" size="sm" className="gap-2">
                         <Download className="h-4 w-4" />
-                        Télécharger le certificat
+                        {t('signatures.downloadCertificate', { defaultValue: 'Télécharger le certificat' })}
                       </Button>
                     </CardFooter>
                   )}
@@ -753,16 +753,16 @@ export function SignatureWorkflow({
         <TabsContent value="create" key="create" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Nouvelle demande de signature</CardTitle>
+              <CardTitle className="text-lg">{t('signatures.newRequestTitle', { defaultValue: 'Nouvelle demande de signature' })}</CardTitle>
               <CardDescription>
-                Configurez les signataires et les options pour cette demande
+                {t('signatures.newRequestDescription', { defaultValue: 'Configurez les signataires et les options pour cette demande' })}
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title">Titre de la demande *</Label>
+                <Label htmlFor="title">{t('signatures.requestTitleLabel', { defaultValue: 'Titre de la demande *' })}</Label>
                 <Input
                   id="title"
                   placeholder="Ex: Contrat de prestation - Signature"
@@ -773,7 +773,7 @@ export function SignatureWorkflow({
 
               {/* Message */}
               <div className="space-y-2">
-                <Label htmlFor="message">Message aux signataires</Label>
+                <Label htmlFor="message">{t('signatures.messageLabel', { defaultValue: 'Message aux signataires' })}</Label>
                 <Textarea
                   id="message"
                   placeholder="Message optionnel pour les signataires..."
@@ -786,7 +786,7 @@ export function SignatureWorkflow({
               {/* Options */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="deadline">Date limite</Label>
+                  <Label htmlFor="deadline">{t('signatures.deadline', { defaultValue: 'Date limite' })}</Label>
                   <Input
                     id="deadline"
                     type="datetime-local"
@@ -802,7 +802,7 @@ export function SignatureWorkflow({
                       onChange={(v: boolean) => setFormSequential(v)}
                     />
                     <Label htmlFor="sequential" className="cursor-pointer">
-                      Signature séquentielle
+                      {t('signatures.sequential', { defaultValue: 'Signature séquentielle' })}
                     </Label>
                     <Tooltip content="Les signataires devront signer dans l'ordre défini">
                       <AlertTriangle className="h-4 w-4 text-muted-foreground outline-none" />
@@ -816,7 +816,7 @@ export function SignatureWorkflow({
               {/* Signers */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label>Signataires *</Label>
+                  <Label>{t('signatures.signersLabel', { defaultValue: 'Signataires *' })}</Label>
                   <Button
                     variant="outline"
                     size="sm"
@@ -824,7 +824,7 @@ export function SignatureWorkflow({
                     className="gap-1"
                   >
                     <Plus className="h-4 w-4" />
-                    Ajouter
+                    {t('common.add', { defaultValue: 'Ajouter' })}
                   </Button>
                 </div>
 
@@ -853,7 +853,7 @@ export function SignatureWorkflow({
 
                 {formSigners.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Ajoutez au moins un signataire
+                    {t('signatures.addAtLeastOneSigner', { defaultValue: 'Ajoutez au moins un signataire' })}
                   </p>
                 )}
               </div>
@@ -861,7 +861,7 @@ export function SignatureWorkflow({
 
             <CardFooter className="border-t pt-4 flex justify-between">
               <Button variant="ghost" onClick={resetForm}>
-                Réinitialiser
+                {t('common.reset', { defaultValue: 'Réinitialiser' })}
               </Button>
               <Button
                 onClick={handleCreateRequest}
@@ -871,12 +871,12 @@ export function SignatureWorkflow({
                 {formSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Création...
+                    {t('common.creating', { defaultValue: 'Création...' })}
                   </>
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
-                    Créer et envoyer
+                    {t('signatures.createAndSend', { defaultValue: 'Créer et envoyer' })}
                   </>
                 )}
               </Button>
@@ -889,7 +889,7 @@ export function SignatureWorkflow({
       <Dialog open={signModalOpen} onOpenChange={setSignModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Signature électronique</DialogTitle>
+            <DialogTitle>{t('signatures.electronicSignature', { defaultValue: 'Signature électronique' })}</DialogTitle>
             <DialogDescription>
               Signez le document "{activeRequest?.documentName}"
             </DialogDescription>
@@ -898,7 +898,7 @@ export function SignatureWorkflow({
           <div className="space-y-4 py-4">
             {/* Signature type selector */}
             <div className="space-y-2">
-              <Label>Type de signature</Label>
+              <Label>{t('signatures.signatureType', { defaultValue: 'Type de signature' })}</Label>
               <Select
                 value={signatureType}
                 onValueChange={(v) => setSignatureType(v as SignatureType)}
@@ -907,8 +907,8 @@ export function SignatureWorkflow({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="simple">Signature simple (clic)</SelectItem>
-                  <SelectItem value="advanced">Signature manuscrite</SelectItem>
+                  <SelectItem value="simple">{t('signatures.simpleSignature', { defaultValue: 'Signature simple (clic)' })}</SelectItem>
+                  <SelectItem value="advanced">{t('signatures.handwrittenSignature', { defaultValue: 'Signature manuscrite' })}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -916,7 +916,7 @@ export function SignatureWorkflow({
             {/* Simple signature: typed name */}
             {signatureType === 'simple' && (
               <div className="space-y-2">
-                <Label htmlFor="typedName">Tapez votre nom complet</Label>
+                <Label htmlFor="typedName">{t('signatures.typeFullName', { defaultValue: 'Tapez votre nom complet' })}</Label>
                 <Input
                   id="typedName"
                   placeholder="Prénom Nom"
@@ -925,7 +925,7 @@ export function SignatureWorkflow({
                   className="text-lg"
                 />
                 <p className="text-sm text-muted-foreground">
-                  En tapant votre nom, vous acceptez de signer électroniquement ce document.
+                  {t('signatures.typedNameConsent', { defaultValue: 'En tapant votre nom, vous acceptez de signer électroniquement ce document.' })}
                 </p>
               </div>
             )}
@@ -933,7 +933,7 @@ export function SignatureWorkflow({
             {/* Advanced signature: drawing pad */}
             {signatureType === 'advanced' && (
               <div className="space-y-2">
-                <Label>Dessinez votre signature</Label>
+                <Label>{t('signatures.drawSignature', { defaultValue: 'Dessinez votre signature' })}</Label>
                 <div className="border-2 border-dashed border-border/40 dark:border-slate-700 rounded-3xl overflow-hidden bg-white">
                   <SignatureCanvas
                     ref={signaturePadRef}
@@ -951,7 +951,7 @@ export function SignatureWorkflow({
                     size="sm"
                     onClick={() => signaturePadRef.current?.clear()}
                   >
-                    Effacer
+                    {t('common.clear', { defaultValue: 'Effacer' })}
                   </Button>
                 </div>
               </div>
@@ -961,26 +961,25 @@ export function SignatureWorkflow({
             <div className="bg-warning-50 dark:bg-warning-950/30 border border-warning-200 dark:border-warning-800 rounded-lg p-3">
               <p className="text-sm text-warning-800 dark:text-warning-200">
                 <Shield className="h-4 w-4 inline mr-1" />
-                En signant, vous attestez avoir lu et approuvé le contenu de ce document.
-                Votre signature sera horodatée et liée cryptographiquement au document.
+                {t('signatures.legalNotice', { defaultValue: 'En signant, vous attestez avoir lu et approuvé le contenu de ce document. Votre signature sera horodatée et liée cryptographiquement au document.' })}
               </p>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setSignModalOpen(false)}>
-              Annuler
+              {t('common.cancel', { defaultValue: 'Annuler' })}
             </Button>
             <Button onClick={handleSign} disabled={signing} className="gap-2">
               {signing ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Signature...
+                  {t('signatures.signing', { defaultValue: 'Signature...' })}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4" />
-                  Signer le document
+                  {t('signatures.signDocument', { defaultValue: 'Signer le document' })}
                 </>
               )}
             </Button>
@@ -992,15 +991,15 @@ export function SignatureWorkflow({
       <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Rejeter la signature</DialogTitle>
+            <DialogTitle>{t('signatures.rejectTitle', { defaultValue: 'Rejeter la signature' })}</DialogTitle>
             <DialogDescription>
-              Indiquez la raison de votre refus de signer ce document.
+              {t('signatures.rejectDescription', { defaultValue: 'Indiquez la raison de votre refus de signer ce document.' })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="rejectionReason">Raison du rejet *</Label>
+              <Label htmlFor="rejectionReason">{t('signatures.rejectionReasonLabel', { defaultValue: 'Raison du rejet *' })}</Label>
               <Textarea
                 id="rejectionReason"
                 placeholder="Expliquez pourquoi vous refusez de signer..."
@@ -1013,7 +1012,7 @@ export function SignatureWorkflow({
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setRejectModalOpen(false)}>
-              Annuler
+              {t('common.cancel', { defaultValue: 'Annuler' })}
             </Button>
             <Button
               variant="destructive"
@@ -1024,12 +1023,12 @@ export function SignatureWorkflow({
               {rejecting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Rejet...
+                  {t('signatures.rejecting', { defaultValue: 'Rejet...' })}
                 </>
               ) : (
                 <>
                   <X className="h-4 w-4" />
-                  Confirmer le rejet
+                  {t('signatures.confirmReject', { defaultValue: 'Confirmer le rejet' })}
                 </>
               )}
             </Button>
@@ -1042,11 +1041,11 @@ export function SignatureWorkflow({
         isOpen={cancelRequestTarget !== null}
         onClose={() => setCancelRequestTarget(null)}
         onConfirm={() => cancelRequestTarget && handleCancelRequest(cancelRequestTarget)}
-        title="Annuler la demande de signature"
-        message="Êtes-vous sûr de vouloir annuler cette demande de signature ?"
+        title={t('signatures.cancelRequestTitle', { defaultValue: 'Annuler la demande de signature' })}
+        message={t('signatures.cancelRequestMessage', { defaultValue: 'Êtes-vous sûr de vouloir annuler cette demande de signature ?' })}
         type="warning"
-        confirmText="Annuler la demande"
-        cancelText="Retour"
+        confirmText={t('signatures.cancelRequest', { defaultValue: 'Annuler la demande' })}
+        cancelText={t('common.back', { defaultValue: 'Retour' })}
       />
     </div>
   );

@@ -20,7 +20,7 @@ import {
   formatPercentage,
   getTrendIndicator,
   getCategoryLabel,
-  CATEGORY_LABELS,
+  VENDOR_CATEGORY_LABELS,
 } from '../../types/vendorConcentration';
 
 // ============================================================================
@@ -334,19 +334,19 @@ describe('VendorConcentrationService - Category Labels', () => {
     });
   });
 
-  describe('CATEGORY_LABELS', () => {
+  describe('VENDOR_CATEGORY_LABELS', () => {
     it('should have all expected categories', () => {
-      expect(CATEGORY_LABELS).toHaveProperty('cloud');
-      expect(CATEGORY_LABELS).toHaveProperty('security');
-      expect(CATEGORY_LABELS).toHaveProperty('software');
-      expect(CATEGORY_LABELS).toHaveProperty('network');
-      expect(CATEGORY_LABELS).toHaveProperty('data');
-      expect(CATEGORY_LABELS).toHaveProperty('payment');
-      expect(CATEGORY_LABELS).toHaveProperty('hr');
-      expect(CATEGORY_LABELS).toHaveProperty('legal');
-      expect(CATEGORY_LABELS).toHaveProperty('marketing');
-      expect(CATEGORY_LABELS).toHaveProperty('support');
-      expect(CATEGORY_LABELS).toHaveProperty('other');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('cloud');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('security');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('software');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('network');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('data');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('payment');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('hr');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('legal');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('marketing');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('support');
+      expect(VENDOR_CATEGORY_LABELS).toHaveProperty('other');
     });
   });
 });

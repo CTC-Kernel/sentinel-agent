@@ -83,22 +83,12 @@ export const ConnectivityService = {
      * (We don't have a dedicated health endpoint, so this is a simulated checks or calls a known lightweight function)
      */
     checkCloudFunctions: async (): Promise<ServiceHealth> => {
-        // Since we don't want to spam real functions, we might just check if the service object is initialized
-        // Or optimally, Sentinel should have a 'ping' function.
-        // For now, we return a simulated check or a 'unknown' status if strictly needed.
-        // Let's rely on a basic fetch to a known public URL if possible, or just skip if no safe ping function exists.
-        // Alternative: Assume operational if Firestore works (same infra partially)
-
-        // Simulating for now to avoid side effects of calling 'impersonate' or similar
-        return new Promise(resolve => {
-            const start = performance.now();
-            setTimeout(() => {
-                resolve({
-                    name: 'Cloud Functions',
-                    status: 'operational',
-                    latency: Math.round(performance.now() - start)
-                });
-            }, 100 + Math.random() * 200);
-        });
+        // No dedicated health endpoint available yet.
+        // Returns 'degraded' until a lightweight ping Cloud Function is implemented.
+        return {
+            name: 'Cloud Functions',
+            status: 'degraded',
+            latency: 0
+        };
     }
 };

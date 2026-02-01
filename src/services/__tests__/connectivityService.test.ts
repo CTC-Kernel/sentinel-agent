@@ -108,12 +108,12 @@ describe('ConnectivityService', () => {
     });
 
     describe('checkCloudFunctions', () => {
-        it('should return operational status', async () => {
+        it('should return degraded status until health endpoint is implemented', async () => {
             const result = await ConnectivityService.checkCloudFunctions();
 
             expect(result.name).toBe('Cloud Functions');
-            expect(result.status).toBe('operational');
-            expect(result.latency).toBeGreaterThanOrEqual(100);
+            expect(result.status).toBe('degraded');
+            expect(result.latency).toBe(0);
         });
     });
 });

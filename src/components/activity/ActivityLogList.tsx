@@ -7,6 +7,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Activity, User, Shield } from '../ui/Icons';
+import { useStore } from '../../store';
 
 interface ActivityLogListProps {
     logs: SystemLog[];
@@ -16,6 +17,7 @@ interface ActivityLogListProps {
 }
 
 export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading, hasMore, onLoadMore }) => {
+    const { t } = useStore();
 
     const columns = useMemo<ColumnDef<SystemLog>[]>(() => [
         {
@@ -186,7 +188,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                         disabled={loading}
                         className="px-6 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
-                        {loading ? 'Chargement...' : 'Charger plus d\'activités'}
+                        {loading ? t('common.loading', { defaultValue: 'Chargement...' }) : t('activity.loadMore', { defaultValue: "Charger plus d'activités" })}
                     </button>
                 </div>
             )}

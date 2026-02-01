@@ -59,11 +59,11 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Stratégies de Continuité</h2>
-                    <p className="text-sm text-slate-500">Définissez vos stratégies de reprise (PCA/PRA) pour vos actifs critiques.</p>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('continuity.strategies.title', { defaultValue: 'Stratégies de Continuité' })}</h2>
+                    <p className="text-sm text-slate-500">{t('continuity.strategies.description', { defaultValue: 'Définissez vos stratégies de reprise (PCA/PRA) pour vos actifs critiques.' })}</p>
                 </div>
                 <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-                    <Plus className="w-4 h-4" /> Nouvelle Stratégie
+                    <Plus className="w-4 h-4" /> {t('continuity.strategies.new', { defaultValue: 'Nouvelle Stratégie' })}
                 </Button>
             </div>
 
@@ -75,7 +75,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleDeleteClick(strategy.id)}
-                                aria-label="Supprimer la stratégie"
+                                aria-label={t('continuity.strategies.deleteAriaLabel', { defaultValue: 'Supprimer la stratégie' })}
                                 className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-70 transition-all focus:opacity-70"
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -113,7 +113,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                                         </span>
                                     ) : null;
                                 })}
-                                {(!strategy.linkedAssets || strategy.linkedAssets.length === 0) && <span className="text-xs text-muted-foreground italic">Aucun actif lié</span>}
+                                {(!strategy.linkedAssets || strategy.linkedAssets.length === 0) && <span className="text-xs text-muted-foreground italic">{t('continuity.strategies.noLinkedAssets', { defaultValue: 'Aucun actif lié' })}</span>}
                             </div>
                         </div>
                     </div>
@@ -123,9 +123,9 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                     <div className="col-span-full">
                         <EmptyState
                             icon={Shield}
-                            title="Aucune stratégie définie"
-                            description="Commencez par définir vos stratégies de continuité pour protéger vos actifs critiques."
-                            actionLabel="Créer une stratégie"
+                            title={t('continuity.strategies.emptyTitle', { defaultValue: 'Aucune stratégie définie' })}
+                            description={t('continuity.strategies.emptyDescription', { defaultValue: 'Commencez par définir vos stratégies de continuité pour protéger vos actifs critiques.' })}
+                            actionLabel={t('continuity.strategies.createStrategy', { defaultValue: 'Créer une stratégie' })}
                             onAction={() => setIsModalOpen(true)}
                         />
                     </div>
@@ -143,8 +143,8 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, id: null })}
                 onConfirm={handleConfirmDelete}
-                title="Supprimer la stratégie"
-                message="Êtes-vous sûr de vouloir supprimer cette stratégie ? Cette action est irréversible."
+                title={t('continuity.strategies.deleteTitle', { defaultValue: 'Supprimer la stratégie' })}
+                message={t('continuity.strategies.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette stratégie ? Cette action est irréversible.' })}
             />
         </div>
     );

@@ -400,11 +400,7 @@ const uploadRelease = onCall({
         throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const db = admin.firestore();
-    const userDoc = await db.collection('users').doc(request.auth.uid).get();
-    const userData = userDoc.data();
-
-    if (!userData || !['admin', 'rssi'].includes(userData.role)) {
+    if (!['admin', 'rssi'].includes(request.auth.token.role)) {
         throw new HttpsError('permission-denied', 'Admin access required');
     }
 
@@ -458,15 +454,11 @@ const getDownloadStats = onCall({
         throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const db = admin.firestore();
-
-    // Verify admin role before exposing stats
-    const userDoc = await db.collection('users').doc(request.auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || !['admin', 'rssi'].includes(userData.role)) {
+    if (!['admin', 'rssi'].includes(request.auth.token.role)) {
         throw new HttpsError('permission-denied', 'Admin access required to view download stats');
     }
 
+    const db = admin.firestore();
     const { product = 'agent', days = 30 } = request.data || {};
 
     const startDate = new Date();

@@ -5,6 +5,7 @@ import { SafeHTML } from '../../ui/SafeHTML';
 import { Badge } from '../../ui/Badge';
 import { ThreatIntelChecker } from '../ThreatIntelChecker';
 import { NIS2DeadlineTimer } from '../NIS2DeadlineTimer';
+import { useStore } from '../../../store';
 
 const INCIDENT_STATUS_FLOW: Record<string, string> = {
     'Nouveau': 'Analyse',
@@ -20,6 +21,7 @@ interface IncidentGeneralDetailsProps {
 }
 
 export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ incident, onStatusChange, isUpdating }) => {
+    const { t } = useStore();
     const nextStatus = INCIDENT_STATUS_FLOW[incident.status] || null;
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -85,7 +87,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                                         disabled={isUpdating}
                                         className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl text-xs font-bold transition-all disabled:opacity-50"
                                     >
-                                        {isUpdating ? 'Mise à jour...' : `Passer à "${nextStatus}"`}
+                                        {isUpdating ? t('common.updating', { defaultValue: 'Mise à jour...' }) : t('incidents.advanceStatus', { defaultValue: `Passer à "${nextStatus}"`, status: nextStatus })}
                                     </button>
                                 </div>
                             )}

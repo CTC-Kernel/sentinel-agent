@@ -7,6 +7,7 @@ import { TaskFormDrawer } from '../TaskFormDrawer';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import { generateICS, downloadICS } from '../../../utils/calendarUtils';
 import { sanitizeData } from '../../../utils/dataSanitizer';
+import { useStore } from '../../../store';
 
 interface ProjectTasksProps {
     project: Project;
@@ -16,6 +17,7 @@ interface ProjectTasksProps {
 }
 
 export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, usersList, onUpdateTasks }) => {
+    const { t } = useStore();
     const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
     const [showTaskModal, setShowTaskModal] = useState(false);
@@ -105,7 +107,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                 </div>
                 {canEdit && (
                     <Button onClick={handleNewTask} className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" /> Nouvelle tâche
+                        <Plus className="h-4 w-4" /> {t('projects.tasks.newTask', { defaultValue: 'Nouvelle tâche' })}
                     </Button>
                 )}
             </div>
@@ -124,8 +126,8 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                             <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
                             {canEdit && (
                                 <div className="flex items-center opacity-0 group-hover:opacity-70 transition-opacity">
-                                    <button onClick={() => handleDownloadICS(task)} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => handleDownloadICS(task)} aria-label={t('projects.tasks.downloadICS', { defaultValue: 'Télécharger ICS' })} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => deleteTask(task.id)} aria-label={t('projects.tasks.deleteTask', { defaultValue: 'Supprimer la tâche' })} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-3.5 w-3.5" /></button>
                                 </div>
                             )}
                         </div>
@@ -163,9 +165,9 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, taskId: null })}
                 onConfirm={handleConfirmDeleteTask}
-                title="Supprimer la tâche"
-                message="Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible."
-                confirmText="Supprimer"
+                title={t('projects.tasks.deleteTitle', { defaultValue: 'Supprimer la tâche' })}
+                message={t('projects.tasks.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible.' })}
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
                 type="danger"
             />
         </div>

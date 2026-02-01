@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Document, UserProfile } from '../../types';
 import { useDocumentWorkflow } from '../../hooks/useDocumentWorkflow';
 import { useStore } from '../../store';
@@ -12,6 +13,7 @@ interface ApprovalFlowProps {
 }
 
 export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onPublish }) => {
+    const { t } = useTranslation();
     const { user } = useStore();
     const { submitForReview, approveDocument, rejectDocument, publishDocument, loading } = useDocumentWorkflow();
 
@@ -52,7 +54,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
             <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-3xl border border-border/40 dark:border-slate-800">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-brand-500" />
-                    Flux de Validation
+                    {t('approvalFlow.validationFlow', { defaultValue: 'Flux de Validation' })}
                 </h3>
 
                 {/* ACTION BUTTONS */}
@@ -65,7 +67,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             className="flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                         >
                             <Send className="h-3.5 w-3.5 mr-1.5" />
-                            Soumettre pour revue
+                            {t('approvalFlow.submitForReview', { defaultValue: 'Soumettre pour revue' })}
                         </button>
                     )}
 
@@ -79,7 +81,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                 className="flex items-center px-3 py-1.5 bg-success-600 text-white text-xs font-bold rounded-lg hover:bg-success-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 focus-visible:ring-offset-2"
                             >
                                 <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
-                                Approuver
+                                {t('approvalFlow.approve', { defaultValue: 'Approuver' })}
                             </button>
                             <button
                                 aria-label="Rejeter le document"
@@ -87,7 +89,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                 className="flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                             >
                                 <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                                Rejeter
+                                {t('approvalFlow.reject', { defaultValue: 'Rejeter' })}
                             </button>
                         </>
                     )}
@@ -101,7 +103,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             className="flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                         >
                             <Send className="h-3.5 w-3.5 mr-1.5" />
-                            Publier Officiellement
+                            {t('approvalFlow.publishOfficially', { defaultValue: 'Publier Officiellement' })}
                         </button>
                     )}
                 </div>
@@ -110,7 +112,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                 {actionView === 'submit' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-border/40 dark:border-slate-700">
                         <div>
-                            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">Sélectionner les réviseurs</div>
+                            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">{t('approvalFlow.selectReviewers', { defaultValue: 'Sélectionner les réviseurs' })}</div>
                             <select
                                 aria-label="Sélectionner les réviseurs"
                                 multiple
@@ -121,7 +123,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                     <option key={u.uid || 'unknown'} value={u.uid}>{u.displayName || u.email}</option>
                                 ))}
                             </select>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">{t('approvalFlow.holdCtrlCmd', { defaultValue: 'Maintenez Ctrl/Cmd pour sélectionner plusieurs.' })}</p>
                         </div>
                         <input value={comment} onChange={(e) => setComment(e.target.value)}
                             aria-label="Message pour les réviseurs"
@@ -130,8 +132,8 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         />
                         <div className="flex justify-end gap-2">
-                            <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>
-                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">Confirmer</button>
+                            <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">{t('common.cancel', { defaultValue: 'Annuler' })}</button>
+                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">{t('common.confirm', { defaultValue: 'Confirmer' })}</button>
                         </div>
                     </motion.div>
                 )}
@@ -146,8 +148,8 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             onChange={(e) => setComment(e.target.value)}
                         />
                         <div className="flex justify-end gap-2">
-                            <button aria-label="Annuler le rejet" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>
-                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">Confirmer le Rejet</button>
+                            <button aria-label="Annuler le rejet" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">{t('common.cancel', { defaultValue: 'Annuler' })}</button>
+                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">{t('approvalFlow.confirmRejection', { defaultValue: 'Confirmer le Rejet' })}</button>
                         </div>
                     </motion.div>
                 )}
@@ -156,7 +158,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
             {/* TIMELINE */}
             <div className="relative pl-6 border-l-2 border-border/40 dark:border-slate-800 space-y-6">
                 {history.length === 0 && (
-                    <div className="text-sm text-slate-500 dark:text-slate-300 italic pl-2">Aucun historique de workflow.</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-300 italic pl-2">{t('approvalFlow.noWorkflowHistory', { defaultValue: 'Aucun historique de workflow.' })}</div>
                 )}
                 {history.map((item) => (
                     <div key={item.id || 'unknown'} className="relative">

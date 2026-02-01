@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     useReactTable,
     getCoreRowModel,
@@ -51,6 +52,7 @@ export function DataTable<TData extends { id: string }, TValue>({
     emptyState,
     animateRows = true,
 }: DataTableProps<TData, TValue>) {
+    const { t } = useTranslation();
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
 
@@ -165,11 +167,11 @@ export function DataTable<TData extends { id: string }, TValue>({
                     <div className="relative flex-1 w-full max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
-                            aria-label="Rechercher"
+                            aria-label={t('common.search', { defaultValue: 'Rechercher' })}
                             value={globalFilter ?? ''}
                             onChange={(e) => setGlobalFilter(e.target.value)}
                             type="text"
-                            placeholder="Rechercher..."
+                            placeholder={t('common.searchPlaceholder', { defaultValue: 'Rechercher...' })}
                             className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-2xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none backdrop-blur-sm transition-all"
                         />
                     </div>
@@ -187,7 +189,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 className="flex items-center gap-2"
                             >
                                 <Trash2 className="h-4 w-4" />
-                                Supprimer ({selectedIds.length})
+                                {t('dataTable.deleteSelected', { defaultValue: `Supprimer (${selectedIds.length})`, count: selectedIds.length })}
                             </Button>
                         </Tooltip>
                     )}
@@ -202,7 +204,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 className="flex items-center gap-2 font-bold"
                             >
                                 <Download className="h-4 w-4" />
-                                Exporter CSV
+                                {t('dataTable.exportCsv', { defaultValue: 'Exporter CSV' })}
                             </Button>
                         </Tooltip>
                     )}
@@ -298,7 +300,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mb-4">
                                                 <Search className="h-8 w-8 opacity-40 text-muted-foreground" />
                                             </div>
-                                            <p className="font-medium">Aucune donnée à afficher</p>
+                                            <p className="font-medium">{t('dataTable.noData', { defaultValue: 'Aucune donnée à afficher' })}</p>
                                         </div>
                                     )}
                                 </td>
@@ -389,9 +391,9 @@ export function DataTable<TData extends { id: string }, TValue>({
                             setRowSelection({});
                             setShowDeleteConfirm(false);
                         }}
-                        title="Suppression multiple"
-                        message={`Voulez-vous vraiment supprimer les ${selectedIds.length} éléments sélectionnés ? Cette action est irréversible.`}
-                        confirmText="Supprimer"
+                        title={t('dataTable.bulkDeleteTitle', { defaultValue: 'Suppression multiple' })}
+                        message={t('dataTable.bulkDeleteMessage', { defaultValue: `Voulez-vous vraiment supprimer les ${selectedIds.length} éléments sélectionnés ? Cette action est irréversible.`, count: selectedIds.length })}
+                        confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
                         type="danger"
                     />
                 )

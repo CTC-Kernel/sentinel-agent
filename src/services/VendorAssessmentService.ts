@@ -85,8 +85,8 @@ export class VendorAssessmentService {
           sections: templateData.sections,
           isDefault: templateData.metadata.id === 'general-security',
           isSystem: true,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp() as unknown as string,
+          updatedAt: serverTimestamp() as unknown as string,
           createdBy: userId,
         };
 
@@ -285,7 +285,7 @@ export class VendorAssessmentService {
       const updates: Partial<EnhancedAssessmentResponse> = {
         status: newStatus,
         statusHistory,
-        updatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp() as unknown as string,
       };
 
       // Set dates based on status change

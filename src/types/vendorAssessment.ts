@@ -70,6 +70,12 @@ export interface EnhancedAssessmentResponse extends Omit<SupplierQuestionnaireRe
 
   /** History of status changes */
   statusHistory?: VendorAssessmentStatusChange[];
+
+  /** Creation timestamp */
+  createdAt?: string;
+
+  /** Last update timestamp */
+  updatedAt?: string;
 }
 
 /**

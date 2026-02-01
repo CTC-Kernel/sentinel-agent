@@ -46,6 +46,7 @@ import {
 } from '../../types/voxelAnnotation';
 import { AnnotationService } from '../../services/annotationService';
 import { useAuth } from '../../hooks/useAuth';
+import { useStore } from '../../store';
 import { ConfirmModal } from '../ui/ConfirmModal';
 
 // ============================================================================
@@ -273,6 +274,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
   onEditAnnotation,
 }) => {
   const { user } = useAuth();
+  const { t } = useStore();
 
   // State
   const [replies, setReplies] = useState<AnnotationReply[]>([]);
@@ -448,7 +450,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50"
                   >
                     {annotation.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                    {annotation.isPinned ? 'Désépingler' : 'Épingler'}
+                    {annotation.isPinned ? t('voxel.annotations.unpin', { defaultValue: 'Désépingler' }) : t('voxel.annotations.pin', { defaultValue: 'Épingler' })}
                   </button>
 
                   {isOwner && (
@@ -461,7 +463,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50"
                       >
                         <Edit2 className="w-4 h-4" />
-                        Modifier
+                        {t('common.edit', { defaultValue: 'Modifier' })}
                       </button>
 
                       <button
@@ -472,7 +474,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Supprimer
+                        {t('common.delete', { defaultValue: 'Supprimer' })}
                       </button>
                     </>
                   )}
@@ -550,7 +552,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     ) : (
                       <CheckCircle className="w-4 h-4" />
                     )}
-                    Résoudre
+                    {t('voxel.annotations.resolve', { defaultValue: 'Résoudre' })}
                   </button>
                 )}
 
@@ -560,7 +562,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 text-amber-400 rounded-3xl text-sm font-medium hover:bg-amber-500/30 transition-colors"
                   >
                     <XCircle className="w-4 h-4" />
-                    Rouvrir
+                    {t('voxel.annotations.reopen', { defaultValue: 'Rouvrir' })}
                   </button>
                 )}
               </div>
@@ -594,7 +596,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
             >
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MessageSquare className="w-4 h-4" />
-                <span>{annotation.replyCount} réponse(s)</span>
+                <span>{annotation.replyCount} {t('voxel.annotations.replies', { defaultValue: 'réponse(s)' })}</span>
               </div>
               {isExpanded ? (
                 <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -617,7 +619,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     </div>
                   ) : replies.length === 0 ? (
                     <div className="py-8 text-center text-sm text-slate-500">
-                      Aucune réponse pour le moment
+                      {t('voxel.annotations.noReplies', { defaultValue: 'Aucune réponse pour le moment' })}
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-700/30">
@@ -654,11 +656,11 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
           isOpen={deleteReplyId !== null}
           onClose={() => setDeleteReplyId(null)}
           onConfirm={() => deleteReplyId && handleDeleteReply(deleteReplyId)}
-          title="Supprimer la réponse"
-          message="Êtes-vous sûr de vouloir supprimer cette réponse ?"
+          title={t('voxel.annotations.deleteReplyTitle', { defaultValue: 'Supprimer la réponse' })}
+          message={t('voxel.annotations.deleteReplyMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette réponse ?' })}
           type="danger"
-          confirmText="Supprimer"
-          cancelText="Annuler"
+          confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+          cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
         />
 
         {/* Delete Annotation Confirmation */}
@@ -666,11 +668,11 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
           isOpen={showDeleteAnnotationConfirm}
           onClose={() => setShowDeleteAnnotationConfirm(false)}
           onConfirm={handleDeleteAnnotation}
-          title="Supprimer l'annotation"
-          message="Êtes-vous sûr de vouloir supprimer cette annotation et toutes ses réponses ?"
+          title={t('voxel.annotations.deleteAnnotationTitle', { defaultValue: "Supprimer l'annotation" })}
+          message={t('voxel.annotations.deleteAnnotationMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette annotation et toutes ses réponses ?' })}
           type="danger"
-          confirmText="Supprimer"
-          cancelText="Annuler"
+          confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+          cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
         />
       </motion.div>
     </AnimatePresence>

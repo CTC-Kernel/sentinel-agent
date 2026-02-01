@@ -93,7 +93,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                 <div className="grid grid-cols-1 gap-4">
                     <div>
                         <label htmlFor="questionnaire-title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Titre du Questionnaire <span className="text-red-500">*</span>
+                            {t('suppliers.questionnaire.titleLabel', { defaultValue: 'Titre du Questionnaire' })} <span className="text-red-500">*</span>
                         </label>
                         <input
                             id="questionnaire-title"
@@ -134,7 +134,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                     className="flex items-center text-sm font-medium text-brand-600 bg-brand-50 dark:bg-brand-800 hover:bg-brand-100"
                 >
                     <Plus className="w-4 h-4 mr-2" />
-                    Ajouter une Section
+                    {t('suppliers.questionnaire.addSection', { defaultValue: 'Ajouter une Section' })}
                 </Button>
 
                 <div className="flex gap-3">
@@ -146,7 +146,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                             disabled={isSubmitting}
                             className="text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                         >
-                            Annuler
+                            {t('common.cancel', { defaultValue: 'Annuler' })}
                         </Button>
                     )}
                     <Button
@@ -156,7 +156,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                         className="shadow-lg shadow-brand-500/20"
                     >
                         <Save className="w-4 h-4 mr-2" />
-                        {isSubmitting ? 'Enregistrement...' : 'Enregistrer le Modèle'}
+                        {isSubmitting ? t('common.saving', { defaultValue: 'Enregistrement...' }) : t('suppliers.questionnaire.saveTemplate', { defaultValue: 'Enregistrer le Modèle' })}
                     </Button>
                 </div>
             </div>
@@ -165,9 +165,9 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                 isOpen={sectionToDelete !== null}
                 onClose={() => setSectionToDelete(null)}
                 onConfirm={confirmRemoveSection}
-                title="Supprimer la section"
-                message="Êtes-vous sûr de vouloir supprimer cette section et toutes ses questions ? Cette action est irréversible pour ce brouillon."
-                confirmText="Supprimer"
+                title={t('suppliers.questionnaire.deleteSectionTitle', { defaultValue: 'Supprimer la section' })}
+                message={t('suppliers.questionnaire.deleteSectionMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette section et toutes ses questions ? Cette action est irréversible pour ce brouillon.' })}
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
                 type="danger"
             />
         </form>

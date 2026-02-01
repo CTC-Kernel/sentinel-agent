@@ -70,7 +70,7 @@ const DetailView: React.FC<DetailViewProps> = ({
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t('common.back', 'Retour')}
+            {t('common.back', { defaultValue: 'Back' })}
           </Button>
           <div>
             <h2 className="text-xl font-bold">{config.name}</h2>
@@ -82,7 +82,7 @@ const DetailView: React.FC<DetailViewProps> = ({
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={onEdit}>
             <Settings className="h-4 w-4 mr-2" />
-            {t('common.edit', 'Modifier')}
+            {t('common.edit', { defaultValue: 'Edit' })}
           </Button>
           <Button onClick={onRunSimulation} disabled={simulating}>
             {simulating ? (
@@ -90,23 +90,23 @@ const DetailView: React.FC<DetailViewProps> = ({
             ) : (
               <Play className="h-4 w-4 mr-2" />
             )}
-            {t('fair.actions.runSimulation', 'Lancer simulation')}
+            {t('fair.actions.runSimulation', { defaultValue: 'Run simulation' })}
           </Button>
         </div>
       </div>
 
       {/* Configuration Summary */}
       <Card className="p-6">
-        <h3 className="font-medium mb-4">{t('fair.config.summary', 'Configuration')}</h3>
+        <h3 className="font-medium mb-4">{t('fair.config.summary', { defaultValue: 'Configuration' })}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">{t('fair.config.frequency', 'Fréquence')}</p>
+            <p className="text-muted-foreground">{t('fair.config.frequency', { defaultValue: 'Frequency' })}</p>
             <p className="font-medium">
-              {config.lossEventFrequency.distribution.mostLikely?.toFixed(2) || '-'} / an
+              {config.lossEventFrequency.distribution.mostLikely?.toFixed(2) || '-'} / {t('fair.config.perYear', { defaultValue: 'year' })}
             </p>
           </div>
           <div>
-            <p className="text-muted-foreground">{t('fair.config.lossRange', 'Plage de perte')}</p>
+            <p className="text-muted-foreground">{t('fair.config.lossRange', { defaultValue: 'Loss range' })}</p>
             <p className="font-medium">
               {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.min)}
               {' - '}
@@ -114,11 +114,11 @@ const DetailView: React.FC<DetailViewProps> = ({
             </p>
           </div>
           <div>
-            <p className="text-muted-foreground">{t('fair.config.controlStrength', 'Force des contrôles')}</p>
+            <p className="text-muted-foreground">{t('fair.config.controlStrength', { defaultValue: 'Control strength' })}</p>
             <p className="font-medium">{config.vulnerability.controlStrength.overall}%</p>
           </div>
           <div>
-            <p className="text-muted-foreground">{t('fair.config.vulnerability', 'Vulnérabilité')}</p>
+            <p className="text-muted-foreground">{t('fair.config.vulnerability', { defaultValue: 'Vulnerability' })}</p>
             <p className="font-medium">{config.vulnerability.vulnerabilityScore}%</p>
           </div>
         </div>
@@ -136,10 +136,10 @@ const DetailView: React.FC<DetailViewProps> = ({
         <Card className="p-8 text-center">
           <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="font-medium mb-2">
-            {t('fair.noResults', 'Aucun résultat de simulation')}
+            {t('fair.noResults', { defaultValue: 'No simulation results' })}
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            {t('fair.noResultsDesc', 'Lancez une simulation Monte Carlo pour quantifier ce risque.')}
+            {t('fair.noResultsDesc', { defaultValue: 'Run a Monte Carlo simulation to quantify this risk.' })}
           </p>
           <Button onClick={onRunSimulation} disabled={simulating}>
             {simulating ? (
@@ -147,7 +147,7 @@ const DetailView: React.FC<DetailViewProps> = ({
             ) : (
               <Play className="h-4 w-4 mr-2" />
             )}
-            {t('fair.actions.runSimulation', 'Lancer simulation')}
+            {t('fair.actions.runSimulation', { defaultValue: 'Run simulation' })}
           </Button>
         </Card>
       )}
@@ -196,13 +196,13 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
         await createFromSimpleForm(data);
         setCreateDialogOpen(false);
         toast.success(
-          t('fair.toast.created', 'Analyse créée'),
-          t('fair.toast.createdDesc', 'L\'analyse FAIR a été créée avec succès.')
+          t('fair.toast.created', { defaultValue: 'Analysis created' }),
+          t('fair.toast.createdDesc', { defaultValue: 'The FAIR analysis has been created successfully.' })
         );
       } catch {
         toast.error(
-          t('common.error', 'Erreur'),
-          t('fair.toast.createError', 'Erreur lors de la création de l\'analyse.')
+          t('common.error', { defaultValue: 'Error' }),
+          t('fair.toast.createError', { defaultValue: 'Error creating the analysis.' })
         );
       }
     },
@@ -229,13 +229,13 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
       try {
         await duplicateConfiguration(config.id);
         toast.success(
-          t('fair.toast.duplicated', 'Analyse dupliquée'),
-          t('fair.toast.duplicatedDesc', 'Une copie de l\'analyse a été créée.')
+          t('fair.toast.duplicated', { defaultValue: 'Analysis duplicated' }),
+          t('fair.toast.duplicatedDesc', { defaultValue: 'A copy of the analysis has been created.' })
         );
       } catch {
         toast.error(
-          t('common.error', 'Erreur'),
-          t('fair.toast.duplicateError', 'Erreur lors de la duplication.')
+          t('common.error', { defaultValue: 'Error' }),
+          t('fair.toast.duplicateError', { defaultValue: 'Error during duplication.' })
         );
       }
     },
@@ -254,13 +254,13 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
       setDeleteDialogOpen(false);
       setConfigToDelete(null);
       toast.success(
-        t('fair.toast.deleted', 'Analyse supprimée'),
-        t('fair.toast.deletedDesc', 'L\'analyse a été supprimée.')
+        t('fair.toast.deleted', { defaultValue: 'Analysis deleted' }),
+        t('fair.toast.deletedDesc', { defaultValue: 'The analysis has been deleted.' })
       );
     } catch {
       toast.error(
-        t('common.error', 'Erreur'),
-        t('fair.toast.deleteError', 'Erreur lors de la suppression.')
+        t('common.error', { defaultValue: 'Error' }),
+        t('fair.toast.deleteError', { defaultValue: 'Error during deletion.' })
       );
     }
   }, [configToDelete, deleteConfiguration, t]);
@@ -271,13 +271,13 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
         await selectConfiguration(config.id);
         await runSimulation();
         toast.success(
-          t('fair.toast.simulated', 'Simulation terminée'),
-          t('fair.toast.simulatedDesc', 'Les résultats sont disponibles.')
+          t('fair.toast.simulated', { defaultValue: 'Simulation complete' }),
+          t('fair.toast.simulatedDesc', { defaultValue: 'Results are available.' })
         );
       } catch {
         toast.error(
-          t('common.error', 'Erreur'),
-          t('fair.toast.simulationError', 'Erreur lors de la simulation.')
+          t('common.error', { defaultValue: 'Error' }),
+          t('fair.toast.simulationError', { defaultValue: 'Error during simulation.' })
         );
       }
     },
@@ -288,13 +288,13 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
     try {
       await runSimulation();
       toast.success(
-        t('fair.toast.simulated', 'Simulation terminée'),
-        t('fair.toast.simulatedDesc', 'Les résultats sont disponibles.')
+        t('fair.toast.simulated', { defaultValue: 'Simulation complete' }),
+        t('fair.toast.simulatedDesc', { defaultValue: 'Results are available.' })
       );
     } catch {
       toast.error(
-        t('common.error', 'Erreur'),
-        t('fair.toast.simulationError', 'Erreur lors de la simulation.')
+        t('common.error', { defaultValue: 'Error' }),
+        t('fair.toast.simulationError', { defaultValue: 'Error during simulation.' })
       );
     }
   }, [runSimulation, t]);
@@ -320,8 +320,8 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
       {!hideHeader && (
         <div className="mb-6">
           <PageHeader
-            title={t('fair.title', 'Quantification des risques')}
-            subtitle={t('fair.subtitle', 'Analyse FAIR et simulation Monte Carlo')}
+            title={t('fair.title', { defaultValue: 'Risk quantification' })}
+            subtitle={t('fair.subtitle', { defaultValue: 'FAIR analysis and Monte Carlo simulation' })}
             icon={
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-success-text to-brand-600 text-white">
                 <Calculator className="h-6 w-6" />
@@ -330,11 +330,11 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
             actions={
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="text-sm">
-                  {configurations.length} {t('fair.analyses', 'analyses')}
+                  {configurations.length} {t('fair.analyses', { defaultValue: 'analyses' })}
                 </Badge>
                 <Button onClick={handleCreateNew}>
                   <Plus className="h-4 w-4 mr-2" />
-                  {t('fair.actions.newAnalysis', 'Nouvelle analyse')}
+                  {t('fair.actions.newAnalysis', { defaultValue: 'New analysis' })}
                 </Button>
               </div>
             }
@@ -346,11 +346,11 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
       {hideHeader && (
         <div className="flex items-center justify-between mb-6">
           <Badge variant="outline" className="text-sm">
-            {configurations.length} {t('fair.analyses', 'analyses')}
+            {configurations.length} {t('fair.analyses', { defaultValue: 'analyses' })}
           </Badge>
           <Button onClick={handleCreateNew}>
             <Plus className="h-4 w-4 mr-2" />
-            {t('fair.actions.newAnalysis', 'Nouvelle analyse')}
+            {t('fair.actions.newAnalysis', { defaultValue: 'New analysis' })}
           </Button>
         </div>
       )}
@@ -382,12 +382,12 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calculator className="h-5 w-5 text-success-text" />
-              {t('fair.create.title', 'Nouvelle analyse FAIR')}
+              {t('fair.create.title', { defaultValue: 'New FAIR analysis' })}
             </DialogTitle>
             <DialogDescription>
               {t(
                 'fair.create.description',
-                'Configurez les paramètres de base pour quantifier le risque financier.'
+                { defaultValue: 'Configure the basic parameters to quantify the financial risk.' }
               )}
             </DialogDescription>
           </DialogHeader>
@@ -404,14 +404,14 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title={t('fair.delete.title', 'Supprimer cette analyse ?')}
+        title={t('fair.delete.title', { defaultValue: 'Delete this analysis?' })}
         message={t(
           'fair.delete.description',
-          'Cette action est irréversible. Tous les résultats de simulation seront également supprimés.'
+          { defaultValue: 'This action is irreversible. All simulation results will also be deleted.' }
         )}
         type="danger"
-        confirmText={t('common.delete', 'Supprimer')}
-        cancelText={t('common.cancel', 'Annuler')}
+        confirmText={t('common.delete', { defaultValue: 'Delete' })}
+        cancelText={t('common.cancel', { defaultValue: 'Cancel' })}
       />
     </div>
   );

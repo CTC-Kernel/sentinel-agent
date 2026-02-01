@@ -69,7 +69,10 @@ describe('FrameworkSettings', () => {
         vi.mocked(useStore).mockReturnValue({
             user: mockUser,
             addToast: mockAddToast,
-            t: (key: string) => key,
+            t: (key: string, options?: Record<string, unknown>) => {
+                if (options && 'defaultValue' in options) return (options as { defaultValue: string }).defaultValue;
+                return key;
+            },
             activeFramework: 'ISO27001',
             setActiveFramework: vi.fn(),
         } as unknown as ReturnType<typeof useStore>);

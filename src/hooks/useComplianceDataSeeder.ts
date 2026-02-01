@@ -18,6 +18,7 @@ import { Framework } from '../types';
 import { AuditLogService } from '../services/auditLogService';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { CONTROL_STATUS } from '../constants/complianceConfig';
 
 export const useComplianceDataSeeder = () => {
     const { user, t } = useStore();
@@ -66,7 +67,7 @@ export const useComplianceDataSeeder = () => {
                     name: control.name,
                     description: control.name, // Use name as description if missing
                     framework: framework,
-                    status: 'Non commencé',
+                    status: CONTROL_STATUS.NOT_STARTED,
                     applicability: 'Applicable',
                     organizationId: user.organizationId,
                     createdAt: serverTimestamp(),

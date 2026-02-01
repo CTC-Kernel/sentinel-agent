@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   collection,
   query,
@@ -19,6 +20,7 @@ import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
 import { calculateTrend } from '../utils/trendUtils';
+import i18n from '../i18n';
 
 /**
  * Timeline item types
@@ -124,15 +126,15 @@ export const URGENCY_COLOR_CLASSES = {
 export function getTimelineItemTypeLabel(type: TimelineItemType): string {
   switch (type) {
     case 'action':
-      return 'Action';
+      return i18n.t('deadlines.itemType.action', { defaultValue: 'Action' });
     case 'milestone':
-      return 'Jalon';
+      return i18n.t('deadlines.itemType.milestone', { defaultValue: 'Milestone' });
     case 'audit':
-      return 'Audit';
+      return i18n.t('deadlines.itemType.audit', { defaultValue: 'Audit' });
     case 'document':
-      return 'Document';
+      return i18n.t('deadlines.itemType.document', { defaultValue: 'Document' });
     default:
-      return 'Item';
+      return i18n.t('deadlines.itemType.item', { defaultValue: 'Item' });
   }
 }
 
@@ -154,6 +156,7 @@ export function useUpcomingDeadlines(
   daysAhead: number = 30,
   maxItems: number = 10
 ): UpcomingDeadlinesResult {
+  const { t } = useTranslation();
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [count, setCount] = useState<number>(0);
   const [dueSoonCount, setDueSoonCount] = useState<number>(0);
@@ -220,7 +223,7 @@ export function useUpcomingDeadlines(
               if (daysUntilDue <= daysAhead) {
                 timelineItems.push({
                   id: doc.id,
-                  title: data.title || data.description || 'Item sans titre',
+                  title: data.title || data.description || t('deadlines.untitledItem', { defaultValue: 'Untitled item' }),
                   description: data.description,
                   type: (data.type as TimelineItemType) || 'action',
                   dueDate: dueDate,

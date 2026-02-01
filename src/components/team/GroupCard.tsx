@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserGroup, UserProfile } from '../../types';
 import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 import { Edit, Trash2, Users } from '../ui/Icons';
@@ -12,6 +13,7 @@ interface GroupCardProps {
 }
 
 export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, onEdit, onDelete }) => {
+    const { t } = useTranslation();
     const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
 
     return (
@@ -80,8 +82,8 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                 message={`Êtes-vous sûr de vouloir supprimer le groupe "${group.name}" ?`}
                 details={`${group.members?.length || 0} membre(s) seront retirés de ce groupe.`}
                 type="danger"
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
             />
         </>
     );

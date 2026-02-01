@@ -69,21 +69,21 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Plans de Reprise d'Activité (PRA)</h2>
-                    <p className="text-sm text-slate-500">Gérez vos procédures de restauration et de continuité.</p>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('continuity.pra.titleFull', { defaultValue: "Plans de Reprise d'Activité (PRA)" })}</h2>
+                    <p className="text-sm text-slate-500">{t('continuity.pra.subtitle', { defaultValue: 'Gérez vos procédures de restauration et de continuité.' })}</p>
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input
-                            placeholder="Rechercher un plan..."
+                            placeholder={t('continuity.pra.searchPlaceholder', { defaultValue: 'Rechercher un plan...' })}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500 transition-all placeholder:text-muted-foreground dark:text-white"
                         />
                     </div>
                     <Button onClick={() => { setEditingPlan(undefined); setIsInspectorOpen(true); }} className="gap-2 shrink-0">
-                        <Plus className="w-4 h-4" /> Nouveau Plan
+                        <Plus className="w-4 h-4" /> {t('continuity.pra.newPlan', { defaultValue: 'Nouveau Plan' })}
                     </Button>
                 </div>
             </div>
@@ -159,7 +159,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                                 ) : (
                                     <div className="flex items-center gap-1 text-xs text-amber-600">
                                         <PlayCircle className="w-3 h-3" />
-                                        Jamais testé
+                                        {t('continuity.pra.neverTested', { defaultValue: 'Jamais testé' })}
                                     </div>
                                 )}
                             </div>
@@ -182,8 +182,8 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, id: null })}
                 onConfirm={handleDelete}
-                title="Supprimer le PRA"
-                message="Êtes-vous sûr de vouloir supprimer ce plan de reprise ? Cette action est irréversible."
+                title={t('continuity.pra.deleteTitle', { defaultValue: 'Supprimer le PRA' })}
+                message={t('continuity.pra.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer ce plan de reprise ? Cette action est irréversible.' })}
             />
         </div>
     );

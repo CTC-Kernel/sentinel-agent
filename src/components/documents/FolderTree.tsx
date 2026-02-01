@@ -6,6 +6,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useStore } from '../../store';
 
 const folderSchema = z.object({
     name: z.string().min(1, 'Name is required').max(100, 'Name is too long')
@@ -32,6 +33,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     onDeleteFolder,
     canCreate = true
 }) => {
+    const { t } = useStore();
     const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
     const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
     const [newFolderName, setNewFolderName] = useState('');
@@ -148,7 +150,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     return (
         <div className="h-full flex flex-col">
             <div className="p-4 border-b border-border/40 dark:border-white/5 flex justify-between items-center">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">Dossiers</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">{t('documents.folders.title', { defaultValue: 'Dossiers' })}</h3>
                 {canCreate && (
                     <Button
                         aria-label="Créer un nouveau dossier racine"
@@ -174,7 +176,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 >
                     <div className="w-5 mr-1" /> {/* Spacer for alignment */}
                     <Folder className="h-4 w-4 mr-2 text-slate-500" />
-                    <span className="text-sm font-medium">Tous les documents</span>
+                    <span className="text-sm font-medium">{t('documents.folders.allDocuments', { defaultValue: 'Tous les documents' })}</span>
                 </div>
                 {rootFolders.map(f => (
                     <FolderNode
@@ -206,7 +208,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 >
                     <div className="glass-premium p-4 sm:p-6 rounded-4xl shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
-                        <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
+                        <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">{t('documents.folders.newFolder', { defaultValue: 'Nouveau Dossier' })}</h3>
                         <form onSubmit={handleSubmit(onSubmitFolder)}>
                             <div>
                                 <input
@@ -229,15 +231,15 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     variant="ghost"
                                     disabled={isCreatingFolder}
                                 >
-                                    Annuler
+                                    {t('common.cancel', { defaultValue: 'Annuler' })}
                                 </Button>
                                 <Button
-                                    aria-label="Confirmer la création"
+                                    aria-label={t('documents.folders.confirmCreate', { defaultValue: 'Confirmer la création' })}
                                     type="submit"
                                     className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white shadow-lg shadow-brand-500/20 hover:scale-105"
                                     disabled={isCreatingFolder}
                                 >
-                                    {isCreatingFolder && <Loader2 className="animate-spin mr-2 h-4 w-4" />} Créer
+                                    {isCreatingFolder && <Loader2 className="animate-spin mr-2 h-4 w-4" />} {t('common.create', { defaultValue: 'Créer' })}
                                 </Button>
                             </div>
                         </form>
@@ -267,7 +269,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     variant="ghost"
                                     className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                                 >
-                                    <Plus className="h-4 w-4 mr-2" /> Nouveau sous-dossier
+                                    <Plus className="h-4 w-4 mr-2" /> {t('documents.folders.newSubfolder', { defaultValue: 'Nouveau sous-dossier' })}
                                 </Button>
                                 <Button
                                     aria-label="Renommer le dossier"
@@ -275,7 +277,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     variant="ghost"
                                     className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                                 >
-                                    <Edit2 className="h-4 w-4 mr-2" /> Renommer
+                                    <Edit2 className="h-4 w-4 mr-2" /> {t('common.rename', { defaultValue: 'Renommer' })}
                                 </Button>
                                 <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
                                 <Button
@@ -284,13 +286,13 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     variant="ghost"
                                     className="w-full justify-start text-sm font-normal px-4 py-2 text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                                 >
-                                    <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+                                    <Trash2 className="h-4 w-4 mr-2" /> {t('common.delete', { defaultValue: 'Supprimer' })}
                                 </Button>
                             </>
                         )}
                         {!canCreate && (
                             <div className="px-4 py-2 text-xs text-slate-500 italic">
-                                Lecture seule
+                                {t('common.readOnly', { defaultValue: 'Lecture seule' })}
                             </div>
                         )}
                     </div>
@@ -301,8 +303,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 isOpen={confirmDelete.isOpen}
                 onClose={handleConfirmDeleteClose}
                 onConfirm={handleConfirmDeleteAction}
-                title="Supprimer le dossier ?"
-                message="Tous les sous-dossiers seront également supprimés. Les documents seront déplacés à la racine."
+                title={t('documents.folders.deleteTitle', { defaultValue: 'Supprimer le dossier ?' })}
+                message={t('documents.folders.deleteMessage', { defaultValue: 'Tous les sous-dossiers seront également supprimés. Les documents seront déplacés à la racine.' })}
                 loading={confirmDelete.loading}
                 closeOnConfirm={false}
             />

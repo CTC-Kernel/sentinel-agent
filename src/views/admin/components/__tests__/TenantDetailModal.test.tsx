@@ -282,7 +282,7 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith('Échec du chargement des statistiques');
+                expect(mockToastError).toHaveBeenCalledWith('Failed to load statistics');
             });
         });
     });
@@ -327,7 +327,7 @@ describe('TenantDetailModal', () => {
             fireEvent.click(confirmButton);
 
             await waitFor(() => {
-                expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspendu avec succès');
+                expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspended successfully');
             });
         });
 
@@ -386,7 +386,7 @@ describe('TenantDetailModal', () => {
             fireEvent.click(confirmButton);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith('Échec de la mise à jour du statut');
+                expect(mockToastError).toHaveBeenCalledWith('Failed to update status');
             });
         });
     });
@@ -476,7 +476,7 @@ describe('TenantDetailModal', () => {
             fireEvent.click(saveButton);
 
             await waitFor(() => {
-                expect(mockToastSuccess).toHaveBeenCalledWith('Abonnement mis à jour avec succès');
+                expect(mockToastSuccess).toHaveBeenCalledWith('Subscription updated successfully');
             });
         });
 
@@ -502,7 +502,7 @@ describe('TenantDetailModal', () => {
             fireEvent.click(saveButton);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith('Échec de la mise à jour');
+                expect(mockToastError).toHaveBeenCalledWith('Failed to update');
             });
         });
     });

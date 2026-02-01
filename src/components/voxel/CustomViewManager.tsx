@@ -32,6 +32,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/store';
 import { useViewPresets } from '@/hooks/voxel/useViewPresets';
 import type { CustomViewConfig } from '@/stores/viewPresets';
 import { formatDistanceToNow } from 'date-fns';
@@ -190,6 +191,7 @@ export function CustomViewManager({
   onClose,
   initialMode = 'list',
 }: CustomViewManagerProps) {
+  const { t } = useStore();
   const {
     customViews,
     isLoadingCustomViews,
@@ -461,10 +463,10 @@ export function CustomViewManager({
         isOpen={!!deleteConfirmView}
         onClose={() => setDeleteConfirmView(null)}
         onConfirm={handleDelete}
-        title="Supprimer cette vue ?"
-        message={`Cette action est irreversible. La vue "${deleteConfirmView?.name}" sera definitivement supprimee.`}
+        title={t('voxel.views.deleteTitle', { defaultValue: 'Supprimer cette vue ?' })}
+        message={t('voxel.views.deleteMessage', { defaultValue: `Cette action est irreversible. La vue "${deleteConfirmView?.name}" sera definitivement supprimee.`, name: deleteConfirmView?.name })}
         type="danger"
-        confirmText="Supprimer"
+        confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
       />
     </>
   );

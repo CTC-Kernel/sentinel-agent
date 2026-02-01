@@ -35,7 +35,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
             setStats(data);
         } catch (error) {
             ErrorLogger.error(error, 'TenantDetailModal.loadStats');
-            toast.error(t('admin.toast.statsLoadFailed', { defaultValue: "Échec du chargement des statistiques" }));
+            toast.error(t('admin.toast.statsLoadFailed', { defaultValue: 'Failed to load statistics' }));
         } finally {
             setLoading(false);
         }
@@ -61,11 +61,11 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
         setProcessing(true);
         try {
             await AdminService.toggleTenantStatus(tenant.id, newStatus);
-            toast.success(t('admin.toast.tenantStatusUpdated', { defaultValue: `Tenant ${newStatus ? 'activé' : 'suspendu'} avec succès`, status: newStatus ? 'activé' : 'suspendu' }));
+            toast.success(t('admin.toast.tenantStatusUpdated', { defaultValue: `Tenant ${newStatus ? 'activated' : 'suspended'} successfully`, status: newStatus ? 'activated' : 'suspended' }));
             onUpdate();
             onClose();
         } catch {
-            toast.error(t('admin.toast.statusUpdateFailed', { defaultValue: "Échec de la mise à jour du statut" }));
+            toast.error(t('admin.toast.statusUpdateFailed', { defaultValue: 'Failed to update status' }));
         } finally {
             setProcessing(false);
             setShowToggleStatusConfirm(false);
@@ -80,10 +80,10 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                 maxUsers,
                 maxProjects
             });
-            toast.success(t('admin.toast.subscriptionUpdated', { defaultValue: "Abonnement mis à jour avec succès" }));
+            toast.success(t('admin.toast.subscriptionUpdated', { defaultValue: 'Subscription updated successfully' }));
             onUpdate();
         } catch {
-            toast.error(t('admin.toast.updateFailed', { defaultValue: "Échec de la mise à jour" }));
+            toast.error(t('admin.toast.updateFailed', { defaultValue: 'Failed to update' }));
         } finally {
             setProcessing(false);
         }

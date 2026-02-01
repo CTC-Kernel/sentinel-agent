@@ -68,6 +68,7 @@ interface ConflictAlertProps {
 }
 
 const ConflictAlert: React.FC<ConflictAlertProps> = ({ conflicts, onResolve }) => {
+    const { t } = useStore();
     if (conflicts.length === 0) return null;
 
     return (
@@ -80,7 +81,7 @@ const ConflictAlert: React.FC<ConflictAlertProps> = ({ conflicts, onResolve }) =
                 <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-semibold text-warning">
-                        {conflicts.length} conflit{conflicts.length > 1 ? 's' : ''} de politique{conflicts.length > 1 ? 's' : ''} détecté{conflicts.length > 1 ? 's' : ''}
+                        {conflicts.length} {t('agents.policies.conflictsDetected', { defaultValue: 'policy conflict(s) detected', count: conflicts.length })}
                     </h4>
                     <ul className="mt-2 space-y-1">
                         {conflicts.slice(0, 3).map((conflict, index) => (
@@ -95,14 +96,14 @@ const ConflictAlert: React.FC<ConflictAlertProps> = ({ conflicts, onResolve }) =
                                     className="h-5 text-xs px-2"
                                     onClick={() => onResolve(conflict)}
                                 >
-                                    Résoudre
+                                    {t('agents.policies.resolve', { defaultValue: 'Resolve' })}
                                 </Button>
                             </li>
                         ))}
                     </ul>
                     {conflicts.length > 3 && (
                         <p className="text-xs text-muted-foreground mt-2">
-                            +{conflicts.length - 3} autre{conflicts.length > 4 ? 's' : ''} conflit{conflicts.length > 4 ? 's' : ''}
+                            {t('agents.policies.moreConflicts', { defaultValue: '+{{count}} more conflict(s)', count: conflicts.length - 3 })}
                         </p>
                     )}
                 </div>
@@ -158,7 +159,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
             },
             (error: Error) => {
                 ErrorLogger.error(error, 'AgentPolicies.subscribeToGroups');
-                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
+                setError(t('agents.loadError', { defaultValue: 'Error loading data' }));
             }
         );
         unsubscribers.push(unsubGroups);
@@ -172,7 +173,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
             },
             (error: Error) => {
                 ErrorLogger.error(error, 'AgentPolicies.subscribeToPolicies');
-                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
+                setError(t('agents.loadError', { defaultValue: 'Error loading data' }));
                 setLoading(false);
             }
         );
@@ -205,7 +206,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
             } catch (error) {
                 initInFlightRef.current = false; // Allow retry
                 ErrorLogger.error(error, 'AgentPolicies.initializeDefaults');
-                setError(t('agents.loadError', { defaultValue: 'Erreur de chargement des donnees' }));
+                setError(t('agents.loadError', { defaultValue: 'Error loading data' }));
             }
         };
 
@@ -258,9 +259,9 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
         return (
             <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
                 <Shield className="h-12 w-12 text-muted-foreground" />
-                <p className="text-lg font-medium">{t('common.accessDenied', { defaultValue: 'Accès refusé' })}</p>
+                <p className="text-lg font-medium">{t('common.accessDenied', { defaultValue: 'Access denied' })}</p>
                 <p className="text-sm text-muted-foreground">
-                    Vous n&apos;avez pas les permissions nécessaires pour accéder aux politiques agents.
+                    {t('agents.policies.noPermission', { defaultValue: 'You do not have the required permissions to access agent policies.' })}
                 </p>
             </div>
         );
@@ -286,7 +287,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                     setIsInitialized(false);
                     setRetryCount(prev => prev + 1);
                 }} variant="outline">
-                    {t('common.retry', { defaultValue: 'Reessayer' })}
+                    {t('common.retry', { defaultValue: 'Retry' })}
                 </Button>
             </div>
         );
@@ -302,8 +303,8 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
             >
                 {/* Header */}
                 <PageHeader
-                    title="Politiques Agents"
-                    subtitle="Configurez les groupes et politiques pour contrôler le comportement des agents"
+                    title={t('agents.policies.title', { defaultValue: 'Agent Policies' })}
+                    subtitle={t('agents.policies.subtitle', { defaultValue: 'Configure groups and policies to control agent behavior' })}
                     icon={
                         <img
                             src="/images/IA.png"
@@ -325,7 +326,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                             }}
                         >
                             <RefreshCw className="h-4 w-4" />
-                            <span className="hidden sm:inline">Actualiser</span>
+                            <span className="hidden sm:inline">{t('common.refresh', { defaultValue: 'Refresh' })}</span>
                         </Button>
                     }
                 />
@@ -336,31 +337,31 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                     className="grid grid-cols-2 lg:grid-cols-4 gap-4"
                 >
                     <StatsCard
-                        title="Groupes"
+                        title={t('agents.policies.groups', { defaultValue: 'Groups' })}
                         value={stats.totalGroups}
                         icon={<Users className="h-5 w-5" />}
-                        subtitle={`${groups.filter(g => g.isDefault).length} par défaut`}
+                        subtitle={t('agents.policies.defaultCount', { defaultValue: '{{count}} default', count: groups.filter(g => g.isDefault).length })}
                     />
                     <StatsCard
-                        title="Politiques"
+                        title={t('agents.policies.policies', { defaultValue: 'Policies' })}
                         value={stats.totalPolicies}
                         icon={<FileCode className="h-5 w-5" />}
-                        subtitle={`${stats.activePolicies} actives`}
+                        subtitle={t('agents.policies.activeCount', { defaultValue: '{{count}} active', count: stats.activePolicies })}
                         variant={stats.activePolicies > 0 ? 'success' : 'default'}
                     />
                     <StatsCard
-                        title="Déployées"
+                        title={t('agents.policies.deployed', { defaultValue: 'Deployed' })}
                         value={stats.deployedPolicies}
                         icon={<CheckCircle2 className="h-5 w-5" />}
                         variant={stats.deployedPolicies > 0 ? 'success' : 'default'}
-                        subtitle="sur les agents"
+                        subtitle={t('agents.policies.onAgents', { defaultValue: 'on agents' })}
                     />
                     <StatsCard
-                        title="Conflits"
+                        title={t('agents.policies.conflicts', { defaultValue: 'Conflicts' })}
                         value={stats.conflictCount}
                         icon={stats.conflictCount > 0 ? <XCircle className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
                         variant={stats.conflictCount > 0 ? 'danger' : 'success'}
-                        subtitle={stats.conflictCount > 0 ? t('agents.policies.toResolve', { defaultValue: 'à résoudre' }) : t('agents.policies.noConflict', { defaultValue: 'aucun conflit' })}
+                        subtitle={stats.conflictCount > 0 ? t('agents.policies.toResolve', { defaultValue: 'to resolve' }) : t('agents.policies.noConflict', { defaultValue: 'no conflicts' })}
                     />
                 </motion.div>
 
@@ -373,19 +374,19 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                     className="glass-premium rounded-2xl p-4 border border-border/40 shadow-sm"
                 >
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-foreground">{t('agents.policies.distribution', { defaultValue: 'Distribution des politiques' })}</h3>
+                        <h3 className="text-sm font-semibold text-foreground">{t('agents.policies.distribution', { defaultValue: 'Policy distribution' })}</h3>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-primary" />
-                                <span className="text-xs text-muted-foreground">Globales ({stats.globalPolicies})</span>
+                                <span className="text-xs text-muted-foreground">{t('agents.policies.global', { defaultValue: 'Global' })} ({stats.globalPolicies})</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-warning" />
-                                <span className="text-xs text-muted-foreground">Groupes ({stats.groupPolicies})</span>
+                                <span className="text-xs text-muted-foreground">{t('agents.policies.groups', { defaultValue: 'Groups' })} ({stats.groupPolicies})</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-success" />
-                                <span className="text-xs text-muted-foreground">Agents ({stats.agentPolicies})</span>
+                                <span className="text-xs text-muted-foreground">{t('agents.policies.agents', { defaultValue: 'Agents' })} ({stats.agentPolicies})</span>
                             </div>
                         </div>
                     </div>
@@ -424,7 +425,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                                 className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg px-4 py-2"
                             >
                                 <Layers className="h-4 w-4" />
-                                <span>Groupes</span>
+                                <span>{t('agents.policies.groups', { defaultValue: 'Groups' })}</span>
                                 <Badge variant="soft" className="ml-1">
                                     {stats.totalGroups}
                                 </Badge>
@@ -434,7 +435,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                                 className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg px-4 py-2"
                             >
                                 <Settings2 className="h-4 w-4" />
-                                <span>Politiques</span>
+                                <span>{t('agents.policies.policies', { defaultValue: 'Policies' })}</span>
                                 <Badge variant="soft" className="ml-1">
                                     {stats.totalPolicies}
                                 </Badge>
@@ -468,7 +469,7 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                 >
                     <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                         <Shield className="h-4 w-4 text-primary" />
-                        {t('agents.policies.inheritanceModel', { defaultValue: "Modèle d'héritage des politiques" })}
+                        {t('agents.policies.inheritanceModel', { defaultValue: 'Policy inheritance model' })}
                     </h3>
                     <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
                         <div className="flex items-center gap-3">
@@ -476,8 +477,8 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                                 <span className="text-sm font-bold">1</span>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-foreground">Global</p>
-                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityLow', { defaultValue: 'Priorité basse' })}</p>
+                                <p className="text-sm font-medium text-foreground">{t('agents.policies.global', { defaultValue: 'Global' })}</p>
+                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityLow', { defaultValue: 'Low priority' })}</p>
                             </div>
                         </div>
                         <div className="hidden sm:block w-8 h-px bg-border" />
@@ -487,8 +488,8 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                                 <span className="text-sm font-bold">2</span>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-foreground">Groupe</p>
-                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityMedium', { defaultValue: 'Priorité moyenne' })}</p>
+                                <p className="text-sm font-medium text-foreground">{t('agents.policies.group', { defaultValue: 'Group' })}</p>
+                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityMedium', { defaultValue: 'Medium priority' })}</p>
                             </div>
                         </div>
                         <div className="hidden sm:block w-8 h-px bg-border" />
@@ -498,14 +499,13 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
                                 <span className="text-sm font-bold">3</span>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-foreground">Agent</p>
-                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityHigh', { defaultValue: 'Priorité haute' })}</p>
+                                <p className="text-sm font-medium text-foreground">{t('agents.policies.agent', { defaultValue: 'Agent' })}</p>
+                                <p className="text-xs text-muted-foreground">{t('agents.policies.priorityHigh', { defaultValue: 'High priority' })}</p>
                             </div>
                         </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-4">
-                        Les règles des politiques de niveau supérieur écrasent celles de niveau inférieur.
-                        Une politique Agent peut désactiver une règle héritée d'un Groupe.
+                        {t('agents.policies.inheritanceDesc', { defaultValue: 'Higher-level policy rules override lower-level ones. An Agent policy can disable a rule inherited from a Group.' })}
                     </p>
                 </motion.div>
             </motion.div>

@@ -187,7 +187,7 @@ export const useProjectLogic = () => {
                 createdAt: serverTimestamp(),
                 organizationId: user.organizationId,
                 progress: 0,
-                tasks: project.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() }))
+                tasks: project.tasks.map(t => ({ ...t, status: 'À faire', id: crypto.randomUUID() }))
             };
             // @ts-expect-error - Timestamp type mismatch with external library
             delete newProjData.id;

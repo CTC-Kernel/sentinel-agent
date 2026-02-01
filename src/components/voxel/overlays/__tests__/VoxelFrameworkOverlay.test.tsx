@@ -66,7 +66,7 @@ describe('VoxelFrameworkOverlay', () => {
   describe('Visibility', () => {
     it('should render when visible', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
-      expect(screen.getByText('Frameworks')).toBeInTheDocument();
+      expect(screen.getByText('Référentiels')).toBeInTheDocument();
     });
 
     it('should not render when not visible', () => {
@@ -76,10 +76,10 @@ describe('VoxelFrameworkOverlay', () => {
       expect(container.firstChild).toBeNull();
     });
 
-    it('should show default frameworks when none provided', () => {
+    it('should show empty state when no frameworks provided', () => {
       render(<VoxelFrameworkOverlay visible={true} />);
-      // Default frameworks include ISO 27001
-      expect(screen.getByText('ISO 27001:2022')).toBeInTheDocument();
+      // Default frameworks list is empty
+      expect(screen.getByText('Aucun référentiel configuré')).toBeInTheDocument();
     });
   });
 
@@ -104,13 +104,13 @@ describe('VoxelFrameworkOverlay', () => {
 
     it('should display control counts', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
-      expect(screen.getByText('80/100 controls')).toBeInTheDocument();
-      expect(screen.getByText('50/60 controls')).toBeInTheDocument();
+      expect(screen.getByText(/80\/100 contrôles/)).toBeInTheDocument();
+      expect(screen.getByText(/50\/60 contrôles/)).toBeInTheDocument();
     });
 
     it('should show empty message when no frameworks', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={[]} />);
-      expect(screen.getByText('No frameworks configured')).toBeInTheDocument();
+      expect(screen.getByText('Aucun référentiel configuré')).toBeInTheDocument();
     });
   });
 
@@ -204,16 +204,16 @@ describe('VoxelFrameworkOverlay', () => {
       );
 
       // Initially breakdown should not be visible
-      expect(screen.queryByText('Compliant')).not.toBeInTheDocument();
+      expect(screen.queryByText('Conforme')).not.toBeInTheDocument();
 
       // Click expand button
-      const expandButton = screen.getAllByRole('button', { name: /expand breakdown/i })[0];
+      const expandButton = screen.getAllByRole('button', { name: /Expand breakdown/i })[0];
       fireEvent.click(expandButton);
 
       // Now breakdown should be visible
-      expect(screen.getByText('Compliant')).toBeInTheDocument();
-      expect(screen.getByText('Partial')).toBeInTheDocument();
-      expect(screen.getByText('Non-Compliant')).toBeInTheDocument();
+      expect(screen.getByText('Conforme')).toBeInTheDocument();
+      expect(screen.getByText('Partiel')).toBeInTheDocument();
+      expect(screen.getByText('Non conforme')).toBeInTheDocument();
       expect(screen.getByText('N/A')).toBeInTheDocument();
     });
 
@@ -223,14 +223,14 @@ describe('VoxelFrameworkOverlay', () => {
       );
 
       // Expand
-      const expandButton = screen.getAllByRole('button', { name: /expand breakdown/i })[0];
+      const expandButton = screen.getAllByRole('button', { name: /Expand breakdown/i })[0];
       fireEvent.click(expandButton);
-      expect(screen.getByText('Compliant')).toBeInTheDocument();
+      expect(screen.getByText('Conforme')).toBeInTheDocument();
 
       // Collapse
-      const collapseButton = screen.getByRole('button', { name: /collapse breakdown/i });
+      const collapseButton = screen.getByRole('button', { name: /Collapse breakdown/i });
       fireEvent.click(collapseButton);
-      expect(screen.queryByText('Compliant')).not.toBeInTheDocument();
+      expect(screen.queryByText('Conforme')).not.toBeInTheDocument();
     });
 
     it('should not show breakdown when showBreakdown is false', () => {
@@ -239,18 +239,18 @@ describe('VoxelFrameworkOverlay', () => {
       );
 
       // Click expand button
-      const expandButton = screen.getAllByRole('button', { name: /expand breakdown/i })[0];
+      const expandButton = screen.getAllByRole('button', { name: /Expand breakdown/i })[0];
       fireEvent.click(expandButton);
 
       // Breakdown should still not be visible
-      expect(screen.queryByText('Compliant')).not.toBeInTheDocument();
+      expect(screen.queryByText('Conforme')).not.toBeInTheDocument();
     });
   });
 
   describe('Overall Stats', () => {
     it('should display overall coverage', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
-      expect(screen.getByText('Overall Coverage')).toBeInTheDocument();
+      expect(screen.getByText('Couverture Globale')).toBeInTheDocument();
     });
 
     it('should calculate average score correctly', () => {
@@ -268,13 +268,13 @@ describe('VoxelFrameworkOverlay', () => {
   describe('Minimize/Expand', () => {
     it('should have minimize button', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
-      expect(screen.getByRole('button', { name: /minimize panel/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /duire le panneau/i })).toBeInTheDocument();
     });
 
     it('should minimize when clicking minimize button', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
 
-      const minimizeButton = screen.getByRole('button', { name: /minimize panel/i });
+      const minimizeButton = screen.getByRole('button', { name: /duire le panneau/i });
       fireEvent.click(minimizeButton);
 
       // Framework names should not be visible when minimized
@@ -285,22 +285,22 @@ describe('VoxelFrameworkOverlay', () => {
     it('should show abbreviated codes when minimized', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
 
-      const minimizeButton = screen.getByRole('button', { name: /minimize panel/i });
+      const minimizeButton = screen.getByRole('button', { name: /duire le panneau/i });
       fireEvent.click(minimizeButton);
 
       // Should show abbreviated buttons
-      expect(screen.getByRole('button', { name: /select iso 27001/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Select ISO 27001/i })).toBeInTheDocument();
     });
 
     it('should expand when clicking expand button', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
 
       // Minimize first
-      const minimizeButton = screen.getByRole('button', { name: /minimize panel/i });
+      const minimizeButton = screen.getByRole('button', { name: /duire le panneau/i });
       fireEvent.click(minimizeButton);
 
       // Then expand
-      const expandButton = screen.getByRole('button', { name: /expand panel/i });
+      const expandButton = screen.getByRole('button', { name: /Agrandir le panneau/i });
       fireEvent.click(expandButton);
 
       // Framework names should be visible again
@@ -321,7 +321,7 @@ describe('VoxelFrameworkOverlay', () => {
     it('should have proper labels for expand/collapse buttons', () => {
       render(<VoxelFrameworkOverlay visible={true} frameworks={mockFrameworks} />);
 
-      const expandButtons = screen.getAllByRole('button', { name: /expand breakdown/i });
+      const expandButtons = screen.getAllByRole('button', { name: /Expand breakdown/i });
       expect(expandButtons.length).toBeGreaterThan(0);
     });
   });

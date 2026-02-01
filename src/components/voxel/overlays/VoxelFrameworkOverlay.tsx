@@ -80,53 +80,12 @@ export interface VoxelFrameworkOverlayProps {
 // Constants
 // ============================================================================
 
-const DEFAULT_FRAMEWORKS: ComplianceFramework[] = [
-  {
-    id: 'iso27001',
-    name: 'ISO 27001:2022',
-    code: 'ISO',
-    color: '#3B82F6',
-    totalControls: 93,
-    mappedControls: 78,
-    complianceScore: 84,
-    breakdown: { compliant: 65, partial: 10, nonCompliant: 3, notApplicable: 15 },
-  },
-  {
-    id: 'soc2',
-    name: 'SOC 2 Type II',
-    code: 'SOC2',
-    color: '#8B5CF6',
-    totalControls: 64,
-    mappedControls: 58,
-    complianceScore: 91,
-    breakdown: { compliant: 52, partial: 4, nonCompliant: 2, notApplicable: 6 },
-  },
-  {
-    id: 'gdpr',
-    name: 'GDPR',
-    code: 'GDPR',
-    color: '#10B981',
-    totalControls: 42,
-    mappedControls: 40,
-    complianceScore: 95,
-    breakdown: { compliant: 38, partial: 2, nonCompliant: 0, notApplicable: 2 },
-  },
-  {
-    id: 'hipaa',
-    name: 'HIPAA',
-    code: 'HIPAA',
-    color: '#F59E0B',
-    totalControls: 54,
-    mappedControls: 32,
-    complianceScore: 59,
-    breakdown: { compliant: 19, partial: 8, nonCompliant: 5, notApplicable: 22 },
-  },
-];
+const DEFAULT_FRAMEWORKS: ComplianceFramework[] = [];
 
 const STATUS_CONFIG = {
-  compliant: { icon: CheckCircle, color: '#10B981', label: 'Compliant' },
-  partial: { icon: AlertTriangle, color: '#F59E0B', label: 'Partial' },
-  nonCompliant: { icon: XCircle, color: '#EF4444', label: 'Non-Compliant' },
+  compliant: { icon: CheckCircle, color: '#10B981', label: 'Conforme' },
+  partial: { icon: AlertTriangle, color: '#F59E0B', label: 'Partiel' },
+  nonCompliant: { icon: XCircle, color: '#EF4444', label: 'Non conforme' },
   notApplicable: { icon: Filter, color: '#6B7280', label: 'N/A' },
 };
 
@@ -205,7 +164,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
             <span className="text-lg font-bold" style={{ color: scoreColor }}>
               {framework.complianceScore}%
             </span>
-            <p className="text-xs text-slate-500">Coverage</p>
+            <p className="text-xs text-slate-500">Couverture</p>
           </div>
         </div>
 
@@ -223,7 +182,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
         {/* Stats row */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
-            {framework.mappedControls}/{framework.totalControls} controls
+            {framework.mappedControls}/{framework.totalControls} contrôles
           </span>
           <button
             onClick={(e) => {
@@ -345,13 +304,13 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
             {!isMinimized && (
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-medium text-white">Frameworks</span>
+                <span className="text-sm font-medium text-white">Référentiels</span>
               </div>
             )}
             <button
               onClick={() => setIsMinimized(!isMinimized)}
               className="p-1.5 hover:bg-slate-700/50 rounded-lg transition-colors"
-              aria-label={isMinimized ? 'Expand panel' : 'Minimize panel'}
+              aria-label={isMinimized ? 'Agrandir le panneau' : 'Réduire le panneau'}
             >
               <Layers className={`w-4 h-4 text-slate-400 ${isMinimized ? '' : 'hidden'}`} />
               {!isMinimized &&
@@ -365,7 +324,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
 
           {!isMinimized && (
             <div className="mt-2 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Overall Coverage</span>
+              <span className="text-muted-foreground">Couverture Globale</span>
               <span
                 className="font-bold"
                 style={{
@@ -400,7 +359,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
 
             {frameworks.length === 0 && (
               <div className="p-4 text-center text-slate-500 dark:text-slate-300 text-sm">
-                No frameworks configured
+                Aucun référentiel configuré
               </div>
             )}
           </div>

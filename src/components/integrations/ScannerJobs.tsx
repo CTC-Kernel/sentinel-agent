@@ -209,14 +209,14 @@ export const ScannerJobs: React.FC = () => {
                             onClick={() => setIsCreateModalOpen(false)}
                             className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
                         >
-                            Annuler
+                            {t('common.cancel', { defaultValue: 'Annuler' })}
                         </button>
                         <button
                             onClick={handleCreateJob}
                             disabled={isSubmitting || !newJob.target}
                             className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                         >
-                            {isSubmitting ? 'Création...' : 'Planifier'}
+                            {isSubmitting ? t('scanner.creating', { defaultValue: 'Création...' }) : t('scanner.schedule', { defaultValue: 'Planifier' })}
                         </button>
                     </div>
                 </div>
@@ -226,11 +226,11 @@ export const ScannerJobs: React.FC = () => {
                 isOpen={deleteJobId !== null}
                 onClose={() => setDeleteJobId(null)}
                 onConfirm={() => deleteJobId && handleDeleteJob(deleteJobId)}
-                title="Supprimer la tâche de scan"
-                message="Êtes-vous sûr de vouloir supprimer cette tâche ?"
+                title={t('scanner.deleteJobTitle', { defaultValue: 'Supprimer la tâche de scan' })}
+                message={t('scanner.deleteJobMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette tâche ?' })}
                 type="danger"
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
             />
         </div>
     );

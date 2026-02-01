@@ -668,7 +668,7 @@ export class FAIRService {
 
     // Apply vulnerability factor
     const vulnerabilityFactor = config.vulnerability.vulnerabilityScore / 100;
-    const adjustedFrequency = expectedFrequency * (0.5 + vulnerabilityFactor);
+    const adjustedFrequency = expectedFrequency * vulnerabilityFactor;
 
     return adjustedFrequency * expectedMagnitude;
   }

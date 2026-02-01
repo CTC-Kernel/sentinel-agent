@@ -6,6 +6,7 @@ import {
     updateDoc,
     deleteDoc,
     setDoc,
+    serverTimestamp,
     DocumentData,
     WithFieldValue,
     UpdateData,
@@ -18,7 +19,7 @@ import { ErrorLogger } from '../services/errorLogger';
 
 interface EnrichedData extends DocumentData {
     organizationId?: string;
-    updatedAt: Date;
+    updatedAt: ReturnType<typeof serverTimestamp>;
     updatedBy?: string;
 }
 
@@ -42,13 +43,13 @@ export const useFirestoreService = () => {
             return {
                 ...data,
                 organizationId: user.organizationId,
-                updatedAt: new Date(),
+                updatedAt: serverTimestamp(),
                 updatedBy: user.uid
             };
         }
         return {
             ...data,
-            updatedAt: new Date(),
+            updatedAt: serverTimestamp(),
             updatedBy: user?.uid
         };
     }, [user]);

@@ -49,7 +49,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
         // Global Score: Implemented (100%) + Partial (PARTIAL_CONTROL_WEIGHT) over Actionable
         const globalScore = actionableControls > 0
             ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100)
-            : 0;
+            : 100;
 
         const evidenceCount = controls.reduce((acc, curr) => acc + (curr.evidenceIds?.length || 0), 0);
 

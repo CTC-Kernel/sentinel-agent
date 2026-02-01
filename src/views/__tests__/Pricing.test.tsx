@@ -24,7 +24,7 @@ vi.mock('framer-motion', () => ({
 // Mock i18n
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, fallback?: string) => {
+        t: (key: string, options?: string | Record<string, unknown>) => {
             const translations: Record<string, string> = {
                 'common.pricingTitle': 'Tarification transparente',
                 'common.pricingSubtitle': 'Des solutions flexibles',
@@ -37,9 +37,11 @@ vi.mock('react-i18next', () => ({
                 'pricing.faq1_q': 'Question 1',
                 'pricing.faq2_q': 'Question 2',
                 'pricing.faq3_q': 'Question 3',
-                // Add keys used in component
             };
-            return translations[key] || fallback || key;
+            if (translations[key]) return translations[key];
+            if (typeof options === 'string') return options;
+            if (options && typeof options === 'object' && 'defaultValue' in options) return options.defaultValue as string;
+            return key;
         }
     })
 }));

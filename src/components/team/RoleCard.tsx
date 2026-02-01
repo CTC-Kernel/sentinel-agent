@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CustomRole } from '../../types';
 import { Edit, Trash2, Shield } from '../ui/Icons';
 import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
@@ -10,6 +11,7 @@ interface RoleCardProps {
 }
 
 export const RoleCard = memo(({ role, onEdit, onDelete }: RoleCardProps) => {
+    const { t } = useTranslation();
     const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
 
     return (
@@ -51,8 +53,8 @@ export const RoleCard = memo(({ role, onEdit, onDelete }: RoleCardProps) => {
             message={`Êtes-vous sûr de vouloir supprimer le rôle "${role.name}" ?`}
             details="Les utilisateurs avec ce rôle perdront leurs permissions associées."
             type="danger"
-            confirmText="Supprimer"
-            cancelText="Annuler"
+            confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+            cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
         />
         </>
     );

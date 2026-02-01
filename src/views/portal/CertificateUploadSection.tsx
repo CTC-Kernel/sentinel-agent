@@ -92,8 +92,8 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                 <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Certification Enregistrée</h3>
-                <p className="text-slate-600 dark:text-muted-foreground">Le rapport de certification a été transmis. L'accès à cet audit est désormais archivé.</p>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('certificate.certificationRecorded', { defaultValue: 'Certification Enregistrée' })}</h3>
+                <p className="text-slate-600 dark:text-muted-foreground">{t('certificate.certificationRecordedDescription', { defaultValue: "Le rapport de certification a été transmis. L'accès à cet audit est désormais archivé." })}</p>
             </div>
         );
     }
@@ -102,11 +102,10 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
         <div className="space-y-6">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-brand-500" />
-                Validation & Certification
+                {t('certificate.validationTitle', { defaultValue: 'Validation & Certification' })}
             </h2>
             <p className="text-slate-600 mb-6 text-sm">
-                En tant qu'auditeur accrédité, vous pouvez valider cet audit et y joindre le certificat officiel.
-                Cette action clôturera l'audit et notifiera l'organisation.
+                {t('certificate.validationDescription', { defaultValue: "En tant qu'auditeur accrédité, vous pouvez valider cet audit et y joindre le certificat officiel. Cette action clôturera l'audit et notifiera l'organisation." })}
             </p>
 
             <div className="border border-slate-200 dark:border-white/10 rounded-xl p-6 bg-slate-50 dark:bg-slate-900/50">
@@ -120,7 +119,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                     ) : (
                         <>
                             <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                            <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Déposer le rapport ou le certificat (PDF)</span>
+                            <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">{t('certificate.dropFile', { defaultValue: 'Déposer le rapport ou le certificat (PDF)' })}</span>
                             <span className="text-xs text-muted-foreground mt-1">Max 10 Mo</span>
                         </>
                     )}
@@ -128,32 +127,32 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                 </label>
 
                 <div className="mt-6 flex justify-end gap-3">
-                    <button className="px-4 py-2 text-slate-600 dark:text-slate-300 font-medium hover:underline text-sm">Refuser / Demander corrections</button>
+                    <button className="px-4 py-2 text-slate-600 dark:text-slate-300 font-medium hover:underline text-sm">{t('certificate.refuseOrCorrections', { defaultValue: 'Refuser / Demander corrections' })}</button>
                     <button
                         onClick={handleCertifyClick}
                         disabled={isUploading}
                         className="btn-primary flex items-center gap-2"
                     >
                         {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                        Valider et Certifier
+                        {t('certificate.validateAndCertify', { defaultValue: 'Valider et Certifier' })}
                     </button>
                 </div>
             </div>
 
             <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg flex items-start gap-3 text-orange-800 dark:text-orange-200 text-sm">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
-                <p>Attention : Cette action est irréversible. Une fois validé, l'audit passera en statut "Validé" et votre accès en écriture sera révoqué.</p>
+                <p>{t('certificate.irreversibleWarning', { defaultValue: 'Attention : Cette action est irréversible. Une fois validé, l\'audit passera en statut "Validé" et votre accès en écriture sera révoqué.' })}</p>
             </div>
 
             <ConfirmModal
                 isOpen={showNoCertificateConfirm}
                 onClose={() => setShowNoCertificateConfirm(false)}
                 onConfirm={handleCertify}
-                title="Validation sans certificat"
-                message="Voulez-vous valider sans joindre de certificat ?"
+                title={t('certificate.noCertificateTitle', { defaultValue: 'Validation sans certificat' })}
+                message={t('certificate.noCertificateMessage', { defaultValue: 'Voulez-vous valider sans joindre de certificat ?' })}
                 type="warning"
-                confirmText="Valider quand même"
-                cancelText="Annuler"
+                confirmText={t('certificate.validateAnyway', { defaultValue: 'Valider quand même' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
             />
         </div>
     );

@@ -255,7 +255,7 @@ export const FrameworkSettings: React.FC = () => {
                         onClick={handleReset}
                         disabled={saving}
                     >
-                        Annuler
+                        {t('common.cancel', { defaultValue: 'Annuler' })}
                     </Button>
                 )}
                 <Button
@@ -263,7 +263,7 @@ export const FrameworkSettings: React.FC = () => {
                     disabled={!hasChanges || saving}
                     isLoading={saving}
                 >
-                    {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                    {saving ? t('common.saving', { defaultValue: 'Enregistrement...' }) : t('settings.saveChanges', { defaultValue: 'Enregistrer les modifications' })}
                 </Button>
             </div>
         </div>

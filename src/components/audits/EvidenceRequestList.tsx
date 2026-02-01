@@ -213,7 +213,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                     <FileText className="h-5 w-5 text-brand-600" />
-                    Demandes de preuves
+                    {t('audits.evidence.title', { defaultValue: 'Demandes de preuves' })}
                     <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-muted-foreground">
                         {requests.length}
                     </span>
@@ -223,8 +223,8 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                         <button
                             onClick={handleExport}
                             className="p-2 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                            aria-label="Exporter les preuves (ZIP)"
-                            title="Exporter les preuves (ZIP)"
+                            aria-label={t('audits.evidence.exportAriaLabel', { defaultValue: 'Exporter les preuves (ZIP)' })}
+                            title={t('audits.evidence.exportTitle', { defaultValue: 'Exporter les preuves (ZIP)' })}
                         >
                             <FileText className="h-5 w-5" />
                         </button>
@@ -236,7 +236,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                 ? 'bg-red-50 text-red-600 dark:text-red-400 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400'
                                 : 'bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-brand-800 dark:text-brand-400'
                                 }`}
-                            aria-label={isCreating ? "Annuler la création" : "Nouvelle demande"}
+                            aria-label={isCreating ? t('audits.evidence.cancelCreation', { defaultValue: 'Annuler la création' }) : t('audits.evidence.newRequest', { defaultValue: 'Nouvelle demande' })}
                         >
                             {isCreating ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                         </button>
@@ -248,45 +248,45 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 isCreating && (
                     <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-border/40 dark:border-border/40 space-y-4 animate-fade-in mb-6">
                         <FloatingLabelInput
-                            label="Titre de la demande"
+                            label={t('audits.evidence.requestTitleLabel', { defaultValue: 'Titre de la demande' })}
                             {...register('title')}
                             error={errors.title?.message}
                         />
                         <FloatingLabelTextarea
-                            label="Description détaillée"
+                            label={t('audits.evidence.descriptionLabel', { defaultValue: 'Description détaillée' })}
                             {...register('description')}
                             error={errors.description?.message}
                             rows={3}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <CustomSelect
-                                label="Assigné à"
+                                label={t('audits.evidence.assignedTo', { defaultValue: 'Assigné à' })}
                                 value={values.assignedTo || ''}
                                 onChange={val => setValue('assignedTo', val as string)}
                                 options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                placeholder="Sélectionner un responsable..."
+                                placeholder={t('audits.evidence.selectResponsible', { defaultValue: 'Sélectionner un responsable...' })}
                             />
                             <FloatingLabelInput
-                                label="Date d'échéance"
+                                label={t('audits.evidence.dueDate', { defaultValue: "Date d'échéance" })}
                                 type="date"
                                 {...register('dueDate')}
                             />
                         </div>
                         <CustomSelect
-                            label="Lier à un contrôle (Optionnel)"
+                            label={t('audits.evidence.linkControl', { defaultValue: 'Lier à un contrôle (Optionnel)' })}
                             value={values.relatedControlId || ''}
                             onChange={val => setValue('relatedControlId', val as string)}
                             options={controls.map(c => ({ value: c.id, label: `${c.code} - ${c.name}` }))}
-                            placeholder="Sélectionner un contrôle..."
+                            placeholder={t('audits.evidence.selectControl', { defaultValue: 'Sélectionner un contrôle...' })}
                         />
                         <div className="flex justify-end pt-2">
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                aria-label="Soumettre la demande"
+                                aria-label={t('audits.evidence.submitRequest', { defaultValue: 'Soumettre la demande' })}
                                 className="px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                             >
-                                {isSubmitting ? 'Création...' : 'Créer la demande'}
+                                {isSubmitting ? t('audits.evidence.creating', { defaultValue: 'Création...' }) : t('audits.evidence.createRequest', { defaultValue: 'Créer la demande' })}
                             </button>
                         </div>
                     </form>
@@ -297,9 +297,9 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 {requests.length === 0 && !isCreating && !loading && (
                     <EmptyState
                         icon={FileText}
-                        title="Aucune demande de preuve"
-                        description="Créez des demandes de preuves pour collecter les documents nécessaires à l'audit."
-                        actionLabel={canEdit ? "Créer une demande" : undefined}
+                        title={t('audits.evidence.emptyTitle', { defaultValue: 'Aucune demande de preuve' })}
+                        description={t('audits.evidence.emptyDescription', { defaultValue: "Créez des demandes de preuves pour collecter les documents nécessaires à l'audit." })}
+                        actionLabel={canEdit ? t('audits.evidence.createRequestAction', { defaultValue: 'Créer une demande' }) : undefined}
                         onAction={canEdit ? () => setIsCreating(true) : undefined}
                     />
                 )}
@@ -331,9 +331,9 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, id: null })}
                 onConfirm={handleConfirmDelete}
-                title="Supprimer la demande"
-                message="Êtes-vous sûr de vouloir supprimer cette demande de preuve ? Cette action est irréversible."
-                confirmText="Supprimer"
+                title={t('audits.evidence.deleteTitle', { defaultValue: 'Supprimer la demande' })}
+                message={t('audits.evidence.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette demande de preuve ? Cette action est irréversible.' })}
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
                 type="danger"
             />
         </div >

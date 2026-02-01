@@ -150,7 +150,7 @@ export default defineConfig({
           // Timeline visualization
           timeline: ['vis-data', 'vis-timeline'],
           // 3D engine (very heavy)
-          three: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
+          three: ['three', '@react-three/fiber', '@react-three/drei'],
           // Excel export
           excel: ['exceljs'],
           // Sanitization & security

@@ -201,7 +201,7 @@ describe('URGENCY_COLOR_CLASSES', () => {
 describe('getTimelineItemTypeLabel', () => {
   it('should return correct labels for each type', () => {
     expect(getTimelineItemTypeLabel('action')).toBe('Action');
-    expect(getTimelineItemTypeLabel('milestone')).toBe('Jalon');
+    expect(getTimelineItemTypeLabel('milestone')).toBe('Milestone');
     expect(getTimelineItemTypeLabel('audit')).toBe('Audit');
     expect(getTimelineItemTypeLabel('document')).toBe('Document');
   });

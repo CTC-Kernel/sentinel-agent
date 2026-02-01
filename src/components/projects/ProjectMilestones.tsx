@@ -189,9 +189,9 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                             multiple
                         />
                         <div className="flex justify-end gap-3 pt-2">
-                            <Button type="button" variant="ghost" onClick={handleCancel} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">Annuler</Button>
+                            <Button type="button" variant="ghost" onClick={handleCancel} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                             <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="bg-brand-600 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
-                                {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                                {isSubmitting ? t('common.saving', { defaultValue: 'Enregistrement...' }) : t('common.save', { defaultValue: 'Enregistrer' })}
                             </Button>
                         </div>
                     </form>
@@ -257,11 +257,11 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                 isOpen={deleteMilestoneId !== null}
                 onClose={() => setDeleteMilestoneId(null)}
                 onConfirm={() => deleteMilestoneId && handleDelete(deleteMilestoneId)}
-                title="Supprimer le jalon"
-                message="Êtes-vous sûr de vouloir supprimer ce jalon ?"
+                title={t('projects.milestones.deleteTitle', { defaultValue: 'Supprimer le jalon' })}
+                message={t('projects.milestones.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer ce jalon ?' })}
                 type="danger"
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
             />
         </div>
     );

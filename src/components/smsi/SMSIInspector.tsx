@@ -17,6 +17,7 @@ import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useState } from 'react';
+import { useStore } from '../../store';
 
 interface TeamMember {
     id: string;
@@ -51,12 +52,13 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
     teamMembers = [],
     linkedItems = []
 }) => {
+    const { t } = useStore();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Get responsible person's display name - Story 20.4
     const responsibleName = useMemo(() => {
-        if (!milestone?.responsibleId) return 'Non assigné';
+        if (!milestone?.responsibleId) return t('common.unassigned', { defaultValue: 'Non assigné' });
         const member = teamMembers.find(m => m.id === milestone.responsibleId);
         return member?.displayName || member?.email || milestone.responsibleId;
     }, [milestone, teamMembers]);
@@ -106,11 +108,11 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
         >
             <div className="p-6 space-y-6">
                 <PremiumCard glass className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Informations</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('smsi.inspector.info', { defaultValue: 'Informations' })}</h3>
                     <div className="space-y-4">
                         <div>
                             <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Description</span>
-                            <p className="text-slate-900 dark:text-white">{milestone.description || 'Aucune description'}</p>
+                            <p className="text-slate-900 dark:text-white">{milestone.description || t('common.noDescription', { defaultValue: 'Aucune description' })}</p>
                         </div>
 
 
@@ -153,7 +155,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         <div className="flex items-center gap-3">
                             <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
                             <div>
-                                <p className="font-medium text-red-700 dark:text-red-400">Jalon en retard</p>
+                                <p className="font-medium text-red-700 dark:text-red-400">{t('smsi.inspector.overdue', { defaultValue: 'Jalon en retard' })}</p>
                                 <p className="text-sm text-red-600/80 dark:text-red-400/80">
                                     Échéance dépassée depuis le {new Date(milestone.dueDate).toLocaleDateString('fr-FR')}
                                 </p>
@@ -167,7 +169,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                     <PremiumCard glass className="p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             <Link className="w-5 h-5" />
-                            Éléments liés
+                            {t('smsi.inspector.linkedItems', { defaultValue: 'Éléments liés' })}
                         </h3>
                         <div className="space-y-2">
                             {linkedItems.map(item => (
@@ -183,7 +185,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
 
                 {(onStatusChange || onEdit || onDelete) && (
                     <PremiumCard glass className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Actions</h3>
+                        <h3 className="text-lg font-semibold mb-4">{t('common.actions', { defaultValue: 'Actions' })}</h3>
                         <div className="space-y-4">
                             <div className="flex gap-2">
                                 {onEdit && (
@@ -194,7 +196,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                         className="flex-1 justify-center"
                                     >
                                         <Pencil className="w-4 h-4 mr-2" />
-                                        Modifier
+                                        {t('common.edit', { defaultValue: 'Modifier' })}
                                     </Button>
                                 )}
                                 {onDelete && (
@@ -211,7 +213,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
 
                             {onStatusChange && (
                                 <div>
-                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-2">Changer le statut</span>
+                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-2">{t('smsi.inspector.changeStatus', { defaultValue: 'Changer le statut' })}</span>
 
                                     <div className="flex flex-wrap gap-2">
                                         {Object.entries(MILESTONE_STATUS_CONFIG).map(([status, config]) => {
@@ -248,10 +250,10 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                 isOpen={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}
                 onConfirm={handleDelete}
-                title="Supprimer le jalon"
-                message={`Êtes-vous sûr de vouloir supprimer le jalon "${milestone.name}" ? Cette action est irréversible.`}
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                title={t('smsi.inspector.deleteTitle', { defaultValue: 'Supprimer le jalon' })}
+                message={t('smsi.inspector.deleteMessage', { defaultValue: `Êtes-vous sûr de vouloir supprimer le jalon "${milestone.name}" ? Cette action est irréversible.`, name: milestone.name })}
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
                 type="danger"
                 loading={isDeleting}
             />

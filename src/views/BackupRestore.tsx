@@ -257,19 +257,19 @@ export const BackupRestore: React.FC = () => {
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl max-w-full overflow-x-auto">
             <Button
               variant="ghost"
-              aria-label="Mode Sauvegarde"
+              aria-label={t('backup.saveModeLabel', { defaultValue: 'Mode Sauvegarde' })}
               onClick={() => setActiveTab('backup')}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'}`}
             >
-              Sauvegarder
+              {t('backup.saveButton', { defaultValue: 'Sauvegarder' })}
             </Button>
             <Button
               variant="ghost"
-              aria-label="Mode Restauration"
+              aria-label={t('backup.restoreModeLabel', { defaultValue: 'Mode Restauration' })}
               onClick={() => setActiveTab('restore')}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'restore' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'}`}
             >
-              Restaurer
+              {t('backup.restoreButton', { defaultValue: 'Restaurer' })}
             </Button>
           </div>
         }
@@ -323,20 +323,20 @@ export const BackupRestore: React.FC = () => {
                   <div className="flex items-center gap-2" data-tour="backup-schedule">
                     <span className="text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mr-2">Planifier :</span>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Quotidien</Button>
-                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde hebdomadaire" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Hebdo</Button>
-                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde mensuelle" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Mensuel</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleDailyLabel', { defaultValue: 'Programmer une sauvegarde quotidienne' })} onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('backup.daily', { defaultValue: 'Quotidien' })}</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleWeeklyLabel', { defaultValue: 'Programmer une sauvegarde hebdomadaire' })} onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('backup.weekly', { defaultValue: 'Hebdo' })}</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleMonthlyLabel', { defaultValue: 'Programmer une sauvegarde mensuelle' })} onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('backup.monthly', { defaultValue: 'Mensuel' })}</Button>
                     </div>
                   </div>
                   <Button
                     type="submit"
-                    aria-label="Lancer la sauvegarde"
+                    aria-label={t('backup.startBackupLabel', { defaultValue: 'Lancer la sauvegarde' })}
                     disabled={loading}
                     isLoading={loading}
                     className="px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
                   >
                     {!loading && <Save className="h-5 w-5 mr-2" />}
-                    Lancer la sauvegarde
+                    {t('backup.startBackup', { defaultValue: 'Lancer la sauvegarde' })}
                   </Button>
                 </div>
               </form>
@@ -413,13 +413,13 @@ export const BackupRestore: React.FC = () => {
                   <div className="flex justify-end pt-4">
                     <Button
                       type="submit"
-                      aria-label="Lancer la restauration"
+                      aria-label={t('backup.startRestoreLabel', { defaultValue: 'Lancer la restauration' })}
                       disabled={loading}
                       isLoading={loading}
                       className={`px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all ${restoreForm.watch('dryRun') ? 'bg-slate-800 text-white hover:bg-slate-900' : 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20'}`}
                     >
                       {!loading && <RotateCcw className="h-5 w-5 mr-2" />}
-                      {restoreForm.watch('dryRun') ? 'Lancer la simulation' : 'Restaurer les données'}
+                      {restoreForm.watch('dryRun') ? t('backup.startSimulation', { defaultValue: 'Lancer la simulation' }) : t('backup.restoreData', { defaultValue: 'Restaurer les données' })}
                     </Button>
                   </div>
                 </form>

@@ -9,6 +9,7 @@ import { CustomSelect } from '../../ui/CustomSelect';
 import { DatePicker } from '../../ui/DatePicker';
 import { Loader2, ArrowRight } from '../../ui/Icons';
 import { useFormPersistence } from '../../../hooks/utils/useFormPersistence';
+import { useStore } from '../../../store';
 
 interface TLPTFormProps {
     initialData?: TlptCampaign;
@@ -29,6 +30,7 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
     readOnly,
     onDirtyChange
 }) => {
+    const { t } = useStore();
     const defaultValues: TlptFormData = initialData ? {
         name: initialData.name,
         scope: initialData.scope,
@@ -215,7 +217,7 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
                 <div className="flex justify-end gap-3 pt-4">
                     {onCancel && (
                         <Button type="button" variant="ghost" onClick={onCancel}>
-                            Annuler
+                            {t('common.cancel', { defaultValue: 'Annuler' })}
                         </Button>
                     )}
                     <Button
@@ -224,7 +226,7 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
                         className="gap-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-3xl shadow-lg shadow-brand-500/20 font-bold"
                     >
                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-                        {isEditing ? "Mettre à jour" : "Créer la campagne"}
+                        {isEditing ? t('common.update', { defaultValue: 'Mettre à jour' }) : t('continuity.tlpt.createCampaign', { defaultValue: 'Créer la campagne' })}
                     </Button>
                 </div>
             )}

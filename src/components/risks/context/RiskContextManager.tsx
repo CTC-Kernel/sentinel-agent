@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRiskContext } from '../../../hooks/risks/useRiskContext';
+import { useStore } from '../../../store';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
@@ -360,6 +361,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
   onRemoveRegulation,
   isSaving
 }) => {
+  const { t } = useStore();
   const [description, setDescription] = useState(data.description || '');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newRegulation, setNewRegulation] = useState({
@@ -474,8 +476,8 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setShowAddForm(false)}>Annuler</Button>
-              <Button onClick={handleAddRegulation}>Ajouter</Button>
+              <Button variant="ghost" onClick={() => setShowAddForm(false)}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
+              <Button onClick={handleAddRegulation}>{t('common.add', { defaultValue: 'Ajouter' })}</Button>
             </div>
           </motion.div>
         )}

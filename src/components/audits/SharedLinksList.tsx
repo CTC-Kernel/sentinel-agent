@@ -91,7 +91,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                             <div>
                                 <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-2">
                                     {link.auditorEmail}
-                                    {!isActive && <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 dark:text-slate-300 rounded">Inactif</span>}
+                                    {!isActive && <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 dark:text-slate-300 rounded">{t('audits.sharedLinks.inactive', { defaultValue: 'Inactif' })}</span>}
                                 </p>
                                 <div className="flex items-center gap-3 text-xs text-slate-500">
                                     <span className="flex items-center gap-1">
@@ -108,7 +108,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                                 onClick={() => setConfirmRevokeId(link.id)}
                                 disabled={!!revokingId}
                                 className="p-2 text-muted-foreground hover:text-red-600 transition-colors"
-                                title="Révoquer l'accès"
+                                title={t('audits.sharedLinks.revokeAccess', { defaultValue: "Révoquer l'accès" })}
                             >
                                 {revokingId === link.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                             </button>
@@ -121,11 +121,11 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                 isOpen={confirmRevokeId !== null}
                 onClose={() => setConfirmRevokeId(null)}
                 onConfirm={() => confirmRevokeId && handleRevoke(confirmRevokeId)}
-                title="Révoquer l'accès"
-                message="Êtes-vous sûr de vouloir révoquer cet accès ? Le lien ne fonctionnera plus immédiatement."
+                title={t('audits.sharedLinks.revokeTitle', { defaultValue: "Révoquer l'accès" })}
+                message={t('audits.sharedLinks.revokeMessage', { defaultValue: "Êtes-vous sûr de vouloir révoquer cet accès ? Le lien ne fonctionnera plus immédiatement." })}
                 type="warning"
-                confirmText="Révoquer"
-                cancelText="Annuler"
+                confirmText={t('audits.sharedLinks.revoke', { defaultValue: 'Révoquer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
             />
         </div>
     );

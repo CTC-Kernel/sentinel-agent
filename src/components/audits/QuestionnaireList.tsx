@@ -79,14 +79,14 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
     return (
         <div className="space-y-6">
             <div className="flex flex-wrap justify-between items-center gap-3 min-w-0">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questionnaires d'Audit</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('audits.questionnaire.title', { defaultValue: "Questionnaires d'Audit" })}</h3>
                 {canEdit && (
                     <button
                         onClick={() => setMode('edit')}
                         className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        Nouveau Questionnaire
+                        {t('audits.questionnaire.new', { defaultValue: 'Nouveau Questionnaire' })}
                     </button>
                 )}
             </div>
@@ -94,7 +94,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {questionnaires.length === 0 && (
                     <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-300 italic bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-border/40 dark:border-border/40">
-                        Aucun questionnaire créé pour cet audit.
+                        {t('audits.questionnaire.empty', { defaultValue: 'Aucun questionnaire créé pour cet audit.' })}
                     </div>
                 )}
                 {questionnaires.map(q => (
@@ -105,14 +105,14 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                             </div>
                             <div className="flex gap-2">
                                 <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${q.status === 'Published' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
-                                    {q.status === 'Published' ? 'Publié' : 'Brouillon'}
+                                    {q.status === 'Published' ? t('common.published', { defaultValue: 'Publié' }) : t('common.draft', { defaultValue: 'Brouillon' })}
                                 </span>
                             </div>
                         </div>
 
                         <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{q.title}</h4>
                         <p className="text-sm text-slate-600 dark:text-muted-foreground line-clamp-2 mb-6 h-10">
-                            {q.description || "Pas de description"}
+                            {q.description || t('common.noDescription', { defaultValue: 'Pas de description' })}
                         </p>
 
                         <div className="flex items-center justify-between pt-4 border-t border-border/40 dark:border-white/5">
@@ -123,7 +123,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                                 <button
                                     onClick={() => { setSelectedQuestionnaire(q); setMode('respond'); }}
                                     className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                                    title="Répondre / Voir"
+                                    title={t('audits.questionnaire.respondView', { defaultValue: 'Répondre / Voir' })}
                                 >
                                     <Send className="w-4 h-4" />
                                 </button>
@@ -132,14 +132,14 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                                         <button
                                             onClick={() => { setSelectedQuestionnaire(q); setMode('edit'); }}
                                             className="p-2 text-slate-500 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                                            title="Modifier"
+                                            title={t('common.edit', { defaultValue: 'Modifier' })}
                                         >
                                             <Edit className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteClick(q.id)}
                                             className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                                            title="Supprimer"
+                                            title={t('common.delete', { defaultValue: 'Supprimer' })}
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -155,9 +155,9 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, id: null })}
                 onConfirm={handleConfirmDelete}
-                title="Supprimer le questionnaire"
-                message="Êtes-vous sûr de vouloir supprimer ce questionnaire ? Cette action est irréversible."
-                confirmText="Supprimer"
+                title={t('audits.questionnaire.deleteTitle', { defaultValue: 'Supprimer le questionnaire' })}
+                message={t('audits.questionnaire.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer ce questionnaire ? Cette action est irréversible.' })}
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
                 type="danger"
             />
         </div >

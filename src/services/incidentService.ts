@@ -1,4 +1,5 @@
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { DORA_REPORTING_TIMELINES } from '../types/incidents';
 import { db } from '../firebase';
 import { FunctionsService } from './FunctionsService';
 import { ErrorLogger } from './errorLogger';
@@ -98,6 +99,13 @@ export class IncidentService {
                     ? (severityLower.charAt(0).toUpperCase() + severityLower.slice(1)) as 'Critical' | 'High' | 'Medium' | 'Low'
                     : 'Medium'; // Normalize
 
+                const reportedTime = Date.now();
+                const doraDeadlines = {
+                    initialNotificationDeadline: new Date(reportedTime + DORA_REPORTING_TIMELINES.INITIAL_NOTIFICATION).toISOString(),
+                    intermediateReportDeadline: new Date(reportedTime + DORA_REPORTING_TIMELINES.INTERMEDIATE_REPORT).toISOString(),
+                    finalReportDeadline: new Date(reportedTime + DORA_REPORTING_TIMELINES.FINAL_REPORT).toISOString(),
+                };
+
                 const incidentData = {
                     organizationId,
                     title,
@@ -111,7 +119,8 @@ export class IncidentService {
                     financialImpact: 0,
                     history: [],
                     playbookId: null,
-                    tags: ['Import CSV']
+                    tags: ['Import CSV'],
+                    ...doraDeadlines
                 };
 
                 const sanitized = sanitizeData(incidentData);

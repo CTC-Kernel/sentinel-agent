@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useZodForm } from '../../../hooks/useZodForm';
 import { recoveryPlanSchema, RecoveryPlanFormData } from '../../../schemas/continuitySchema';
 import { InspectorLayout } from '../../ui/InspectorLayout';
@@ -29,6 +30,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
     users,
     assets
 }) => {
+    const { t } = useTranslation();
     const { register, handleSubmit, control, setValue, reset, watch, formState: { errors, isSubmitting, isDirty } } = useZodForm<typeof recoveryPlanSchema>({
         schema: recoveryPlanSchema,
         defaultValues: {
@@ -105,7 +107,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
             hasUnsavedChanges={isDirty}
             footer={
                 <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={onClose}>Annuler</Button>
+                    <Button variant="ghost" onClick={onClose}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
                     <Button
                         onClick={handleSubmit(handleFormSubmit)}
                         disabled={isLoading || isSubmitting}

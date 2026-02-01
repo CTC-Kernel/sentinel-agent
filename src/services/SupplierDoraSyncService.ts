@@ -14,7 +14,7 @@ import { SupplierService } from './SupplierService';
 import { ICTProviderService } from './ICTProviderService';
 import { ErrorLogger } from './errorLogger';
 import { db } from '../firebase';
-import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 
 export class SupplierDoraSyncService {
@@ -257,10 +257,10 @@ export class SupplierDoraSyncService {
      */
     private static async updateSyncTimestamp(supplierId: string): Promise<void> {
         try {
-            await updateDoc(doc(db, this.SYNC_COLLECTION, supplierId), sanitizeData({
+            await setDoc(doc(db, this.SYNC_COLLECTION, supplierId), sanitizeData({
                 [this.SYNC_FIELD]: serverTimestamp(),
                 updatedAt: serverTimestamp()
-            }));
+            }), { merge: true });
         } catch {
             ErrorLogger.warn(`Failed to update sync timestamp for supplier ${supplierId}`, 'SupplierDoraSyncService.updateSyncTimestamp');
         }

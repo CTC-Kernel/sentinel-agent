@@ -102,7 +102,7 @@ export function ScoreGauge({
   const textColorClass = getScoreTextColor(normalizedScore);
 
   // Unique gradient ID for this instance
-  const [gradientId] = useState(() => `score-gradient-${Math.random().toString(36).substr(2, 9)}`);
+  const [gradientId] = useState(() => `score-gradient-${crypto.randomUUID()}`);
 
   // Critical score pulse animation
   const isCritical = normalizedScore < 30;

@@ -206,7 +206,7 @@ const Pricing = () => {
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               )}
             >
-              Mensuel
+              {t('pricing.monthly', { defaultValue: 'Mensuel' })}
             </button>
             <button
               onClick={() => setIsAnnual(true)}
@@ -217,7 +217,7 @@ const Pricing = () => {
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               )}
             >
-              Annuel
+              {t('pricing.annual', { defaultValue: 'Annuel' })}
               <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success-500 to-emerald-500 text-white text-[11px] uppercase tracking-wider font-black shadow-sm">
                 -20%
               </span>
@@ -322,7 +322,7 @@ const Pricing = () => {
                         : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100'
                     )}
                   >
-                    {isLoading === plan.id ? 'Chargement...' : (
+                    {isLoading === plan.id ? t('common.loading', { defaultValue: 'Chargement...' }) : (
                       <span className="flex items-center gap-2">
                         Commencer maintenant
                         <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-70 group-hover:translate-x-0 transition-all" />

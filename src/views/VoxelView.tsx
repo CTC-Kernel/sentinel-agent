@@ -62,23 +62,23 @@ import { SENTINEL_PALETTE } from '../theme/chartTheme';
 // ============================================================================
 
 const LAYER_CONFIG: { id: LayerType; label: string; color: string; bgColor: string }[] = [
-  { id: 'asset', label: 'Actifs', color: SENTINEL_PALETTE.series1, bgColor: 'bg-blue-500' },
-  { id: 'risk', label: 'Risques', color: SENTINEL_PALETTE.series5, bgColor: 'bg-orange-500' },
-  { id: 'control', label: 'Contrôles', color: SENTINEL_PALETTE.series3, bgColor: 'bg-purple-500' },
-  { id: 'project', label: 'Projets', color: SENTINEL_PALETTE.series2, bgColor: 'bg-emerald-500' },
+  { id: 'asset', label: 'Assets', color: SENTINEL_PALETTE.series1, bgColor: 'bg-blue-500' },
+  { id: 'risk', label: 'Risks', color: SENTINEL_PALETTE.series5, bgColor: 'bg-orange-500' },
+  { id: 'control', label: 'Controls', color: SENTINEL_PALETTE.series3, bgColor: 'bg-purple-500' },
+  { id: 'project', label: 'Projects', color: SENTINEL_PALETTE.series2, bgColor: 'bg-emerald-500' },
   { id: 'audit', label: 'Audits', color: SENTINEL_PALETTE.series4, bgColor: 'bg-cyan-500' },
   { id: 'incident', label: 'Incidents', color: SENTINEL_PALETTE.series6, bgColor: 'bg-red-500' },
-  { id: 'supplier', label: 'Fournisseurs', color: SENTINEL_PALETTE.series8, bgColor: 'bg-purple-600' },
+  { id: 'supplier', label: 'Suppliers', color: SENTINEL_PALETTE.series8, bgColor: 'bg-purple-600' },
 ];
 
 const KEYBOARD_SHORTCUTS = [
-  { key: '⌘K', action: 'Recherche rapide' },
-  { key: 'Esc', action: 'Fermer / Quitter' },
-  { key: '←/→', action: 'Navigation nœuds' },
-  { key: 'F', action: 'Plein écran' },
-  { key: 'R', action: 'Réinitialiser vue' },
-  { key: 'L', action: 'Menu calques' },
-  { key: 'S', action: 'Capture écran' },
+  { key: '⌘K', action: 'Quick search' },
+  { key: 'Esc', action: 'Close / Exit' },
+  { key: '←/→', action: 'Node navigation' },
+  { key: 'F', action: 'Fullscreen' },
+  { key: 'R', action: 'Reset view' },
+  { key: 'L', action: 'Layer menu' },
+  { key: 'S', action: 'Screenshot' },
 ];
 
 const DETAIL_ROUTES: Record<LayerType, string> = {
@@ -176,7 +176,9 @@ interface StatusBarProps {
   connectionCount: number;
 }
 
-const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selectedNode, isFullscreen, criticalCount, warningCount, connectionCount }) => (
+const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selectedNode, isFullscreen, criticalCount, warningCount, connectionCount }) => {
+  const { t } = useStore();
+  return (
   <motion.div
     initial={{ y: 40 }}
     animate={{ y: 0 }}
@@ -187,7 +189,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
       <div className="flex items-center gap-1.5">
         <Network className="w-3.5 h-3.5 text-white/50" />
         <span className="text-xs font-medium text-white">{totalNodes}</span>
-        <span className="text-xs text-white/40 hidden sm:inline">nœuds</span>
+        <span className="text-xs text-white/40 hidden sm:inline">{t('voxel.nodes', { defaultValue: 'nodes' })}</span>
       </div>
 
       <div className="w-px h-4 bg-white/10 hidden sm:block" />
@@ -238,14 +240,15 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
       {isFullscreen && (
         <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/50">ESC</span>
       )}
-      <span className="hidden lg:inline">Scroll: zoom</span>
-      <span className="hidden lg:inline">Drag: orbite</span>
+      <span className="hidden lg:inline">{t('voxel.scrollZoom', { defaultValue: 'Scroll: zoom' })}</span>
+      <span className="hidden lg:inline">{t('voxel.dragOrbit', { defaultValue: 'Drag: orbit' })}</span>
       <span className="flex items-center gap-0.5">
         <Command className="w-2.5 h-2.5" />K
       </span>
     </div>
   </motion.div>
-);
+  );
+};
 
 // ============================================================================
 // Main Component
@@ -340,7 +343,7 @@ export const VoxelView: React.FC = () => {
       if ('name' in item && item.name) return String(item.name);
       if ('title' in item && item.title) return String(item.title);
       if ('threat' in item && item.threat) return String(item.threat);
-      return 'Élément';
+      return 'Element';
     };
     const mapNodes = (collection: DataNode['data'][] | undefined | null, type: LayerType) =>
       (collection || []).map(item => ({ id: item.id, type, label: getLabel(item) }));
@@ -364,7 +367,7 @@ export const VoxelView: React.FC = () => {
       ...option,
       hint: '',
       items: (sourceMap[option.id] || []).map(item => {
-        let label = 'Élément';
+        let label = 'Element';
         if ('name' in item) label = item.name;
         else if ('title' in item) label = item.title;
         else if ('threat' in item) label = item.threat;
@@ -579,7 +582,7 @@ export const VoxelView: React.FC = () => {
   const handleDetailPanelNavigate = useCallback((node: VoxelNode) => {
     const route = DETAIL_ROUTES[node.type];
     if (route && isValidRoute(route)) {
-      addToast(t('voxel.toast.navigatingTo', { defaultValue: `Navigation vers ${node.label}`, label: node.label }), 'info');
+      addToast(t('voxel.toast.navigatingTo', { defaultValue: `Navigating to ${node.label}`, label: node.label }), 'info');
       navigate(`${route}?id = ${node.id} `, { state: { fromVoxel: true, nodeId: node.id } });
     }
   }, [addToast, navigate, t]);
@@ -596,14 +599,14 @@ export const VoxelView: React.FC = () => {
 
   const handleAIAnalysis = async () => {
     if (!user || !hasPermission(user, 'CTCEngine', 'read')) {
-      addToast(t('voxel.toast.permissionDenied', { defaultValue: "Permission refusée" }), "error");
+      addToast(t('voxel.toast.permissionDenied', { defaultValue: 'Permission denied' }), "error");
       return;
     }
     setAnalyzing(true);
     try {
       const result = await aiService.analyzeGraph({ assets, risks, projects, audits, incidents, suppliers, controls });
       setSuggestedLinks(result.suggestions);
-      addToast(t('voxel.toast.aiAnalysisComplete', { defaultValue: "Analyse IA terminée" }), "success");
+      addToast(t('voxel.toast.aiAnalysisComplete', { defaultValue: 'AI analysis complete' }), "success");
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'VoxelView.handleAIAnalysis', 'UNKNOWN_ERROR');
     } finally {
@@ -621,10 +624,10 @@ export const VoxelView: React.FC = () => {
         link.download = `ctc - engine - ${new Date().toISOString().split('T')[0]}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        addToast(t('voxel.toast.captureSaved', { defaultValue: "Capture sauvegardée" }), "success");
+        addToast(t('voxel.toast.captureSaved', { defaultValue: 'Screenshot saved' }), "success");
       }
     } catch {
-      addToast(t('voxel.toast.captureError', { defaultValue: "Erreur lors de la capture" }), "error");
+      addToast(t('voxel.toast.captureError', { defaultValue: 'Error during screenshot capture' }), "error");
     } finally {
       setIsCapturing(false);
     }
@@ -715,16 +718,16 @@ export const VoxelView: React.FC = () => {
   // ============================================================================
 
   if (loading) {
-    return <LoadingScreen message="Chargement du CTC Engine..." />;
+    return <LoadingScreen message={t('voxel.loadingEngine', { defaultValue: 'Loading CTC Engine...' })} />;
   }
 
   return (
     <div className="relative w-full h-full bg-slate-950 overflow-hidden">
-      <SEO title="CTC Engine" description="Visualisation 3D de l'écosystème de sécurité" />
+      <SEO title="CTC Engine" description={t('voxel.seoDescription', { defaultValue: '3D visualization of the security ecosystem' })} />
 
       {/* Main 3D Container */}
       <div ref={containerRef} className="absolute inset-0">
-        <React.Suspense fallback={<LoadingScreen message="Chargement 3D..." />}>
+        <React.Suspense fallback={<LoadingScreen message={t('voxel.loading3D', { defaultValue: 'Loading 3D...' })} />}>
           <VoxelStudio
             assets={assets}
             risks={risks}
@@ -787,20 +790,20 @@ export const VoxelView: React.FC = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                 </span>
                 <span className="text-xs font-medium text-red-400">{criticalCount}</span>
-                <span className="text-[11px] text-red-400/70 hidden lg:inline">critiques</span>
+                <span className="text-[11px] text-red-400/70 hidden lg:inline">{t('voxel.critical', { defaultValue: 'critical' })}</span>
               </motion.div>
             )}
             {warningCount > 0 && (
               <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-500/30">
                 <span className="w-2 h-2 rounded-full bg-amber-500" />
                 <span className="text-xs font-medium text-amber-400">{warningCount}</span>
-                <span className="text-[11px] text-amber-400/70 hidden lg:inline">alertes</span>
+                <span className="text-[11px] text-amber-400/70 hidden lg:inline">{t('voxel.alerts', { defaultValue: 'alerts' })}</span>
               </div>
             )}
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-success/15 border border-success/30">
               <Activity className="w-3.5 h-3.5 text-success" />
               <span className="text-xs font-medium text-success">{orderedNodes.length}</span>
-              <span className="text-[11px] text-success/70 hidden lg:inline">nœuds</span>
+              <span className="text-[11px] text-success/70 hidden lg:inline">{t('voxel.nodes', { defaultValue: 'nodes' })}</span>
             </div>
           </div>
 
@@ -824,9 +827,9 @@ export const VoxelView: React.FC = () => {
                 value={activeFramework || ''}
                 onChange={(e) => setActiveFramework(e.target.value || null)}
                 className="bg-transparent text-[11px] font-medium text-white outline-none cursor-pointer border-none focus:ring-0 px-1"
-                aria-label="Sélectionner un framework"
+                aria-label={t('voxel.selectFramework', { defaultValue: 'Select a framework' })}
               >
-                <option value="" className="bg-slate-900">Tous les frameworks</option>
+                <option value="" className="bg-slate-900">{t('voxel.allFrameworks', { defaultValue: 'All frameworks' })}</option>
                 {activeFrameworks?.map(af => (
                   <option key={af.frameworkId || 'unknown'} value={af.frameworkCode} className="bg-slate-900">
                     {af.frameworkCode}
@@ -845,14 +848,14 @@ export const VoxelView: React.FC = () => {
                 } `}
             >
               {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-              <span className="hidden sm:inline">{analyzing ? 'Analyse...' : 'IA'}</span>
+              <span className="hidden sm:inline">{analyzing ? t('voxel.analyzing', { defaultValue: 'Analyzing...' }) : t('voxel.ai', { defaultValue: 'AI' })}</span>
             </button>
 
             {/* Refresh */}
             <button
               onClick={refresh}
               className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 hover:rotate-180"
-              title="Actualiser"
+              title={t('common.refresh', { defaultValue: 'Refresh' })}
             >
               <RefreshCw className="w-4 h-4 transition-transform duration-500" />
             </button>
@@ -883,8 +886,8 @@ export const VoxelView: React.FC = () => {
       >
         {/* Navigation */}
         <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-          <ToolButton icon={<ChevronLeft className="w-4 h-4" />} label="Précédent" onClick={() => focusByOffset(-1)} compact />
-          <ToolButton icon={<ChevronRight className="w-4 h-4" />} label="Suivant" onClick={() => focusByOffset(1)} compact />
+          <ToolButton icon={<ChevronLeft className="w-4 h-4" />} label={t('voxel.previous', { defaultValue: 'Previous' })} onClick={() => focusByOffset(-1)} compact />
+          <ToolButton icon={<ChevronRight className="w-4 h-4" />} label={t('voxel.next', { defaultValue: 'Next' })} onClick={() => focusByOffset(1)} compact />
         </div>
 
         {/* Layers */}
@@ -892,7 +895,7 @@ export const VoxelView: React.FC = () => {
           <div className="flex flex-col p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
             <ToolButton
               icon={<Layers className="w-4 h-4" />}
-              label="Calques"
+              label={t('voxel.layers', { defaultValue: 'Layers' })}
               onClick={() => setShowLayerMenu(!showLayerMenu)}
               active={showLayerMenu}
               badge={activeLayers.length}
@@ -909,7 +912,7 @@ export const VoxelView: React.FC = () => {
                 className="absolute right-10 top-0 w-44 p-1.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
               >
                 <div className="flex items-center justify-between px-2 py-1 mb-0.5">
-                  <span className="text-[11px] font-medium text-white/60">Calques</span>
+                  <span className="text-[11px] font-medium text-white/60">{t('voxel.layers', { defaultValue: 'Layers' })}</span>
                   <span className="text-[11px] text-white/40">{activeLayers.length}/7</span>
                 </div>
                 {LAYER_CONFIG.map(layer => {
@@ -951,10 +954,10 @@ export const VoxelView: React.FC = () => {
 
         {/* View */}
         <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-          <ToolButton icon={<RefreshCw className="w-4 h-4" />} label="Réinitialiser (R)" onClick={handleResetView} compact />
+          <ToolButton icon={<RefreshCw className="w-4 h-4" />} label={t('voxel.resetView', { defaultValue: 'Reset (R)' })} onClick={handleResetView} compact />
           <ToolButton
             icon={isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            label={isFullscreen ? "Quitter plein écran (F)" : "Plein écran (F)"}
+            label={isFullscreen ? t('voxel.exitFullscreen', { defaultValue: 'Exit fullscreen (F)' }) : t('voxel.fullscreen', { defaultValue: 'Fullscreen (F)' })}
             onClick={() => setIsFullscreen(!isFullscreen)}
             active={isFullscreen}
             compact
@@ -963,8 +966,8 @@ export const VoxelView: React.FC = () => {
 
         {/* Help */}
         <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-          <ToolButton icon={<Info className="w-4 h-4" />} label="Légende" onClick={() => setShowLegend(!showLegend)} active={showLegend} compact />
-          <ToolButton icon={<Keyboard className="w-4 h-4" />} label="Raccourcis" onClick={() => setShowShortcuts(!showShortcuts)} active={showShortcuts} compact />
+          <ToolButton icon={<Info className="w-4 h-4" />} label={t('voxel.legend', { defaultValue: 'Legend' })} onClick={() => setShowLegend(!showLegend)} active={showLegend} compact />
+          <ToolButton icon={<Keyboard className="w-4 h-4" />} label={t('voxel.shortcuts', { defaultValue: 'Shortcuts' })} onClick={() => setShowShortcuts(!showShortcuts)} active={showShortcuts} compact />
           <ToolButton icon={<HelpCircle className="w-4 h-4" />} label="Guide" onClick={() => setShowGuide(true)} compact />
         </div>
       </motion.div>
@@ -979,7 +982,7 @@ export const VoxelView: React.FC = () => {
             className="absolute top-20 right-16 z-voxel-ui w-48 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-white">Légende</span>
+              <span className="text-xs font-semibold text-white">{t('voxel.legend', { defaultValue: 'Legend' })}</span>
               <button onClick={() => setShowLegend(false)} className="p-0.5 hover:bg-white/10 rounded transition">
                 <X className="w-3.5 h-3.5 text-white/60" />
               </button>
@@ -1000,7 +1003,7 @@ export const VoxelView: React.FC = () => {
 
             {/* Status */}
             <div className="mb-2 pt-2 border-t border-white/5">
-              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">États</span>
+              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">{t('voxel.states', { defaultValue: 'States' })}</span>
               <div className="mt-1 flex flex-wrap gap-2">
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -1019,11 +1022,11 @@ export const VoxelView: React.FC = () => {
 
             {/* Connections */}
             <div className="pt-2 border-t border-white/5">
-              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">Liens</span>
+              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">{t('voxel.links', { defaultValue: 'Links' })}</span>
               <div className="mt-1 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <div className="w-4 h-0.5 bg-gradient-to-r from-brand-500 to-violet-500 rounded" />
-                  <span className="text-[11px] text-white/70">Dépendance</span>
+                  <span className="text-[11px] text-white/70">{t('voxel.dependency', { defaultValue: 'Dependency' })}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-4 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded" />
@@ -1045,7 +1048,7 @@ export const VoxelView: React.FC = () => {
             className="absolute top-20 right-16 z-voxel-ui w-44 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-white">Raccourcis</span>
+              <span className="text-xs font-medium text-white">{t('voxel.shortcuts', { defaultValue: 'Shortcuts' })}</span>
               <button onClick={() => setShowShortcuts(false)} className="p-0.5 hover:bg-white/10 rounded">
                 <X className="w-3.5 h-3.5 text-white/60" />
               </button>
@@ -1090,7 +1093,7 @@ export const VoxelView: React.FC = () => {
                     type="text"
                     value={commandSearch}
                     onChange={e => setCommandSearch(e.target.value)}
-                    placeholder="Rechercher un nœud..."
+                    placeholder={t('voxel.searchNode', { defaultValue: 'Search for a node...' })}
                     className="flex-1 bg-transparent text-white text-lg placeholder:text-white/30 outline-none"
                   />
                   <kbd className="px-2 py-1 rounded bg-white/10 text-xs text-white/40">ESC</kbd>
@@ -1101,7 +1104,7 @@ export const VoxelView: React.FC = () => {
                   {commandPaletteResults.length === 0 ? (
                     <div className="py-8 text-center text-white/40">
                       <Target className="w-8 h-8 mx-auto mb-2 opacity-60" />
-                      <p>Aucun résultat trouvé</p>
+                      <p>{t('voxel.noResults', { defaultValue: 'No results found' })}</p>
                     </div>
                   ) : (
                     <div className="space-y-1">
@@ -1135,11 +1138,11 @@ export const VoxelView: React.FC = () => {
                     <span className="flex items-center gap-1">
                       <ChevronUp className="w-3 h-3" />
                       <ChevronDown className="w-3 h-3" />
-                      naviguer
+                      {t('voxel.navigate', { defaultValue: 'navigate' })}
                     </span>
-                    <span className="flex items-center gap-1">↵ sélectionner</span>
+                    <span className="flex items-center gap-1">↵ {t('voxel.select', { defaultValue: 'select' })}</span>
                   </div>
-                  <span>{commandPaletteResults.length} résultats</span>
+                  <span>{commandPaletteResults.length} {t('voxel.results', { defaultValue: 'results' })}</span>
                 </div>
               </div>
             </motion.div>

@@ -72,8 +72,8 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
       setShowWizard(false);
 
       toast.success(
-        t('homologation.dossierCreated', 'Dossier créé'),
-        t('homologation.dossierCreatedDesc', 'Le dossier d\'homologation a été créé avec succès.')
+        t('homologation.dossierCreated', { defaultValue: 'Dossier created' }),
+        t('homologation.dossierCreatedDesc', { defaultValue: 'The homologation dossier has been created successfully.' })
       );
 
       // Navigate to the new dossier
@@ -105,13 +105,13 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
     try {
       await deleteDossier(dossierToDelete.id);
       toast.success(
-        t('homologation.dossierDeleted', 'Dossier supprimé'),
-        t('homologation.dossierDeletedDesc', 'Le dossier a été supprimé.')
+        t('homologation.dossierDeleted', { defaultValue: 'Dossier deleted' }),
+        t('homologation.dossierDeletedDesc', { defaultValue: 'The dossier has been deleted.' })
       );
     } catch {
       toast.error(
-        t('common.error', 'Erreur'),
-        t('homologation.deleteError', 'Impossible de supprimer le dossier.')
+        t('common.error', { defaultValue: 'Error' }),
+        t('homologation.deleteError', { defaultValue: 'Unable to delete the dossier.' })
       );
     } finally {
       setDossierToDelete(null);
@@ -145,7 +145,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
       <div className="container mx-auto py-6">
         <Card className="p-6 text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">{t('common.error', 'Erreur')}</h2>
+          <h2 className="text-xl font-semibold mb-2">{t('common.error', { defaultValue: 'Error' })}</h2>
           <p className="text-muted-foreground">{error.message}</p>
         </Card>
       </div>
@@ -157,8 +157,8 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
       {/* Header */}
       {!hideHeader && (
         <PageHeader
-          title={t('homologation.title', 'Homologation ANSSI')}
-          subtitle={t('homologation.subtitle', 'Gérez vos dossiers d\'homologation RGS')}
+          title={t('homologation.title', { defaultValue: 'ANSSI Homologation' })}
+          subtitle={t('homologation.subtitle', { defaultValue: 'Manage your RGS homologation dossiers' })}
           icon={
             <img
               src="/images/operations.png"
@@ -169,7 +169,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
           actions={
             <Button onClick={() => setShowWizard(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              {t('homologation.newDossier', 'Nouveau dossier')}
+              {t('homologation.newDossier', { defaultValue: 'New dossier' })}
             </Button>
           }
         />
@@ -180,7 +180,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
         <div className="flex items-center justify-end mb-2">
           <Button onClick={() => setShowWizard(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            {t('homologation.newDossier', 'Nouveau dossier')}
+            {t('homologation.newDossier', { defaultValue: 'New dossier' })}
           </Button>
         </div>
       )}
@@ -188,35 +188,35 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {renderStatsCard(
-          t('homologation.totalDossiers', 'Total dossiers'),
+          t('homologation.totalDossiers', { defaultValue: 'Total dossiers' }),
           stats.total,
           FileText,
           'text-info-text',
           'bg-info-bg'
         )}
         {renderStatsCard(
-          t('homologation.homologated', 'Homologués'),
+          t('homologation.homologated', { defaultValue: 'Homologated' }),
           stats.byStatus.homologated,
           CheckCircle,
           'text-success-text',
           'bg-success-bg'
         )}
         {renderStatsCard(
-          t('homologation.inProgress', 'En cours'),
+          t('homologation.inProgress', { defaultValue: 'In progress' }),
           stats.byStatus.in_progress + stats.byStatus.draft,
           Shield,
           'text-warning-text',
           'bg-warning-bg'
         )}
         {renderStatsCard(
-          t('homologation.expiringSoon', 'Expirent bientôt'),
+          t('homologation.expiringSoon', { defaultValue: 'Expiring soon' }),
           stats.expiringSoon,
           AlertTriangle,
           'text-warning-text',
           'bg-warning-bg'
         )}
         {renderStatsCard(
-          t('homologation.expired', 'Expirés'),
+          t('homologation.expired', { defaultValue: 'Expired' }),
           stats.expired,
           AlertTriangle,
           'text-error-text',
@@ -230,7 +230,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
         <Card className="p-6 lg:col-span-2 border-none shadow-apple-sm rounded-4xl bg-white/50 dark:bg-white/5 backdrop-blur-xl">
           <h3 className="text-sm font-black uppercase tracking-wider mb-6 text-foreground/80 flex items-center gap-2">
             <Star className="h-4 w-4" />
-            {t('homologation.levelDistribution', 'Répartition par niveau')}
+            {t('homologation.levelDistribution', { defaultValue: 'Distribution by level' })}
           </h3>
           <div className="grid gap-4 md:grid-cols-4">
             {(['etoile', 'simple', 'standard', 'renforce'] as HomologationLevel[]).map((level) => {
@@ -275,10 +275,10 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
       {/* Dossier list */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
-          <TabsTrigger value="all" isLoading={loading}>{t('common.all', 'Tous')}</TabsTrigger>
-          <TabsTrigger value="active" isLoading={loading}>{t('homologation.active', 'Actifs')}</TabsTrigger>
-          <TabsTrigger value="pending" isLoading={loading}>{t('homologation.pending', 'En attente')}</TabsTrigger>
-          <TabsTrigger value="expired" isLoading={loading}>{t('homologation.expired', 'Expirés')}</TabsTrigger>
+          <TabsTrigger value="all" isLoading={loading}>{t('common.all', { defaultValue: 'All' })}</TabsTrigger>
+          <TabsTrigger value="active" isLoading={loading}>{t('homologation.active', { defaultValue: 'Active' })}</TabsTrigger>
+          <TabsTrigger value="pending" isLoading={loading}>{t('homologation.pending', { defaultValue: 'Pending' })}</TabsTrigger>
+          <TabsTrigger value="expired" isLoading={loading}>{t('homologation.expiredTab', { defaultValue: 'Expired' })}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" key="all" className="mt-4">
@@ -329,7 +329,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {t('homologation.newDossierWizard', 'Nouveau dossier d\'homologation')}
+              {t('homologation.newDossierWizard', { defaultValue: 'New homologation dossier' })}
             </DialogTitle>
           </DialogHeader>
           <LevelDeterminationWizard
@@ -344,15 +344,14 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
         isOpen={!!dossierToDelete}
         onClose={() => setDossierToDelete(null)}
         onConfirm={handleDeleteDossier}
-        title={t('homologation.confirmDelete', 'Confirmer la suppression')}
+        title={t('homologation.confirmDelete', { defaultValue: 'Confirm deletion' })}
         message={t(
           'homologation.confirmDeleteDesc',
-          'Êtes-vous sûr de vouloir supprimer le dossier "{{name}}" ? Cette action est irréversible.',
-          { name: dossierToDelete?.name }
+          { defaultValue: 'Are you sure you want to delete the dossier "{{name}}"? This action is irreversible.', name: dossierToDelete?.name }
         )}
         type="danger"
-        confirmText={t('common.delete', 'Supprimer')}
-        cancelText={t('common.cancel', 'Annuler')}
+        confirmText={t('common.delete', { defaultValue: 'Delete' })}
+        cancelText={t('common.cancel', { defaultValue: 'Cancel' })}
       />
 
       {/* Renewal Dialog */}

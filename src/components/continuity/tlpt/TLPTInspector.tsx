@@ -10,6 +10,7 @@ import {
     Trash
 } from '../../ui/Icons';
 import { Button } from '../../ui/button';
+import { useStore } from '../../../store';
 
 interface TLPTInspectorProps {
     campaign?: Partial<TlptCampaign>;
@@ -28,6 +29,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
     canEdit = false,
     onDelete
 }) => {
+    const { t } = useStore();
     const [activeTab, setActiveTab] = useState<'details' | 'findings' | 'report'>('details');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -106,11 +108,11 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
                         }
                     }
                 }}
-                title="Supprimer la campagne"
-                message="Êtes-vous sûr de vouloir supprimer cette campagne TLPT ? Cette action est irréversible."
+                title={t('continuity.tlpt.deleteTitle', { defaultValue: 'Supprimer la campagne' })}
+                message={t('continuity.tlpt.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette campagne TLPT ? Cette action est irréversible.' })}
                 type="danger"
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
                 loading={isDeleting}
                 closeOnConfirm={false}
             />

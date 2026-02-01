@@ -1,7 +1,11 @@
+// NOTE: The compat CDN (gstatic.com/firebasejs) only publishes up to the 10.x line.
+// Even though package.json uses firebase ^12.x (modular SDK), the service worker
+// must use the compat bundle which tops out at 10.14.1. Do NOT bump to 12.x here.
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 // Initialize the Firebase app in the service worker by passing in the messagingSenderId.
+// These values must match the Firebase project config (see .env VITE_FIREBASE_* vars).
 firebase.initializeApp({
     apiKey: "***REDACTED***",
     authDomain: "sentinel-grc-a8701.firebaseapp.com",

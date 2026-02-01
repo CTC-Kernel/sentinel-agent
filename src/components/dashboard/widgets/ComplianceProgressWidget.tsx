@@ -44,7 +44,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
         ).length;
         const complianceRate = actionableControls > 0
             ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100)
-            : 0;
+            : 100;
 
         return {
             totalControls,

@@ -630,13 +630,11 @@ exports.checkScheduledNotifications = onSchedule({
     logger.info("Starting scheduled notification checks...");
     const db = admin.firestore();
 
-    const orgsSnapshot = await db.collection('users').get();
+    // Query organizations collection directly instead of loading ALL users
+    const orgsSnapshot = await db.collection('organizations').select().get();
     const organizationIds = new Set();
     orgsSnapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.organizationId) {
-            organizationIds.add(data.organizationId);
-        }
+        organizationIds.add(doc.id);
     });
 
     logger.info('Running checks for ' + organizationIds.size + ' organizations');
