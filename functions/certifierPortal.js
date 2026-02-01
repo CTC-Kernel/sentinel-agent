@@ -37,6 +37,11 @@ const sendEmail = async (to, subject, html, text) => {
 exports.inviteCertifier = onCall(async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
+    const role = request.auth.token.role;
+    if (!['admin', 'rssi'].includes(role) && !request.auth.token.superAdmin) {
+        throw new HttpsError('permission-denied', 'Only admins can invite certifiers.');
+    }
+
     const { email, message } = request.data;
     const organizationId = request.auth.token.organizationId;
 
