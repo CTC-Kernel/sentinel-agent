@@ -186,8 +186,8 @@ async function notifyAboutDocument(db, document, policy, organizationId) {
   // Create notification for document owner or admins
   const notificationData = {
     type: 'retention_warning',
-    title: 'Document arrivant a expiration',
-    message: `Le document "${document.title}" arrive a expiration selon la politique "${policy.name}"`,
+    title: 'Document arrivant à expiration',
+    message: `Le document "${document.title}" arrive à expiration selon la politique "${policy.name}"`,
     documentId: document.id,
     documentTitle: document.title,
     policyId: policy.id,

@@ -277,7 +277,7 @@ class NotificationManager {
                             const opsAdded = await this.queueNotification(batch, db, {
                                 userId: treatment.ownerId,
                                 organizationId: orgId,
-                                title: "Echeance de Traitement Aujourd'hui",
+                                title: "Échéance de Traitement Aujourd'hui",
                                 message: `Le plan de traitement pour "${risk.name}" doit être terminé ce soir.`,
                                 link,
                                 type,
