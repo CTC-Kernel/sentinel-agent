@@ -336,11 +336,9 @@ const seedNIS2Framework = onCall(
     const db = admin.firestore();
     const now = admin.firestore.FieldValue.serverTimestamp();
 
-    // Check if user is admin
-    const userDoc = await db.collection('users').doc(request.auth.uid).get();
-    const userData = userDoc.data();
-
-    if (!userData || !['admin', 'superAdmin'].includes(userData.role)) {
+    // Check if user is admin (from token claims)
+    const role = request.auth.token.role;
+    if (!['admin'].includes(role) && !request.auth.token.superAdmin) {
       throw new HttpsError("permission-denied", "Only admins can seed framework data");
     }
 

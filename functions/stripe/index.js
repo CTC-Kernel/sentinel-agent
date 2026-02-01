@@ -78,11 +78,9 @@ exports.createCheckoutSession = onCall({
         }
         const orgData = orgSnap.data();
 
-        const userDoc = await db.collection("users").doc(request.auth.uid).get();
-        const userData = userDoc.data();
-
         if (orgData.ownerId !== request.auth.uid) {
-            if (userData.role !== 'admin' || userData.organizationId !== organizationId) {
+            const tokenRole = request.auth.token.role;
+            if (!['admin'].includes(tokenRole) && !request.auth.token.superAdmin) {
                 throw new HttpsError("permission-denied", "Only admins of this organization or owners can manage billing.");
             }
         }
@@ -238,7 +236,7 @@ exports.stripeWebhook = onRequest({
         event = stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret);
     } catch (err) {
         logger.error(`Webhook Error: ${err.message}`);
-        return res.status(400).send('Webhook Error: Verification failed.');
+        return res.status(400).send('Webhook signature verification failed');
     }
 
     if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted' || event.type === 'customer.subscription.created') {

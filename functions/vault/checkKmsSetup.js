@@ -58,7 +58,7 @@ const checkKmsSetup = onCall(
       logger.error('KMS setup check failed:', error);
       return {
         status: 'not_configured',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Unable to verify KMS configuration',
       };
     }
   }
