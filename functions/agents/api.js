@@ -233,8 +233,10 @@ async function logFailedAuthAttempt(organizationId, agentId, reason, ipAddress) 
 }
 
 // ============================================================================
-// Agent Enrollment
+// Agent Enrollment (DEPRECATED - prefer standalone enrollment.js onRequest)
 // POST /v1/agents/enroll
+// This endpoint is kept for backward compatibility but enrollment.js is the
+// canonical, more secure enrollment path.
 // ============================================================================
 app.post('/v1/agents/enroll', async (req, res) => {
     try {
@@ -350,8 +352,7 @@ app.post('/v1/agents/enroll', async (req, res) => {
         const clientKey = generatePlaceholderKey();
 
         // Create agent document
-        // NOTE: clientKey is stored server-side as it's used as shared secret for HMAC signature validation.
-        // The clientCertificate and clientKey are both shared between agent and server for auth.
+        // clientKey intentionally NOT stored (security) - only returned once to the agent
         const agentData = {
             id: agentId,
             name: hostname,
@@ -368,7 +369,6 @@ app.post('/v1/agents/enroll', async (req, res) => {
             organizationId,
             serverCertificate,
             clientCertificate,
-            clientKey,
             certificateExpiresAt: certificateExpiresAt.toISOString(),
             config: getDefaultAgentConfig(),
             complianceScore: null,
@@ -1482,10 +1482,9 @@ app.post('/v1/organizations/:orgId/enrollment-tokens/:tokenId/qr', validateFireb
     try {
         const { orgId, tokenId } = req.params;
 
-        // Verify org membership
-        const userDoc = await db.collection('users').doc(req.user.uid).get();
-        const userData = userDoc.data();
-        if (!userData || userData.organizationId !== orgId) {
+        // Verify org membership via token claims
+        const callerOrgId = req.user.organizationId || req.user.token?.organizationId;
+        if (!callerOrgId || callerOrgId !== orgId) {
             return res.status(403).json({ error: 'Access denied' });
         }
 

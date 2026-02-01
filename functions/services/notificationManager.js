@@ -11,6 +11,15 @@ const {
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
+// In-memory user cache to avoid redundant auth().getUser() calls within the same function invocation
+const userCache = new Map();
+async function getCachedUser(userId) {
+    if (userCache.has(userId)) return userCache.get(userId);
+    const user = await admin.auth().getUser(userId);
+    userCache.set(userId, user);
+    return user;
+}
+
 /**
  * Notification Manager Class
  * Handles automated checks and notification dispatch via Firestore triggers (Mail Queue & Notification Collection)
@@ -468,7 +477,7 @@ class NotificationManager {
         if (emailHtml) {
             try {
                 // Fetch user to get email
-                const userRecord = await admin.auth().getUser(userId);
+                const userRecord = await getCachedUser(userId);
                 if (userRecord.email) {
                     const mailRef = db.collection('mail_queue').doc();
                     batch.set(mailRef, {

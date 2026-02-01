@@ -235,7 +235,7 @@ exports.onOrganizationDeleted = onDocumentDeleted({
     logger.info(`Organization ${orgId} deleted. Starting cascading cleanup...`);
 
     try {
-        const usersSnap = await db.collection('users').where('organizationId', '==', orgId).get();
+        const usersSnap = await db.collection('users').where('organizationId', '==', orgId).limit(500).get();
         const deletePromises = [];
 
         usersSnap.forEach(doc => {
@@ -256,7 +256,7 @@ exports.onOrganizationDeleted = onDocumentDeleted({
         ];
 
         for (const col of commonCollections) {
-            const snap = await db.collection(col).where('organizationId', '==', orgId).get();
+            const snap = await db.collection(col).where('organizationId', '==', orgId).limit(500).get();
             snap.forEach(doc => allRefs.push(doc.ref));
         }
 

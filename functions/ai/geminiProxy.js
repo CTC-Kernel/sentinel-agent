@@ -31,7 +31,19 @@ exports.geminiProxy = onCall(
       throw new HttpsError('failed-precondition', 'Gemini API key not configured');
     }
 
+    // Validate model against allowlist to prevent arbitrary API endpoint access
+    const ALLOWED_MODELS = [
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
+      'gemini-3-pro-preview',
+      'gemini-3-flash-preview',
+    ];
     const modelId = model || 'gemini-2.0-flash';
+    if (!ALLOWED_MODELS.includes(modelId)) {
+      throw new HttpsError('invalid-argument', `Model "${modelId}" is not allowed. Use one of: ${ALLOWED_MODELS.join(', ')}`);
+    }
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 
     try {

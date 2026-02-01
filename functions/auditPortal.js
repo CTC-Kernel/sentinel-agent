@@ -99,7 +99,7 @@ const validatePortalToken = async (token, clientIp = null) => {
 };
 
 // 1. Generate Audit Share Link (Internal Admin Only)
-exports.generateAuditShareLink = onCall(async (request) => {
+exports.generateAuditShareLink = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
     const { auditId, auditorEmail, expiryDays } = request.data;
@@ -160,7 +160,7 @@ exports.generateAuditShareLink = onCall(async (request) => {
 });
 
 // 2. Get Shared Audit Data (External Public Access via Token)
-exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) => {
+exports.getSharedAuditData = onCall({ region: 'europe-west1', enforceAppCheck: false }, async (request) => {
     // Rate limiting for external endpoint
     checkCallableRateLimit(request, 'standard');
 
@@ -203,6 +203,8 @@ exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) 
         // Fetch related findings
         const findingsSnap = await db.collection('findings')
             .where('auditId', '==', shareData.auditId)
+            .where('organizationId', '==', shareData.organizationId)
+            .limit(1000)
             .get();
 
         const findings = findingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -216,6 +218,8 @@ exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) 
 
         const docsSnap = await db.collection('documents')
             .where('auditId', '==', shareData.auditId)
+            .where('organizationId', '==', shareData.organizationId)
+            .limit(1000)
             .get();
 
         const documents = docsSnap.docs.map(d => {
@@ -244,7 +248,7 @@ exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) 
 });
 
 // 3. Submit Finding (External)
-exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request) => {
+exports.portal_submitFinding = onCall({ region: 'europe-west1', enforceAppCheck: false }, async (request) => {
     // Rate limiting for external endpoint
     checkCallableRateLimit(request, 'standard');
 
@@ -296,7 +300,7 @@ exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request
 });
 
 // 4. Update Status / Certify
-exports.portal_updateStatus = onCall({ enforceAppCheck: false }, async (request) => {
+exports.portal_updateStatus = onCall({ region: 'europe-west1', enforceAppCheck: false }, async (request) => {
     // Rate limiting for external endpoint
     checkCallableRateLimit(request, 'standard');
 
@@ -309,7 +313,7 @@ exports.portal_updateStatus = onCall({ enforceAppCheck: false }, async (request)
     }
 
     // SECURITY: Validate status against allowed values to prevent mass assignment
-    const allowedStatuses = ['En cours', 'Terminé', 'Certifié', 'In Progress', 'Completed', 'Certified'];
+    const allowedStatuses = ['En cours', 'Terminé', 'Certifié'];
     if (!status || !allowedStatuses.includes(status)) {
         throw new HttpsError('invalid-argument', 'Invalid status value');
     }
@@ -346,7 +350,7 @@ exports.portal_updateStatus = onCall({ enforceAppCheck: false }, async (request)
 });
 
 // 5. Revoke Audit Share Link (Internal)
-exports.revokeAuditShare = onCall(async (request) => {
+exports.revokeAuditShare = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
     const { token } = request.data;
