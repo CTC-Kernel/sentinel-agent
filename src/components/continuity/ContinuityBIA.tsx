@@ -37,7 +37,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
     const getPriorityColor = (p: string) => {
         switch (p) {
             case 'Critique': return 'bg-red-50 text-red-700 dark:text-red-400 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30';
-            case 'Elevée': return 'bg-orange-50 text-orange-700 dark:text-orange-400 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/30';
+            case 'Élevée': return 'bg-orange-50 text-orange-700 dark:text-orange-400 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/30';
             case 'Moyenne': return 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-900/30';
             default: return 'bg-blue-50 dark:bg-slate-900 text-blue-700 dark:text-blue-400 border-blue-100 dark:bg-slate-900/20 dark:text-blue-400 dark:border-blue-900/30';
         }

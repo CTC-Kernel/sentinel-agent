@@ -230,7 +230,7 @@ export function useCriticalRisksList(
       cancelled = true;
       unsubRef.current?.();
     };
-  }, [tenantId, maxItems, refreshKey]);
+  }, [tenantId, maxItems, refreshKey, t]);
 
   return {
     risks,

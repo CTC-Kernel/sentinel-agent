@@ -150,7 +150,7 @@ function DayCell({
           )}
         </div>
       ) : (
-        <div className="text-muted-foreground">Pas de donnees</div>
+        <div className="text-muted-foreground">Pas de données</div>
       )}
     </div>
   );

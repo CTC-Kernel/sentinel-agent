@@ -30,7 +30,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const toggle = useCallback(() => setIsOpen(prev => !prev), []);
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read' | 'createdAt'>) => {
-    const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7) + Date.now().toString(36);
+    const id = crypto.randomUUID();
     const timestamp = Date.now();
 
     const newNotification: Notification = {

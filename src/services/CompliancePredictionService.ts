@@ -247,10 +247,15 @@ export function calculateTrend(
     const weeklyChange = currentScore - score7DaysAgo;
     const monthlyChange = currentScore - score30DaysAgo;
 
-    // Determine direction
+    // Determine direction using percentage-based comparison
+    const weeklyPercentChange = score7DaysAgo > 0
+        ? Math.abs(weeklyChange / score7DaysAgo) * 100
+        : (weeklyChange !== 0 ? 100 : 0);
+
     let direction: TrendDirection = 'stable';
-    if (weeklyChange > TREND_THRESHOLD) direction = 'up';
-    else if (weeklyChange < -TREND_THRESHOLD) direction = 'down';
+    if (weeklyPercentChange > TREND_THRESHOLD) {
+      direction = weeklyChange > 0 ? 'up' : 'down';
+    }
 
     // Calculate velocity (points per day)
     const velocity = history.length >= 2

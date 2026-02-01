@@ -105,19 +105,19 @@ export const ThreatIntelligence: React.FC = () => {
     const handleRefreshLiveFeed = React.useCallback(async () => {
         if (isSeeding) return;
         if (!hasPermission(user, 'Threat', 'create')) {
-            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
             return;
         }
         setIsSeeding(true); // Loading state: used in UI (line 208 spinner, line 304 button label)
-        addToast(t('threatIntel.toast.refreshingFeeds', { defaultValue: "Refreshing live CISA & URLhaus feeds..." }), "info");
+        addToast(t('threatIntel.toast.refreshingFeeds', { defaultValue: "Actualisation des flux CISA et URLhaus en direct..." }), "info");
         try {
             const stats = await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
-            addToast(t('threatIntel.toast.feedsUpdated', { defaultValue: "Feeds updated: {{count}} new threats", count: stats.threats }), "success");
+            addToast(t('threatIntel.toast.feedsUpdated', { defaultValue: "Flux mis à jour : {{count}} nouvelles menaces", count: stats.threats }), "success");
             logAction(user, 'REFRESH_THREAT_FEED', 'ThreatIntelligence', `Manual feed refresh: ${stats.threats} new, ${stats.vulns} vulnerabilities`);
         } catch (e) {
             ErrorLogger.error(e instanceof Error ? e : new Error(String(e)), 'ThreatIntelligence.seedLiveThreats');
 
-            addToast(t('threatIntel.toast.simulationMode', { defaultValue: "Switching to simulation mode (Offline)." }), "info");
+            addToast(t('threatIntel.toast.simulationMode', { defaultValue: "Passage en mode simulation (Hors ligne)." }), "info");
             // Fallback to simulation for offline/demo mode
             ThreatFeedService.enableSimulation();
             await ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo');
@@ -203,7 +203,7 @@ export const ThreatIntelligence: React.FC = () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        addToast(t('threatIntel.toast.ruleDownloaded', { defaultValue: "Detection rule downloaded" }), "success");
+        addToast(t('threatIntel.toast.ruleDownloaded', { defaultValue: "Règle de détection téléchargée" }), "success");
         logAction(user, 'DOWNLOAD_SIGMA_RULE', 'ThreatIntelligence', `Downloaded SIGMA rule for threat ${threat.title}`, undefined, threat.id);
     }, [addToast, user, t]);
 
@@ -217,7 +217,7 @@ export const ThreatIntelligence: React.FC = () => {
     const handleDiscussionClose = React.useCallback(() => setSelectedThreatId(null), [setSelectedThreatId]);
     const handleSubmitModalClose = React.useCallback(() => setIsSubmitModalOpen(false), [setIsSubmitModalOpen]);
     const handleSubmitSuccess = React.useCallback(() => {
-        addToast(t('threatIntel.toast.threatReported', { defaultValue: "Threat reported!" }), "success");
+        addToast(t('threatIntel.toast.threatReported', { defaultValue: "Menace signalée !" }), "success");
         logAction(user, 'SIGNAL_THREAT', 'ThreatIntelligence', 'User signaled a new community threat');
     }, [addToast, user, t]);
     const handleRiskModalClose = React.useCallback(() => setIsRiskModalOpen(false), [setIsRiskModalOpen]);
@@ -249,10 +249,10 @@ export const ThreatIntelligence: React.FC = () => {
     }, [user]);
 
     const viewOptions = React.useMemo(() => [
-        { id: 'overview', label: t('threats.globalView', { defaultValue: 'Global View' }), icon: LayoutDashboard },
-        { id: 'map', label: t('threats.liveMap', { defaultValue: 'Live Map' }), icon: Globe },
-        { id: 'feed', label: t('threats.threatFeed', { defaultValue: 'Threat Feed' }), icon: List },
-        { id: 'community', label: t('threats.community', { defaultValue: 'Community' }), icon: Users },
+        { id: 'overview', label: t('threats.globalView', { defaultValue: 'Vue globale' }), icon: LayoutDashboard },
+        { id: 'map', label: t('threats.liveMap', { defaultValue: 'Carte en direct' }), icon: Globe },
+        { id: 'feed', label: t('threats.threatFeed', { defaultValue: 'Flux de menaces' }), icon: List },
+        { id: 'community', label: t('threats.community', { defaultValue: 'Communauté' }), icon: Users },
     ], [t]);
 
     const filterOptions = React.useMemo(() => ['All', 'Ransomware', 'Vulnerability', 'Malware'], []);
@@ -260,15 +260,15 @@ export const ThreatIntelligence: React.FC = () => {
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24">
             <MasterpieceBackground />
-            <SEO title={t('threats.seoTitle', { defaultValue: 'Collaborative Threat Intelligence' })} description={t('threats.seoDescription', { defaultValue: 'Real-time threat map and collaborative feed.' })} />
+            <SEO title={t('threats.seoTitle', { defaultValue: 'Renseignement collaboratif sur les menaces' })} description={t('threats.seoDescription', { defaultValue: 'Carte des menaces en temps réel et flux collaboratif.' })} />
 
             <PageHeader
                 title="Threat Intelligence"
-                subtitle={t('threats.subtitle', { defaultValue: 'Collaborative intelligence and global mapping' })}
+                subtitle={t('threats.subtitle', { defaultValue: 'Intelligence collaborative et cartographie mondiale' })}
                 icon={
                     <img
                         src="/images/operations.png"
-                        alt={t('threats.operationsAlt', { defaultValue: 'Operations' })}
+                        alt={t('threats.operationsAlt', { defaultValue: 'Opérations' })}
                         className="w-full h-full object-contain"
                     />
                 }
@@ -278,7 +278,7 @@ export const ThreatIntelligence: React.FC = () => {
                             aria-label="Refresh threat feeds"
                             onClick={handleRefreshLiveFeed}
                             className="bg-white/5 hover:bg-white/10 text-white border border-white/10 p-2.5 h-auto rounded-xl backdrop-blur-md shadow-sm"
-                            title={t('threats.refreshFeeds', { defaultValue: 'Refresh feeds' })}
+                            title={t('threats.refreshFeeds', { defaultValue: 'Actualiser les flux' })}
                         >
                             <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin text-brand-400' : 'text-slate-200'}`} />
                         </Button>
@@ -288,9 +288,9 @@ export const ThreatIntelligence: React.FC = () => {
                                 aria-label="Share new threat"
                                 onClick={handleSubmitModalOpen}
                                 className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 h-auto rounded-xl shadow-lg shadow-brand-500/20"
-                                title={t('common.share', { defaultValue: 'Share' })}
+                                title={t('common.share', { defaultValue: 'Partager' })}
                             >
-                                <Share2 className="h-4 w-4 mr-2" /> {t('common.share', { defaultValue: 'Share' })}
+                                <Share2 className="h-4 w-4 mr-2" /> {t('common.share', { defaultValue: 'Partager' })}
                             </Button>
                         )}
 
@@ -299,7 +299,7 @@ export const ThreatIntelligence: React.FC = () => {
                                 aria-label="Community settings"
                                 onClick={handleSettingsOpen}
                                 className="bg-white/5 hover:bg-white/10 text-white p-2.5 h-auto rounded-xl border border-white/10 shadow-sm"
-                                title={t('threats.communitySettings', { defaultValue: 'Community Settings' })}
+                                title={t('threats.communitySettings', { defaultValue: 'Paramètres de la communauté' })}
                             >
                                 <Settings className="h-5 w-5 text-slate-200" />
                             </Button>
@@ -314,13 +314,13 @@ export const ThreatIntelligence: React.FC = () => {
                 viewOptions={viewOptions}
                 searchQuery={searchTerm}
                 onSearchChange={handleSearchChange}
-                searchPlaceholder={t('threats.searchPlaceholder', { defaultValue: 'Search for a threat...' })}
+                searchPlaceholder={t('threats.searchPlaceholder', { defaultValue: 'Rechercher une menace...' })}
                 actions={
                     activeTab === 'feed' && (
                         <Menu as="div" className="relative inline-block text-left">
                             <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
                                 <Network className="h-4 w-4 text-slate-500" />
-                                <span className="hidden md:inline">{t('threats.filter', { defaultValue: 'Filter' })}:</span> <span className="font-bold ml-1">{activeTypeFilter}</span>
+                                <span className="hidden md:inline">{t('threats.filter', { defaultValue: 'Filtrer' })}:</span> <span className="font-bold ml-1">{activeTypeFilter}</span>
                             </Menu.Button>
                             <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-70 scale-100" />
                             <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-50">
@@ -368,7 +368,7 @@ export const ThreatIntelligence: React.FC = () => {
                                 title="Toggle 2D/3D view"
                             >
                                 {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
-                                {viewMode === '2d' ? t('threats.view3D', { defaultValue: '3D View' }) : t('threats.view2D', { defaultValue: '2D View' })}
+                                {viewMode === '2d' ? t('threats.view3D', { defaultValue: 'Vue 3D' }) : t('threats.view2D', { defaultValue: 'Vue 2D' })}
                             </Button>
                             <div className="bg-error-text/90 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center shadow-lg shadow-error-bg/50 animate-pulse">
                                 <Activity className="h-3 w-3 mr-2" /> LIVE
@@ -400,9 +400,9 @@ export const ThreatIntelligence: React.FC = () => {
                             ) : filteredThreats.length === 0 ? (
                                 <EmptyState
                                     icon={Shield}
-                                    title={t('threats.emptyFeed', { defaultValue: 'Threat feed is empty' })}
-                                    description={t('threats.emptyFeedDescription', { defaultValue: 'No live threats detected. Click to refresh feeds.' })}
-                                    actionLabel={isSeeding ? t('threats.refreshing', { defaultValue: 'Refreshing...' }) : t('threats.refreshLiveFeeds', { defaultValue: 'Refresh Live Feeds' })}
+                                    title={t('threats.emptyFeed', { defaultValue: 'Le flux de menaces est vide' })}
+                                    description={t('threats.emptyFeedDescription', { defaultValue: 'Aucune menace en direct détectée. Cliquez pour actualiser les flux.' })}
+                                    actionLabel={isSeeding ? t('threats.refreshing', { defaultValue: 'Actualisation...' }) : t('threats.refreshLiveFeeds', { defaultValue: 'Actualiser les flux en direct' })}
                                     onAction={handleRefreshLiveFeed}
                                 />
                             ) : (
@@ -460,7 +460,7 @@ export const ThreatIntelligence: React.FC = () => {
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
                                 </h3>
-                                <Button variant="ghost" aria-label="View all top hunters" className="text-xs font-bold text-brand-500 hover:text-brand-400 p-0 h-auto hover:bg-transparent">{t('common.viewAll', { defaultValue: 'View All' })}</Button>
+                                <Button variant="ghost" aria-label="View all top hunters" className="text-xs font-bold text-brand-500 hover:text-brand-400 p-0 h-auto hover:bg-transparent">{t('common.viewAll', { defaultValue: 'Voir tout' })}</Button>
                             </div>
 
                             <div className="space-y-6">
@@ -488,7 +488,7 @@ export const ThreatIntelligence: React.FC = () => {
                                                     {c.name}
                                                     {i === 0 && <Badge status="warning" className="scale-75 origin-left">MVP</Badge>}
                                                 </div>
-                                                <div className="text-sm text-slate-500 dark:text-slate-300 font-medium">{c.count} {t('threats.threatsReported', { defaultValue: 'Threats reported' })}</div>
+                                                <div className="text-sm text-slate-500 dark:text-slate-300 font-medium">{c.count} {t('threats.threatsReported', { defaultValue: 'Menaces signalées' })}</div>
                                             </div>
                                         </div>
                                         <ChevronRight className="h-5 w-5 text-slate-300 opacity-0 group-hover:opacity-70 transition-opacity" />
@@ -565,7 +565,7 @@ const ThreatCard = React.memo(({
                                 SIGMA Rule
                             </Button>
                             <Button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); onCreateRisk(threat); }} className="text-xs font-bold text-warning-text px-3 py-1 h-auto bg-warning-bg rounded-lg hover:bg-warning-bg/80" title="Create risk from threat">
-                                {t('threats.createRisk', { defaultValue: 'Create Risk' })}
+                                {t('threats.createRisk', { defaultValue: 'Créer un risque' })}
                             </Button>
                         </div>
                     </div>

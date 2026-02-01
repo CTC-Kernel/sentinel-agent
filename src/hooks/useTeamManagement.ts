@@ -90,7 +90,7 @@ export const useTeamManagement = (enabled = true) => {
             unsubRoles();
         };
     // claimsSynced transitions from false->true once on mount; kept in deps to delay subscription until claims are ready
-    }, [user?.organizationId, claimsSynced, enabled, demoMode]);
+    }, [user?.organizationId, claimsSynced, enabled, demoMode, t]);
 
     const inviteUser = useCallback(async (data: UserFormData, silent = false) => {
         if (!user?.organizationId) return false;

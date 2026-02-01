@@ -361,7 +361,7 @@ app.post('/v1/agents/enroll', async (req, res) => {
             osVersion: os_version || '',
             machineId: machine_id,
             version: agent_version || '0.0.0',
-            status: 'active',
+            status: 'Actif',
             lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
             enrolledAt: admin.firestore.FieldValue.serverTimestamp(),
             enrolledWithToken: tokenDoc.id,
@@ -450,7 +450,7 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
         // Prepare update data
         const updateData = {
             lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
-            status: 'active',
+            status: 'Actif',
             version: agent_version || agentData.version,
             hostname: hostname || agentData.hostname,
             osVersion: os_info || agentData.osVersion,
@@ -1100,14 +1100,14 @@ app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, re
 
         // Map network alert severity to incident severity
         const severityMap = {
-            'Low': 'low',
-            'Medium': 'medium',
-            'High': 'high',
-            'Critical': 'critical',
-            'low': 'low',
-            'medium': 'medium',
-            'high': 'high',
-            'critical': 'critical',
+            'Low': 'Faible',
+            'Medium': 'Moyenne',
+            'High': 'Élevée',
+            'Critical': 'Critique',
+            'low': 'Faible',
+            'medium': 'Moyenne',
+            'high': 'Élevée',
+            'critical': 'Critique',
         };
 
         // Create network alert document
@@ -1115,7 +1115,7 @@ app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, re
             agentId,
             organizationId,
             alertType: alert_type,
-            severity: severityMap[severity] || String(severity || 'medium').toLowerCase(),
+            severity: severityMap[severity] || 'Moyenne',
             title,
             description: description || '',
             connection: connection || null,
@@ -1125,7 +1125,7 @@ app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, re
             iocsMatched: iocs_matched || [],
             hostname: agentData.hostname,
             ipAddress: agentData.ipAddress,
-            status: 'open',
+            status: 'Ouvert',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
         };
 
@@ -1137,7 +1137,7 @@ app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, re
             .add(alertData);
 
         // Also create an incident for high/critical alerts
-        if (['high', 'critical'].includes(alertData.severity)) {
+        if (['Élevée', 'Critique'].includes(alertData.severity)) {
             const incidentData = {
                 type: 'network_security',
                 subType: alert_type,
@@ -1153,7 +1153,7 @@ app.post('/v1/agents/:agentId/network/alerts', validateAgentAuth, async (req, re
                     connection,
                     iocsMatched: iocs_matched,
                 },
-                status: 'open',
+                status: 'Ouvert',
                 detectedAt: detected_at || new Date().toISOString(),
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
             };

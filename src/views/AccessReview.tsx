@@ -60,18 +60,18 @@ import type {
 type TabId = 'dashboard' | 'campaigns' | 'dormant';
 
 const getCampaignStatusConfig = (t: (key: string, options?: Record<string, unknown>) => string): Record<CampaignStatus, { label: string; color: string }> => ({
-  draft: { label: t('accessReview.status.draft', { defaultValue: 'Draft' }), color: 'bg-slate-200 text-slate-600' },
-  active: { label: t('accessReview.status.active', { defaultValue: 'Active' }), color: 'bg-primary/10 text-primary' },
-  completed: { label: t('accessReview.status.completed', { defaultValue: 'Completed' }), color: 'bg-success-bg text-success-text' },
-  cancelled: { label: t('accessReview.status.cancelled', { defaultValue: 'Cancelled' }), color: 'bg-danger-bg text-danger-text' },
+  draft: { label: t('accessReview.status.draft', { defaultValue: 'Brouillon' }), color: 'bg-slate-200 text-slate-600' },
+  active: { label: t('accessReview.status.active', { defaultValue: 'Actif' }), color: 'bg-primary/10 text-primary' },
+  completed: { label: t('accessReview.status.completed', { defaultValue: 'Terminé' }), color: 'bg-success-bg text-success-text' },
+  cancelled: { label: t('accessReview.status.cancelled', { defaultValue: 'Annulé' }), color: 'bg-danger-bg text-danger-text' },
 });
 
 const getDormantStatusConfig = (t: (key: string, options?: Record<string, unknown>) => string): Record<DormantStatus, { label: string; color: string }> => ({
-  detected: { label: t('accessReview.dormant.detected', { defaultValue: 'Detected' }), color: 'bg-warning-bg text-warning-text' },
-  contacted: { label: t('accessReview.dormant.contacted', { defaultValue: 'Contacted' }), color: 'bg-primary/10 text-primary' },
-  disabled: { label: t('accessReview.dormant.disabled', { defaultValue: 'Disabled' }), color: 'bg-slate-200 text-slate-600' },
-  deleted: { label: t('accessReview.dormant.deleted', { defaultValue: 'Deleted' }), color: 'bg-danger-bg text-danger-text' },
-  excluded: { label: t('accessReview.dormant.excluded', { defaultValue: 'Excluded' }), color: 'bg-muted text-muted-foreground' },
+  detected: { label: t('accessReview.dormant.detected', { defaultValue: 'Détecté' }), color: 'bg-warning-bg text-warning-text' },
+  contacted: { label: t('accessReview.dormant.contacted', { defaultValue: 'Contacté' }), color: 'bg-primary/10 text-primary' },
+  disabled: { label: t('accessReview.dormant.disabled', { defaultValue: 'Désactivé' }), color: 'bg-slate-200 text-slate-600' },
+  deleted: { label: t('accessReview.dormant.deleted', { defaultValue: 'Supprimé' }), color: 'bg-danger-bg text-danger-text' },
+  excluded: { label: t('accessReview.dormant.excluded', { defaultValue: 'Exclu' }), color: 'bg-muted text-muted-foreground' },
 });
 
 export const AccessReview: React.FC = () => {
@@ -103,9 +103,9 @@ export const AccessReview: React.FC = () => {
 
   // Tabs
   const tabs = [
-    { id: 'dashboard', label: t('accessReview.dashboard', { defaultValue: 'Dashboard' }), icon: LayoutDashboard },
-    { id: 'campaigns', label: t('accessReview.campaigns', { defaultValue: 'Campaigns' }), icon: List },
-    { id: 'dormant', label: t('accessReview.dormantAccounts', { defaultValue: 'Dormant Accounts' }), icon: UserX },
+    { id: 'dashboard', label: t('accessReview.dashboard', { defaultValue: 'Tableau de bord' }), icon: LayoutDashboard },
+    { id: 'campaigns', label: t('accessReview.campaigns', { defaultValue: 'Campagnes' }), icon: List },
+    { id: 'dormant', label: t('accessReview.dormantAccounts', { defaultValue: 'Comptes dormants' }), icon: UserX },
   ];
 
   // Subscribe to data
@@ -170,7 +170,7 @@ export const AccessReview: React.FC = () => {
         user
       );
 
-      addToast(t('accessReview.toast.campaignCreated', { defaultValue: 'Campaign created successfully' }), 'success');
+      addToast(t('accessReview.toast.campaignCreated', { defaultValue: 'Campagne créée avec succès' }), 'success');
       setShowCampaignForm(false);
       resetForm();
     } catch (error) {
@@ -188,7 +188,7 @@ export const AccessReview: React.FC = () => {
       // In a real implementation, we would fetch users based on campaign scope
       // For now, we just update the status
       await AccessReviewService.updateCampaignStatus(campaign.id, 'active', user);
-      addToast(t('accessReview.toast.campaignLaunched', { defaultValue: 'Campaign launched successfully' }), 'success');
+      addToast(t('accessReview.toast.campaignLaunched', { defaultValue: 'Campagne lancée avec succès' }), 'success');
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'accessReview.errors.launchFailed');
     }
@@ -205,7 +205,7 @@ export const AccessReview: React.FC = () => {
         `Status changed to ${newStatus}`,
         user
       );
-      addToast(t('accessReview.toast.statusUpdated', { defaultValue: 'Status updated' }), 'success');
+      addToast(t('accessReview.toast.statusUpdated', { defaultValue: 'Statut mis à jour' }), 'success');
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'accessReview.errors.updateFailed');
     }
@@ -219,13 +219,13 @@ export const AccessReview: React.FC = () => {
       className="w-full px-2 sm:px-4 lg:px-8 py-6 max-w-[1800px] mx-auto flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
     >
       <MasterpieceBackground />
-      <SEO title={t('accessReview.title', { defaultValue: 'Access Review' })} description={t('accessReview.seoDescription', { defaultValue: 'Periodic access review management' })} />
+      <SEO title={t('accessReview.title', { defaultValue: 'Revue des accès' })} description={t('accessReview.seoDescription', { defaultValue: 'Gestion des revues d\'accès périodiques' })} />
 
       {/* Header */}
       <motion.div variants={slideUpVariants}>
         <PageHeader
-          title={t('accessReview.title', { defaultValue: 'Access Review' })}
-          subtitle={t('accessReview.subtitle', { defaultValue: 'Periodic review campaigns and dormant account detection' })}
+          title={t('accessReview.title', { defaultValue: 'Revue des accès' })}
+          subtitle={t('accessReview.subtitle', { defaultValue: 'Campagnes de revue périodique et détection des comptes dormants' })}
           icon={<UserCheck className="w-12 h-12 text-primary" />}
           trustType="confidentiality"
           actions={
@@ -238,7 +238,7 @@ export const AccessReview: React.FC = () => {
               {canEdit && (
                 <Button onClick={() => setShowCampaignForm(true)} className="gap-2">
                   <Plus className="w-4 h-4" />
-                  {t('accessReview.newCampaign', { defaultValue: 'New Campaign' })}
+                  {t('accessReview.newCampaign', { defaultValue: 'Nouvelle campagne' })}
                 </Button>
               )}
             </div>
@@ -274,7 +274,7 @@ export const AccessReview: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-3xl font-bold text-foreground">{stats.activeCampaigns}</div>
-                    <div className="text-sm text-muted-foreground">{t('accessReview.activeCampaigns', { defaultValue: 'Active Campaigns' })}</div>
+                    <div className="text-sm text-muted-foreground">{t('accessReview.activeCampaigns', { defaultValue: 'Campagnes actives' })}</div>
                   </div>
                 </div>
               </div>
@@ -286,7 +286,7 @@ export const AccessReview: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-3xl font-bold text-warning-text">{stats.pendingReviews}</div>
-                    <div className="text-sm text-muted-foreground">{t('accessReview.pendingReviews', { defaultValue: 'Pending Reviews' })}</div>
+                    <div className="text-sm text-muted-foreground">{t('accessReview.pendingReviews', { defaultValue: 'Revues en attente' })}</div>
                   </div>
                 </div>
               </div>
@@ -298,7 +298,7 @@ export const AccessReview: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-3xl font-bold text-danger-text">{stats.dormantAccounts}</div>
-                    <div className="text-sm text-muted-foreground">{t('accessReview.dormantAccountsLabel', { defaultValue: 'Dormant Accounts' })}</div>
+                    <div className="text-sm text-muted-foreground">{t('accessReview.dormantAccountsLabel', { defaultValue: 'Comptes dormants' })}</div>
                   </div>
                 </div>
               </div>
@@ -312,7 +312,7 @@ export const AccessReview: React.FC = () => {
                     <div className={`text-3xl font-bold ${stats.daysSinceLastCampaign > 90 ? 'text-danger-text' : 'text-foreground'}`}>
                       {stats.daysSinceLastCampaign}{t('common.daysShort', { defaultValue: 'd' })}
                     </div>
-                    <div className="text-sm text-muted-foreground">{t('accessReview.sinceLastReview', { defaultValue: 'Since last review' })}</div>
+                    <div className="text-sm text-muted-foreground">{t('accessReview.sinceLastReview', { defaultValue: 'Depuis la dernière revue' })}</div>
                   </div>
                 </div>
               </div>
@@ -325,10 +325,10 @@ export const AccessReview: React.FC = () => {
                   <AlertTriangle className="w-6 h-6 text-danger-text" />
                   <div>
                     <div className="font-semibold text-danger-text">
-                      {t('accessReview.overdueAlert', { defaultValue: 'Access review overdue' })}
+                      {t('accessReview.overdueAlert', { defaultValue: 'Revue des accès en retard' })}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {t('accessReview.overdueAlertDescription', { defaultValue: 'The last review campaign is over 90 days old. NIS2 recommends a quarterly review.' })}
+                      {t('accessReview.overdueAlertDescription', { defaultValue: 'La dernière campagne de revue a plus de 90 jours. NIS2 recommande une revue trimestrielle.' })}
                     </div>
                   </div>
                   {canEdit && (
@@ -336,7 +336,7 @@ export const AccessReview: React.FC = () => {
                       onClick={() => setShowCampaignForm(true)}
                       className="ml-auto"
                     >
-                      {t('accessReview.launchCampaign', { defaultValue: 'Launch a campaign' })}
+                      {t('accessReview.launchCampaign', { defaultValue: 'Lancer une campagne' })}
                     </Button>
                   )}
                 </div>
@@ -349,10 +349,10 @@ export const AccessReview: React.FC = () => {
                   <Clock className="w-6 h-6 text-warning-text" />
                   <div>
                     <div className="font-semibold text-warning-text">
-                      {t('accessReview.overdueReviewsCount', { count: stats.overdueReviews, defaultValue: '{{count}} overdue review(s)' })}
+                      {t('accessReview.overdueReviewsCount', { count: stats.overdueReviews, defaultValue: '{{count}} revue(s) en retard' })}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {t('accessReview.overdueReviewsDescription', { defaultValue: 'Some access reviews have exceeded their deadline.' })}
+                      {t('accessReview.overdueReviewsDescription', { defaultValue: 'Certaines revues d\'accès ont dépassé leur échéance.' })}
                     </div>
                   </div>
                 </div>
@@ -361,9 +361,9 @@ export const AccessReview: React.FC = () => {
 
             {/* Recent Campaigns */}
             <div className="glass-premium rounded-2xl p-6 border border-white/60 dark:border-white/5">
-              <h3 className="text-lg font-semibold text-foreground mb-4">{t('accessReview.recentCampaigns', { defaultValue: 'Recent Campaigns' })}</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">{t('accessReview.recentCampaigns', { defaultValue: 'Campagnes récentes' })}</h3>
               {campaigns.length === 0 ? (
-                <p className="text-muted-foreground">{t('accessReview.noCampaignsCreated', { defaultValue: 'No campaigns created' })}</p>
+                <p className="text-muted-foreground">{t('accessReview.noCampaignsCreated', { defaultValue: 'Aucune campagne créée' })}</p>
               ) : (
                 <div className="space-y-3">
                   {campaigns.slice(0, 5).map((campaign) => {
@@ -386,7 +386,7 @@ export const AccessReview: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {campaign.status === 'active' && (
                             <div className="text-sm text-muted-foreground">
-                              {progress}% {t('accessReview.completed', { defaultValue: 'completed' })}
+                              {progress}% {t('accessReview.completed', { defaultValue: 'terminé' })}
                             </div>
                           )}
                           <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
@@ -417,9 +417,9 @@ export const AccessReview: React.FC = () => {
             ) : campaigns.length === 0 ? (
               <EmptyState
                 icon={UserCheck}
-                title={t('accessReview.noCampaigns', { defaultValue: 'No campaigns' })}
-                description={t('accessReview.noCampaignsDescription', { defaultValue: 'Create your first access review campaign' })}
-                actionLabel={canEdit ? t('accessReview.newCampaign', { defaultValue: 'New Campaign' }) : undefined}
+                title={t('accessReview.noCampaigns', { defaultValue: 'Aucune campagne' })}
+                description={t('accessReview.noCampaignsDescription', { defaultValue: 'Créez votre première campagne de revue des accès' })}
+                actionLabel={canEdit ? t('accessReview.newCampaign', { defaultValue: 'Nouvelle campagne' }) : undefined}
                 onAction={canEdit ? () => setShowCampaignForm(true) : undefined}
               />
             ) : (
@@ -453,7 +453,7 @@ export const AccessReview: React.FC = () => {
                               onClick={() => handleLaunchCampaign(campaign)}
                             >
                               <Play className="w-4 h-4 mr-1" />
-                              {t('accessReview.launch', { defaultValue: 'Launch' })}
+                              {t('accessReview.launch', { defaultValue: 'Lancer' })}
                             </Button>
                           )}
                         </div>
@@ -462,7 +462,7 @@ export const AccessReview: React.FC = () => {
                       {campaign.status === 'active' && (
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{t('accessReview.progress', { defaultValue: 'Progress' })}</span>
+                            <span className="text-muted-foreground">{t('accessReview.progress', { defaultValue: 'Progression' })}</span>
                             <span className="font-medium">{campaign.completedReviews}/{campaign.totalReviews} ({progress}%)</span>
                           </div>
                           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
@@ -474,15 +474,15 @@ export const AccessReview: React.FC = () => {
                           <div className="flex gap-4 text-xs text-muted-foreground mt-2">
                             <span className="flex items-center gap-1">
                               <CheckCircle className="w-3 h-3 text-success-text" />
-                              {campaign.approvedCount} {t('accessReview.approved', { defaultValue: 'approved' })}
+                              {campaign.approvedCount} {t('accessReview.approved', { defaultValue: 'approuvé' })}
                             </span>
                             <span className="flex items-center gap-1">
                               <XCircle className="w-3 h-3 text-danger-text" />
-                              {campaign.revokedCount} {t('accessReview.revoked', { defaultValue: 'revoked' })}
+                              {campaign.revokedCount} {t('accessReview.revoked', { defaultValue: 'révoqué' })}
                             </span>
                             <span className="flex items-center gap-1">
                               <AlertTriangle className="w-3 h-3 text-warning-text" />
-                              {campaign.escalatedCount} {t('accessReview.escalated', { defaultValue: 'escalated' })}
+                              {campaign.escalatedCount} {t('accessReview.escalated', { defaultValue: 'escaladé' })}
                             </span>
                           </div>
                         </div>
@@ -511,8 +511,8 @@ export const AccessReview: React.FC = () => {
             ) : dormantAccounts.length === 0 ? (
               <EmptyState
                 icon={UserX}
-                title={t('accessReview.noDormantAccounts', { defaultValue: 'No dormant accounts' })}
-                description={t('accessReview.allAccountsActive', { defaultValue: 'All accounts are active' })}
+                title={t('accessReview.noDormantAccounts', { defaultValue: 'Aucun compte dormant' })}
+                description={t('accessReview.allAccountsActive', { defaultValue: 'Tous les comptes sont actifs' })}
               />
             ) : (
               <div className="space-y-4">
@@ -534,9 +534,9 @@ export const AccessReview: React.FC = () => {
                             <div className="text-sm text-muted-foreground">{account.userEmail}</div>
                             <div className="text-xs text-muted-foreground mt-1">
                               {account.neverLoggedIn ? (
-                                t('accessReview.neverLoggedIn', { defaultValue: 'Never logged in' })
+                                t('accessReview.neverLoggedIn', { defaultValue: 'Jamais connecté' })
                               ) : (
-                                <>{t('accessReview.lastLogin', { defaultValue: 'Last login' })}: {account.lastLoginAt ? format(account.lastLoginAt.toDate(), 'dd MMM yyyy', { locale: dateFnsLocale }) : t('accessReview.unknown', { defaultValue: 'Unknown' })}</>
+                                <>{t('accessReview.lastLogin', { defaultValue: 'Dernière connexion' })}: {account.lastLoginAt ? format(account.lastLoginAt.toDate(), 'dd MMM yyyy', { locale: dateFnsLocale }) : t('accessReview.unknown', { defaultValue: 'Inconnu' })}</>
                               )}
                             </div>
                           </div>
@@ -546,7 +546,7 @@ export const AccessReview: React.FC = () => {
                             <div className="text-lg font-bold text-danger-text">
                               {account.daysSinceLastLogin}{t('common.daysShort', { defaultValue: 'd' })}
                             </div>
-                            <div className="text-xs text-muted-foreground">{t('accessReview.inactive', { defaultValue: 'inactive' })}</div>
+                            <div className="text-xs text-muted-foreground">{t('accessReview.inactive', { defaultValue: 'inactif' })}</div>
                           </div>
                           <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
                           {canEdit && account.status === 'detected' && (
@@ -556,14 +556,14 @@ export const AccessReview: React.FC = () => {
                                 variant="outline"
                                 onClick={() => handleDormantAction(account, 'contacted')}
                               >
-                                {t('accessReview.contact', { defaultValue: 'Contact' })}
+                                {t('accessReview.contact', { defaultValue: 'Contacter' })}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => handleDormantAction(account, 'disabled')}
                               >
-                                {t('accessReview.disable', { defaultValue: 'Disable' })}
+                                {t('accessReview.disable', { defaultValue: 'Désactiver' })}
                               </Button>
                             </div>
                           )}
@@ -585,18 +585,18 @@ export const AccessReview: React.FC = () => {
           setShowCampaignForm(false);
           resetForm();
         }}
-        title={t('accessReview.newReviewCampaign', { defaultValue: 'New review campaign' })}
+        title={t('accessReview.newReviewCampaign', { defaultValue: 'Nouvelle campagne de revue' })}
         maxWidth="max-w-2xl"
       >
         <div className="space-y-6">
           <FloatingLabelInput
-            label={t('accessReview.form.campaignName', { defaultValue: 'Campaign name' })}
+            label={t('accessReview.form.campaignName', { defaultValue: 'Nom de la campagne' })}
             value={campaignName}
             onChange={(e) => setCampaignName(e.target.value)}
           />
 
           <FloatingLabelTextarea
-            label={t('accessReview.form.descriptionOptional', { defaultValue: 'Description (optional)' })}
+            label={t('accessReview.form.descriptionOptional', { defaultValue: 'Description (optionnelle)' })}
             value={campaignDescription}
             onChange={(e) => setCampaignDescription(e.target.value)}
             rows={3}
@@ -605,26 +605,26 @@ export const AccessReview: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <FloatingLabelInput
               type="date"
-              label={t('accessReview.form.startDate', { defaultValue: 'Start date' })}
+              label={t('accessReview.form.startDate', { defaultValue: 'Date de début' })}
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
             />
             <FloatingLabelInput
               type="date"
-              label={t('accessReview.form.endDate', { defaultValue: 'End date' })}
+              label={t('accessReview.form.endDate', { defaultValue: 'Date de fin' })}
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
 
           <FloatingLabelSelect
-            label={t('accessReview.form.scope', { defaultValue: 'Scope' })}
+            label={t('accessReview.form.scope', { defaultValue: 'Périmètre' })}
             value={scope}
             onChange={(e) => setScope(e.target.value as 'all' | 'department' | 'role')}
             options={[
-              { value: 'all', label: t('accessReview.form.allUsers', { defaultValue: 'All users' }) },
-              { value: 'department', label: t('accessReview.form.byDepartment', { defaultValue: 'By department' }) },
-              { value: 'role', label: t('accessReview.form.byRole', { defaultValue: 'By role' }) },
+              { value: 'all', label: t('accessReview.form.allUsers', { defaultValue: 'Tous les utilisateurs' }) },
+              { value: 'department', label: t('accessReview.form.byDepartment', { defaultValue: 'Par département' }) },
+              { value: 'role', label: t('accessReview.form.byRole', { defaultValue: 'Par rôle' }) },
             ]}
           />
 
@@ -637,14 +637,14 @@ export const AccessReview: React.FC = () => {
               className="rounded border-border"
             />
             <label htmlFor="recurring" className="text-sm text-foreground">
-              {t('accessReview.form.autoRecurrence', { defaultValue: 'Automatic recurrence' })}
+              {t('accessReview.form.autoRecurrence', { defaultValue: 'Récurrence automatique' })}
             </label>
           </div>
 
           {isRecurring && (
             <FloatingLabelInput
               type="number"
-              label={t('accessReview.form.intervalDays', { defaultValue: 'Interval (days)' })}
+              label={t('accessReview.form.intervalDays', { defaultValue: 'Intervalle (jours)' })}
               value={recurrenceDays.toString()}
               onChange={(e) => setRecurrenceDays(parseInt(e.target.value) || 90)}
               min={30}
@@ -660,7 +660,7 @@ export const AccessReview: React.FC = () => {
                 resetForm();
               }}
             >
-              {t('common.cancel', { defaultValue: 'Cancel' })}
+              {t('common.cancel', { defaultValue: 'Annuler' })}
             </Button>
             <Button
               onClick={handleCreateCampaign}
@@ -669,7 +669,7 @@ export const AccessReview: React.FC = () => {
               {isSubmitting ? (
                 <RefreshCw className="w-4 h-4 animate-spin mr-2" />
               ) : null}
-              {t('accessReview.createCampaign', { defaultValue: 'Create campaign' })}
+              {t('accessReview.createCampaign', { defaultValue: 'Créer la campagne' })}
             </Button>
           </div>
         </div>

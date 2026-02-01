@@ -97,7 +97,7 @@ class N8NService {
 
         const newEvent = {
             title: eventData.title,
-            severity: eventData.severity || 'Low',
+            severity: eventData.severity || 'Faible',
             source: eventData.source || 'N8N',
             timestamp: eventData.timestamp || new Date().toISOString(),
             details: eventData.details || {},

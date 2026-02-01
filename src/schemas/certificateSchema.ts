@@ -24,19 +24,19 @@ export const keyAlgorithmOptions = ['RSA', 'ECDSA', 'Ed25519', 'DSA', 'other'] a
 export const issuerTypeOptions = ['public_ca', 'private_ca', 'self_signed'] as const;
 
 export const certificateSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(200),
+  name: z.string().trim().min(1, 'Le nom est requis').max(200),
   description: z.string().trim().max(1000).optional(),
   type: z.enum(certificateTypeOptions),
 
-  commonName: z.string().trim().min(1, 'Common Name is required').max(255),
-  domains: z.array(z.string().trim()).min(1, 'At least one domain is required'),
-  serialNumber: z.string().trim().min(1, 'Serial number is required').max(100),
+  commonName: z.string().trim().min(1, 'Le nom commun est requis').max(255),
+  domains: z.array(z.string().trim()).min(1, 'Au moins un domaine est requis'),
+  serialNumber: z.string().trim().min(1, 'Le numéro de série est requis').max(100),
 
-  issuer: z.string().trim().min(1, "Issuer is required").max(255),
+  issuer: z.string().trim().min(1, "L'émetteur est requis").max(255),
   issuerType: z.enum(issuerTypeOptions),
 
-  validFrom: z.date({ error: 'Start date is required' }),
-  validTo: z.date({ error: "Expiration date is required" }),
+  validFrom: z.date({ error: 'La date de début est requise' }),
+  validTo: z.date({ error: "La date d'expiration est requise" }),
 
   keyAlgorithm: z.enum(keyAlgorithmOptions),
   keySize: z.number().min(256).max(8192),
@@ -57,7 +57,7 @@ export const certificateSchema = z.object({
 }).refine(
   (data) => data.validTo > data.validFrom,
   {
-    message: "Expiration date must be after start date",
+    message: "La date d'expiration doit être postérieure à la date de début",
     path: ['validTo'],
   }
 );

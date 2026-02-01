@@ -439,7 +439,7 @@ export class ImportService {
             'Nom': 'Projet de certification ISO27001',
             'Description': 'Mise en conformité du SI',
             'Statut': 'Nouveau',
-            'Priorité': 'Elevee',
+            'Priorité': 'Élevée',
             'Responsable': 'Admin',
             'Echéance': '2025-12-31'
         }];

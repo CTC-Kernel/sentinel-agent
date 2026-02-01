@@ -21,6 +21,7 @@ import { db } from '../firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { hasPermission } from '../utils/permissions';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
 import type {
   EbiosAnalysis,
   EbiosWorkshopNumber,
@@ -321,7 +322,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
         probability: riskData.probability,
         impact: riskData.impact,
         score,
-        strategy: score >= 16 ? 'Atténuer' : score >= 9 ? 'Atténuer' : 'Accepter',
+        strategy: score >= RISK_ACCEPTANCE_THRESHOLD ? 'Atténuer' : 'Accepter',
         status: 'Ouvert',
         source: 'ebios_rm',
         mitreTechniques: riskData.mitreTechniques,

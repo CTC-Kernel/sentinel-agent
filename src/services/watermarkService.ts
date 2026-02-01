@@ -129,7 +129,7 @@ export const WatermarkService = {
       const result = await fn({ settings });
 
       if (!result.data.success) {
-        throw new Error('Echec de la mise a jour des parametres');
+        throw new Error('Échec de la mise à jour des paramètres');
       }
 
       return result.data.settings;
@@ -142,7 +142,7 @@ export const WatermarkService = {
         }
       }
 
-      throw new Error('Echec de la mise a jour des parametres de filigrane');
+      throw new Error('Échec de la mise à jour des paramètres de filigrane');
     }
   },
 
@@ -160,7 +160,7 @@ export const WatermarkService = {
       return result.data;
     } catch (error) {
       ErrorLogger.error(error, 'WatermarkService.previewWatermark');
-      throw new Error('Echec de la generation de l\'apercu');
+      throw new Error('Échec de la génération de l\'aperçu');
     }
   },
 
@@ -177,7 +177,7 @@ export const WatermarkService = {
       const result = await fn({ documentId });
 
       if (!result.data.success) {
-        throw new Error('Echec du telechargement');
+        throw new Error('Échec du téléchargement');
       }
 
       return result.data;
@@ -190,14 +190,14 @@ export const WatermarkService = {
           throw new Error(error.message || 'Filigrane non supporte pour ce type de fichier');
         }
         if (error.code === 'not-found') {
-          throw new Error('Document non trouve');
+          throw new Error('Document non trouvé');
         }
         if (error.code === 'permission-denied') {
-          throw new Error('Acces refuse');
+          throw new Error('Accès refusé');
         }
       }
 
-      throw new Error('Echec du telechargement avec filigrane');
+      throw new Error('Échec du téléchargement avec filigrane');
     }
   },
 
@@ -229,7 +229,7 @@ export const WatermarkService = {
       URL.revokeObjectURL(url);
     } catch (error) {
       ErrorLogger.error(error, 'WatermarkService.downloadBase64AsFile');
-      throw new Error('Echec du telechargement du fichier');
+      throw new Error('Échec du téléchargement du fichier');
     }
   },
 

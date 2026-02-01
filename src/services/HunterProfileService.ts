@@ -57,11 +57,11 @@ export class HunterProfileService {
     /**
      * Get user profile by email
      */
-    static async getUserProfileByEmail(email: string, organizationId?: string): Promise<UserProfile | null> {
+    static async getUserProfileByEmail(email: string, organizationId: string): Promise<UserProfile | null> {
         try {
             const constraints = [
                 where('email', '==', email),
-                ...(organizationId ? [where('organizationId', '==', organizationId)] : []),
+                where('organizationId', '==', organizationId),
                 limitQuery(1)
             ];
             const usersQuery = query(collection(db, 'users'), ...constraints);

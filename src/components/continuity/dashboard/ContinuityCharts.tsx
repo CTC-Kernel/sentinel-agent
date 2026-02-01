@@ -57,7 +57,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
 
     // Chart Data: Criticality Distribution
     const criticalityData = useMemo(() => {
-        const counts = { Critique: 0, Elevée: 0, Moyenne: 0, Faible: 0 };
+        const counts = { Critique: 0, Élevée: 0, Moyenne: 0, Faible: 0 };
         processes.forEach(p => {
             if (counts[p.priority as keyof typeof counts] !== undefined) {
                 counts[p.priority as keyof typeof counts]++;
@@ -65,7 +65,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
         });
         return [
             { name: 'Critique', value: counts.Critique, color: SEVERITY_COLORS.critical },
-            { name: 'Elevée', value: counts.Elevée, color: SEVERITY_COLORS.high },
+            { name: 'Élevée', value: counts.Élevée, color: SEVERITY_COLORS.high },
             { name: 'Moyenne', value: counts.Moyenne, color: SEVERITY_COLORS.medium },
             { name: 'Faible', value: counts.Faible, color: SEVERITY_COLORS.low }
         ].filter(d => d.value > 0);

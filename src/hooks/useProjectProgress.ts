@@ -165,7 +165,9 @@ export function useProjectProgress(
   }, []);
 
   const refetchRef = useRef(refetch);
-  refetchRef.current = refetch;
+  useEffect(() => {
+    refetchRef.current = refetch;
+  }, [refetch]);
 
   useEffect(() => {
     if (!tenantId) {

@@ -8,8 +8,8 @@ export const SERVICE_TYPES = [
 
 export const supplierSchema = z.object({
     name: z.string().trim()
-        .min(1, "Name is required")
-        .max(200, "Name must not exceed 200 characters"),
+        .min(1, "Le nom est requis")
+        .max(200, "Le nom ne doit pas dépasser 200 caractères"),
     category: z.enum(SUPPLIER_CATEGORIES),
     criticality: z.nativeEnum(Criticality),
     contactName: z.string().trim().max(100).optional(),
@@ -17,14 +17,14 @@ export const supplierSchema = z.object({
         .max(254)
         .refine(
             (val) => !val || val === '' || z.string().email().safeParse(val).success,
-            { message: "Invalid email" }
+            { message: "Email invalide" }
         )
         .optional(),
     vatNumber: z.string().trim().max(50).optional(),
     status: z.enum(SUPPLIER_STATUSES),
     owner: z.string().trim().max(100).optional(),
     ownerId: z.string().optional(),
-    description: z.string().trim().max(5000, "Description must not exceed 5000 characters").optional(),
+    description: z.string().trim().max(5000, "La description ne doit pas dépasser 5000 caractères").optional(),
     contractDocumentId: z.string().optional(),
     contractEnd: z.string().optional(),
     securityScore: z.number().min(0).max(100).optional(),

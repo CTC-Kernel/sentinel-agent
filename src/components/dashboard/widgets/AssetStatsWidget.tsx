@@ -107,7 +107,7 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
                     <div className="p-3 rounded-3xl bg-warning-bg/50 dark:bg-warning/5 border border-warning-border dark:border-warning/10 flex flex-col">
                         <div className="flex items-center gap-1.5 text-warning-text dark:text-warning mb-1">
                             <ShieldCheck className="w-3.5 h-3.5" />
-                            <span className="text-[11px] uppercase font-bold tracking-wider">Elevés</span>
+                            <span className="text-[11px] uppercase font-bold tracking-wider">Élevés</span>
                         </div>
                         <span className="text-xl font-bold text-warning-text dark:text-warning">{stats.high}</span>
                     </div>

@@ -66,7 +66,7 @@ export function getWidgetCategory(widgetId: string): WidgetCategory {
  */
 function createWidget(widgetId: string, colSpan: 1 | 2 | 3 = 1): WidgetLayout {
   return {
-    id: `${widgetId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `${widgetId}-${Date.now()}-${crypto.randomUUID()}`,
     widgetId,
     colSpan,
   };
@@ -186,14 +186,14 @@ export function getDefaultLayoutForRole(role: UserRole | string): WidgetLayout[]
   if (layout) {
     return layout.map((widget) => ({
       ...widget,
-      id: `${widget.widgetId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `${widget.widgetId}-${Date.now()}-${crypto.randomUUID()}`,
     }));
   }
 
   // Default to user layout if role not found
   return USER_DEFAULT_LAYOUT.map((widget) => ({
     ...widget,
-    id: `${widget.widgetId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `${widget.widgetId}-${Date.now()}-${crypto.randomUUID()}`,
   }));
 }
 

@@ -64,7 +64,7 @@ export class StatsService {
             const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
             const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
             const actionableControls = controls.filter(c => isActionableStatus(c.status)).length;
-            const complianceRate = actionableControls > 0 ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100) : 0;
+            const complianceRate = actionableControls > 0 ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100) : 100;
 
             const stats: DailyStats = {
                 date: today,

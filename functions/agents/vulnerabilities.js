@@ -24,11 +24,11 @@ const SEVERITY_LEVELS = {
  * Map CVSS score to severity level.
  */
 function cvssToSeverity(cvss) {
-    if (cvss >= 9.0) return 'critical';
-    if (cvss >= 7.0) return 'high';
-    if (cvss >= 4.0) return 'medium';
-    if (cvss >= 0.1) return 'low';
-    return 'low';
+    if (cvss >= 9.0) return 'Critique';
+    if (cvss >= 7.0) return 'Élevée';
+    if (cvss >= 4.0) return 'Moyenne';
+    if (cvss >= 0.1) return 'Faible';
+    return 'Faible';
 }
 
 /**
@@ -109,7 +109,8 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
             processedKeys.add(dedupKey);
 
             // Determine severity from CVSS or provided severity
-            const severity = vuln.severity?.toLowerCase() || (vuln.cvss_score ? cvssToSeverity(vuln.cvss_score) : 'medium');
+            const severityFrMap = {'critical': 'Critique', 'high': 'Élevée', 'medium': 'Moyenne', 'low': 'Faible'};
+            const severity = (vuln.severity ? (severityFrMap[vuln.severity.toLowerCase()] || 'Moyenne') : null) || (vuln.cvss_score ? cvssToSeverity(vuln.cvss_score) : 'Moyenne');
 
             // Build vulnerability data
             const vulnData = {
@@ -121,7 +122,7 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
                 severity,
                 score: vuln.cvss_score || null,
                 cveId: vuln.cve_id || null,
-                status: 'open',
+                status: 'Ouvert',
 
                 // Source tracking
                 source: 'agent',

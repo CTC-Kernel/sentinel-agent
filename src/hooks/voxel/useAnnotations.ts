@@ -228,7 +228,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
         AnnotationService.markAsRead(annotation.id, user.uid, organizationId);
       }
     },
-    [onAnnotationSelect, user?.uid]
+    [onAnnotationSelect, user?.uid, organizationId]
   );
 
   // Annotation mode management
@@ -366,7 +366,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
         setIsSaving(false);
       }
     },
-    [currentAuthor]
+    [currentAuthor, organizationId]
   );
 
   const updateReply = useCallback(

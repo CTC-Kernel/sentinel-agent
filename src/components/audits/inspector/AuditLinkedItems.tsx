@@ -13,7 +13,7 @@ import {
 import { Audit, Control, Risk, Asset, Project } from '../../../types';
 import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/button';
-import { RISK_THRESHOLDS } from '../../../constants/complianceConfig';
+import { RISK_THRESHOLDS, CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 interface AuditLinkedItemsProps {
     audit: Audit;
@@ -27,8 +27,8 @@ interface AuditLinkedItemsProps {
  * Get control status icon and color
  */
 function getControlStatusStyle(status: string): { icon: React.ReactNode; color: string } {
-    const isImplemented = status === 'Implémenté' || status === 'Actif';
-    const isPartial = status === 'Partiel' || status === 'En cours';
+    const isImplemented = status === CONTROL_STATUS.IMPLEMENTED;
+    const isPartial = status === CONTROL_STATUS.PARTIAL || status === CONTROL_STATUS.IN_PROGRESS;
 
     if (isImplemented) {
         return {
@@ -138,8 +138,8 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                     <div className="space-y-2">
                         {linkedControls.map(ctrl => {
                             const { icon, color } = getControlStatusStyle(ctrl.status);
-                            const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
-                            const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
+                            const isImplemented = ctrl.status === CONTROL_STATUS.IMPLEMENTED;
+                            const isPartial = ctrl.status === CONTROL_STATUS.PARTIAL || ctrl.status === CONTROL_STATUS.IN_PROGRESS;
 
                             return (
                                 <div

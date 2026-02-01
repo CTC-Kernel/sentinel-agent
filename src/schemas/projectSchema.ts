@@ -30,7 +30,7 @@ export const projectSchema = z.object({
         if (!val) return true; // Optionnel
         // Validation basique de format date si fourni
         return /^\d{4}-\d{2}-\d{2}$/.test(val);
-    }, { message: "Invalid date format (YYYY-MM-DD)" }),
+    }, { message: "Format de date invalide (AAAA-MM-JJ)" }),
     relatedRiskIds: z.array(z.string()).optional().default([]),
     relatedControlIds: z.array(z.string()).optional().default([]),
     relatedAssetIds: z.array(z.string()).optional().default([]),

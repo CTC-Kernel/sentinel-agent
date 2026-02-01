@@ -10,6 +10,7 @@ import { FRAMEWORKS } from '../../data/frameworks';
 import { Check, AlertTriangle, ChevronDown, ChevronUp, Layers } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';
+import { CONTROL_STATUS } from '../../constants/complianceConfig';
 import { useLocale } from '@/hooks/useLocale';
 
 interface FrameworkMappingMatrixProps {
@@ -60,7 +61,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
             const gaps = controls.filter(c =>
                 c.framework !== fwId &&
                 !c.mappedFrameworks?.includes(fwId) &&
-                c.status === 'Implémenté' // Only implemented controls as potential mappings
+                c.status === CONTROL_STATUS.IMPLEMENTED // Only implemented controls as potential mappings
             );
 
             const totalControls = controls.filter(c => c.framework === fwId).length;

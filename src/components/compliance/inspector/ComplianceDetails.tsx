@@ -7,6 +7,7 @@ import { ComplianceAIAssistant } from '../ComplianceAIAssistant';
 import { FRAMEWORKS } from '../../../data/frameworks';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
+import { CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 interface ComplianceDetailsProps {
     control: Control;
@@ -87,17 +88,16 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                     <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">{t('compliance.implementationStatus', { defaultValue: "Statut d'implémentation" })}</h3>
                     {canEdit ? (
                         <div className="grid grid-cols-2 gap-2">
-                            {(['Non commencé', 'En cours', 'Partiel', 'Implémenté', 'Planifié', 'En retard', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => {
+                            {([CONTROL_STATUS.NOT_STARTED, CONTROL_STATUS.IN_PROGRESS, CONTROL_STATUS.PARTIAL, CONTROL_STATUS.IMPLEMENTED, CONTROL_STATUS.PLANNED, CONTROL_STATUS.OVERDUE, CONTROL_STATUS.NOT_APPLICABLE, CONTROL_STATUS.EXCLUDED] as Control['status'][]).map((s) => {
                                 const statusLabels: Record<string, string> = {
-                                    'Non commencé': t('compliance.status.notStarted', { defaultValue: 'Non commencé' }),
-                                    'En cours': t('compliance.status.inProgress', { defaultValue: 'En cours' }),
-                                    'Partiel': t('compliance.status.partial', { defaultValue: 'Partiel' }),
-                                    'Implémenté': t('compliance.status.implemented', { defaultValue: 'Implémenté' }),
-                                    'Planifié': t('compliance.status.planned', { defaultValue: 'Planifié' }),
-                                    'En retard': t('compliance.status.overdue', { defaultValue: 'En retard' }),
-                                    'En revue': t('compliance.status.inReview', { defaultValue: 'En revue' }),
-                                    'Non applicable': t('compliance.status.notApplicable', { defaultValue: 'Non applicable' }),
-                                    'Exclu': t('compliance.status.excluded', { defaultValue: 'Exclu' }),
+                                    [CONTROL_STATUS.NOT_STARTED]: t('compliance.status.notStarted', { defaultValue: 'Non commencé' }),
+                                    [CONTROL_STATUS.IN_PROGRESS]: t('compliance.status.inProgress', { defaultValue: 'En cours' }),
+                                    [CONTROL_STATUS.PARTIAL]: t('compliance.status.partial', { defaultValue: 'Partiel' }),
+                                    [CONTROL_STATUS.IMPLEMENTED]: t('compliance.status.implemented', { defaultValue: 'Implémenté' }),
+                                    [CONTROL_STATUS.PLANNED]: t('compliance.status.planned', { defaultValue: 'Planifié' }),
+                                    [CONTROL_STATUS.OVERDUE]: t('compliance.status.overdue', { defaultValue: 'En retard' }),
+                                    [CONTROL_STATUS.NOT_APPLICABLE]: t('compliance.status.notApplicable', { defaultValue: 'Non applicable' }),
+                                    [CONTROL_STATUS.EXCLUDED]: t('compliance.status.excluded', { defaultValue: 'Exclu' }),
                                 };
                                 const label = statusLabels[s] || s;
                                 return (

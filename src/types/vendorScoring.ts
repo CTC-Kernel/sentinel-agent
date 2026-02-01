@@ -383,17 +383,17 @@ export function calculateTrend(
   previousScore: number
 ): { direction: 'improving' | 'stable' | 'declining'; percentage: number } {
   const diff = previousScore - currentScore; // Lower risk = improvement
-  const percentage = previousScore > 0
+  const percentChange = previousScore > 0
     ? Math.round((Math.abs(diff) / previousScore) * 100)
-    : 0;
+    : (diff !== 0 ? 100 : 0);
 
-  if (Math.abs(diff) < TREND_THRESHOLD) {
+  if (percentChange < TREND_THRESHOLD) {
     return { direction: 'stable', percentage: 0 };
   }
 
   return {
     direction: diff > 0 ? 'improving' : 'declining',
-    percentage,
+    percentage: percentChange,
   };
 }
 

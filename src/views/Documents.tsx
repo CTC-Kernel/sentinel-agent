@@ -414,15 +414,15 @@ export const Documents: React.FC = () => {
                 trustType="integrity"
                 actions={canCreate && (
                     <div className="flex items-center gap-2">
-                        <CustomTooltip content={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}>
+                        <CustomTooltip content={t('documents.createFromTemplate', { defaultValue: 'Créer depuis un modèle' })}>
                             <Button
-                                aria-label={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}
+                                aria-label={t('documents.createFromTemplate', { defaultValue: 'Créer depuis un modèle' })}
                                 onClick={handleOpenTemplateModal}
                                 variant="outline"
                                 className="gap-2"
                             >
                                 <FileText className="h-4 w-4" />
-                                {t('documents.templates', { defaultValue: 'Templates' })}
+                                {t('documents.templates', { defaultValue: 'Modèles' })}
                             </Button>
                         </CustomTooltip>
                         <CustomTooltip content={t('documents.newDocument')}>
@@ -547,15 +547,15 @@ export const Documents: React.FC = () => {
 
                                                 {canCreate && (
                                                     <>
-                                                        <CustomTooltip content={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}>
+                                                        <CustomTooltip content={t('documents.createFromTemplate', { defaultValue: 'Créer depuis un modèle' })}>
                                                             <Button
-                                                                aria-label={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}
+                                                                aria-label={t('documents.createFromTemplate', { defaultValue: 'Créer depuis un modèle' })}
                                                                 onClick={handleOpenTemplateModal}
                                                                 variant="outline"
                                                                 className="gap-2"
                                                             >
                                                                 <FileText className="h-4 w-4" />
-                                                                {t('documents.templates', { defaultValue: 'Templates' })}
+                                                                {t('documents.templates', { defaultValue: 'Modèles' })}
                                                             </Button>
                                                         </CustomTooltip>
                                                         <CustomTooltip content={t('documents.newDocument')}>
@@ -661,8 +661,8 @@ export const Documents: React.FC = () => {
             <Drawer
                 isOpen={showCreateModal || (isEditing && !!selectedDocument)}
                 onClose={handleCloseDrawer}
-                title={isEditing ? t('documents.editDocument', { defaultValue: 'Edit Document' }) : templateData ? t('documents.newFromTemplate', { defaultValue: 'New Document from Template' }) : t('documents.newDocument', { defaultValue: 'New Document' })}
-                subtitle={isEditing && selectedDocument ? selectedDocument.title : templateData ? templateData.title : t('documents.createNewDocument', { defaultValue: 'Create a new document' })}
+                title={isEditing ? t('documents.editDocument', { defaultValue: 'Modifier le document' }) : templateData ? t('documents.newFromTemplate', { defaultValue: 'Nouveau document depuis un modèle' }) : t('documents.newDocument', { defaultValue: 'Nouveau document' })}
+                subtitle={isEditing && selectedDocument ? selectedDocument.title : templateData ? templateData.title : t('documents.createNewDocument', { defaultValue: 'Créer un nouveau document' })}
                 width="max-w-6xl"
                 disableScroll={true}
                 hasUnsavedChanges={isFormDirty}

@@ -184,14 +184,14 @@ export const VaultAuditService = {
 
       if (isFirebaseError(error)) {
         if (error.code === 'permission-denied') {
-          throw new Error('Acces refuse');
+          throw new Error('Accès refusé');
         }
         if (error.message) {
           throw new Error(error.message);
         }
       }
 
-      throw new Error('Echec de la recuperation du journal d\'audit');
+      throw new Error('Échec de la récupération du journal d\'audit');
     }
   },
 
@@ -230,11 +230,11 @@ export const VaultAuditService = {
 
       if (isFirebaseError(error)) {
         if (error.code === 'permission-denied') {
-          throw new Error('Acces refuse');
+          throw new Error('Accès refusé');
         }
       }
 
-      throw new Error('Echec de la recuperation du journal d\'audit utilisateur');
+      throw new Error('Échec de la récupération du journal d\'audit utilisateur');
     }
   },
 
@@ -270,11 +270,11 @@ export const VaultAuditService = {
 
       if (isFirebaseError(error)) {
         if (error.code === 'permission-denied') {
-          throw new Error('Acces administrateur requis');
+          throw new Error('Accès administrateur requis');
         }
       }
 
-      throw new Error('Echec de la recuperation du journal d\'audit organisation');
+      throw new Error('Échec de la récupération du journal d\'audit organisation');
     }
   },
 
@@ -308,11 +308,11 @@ export const VaultAuditService = {
 
       if (isFirebaseError(error)) {
         if (error.code === 'permission-denied') {
-          throw new Error('Acces administrateur requis pour l\'export');
+          throw new Error('Accès administrateur requis pour l\'export');
         }
       }
 
-      throw new Error('Echec de l\'export du journal d\'audit');
+      throw new Error('Échec de l\'export du journal d\'audit');
     }
   },
 
@@ -333,11 +333,11 @@ export const VaultAuditService = {
 
       if (isFirebaseError(error)) {
         if (error.code === 'permission-denied') {
-          throw new Error('Acces administrateur requis');
+          throw new Error('Accès administrateur requis');
         }
       }
 
-      throw new Error('Echec de la recuperation des statistiques');
+      throw new Error('Échec de la récupération des statistiques');
     }
   },
 
@@ -412,19 +412,19 @@ export const VaultAuditService = {
   getActionLabel(action: DocumentAction): string {
     const labels: Record<DocumentAction, string> = {
       view: 'Consultation',
-      download: 'Telechargement',
-      upload: 'Telechargement (envoi)',
+      download: 'Téléchargement',
+      upload: 'Téléchargement (envoi)',
       update: 'Modification',
       delete: 'Suppression',
       share: 'Partage',
       classify: 'Classification',
       sign: 'Signature',
-      verify: 'Verification',
-      hold_applied: 'Gel juridique applique',
-      hold_released: 'Gel juridique leve',
-      access_denied: 'Acces refuse',
-      integrity_failure: 'Echec d\'integrite',
-      watermarked_download: 'Telechargement avec filigrane',
+      verify: 'Vérification',
+      hold_applied: 'Gel juridique appliqué',
+      hold_released: 'Gel juridique levé',
+      access_denied: 'Accès refusé',
+      integrity_failure: 'Échec d\'intégrité',
+      watermarked_download: 'Téléchargement avec filigrane',
     };
 
     return labels[action] || action;

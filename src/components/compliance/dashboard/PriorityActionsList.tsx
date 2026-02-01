@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, TrendingUp, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import type { Control } from '../../../types';
+import { CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 // ============================================================================
 // Types
@@ -85,19 +86,19 @@ function getCriticality(control: Control): 'high' | 'medium' | 'low' {
  */
 function getGapScore(status: string): number {
   switch (status) {
-    case 'Non commencé':
+    case CONTROL_STATUS.NOT_STARTED:
       return 100;
-    case 'En retard':
+    case CONTROL_STATUS.OVERDUE:
       return 90;
-    case 'En cours':
-    case 'Planifié':
+    case CONTROL_STATUS.IN_PROGRESS:
+    case CONTROL_STATUS.PLANNED:
       return 60;
-    case 'Partiel':
+    case CONTROL_STATUS.PARTIAL:
       return 30;
-    case 'Implémenté':
+    case CONTROL_STATUS.IMPLEMENTED:
       return 0;
-    case 'Non applicable':
-    case 'Exclu':
+    case CONTROL_STATUS.NOT_APPLICABLE:
+    case CONTROL_STATUS.EXCLUDED:
       return -1; // Should be filtered out before scoring
     default:
       return 50;
@@ -108,14 +109,14 @@ function getGapScore(status: string): number {
  * Determine action type based on control status
  */
 function getActionType(control: Control): 'implement' | 'complete' | 'add_evidence' {
-  if (control.status === 'Implémenté') {
+  if (control.status === CONTROL_STATUS.IMPLEMENTED) {
     // Check if evidence is missing
     if (!control.evidenceIds || control.evidenceIds.length === 0) {
       return 'add_evidence';
     }
     return 'complete';
   }
-  if (control.status === 'Partiel' || control.status === 'En cours') {
+  if (control.status === CONTROL_STATUS.PARTIAL || control.status === CONTROL_STATUS.IN_PROGRESS) {
     return 'complete';
   }
   return 'implement';
@@ -130,7 +131,7 @@ function generatePriorityActions(
 ): PriorityAction[] {
   // Filter out fully implemented controls with evidence
   const actionableControls = controls.filter(c => {
-    if (c.status === 'Implémenté') {
+    if (c.status === CONTROL_STATUS.IMPLEMENTED) {
       // Include if missing evidence
       return !c.evidenceIds || c.evidenceIds.length === 0;
     }
@@ -155,7 +156,7 @@ function generatePriorityActions(
       controlId: control.id,
       controlCode: control.code || '',
       controlName: control.name || '',
-      currentStatus: control.status || 'Non commencé',
+      currentStatus: control.status || CONTROL_STATUS.NOT_STARTED,
       category: control.framework || '',
       impactScore,
       potentialImprovement,

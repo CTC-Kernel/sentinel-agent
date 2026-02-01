@@ -43,7 +43,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                                 setValue('dataCategories', newValue.filter(Boolean), { shouldDirty: true });
                             }}
                             options={[
-                                { value: 'Etat Civil', label: 'Etat Civil (Nom, Prénom...)' },
+                                { value: 'État Civil', label: 'État Civil (Nom, Prénom...)' },
                                 { value: 'Coordonnées', label: 'Coordonnées (Email, Tél...)' },
                                 { value: 'Vie Personnelle', label: 'Vie Personnelle' },
                                 { value: 'Vie Professionnelle', label: 'Vie Professionnelle' },

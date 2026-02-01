@@ -299,7 +299,7 @@ export const EDiscoveryService = {
       };
     } catch (error) {
       ErrorLogger.error(error, 'EDiscoveryService.executeSearch');
-      throw new Error('Echec de la recherche eDiscovery');
+      throw new Error('Échec de la recherche eDiscovery');
     }
   },
 
@@ -336,7 +336,7 @@ export const EDiscoveryService = {
       return docRef.id;
     } catch (error) {
       ErrorLogger.error(error, 'EDiscoveryService.saveSearchQuery');
-      throw new Error('Echec de la sauvegarde de la recherche');
+      throw new Error('Échec de la sauvegarde de la recherche');
     }
   },
 
@@ -413,7 +413,7 @@ export const EDiscoveryService = {
       return Array.from(searchesMap.values());
     } catch (error) {
       ErrorLogger.error(error, 'EDiscoveryService.loadSearchQueries');
-      throw new Error('Echec du chargement des recherches sauvegardees');
+      throw new Error('Échec du chargement des recherches sauvegardées');
     }
   },
 
@@ -437,7 +437,7 @@ export const EDiscoveryService = {
       }));
     } catch (error) {
       ErrorLogger.error(error, 'EDiscoveryService.updateSearchQuery');
-      throw new Error('Echec de la mise a jour de la recherche');
+      throw new Error('Échec de la mise à jour de la recherche');
     }
   },
 
@@ -450,7 +450,7 @@ export const EDiscoveryService = {
       await deleteDoc(docRef);
     } catch (error) {
       ErrorLogger.error(error, 'EDiscoveryService.deleteSearchQuery');
-      throw new Error('Echec de la suppression de la recherche');
+      throw new Error('Échec de la suppression de la recherche');
     }
   },
 
@@ -540,7 +540,7 @@ export const EDiscoveryService = {
       };
     } catch (error) {
       ErrorLogger.error(error, 'EDiscoveryService.exportSearchResults');
-      throw new Error('Echec de l\'export des resultats');
+      throw new Error('Échec de l\'export des résultats');
     }
   },
 

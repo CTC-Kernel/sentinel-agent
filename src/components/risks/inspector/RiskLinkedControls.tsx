@@ -12,6 +12,7 @@ import { Risk, Control } from '../../../types';
 import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/button';
 import { calculateMitigationCoverage } from '../../../utils/riskEvaluation';
+import { CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 interface RiskLinkedControlsProps {
     risk: Risk;
@@ -22,8 +23,8 @@ interface RiskLinkedControlsProps {
  * Get control status icon and color
  */
 function getControlStatusStyle(status: string): { icon: React.ReactNode; color: string } {
-    const isImplemented = status === 'Implémenté' || status === 'Actif';
-    const isPartial = status === 'Partiel' || status === 'En cours';
+    const isImplemented = status === CONTROL_STATUS.IMPLEMENTED;
+    const isPartial = status === CONTROL_STATUS.PARTIAL || status === CONTROL_STATUS.IN_PROGRESS;
 
     if (isImplemented) {
         return {
@@ -66,9 +67,9 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
     const statusCounts = useMemo(() => {
         const counts = { implemented: 0, partial: 0, notStarted: 0 };
         linkedControls.forEach(ctrl => {
-            if (ctrl.status === 'Implémenté' || ctrl.status === 'Actif') {
+            if (ctrl.status === CONTROL_STATUS.IMPLEMENTED) {
                 counts.implemented++;
-            } else if (ctrl.status === 'Partiel' || ctrl.status === 'En cours') {
+            } else if (ctrl.status === CONTROL_STATUS.PARTIAL || ctrl.status === CONTROL_STATUS.IN_PROGRESS) {
                 counts.partial++;
             } else {
                 counts.notStarted++;
@@ -161,8 +162,8 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                 <div className="space-y-2">
                     {linkedControls.map(ctrl => {
                         const { icon, color } = getControlStatusStyle(ctrl.status);
-                        const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
-                        const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
+                        const isImplemented = ctrl.status === CONTROL_STATUS.IMPLEMENTED;
+                        const isPartial = ctrl.status === CONTROL_STATUS.PARTIAL || ctrl.status === CONTROL_STATUS.IN_PROGRESS;
 
                         return (
                             <div

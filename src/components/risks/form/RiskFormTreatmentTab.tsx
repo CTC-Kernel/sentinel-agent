@@ -11,6 +11,7 @@ import { RiskTreatmentPlan } from '../RiskTreatmentPlan';
 import { Risk } from '../../../types';
 import { RiskFormTreatmentTabProps } from './riskFormTypes';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../../../constants/RiskConstants';
+import { CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.memo(({
     control,
@@ -148,7 +149,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                                                     {ctrl.code}
                                                     {isSuggested && <span className="text-[11px] bg-primary/10 text-primary px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
                                                 </span>
-                                                {ctrl.status === 'Implémenté' && <span className="text-[11px] bg-success/10 text-success px-1.5 rounded-full">{t('common.status.implemented') || "Implémenté"}</span>}
+                                                {ctrl.status === CONTROL_STATUS.IMPLEMENTED && <span className="text-[11px] bg-success/10 text-success px-1.5 rounded-full">{t('common.status.implemented') || "Implémenté"}</span>}
                                             </div>
                                             <span className="text-xs text-muted-foreground">{ctrl.name}</span>
                                         </div>

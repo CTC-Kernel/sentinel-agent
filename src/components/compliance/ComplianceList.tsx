@@ -262,9 +262,9 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                             <p className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
                                                         </div>
                                                     </div>
-                                                    <div className={`shrink-0 px-2.5 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-success-text bg-success-bg border-success-border/50' :
-                                                        control.status === 'Partiel' ? 'text-warning-text bg-warning-bg border-warning-border/50' :
-                                                            control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-border/40 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700' :
+                                                    <div className={`shrink-0 px-2.5 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === CONTROL_STATUS.IMPLEMENTED ? 'text-success-text bg-success-bg border-success-border/50' :
+                                                        control.status === CONTROL_STATUS.PARTIAL ? 'text-warning-text bg-warning-bg border-warning-border/50' :
+                                                            control.status === CONTROL_STATUS.NOT_APPLICABLE ? 'text-slate-500 bg-slate-100 border-border/40 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700' :
                                                                 'text-slate-600 bg-white border-border/40 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                                                         }`}>
                                                         {control.status}
@@ -277,7 +277,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                             <Paperclip className="h-3 w-3 mr-1.5" />
                                                             {control.evidenceIds.length}
                                                         </span>
-                                                    ) : (control.status === 'Implémenté') ? (
+                                                    ) : (control.status === CONTROL_STATUS.IMPLEMENTED) ? (
                                                         <CustomTooltip content="Preuve obligatoire manquante">
                                                             <span className="flex items-center text-warning-text bg-warning-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-warning-border/30">
                                                                 <AlertTriangle className="h-3 w-3 mr-1.5" />

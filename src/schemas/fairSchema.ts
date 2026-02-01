@@ -14,21 +14,21 @@ import { z } from 'zod';
 
 export const distributionSchema = z.object({
   type: z.enum(['pert', 'lognormal', 'normal', 'uniform', 'triangular']),
-  min: z.number().min(0, 'Minimum must be non-negative'),
-  max: z.number().min(0, 'Maximum must be non-negative'),
+  min: z.number().min(0, 'Le minimum doit être positif'),
+  max: z.number().min(0, 'Le maximum doit être positif'),
   mostLikely: z.number().min(0).optional(),
   mean: z.number().optional(),
   standardDeviation: z.number().positive().optional(),
   confidence: z.number().min(0).max(1).optional()
 }).refine(
   (data) => data.max >= data.min,
-  { message: 'Maximum must be greater than or equal to minimum', path: ['max'] }
+  { message: 'Le maximum doit être supérieur ou égal au minimum', path: ['max'] }
 ).refine(
   (data) => {
     if (data.mostLikely === undefined) return true;
     return data.mostLikely >= data.min && data.mostLikely <= data.max;
   },
-  { message: 'Most likely must be between min and max', path: ['mostLikely'] }
+  { message: 'La valeur la plus probable doit être entre le min et le max', path: ['mostLikely'] }
 );
 
 // ============================================================================
@@ -37,7 +37,7 @@ export const distributionSchema = z.object({
 
 // Base schema without refinements (used for extension)
 export const fairSimpleFormBaseSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long'),
   scenarioType: z.enum([
     'data_breach',
     'ransomware',
@@ -48,17 +48,17 @@ export const fairSimpleFormBaseSchema = z.object({
     'custom'
   ]),
   estimatedFrequencyPerYear: z.number()
-    .min(0.01, 'Frequency must be at least 0.01')
-    .max(365, 'Frequency cannot exceed 365 per year'),
+    .min(0.01, 'La fréquence doit être d\'au moins 0.01')
+    .max(365, 'La fréquence ne peut pas dépasser 365 par an'),
   estimatedLossMin: z.number()
-    .min(0, 'Minimum loss cannot be negative')
-    .max(1000000000, 'Value too large'),
+    .min(0, 'La perte minimale ne peut pas être négative')
+    .max(1000000000, 'Valeur trop grande'),
   estimatedLossMostLikely: z.number()
-    .min(0, 'Most likely loss cannot be negative')
-    .max(1000000000, 'Value too large'),
+    .min(0, 'La perte la plus probable ne peut pas être négative')
+    .max(1000000000, 'Valeur trop grande'),
   estimatedLossMax: z.number()
-    .min(0, 'Maximum loss cannot be negative')
-    .max(10000000000, 'Value too large'),
+    .min(0, 'La perte maximale ne peut pas être négative')
+    .max(10000000000, 'Valeur trop grande'),
   currency: z.enum(['EUR', 'USD', 'GBP']),
   controlEffectiveness: z.enum(['weak', 'moderate', 'strong', 'very_strong'])
 });
@@ -66,10 +66,10 @@ export const fairSimpleFormBaseSchema = z.object({
 // Refined schema for direct use
 export const fairSimpleFormSchema = fairSimpleFormBaseSchema.refine(
   (data) => data.estimatedLossMax >= data.estimatedLossMostLikely,
-  { message: 'Maximum must be greater than most likely', path: ['estimatedLossMax'] }
+  { message: 'Le maximum doit être supérieur à la valeur la plus probable', path: ['estimatedLossMax'] }
 ).refine(
   (data) => data.estimatedLossMostLikely >= data.estimatedLossMin,
-  { message: 'Most likely must be greater than minimum', path: ['estimatedLossMostLikely'] }
+  { message: 'La valeur la plus probable doit être supérieure au minimum', path: ['estimatedLossMostLikely'] }
 );
 
 export type FAIRSimpleFormData = z.infer<typeof fairSimpleFormSchema>;
@@ -92,10 +92,10 @@ export const fairStandardFormSchema = fairSimpleFormBaseSchema.extend({
   secondaryLossMultiplier: z.number().min(0).max(10).optional()
 }).refine(
   (data) => data.estimatedLossMax >= data.estimatedLossMostLikely,
-  { message: 'Maximum must be greater than most likely', path: ['estimatedLossMax'] }
+  { message: 'Le maximum doit être supérieur à la valeur la plus probable', path: ['estimatedLossMax'] }
 ).refine(
   (data) => data.estimatedLossMostLikely >= data.estimatedLossMin,
-  { message: 'Most likely must be greater than minimum', path: ['estimatedLossMostLikely'] }
+  { message: 'La valeur la plus probable doit être supérieure au minimum', path: ['estimatedLossMostLikely'] }
 ).refine(
   (data) => {
     if (data.includeSecondaryLoss && !data.secondaryLossMultiplier) {
@@ -103,7 +103,7 @@ export const fairStandardFormSchema = fairSimpleFormBaseSchema.extend({
     }
     return true;
   },
-  { message: 'Secondary loss multiplier required when secondary loss is enabled', path: ['secondaryLossMultiplier'] }
+  { message: 'Le multiplicateur de perte secondaire est requis lorsque la perte secondaire est activée', path: ['secondaryLossMultiplier'] }
 );
 
 export type FAIRStandardFormData = z.infer<typeof fairStandardFormSchema>;
@@ -145,7 +145,7 @@ export const secondaryLossComponentsSchema = z.object({
 });
 
 export const fairAdvancedFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long'),
   description: z.string().max(500).optional(),
 
   // Full distribution parameters
@@ -178,8 +178,8 @@ export type FAIRAdvancedFormData = z.infer<typeof fairAdvancedFormSchema>;
 // ============================================================================
 
 export const fairPresetFormSchema = z.object({
-  presetId: z.string().min(1, 'Please select a preset'),
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  presetId: z.string().min(1, 'Veuillez sélectionner un modèle'),
+  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long'),
   riskId: z.string().optional()
 });
 

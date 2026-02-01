@@ -297,7 +297,7 @@ export function useUpcomingDeadlines(
       cancelled = true;
       unsubRef.current?.();
     };
-  }, [tenantId, daysAhead, maxItems, refreshKey]);
+  }, [tenantId, daysAhead, maxItems, refreshKey, t]);
 
   return {
     items: tenantId ? items : [],
