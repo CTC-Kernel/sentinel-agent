@@ -147,6 +147,26 @@ vi.mock('firebase/app-check', () => ({
     getToken: vi.fn(),
 }));
 
+// Mock the project's firebase module to prevent env var validation errors in CI
+vi.mock('./firebase', () => ({
+    app: {},
+    auth: {
+        currentUser: null,
+        onAuthStateChanged: vi.fn(() => () => { }),
+        signOut: vi.fn(),
+    },
+    db: {},
+    storage: {},
+    functions: {},
+    analytics: null,
+    messaging: null,
+    isAppCheckFailed: false,
+    onAppCheckRecovery: vi.fn(() => vi.fn()),
+    debugGetAppCheckTokenSnippet: vi.fn(() => Promise.resolve(null)),
+    initializeAnalytics: vi.fn(() => Promise.resolve(null)),
+    VAPID_KEY: undefined,
+}));
+
 // Mock getAnimations which is missing in JSDOM
 if (typeof Element !== 'undefined' && !Element.prototype.getAnimations) {
     Element.prototype.getAnimations = () => [];
