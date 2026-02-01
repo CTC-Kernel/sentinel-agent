@@ -89,7 +89,7 @@ function RiskItem({
         colors.border,
         sizeConfig.itemPadding
       )}
-      aria-label={`Risque: ${risk.title}, Criticite: ${risk.criticality}, Categorie: ${risk.category}`}
+      aria-label={`Risque: ${risk.title}, Criticité: ${risk.criticality}, Catégorie: ${risk.category}`}
     >
       <div className="flex-1 text-left min-w-0">
         <div className={cn('font-medium truncate', sizeConfig.itemText, colors.text)}>
@@ -155,7 +155,7 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
     >
       <AlertTriangle className="w-8 h-8 mb-2 text-green-500" aria-hidden="true" />
       <p className={sizeConfig.itemText}>Aucun risque critique</p>
-      <p className="text-xs mt-1">Tous les risques sont sous controle</p>
+      <p className="text-xs mt-1">Tous les risques sont sous contrôle</p>
     </div>
   );
 }
@@ -194,7 +194,7 @@ function ErrorState({
         )}
       >
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
-        Reessayer
+        Réessayer
       </button>
     </div>
   );
@@ -256,7 +256,7 @@ export function RSSICriticalRisksWidget({
           Risques Critiques
         </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Tries par criticite (impact × probabilite)
+          Triés par criticité (impact × probabilité)
         </p>
       </div>
 

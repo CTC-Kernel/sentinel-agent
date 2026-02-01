@@ -36,6 +36,7 @@ import type {
   VoxelNode,
 } from '../../types/voxel';
 import { useVoxelStore, useActiveAnomalies, useAnomalyCountBySeverity } from '../../stores/voxelStore';
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================================================
 // Constants & Types
@@ -117,6 +118,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
   onDismiss,
   onCreateTask,
 }) => {
+  const { config: localeConfig } = useLocale();
   const [showActions, setShowActions] = useState(false);
   const [showDismissInput, setShowDismissInput] = useState(false);
   const [dismissReason, setDismissReason] = useState('');
@@ -175,8 +177,8 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
           <p className="text-[11px] text-white/30 mt-2">
             Detecte le{' '}
             {anomaly.detectedAt instanceof Date
-              ? anomaly.detectedAt.toLocaleDateString('fr-FR')
-              : new Date(anomaly.detectedAt).toLocaleDateString('fr-FR')}
+              ? anomaly.detectedAt.toLocaleDateString(localeConfig.intlLocale)
+              : new Date(anomaly.detectedAt).toLocaleDateString(localeConfig.intlLocale)}
           </p>
         </div>
 

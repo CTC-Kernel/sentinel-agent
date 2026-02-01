@@ -11,6 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { ErrorLogger } from '@/services/errorLogger';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 import {
     AgentEvidence,
     ControlEvidenceSummary,
@@ -121,7 +123,7 @@ const formatRelativeTime = (dateStr: string): string => {
     if (hours < 1) return 'À l\'instant';
     if (hours < 24) return `Il y a ${hours}h`;
     if (days < 7) return `Il y a ${days}j`;
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, { day: '2-digit', month: 'short' });
 };
 
 // Evidence row component

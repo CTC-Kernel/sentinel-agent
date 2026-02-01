@@ -1,7 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useResourceLogs } from '../../hooks/useResourceLogs';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { History, User } from '../ui/Icons';
 import { Loader2 } from '../ui/Icons';
 
@@ -12,12 +13,14 @@ interface ResourceHistoryProps {
 }
 
 export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, resourceType, className }) => {
+    const { t } = useTranslation();
+    const { dateFnsLocale } = useLocale();
     const { logs, loading, hasMore, loadMore } = useResourceLogs(resourceType, resourceId);
 
     if (loading && logs.length === 0) {
         return (
             <div className="flex justify-center items-center py-8 text-muted-foreground">
-                <Loader2 className="h-6 w-6 animate-spin mr-2" /> Chargement de l'historique...
+                <Loader2 className="h-6 w-6 animate-spin mr-2" /> {t('history.loading', { defaultValue: 'Loading history...' })}
             </div>
         );
     }
@@ -26,7 +29,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
         return (
             <div className="flex flex-col items-center justify-center py-8 text-slate-400 border border-dashed border-border/40 dark:border-border/40 rounded-3xl">
                 <History className="h-8 w-8 mb-2 opacity-60" />
-                <p className="text-sm">Aucun historique disponible pour cet élément.</p>
+                <p className="text-sm">{t('history.noHistory', { defaultValue: 'No history available for this item.' })}</p>
             </div>
         );
     }
@@ -34,7 +37,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
     return (
         <div className={`space-y-6 ${className}`}>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <History className="h-5 w-5 text-brand-500" /> Historique des Modifications
+                <History className="h-5 w-5 text-brand-500" /> {t('history.title', { defaultValue: 'Change History' })}
             </h3>
 
             <div className="relative border-l-2 border-border/40 dark:border-slate-700 ml-3 space-y-8 pb-4">
@@ -68,7 +71,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                 <div className="space-y-1">
                                     <p className="text-sm font-medium text-slate-900 dark:text-white">
-                                        {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: fr }) : '-'}
+                                        {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: dateFnsLocale }) : '-'}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-muted-foreground">
                                         <span className={`font-bold uppercase text-xs mr-2 px-1.5 py-0.5 rounded ${log.action === 'CREATE' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
@@ -95,7 +98,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
                                 <div className="flex items-center text-xs text-slate-500 dark:text-slate-300 gap-1 mt-1 sm:mt-0">
                                     <User className="h-3 w-3" />
-                                    {log.userDisplayName || log.userEmail || 'Système'}
+                                    {log.userDisplayName || log.userEmail || t('history.system', { defaultValue: 'System' })}
                                 </div>
                             </div>
                         </div>
@@ -109,7 +112,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                     disabled={loading}
                     className="w-full py-2 text-sm text-brand-600 hover:text-brand-700 font-medium text-center border-t border-border/40 dark:border-white/5 pt-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
-                    {loading ? 'Chargement...' : 'Voir plus d\'historique'}
+                    {loading ? t('common.loading', { defaultValue: 'Loading...' }) : t('history.viewMore', { defaultValue: 'View more history' })}
                 </button>
             )}
         </div>

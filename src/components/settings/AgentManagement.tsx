@@ -66,6 +66,7 @@ import {
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
 import { EnrollAgentModal } from './EnrollAgentModal';
 import { AgentDetailsModal } from './AgentDetailsModal';
+import { useLocale } from '@/hooks/useLocale';
 
 // Types for release info
 interface PlatformInfo {
@@ -312,6 +313,7 @@ const formatTokenExpiry = (expiresAt: string | Date): string => {
 
 export const AgentManagement: React.FC = () => {
     const { user, t } = useStore();
+    const { config } = useLocale();
     const { claimsSynced } = useAuth();
     const navigate = useNavigate();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
@@ -1166,7 +1168,7 @@ export const AgentManagement: React.FC = () => {
                                                             {formatTokenExpiry(token.expiresAt)}
                                                         </span>
                                                         <span className="text-[11px] text-slate-400">
-                                                            {new Date(token.expiresAt).toLocaleDateString('fr-FR')}
+                                                            {new Date(token.expiresAt).toLocaleDateString(config.intlLocale)}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -1289,7 +1291,7 @@ export const AgentManagement: React.FC = () => {
                                                     {releaseInfo.releaseDate && (
                                                         <span className="text-[11px] text-slate-500 dark:text-slate-300 flex items-center gap-1">
                                                             <Calendar className="w-3 h-3" />
-                                                            {new Date(releaseInfo.releaseDate).toLocaleDateString('fr-FR')}
+                                                            {new Date(releaseInfo.releaseDate).toLocaleDateString(config.intlLocale)}
                                                         </span>
                                                     )}
                                                 </div>

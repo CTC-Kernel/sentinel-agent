@@ -9,12 +9,14 @@
  * Based on EXIST-003: 6 roles already implemented
  */
 export type UserRole =
+  | 'super_admin'
   | 'admin'
   | 'rssi'
   | 'auditor'
   | 'project_manager'
   | 'direction'
-  | 'user';
+  | 'user'
+  | 'certifier';
 
 /**
  * User object with role information
@@ -148,7 +150,7 @@ export function isProjectManager(user: UserWithRole | null | undefined): boolean
  * Get roles that have access to executive dashboard features
  * Per ADR-004: direction role gets kpi-cards (3)
  */
-export const EXECUTIVE_DASHBOARD_ROLES: UserRole[] = ['direction', 'admin'];
+export const EXECUTIVE_DASHBOARD_ROLES: UserRole[] = ['direction', 'admin', 'super_admin'];
 
 /**
  * Check if user has access to executive dashboard features

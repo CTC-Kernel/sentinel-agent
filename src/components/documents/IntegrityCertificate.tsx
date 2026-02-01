@@ -28,7 +28,7 @@ import {
   History,
 } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { jsPDF } from 'jspdf';
 
 import { Button } from '@/components/ui/button';
@@ -111,6 +111,7 @@ export function IntegrityCertificate({
   compact = false,
 }: IntegrityCertificateProps) {
   const { user, t } = useStore();
+  const { dateFnsLocale } = useLocale();
 
   // State
   const [integrity, setIntegrity] = useState<DocumentIntegrity | null>(null);
@@ -277,7 +278,7 @@ export function IntegrityCertificate({
       ['Nom du document:', cert.document.name],
       ['Type:', cert.document.type],
       ['Taille:', cert.document.size ? `${(cert.document.size / 1024).toFixed(2)} KB` : 'N/A'],
-      ['Téléversé le:', cert.document.uploadedAt ? format(new Date(cert.document.uploadedAt), 'dd MMMM yyyy à HH:mm', { locale: fr }) : 'N/A'],
+      ['Téléversé le:', cert.document.uploadedAt ? format(new Date(cert.document.uploadedAt), 'dd MMMM yyyy à HH:mm', { locale: dateFnsLocale }) : 'N/A'],
       ['Organisation:', cert.organization.name],
     ];
 
@@ -318,7 +319,7 @@ export function IntegrityCertificate({
     const integrityInfo = [
       ['Algorithme:', cert.integrity.algorithm],
       ['Hash SHA-256:', ''],
-      ['Dernière vérification:', cert.integrity.lastVerified ? format(new Date(cert.integrity.lastVerified), 'dd/MM/yyyy HH:mm', { locale: fr }) : 'N/A'],
+      ['Dernière vérification:', cert.integrity.lastVerified ? format(new Date(cert.integrity.lastVerified), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale }) : 'N/A'],
     ];
 
     integrityInfo.forEach(([label, value]) => {
@@ -355,7 +356,7 @@ export function IntegrityCertificate({
       ['État:', cert.encryption.encrypted ? 'Chiffré' : 'Non chiffré'],
       ['Algorithme:', cert.encryption.algorithm],
       ['Version de clé:', cert.encryption.keyVersion],
-      ['Chiffré le:', cert.encryption.encryptedAt ? format(new Date(cert.encryption.encryptedAt), 'dd/MM/yyyy HH:mm', { locale: fr }) : 'N/A'],
+      ['Chiffré le:', cert.encryption.encryptedAt ? format(new Date(cert.encryption.encryptedAt), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale }) : 'N/A'],
     ];
 
     encInfo.forEach(([label, value]) => {
@@ -383,7 +384,7 @@ export function IntegrityCertificate({
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Généré le ${format(new Date(cert.generatedAt), 'dd MMMM yyyy à HH:mm:ss', { locale: fr })}`, pageWidth / 2, y, { align: 'center' });
+    doc.text(`Généré le ${format(new Date(cert.generatedAt), 'dd MMMM yyyy à HH:mm:ss', { locale: dateFnsLocale })}`, pageWidth / 2, y, { align: 'center' });
     doc.text(`par ${cert.generatedBy.name} (${cert.generatedBy.email})`, pageWidth / 2, y + 5, { align: 'center' });
     doc.text('Sentinel GRC - Coffre-Fort Documentaire', pageWidth / 2, y + 10, { align: 'center' });
 
@@ -426,7 +427,7 @@ export function IntegrityCertificate({
               )}
               {integrity?.lastVerified && (
                 <p className="text-xs text-muted-foreground">
-                  Vérifié: {format(integrity.lastVerified, 'dd/MM/yyyy HH:mm', { locale: fr })}
+                  Vérifié: {format(integrity.lastVerified, 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })}
                 </p>
               )}
             </div>
@@ -514,7 +515,7 @@ export function IntegrityCertificate({
             </div>
             <p className="font-medium">
               {integrity?.lastVerified
-                ? format(integrity.lastVerified, 'dd MMMM yyyy à HH:mm', { locale: fr })
+                ? format(integrity.lastVerified, 'dd MMMM yyyy à HH:mm', { locale: dateFnsLocale })
                 : 'Jamais vérifié'}
             </p>
           </div>
@@ -637,7 +638,7 @@ export function IntegrityCertificate({
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {event.timestamp
-                            ? format(new Date(event.timestamp), 'dd/MM/yyyy HH:mm', { locale: fr })
+                            ? format(new Date(event.timestamp), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })
                             : '-'}
                         </p>
                         {event.hash && (

@@ -81,7 +81,8 @@ export function useCriticalRisks(tenantId: string | undefined): CriticalRisksRes
     // Loading is derived, no set state needed.
 
 
-    let unsubscribe: Unsubscribe | null = null;
+    const unsubRef = { current: null as Unsubscribe | null };
+    let cancelled = false;
 
     const setupListener = async () => {
       try {
@@ -93,7 +94,7 @@ export function useCriticalRisks(tenantId: string | undefined): CriticalRisksRes
           where('status', 'in', ACTIVE_RISK_STATUSES)
         );
 
-        unsubscribe = onSnapshot(
+        const unsub = onSnapshot(
           activeRisksQuery,
           (snapshot) => {
             let criticalCount = 0;
@@ -134,6 +135,11 @@ export function useCriticalRisks(tenantId: string | undefined): CriticalRisksRes
             setIsRefetching(false);
           }
         );
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubRef.current = unsub;
       } catch (err) {
         ErrorLogger.error(err, 'useCriticalRisks.setupListener');
         setError(err as Error);
@@ -145,9 +151,8 @@ export function useCriticalRisks(tenantId: string | undefined): CriticalRisksRes
     setupListener();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      cancelled = true;
+      unsubRef.current?.();
     };
   }, [tenantId, refreshKey]);
 

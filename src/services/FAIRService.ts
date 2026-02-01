@@ -22,6 +22,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 import type {
   FAIRModelConfig,
   FAIRSimpleFormValues,
@@ -679,7 +681,7 @@ export class FAIRService {
   static formatCurrency(
     value: number,
     currency: 'EUR' | 'USD' | 'GBP' = 'EUR',
-    locale: string = 'fr-FR'
+    locale: string = getLocaleConfig(i18n.language as SupportedLocale).intlLocale
   ): string {
     return new Intl.NumberFormat(locale, {
       style: 'currency',

@@ -38,6 +38,7 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { ProjectFormData } from '../schemas/projectSchema';
 import { ErrorLogger } from '../services/errorLogger';
+import { CONTROL_STATUS } from '../constants/complianceConfig';
 import { DocumentUploadWizard } from '../components/documents/DocumentUploadWizard';
 import { ControlEffectivenessDashboard } from '../components/controls/dashboard/ControlEffectivenessDashboard';
 import { ControlEffectivenessManager } from '../components/controls/ControlEffectivenessManager';
@@ -197,7 +198,7 @@ export const Compliance: React.FC = () => {
             const matchesStatus = statusFilter === null || control.status === statusFilter;
 
             // Evidence
-            const matchesEvidence = !showMissingEvidence || (control.status === 'Implémenté' && (!control.evidenceIds || control.evidenceIds.length === 0));
+            const matchesEvidence = !showMissingEvidence || (control.status === CONTROL_STATUS.IMPLEMENTED && (!control.evidenceIds || control.evidenceIds.length === 0));
 
             return matchesSearch && matchesStatus && matchesEvidence;
         });
@@ -260,7 +261,7 @@ export const Compliance: React.FC = () => {
 
     const handleCreateClick = (type: 'risk' | 'project' | 'audit') => {
         if (!canEdit) {
-            addToast(t('errors.permissionDenied') || 'Accès refusé', 'error');
+            addToast(t('common.accessDenied', { defaultValue: 'Access denied' }), 'error');
             return;
         }
 
@@ -289,10 +290,10 @@ export const Compliance: React.FC = () => {
         // Ouvrir le tiroir de création avec le contexte approprié
         setCreationMode(type);
         setProjectInitialData(type === 'project' ? {
-            name: `Projet pour ${controlContext?.name || ''}`,
+            name: t('compliance.projectFor', { name: controlContext?.name || '', defaultValue: 'Project for {{name}}' }),
             relatedControlIds: controlContext?.id ? [controlContext.id] : []
         } : type === 'audit' ? {
-            name: `Audit pour ${controlContext?.name || ''}`,
+            name: t('compliance.auditFor', { name: controlContext?.name || '', defaultValue: 'Audit for {{name}}' }),
             relatedControlIds: controlContext?.id ? [controlContext.id] : []
         } : undefined);
         setProjectContext({ type: type === 'project' ? 'control' : 'audit', id: controlContext?.id || '' });
@@ -467,16 +468,16 @@ export const Compliance: React.FC = () => {
                                         onChange={(val) => setStatusFilter(val === 'all' ? null : val as string)}
                                         options={[
                                             { value: 'all', label: t('common.statuses.all') },
-                                            { value: 'Non commencé', label: t('common.statuses.notStarted') },
-                                            { value: 'En cours', label: t('common.statuses.inProgress') },
-                                            { value: 'Planifié', label: t('common.statuses.planned') },
-                                            { value: 'En retard', label: t('common.statuses.overdue') },
-                                            { value: 'Partiel', label: t('common.statuses.partial') },
-                                            { value: 'Implémenté', label: t('common.statuses.implemented') },
-                                            { value: 'Non applicable', label: t('common.statuses.notApplicable') },
-                                            { value: 'Exclu', label: t('common.statuses.excluded') }
+                                            { value: CONTROL_STATUS.NOT_STARTED, label: t('common.statuses.notStarted') },
+                                            { value: CONTROL_STATUS.IN_PROGRESS, label: t('common.statuses.inProgress') },
+                                            { value: CONTROL_STATUS.PLANNED, label: t('common.statuses.planned') },
+                                            { value: CONTROL_STATUS.OVERDUE, label: t('common.statuses.overdue') },
+                                            { value: CONTROL_STATUS.PARTIAL, label: t('common.statuses.partial') },
+                                            { value: CONTROL_STATUS.IMPLEMENTED, label: t('common.statuses.implemented') },
+                                            { value: CONTROL_STATUS.NOT_APPLICABLE, label: t('common.statuses.notApplicable') },
+                                            { value: CONTROL_STATUS.EXCLUDED, label: t('common.statuses.excluded') }
                                         ]}
-                                        placeholder="Filtrer par statut"
+                                        placeholder={t('compliance.filterByStatus', { defaultValue: 'Filter by status' })}
                                         className="rounded-xl"
                                     />
                                 </div>

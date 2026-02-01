@@ -73,7 +73,7 @@ export function EncryptionBadge({
   showLabel = false,
   className,
 }: EncryptionBadgeProps) {
-  const { t } = useLocale();
+  const { t, config: localeConfig } = useLocale();
   const state = getEncryptionState(encryption);
   const config = stateConfig[state];
   const sizes = sizeConfig[size];
@@ -85,7 +85,7 @@ export function EncryptionBadge({
     const date = typeof (timestamp as { toDate?: () => Date }).toDate === 'function'
       ? (timestamp as { toDate: () => Date }).toDate()
       : timestamp as Date;
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(localeConfig.intlLocale, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

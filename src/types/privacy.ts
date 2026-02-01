@@ -15,6 +15,9 @@ export interface ProcessingActivity {
     createdAt?: string;
     updatedAt?: string;
     createdBy?: string;
+    recipients?: string; // Categories of recipients (GDPR Art. 30.1.d)
+    transfers?: string; // Transfers to third countries (GDPR Art. 30.1.e)
+    securityMeasures?: string; // Technical/organizational security measures (GDPR Art. 30.1.g)
     relatedAssetIds?: string[]; // Linked Assets (Storage, Processing, etc.)
     relatedRiskIds?: string[]; // Linked Risks (DPIA)
 }

@@ -65,12 +65,6 @@ exports.getAgentStatus = onCall(
     }
 
 
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
-
     try {
       const agentDoc = await db
         .collection('organizations')
@@ -133,12 +127,6 @@ exports.getAgentMetricsHistory = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
-
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
 
     try {
       const cutoffTime = new Date(Date.now() - safeHours * 60 * 60 * 1000);

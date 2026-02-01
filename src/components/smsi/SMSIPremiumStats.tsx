@@ -20,6 +20,7 @@ import {
 } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { Badge } from '../ui/Badge';
+import { useLocale } from '@/hooks/useLocale';
 
 interface SMSIPremiumStatsProps {
     program: SMSIProgram;
@@ -58,6 +59,7 @@ const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, overdueCount }) => {
+    const { config } = useLocale();
     const currentPhase = program.currentPhase as PDCAPhase;
     const PhaseIcon = PHASE_ICONS[currentPhase] || Target;
     const phaseColors = PHASE_COLORS[currentPhase] || PHASE_COLORS.plan;
@@ -262,7 +264,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                             </div>
                             {targetDate && (
                                 <span className="text-[11px] text-slate-500 dark:text-slate-300 font-medium">
-                                    {targetDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    {targetDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </span>
                             )}
                         </div>

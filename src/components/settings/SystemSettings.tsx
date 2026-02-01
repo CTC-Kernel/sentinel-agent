@@ -8,7 +8,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { DataExportService } from '../../services/dataExportService';
 import { hasPermission } from '../../utils/permissions';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { SystemLog } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
@@ -20,6 +20,7 @@ import { PremiumCard } from '../ui/PremiumCard';
 
 export const SystemSettings: React.FC = () => {
     const { user, addToast, t } = useStore();
+    const { dateFnsLocale } = useLocale();
     const { logs: auditLogsRaw, loading: loadingLogs } = useAuditLogs(
         hasPermission(user, 'Settings', 'read') ? user?.organizationId : undefined
     );
@@ -81,7 +82,7 @@ export const SystemSettings: React.FC = () => {
                     return '-';
                 }
 
-                return format(date, 'Pp', { locale: fr });
+                return format(date, 'Pp', { locale: dateFnsLocale });
             }
         },
         {

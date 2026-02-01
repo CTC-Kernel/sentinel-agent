@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, Timestamp, getDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, getDoc, serverTimestamp, arrayUnion, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Incident } from '../types';
 import { logAction } from './logger';
@@ -109,12 +109,17 @@ export class IncidentPlaybookService {
   // Playbook Management
   static async createPlaybook(playbook: Omit<IncidentPlaybook, 'id'>, organizationId: string): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, this.PLAYBOOKS_COLLECTION), sanitizeData({
+      const newRef = doc(collection(db, this.PLAYBOOKS_COLLECTION));
+      const batch = writeBatch(db);
+
+      batch.set(newRef, sanitizeData({
         ...playbook,
         organizationId,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       }));
+
+      await batch.commit();
 
       await logAction({
         uid: 'user',
@@ -122,7 +127,7 @@ export class IncidentPlaybookService {
         organizationId: organizationId
       }, 'CREATE', 'IncidentPlaybook', `Playbook créé: ${playbook.title}`);
 
-      return docRef.id;
+      return newRef.id;
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.createPlaybook');
       throw error;
@@ -192,7 +197,7 @@ export class IncidentPlaybookService {
 
       await updateDoc(docRef, sanitizeData({
         ...updates,
-        updatedAt: Timestamp.now()
+        updatedAt: serverTimestamp()
       }));
 
       await logAction({
@@ -264,21 +269,27 @@ export class IncidentPlaybookService {
         }]
       };
 
-      const docRef = await addDoc(collection(db, this.RESPONSES_COLLECTION), sanitizeData(response));
+      // Use writeBatch for atomic creation of response + incident update
+      const batch = writeBatch(db);
+      const newResponseRef = doc(collection(db, this.RESPONSES_COLLECTION));
+      batch.set(newResponseRef, sanitizeData(response));
 
       // Update incident status
-      await updateDoc(doc(db, 'incidents', incidentId), {
+      const incidentRef = doc(db, 'incidents', incidentId);
+      batch.update(incidentRef, sanitizeData({
         status: 'Analyse',
         playbookStepsCompleted: []
-      });
+      }));
+
+      await batch.commit();
 
       await logAction({
-        uid: 'user', // conceptual, will be overridden by auth context in logEvent usually or just unused for auth check if orgId matches
+        uid: 'user',
         email: 'user@app',
         organizationId: organizationId
       }, 'CREATE', 'IncidentResponse', `Response initiée: ${incidentId} `);
 
-      return docRef.id;
+      return newResponseRef.id;
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.initiateResponse');
       throw error;
@@ -316,11 +327,17 @@ export class IncidentPlaybookService {
     evidence?: Record<string, unknown>,
     note?: string,
     userId?: string,
-    userName?: string
+    userName?: string,
+    organizationId?: string
   ): Promise<void> {
     try {
       const response = await this.getResponseByDocId(responseId);
       if (!response) throw new Error('Response introuvable');
+
+      // IDOR check
+      if (organizationId && response.organizationId !== organizationId) {
+        throw new Error('Access denied');
+      }
 
       const responseRef = doc(db, this.RESPONSES_COLLECTION, responseId);
       const atomicUpdates: Record<string, unknown> = {
@@ -358,13 +375,17 @@ export class IncidentPlaybookService {
         atomicUpdates.notes = arrayUnion(noteEntry);
       }
 
-      await updateDoc(responseRef, sanitizeData(atomicUpdates));
+      // Use writeBatch for atomic update of response + incident
+      const batch = writeBatch(db);
+      batch.update(responseRef, sanitizeData(atomicUpdates));
 
       // Update incident playbook steps
       const incidentRef = doc(db, 'incidents', response.incidentId);
-      await updateDoc(incidentRef, {
+      batch.update(incidentRef, sanitizeData({
         playbookStepsCompleted: [...response.completedSteps, ...(completed ? [stepId] : [])]
-      });
+      }));
+
+      await batch.commit();
 
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.updateStepProgress');
@@ -375,11 +396,17 @@ export class IncidentPlaybookService {
   static async escalateIncident(
     responseId: string,
     reason: string,
-    escalatedTo: string[]
+    escalatedTo: string[],
+    organizationId?: string
   ): Promise<void> {
     try {
       const response = await this.getResponseByDocId(responseId);
       if (!response) throw new Error('Response introuvable');
+
+      // IDOR check
+      if (organizationId && response.organizationId !== organizationId) {
+        throw new Error('Access denied');
+      }
 
       const escalationTimeline: TimelineEvent = {
         id: `escalation_${Date.now()}`,
@@ -389,16 +416,23 @@ export class IncidentPlaybookService {
         metadata: { escalatedTo, reason }
       };
 
-      // Use arrayUnion for atomic updates to avoid race conditions
-      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), {
+      // Use writeBatch for atomic update of response + incident
+      const batch = writeBatch(db);
+
+      const responseRef = doc(db, this.RESPONSES_COLLECTION, responseId);
+      batch.update(responseRef, sanitizeData({
         assignedTo: arrayUnion(...escalatedTo),
         timeline: arrayUnion(escalationTimeline),
-      });
+        updatedAt: serverTimestamp(),
+      }));
 
-      // Update incident severity if needed
-      await updateDoc(doc(db, 'incidents', response.incidentId), {
+      // Update incident status
+      const incidentRef = doc(db, 'incidents', response.incidentId);
+      batch.update(incidentRef, sanitizeData({
         status: 'Contenu'
-      });
+      }));
+
+      await batch.commit();
 
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.escalateIncident');
@@ -406,15 +440,20 @@ export class IncidentPlaybookService {
     }
   }
 
-  static async completeResponse(responseId: string, lessonsLearned?: string): Promise<void> {
+  static async completeResponse(responseId: string, lessonsLearned?: string, organizationId?: string): Promise<void> {
     try {
       const response = await this.getResponseByDocId(responseId);
       if (!response) throw new Error('Response introuvable');
 
+      // IDOR check
+      if (organizationId && response.organizationId !== organizationId) {
+        throw new Error('Access denied');
+      }
+
       const updates: Partial<IncidentResponse> = {
         status: 'completed',
         completedAt: new Date().toISOString(),
-        completedSteps: response.completedSteps, // Ensure this is preserved or updated if needed
+        completedSteps: response.completedSteps,
         timeline: [
           ...response.timeline,
           {
@@ -427,14 +466,21 @@ export class IncidentPlaybookService {
         ]
       };
 
-      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), sanitizeData(updates));
+      // Use writeBatch for atomic update of response + incident
+      const batch = writeBatch(db);
+
+      const responseRef = doc(db, this.RESPONSES_COLLECTION, responseId);
+      batch.update(responseRef, sanitizeData(updates));
 
       // Update incident status
-      await updateDoc(doc(db, 'incidents', response.incidentId), sanitizeData({
+      const incidentRef = doc(db, 'incidents', response.incidentId);
+      batch.update(incidentRef, sanitizeData({
         status: 'Résolu',
         dateResolved: new Date().toISOString(),
         lessonsLearned
       }));
+
+      await batch.commit();
 
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.completeResponse');

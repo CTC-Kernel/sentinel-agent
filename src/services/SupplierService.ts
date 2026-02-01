@@ -3,7 +3,7 @@ import { FunctionsService } from './FunctionsService';
 import { SupplierDoraSyncService } from './SupplierDoraSyncService';
 import { AuditLogService } from './auditLogService';
 import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate, Criticality } from '../types';
-import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, writeBatch, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, writeBatch, serverTimestamp, getDoc, limit } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 
@@ -103,7 +103,8 @@ export class SupplierService {
         try {
             const q = query(
                 collection(db, 'suppliers'),
-                where('organizationId', '==', organizationId)
+                where('organizationId', '==', organizationId),
+                limit(1000)
             );
             const snapshot = await getDocs(q);
             return snapshot.docs.map(doc => doc.data() as Supplier);
@@ -124,7 +125,13 @@ export class SupplierService {
         try {
             const supplierRef = doc(db, 'suppliers', supplierId);
             const supplierDoc = await getDoc(supplierRef);
-            const oldRiskLevel = supplierDoc.exists() ? supplierDoc.data()?.riskLevel || 'Unknown' : 'Unknown';
+
+            // IDOR protection: verify supplier belongs to user's organization
+            if (!supplierDoc.exists() || supplierDoc.data()?.organizationId !== user.organizationId) {
+                throw new Error('Access denied: supplier does not belong to your organization');
+            }
+
+            const oldRiskLevel = supplierDoc.data()?.riskLevel || 'Unknown';
 
             let riskLevel: Supplier['riskLevel'] = 'Low';
             if (assessmentScore < 50) riskLevel = 'Critical';

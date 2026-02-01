@@ -11,6 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 import {
   Calculator,
   Play,
@@ -54,7 +56,7 @@ interface FAIRConfigListProps {
 // ============================================================================
 
 const formatCurrency = (value: number, currency: string = 'EUR'): string => {
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,

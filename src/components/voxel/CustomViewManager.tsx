@@ -36,7 +36,7 @@ import { useStore } from '@/store';
 import { useViewPresets } from '@/hooks/voxel/useViewPresets';
 import type { CustomViewConfig } from '@/stores/viewPresets';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================================================
 // Types
@@ -143,7 +143,7 @@ function CustomViewCard({
 
       <div className="mt-3 pt-3 border-t flex items-center justify-between">
         <span className="text-[11px] text-muted-foreground">
-          {formatDistanceToNow(view.updatedAt, { addSuffix: true, locale: fr })}
+          {formatDistanceToNow(view.updatedAt, { addSuffix: true, locale: dateFnsLocale })}
         </span>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onApply} title="Appliquer">
@@ -192,6 +192,7 @@ export function CustomViewManager({
   initialMode = 'list',
 }: CustomViewManagerProps) {
   const { t } = useStore();
+  const { dateFnsLocale } = useLocale();
   const {
     customViews,
     isLoadingCustomViews,
@@ -238,7 +239,7 @@ export function CustomViewManager({
    */
   const handleSave = useCallback(async () => {
     if (!formName.trim()) {
-      setError('Name is required');
+      setError('Le nom est requis');
       return;
     }
 
@@ -252,10 +253,10 @@ export function CustomViewManager({
         setFormName('');
         setFormDescription('');
       } else {
-        setError('Unable to save the view');
+        setError('Impossible de sauvegarder la vue');
       }
     } catch {
-      setError('An error occurred');
+      setError('Une erreur est survenue');
     } finally {
       setIsSaving(false);
     }
@@ -266,7 +267,7 @@ export function CustomViewManager({
    */
   const handleUpdate = useCallback(async () => {
     if (!editingView || !formName.trim()) {
-      setError('Name is required');
+      setError('Le nom est requis');
       return;
     }
 
@@ -285,7 +286,7 @@ export function CustomViewManager({
         setError('Impossible de mettre a jour la vue');
       }
     } catch {
-      setError('An error occurred');
+      setError('Une erreur est survenue');
     } finally {
       setIsSaving(false);
     }

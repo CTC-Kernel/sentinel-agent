@@ -129,7 +129,7 @@ export class VendorPortalService {
             return { valid: false, error: 'rate_limited' };
           }
           // Reset count after an hour
-          await updateDoc(doc.ref, { accessCount: 0 });
+          await updateDoc(doc.ref, sanitizeData({ accessCount: 0 }));
         }
       }
 
@@ -336,11 +336,12 @@ export class VendorPortalService {
   /**
    * Get portal access by assessment ID
    */
-  static async getPortalAccessByAssessment(assessmentId: string): Promise<VendorPortalAccess | null> {
+  static async getPortalAccessByAssessment(assessmentId: string, organizationId: string): Promise<VendorPortalAccess | null> {
     try {
       const q = query(
         collection(db, PORTAL_ACCESS_COLLECTION),
         where('assessmentId', '==', assessmentId),
+        where('organizationId', '==', organizationId),
         limit(1)
       );
 
@@ -578,11 +579,12 @@ export class VendorPortalService {
   /**
    * Get activity log for an access
    */
-  static async getActivityLog(accessId: string): Promise<PortalActivityLog[]> {
+  static async getActivityLog(accessId: string, organizationId: string): Promise<PortalActivityLog[]> {
     try {
       const q = query(
         collection(db, PORTAL_ACTIVITY_COLLECTION),
-        where('accessId', '==', accessId)
+        where('accessId', '==', accessId),
+        where('organizationId', '==', organizationId)
       );
 
       const snapshot = await getDocs(q);

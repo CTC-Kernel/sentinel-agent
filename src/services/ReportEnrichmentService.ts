@@ -240,7 +240,7 @@ export class ReportEnrichmentService {
         const total = tasks.length;
         const done = tasks.filter((t: ProjectTask) => t.status === 'Terminé').length;
         const inProgress = tasks.filter((t: ProjectTask) => t.status === 'En cours').length;
-        const todo = tasks.filter((t: ProjectTask) => t.status === 'A faire').length;
+        const todo = tasks.filter((t: ProjectTask) => t.status === 'À faire').length;
 
         // Calculate delay risk
         let delayRisk = 'Low';

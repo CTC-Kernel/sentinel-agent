@@ -3,7 +3,7 @@ import { Incident } from '../../types';
 import { getIncidentDeadlines, DeadlineStatus } from '../../utils/nis2Utils';
 import { Clock, AlertTriangle, CheckCircle, AlertCircle } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface Props {
     incident: Incident;
@@ -11,6 +11,7 @@ interface Props {
 }
 
 export const NIS2DeadlineTimer: React.FC<Props> = ({ incident, compact = false }) => {
+    const { dateFnsLocale } = useLocale();
     const [deadlines, setDeadlines] = useState(getIncidentDeadlines(incident));
 
     useEffect(() => {
@@ -62,7 +63,7 @@ export const NIS2DeadlineTimer: React.FC<Props> = ({ incident, compact = false }
                         <div>
                             <p className="text-sm font-semibold">{d.label}</p>
                             <p className="text-xs opacity-80">
-                                {d.isCompleted ? 'Notifié' : `Échéance : ${format(d.deadlineDate, 'dd/MM HH:mm', { locale: fr })}`}
+                                {d.isCompleted ? 'Notifié' : `Échéance : ${format(d.deadlineDate, 'dd/MM HH:mm', { locale: dateFnsLocale })}`}
                             </p>
                         </div>
                     </div>

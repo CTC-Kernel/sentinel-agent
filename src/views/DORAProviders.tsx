@@ -25,6 +25,8 @@ import { ExportHistoryPanel } from '../components/dora/ExportHistoryPanel';
 import { useICTProviders } from '../hooks/useICTProviders';
 import { ICTProvider, ICTCriticality, ICTProviderFilters } from '../types/dora';
 import { ErrorLogger } from '../services/errorLogger';
+import { useStore } from '../store';
+import { canEditResource } from '../utils/permissions';
 
 interface DORAProvidersProps {
     hideHeader?: boolean;
@@ -33,6 +35,7 @@ interface DORAProvidersProps {
 export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { user } = useStore();
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -65,15 +68,23 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
     const [deleteProviderId, setDeleteProviderId] = useState<string | null>(null);
 
     const handleCreate = useCallback(() => {
+        if (!canEditResource(user, 'Supplier')) {
+            toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
+            return;
+        }
         setSelectedProvider(null);
         setIsDrawerOpen(true);
-    }, []);
+    }, [user, t]);
 
     const handleEdit = useCallback((provider: ICTProvider) => {
+        if (!canEditResource(user, 'Supplier')) {
+            toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
+            return;
+        }
         setSelectedProvider(provider);
         setIsDrawerOpen(true);
         setIsInspectorOpen(false);
-    }, []);
+    }, [user, t]);
 
     const handleSelect = useCallback((provider: ICTProvider) => {
         setInspectedProvider(provider);
@@ -81,6 +92,10 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
     }, []);
 
     const handleDelete = useCallback(async (id: string) => {
+        if (!canEditResource(user, 'Supplier')) {
+            toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
+            return;
+        }
         try {
             await deleteProvider(id);
             toast.info(t('dora.providerDeleted', { defaultValue: 'Fournisseur ICT supprimé' }));
@@ -90,7 +105,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
         } finally {
             setDeleteProviderId(null);
         }
-    }, [deleteProvider, t]);
+    }, [deleteProvider, t, user]);
 
     const handleExport = useCallback(() => {
         setIsExportOpen(true);

@@ -25,6 +25,7 @@ import {
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
+import { useLocale } from '@/hooks/useLocale';
 
 interface SoftwareTableProps {
     software: SoftwareInventoryEntry[];
@@ -132,6 +133,7 @@ const SoftwareRow: React.FC<{
     isExpanded: boolean;
     onToggleExpand: () => void;
 }> = ({ software, onClick, isExpanded, onToggleExpand }) => {
+    const { config } = useLocale();
     const latestVersion = software.versions.find(v => v.isLatest);
     const outdatedCount = software.versions.filter(v => v.isOutdated).length;
 
@@ -236,7 +238,7 @@ const SoftwareRow: React.FC<{
                     )}
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground" onClick={onClick}>
-                    {new Date(software.lastSeen).toLocaleDateString('fr-FR')}
+                    {new Date(software.lastSeen).toLocaleDateString(config.intlLocale)}
                 </td>
                 <td className="px-4 py-3">
                     <Button

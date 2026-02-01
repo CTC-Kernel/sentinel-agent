@@ -13,6 +13,8 @@ import {
   type OverdueActionItem,
 } from '../../hooks/useOverdueActions';
 import { ChevronRight, Clock, AlertTriangle, RefreshCw, CheckCircle } from '../ui/Icons';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 /**
  * Props for PMActionsOverdueWidget
@@ -66,10 +68,10 @@ const SIZE_CONFIG = {
  * Format due date for display
  */
 function formatDueDate(dateString: string): string {
-  if (!dateString) return 'Sans echeance';
+  if (!dateString) return 'Sans échéance';
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
       day: 'numeric',
       month: 'short',
     });
@@ -131,7 +133,7 @@ function ActionItem({
             aria-hidden="true"
           />
           <span className={cn('text-xs', colors.text)}>
-            Echeance: {formatDueDate(action.dueDate)}
+            Échéance: {formatDueDate(action.dueDate)}
           </span>
           <span
             className={cn(
@@ -144,7 +146,7 @@ function ActionItem({
         </div>
         {action.assigneeName && (
           <div className="text-xs text-muted-foreground mt-1">
-            Assigne a: {action.assigneeName}
+            Assigné à: {action.assigneeName}
           </div>
         )}
       </div>
@@ -202,7 +204,7 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
       <p className={cn('font-medium text-green-600 dark:text-green-400', sizeConfig.itemText)}>
         Aucune action en retard
       </p>
-      <p className="text-xs mt-1">Toutes les actions sont dans les delais</p>
+      <p className="text-xs mt-1">Toutes les actions sont dans les délais</p>
     </div>
   );
 }
@@ -241,7 +243,7 @@ function ErrorState({
         )}
       >
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
-        Reessayer
+        Réessayer
       </button>
     </div>
   );
@@ -318,7 +320,7 @@ export function PMActionsOverdueWidget({
           Actions en Retard
         </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Actions ayant depasse leur echeance
+          Actions ayant dépassé leur échéance
         </p>
       </div>
 

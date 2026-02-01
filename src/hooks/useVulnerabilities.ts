@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, serverTimestamp, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Vulnerability } from '../types';
 import { useStore } from '../store';
@@ -38,6 +38,10 @@ export const useVulnerabilities = () => {
 
     const seedCisaKev = useCallback(async () => {
         if (!user?.organizationId || demoMode) return;
+        if (!hasPermission(user, 'Vulnerability', 'create')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
         try {
             const kevVulns = await ThreatFeedService.fetchCisaKev();
             if (kevVulns.length > 0) {
@@ -73,6 +77,10 @@ export const useVulnerabilities = () => {
         if (!user?.organizationId) return;
         if (demoMode) {
             addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
+            return;
+        }
+        if (!hasPermission(user, 'Vulnerability', 'create')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
             return;
         }
         if (isSubmittingRef.current) return;
@@ -186,6 +194,20 @@ export const useVulnerabilities = () => {
 
         try {
             await deleteDoc(doc(db, 'vulnerabilities', id));
+
+            // Cascade: clean up risk references pointing to this vulnerability
+            const riskQuery = query(collection(db, 'risks'), where('relatedVulnerabilityId', '==', id));
+            const riskSnap = await getDocs(riskQuery);
+            if (!riskSnap.empty) {
+                const updatePromises = riskSnap.docs.map(riskDoc =>
+                    updateDoc(doc(db, 'risks', riskDoc.id), sanitizeData({
+                        relatedVulnerabilityId: null,
+                        updatedAt: serverTimestamp()
+                    }))
+                );
+                await Promise.all(updatePromises);
+            }
+
             logAction(user!, 'DELETE', 'Vulnerabilities', `Deleted Vulnerability ID: ${id}`);
             addToast(t('vulnerabilities.toast.deleted', { defaultValue: "Supprimé avec succès" }), "success");
             return true;
@@ -200,6 +222,14 @@ export const useVulnerabilities = () => {
         if (!user?.organizationId || !vuln.id) return;
         if (demoMode) {
             addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
+            return;
+        }
+        if (!hasPermission(user, 'Vulnerability', 'create')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
+        if (!hasPermission(user, 'Risk', 'create')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
             return;
         }
         try {
@@ -243,6 +273,10 @@ export const useVulnerabilities = () => {
         if (!user?.organizationId) return;
         if (demoMode) {
             addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
+            return;
+        }
+        if (!hasPermission(user, 'Vulnerability', 'create')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
             return;
         }
         try {

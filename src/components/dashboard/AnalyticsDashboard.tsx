@@ -36,6 +36,7 @@ import { OnboardingService } from '../../services/onboardingService';
 import { useLayoutData } from '../../hooks/layout/useLayoutData';
 import { useComplianceData } from '../../hooks/useComplianceData';
 import { CHART_COLORS, RISK_COLORS, STATUS_COLORS, SLATE_COLORS } from '../../constants/colors';
+import { useLocale } from '@/hooks/useLocale';
 
 interface TrendData {
     date: string;
@@ -53,6 +54,7 @@ interface CategoryData {
 
 export const AnalyticsDashboard: React.FC = () => {
     const { user } = useStore();
+    const { config } = useLocale();
     const navigate = useNavigate();
     const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
@@ -109,7 +111,7 @@ export const AnalyticsDashboard: React.FC = () => {
             const history = await StatsService.getHistory(user.organizationId!, timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365);
 
             const mappedData: TrendData[] = history.map(day => ({
-                date: new Date(day.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
+                date: new Date(day.date).toLocaleDateString(config.intlLocale, { month: 'short', day: 'numeric' }),
                 risks: day.metrics.totalRisks,
                 incidents: day.metrics.openIncidents,
                 compliance: day.metrics.complianceRate,
@@ -121,16 +123,18 @@ export const AnalyticsDashboard: React.FC = () => {
                 const current = history[history.length - 1];
                 const previous = history[history.length - 2];
 
-                const calculateTrend = (curr: number, prev: number) => {
+                // Computes numeric percent change for display (not trend direction).
+                // For trend direction ('up'/'down'/'stable'), see canonical calculateTrend in utils/trendUtils.ts.
+                const calculatePercentChange = (curr: number, prev: number) => {
                     if (prev === 0) return curr > 0 ? 100 : 0;
                     return Number(((curr - prev) / prev * 100).toFixed(1));
                 };
 
                 setTrends({
-                    riskTrend: calculateTrend(current.metrics.criticalRisks, previous.metrics.criticalRisks),
-                    incidentTrend: calculateTrend(current.metrics.openIncidents, previous.metrics.openIncidents),
-                    complianceTrend: calculateTrend(current.metrics.complianceRate, previous.metrics.complianceRate),
-                    projectTrend: calculateTrend(current.metrics.activeProjects || 0, previous.metrics.activeProjects || 0)
+                    riskTrend: calculatePercentChange(current.metrics.criticalRisks, previous.metrics.criticalRisks),
+                    incidentTrend: calculatePercentChange(current.metrics.openIncidents, previous.metrics.openIncidents),
+                    complianceTrend: calculatePercentChange(current.metrics.complianceRate, previous.metrics.complianceRate),
+                    projectTrend: calculatePercentChange(current.metrics.activeProjects || 0, previous.metrics.activeProjects || 0)
                 });
             }
 
@@ -145,7 +149,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     ? ((fallbackImpl + fallbackPartial * PARTIAL_CONTROL_WEIGHT) / fallbackActionable.length) * 100
                     : 100;
                 setTrendData([{
-                    date: new Date().toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
+                    date: new Date().toLocaleDateString(config.intlLocale, { month: 'short', day: 'numeric' }),
                     risks: criticalRisks,
                     incidents: openIncidents,
                     compliance: complianceRate,

@@ -11,6 +11,7 @@ import { parseDate } from '../utils/dateUtils';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 /**
  * Urgency levels for expiring contracts
@@ -252,11 +253,11 @@ export class ContractExpirationService {
     ): Promise<void> {
         try {
             const configRef = doc(db, 'organizations', organizationId, 'settings', 'dora_alerts');
-            await setDoc(configRef, {
+            await setDoc(configRef, sanitizeData({
                 ...DEFAULT_ALERT_CONFIG,
                 ...config,
                 updatedAt: serverTimestamp()
-            }, { merge: true });
+            }), { merge: true });
         } catch (error) {
             ErrorLogger.error(error, 'ContractExpirationService.saveAlertConfig');
             throw error;

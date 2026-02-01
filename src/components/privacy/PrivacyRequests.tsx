@@ -5,7 +5,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 import { usePrivacyRequests } from '../../hooks/privacy/usePrivacyRequests';
 import { PrivacyRequest } from '../../types';
@@ -18,6 +18,7 @@ interface PrivacyRequestsProps {
 
 export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSelect }) => {
     const { requests, loading } = usePrivacyRequests();
+    const { dateFnsLocale } = useLocale();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('All');
 
@@ -100,7 +101,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                                 <FileText className="h-3.5 w-3.5" /> {req.requestType}
                                             </span>
                                             <span className="flex items-center gap-1">
-                                                <Clock className="h-3.5 w-3.5" /> Échéance: {format(new Date(req.dueDate), 'dd MMM yyyy', { locale: fr })}
+                                                <Clock className="h-3.5 w-3.5" /> Échéance: {format(new Date(req.dueDate), 'dd MMM yyyy', { locale: dateFnsLocale })}
                                             </span>
                                         </div>
                                     </div>
@@ -108,7 +109,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                 <div className="flex items-center gap-4 self-end md:self-center">
                                     <div className="text-right hidden md:block">
                                         <div className="text-xs text-slate-500 dark:text-slate-300 mb-1">Reçu le</div>
-                                        <div className="text-sm font-medium">{format(new Date(req.submissionDate), 'dd MMM yyyy', { locale: fr })}</div>
+                                        <div className="text-sm font-medium">{format(new Date(req.submissionDate), 'dd MMM yyyy', { locale: dateFnsLocale })}</div>
                                     </div>
                                     <Badge status={getStatusColor(req.status) as 'info' | 'brand' | 'success' | 'error' | 'neutral'}>{req.status}</Badge>
                                 </div>

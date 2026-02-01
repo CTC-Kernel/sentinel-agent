@@ -45,7 +45,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
         defaultValues: {
             title: '',
             description: '',
-            status: 'A faire',
+            status: 'À faire',
             assignee: '',
             assigneeId: '',
             startDate: '',
@@ -78,7 +78,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
             reset({
                 title: existingTask?.title || '',
                 description: existingTask?.description || '',
-                status: existingTask?.status || 'A faire',
+                status: existingTask?.status || 'À faire',
                 assignee: existingTask?.assignee || '',
                 assigneeId: existingTask?.assigneeId || '',
                 startDate: existingTask?.startDate || '',
@@ -158,7 +158,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                     <CustomSelect
                                         label={t('tasks.fields.status', { defaultValue: 'Statut' })}
                                         options={[
-                                            { value: "A faire", label: t('tasks.status.todo', { defaultValue: 'À faire' }) },
+                                            { value: "À faire", label: t('tasks.status.todo', { defaultValue: 'À faire' }) },
                                             { value: "En cours", label: t('tasks.status.inProgress', { defaultValue: 'En cours' }) },
                                             { value: "Terminé", label: t('tasks.status.done', { defaultValue: 'Terminé' }) },
                                             { value: "Bloqué", label: t('tasks.status.blocked', { defaultValue: 'Bloqué' }) }

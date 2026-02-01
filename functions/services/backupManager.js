@@ -1,6 +1,7 @@
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { getStorage } = require('firebase-admin/storage');
+const crypto = require('crypto');
 
 /**
  * Server-side Backup Manager
@@ -12,7 +13,7 @@ class BackupManager {
 
         const db = admin.firestore();
         const storage = getStorage();
-        const backupId = `backup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const backupId = `backup_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`;
         logger.info(`Starting backup ${backupId} for org ${organizationId}`);
 
         // Default config if not provided
@@ -106,7 +107,7 @@ class BackupManager {
             logger.error(`Backup ${backupId} failed:`, error);
             await db.collection('backups').doc(backupId).update({
                 status: 'failed',
-                error: error.message
+                error: 'Backup operation failed'
             });
             throw error;
         }

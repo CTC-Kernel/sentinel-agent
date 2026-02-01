@@ -3,7 +3,7 @@ import { useStore } from '../../store';
 import { Activity, Globe, User } from '../ui/Icons';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { SystemLog, timestampToMillis } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
@@ -12,6 +12,7 @@ import { hasPermission } from '../../utils/permissions';
 
 export const UserActivityLog: React.FC = () => {
     const { user, t } = useStore();
+    const { dateFnsLocale } = useLocale();
     const { activityLogs, loading } = useSettingsData();
     const [viewMode, setViewMode] = useState<'my' | 'global'>('my');
 
@@ -51,7 +52,7 @@ export const UserActivityLog: React.FC = () => {
 
                         const date = new Date(millis);
                         if (isNaN(date.getTime())) return '-';
-                        return format(date, 'Pp', { locale: fr });
+                        return format(date, 'Pp', { locale: dateFnsLocale });
                     } catch {
                         return '-';
                     }

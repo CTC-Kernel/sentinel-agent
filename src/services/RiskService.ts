@@ -51,7 +51,7 @@ export class RiskService {
      */
     static async createRisk(user: UserProfile, data: Partial<Risk>): Promise<{ success: boolean; id?: string; error?: string }> {
         if (!user.organizationId || !canEditResource(user, 'Risk')) {
-            return { success: false, error: "Permission refusée" };
+            return { success: false, error: "Permission denied" };
         }
 
         // Logic check
@@ -106,7 +106,7 @@ export class RiskService {
             return { success: true, id: docRef.id };
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RiskService.createRisk', 'CREATE_FAILED');
-            return { success: false, error: "Erreur lors de la création" };
+            return { success: false, error: "Error creating risk" };
         }
     }
 
@@ -114,7 +114,7 @@ export class RiskService {
      * Update an existing Risk
      */
     static async updateRisk(user: UserProfile, id: string, data: Partial<Risk>, currentRisk?: Risk): Promise<{ success: boolean; error?: string }> {
-        if (!canEditResource(user, 'Risk')) return { success: false, error: "Permission refusée" };
+        if (!canEditResource(user, 'Risk')) return { success: false, error: "Permission denied" };
 
         // IDOR Check
         if (currentRisk && !this.verifyOwnership(user, currentRisk.organizationId)) {
@@ -158,7 +158,7 @@ export class RiskService {
             return { success: true };
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RiskService.updateRisk', 'UPDATE_FAILED');
-            return { success: false, error: "Erreur modification" };
+            return { success: false, error: "Error updating risk" };
         }
     }
 
@@ -166,7 +166,7 @@ export class RiskService {
      * Delete a Risk
      */
     static async deleteRisk(user: UserProfile, id: string, currentRisk?: Risk): Promise<{ success: boolean; error?: string }> {
-        if (!canDeleteResource(user, 'Risk')) return { success: false, error: "Permission refusée" };
+        if (!canDeleteResource(user, 'Risk')) return { success: false, error: "Permission denied" };
 
         if (currentRisk && !this.verifyOwnership(user, currentRisk.organizationId)) {
             return { success: false, error: "Accès non autorisé" };

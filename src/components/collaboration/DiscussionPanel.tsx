@@ -9,7 +9,7 @@ import {
 import { ErrorLogger } from '../../services/errorLogger';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { cn } from '../../utils/cn';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,6 +56,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
     const [highlightedComment, setHighlightedComment] = useState<string | null>(null);
 
     const { user, t } = useStore();
+    const { dateFnsLocale } = useLocale();
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     // Enhanced comment query with filters - handled inline in useFirestoreCollection call
@@ -295,7 +296,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-500 dark:text-muted-foreground">
                                     {comment.createdAt 
-                                        ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: fr })
+                                        ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: dateFnsLocale })
                                         : 'Date inconnue'
                                     }
                                 </span>
@@ -397,7 +398,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         value={searchQuery}
                                         onChange={handleSearch}
                                         type="text"
-                                        placeholder="Rechercher dans les commentaires..."
+                                        placeholder={t('collaboration.searchComments', { defaultValue: 'Search comments...' })}
                                         className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
                                     />
                                     {searchQuery && (
@@ -489,7 +490,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                 {loading ? (
                     <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                         <div className="animate-spin h-6 w-6 mb-2">⌛</div>
-                        <p className="text-sm">Chargement...</p>
+                        <p className="text-sm">{t('common.loading', { defaultValue: 'Loading...' })}</p>
                     </div>
                 ) : sortedComments.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
@@ -540,9 +541,9 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                     <div className="flex gap-2">
                         <input
                             {...register('content')}
-                            aria-label={replyTo ? "Votre réponse" : "Ajouter un commentaire"}
+                            aria-label={replyTo ? t('collaboration.yourReply', { defaultValue: 'Your reply...' }) : t('collaboration.addComment', { defaultValue: 'Add a comment' })}
                             type="text"
-                            placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire... @mentionner quelqu'un"}
+                            placeholder={replyTo ? t('collaboration.yourReply', { defaultValue: 'Your reply...' }) : t('collaboration.addComment', { defaultValue: 'Add a comment' })}
                             className={cn(
                                 "flex-1 pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-3xl focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none",
                                 errors.content

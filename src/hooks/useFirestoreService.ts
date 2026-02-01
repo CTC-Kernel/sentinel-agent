@@ -5,6 +5,7 @@ import {
     addDoc,
     updateDoc,
     deleteDoc,
+    getDoc,
     setDoc,
     serverTimestamp,
     DocumentData,
@@ -116,12 +117,17 @@ export const useFirestoreService = () => {
 
         try {
             const docRef = doc(db, collectionName, id);
+            // Verify document belongs to user's organization before deleting
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists() && docSnap.data()?.organizationId !== user?.organizationId) {
+                throw new Error('Access denied: document does not belong to your organization');
+            }
             await deleteDoc(docRef);
         } catch (error) {
             ErrorLogger.error(error, `FirestoreService.deleteDocument.${collectionName}.${id}`);
             throw error;
         }
-    }, [demoMode]);
+    }, [demoMode, user?.organizationId]);
 
     return {
         addDocument,

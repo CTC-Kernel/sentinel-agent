@@ -18,6 +18,7 @@ import {
     Timestamp,
     Unsubscribe,
     limit,
+    serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
@@ -484,7 +485,7 @@ export async function createEvidenceFromResult(
                 evidence: result.evidence,
                 summary: `${checkDef.name}: ${result.status === 'pass' ? 'Conforme' : 'Non conforme'}`,
                 verifiedAt: Timestamp.fromDate(new Date(result.timestamp)),
-                createdAt: Timestamp.now(),
+                createdAt: serverTimestamp(),
                 expiresAt: Timestamp.fromDate(new Date(expiresAt)),
                 reviewed: false,
             };
@@ -527,7 +528,7 @@ export async function reviewEvidence(
         await updateDoc(evidenceRef, sanitizeData({
             reviewed: true,
             reviewedBy,
-            reviewedAt: Timestamp.now(),
+            reviewedAt: serverTimestamp(),
             reviewNotes: notes || null,
         }));
     } catch (error) {

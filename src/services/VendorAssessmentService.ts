@@ -704,12 +704,23 @@ export class VendorAssessmentService {
   /**
    * Dismiss an alert
    */
-  static async dismissAlert(alertId: string): Promise<void> {
+  static async dismissAlert(alertId: string, organizationId: string): Promise<void> {
     try {
       const alertRef = doc(db, ALERTS_COLLECTION, alertId);
-      await updateDoc(alertRef, {
+      const alertSnap = await getDoc(alertRef);
+
+      if (!alertSnap.exists()) {
+        throw new Error(`Alert ${alertId} not found`);
+      }
+
+      const alertData = alertSnap.data();
+      if (alertData.organizationId !== organizationId) {
+        throw new Error('Access denied');
+      }
+
+      await updateDoc(alertRef, sanitizeData({
         dismissedAt: serverTimestamp(),
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'VendorAssessmentService.dismissAlert');
       throw error;

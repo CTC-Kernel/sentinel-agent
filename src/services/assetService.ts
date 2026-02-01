@@ -26,7 +26,7 @@ export const AssetService = {
         preSelectedProjectId?: string | null
     ): Promise<string> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
-        if (!canEditResource(user, 'Asset')) throw new Error("Permission refusée");
+        if (!canEditResource(user, 'Asset')) throw new Error("Permission denied");
 
         // Validate and sanitize
         const validatedData = assetSchema.parse(data);
@@ -81,7 +81,7 @@ export const AssetService = {
      */
     async update(id: string, data: Partial<AssetFormData>, user: UserProfile, oldData?: Record<string, unknown>): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
-        if (!canEditResource(user, 'Asset')) throw new Error("Permission refusée");
+        if (!canEditResource(user, 'Asset')) throw new Error("Permission denied");
 
         const validatedData = assetSchema.partial().parse(data);
         const cleanData = sanitizeData(validatedData);
@@ -109,7 +109,7 @@ export const AssetService = {
      */
     async delete(id: string, name: string, user: UserProfile): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
-        if (!canDeleteResource(user, 'Asset')) throw new Error("Permission refusée");
+        if (!canDeleteResource(user, 'Asset')) throw new Error("Permission denied");
 
         await FunctionsService.deleteResource('assets', id);
 
@@ -130,7 +130,7 @@ export const AssetService = {
      */
     async bulkDelete(ids: string[], user: UserProfile): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
-        if (!canDeleteResource(user, 'Asset')) throw new Error("Permission refusée");
+        if (!canDeleteResource(user, 'Asset')) throw new Error("Permission denied");
 
         // Use sequential execution to prevent overwhelming the function instance
         for (const id of ids) {
@@ -196,7 +196,7 @@ export const AssetService = {
      * Get all relationships for an asset
      */
     async getAssetRelationships(assetId: string, organizationId: string) {
-        const { getDocs, query, where } = await import('firebase/firestore');
+        const { getDocs, query, where, limit } = await import('firebase/firestore');
 
         // Helper to fetch - Use simpler queries to avoid index requirements
         const fetchRel = async <T>(col: string, field: string): Promise<T[]> => {
@@ -209,8 +209,8 @@ export const AssetService = {
                 // Fallback to client-side filtering if index is missing
                 const firebaseError = error as { code?: string } | null;
                 if (firebaseError?.code === 'failed-precondition') {
-                    ErrorLogger.warn(`Index manquant pour ${col}, utilisation du fallback côté client`, 'assetService.getCollection');
-                    const fallbackQ = query(collection(db, col), where('organizationId', '==', organizationId));
+                    console.warn(`Missing composite index for ${col} - falling back to org-only query with limit`);
+                    const fallbackQ = query(collection(db, col), where('organizationId', '==', organizationId), limit(100));
                     const fallbackSnap = await getDocs(fallbackQ);
                     return fallbackSnap.docs
                         .map(d => ({ id: d.id, ...d.data() } as unknown as T & { [key: string]: unknown }))

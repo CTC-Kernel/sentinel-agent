@@ -25,7 +25,7 @@ import {
     XCircle
 } from '../ui/Icons';
 import { format, differenceInDays } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface ICTProviderInspectorProps {
     provider: ICTProvider;
@@ -37,6 +37,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
     onEdit
 }) => {
     const { t } = useTranslation();
+    const { dateFnsLocale } = useLocale();
 
     const getCategoryBadge = () => {
         switch (provider.category) {
@@ -54,7 +55,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
         try {
             const date = typeof dateValue === 'string' ? new Date(dateValue) : null;
             if (!date || isNaN(date.getTime())) return '-';
-            return format(date, 'dd MMMM yyyy', { locale: fr });
+            return format(date, 'dd MMMM yyyy', { locale: dateFnsLocale });
         } catch {
             return '-';
         }

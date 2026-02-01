@@ -22,11 +22,11 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket'] as const;
-for (const key of requiredKeys) {
-  if (!firebaseConfig[key]) {
-    console.error(`Missing Firebase config: ${key}`);
-  }
+const requiredEnvKeys = ['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_AUTH_DOMAIN', 'VITE_FIREBASE_PROJECT_ID'] as const;
+for (const key of requiredEnvKeys) {
+    if (!import.meta.env[key]) {
+        throw new Error(`Missing required Firebase configuration: ${key}. Check your .env file.`);
+    }
 }
 
 export const app = initializeApp(firebaseConfig);
@@ -36,6 +36,16 @@ let appCheck: AppCheck | null = null;
 // Flag to indicate if App Check failed (e.g. due to ad blocker)
 // This can be used by UI components to show a warning
 export let isAppCheckFailed = false;
+
+// Callback mechanism so React components can react to App Check recovery
+let appCheckRecoveryCallbacks: (() => void)[] = [];
+
+export function onAppCheckRecovery(callback: () => void) {
+    appCheckRecoveryCallbacks.push(callback);
+    return () => {
+        appCheckRecoveryCallbacks = appCheckRecoveryCallbacks.filter(cb => cb !== callback);
+    };
+}
 
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test' && import.meta.env.VITE_USE_EMULATORS !== 'true') {
@@ -110,7 +120,7 @@ if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test' && import.m
     setTimeout(() => {
       if (appCheck) {
         getToken(appCheck, /* forceRefresh */ true)
-          .then(() => { isAppCheckFailed = false; })
+          .then(() => { isAppCheckFailed = false; appCheckRecoveryCallbacks.forEach(cb => cb()); appCheckRecoveryCallbacks = []; })
           .catch(() => { /* remain failed */ });
       }
     }, 30000);

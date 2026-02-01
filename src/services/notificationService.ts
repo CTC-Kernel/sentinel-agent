@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier, NotificationPreferences, NotificationChannelPreferences } from '../types';
 import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import type { Milestone } from '../types/ebios';
@@ -204,9 +204,7 @@ export class NotificationService {
                 return;
             }
 
-            await updateDoc(docRef, {
-                read: true,
-            });
+            await updateDoc(docRef, sanitizeData({ read: true }));
         } catch (error) {
             ErrorLogger.error(error, 'NotificationService.markAsRead');
         }
@@ -221,16 +219,18 @@ export class NotificationService {
                 collection(db, 'notifications'),
                 where('userId', '==', userId),
                 where('organizationId', '==', organizationId),
-                where('read', '==', false)
+                where('read', '==', false),
+                limit(500)
             );
 
-            const snap = await getDocs(q);
-            // Process individually to avoid total failure
-            const promises = snap.docs.map((doc) =>
-                updateDoc(doc.ref, { read: true }).catch(err => ErrorLogger.error(err, `NotificationService.markAllAsRead.${doc.id}`))
-            );
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) return;
 
-            await Promise.all(promises);
+            const batch = writeBatch(db);
+            snapshot.docs.forEach(docSnap => {
+                batch.update(docSnap.ref, { read: true });
+            });
+            await batch.commit();
         } catch (error) {
             ErrorLogger.error(error, 'NotificationService.markAllAsRead');
         }
@@ -314,6 +314,7 @@ export class NotificationService {
                         const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                         const existingNotifs = await getDocs(query(
                             collection(db, 'notifications'),
+                            where('organizationId', '==', organizationId),
                             where('userId', '==', auditorId),
                             where('link', '==', '/audits'),
                             where('createdAt', '>=', yesterday)
@@ -389,6 +390,7 @@ export class NotificationService {
                         const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                         const existingNotifs = await getDocs(query(
                             collection(db, 'notifications'),
+                            where('organizationId', '==', organizationId),
                             where('userId', '==', ownerId),
                             where('link', '==', '/documents'),
                             where('createdAt', '>=', yesterday)
@@ -470,6 +472,7 @@ export class NotificationService {
                             const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                             const existingNotifs = await getDocs(query(
                                 collection(db, 'notifications'),
+                                where('organizationId', '==', organizationId),
                                 where('userId', '==', ownerId),
                                 where('link', '==', '/assets'),
                                 where('createdAt', '>=', yesterday)
@@ -546,6 +549,7 @@ export class NotificationService {
                     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                     const existingNotifs = await getDocs(query(
                         collection(db, 'notifications'),
+                        where('organizationId', '==', organizationId),
                         where('userId', '==', adminDoc.id),
                         where('link', '==', '/risks'),
                         where('createdAt', '>=', yesterday)
@@ -750,6 +754,7 @@ export class NotificationService {
 
                     const existingNotifs = await getDocs(query(
                         collection(db, 'notifications'),
+                        where('organizationId', '==', organizationId),
                         where('userId', '==', ownerId),
                         where('link', '==', notifLink),
                         where('createdAt', '>=', yesterday)
@@ -836,6 +841,7 @@ export class NotificationService {
                 const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                 const existingNotifs = await getDocs(query(
                     collection(db, 'notifications'),
+                    where('organizationId', '==', organizationId),
                     where('userId', '==', notifyUserId),
                     where('link', '==', '/smsi'),
                     where('createdAt', '>=', yesterday)
@@ -912,6 +918,7 @@ export class NotificationService {
                     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                     const existingNotifs = await getDocs(query(
                         collection(db, 'notifications'),
+                        where('organizationId', '==', organizationId),
                         where('userId', '==', adminDoc.id),
                         where('link', '==', '/agents'),
                         where('createdAt', '>=', yesterday)
@@ -968,6 +975,7 @@ export class NotificationService {
                     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                     const existingNotifs = await getDocs(query(
                         collection(db, 'notifications'),
+                        where('organizationId', '==', organizationId),
                         where('userId', '==', adminDoc.id),
                         where('link', '==', '/agents'),
                         where('createdAt', '>=', yesterday)
@@ -1057,6 +1065,7 @@ export class NotificationService {
                             const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
                             const existingNotifs = await getDocs(query(
                                 collection(db, 'notifications'),
+                                where('organizationId', '==', organizationId),
                                 where('userId', '==', supplier.ownerId),
                                 where('link', '==', '/suppliers'),
                                 where('createdAt', '>=', yesterday)

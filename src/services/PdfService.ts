@@ -6,10 +6,10 @@ import { applyPlugin } from 'jspdf-autotable';
 // which is not set in Vite/ESM environments where jsPDF is imported as a module.
 applyPlugin(jsPDF);
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { getDateFnsLocale } from '../config/localeConfig';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
 import { Risk, Project, ProjectTask, Control, Audit, Finding } from '../types';
-import { RISK_THRESHOLDS } from '../constants/complianceConfig';
+import { RISK_THRESHOLDS, CONTROL_STATUS } from '../constants/complianceConfig';
 
 // Type extension for jsPDF GState (graphics state for transparency effects)
 interface GStateOptions {
@@ -210,7 +210,7 @@ export class PdfService {
     private static addCoverPage(doc: jsPDF, options: ReportOptions & { author?: string, organizationName?: string }) {
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: getDateFnsLocale() });
         const sidebarWidth = pageWidth * 0.35;
         const sidebarPadding = 20;
         const maxTextWidth = sidebarWidth - (sidebarPadding * 2); // Calculate available text width
@@ -356,7 +356,7 @@ export class PdfService {
             doc.addPage();
         }
 
-        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: getDateFnsLocale() });
         this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
 
         doc.autoTable({
@@ -412,7 +412,7 @@ export class PdfService {
         renderContent: (doc: jsPDF, startY: number) => void
     ): jsPDF {
         const doc = this.createDoc(options.orientation);
-        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: getDateFnsLocale() });
 
         this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
 
@@ -445,7 +445,7 @@ export class PdfService {
         const doc = this.createDoc(options.orientation);
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: getDateFnsLocale() });
         const contentWidth = pageWidth - this.MARGIN_LEFT - this.MARGIN_RIGHT;
 
         // --- PREMIUM COVER PAGE ---
@@ -2168,12 +2168,12 @@ export class PdfService {
             currentY += 10;
 
             const gaps = controls
-                .filter(c => c.status === 'Non commencé')
+                .filter(c => c.status === CONTROL_STATUS.NOT_STARTED)
                 .slice(0, 10) // Top 10 gaps
                 .map(c => [
                     c.code,
                     c.description ? c.description.substring(0, 60) + '...' : 'Pas de description',
-                    'Non commencé'
+                    CONTROL_STATUS.NOT_STARTED
                 ]);
 
             if (gaps.length > 0) {

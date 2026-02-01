@@ -61,7 +61,7 @@ export const useTeamManagement = (enabled = true) => {
                 return {
                     uid: d.id,
                     email: inv.email,
-                    displayName: 'Invité (En attente)',
+                    displayName: t('team.pendingInvite', { defaultValue: 'Invited (Pending)' }),
                     role: inv.role,
                     department: inv.department,
                     organizationId: inv.organizationId,
@@ -128,13 +128,13 @@ export const useTeamManagement = (enabled = true) => {
 
             await sendEmail(user, {
                 to: data.email,
-                subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
+                subject: t('team.invitationSubject', { org: user.organizationName || 'Sentinel GRC', defaultValue: 'Invitation to join {{org}}' }),
                 type: 'INVITATION',
                 html: getInvitationTemplate(user.displayName || 'Admin', data.role, `${window.location.origin}/#/login`)
             });
 
             await logAction(user, 'INVITE', 'User', `Invitation: ${data.email}`);
-            if (!silent) addToast(t('team.toast.invitationSent', { defaultValue: "Invitation envoyée" }), "success");
+            if (!silent) addToast(t('team.toast.invitationSent', { defaultValue: "Invitation sent" }), "success");
             return true;
         } catch (error) {
             if (!silent) ErrorLogger.handleErrorWithToast(error as Error, 'team.invite');
@@ -147,7 +147,7 @@ export const useTeamManagement = (enabled = true) => {
         try {
             await updateDoc(doc(db, 'users', uid), sanitizeData({ ...data, updatedAt: serverTimestamp() }));
             await logAction(user, 'UPDATE', 'User', `Modif utilisateur: ${uid}`);
-            addToast(t('team.toast.updated', { defaultValue: "Mis à jour" }), "success");
+            addToast(t('team.toast.updated', { defaultValue: "Updated" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error as Error, 'team.update');
@@ -161,7 +161,7 @@ export const useTeamManagement = (enabled = true) => {
             if (u.isPending) await deleteDoc(doc(db, 'invitations', u.uid));
             else await deleteDoc(doc(db, 'users', u.uid));
             await logAction(user, 'DELETE', 'User', `Suppression: ${u.email}`);
-            addToast(t('team.toast.deleted', { defaultValue: "Supprimé" }), "success");
+            addToast(t('team.toast.deleted', { defaultValue: "Deleted" }), "success");
             return true;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error as Error, 'team.delete');
@@ -185,7 +185,7 @@ export const useTeamManagement = (enabled = true) => {
             // Audit Log handled by backend usually, but client trace is good
             await logAction(user, 'APPROVE_REQUEST', 'User', `Approbation demande: ${req.displayName}`);
 
-            addToast(t('team.toast.approved', { defaultValue: "Approuvé: {{name}}", name: req.displayName }), "success");
+            addToast(t('team.toast.approved', { defaultValue: "Approved: {{name}}", name: req.displayName }), "success");
             return true;
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e as Error, 'team.approve');
@@ -208,7 +208,7 @@ export const useTeamManagement = (enabled = true) => {
 
             await logAction(user, 'REJECT_REQUEST', 'User', `Refus demande: ${req.displayName}`);
 
-            addToast(t('team.toast.rejected', { defaultValue: "Refusé" }), "info");
+            addToast(t('team.toast.rejected', { defaultValue: "Rejected" }), "info");
             return true;
         } catch (e) {
             ErrorLogger.error(e as Error, 'team.reject');
@@ -221,7 +221,7 @@ export const useTeamManagement = (enabled = true) => {
         setLoading(true);
         try {
             const rows = ImportService.parseCSV(csvData);
-            if (rows.length === 0) return addToast(t('common.toast.emptyFile', { defaultValue: "Fichier vide" }), "error");
+            if (rows.length === 0) return addToast(t('common.toast.emptyFile', { defaultValue: "Empty file" }), "error");
 
             let done = 0;
             for (const row of rows) {
@@ -236,7 +236,7 @@ export const useTeamManagement = (enabled = true) => {
                 if (result === 'LIMIT_REACHED') break;
                 if (result) done++;
             }
-            addToast(t('team.toast.usersImported', { defaultValue: "{{count}} utilisateurs importés", count: done }), "success");
+            addToast(t('team.toast.usersImported', { defaultValue: "{{count}} users imported", count: done }), "success");
         } finally {
             setLoading(false);
         }

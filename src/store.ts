@@ -32,6 +32,8 @@ export interface AppState {
   demoMode: boolean;
   toggleDemoMode: () => void;
 
+  clearAuth: () => void;
+
   activeFramework: string | null;
   setActiveFramework: (framework: string | null) => void;
 }
@@ -105,6 +107,13 @@ export const useStore = create<AppState>((set) => ({
     // Legacy state update removed
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+
+  clearAuth: () => set({
+    user: null,
+    organization: null,
+    customRoles: [],
+    demoMode: false,
+  }),
 
   demoMode: SecureStorage.getSecureItem('demoMode') === 'true',
 

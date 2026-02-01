@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FileSpreadsheet, Lock, LayoutTemplate, Star, ArrowRight } from '../ui/Icons';
 import { Button } from '../ui/button';
@@ -43,13 +44,14 @@ const templates: ReportTemplate[] = [
 ];
 
 export const ReportTemplates: React.FC = () => {
+    const { t } = useTranslation();
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between">
                 <div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <LayoutTemplate className="w-6 h-6 text-brand-500" />
-                        Bibliothèque de Modèles
+                        {t('reports.templateLibrary', { defaultValue: 'Template Library' })}
                     </h3>
                     <p className="text-slate-500 dark:text-muted-foreground mt-1">
                         Utilisez des modèles pré-configurés pour vos rapports récurrents.
@@ -57,7 +59,7 @@ export const ReportTemplates: React.FC = () => {
                 </div>
                 <Button variant="default" className="gap-2">
                     <Star className="w-4 h-4" />
-                    Créer un modèle
+                    {t('reports.createTemplate', { defaultValue: 'Create Template' })}
                 </Button>
             </div>
 

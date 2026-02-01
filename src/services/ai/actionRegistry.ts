@@ -7,6 +7,7 @@ import { doc, updateDoc, serverTimestamp, FieldValue } from 'firebase/firestore'
 import { db } from '../../firebase';
 import { logAction } from '../logger';
 import { canEditResource, canDeleteResource, hasPermission } from '../../utils/permissions';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 /** Risk update fields for Firestore */
 interface RiskUpdateFields {
@@ -110,7 +111,7 @@ export const ActionRegistry: Record<AIActionType, AIActionDefinition> = {
             if (data.impact) updates.impact = data.impact;
             if (data.description) updates.description = data.description;
 
-            await updateDoc(riskRef, updates as Record<string, unknown>);
+            await updateDoc(riskRef, sanitizeData(updates as Record<string, unknown>));
             await logAction(user, 'UPDATE', 'Risk', `Mise à jour Risque via IA: ${data.id}`);
 
             return `Le risque a été mis à jour (Statut: ${data.status || 'Inchangé'}).`;

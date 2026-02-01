@@ -3,6 +3,7 @@ import { UserProfile } from '../../types';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { Role, getRoleName } from '../../utils/permissions';
 import { Save, X, Edit } from '../ui/Icons';
+import { useLocale } from '@/hooks/useLocale';
 
 interface UserRowProps {
     user: UserProfile;
@@ -25,6 +26,7 @@ export const UserRow: React.FC<UserRowProps> = ({
     onRoleChange,
     onSave
 }) => {
+    const { config } = useLocale();
     return (
         <tr className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
             <td className="px-6 py-4 whitespace-nowrap">
@@ -71,7 +73,7 @@ export const UserRow: React.FC<UserRowProps> = ({
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-muted-foreground">
                 {user.lastLogin
-                    ? new Date(user.lastLogin).toLocaleDateString('fr-FR', {
+                    ? new Date(user.lastLogin).toLocaleDateString(config.intlLocale, {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',

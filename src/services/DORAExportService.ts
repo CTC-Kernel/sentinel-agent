@@ -21,7 +21,7 @@ import {
 import { ICTProviderService } from './ICTProviderService';
 import { parseDate, formatDateISO } from '../utils/dateUtils';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, Timestamp, getDoc, limit as firestoreLimit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, getDoc, limit as firestoreLimit, serverTimestamp } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 
@@ -417,7 +417,7 @@ export class DORAExportService {
             const docRef = await addDoc(collection(db, 'dora_exports'), sanitizeData({
                 ...record,
                 organizationId,
-                createdAt: Timestamp.now()
+                createdAt: serverTimestamp()
             }));
             return docRef.id;
         } catch (error: unknown) {

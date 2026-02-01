@@ -351,7 +351,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
 
   // const formatDate = (timestamp: { toDate: () => Date } | undefined) => {
   //   if (!timestamp) return '-';
-  //   return format(timestamp.toDate(), 'dd MMM yyyy', { locale: fr });
+  //   return format(timestamp.toDate(), 'dd MMM yyyy', { locale: dateFnsLocale });
   // };
 
   // Calculate percentages for age distribution chart

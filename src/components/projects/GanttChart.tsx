@@ -6,6 +6,7 @@ import { CalendarDays, User } from '../ui/Icons';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../theme/chartTheme';
+import { useLocale } from '@/hooks/useLocale';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
@@ -18,6 +19,7 @@ interface GanttChartProps {
 }
 
 export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewModeChange, onTaskUpdate, onTaskClick, users = [], loading }) => {
+    const { config } = useLocale();
     const ganttRef = useRef<HTMLDivElement>(null);
     // Default to hidden on mobile (< 768px)
     const [showList, setShowList] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
@@ -69,7 +71,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         progressColor = SEVERITY_COLORS.critical;
                         backgroundColor = `${SEVERITY_COLORS.critical}1a`;
                         break;
-                    default: // A faire
+                    default: // À faire
                         progressColor = SENTINEL_PALETTE.tertiary;
                         backgroundColor = `${SENTINEL_PALETTE.tertiary}1a`;
                 }
@@ -200,12 +202,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                 <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                     <div className="flex flex-col">
                         <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-0.5">Début</span>
-                        <span>{startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                        <span>{startDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short' })}</span>
                     </div>
                     <div className="text-slate-300 dark:text-slate-700">→</div>
                     <div className="flex flex-col items-end">
                         <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-0.5">Fin</span>
-                        <span>{endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                        <span>{endDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short' })}</span>
                     </div>
                 </div>
             </div>

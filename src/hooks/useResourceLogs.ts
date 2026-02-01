@@ -59,9 +59,10 @@ export const useResourceLogs = (_resourceType: string, resourceId?: string, limi
             // Silent error or specific handling? 
             // For a history tab, we might want to show empty state rather than error toast if it's just index missing
             if ((error as { code?: string })?.code === 'failed-precondition') {
-                // Index missing - silent fail for better UX
+                console.warn('Missing Firestore index for resource logs query. Resource:', resourceId);
+                setLogs([]);
             } else {
-                toast.error(t('resourceLogs.toast.loadError', { defaultValue: 'Impossible de charger l\'historique' }));
+                toast.error(t('resourceLogs.toast.loadError', { defaultValue: 'Failed to load history' }));
             }
         } finally {
             setLoading(false);

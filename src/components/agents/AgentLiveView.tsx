@@ -26,6 +26,7 @@ import {
 } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useLocale } from '@/hooks/useLocale';
 
 interface AgentLiveViewProps {
     agent: SentinelAgent;
@@ -47,9 +48,9 @@ const OSIcon: React.FC<{ os: SentinelAgent['os']; className?: string }> = ({ os,
 };
 
 // Format last seen
-const formatLastSeen = (dateStr: string): string => {
+const formatLastSeen = (dateStr: string, intlLocale: string = 'fr-FR'): string => {
     const date = new Date(dateStr);
-    return date.toLocaleString('fr-FR', {
+    return date.toLocaleString(intlLocale, {
         day: '2-digit',
         month: 'short',
         hour: '2-digit',
@@ -123,6 +124,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
     onClose,
     className
 }) => {
+    const { config } = useLocale();
     const [activeTab, setActiveTab] = useState('metrics');
     const [realtimeData, setRealtimeData] = useState<AgentRealtimeData | null>(() => buildRealtimeDataFromAgent(agent));
     const [metricsHistory, setMetricsHistory] = useState<AgentRealtimeMetrics[]>([]);
@@ -299,7 +301,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             <span>{agent.ipAddress}</span>
                             <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {formatLastSeen(agent.lastHeartbeat)}
+                                {formatLastSeen(agent.lastHeartbeat, config.intlLocale)}
                             </span>
                             {agent.version && (
                                 <span>v{agent.version}</span>
@@ -534,7 +536,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
             {/* Footer */}
             <div className="flex items-center justify-between px-4 py-2 border-t border-border/50 bg-muted/10 text-xs text-muted-foreground">
                 <span>
-                    Dernière mise à jour: {lastRefresh.toLocaleTimeString('fr-FR')}
+                    Dernière mise à jour: {lastRefresh.toLocaleTimeString(config.intlLocale)}
                 </span>
                 <span className="flex items-center gap-1">
                     <span className={cn(

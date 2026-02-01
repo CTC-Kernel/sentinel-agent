@@ -37,7 +37,7 @@ import {
 } from '@/services/eDiscoveryService';
 import { VaultAuditService, DocumentAction } from '@/services/vaultAuditService';
 import { format, formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface EDiscoverySearchProps {
   /** Default document ID to filter by */
@@ -58,6 +58,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 }) => {
   const { user } = useAuth();
   const { organization: currentOrganization } = useStore();
+  const { dateFnsLocale } = useLocale();
 
   // Query state
   const [keywords, setKeywords] = useState('');
@@ -356,7 +357,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   )}
                   <p className="text-xs text-muted-foreground">
                     Utilisee {search.runCount} fois
-                    {search.lastRunAt && ` - Derniere: ${formatDistanceToNow(search.lastRunAt, { addSuffix: true, locale: fr })}`}
+                    {search.lastRunAt && ` - Derniere: ${formatDistanceToNow(search.lastRunAt, { addSuffix: true, locale: dateFnsLocale })}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -668,7 +669,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
                       <div className="text-right">
                         <p className="text-xs text-slate-500">
-                          {entry.timestamp ? format(new Date(entry.timestamp), 'dd/MM/yyyy HH:mm', { locale: fr }) : 'N/A'}
+                          {entry.timestamp ? format(new Date(entry.timestamp), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale }) : 'N/A'}
                         </p>
                         <p className="text-xs text-muted-foreground font-mono">
                           {entry.documentId.substring(0, 8)}...

@@ -8,6 +8,7 @@
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     DetectedAnomaly,
@@ -22,6 +23,7 @@ import {
     getSeverityBgColor,
     getAnomalyTypeLabel,
 } from '../../types/anomalyDetection';
+import { useLocale } from '@/hooks/useLocale';
 import {
     subscribeToAgentAnomalies,
     subscribeToAnomalyStats,
@@ -196,6 +198,7 @@ const AnomalyCard: React.FC<{
     selected,
     onSelect,
 }) => {
+        const { config } = useLocale();
         const TypeIcon = AnomalyTypeIcons[anomaly.type];
         const SeverityIcon = SeverityIcons[anomaly.severity];
 
@@ -447,7 +450,7 @@ const AnomalyCard: React.FC<{
                                 {(anomaly.status === 'resolved' || anomaly.status === 'false_positive') && anomaly.resolvedAt && (
                                     <div className="text-sm text-muted-foreground">
                                         {anomaly.status === 'resolved' ? 'Résolu' : 'Marqué faux positif'} le{' '}
-                                        {new Date(anomaly.resolvedAt).toLocaleDateString('fr-FR', {
+                                        {new Date(anomaly.resolvedAt).toLocaleDateString(config.intlLocale, {
                                             day: 'numeric',
                                             month: 'short',
                                             hour: '2-digit',
@@ -474,6 +477,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     showStats = true,
 }) => {
     const { user } = useStore();
+    const { t } = useTranslation();
     const organizationId = user?.organizationId;
 
     // Force re-render every minute to update relative timestamps
@@ -655,7 +659,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
             <div className={cn('space-y-4', className)}>
                 <div className="glass-premium rounded-2xl p-8 text-center border border-border/40">
                     <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">Aucune anomalie détectée</h3>
+                    <h3 className="font-semibold mb-2">{t('agents.noAnomalies', { defaultValue: 'No anomalies detected' })}</h3>
                     <p className="text-sm text-muted-foreground">
                         Tous les agents fonctionnent normalement
                     </p>
@@ -872,10 +876,10 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                         className="glass-premium rounded-2xl p-8 text-center border border-border/40"
                     >
                         <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
-                        <h3 className="font-semibold mb-2">Aucune anomalie</h3>
+                        <h3 className="font-semibold mb-2">{t('agents.noAnomalies', { defaultValue: 'No anomalies' })}</h3>
                         <p className="text-sm text-muted-foreground">
                             {searchTerm || statusFilter.length > 0 || severityFilter.length > 0 || typeFilter.length > 0
-                                ? "Aucune anomalie ne correspond aux filtres"
+                                ? t('agents.noAnomaliesMatchFilter', { defaultValue: 'No anomalies match the filters' })
                                 : "Tous les agents fonctionnent normalement"}
                         </p>
                     </motion.div>

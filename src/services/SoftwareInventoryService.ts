@@ -510,7 +510,7 @@ export async function upsertSoftwareFromAgent(
                 batches.push({
                     action: 'set',
                     ref: newSoftwareRef,
-                    data: { ...newEntry, updatedAt: Timestamp.now() },
+                    data: { ...newEntry, updatedAt: serverTimestamp() },
                 });
                 added++;
             } else {
@@ -566,7 +566,7 @@ export async function upsertSoftwareFromAgent(
                         agentIds: newAgentIds,
                         agentCount: newAgentIds.length,
                         lastSeen: new Date().toISOString(),
-                        updatedAt: Timestamp.now(),
+                        updatedAt: serverTimestamp(),
                     },
                 });
                 updated++;
@@ -640,7 +640,7 @@ export async function updateAuthorizationStatus(
             riskScore: newRiskScore,
             riskLevel: getRiskLevel(newRiskScore),
             'riskFactors.unauthorizedScore': unauthorizedScore,
-            updatedAt: Timestamp.now(),
+            updatedAt: serverTimestamp(),
         }));
     } catch (error) {
         ErrorLogger.error(error as Error, 'SoftwareInventoryService.updateAuthorizationStatus', {
@@ -773,7 +773,7 @@ export async function linkCvesToSoftware(
             vulnerabilitySummary,
             riskScore: newRiskScore,
             riskLevel: getRiskLevel(newRiskScore),
-            updatedAt: Timestamp.now(),
+            updatedAt: serverTimestamp(),
         }));
     } catch (error) {
         ErrorLogger.error(error as Error, 'SoftwareInventoryService.linkCvesToSoftware', {

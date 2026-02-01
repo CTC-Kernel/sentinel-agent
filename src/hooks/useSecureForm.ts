@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { InputSanitizer } from '../services/inputSanitizationService';
 import { RateLimiter } from '../services/rateLimitService';
 import { ErrorLogger } from '../services/errorLogger';
@@ -66,19 +66,23 @@ export function useSecureForm<T extends Record<string, unknown>>({
   const user = useStore(state => state.user);
   const t = tProp || tStore;
 
+  // Stabilize sanitizationOptions with a ref to prevent unnecessary re-creation of sanitizeValue
+  const sanitizationOptionsRef = useRef(sanitizationOptions);
+  sanitizationOptionsRef.current = sanitizationOptions;
+
   /**
    * Sanitize une valeur selon son type
    */
   const sanitizeValue = useCallback((value: unknown): unknown => {
     if (typeof value === 'string') {
-      return InputSanitizer.sanitizeString(value, sanitizationOptions);
+      return InputSanitizer.sanitizeString(value, sanitizationOptionsRef.current);
     } else if (Array.isArray(value)) {
       return value.map(item => sanitizeValue(item));
     } else if (value !== null && typeof value === 'object') {
-      return InputSanitizer.sanitizeObject(value as Record<string, unknown>, sanitizationOptions);
+      return InputSanitizer.sanitizeObject(value as Record<string, unknown>, sanitizationOptionsRef.current);
     }
     return value;
-  }, [sanitizationOptions]);
+  }, []);
 
   /**
    * Met à jour la valeur d'un champ avec sanitization

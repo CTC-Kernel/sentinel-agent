@@ -1,6 +1,7 @@
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
-import { doc, writeBatch } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { sanitizeData } from '@/utils/dataSanitizer';
 import {
     Asset, Risk, Project, Audit, Document, Incident, Supplier,
     BusinessProcess, Criticality, UserProfile
@@ -201,7 +202,7 @@ export const DemoDataService = {
                 tasks: [
                     { id: uuidv4(), title: 'Gap Analysis', status: 'Terminé', progress: 100 },
                     { id: uuidv4(), title: 'Rédaction Politique PSSI', status: 'En cours', progress: 60, assignee: 'CISO' },
-                    { id: uuidv4(), title: 'Audit à blanc', status: 'A faire', startDate: '2025-10-01', dueDate: '2025-10-15' }
+                    { id: uuidv4(), title: 'Audit à blanc', status: 'À faire', startDate: '2025-10-01', dueDate: '2025-10-15' }
                 ]
             } as Project,
             {
@@ -306,7 +307,7 @@ export const DemoDataService = {
         const saveBatch = <T extends { id: string }>(collectionName: string, items: T[]): void => {
             items.forEach(item => {
                 const ref = doc(db, collectionName, item.id);
-                batch.set(ref, item);
+                batch.set(ref, sanitizeData(item));
             });
         };
 
@@ -322,7 +323,7 @@ export const DemoDataService = {
 
             // Also add a system log
             const logId = uuidv4();
-            batch.set(doc(db, 'system_logs', logId), {
+            batch.set(doc(db, 'system_logs', logId), sanitizeData({
                 id: logId,
                 organizationId,
                 userId,
@@ -330,8 +331,8 @@ export const DemoDataService = {
                 action: 'Generate Demo Data',
                 resource: 'Settings',
                 details: 'Full demo environment generated',
-                timestamp: now.toISOString()
-            });
+                timestamp: serverTimestamp()
+            }));
 
             await batch.commit();
             if (import.meta.env.DEV) ErrorLogger.info('Demo data generated successfully!', 'DemoDataService.generateDemoData');

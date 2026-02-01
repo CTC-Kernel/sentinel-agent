@@ -265,8 +265,8 @@ export function getLocaleConfig(locale: SupportedLocale): LocaleConfig {
  * const dfLocale = getDateFnsLocale('fr');
  * format(new Date(), 'PPP', { locale: dfLocale });
  */
-export function getDateFnsLocale(locale: SupportedLocale): Locale {
-  return (localeConfig[locale] || localeConfig.fr).dateFnsLocale;
+export function getDateFnsLocale(locale?: SupportedLocale): Locale {
+  return (localeConfig[locale || 'fr'] || localeConfig.fr).dateFnsLocale;
 }
 
 /**

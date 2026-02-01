@@ -14,7 +14,6 @@ import { Edit2, Trash2, Eye, Copy, AlertCircle, CheckCircle, Globe, Clock, Alert
 import { ICTProvider, ICTCriticality } from '../../types/dora';
 import { format, differenceInDays } from 'date-fns';
 import { parseDate } from '../../utils/dateUtils';
-import { fr } from 'date-fns/locale';
 import { useLocale } from '../../hooks/useLocale';
 
 interface ICTProviderListProps {
@@ -39,7 +38,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
     onCreateNew
 }) => {
     const { t } = useTranslation();
-    const { locale } = useLocale();
+    const { locale, dateFnsLocale } = useLocale();
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
     const safeProviders = useMemo(() => {
@@ -95,7 +94,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
         try {
             const date = typeof dateValue === 'string' ? new Date(dateValue) : null;
             if (!date || isNaN(date.getTime())) return '-';
-            return format(date, locale === 'fr' ? 'dd MMM yyyy' : 'MMM dd, yyyy', { locale: fr });
+            return format(date, locale === 'fr' ? 'dd MMM yyyy' : 'MMM dd, yyyy', { locale: dateFnsLocale });
         } catch {
             return '-';
         }

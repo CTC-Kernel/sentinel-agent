@@ -7,7 +7,7 @@ import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface SharedLink {
@@ -26,17 +26,22 @@ interface SharedLinksListProps {
 
 export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => {
     const { t } = useStore();
+    const { dateFnsLocale } = useLocale();
     const [links, setLinks] = useState<SharedLink[]>([]);
     const [loading, setLoading] = useState(true);
     const [revokingId, setRevokingId] = useState<string | null>(null);
     const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
 
+    const { user } = useStore();
+
     useEffect(() => {
         const fetchLinks = async () => {
+            if (!user?.organizationId) return;
             try {
                 const q = query(
                     collection(db, 'audit_shares'),
                     where('auditId', '==', auditId),
+                    where('organizationId', '==', user.organizationId),
                     // orderBy('createdAt', 'desc') // Requires composite index, doing client sort for MVP safety
                 );
                 const snapshot = await getDocs(q);
@@ -54,7 +59,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
         };
 
         fetchLinks();
-    }, [auditId]);
+    }, [auditId, user?.organizationId]);
 
     const handleRevoke = async (token: string) => {
         setRevokingId(token);
@@ -96,7 +101,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                                 <div className="flex items-center gap-3 text-xs text-slate-500">
                                     <span className="flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
-                                        Expire {formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true, locale: fr })}
+                                        Expire {formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true, locale: dateFnsLocale })}
                                     </span>
                                     {isActive && <span className="text-brand-600 font-mono text-[11px] select-all">...{link.id.substring(0, 8)}</span>}
                                 </div>

@@ -74,7 +74,8 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
     // Loading is derived, no set state needed.
 
 
-    let unsubscribe: Unsubscribe | null = null;
+    const unsubRef = { current: null as Unsubscribe | null };
+    let cancelled = false;
 
     const setupListener = async () => {
       try {
@@ -87,7 +88,7 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
           where('status', '==', 'in_progress')
         );
 
-        unsubscribe = onSnapshot(
+        const unsub = onSnapshot(
           ongoingAuditsQuery,
           (snapshot) => {
             const newCount = snapshot.size;
@@ -115,6 +116,11 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
             setIsRefetching(false);
           }
         );
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubRef.current = unsub;
       } catch (err) {
         ErrorLogger.error(err, 'useOngoingAudits.setupListener');
         setError(err as Error);
@@ -126,9 +132,8 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
     setupListener();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      cancelled = true;
+      unsubRef.current?.();
     };
   }, [tenantId, refreshKey]);
 

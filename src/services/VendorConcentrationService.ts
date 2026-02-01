@@ -17,6 +17,7 @@ import {
   getDoc,
   orderBy,
   Timestamp,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
@@ -111,9 +112,10 @@ export class VendorConcentrationService {
       // Calculate high dependency count
       const highDependencyCount = this.countHighDependencyVendors(suppliers);
 
-      // Calculate overall HHI (across all categories)
-      const categoryShares = categoryConcentration.map(c => c.percentage);
-      const overallHHI = calculateHHI(categoryShares);
+      // Calculate overall HHI from individual vendor shares (not category shares)
+      const totalContractValue = suppliers.reduce((sum, s) => sum + (s.contractValue || 1), 0);
+      const vendorShares = suppliers.map(s => ((s.contractValue || 1) / totalContractValue) * 100);
+      const overallHHI = calculateHHI(vendorShares);
 
       // Calculate overall risk score
       const overallRiskScore = this.calculateOverallRiskScore(
@@ -911,14 +913,14 @@ export class VendorConcentrationService {
       const trendRef = doc(db, this.TRENDS_COLLECTION, trendId);
       await setDoc(trendRef, sanitizeData({
         ...metrics,
-        calculatedAt: Timestamp.now(),
+        calculatedAt: serverTimestamp(),
       }));
 
       // Save current metrics
       const metricsRef = doc(db, this.METRICS_COLLECTION, organizationId);
       await setDoc(metricsRef, sanitizeData({
         ...metrics,
-        calculatedAt: Timestamp.now(),
+        calculatedAt: serverTimestamp(),
       }));
     } catch {
       ErrorLogger.warn('Failed to save concentration metrics', 'VendorConcentrationService.saveMetrics');

@@ -48,6 +48,10 @@ export const useThreats = () => {
             addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
             return;
         }
+        if (!hasPermission(user, 'Threat', 'create')) {
+            addToast(t('threats.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
         try {
             const dataToSave = sanitizeData({
                 ...threat,
@@ -143,6 +147,10 @@ export const useThreats = () => {
         if (!user?.organizationId) return;
         if (demoMode) {
             addToast(t('common.toast.demoModeUnavailable', { defaultValue: "Action non disponible en mode démo" }), "info");
+            return;
+        }
+        if (!hasPermission(user, 'Threat', 'create')) {
+            addToast(t('threats.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
             return;
         }
         try {

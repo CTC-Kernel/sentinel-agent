@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
 import { FileText, ShieldAlert, CheckSquare, Server, Activity, ArrowRight } from '../ui/Icons';
@@ -26,6 +27,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
     onGenerate,
     defaultTitle = "Rapport Exécutif Global"
 }) => {
+    const { t } = useTranslation();
     const { register, handleSubmit, setValue, control, formState: { isDirty } } = useForm<ReportConfig>({
         defaultValues: {
             title: defaultTitle,
@@ -153,7 +155,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                     className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                     onClick={onClose}
                 >
-                    Annuler
+                    {t('common.cancel', { defaultValue: 'Cancel' })}
                 </Button>
                 <div className="w-px bg-slate-200 dark:bg-white/5"></div>
                 <Button

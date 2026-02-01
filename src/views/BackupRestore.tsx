@@ -7,7 +7,7 @@ import { BackupService, BackupMetadata } from '../services/backupService';
 import { Save, RotateCcw, Clock, AlertTriangle, FileText, Shield, Users, Database, HardDrive, CheckCircle2, Calendar } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { SubmitHandler, Controller } from 'react-hook-form';
 import { useZodForm } from '../hooks/useZodForm';
 import { Switch } from '../components/ui/Switch';
@@ -29,6 +29,7 @@ import { BackupList } from '../components/settings/backup/BackupList';
 export const BackupRestore: React.FC = () => {
   const { t } = useTranslation();
   const { user, addToast } = useStore();
+  const { dateFnsLocale } = useLocale();
   // hasPermission check
 
   // Start module tour
@@ -360,7 +361,7 @@ export const BackupRestore: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
                       <Clock className="h-4 w-4" />
-                      {format(new Date(selectedBackup.createdAt), "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                      {format(new Date(selectedBackup.createdAt), "d MMMM yyyy 'à' HH:mm", { locale: dateFnsLocale })}
                     </div>
                   </div>
 

@@ -17,9 +17,10 @@ import {
   query,
   where,
   orderBy,
-  Timestamp,
   onSnapshot,
   writeBatch,
+  serverTimestamp,
+  Timestamp,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
@@ -114,9 +115,9 @@ export class AccessReviewService {
         approvedCount: 0,
         revokedCount: 0,
         escalatedCount: 0,
-        createdAt: Timestamp.now(),
+        createdAt: serverTimestamp() as unknown as Timestamp,
         createdBy: user.uid,
-        updatedAt: Timestamp.now(),
+        updatedAt: serverTimestamp() as unknown as Timestamp,
         updatedBy: user.uid,
       };
 
@@ -139,12 +140,12 @@ export class AccessReviewService {
     try {
       const updateData: Record<string, unknown> = {
         status,
-        updatedAt: Timestamp.now(),
+        updatedAt: serverTimestamp(),
         updatedBy: user.uid,
       };
 
       if (status === 'completed') {
-        updateData.completedAt = Timestamp.now();
+        updateData.completedAt = serverTimestamp();
       }
 
       await updateDoc(doc(db, CAMPAIGNS_COLLECTION, campaignId), sanitizeData(updateData));
@@ -190,8 +191,8 @@ export class AccessReviewService {
           status: 'pending',
           deadline: campaign.endDate,
           remindersSent: 0,
-          createdAt: Timestamp.now(),
-          updatedAt: Timestamp.now(),
+          createdAt: serverTimestamp() as unknown as Timestamp,
+          updatedAt: serverTimestamp() as unknown as Timestamp,
         };
 
         const reviewRef = doc(collection(db, REVIEWS_COLLECTION));
@@ -203,7 +204,7 @@ export class AccessReviewService {
       batch.update(campaignRef, sanitizeData({
         status: 'active',
         totalReviews: reviewCount,
-        updatedAt: Timestamp.now(),
+        updatedAt: serverTimestamp(),
         updatedBy: user.uid,
       }));
 
@@ -300,8 +301,8 @@ export class AccessReviewService {
         status: newStatus,
         decision: submission.decision,
         justification: submission.justification,
-        reviewedAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       }));
 
       // Update campaign counts
@@ -311,7 +312,7 @@ export class AccessReviewService {
       if (campaign) {
         const updates: Record<string, unknown> = {
           completedReviews: campaign.completedReviews + 1,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: user.uid,
         };
 
@@ -326,7 +327,7 @@ export class AccessReviewService {
         // Check if campaign is complete
         if (campaign.completedReviews + 1 >= campaign.totalReviews) {
           updates.status = 'completed';
-          updates.completedAt = Timestamp.now();
+          updates.completedAt = serverTimestamp();
         }
 
         await updateDoc(campaignRef, sanitizeData(updates));
@@ -402,7 +403,7 @@ export class AccessReviewService {
       await updateDoc(doc(db, DORMANT_COLLECTION, accountId), sanitizeData({
         status,
         statusReason: reason,
-        statusChangedAt: Timestamp.now(),
+        statusChangedAt: serverTimestamp(),
         statusChangedBy: user.uid,
       }));
     } catch (error) {

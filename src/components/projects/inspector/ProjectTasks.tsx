@@ -43,7 +43,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
     const toggleTaskStatus = useCallback(async (taskId: string) => {
         const task = project.tasks?.find(t => t.id === taskId);
         if (!task) return;
-        const newStatus: ProjectTask['status'] = task.status === 'Terminé' ? 'A faire' : 'Terminé';
+        const newStatus: ProjectTask['status'] = task.status === 'Terminé' ? 'À faire' : 'Terminé';
         const newTasks = project.tasks?.map(t => t.id === taskId ? { ...t, status: newStatus } : t) || [];
         await onUpdateTasks(project, newTasks);
     }, [project, onUpdateTasks]);
@@ -66,7 +66,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
 
     const handleDragOver = useCallback((e: React.DragEvent) => e.preventDefault(), []);
 
-    const handleDrop = useCallback(async (e: React.DragEvent, status: 'A faire' | 'En cours' | 'Terminé') => {
+    const handleDrop = useCallback(async (e: React.DragEvent, status: 'À faire' | 'En cours' | 'Terminé') => {
         e.preventDefault();
         if (!draggedTaskId) return;
         const newTasks = project.tasks?.map(t => t.id === draggedTaskId ? { ...t, status } : t) || [];
@@ -135,10 +135,10 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                 </div>
             ) : (
                 <div className="flex gap-4 overflow-x-auto pb-4 h-full">
-                    {['A faire', 'En cours', 'Terminé'].map(status => (
+                    {['À faire', 'En cours', 'Terminé'].map(status => (
                         <KanbanColumn
                             key={status || 'unknown'}
-                            status={status as 'A faire' | 'En cours' | 'Terminé'}
+                            status={status as 'À faire' | 'En cours' | 'Terminé'}
                             tasks={project.tasks?.filter(t => t.status === status) || []}
                             canEdit={canEdit}
                             draggedTaskId={draggedTaskId}

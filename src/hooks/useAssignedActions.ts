@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   collection,
   query,
@@ -127,6 +128,7 @@ export function useAssignedActions(
   userId: string | undefined,
   maxItems: number = 10
 ): AssignedActionsResult {
+  const { t } = useTranslation();
   const [actions, setActions] = useState<ActionListItem[]>([]);
   const [count, setCount] = useState<number>(0);
   const [overdueCount, setOverdueCount] = useState<number>(0);
@@ -156,7 +158,8 @@ export function useAssignedActions(
     // Loading is derived, no set state needed.
 
 
-    let unsubscribe: Unsubscribe | null = null;
+    const unsubRef = { current: null as Unsubscribe | null };
+    let cancelled = false;
 
     const setupListener = async () => {
       try {
@@ -184,7 +187,7 @@ export function useAssignedActions(
           );
         }
 
-        unsubscribe = onSnapshot(
+        const unsub = onSnapshot(
           actionsQuery,
           (snapshot) => {
             const actionItems: ActionListItem[] = snapshot.docs.map((doc) => {
@@ -196,7 +199,7 @@ export function useAssignedActions(
 
               return {
                 id: doc.id,
-                title: data.title || data.description || 'Action sans titre',
+                title: data.title || data.description || t('actions.untitled', { defaultValue: 'Untitled action' }),
                 description: data.description,
                 type: data.type || 'general',
                 status: data.status || 'pending',
@@ -243,6 +246,11 @@ export function useAssignedActions(
             setIsRefetching(false);
           }
         );
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubRef.current = unsub;
       } catch (err) {
         ErrorLogger.error(err, 'useAssignedActions.setupListener');
         setError(err as Error);
@@ -254,9 +262,8 @@ export function useAssignedActions(
     setupListener();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      cancelled = true;
+      unsubRef.current?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- trend is intentionally excluded to prevent re-subscription on trend changes
   }, [tenantId, userId, maxItems, refreshKey]);

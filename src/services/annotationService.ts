@@ -17,7 +17,6 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
@@ -27,11 +26,14 @@ import {
   Timestamp,
   writeBatch,
   increment,
+  arrayUnion,
   QueryConstraint,
 } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
 import { NotificationService } from './notificationService';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 import type {
   VoxelAnnotation,
   AnnotationReply,
@@ -410,7 +412,7 @@ export class AnnotationService {
    * Create a reply to an annotation
    */
   static async createReply(
-    author: AnnotationAuthor,
+    author: AnnotationAuthor & { organizationId?: string },
     dto: CreateReplyDTO
   ): Promise<AnnotationReply | null> {
     try {
@@ -420,6 +422,11 @@ export class AnnotationService {
       if (!annotationSnap.exists()) return null;
 
       const annotationData = annotationSnap.data();
+
+      // IDOR check: verify the author belongs to the same organization as the annotation
+      if (author.organizationId && annotationData.organizationId !== author.organizationId) {
+        throw new Error('Access denied');
+      }
       const mentions = parseMentions(dto.content);
 
       const replyData = sanitizeData({
@@ -452,11 +459,11 @@ export class AnnotationService {
       // Keep only last 3 replies inline
       const inlineReplies = [...currentReplies, newReply].slice(-3);
 
-      await updateDoc(annotationRef, {
+      await updateDoc(annotationRef, sanitizeData({
         replyCount: increment(1),
         replies: inlineReplies,
         updatedAt: serverTimestamp(),
-      });
+      }));
 
       // Notify mentioned users
       if (mentions.length > 0) {
@@ -543,21 +550,30 @@ export class AnnotationService {
   /**
    * Delete a reply
    */
-  static async deleteReply(annotationId: string, replyId: string): Promise<boolean> {
+  static async deleteReply(annotationId: string, replyId: string, organizationId: string): Promise<boolean> {
     try {
       const annotationRef = doc(db, COLLECTION_NAME, annotationId);
+      const annotationSnap = await getDoc(annotationRef);
+
+      if (!annotationSnap.exists()) return false;
+
+      const annotationData = annotationSnap.data();
+      if (annotationData.organizationId !== organizationId) {
+        throw new Error('Access denied');
+      }
+
       const replyRef = doc(db, COLLECTION_NAME, annotationId, REPLIES_SUBCOLLECTION, replyId);
 
-      // Delete the reply
-      await deleteDoc(replyRef);
-
-      // Update annotation reply count
-      await updateDoc(annotationRef, {
+      // Atomic batch: delete reply + decrement count + update timestamp
+      const batch = writeBatch(db);
+      batch.delete(replyRef);
+      batch.update(annotationRef, {
         replyCount: increment(-1),
         updatedAt: serverTimestamp(),
       });
+      await batch.commit();
 
-      // Refresh inline replies
+      // Refresh inline replies (must be done after batch since we need to read remaining replies)
       const remainingReplies = await this.getReplies(annotationId);
       const inlineReplies = remainingReplies.slice(-3);
 
@@ -692,19 +708,15 @@ export class AnnotationService {
   /**
    * Mark annotation as read by user
    */
-  static async markAsRead(annotationId: string, userId: string): Promise<void> {
+  static async markAsRead(annotationId: string, userId: string, _organizationId: string): Promise<void> {
     try {
       const docRef = doc(db, COLLECTION_NAME, annotationId);
-      const docSnap = await getDoc(docRef);
 
-      if (!docSnap.exists()) return;
-
-      const currentReadBy = (docSnap.data().readBy as string[]) || [];
-      if (!currentReadBy.includes(userId)) {
-        await updateDoc(docRef, {
-          readBy: [...currentReadBy, userId],
-        });
-      }
+      // Use arrayUnion for atomic update to avoid race conditions
+      // The organizationId security check is enforced by Firestore security rules
+      await updateDoc(docRef, {
+        readBy: arrayUnion(userId),
+      });
     } catch (error) {
       ErrorLogger.error(error, 'AnnotationService.markAsRead');
     }
@@ -713,18 +725,23 @@ export class AnnotationService {
   /**
    * Pin/unpin an annotation
    */
-  static async togglePin(annotationId: string): Promise<boolean> {
+  static async togglePin(annotationId: string, organizationId: string): Promise<boolean> {
     try {
       const docRef = doc(db, COLLECTION_NAME, annotationId);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) return false;
 
-      const currentlyPinned = docSnap.data().isPinned || false;
-      await updateDoc(docRef, {
+      const annotationData = docSnap.data();
+      if (annotationData.organizationId !== organizationId) {
+        throw new Error('Access denied');
+      }
+
+      const currentlyPinned = annotationData.isPinned || false;
+      await updateDoc(docRef, sanitizeData({
         isPinned: !currentlyPinned,
         updatedAt: serverTimestamp(),
-      });
+      }));
 
       return !currentlyPinned;
     } catch (error) {
@@ -899,7 +916,7 @@ export class AnnotationService {
       </head>
       <body>
         <h1>Rapport des Annotations Voxel</h1>
-        <p>Genere le ${new Date().toLocaleDateString('fr-FR')}</p>
+        <p>Genere le ${new Date().toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale)}</p>
 
         <h2>Statistiques</h2>
         <div class="stats">
@@ -941,7 +958,7 @@ export class AnnotationService {
                 <td>${a.content.substring(0, 100)}${a.content.length > 100 ? '...' : ''}</td>
                 <td>${a.author.displayName}</td>
                 <td>${a.status}</td>
-                <td>${new Date(a.createdAt).toLocaleDateString('fr-FR')}</td>
+                <td>${new Date(a.createdAt).toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale)}</td>
               </tr>
             `
               )

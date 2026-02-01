@@ -19,6 +19,7 @@ import {
   Timestamp,
   onSnapshot,
   type Unsubscribe,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { functions, db } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
@@ -95,7 +96,7 @@ export const SignatureService = {
 
       // Create audit trail entry
       const auditTrail: SignatureAuditEvent[] = [{
-        timestamp: Timestamp.now(),
+        timestamp: serverTimestamp() as unknown as Timestamp,
         action: 'request_created',
         actorId: createdBy,
         details: {
@@ -116,7 +117,7 @@ export const SignatureService = {
         deadline: input.deadline ? Timestamp.fromDate(input.deadline) : undefined,
         sequentialSigning: input.sequentialSigning ?? false,
         createdBy,
-        createdAt: Timestamp.now(),
+        createdAt: serverTimestamp() as unknown as Timestamp,
         reminders: input.reminders ? {
           ...input.reminders,
           remindersSent: 0,
@@ -351,14 +352,14 @@ export const SignatureService = {
       updatedSigners[signerIndex] = {
         ...signer,
         status: 'signed',
-        signedAt: Timestamp.now(),
+        signedAt: serverTimestamp() as unknown as Timestamp,
         userId,
         signatureData,
       };
 
       // Add audit event
       const auditEvent: SignatureAuditEvent = {
-        timestamp: Timestamp.now(),
+        timestamp: serverTimestamp() as unknown as Timestamp,
         action: 'signature_applied',
         actorId: userId,
         actorEmail: userEmail,
@@ -378,8 +379,8 @@ export const SignatureService = {
       await updateDoc(docRef, sanitizeData({
         signers: updatedSigners,
         status: newStatus,
-        updatedAt: Timestamp.now(),
-        ...(allSigned && { completedAt: Timestamp.now() }),
+        updatedAt: serverTimestamp(),
+        ...(allSigned && { completedAt: serverTimestamp() }),
         auditTrail: [...request.auditTrail, auditEvent],
       }));
 
@@ -434,13 +435,13 @@ export const SignatureService = {
       updatedSigners[signerIndex] = {
         ...signer,
         status: 'rejected',
-        rejectedAt: Timestamp.now(),
+        rejectedAt: serverTimestamp() as unknown as Timestamp,
         rejectionReason: reason,
       };
 
       // Add audit event
       const auditEvent: SignatureAuditEvent = {
-        timestamp: Timestamp.now(),
+        timestamp: serverTimestamp() as unknown as Timestamp,
         action: 'signature_rejected',
         actorId: userId,
         actorEmail: userEmail,
@@ -455,7 +456,7 @@ export const SignatureService = {
       await updateDoc(docRef, sanitizeData({
         signers: updatedSigners,
         status: 'rejected',
-        updatedAt: Timestamp.now(),
+        updatedAt: serverTimestamp(),
         auditTrail: [...request.auditTrail, auditEvent],
       }));
     } catch (error) {
@@ -487,7 +488,7 @@ export const SignatureService = {
       }
 
       const auditEvent: SignatureAuditEvent = {
-        timestamp: Timestamp.now(),
+        timestamp: serverTimestamp() as unknown as Timestamp,
         action: 'request_cancelled',
         actorId: cancelledBy,
         details: { reason },
@@ -496,10 +497,10 @@ export const SignatureService = {
       const docRef = doc(db, SIGNATURE_REQUESTS_COLLECTION, requestId);
       await updateDoc(docRef, sanitizeData({
         status: 'cancelled',
-        updatedAt: Timestamp.now(),
+        updatedAt: serverTimestamp(),
         cancellation: {
           cancelledBy,
-          cancelledAt: Timestamp.now(),
+          cancelledAt: serverTimestamp(),
           reason,
         },
         auditTrail: [...request.auditTrail, auditEvent],
@@ -621,8 +622,8 @@ export const SignatureService = {
         signatures,
         signatureRequestId: requestId,
         signatureStatus: 'signed',
-        signedAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        signedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       }));
     } catch (error) {
       ErrorLogger.error(error, 'SignatureService.updateDocumentWithSignatures');

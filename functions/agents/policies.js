@@ -45,13 +45,8 @@ exports.deployAgentPolicy = onCall(
     }
 
 
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
-
-    if (!userData.role || !['admin', 'manager'].includes(userData.role)) {
+    const userRole = request.auth.token.role;
+    if (!userRole || !['admin', 'manager'].includes(userRole)) {
       throw new HttpsError('permission-denied', 'Insufficient permissions for this operation');
     }
 
@@ -79,6 +74,7 @@ exports.deployAgentPolicy = onCall(
           .collection('organizations')
           .doc(organizationId)
           .collection('agents')
+          .limit(10000)
           .get();
         targetAgentIds = agentsSnapshot.docs.map(doc => doc.id);
       } else if (policy.scope === 'group' && policy.targetGroupIds?.length > 0) {
@@ -227,12 +223,6 @@ exports.rollbackAgentPolicy = onCall(
     }
 
 
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
-
     try {
       // Get the deployment
       const deploymentRef = db
@@ -318,12 +308,6 @@ exports.getEffectivePolicy = onCall(
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
-    }
-
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
     }
 
     try {

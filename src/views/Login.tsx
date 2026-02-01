@@ -112,8 +112,8 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             </div>
 
             <SEO
-                title="Connexion"
-                description="Connectez-vous à votre espace sécurisé Sentinel GRC."
+                title={t('login.seoTitle', { defaultValue: 'Login' })}
+                description={t('login.seoDescription', { defaultValue: 'Log in to your secure Sentinel GRC workspace.' })}
                 keywords="Connexion, Secure Login, MFA, GRC, Sentinel"
             />
 
@@ -319,7 +319,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                                         >
                                                             {t('auth.footer.privacy', { defaultValue: 'Politique de confidentialité' })}
                                                         </button>
-                                                        {' '}et les{' '}
+                                                        {' '}{t('login.andThe', { defaultValue: 'and the' })}{' '}
                                                         <button
                                                             type="button"
                                                             onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}

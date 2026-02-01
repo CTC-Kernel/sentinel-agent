@@ -4,6 +4,7 @@ import { db, functions, auth } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export class AccountService {
   /**
@@ -66,7 +67,7 @@ export class AccountService {
       // Never allow role or organizationId changes from client
       const { role: _role, organizationId: _orgId, ...safeData } = data;
       const userRef = doc(db, 'users', userId);
-      await setDoc(userRef, { ...safeData, updatedAt: serverTimestamp() }, { merge: true });
+      await setDoc(userRef, sanitizeData({ ...safeData, updatedAt: serverTimestamp() }), { merge: true });
     } catch (error) {
       ErrorLogger.error(error, 'AccountService.updateProfile');
       throw error;

@@ -7,7 +7,10 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Control, Document, Framework } from '../types';
+import { CONTROL_STATUS } from '../constants/complianceConfig';
 import { ISO_DOMAINS } from '../data/complianceData';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 
 interface DossierOptions {
     framework: Framework;
@@ -86,7 +89,7 @@ const groupControlsByDomain = (
 const formatDate = (dateStr?: string): string => {
     if (!dateStr) return '-';
     try {
-        return new Date(dateStr).toLocaleDateString('fr-FR', {
+        return new Date(dateStr).toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
@@ -101,14 +104,14 @@ const formatDate = (dateStr?: string): string => {
  */
 const getStatusText = (status: string): string => {
     const statusMap: Record<string, string> = {
-        'Implémenté': '✓ Implémenté',
-        'Partiel': '◐ Partiel',
-        'En cours': '→ En cours',
-        'Non commencé': '○ Non commencé',
-        'Planifié': '◇ Planifié',
-        'En retard': '⚠ En retard',
-        'Non applicable': '— N/A',
-        'Exclu': '✗ Exclu'
+        [CONTROL_STATUS.IMPLEMENTED]: '✓ Implémenté',
+        [CONTROL_STATUS.PARTIAL]: '◐ Partiel',
+        [CONTROL_STATUS.IN_PROGRESS]: '→ En cours',
+        [CONTROL_STATUS.NOT_STARTED]: '○ Non commencé',
+        [CONTROL_STATUS.PLANNED]: '◇ Planifié',
+        [CONTROL_STATUS.OVERDUE]: '⚠ En retard',
+        [CONTROL_STATUS.NOT_APPLICABLE]: '— N/A',
+        [CONTROL_STATUS.EXCLUDED]: '✗ Exclu'
     };
     return statusMap[status] || status;
 };
@@ -132,7 +135,7 @@ export const generateEvidenceDossier = (
 
     // Calculate statistics
     const totalControls = controls.length;
-    const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
+    const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
     const withEvidence = controls.filter(c => c.evidenceIds && c.evidenceIds.length > 0).length;
     const totalEvidence = controls.reduce((sum, c) => sum + (c.evidenceIds?.length || 0), 0);
 

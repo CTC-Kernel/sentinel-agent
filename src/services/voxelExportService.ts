@@ -12,6 +12,8 @@ import { WebGLRenderer, Scene, Camera, Object3D, Vector2, Color } from 'three';
 import { GLTFExporter, GLTFExporterOptions } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import type { VoxelNode, VoxelAnomaly, VoxelEdge } from '@/types/voxel';
 import { ErrorLogger } from './errorLogger';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 
 // ============================================================================
 // Types
@@ -388,7 +390,7 @@ export async function exportToPDF(
 
   // Date
   doc.setFontSize(10);
-  doc.text(date.toLocaleDateString('fr-FR', { dateStyle: 'long' }), pageWidth - margin, 18, { align: 'right' });
+  doc.text(date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, { dateStyle: 'long' }), pageWidth - margin, 18, { align: 'right' });
 
   yPos = 45;
   doc.setTextColor(0, 0, 0);

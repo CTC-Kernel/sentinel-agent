@@ -79,7 +79,7 @@ export const AnimatedRoutes: React.FC = () => {
     );
     const RoleGuardComponent = isTestMode ? TestRoleGuard : RoleGuard;
 
-    const allRoles: Role[] = ['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user'];
+    const allRoles: Role[] = ['super_admin', 'admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user', 'certifier'];
 
     return (
         <AnimatePresence mode="popLayout">

@@ -34,6 +34,7 @@ import { useReportsData } from '../hooks/reports/useReportsData';
 import { Button } from '../components/ui/button';
 import { SEO } from '../components/SEO';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { useLocale } from '@/hooks/useLocale';
 
 import { ReportConfigurationModal, ReportConfig } from '../components/reports/ReportConfigurationModal';
 import { ScheduleReportModal } from '../components/reports/ScheduleReportModal';
@@ -47,7 +48,8 @@ import { SENTINEL_PALETTE } from '../theme/chartTheme';
 
 export const Reports: React.FC = () => {
     const { user, t, organization, addToast, activeFramework, language } = useStore();
-    const dateLocale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'fr-FR';
+    const { config } = useLocale();
+    const dateLocale = config.intlLocale;
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
     const [showConfigModal, setShowConfigModal] = useState(false);

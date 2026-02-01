@@ -1,6 +1,7 @@
 import React from 'react';
 import { Database, HardDrive, CalendarDays } from '../../ui/Icons';
 import { PremiumCard } from '../../ui/PremiumCard';
+import { useLocale } from '@/hooks/useLocale';
 
 interface BackupStatsProps {
     stats: {
@@ -11,6 +12,7 @@ interface BackupStatsProps {
 }
 
 export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
+    const { config } = useLocale();
     const formatSize = (bytes: number): string => {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -68,7 +70,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-muted-foreground mb-1">Dernier Backup</p>
                         <p className="text-xl font-black text-slate-900 dark:text-white">
-                            {stats.lastBackup ? new Date(stats.lastBackup).toLocaleDateString('fr-FR') : 'Aucun'}
+                            {stats.lastBackup ? new Date(stats.lastBackup).toLocaleDateString(config.intlLocale) : 'Aucun'}
                         </p>
                     </div>
                 </div>

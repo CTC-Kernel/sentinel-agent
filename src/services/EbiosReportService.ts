@@ -11,7 +11,7 @@ import autoTable from 'jspdf-autotable';
 // Apply the plugin to jsPDF
 (jsPDF.API as unknown as { autoTable: typeof autoTable }).autoTable = autoTable;
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { getDateFnsLocale } from '../config/localeConfig';
 import { PdfService, ReportOptions } from './PdfService';
 import type {
   EbiosAnalysis,
@@ -26,6 +26,7 @@ import type {
 } from '../types/ebios';
 import { GRAVITY_SCALE } from '../data/ebiosLibrary';
 import { ISO_SEED_CONTROLS } from '../data/complianceData';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 interface Workshop1ReportOptions extends Partial<ReportOptions> {
   organizationName?: string;
@@ -199,9 +200,9 @@ Le score de maturité du socle de sécurité est de ${maturityScore}%.`;
           body: [
             ['Nom de l\'analyse', analysis.name],
             ['Description', analysis.description || 'Non renseignée'],
-            ['Date de création', format(new Date(analysis.createdAt), 'dd/MM/yyyy', { locale: fr })],
+            ['Date de création', format(new Date(analysis.createdAt), 'dd/MM/yyyy', { locale: getDateFnsLocale() })],
             ['Date cible de certification', analysis.targetCertificationDate
-              ? format(new Date(analysis.targetCertificationDate), 'dd/MM/yyyy', { locale: fr })
+              ? format(new Date(analysis.targetCertificationDate), 'dd/MM/yyyy', { locale: getDateFnsLocale() })
               : 'Non définie'],
             ['Secteur d\'activité', analysis.sector || 'Non spécifié'],
             ['Statut', this.getStatusLabel(analysis.status)],
@@ -486,9 +487,9 @@ Le score de maturité du socle de sécurité est de ${maturityScore}%.`;
    * Get risk level label
    */
   private static getRiskLevelLabel(level: number): string {
-    if (level >= 12) return 'Critique';
-    if (level >= 8) return 'Élevé';
-    if (level >= 4) return 'Modéré';
+    if (level >= RISK_THRESHOLDS.CRITICAL) return 'Critique';
+    if (level >= RISK_THRESHOLDS.HIGH) return 'Élevé';
+    if (level >= RISK_THRESHOLDS.MEDIUM) return 'Modéré';
     return 'Faible';
   }
 
@@ -818,10 +819,10 @@ Progression globale: ${completion.overall}%`;
     // Risk distribution summary
     if (includeMatrix && data.operationalScenarios?.length > 0) {
       currentY = this.checkPageBreak(doc, currentY, 30, pageHeight);
-      const critical = data.operationalScenarios.filter((s) => s.riskLevel >= 12).length;
-      const high = data.operationalScenarios.filter((s) => s.riskLevel >= 8 && s.riskLevel < 12).length;
-      const moderate = data.operationalScenarios.filter((s) => s.riskLevel >= 4 && s.riskLevel < 8).length;
-      const low = data.operationalScenarios.filter((s) => s.riskLevel < 4).length;
+      const critical = data.operationalScenarios.filter((s) => s.riskLevel >= RISK_THRESHOLDS.CRITICAL).length;
+      const high = data.operationalScenarios.filter((s) => s.riskLevel >= RISK_THRESHOLDS.HIGH && s.riskLevel < RISK_THRESHOLDS.CRITICAL).length;
+      const moderate = data.operationalScenarios.filter((s) => s.riskLevel >= RISK_THRESHOLDS.MEDIUM && s.riskLevel < RISK_THRESHOLDS.HIGH).length;
+      const low = data.operationalScenarios.filter((s) => s.riskLevel < RISK_THRESHOLDS.MEDIUM).length;
 
       doc.setFontSize(9);
       doc.setTextColor(this.TEXT_SECONDARY);
@@ -1031,7 +1032,7 @@ Progression globale: ${completion.overall}%`;
     // Metadata
     doc.setFontSize(10);
     doc.setTextColor(100);
-    const now = format(new Date(), 'dd MMMM yyyy HH:mm', { locale: fr });
+    const now = format(new Date(), 'dd MMMM yyyy HH:mm', { locale: getDateFnsLocale() });
     doc.text(`Généré le ${now}`, 15, y);
     if (options.organizationName) {
       doc.text(`Organisation: ${options.organizationName}`, pageWidth - 15, y, { align: 'right' });
@@ -1059,7 +1060,7 @@ Progression globale: ${completion.overall}%`;
 
     if (program.targetCertificationDate) {
       doc.text(
-        `Objectif certification: ${format(new Date(program.targetCertificationDate), 'dd MMMM yyyy', { locale: fr })}`,
+        `Objectif certification: ${format(new Date(program.targetCertificationDate), 'dd MMMM yyyy', { locale: getDateFnsLocale() })}`,
         20,
         y
       );

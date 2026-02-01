@@ -29,7 +29,7 @@ import {
   AlertTriangle,
 } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import {
   DndContext,
   closestCenter,
@@ -215,6 +215,7 @@ export function SignatureWorkflow({
   onSignatureComplete,
 }: SignatureWorkflowProps) {
   const { user, organization, t } = useStore();
+  const { dateFnsLocale } = useLocale();
   const organizationId = organization?.id;
 
   // Main state
@@ -602,7 +603,7 @@ export function SignatureWorkflow({
                         <CardDescription>
                           Créé le{' '}
                           {request.createdAt?.toDate
-                            ? format(request.createdAt.toDate(), 'dd MMMM yyyy à HH:mm', { locale: fr })
+                            ? format(request.createdAt.toDate(), 'dd MMMM yyyy à HH:mm', { locale: dateFnsLocale })
                             : '-'}
                         </CardDescription>
                       </div>
@@ -729,7 +730,7 @@ export function SignatureWorkflow({
                       <div className="mt-4 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                         <CheckCircle2 className="h-4 w-4" />
                         Signé le{' '}
-                        {format(request.completedAt.toDate(), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                        {format(request.completedAt.toDate(), 'dd MMMM yyyy à HH:mm', { locale: dateFnsLocale })}
                       </div>
                     )}
                   </CardContent>

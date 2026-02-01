@@ -2,7 +2,7 @@ import React from 'react';
 import { EvidenceRequest, UserProfile, Document } from '../../types';
 import { Clock, User, ChevronDown, FileText, X, Trash2, ShieldCheck } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { FileUploader } from '../ui/FileUploader';
 
 interface EvidenceRequestItemProps {
@@ -29,6 +29,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
     onDelete,
     onUpload
 }) => {
+    const { dateFnsLocale } = useLocale();
     const [processingAction, setProcessingAction] = React.useState<string | null>(null);
 
     const handleAction = async (actionName: string, actionFn: () => void | Promise<void>) => {
@@ -70,7 +71,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                             {req.dueDate && (
                                 <span className="flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
-                                    {format(new Date(req.dueDate), 'dd MMM', { locale: fr })}
+                                    {format(new Date(req.dueDate), 'dd MMM', { locale: dateFnsLocale })}
                                 </span>
                             )}
                             {req.assignedTo && (

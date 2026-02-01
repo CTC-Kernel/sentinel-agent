@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Audit, Finding } from '../../types';
 import { AlertCircle, CheckCircle2 } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { EmptyState } from '../ui/EmptyState';
 import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { motion } from 'framer-motion';
@@ -19,6 +19,7 @@ interface FindingsListProps {
 
 export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit, loading }) => {
     const { t } = useStore();
+    const { dateFnsLocale } = useLocale();
     const [filter, setFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
@@ -171,7 +172,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                         </td>
                                         <td className="py-4 px-6">
                                             <span className="text-sm text-slate-500 dark:text-muted-foreground">
-                                                {finding.createdAt ? format(new Date(finding.createdAt), 'dd MMM yyyy', { locale: fr }) : '-'}
+                                                {finding.createdAt ? format(new Date(finding.createdAt), 'dd MMM yyyy', { locale: dateFnsLocale }) : '-'}
                                             </span>
                                         </td>
                                     </motion.tr>

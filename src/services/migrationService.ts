@@ -31,8 +31,14 @@ export class MigrationService {
    * @returns Object with totalFixed documents and orgFixed count
    */
   static async runOrganizationMigration(
-    onProgress: (progress: MigrationProgress) => void
+    onProgress: (progress: MigrationProgress) => void,
+    user?: { role?: string }
   ): Promise<{ totalFixed: number; orgFixed: number }> {
+    // Only super_admin can run migrations
+    if (!user || user.role !== 'super_admin') {
+      throw new Error('Only super_admin can run migrations');
+    }
+
     try {
       const logs: string[] = [];
       const log = (msg: string) => {

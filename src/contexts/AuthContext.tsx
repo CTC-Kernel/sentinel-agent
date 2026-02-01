@@ -17,7 +17,7 @@ import {
     updateDoc
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { auth, db, functions, isAppCheckFailed } from '../firebase';
+import { auth, db, functions, isAppCheckFailed, onAppCheckRecovery } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { AccountService } from '../services/accountService';
@@ -119,6 +119,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return () => clearInterval(interval);
     }, []); // isAppCheckFailed is a module export, not reactive, so we keep [] to run once on mount.
+
+    // Register callback so that when App Check recovers, we unblock the UI reactively
+    useEffect(() => {
+        const unsubscribe = onAppCheckRecovery(() => setIsBlocked(false));
+        return unsubscribe;
+    }, []);
 
     // Session Timeout Logic
     useEffect(() => {

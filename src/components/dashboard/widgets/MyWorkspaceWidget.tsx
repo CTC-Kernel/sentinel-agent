@@ -3,6 +3,7 @@ import { User, CheckCircle2, ArrowRight } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { DashboardCard } from '../DashboardCard';
 import { validateUrl } from '../../../utils/urlValidation';
+import { useLocale } from '@/hooks/useLocale';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface ActionItem {
@@ -22,6 +23,7 @@ interface MyWorkspaceWidgetProps {
 }
 
 export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = React.memo(({ myActionItems, loading, navigate, t }) => {
+    const { config } = useLocale();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handleItemClick = useCallback((link: string) => {
@@ -86,7 +88,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = React.memo(({
                                                             item.type === 'risk' ? 'Risque' :
                                                                 t('dashboard.typeProject')}
                                         </span>
-                                        <span className="text-xs text-muted-foreground font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                        <span className="text-xs text-muted-foreground font-medium tabular-nums">{new Date(item.date).toLocaleDateString(config.intlLocale, { day: '2-digit', month: 'short' })}</span>
                                     </div>
                                     <h4 className="text-sm font-bold text-foreground group-hover/item:text-brand-600 dark:group-hover/item:text-brand-400 transition-colors truncate">{item.title}</h4>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.status}</p>

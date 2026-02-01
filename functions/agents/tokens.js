@@ -126,7 +126,7 @@ exports.listEnrollmentTokens = onCall(
         .doc(organizationId)
         .collection('enrollmentTokens');
 
-      let tokensQuery = tokensRef.where('organizationId', '==', organizationId);
+      let tokensQuery = tokensRef;
 
       if (!includeRevoked) {
         tokensQuery = tokensQuery.where('revoked', '==', false);

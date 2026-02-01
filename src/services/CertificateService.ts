@@ -21,6 +21,7 @@ import {
   Timestamp,
   onSnapshot,
   writeBatch,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
@@ -149,9 +150,9 @@ export class CertificateService {
         validTo,
         status,
         alertsSent: {},
-        createdAt: Timestamp.now(),
+        createdAt: serverTimestamp() as unknown as Timestamp,
         createdBy: user.uid,
-        updatedAt: Timestamp.now(),
+        updatedAt: serverTimestamp() as unknown as Timestamp,
         updatedBy: user.uid,
       };
 
@@ -185,7 +186,7 @@ export class CertificateService {
 
       const updateData: Record<string, unknown> = {
         ...data,
-        updatedAt: Timestamp.now(),
+        updatedAt: serverTimestamp(),
         updatedBy: user.uid,
       };
 
@@ -278,9 +279,9 @@ export class CertificateService {
           alertsSent: {},
           notes: row.notes,
           tags: row.tags?.split(',').map((t) => t.trim()),
-          createdAt: Timestamp.now(),
+          createdAt: serverTimestamp() as unknown as Timestamp,
           createdBy: user.uid,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp() as unknown as Timestamp,
           updatedBy: user.uid,
         };
 
@@ -460,7 +461,7 @@ export class CertificateService {
         if (newStatus !== cert.status) {
           batch.update(doc(db, COLLECTION, cert.id), sanitizeData({
             status: newStatus,
-            updatedAt: Timestamp.now(),
+            updatedAt: serverTimestamp(),
           }));
           updated++;
           batchCount++;

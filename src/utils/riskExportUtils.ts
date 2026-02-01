@@ -9,7 +9,7 @@ import { PdfService } from '../services/PdfService';
 import { getRiskLevel } from './riskUtils';
 import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { getDateFnsLocale } from '../config/localeConfig';
 import { RISK_COLORS, STATUS_COLORS } from '../constants/colors';
 
 interface RiskExportContext {
@@ -58,7 +58,7 @@ export async function exportRisksToExcel(context: RiskExportContext): Promise<vo
         framework: risk.framework || '-',
         residualScore: risk.residualScore || '-',
         treatmentDeadline: risk.treatmentDeadline || '-',
-        createdAt: risk.createdAt ? format(new Date(risk.createdAt), 'dd/MM/yyyy', { locale: fr }) : '-'
+        createdAt: risk.createdAt ? format(new Date(risk.createdAt), 'dd/MM/yyyy', { locale: getDateFnsLocale() }) : '-'
     }));
 
     await ExcelExportService.exportToExcel({

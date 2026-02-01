@@ -28,13 +28,19 @@ export const isSafeUrl = (url: string): boolean => {
     return true;
   }
 
-  // Allow blob: URLs (created locally by URL.createObjectURL)
-  if (lowerUrl.startsWith('blob:')) {
-    return true;
-  }
-
-  // Default: block unknown schemes
+  // Default: block unknown schemes (including blob:)
   return false;
+};
+
+/**
+ * Validates if a blob: URL is safe for file downloads.
+ * blob: URLs are created locally by URL.createObjectURL and should only
+ * be used for downloading generated files, not for general navigation.
+ */
+export const isSafeBlobUrl = (url: string): boolean => {
+  if (!url) return false;
+  const lowerUrl = url.toLowerCase().trim();
+  return lowerUrl.startsWith('blob:http://') || lowerUrl.startsWith('blob:https://');
 };
 
 /**

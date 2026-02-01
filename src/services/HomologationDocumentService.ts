@@ -19,7 +19,7 @@ import { db } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { getDateFnsLocale } from '../config/localeConfig';
 import { ErrorLogger } from './errorLogger';
 import type {
   HomologationDossier,
@@ -116,18 +116,18 @@ function replacePlaceholders(content: string, context: DocumentGenerationContext
   );
 
   // Date placeholders
-  const currentDate = format(new Date(), 'PPP', { locale: fr });
+  const currentDate = format(new Date(), 'PPP', { locale: getDateFnsLocale() });
   result = result.replace(/\{\{date\.current\}\}/g, currentDate);
   result = result.replace(
     /\{\{date\.validityStart\}\}/g,
     context.dossier.validityStartDate
-      ? format(new Date(context.dossier.validityStartDate), 'PPP', { locale: fr })
+      ? format(new Date(context.dossier.validityStartDate), 'PPP', { locale: getDateFnsLocale() })
       : '[Date de début]'
   );
   result = result.replace(
     /\{\{date\.validityEnd\}\}/g,
     context.dossier.validityEndDate
-      ? format(new Date(context.dossier.validityEndDate), 'PPP', { locale: fr })
+      ? format(new Date(context.dossier.validityEndDate), 'PPP', { locale: getDateFnsLocale() })
       : '[Date de fin]'
   );
 

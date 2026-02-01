@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, AlertCircle, Clock, FileText } from '../ui/Icons';
 import { Incident } from '../../types';
+import { useLocale } from '@/hooks/useLocale';
 
 interface IncidentTimelineProps {
     selectedIncident?: Incident;
@@ -8,6 +9,7 @@ interface IncidentTimelineProps {
 }
 
 export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedIncident, getTimeToResolve }) => {
+    const { config } = useLocale();
     if (!selectedIncident) {
         return (
             <div className="bg-background/40 backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium h-full flex flex-col justify-center items-center text-center">
@@ -88,7 +90,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
                                     </span>
                                     {step.date && (
                                         <span className="text-xs text-muted-foreground font-mono">
-                                            {new Date(step.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(step.date).toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     )}
                                 </div>

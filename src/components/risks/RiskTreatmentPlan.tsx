@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Risk, RiskTreatment, Criticality, Control, TreatmentAction } from '../../types';
 import { Calendar, AlertTriangle, CheckCircle2, Clock, User, Shield, Sparkles, Plus, X, Search, Filter } from '../ui/Icons';
 import { format, addDays, isAfter, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { TreatmentActionsList } from './TreatmentActionsList';
@@ -19,6 +19,7 @@ interface RiskTreatmentPlanProps {
 }
 
 export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, onRiskUpdate, users, controls = [], onDirtyChange }) => {
+    const { dateFnsLocale } = useLocale();
     // Default SLAs (in days)
     const SLA_DAYS = {
         [Criticality.CRITICAL]: 7,
@@ -352,7 +353,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                         {treatment.dueDate && (
                             <p className="text-xs text-slate-500 dark:text-slate-300 ml-1 flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {format(parseISO(treatment.dueDate), 'dd MMMM yyyy', { locale: fr })}
+                                {format(parseISO(treatment.dueDate), 'dd MMMM yyyy', { locale: dateFnsLocale })}
                             </p>
                         )}
                     </div>

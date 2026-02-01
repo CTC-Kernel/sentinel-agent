@@ -9,6 +9,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/hooks/useLocale';
 import {
   Calculator,
   Plus,
@@ -108,9 +109,9 @@ const DetailView: React.FC<DetailViewProps> = ({
           <div>
             <p className="text-muted-foreground">{t('fair.config.lossRange', { defaultValue: 'Loss range' })}</p>
             <p className="font-medium">
-              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.min)}
+              {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.min)}
               {' - '}
-              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.max)}
+              {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.max)}
             </p>
           </div>
           <div>
@@ -165,6 +166,7 @@ interface FinancialRiskProps {
 
 export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false }) => {
   const { t } = useTranslation();
+  const { config } = useLocale();
   const {
     configurations,
     selectedConfig,

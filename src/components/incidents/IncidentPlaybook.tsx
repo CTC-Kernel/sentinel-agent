@@ -89,7 +89,8 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                 undefined, // evidence
                 undefined, // note
                 user?.uid,
-                user?.displayName
+                user?.displayName,
+                user?.organizationId
             );
             // Optimistic update or reload
             const updatedResponse = { ...response, completedSteps: [...response.completedSteps, step.id] };

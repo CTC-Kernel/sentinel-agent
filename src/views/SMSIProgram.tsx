@@ -10,6 +10,7 @@
 
 import React, { useState, Suspense, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/hooks/useLocale';
 import { useSMSIProgram } from '../hooks/smsi/useSMSIProgram';
 import { useTeamData } from '../hooks/team/useTeamData';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -52,6 +53,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 export const SMSIProgramView: React.FC = () => {
   const { t } = useTranslation();
+  const { config } = useLocale();
   const {
     program,
     milestones,
@@ -311,7 +313,7 @@ export const SMSIProgramView: React.FC = () => {
             {program.targetCertificationDate && (
               <Badge variant="outline" className="gap-1.5">
                 <Calendar className="w-3.5 h-3.5" />
-                {t('smsi.objective') || 'Objectif'}: {new Date(program.targetCertificationDate).toLocaleDateString('fr-FR')}
+                {t('smsi.objective') || 'Objectif'}: {new Date(program.targetCertificationDate).toLocaleDateString(config.intlLocale)}
               </Badge>
             )}
             <Badge
@@ -601,7 +603,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                             "font-medium",
                             isOverdue ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
                           )}>
-                            {new Date(milestone.dueDate).toLocaleDateString('fr-FR')}
+                            {new Date(milestone.dueDate).toLocaleDateString(config.intlLocale)}
                           </div>
                         </div>
                       </motion.div>

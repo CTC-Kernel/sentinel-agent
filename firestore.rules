@@ -75,7 +75,7 @@ service cloud.firestore {
     }
 
     function isValidRiskStatus(val) {
-      return val in ['Ouvert', 'En cours', 'Fermé', 'En attente de validation'];
+      return val in ['Ouvert', 'En cours', 'Fermé', 'En attente de validation', 'Brouillon'];
     }
 
     function isValidRiskStrategy(val) {
@@ -679,9 +679,9 @@ service cloud.firestore {
     // organization that owns/created the relationship for tenant isolation.
     match /relationships/{relId} {
       allow read: if isAuthenticated() && belongsToOrganization(resource.data.sourceOrgId);
-      allow create: if isAuthenticated() && belongsToOrganization(request.resource.data.sourceOrgId);
-      allow update: if isAuthenticated() && belongsToOrganization(resource.data.sourceOrgId);
-      allow delete: if isAuthenticated() && belongsToOrganization(resource.data.sourceOrgId);
+      allow create: if isAuthenticated() && canWrite(request.resource.data.sourceOrgId);
+      allow update: if isAuthenticated() && canWrite(resource.data.sourceOrgId);
+      allow delete: if isAuthenticated() && canWrite(resource.data.sourceOrgId);
     }
 
     match /threats/{threatId} {
@@ -1139,9 +1139,11 @@ service cloud.firestore {
       // 1. Authenticated
       // 2. Creating for someone in the same organization
       // 3. (Optional but good) The creator belongs to that organization
-      allow create: if isAuthenticated() && 
+      allow create: if isAuthenticated() &&
         request.resource.data.organizationId == getUserData().organizationId &&
-        belongsToOrganization(request.resource.data.organizationId);
+        belongsToOrganization(request.resource.data.organizationId) &&
+        request.resource.data.userId is string &&
+        request.resource.data.userId.size() > 0;
       
       allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow delete: if isAuthenticated() && (

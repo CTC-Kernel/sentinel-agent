@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { useStore } from '../../store';
@@ -27,6 +28,7 @@ import {
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
+import { useLocale } from '@/hooks/useLocale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { RadialGauge } from '../ui/RadialGauge';
@@ -195,6 +197,7 @@ interface TrendChartProps {
 }
 
 const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
+    const { config } = useLocale();
     if (data.length === 0) {
         return (
             <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
@@ -230,7 +233,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
                             </div>
                         </div>
                         <span className="text-[11px] text-muted-foreground">
-                            {date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                            {date.toLocaleDateString(config.intlLocale, { day: '2-digit', month: 'short' })}
                         </span>
                     </div>
                 );
@@ -284,6 +287,8 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
     onExport,
     className = '',
 }) => {
+    const { t } = useTranslation();
+    const { config } = useLocale();
     const { user } = useStore();
     const [data, setData] = useState<ComplianceReportData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -309,7 +314,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                 setData(reportData);
             } catch (err) {
                 ErrorLogger.error(err, 'AgentComplianceReport.fetchData');
-                setError('Erreur lors du chargement des données');
+                setError(t('reports.loadError', { defaultValue: 'Error loading data' }));
             } finally {
                 setLoading(false);
             }
@@ -325,9 +330,9 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
         setExporting(true);
 
         try {
-            const config: ReportConfig = {
+            const reportConfig: ReportConfig = {
                 type: 'compliance',
-                name: `Rapport de conformité - ${new Date().toLocaleDateString('fr-FR')}`,
+                name: `Rapport de conformité - ${new Date().toLocaleDateString(config.intlLocale)}`,
                 dateRange,
                 filters,
                 format,
@@ -336,13 +341,13 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
                 includeRecommendations: true,
                 includeExecutiveSummary: true,
                 sections: [],
-                locale: 'fr-FR',
+                locale: config.intlLocale,
                 timezone: 'Europe/Paris',
             };
 
             const reportId = await AgentReportService.generateReport(
                 user.organizationId,
-                config,
+                reportConfig,
                 user.uid
             );
 
@@ -395,7 +400,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
         return (
             <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <FileCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground">Aucune donnée disponible</p>
+                <p className="text-sm text-muted-foreground">{t('reports.noData', { defaultValue: 'No data available' })}</p>
             </div>
         );
     }

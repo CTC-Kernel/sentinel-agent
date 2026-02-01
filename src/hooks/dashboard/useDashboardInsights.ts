@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Control, Document, Audit, Supplier, Risk, Incident, Project, ActionItem, HealthIssue } from '../../types';
 import { useStore } from '../../store';
 import { CONTROL_STATUS, RISK_THRESHOLDS } from '../../constants/complianceConfig';
+import { useLocale } from '@/hooks/useLocale';
 
 interface UseDashboardInsightsProps {
     controls: Control[];
@@ -56,6 +57,7 @@ export const useDashboardInsights = ({
     complianceScore
 }: UseDashboardInsightsProps) => {
     const { user, t } = useStore();
+    const { config } = useLocale();
 
     // Insight Logic
     const insight = useMemo(() => {
@@ -77,7 +79,7 @@ export const useDashboardInsights = ({
             return {
                 text: t('dashboard.insightFinancial'),
                 type: 'danger' as const,
-                details: t('dashboard.insightFinancialDesc', { amount: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk) }),
+                details: t('dashboard.insightFinancialDesc', { amount: new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(stats.financialRisk) }),
                 action: t('common.view') + ' ' + t('dashboard.risks'),
                 link: "/risks"
             };
@@ -95,7 +97,7 @@ export const useDashboardInsights = ({
             return { text: t('dashboard.insightAudits', { count: overdueAudits }), type: 'warning' as const, details: t('dashboard.insightAuditsDesc', { count: overdueAudits }), action: t('sidebar.audits'), link: "/audits" };
         }
         return { text: t('dashboard.insightStable'), type: 'success' as const, details: "", action: "", link: "" };
-    }, [activeIncidentsCount, stats.financialRisk, allRisks, complianceScore, controls, myDocs, myAudits, allSuppliers, t]);
+    }, [activeIncidentsCount, stats.financialRisk, allRisks, complianceScore, controls, myDocs, myAudits, allSuppliers, t, config.intlLocale]);
 
     // Health Issues
     const healthIssues = useMemo(() => {

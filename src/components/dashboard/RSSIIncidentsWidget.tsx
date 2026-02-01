@@ -13,6 +13,8 @@ import {
   type IncidentListItem,
 } from '../../hooks/useActiveIncidents';
 import { ChevronRight, AlertCircle, RefreshCw, ShieldAlert } from '../ui/Icons';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 /**
  * Props for RSSIIncidentsWidget
@@ -68,7 +70,7 @@ const SIZE_CONFIG = {
 function formatDate(dateString: string): string {
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
       day: 'numeric',
       month: 'short',
     });
@@ -104,7 +106,7 @@ function IncidentItem({
         colors.border,
         sizeConfig.itemPadding
       )}
-      aria-label={`Incident: ${incident.title}, Severite: ${incident.severity}, Statut: ${incident.status}`}
+      aria-label={`Incident: ${incident.title}, Sévérité: ${incident.severity}, Statut: ${incident.status}`}
     >
       <div className="flex-1 text-left min-w-0">
         <div className={cn('font-medium truncate', sizeConfig.itemText, colors.text)}>
@@ -174,7 +176,7 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
     >
       <ShieldAlert className="w-8 h-8 mb-2 text-green-500" aria-hidden="true" />
       <p className={sizeConfig.itemText}>Aucun incident actif</p>
-      <p className="text-xs mt-1">Tout est sous controle</p>
+      <p className="text-xs mt-1">Tout est sous contrôle</p>
     </div>
   );
 }
@@ -213,7 +215,7 @@ function ErrorState({
         )}
       >
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
-        Reessayer
+        Réessayer
       </button>
     </div>
   );
@@ -281,7 +283,7 @@ export function RSSIIncidentsWidget({
           Incidents Actifs
         </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Incidents necessitant une attention
+          Incidents nécessitant une attention
         </p>
       </div>
 

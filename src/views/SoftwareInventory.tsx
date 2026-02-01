@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useStore } from '../store';
+import { useLocale } from '@/hooks/useLocale';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -322,6 +323,7 @@ type TabType = 'inventory' | 'cis';
 // Main SoftwareInventory View Component
 export const SoftwareInventory: React.FC = () => {
     const { user, t } = useStore();
+    const { config } = useLocale();
     const [software, setSoftware] = useState<SoftwareInventoryEntry[]>([]);
     const [cisBaselines, setCISBaselines] = useState<CISBaseline[]>([]);
     const [stats, setStats] = useState<SoftwareInventoryStats | null>(null);
@@ -790,7 +792,7 @@ export const SoftwareInventory: React.FC = () => {
                                 <div>
                                     <p className="text-muted-foreground">{t('software.detail.firstDetected', { defaultValue: 'First detected' })}</p>
                                     <p className="font-medium">
-                                        {selectedSoftware.firstDiscovered ? new Date(selectedSoftware.firstDiscovered).toLocaleDateString('fr-FR') : '-'}
+                                        {selectedSoftware.firstDiscovered ? new Date(selectedSoftware.firstDiscovered).toLocaleDateString(config.intlLocale) : '-'}
                                     </p>
                                 </div>
                             </div>

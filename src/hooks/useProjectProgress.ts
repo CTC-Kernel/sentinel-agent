@@ -5,7 +5,7 @@
  * Per FR10: "Les project managers peuvent voir l'avancement du projet de conformite"
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   collection,
   query,
@@ -18,6 +18,7 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
+import { calculateTrend } from '../utils/trendUtils';
 
 /**
  * Progress metrics for a category
@@ -77,20 +78,6 @@ const DEFAULT_PROGRESS: ProgressMetrics = {
  * Status values that count as "completed"
  */
 const COMPLETED_STATUSES = ['done', 'completed', 'Terminé', 'Validé', 'Approuvé'];
-
-/**
- * Calculate trend based on percentage comparison
- */
-function calculateTrend(current: number, previous: number): TrendType {
-  if (previous === 0 && current === 0) return 'stable';
-
-  const diff = current - previous;
-
-  // Use 2% threshold for significant change
-  if (diff > 2) return 'up';
-  if (diff < -2) return 'down';
-  return 'stable';
-}
 
 /**
  * Calculate percentage safely
@@ -176,6 +163,9 @@ export function useProjectProgress(
     setIsRefetching(true);
     setRefreshKey((prev) => prev + 1);
   }, []);
+
+  const refetchRef = useRef(refetch);
+  refetchRef.current = refetch;
 
   useEffect(() => {
     if (!tenantId) {
@@ -297,7 +287,7 @@ export function useProjectProgress(
 
         const unsubscribe = onSnapshot(actionsQuery, () => {
           // Refetch all progress when actions change
-          refetch();
+          refetchRef.current();
         });
 
         unsubscribes.push(unsubscribe);
@@ -314,7 +304,8 @@ export function useProjectProgress(
     return () => {
       unsubscribes.forEach((unsub) => unsub());
     };
-  }, [tenantId, refreshKey, refetch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, refreshKey]);
 
   return {
     progress: tenantId ? progress : DEFAULT_PROGRESS,

@@ -75,7 +75,7 @@ export const useDashboardMetrics = ({
         // Formula: (Implemented + (Partial * 0.5)) / Actionable * 100
         const controlComplianceScore = actionable > 0
             ? Math.round(((implemented + (partial * PARTIAL_CONTROL_WEIGHT)) / actionable) * 100)
-            : 0;
+            : 100;
 
         // "Global Security Score" -> Composite (from ScoreService/AI)
         // If available, use it for "Score Global". If not, fallback to Control Score for now.

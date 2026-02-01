@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   collection,
   query,
@@ -116,6 +117,7 @@ export function useCriticalRisksList(
   tenantId: string | undefined,
   maxItems: number = 5
 ): CriticalRisksListResult {
+  const { t } = useTranslation();
   const [risks, setRisks] = useState<RiskListItem[]>([]);
   const [count, setCount] = useState<number>(0);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
@@ -144,7 +146,8 @@ export function useCriticalRisksList(
     // Loading is derived, no set state needed.
 
 
-    let unsubscribe: Unsubscribe | null = null;
+    const unsubRef = { current: null as Unsubscribe | null };
+    let cancelled = false;
 
     const setupListener = async () => {
       try {
@@ -159,15 +162,15 @@ export function useCriticalRisksList(
           limit(maxItems * 4) // Fetch 4x more to ensure we get enough critical ones after filtering
         );
 
-        unsubscribe = onSnapshot(
+        const unsub = onSnapshot(
           criticalRisksQuery,
           (snapshot) => {
             const riskItems: RiskListItem[] = snapshot.docs.map((doc) => {
               const data = doc.data();
               return {
                 id: doc.id,
-                title: data.threat || data.scenario || 'Risque sans titre',
-                category: data.category || 'Non catégorisé',
+                title: data.threat || data.scenario || t('risks.untitled', { defaultValue: 'Untitled risk' }),
+                category: data.category || t('risks.uncategorized', { defaultValue: 'Uncategorized' }),
                 criticality: (data.impact || 1) * (data.probability || 1),
                 impact: data.impact || 1,
                 probability: data.probability || 1,
@@ -208,6 +211,11 @@ export function useCriticalRisksList(
             setIsRefetching(false);
           }
         );
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubRef.current = unsub;
       } catch (err) {
         ErrorLogger.error(err, 'useCriticalRisksList.setupListener');
         setError(err as Error);
@@ -219,9 +227,8 @@ export function useCriticalRisksList(
     setupListener();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      cancelled = true;
+      unsubRef.current?.();
     };
   }, [tenantId, maxItems, refreshKey]);
 

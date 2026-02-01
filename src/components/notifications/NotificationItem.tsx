@@ -4,7 +4,7 @@ import { Notification } from '../../types/notification';
 import { cn } from '../../utils/cn';
 import { Bell, AlertTriangle, CheckCircle, Info, XCircle, Clock } from '../ui/Icons';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { Link } from 'react-router-dom';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
@@ -68,6 +68,7 @@ const resolveNavigationLink = (notification: Notification): string | null => {
 
 export const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onRead }) => {
     const navigate = useNavigate();
+    const { dateFnsLocale } = useLocale();
 
     const resolvedLink = resolveNavigationLink(notification);
 
@@ -100,7 +101,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
                     </p>
                     <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: fr })}
+                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: dateFnsLocale })}
                     </span>
                 </div>
                 <p className="text-sm text-slate-500 dark:text-muted-foreground line-clamp-2">

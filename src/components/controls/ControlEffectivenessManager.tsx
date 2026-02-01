@@ -247,7 +247,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
                       {score}%
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(assessment.assessmentDate).toLocaleDateString('fr-FR')}
+                      {new Date(assessment.assessmentDate).toLocaleDateString(localeConfig.intlLocale)}
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />

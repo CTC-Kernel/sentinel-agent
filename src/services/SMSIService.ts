@@ -8,7 +8,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { getDateFnsLocale } from '../config/localeConfig';
 import type { SMSIProgram, Milestone, PDCAPhase } from '../types/ebios';
 
 // Apply autoTable plugin
@@ -547,7 +547,7 @@ export class SMSIService {
       doc.text(`Organisation: ${options.organizationName}`, 20, y);
       y += 8;
     }
-    doc.text(`Date: ${format(new Date(), 'dd MMMM yyyy', { locale: fr })}`, 20, y);
+    doc.text(`Date: ${format(new Date(), 'dd MMMM yyyy', { locale: getDateFnsLocale() })}`, 20, y);
     y += 8;
     if (options.author) {
       doc.text(`Auteur: ${options.author}`, 20, y);

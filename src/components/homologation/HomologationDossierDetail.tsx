@@ -28,7 +28,7 @@ import {
 } from '../ui/Icons';
 import type { LucideIcon } from '../ui/Icons';
 import { format, differenceInDays, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
@@ -86,6 +86,7 @@ export const HomologationDossierDetail: React.FC = () => {
   const { dossierId } = useParams<{ dossierId: string }>();
   const navigate = useNavigate();
   const { organization } = useStore();
+  const { dateFnsLocale } = useLocale();
   const { user } = useAuth();
   const isEnglish = i18n.language === 'en';
 
@@ -366,7 +367,7 @@ export const HomologationDossierDetail: React.FC = () => {
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-muted-foreground">{t('common.from', 'Du')}:</span>
                   <span className="font-medium">
-                    {format(parseISO(dossier.validityStartDate), 'PPP', { locale: fr })}
+                    {format(parseISO(dossier.validityStartDate), 'PPP', { locale: dateFnsLocale })}
                   </span>
                 </div>
               )}
@@ -375,7 +376,7 @@ export const HomologationDossierDetail: React.FC = () => {
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-muted-foreground">{t('common.to', 'Au')}:</span>
                   <span className="font-medium">
-                    {format(parseISO(dossier.validityEndDate), 'PPP', { locale: fr })}
+                    {format(parseISO(dossier.validityEndDate), 'PPP', { locale: dateFnsLocale })}
                   </span>
                 </div>
               )}
@@ -457,7 +458,7 @@ export const HomologationDossierDetail: React.FC = () => {
                 <div>
                   <p className="text-muted-foreground">{t('common.createdAt', 'Créé le')}</p>
                   <p className="font-medium">
-                    {format(parseISO(dossier.createdAt), 'PPP', { locale: fr })}
+                    {format(parseISO(dossier.createdAt), 'PPP', { locale: dateFnsLocale })}
                   </p>
                 </div>
               </div>

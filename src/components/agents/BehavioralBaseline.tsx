@@ -46,6 +46,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
+import { useLocale } from '@/hooks/useLocale';
 
 interface BehavioralBaselineProps {
     agentId?: string;
@@ -451,6 +452,7 @@ const AgentBaselineView: React.FC<{
     onRecalculate?: () => void;
     isRecalculating?: boolean;
 }> = ({ baseline, onRecalculate, isRecalculating }) => {
+    const { config } = useLocale();
     const [activeTab, setActiveTab] = useState<'metrics' | 'patterns' | 'entities'>('metrics');
 
     return (
@@ -597,7 +599,7 @@ const AgentBaselineView: React.FC<{
 
             {/* Footer */}
             <div className="px-4 sm:px-6 py-3 bg-accent/30 text-sm text-muted-foreground">
-                Dernière mise à jour: {new Date(baseline.lastRecalculated).toLocaleDateString('fr-FR', {
+                Dernière mise à jour: {new Date(baseline.lastRecalculated).toLocaleDateString(config.intlLocale, {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',

@@ -11,6 +11,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { SentinelAgent, AgentCheckResult } from '../../types/agent';
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
+import { useLocale } from '@/hooks/useLocale';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import {
     Shield, Activity,
@@ -115,6 +116,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend
 };
 
 export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents, loading, complianceResults }) => {
+    const { config } = useLocale();
     // Computed statistics
     const stats = useMemo(() => {
         const total = agents.length;
@@ -199,7 +201,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
             date.setDate(date.getDate() - (6 - i));
             const dayLabel = i === 6 ? 'Auj.' :
                 i === 5 ? 'Hier' :
-                    date.toLocaleDateString('fr-FR', { weekday: 'short' });
+                    date.toLocaleDateString(config.intlLocale, { weekday: 'short' });
 
             return {
                 day: dayLabel,

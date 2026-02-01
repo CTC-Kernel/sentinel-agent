@@ -14,6 +14,7 @@ import { CreateEventDrawer } from './CreateEventDrawer';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin, Download } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
 
 const locales = {
@@ -48,6 +49,7 @@ const messages = {
 
 export const CalendarDashboard: React.FC = () => {
     const { user, t } = useStore();
+    const { dateFnsLocale } = useLocale();
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -238,7 +240,7 @@ export const CalendarDashboard: React.FC = () => {
             const date = toolbar.date;
             return (
                 <span className="capitalize font-black text-lg md:text-2xl text-slate-900 dark:text-white font-display tracking-tight drop-shadow-sm text-center md:text-left">
-                    {format(date, view === 'day' ? 'd MMMM yyyy' : 'MMMM yyyy', { locale: fr })}
+                    {format(date, view === 'day' ? 'd MMMM yyyy' : 'MMMM yyyy', { locale: dateFnsLocale })}
                 </span>
             );
         };
@@ -419,7 +421,7 @@ export const CalendarDashboard: React.FC = () => {
                         <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-4 rounded-3xl border border-border/40 dark:border-white/5">
                             <Clock className="h-5 w-5 text-indigo-500" />
                             <div className="flex flex-col">
-                                <span className="text-slate-900 dark:text-white font-bold">{format(selectedEvent.start, 'd MMMM yyyy', { locale: fr })}</span>
+                                <span className="text-slate-900 dark:text-white font-bold">{format(selectedEvent.start, 'd MMMM yyyy', { locale: dateFnsLocale })}</span>
                                 <span className="opacity-70">{format(selectedEvent.start, 'HH:mm')} - {format(selectedEvent.end, 'HH:mm')}</span>
                             </div>
                         </div>

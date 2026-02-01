@@ -53,7 +53,7 @@ export function SyncStatusIndicator({
   showLabel = true,
   size = 'md',
 }: SyncStatusIndicatorProps) {
-  const { t } = useLocale();
+  const { t, config } = useLocale();
   const sync = useVoxelSync();
   const config = statusConfig[sync.status];
   const sizes = sizeConfig[size];
@@ -62,7 +62,7 @@ export function SyncStatusIndicator({
 
   const formatTime = (date: Date | null) => {
     if (!date) return '-';
-    return date.toLocaleTimeString('fr-FR', {
+    return date.toLocaleTimeString(config.intlLocale, {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',

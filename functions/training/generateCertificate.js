@@ -157,12 +157,8 @@ exports.generateTrainingCertificate = onCall(
         throw new HttpsError('failed-precondition', 'Organization ID not found in token');
       }
 
-      // Get user data for role check
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('not-found', 'User not found');
-      }
-      const userData = userDoc.data();
+      // Get role from token claims
+      const userRole = request.auth.token.role;
 
       // Get assignment
       const assignmentRef = db
@@ -184,7 +180,7 @@ exports.generateTrainingCertificate = onCall(
       }
 
       // Verify user owns this assignment or is admin
-      if (assignment.userId !== auth.uid && userData.role !== 'admin' && userData.role !== 'super_admin') {
+      if (assignment.userId !== auth.uid && userRole !== 'admin' && userRole !== 'super_admin') {
         throw new HttpsError('permission-denied', 'Not authorized to generate this certificate');
       }
 

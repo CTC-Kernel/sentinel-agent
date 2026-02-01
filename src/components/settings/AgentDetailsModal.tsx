@@ -29,6 +29,7 @@ import { useStore } from '../../store';
 import { SENTINEL_PALETTE } from '../../theme/chartTheme';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useLocale } from '@/hooks/useLocale';
 
 interface AgentDetailsModalProps {
     isOpen: boolean;
@@ -132,6 +133,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
     onAgentDeleted
 }) => {
     const { user, t } = useStore();
+    const { config } = useLocale();
     const [activeTab, setActiveTab] = useState<'overview' | 'compliance' | 'config' | 'logs'>('overview');
     const [agentDetails, setAgentDetails] = useState<AgentDetails | null>(null);
     const [metricsHistory, setMetricsHistory] = useState<AgentMetricPoint[]>([]);
@@ -336,7 +338,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             <div className="h-[180px]">
                                                 <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
                                                     <AreaChart data={metricsHistory.map((m) => ({
-                                                        time: new Date(m.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                        time: new Date(m.timestamp).toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' }),
                                                         cpu: m.cpuPercent,
                                                         ram: m.memoryPercent || 0,
                                                     }))}>

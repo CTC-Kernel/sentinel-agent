@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { useStore } from '../../store';
 
 const folderSchema = z.object({
-    name: z.string().min(1, 'Name is required').max(100, 'Name is too long')
+    name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long')
 });
 
 type FolderFormData = z.infer<typeof folderSchema>;

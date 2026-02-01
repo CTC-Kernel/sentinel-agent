@@ -15,6 +15,8 @@ import type {
   VaRResults,
   ALEBreakdown
 } from '../types/fair';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 
 // ============================================================================
 // Random Number Generation
@@ -114,17 +116,15 @@ function samplePERT(
     return sampleTriangular(min, mostLikely, max, random);
   }
 
-  // Sample from beta distribution using Jöhnk's algorithm
-  const u1 = Math.pow(random(), 1 / alpha);
-  const u2 = Math.pow(random(), 1 / beta);
-  const sum = u1 + u2;
+  // Sample from beta distribution using Jöhnk's algorithm with rejection sampling loop
+  let u1: number, u2: number, sum: number;
+  do {
+    u1 = Math.pow(random(), 1 / alpha);
+    u2 = Math.pow(random(), 1 / beta);
+    sum = u1 + u2;
+  } while (sum > 1);
 
-  if (sum <= 1) {
-    return min + (u1 / sum) * range;
-  } else {
-    // Rejection method for beta - simplified approach
-    return sampleTriangular(min, mostLikely, max, random);
-  }
+  return min + (u1 / sum) * range;
 }
 
 /**
@@ -550,7 +550,7 @@ export class MonteCarloService {
     description: string;
   }[] {
     const formatCurrency = (v: number) =>
-      new Intl.NumberFormat('fr-FR', {
+      new Intl.NumberFormat(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
         style: 'currency',
         currency: 'EUR',
         maximumFractionDigits: 0

@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useLocale } from '@/hooks/useLocale';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -125,7 +126,7 @@ const ReplyItem: React.FC<{
               {reply.author.displayName}
             </span>
             <span className="text-xs text-slate-500">
-              {createdDate.toLocaleDateString('fr-FR')} a {createdDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              {createdDate.toLocaleDateString(config.intlLocale)} a {createdDate.toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' })}
             </span>
             {reply.isEdited && (
               <span className="text-xs text-slate-500 dark:text-slate-300 italic">(modifié)</span>
@@ -180,11 +181,12 @@ const ReplyItem: React.FC<{
  */
 const ReplyForm: React.FC<{
   annotationId: string;
+  organizationId: string;
   author: AnnotationAuthor;
   editingReply?: AnnotationReply;
   onSubmit: () => void;
   onCancelEdit?: () => void;
-}> = ({ annotationId, author, editingReply, onSubmit, onCancelEdit }) => {
+}> = ({ annotationId, organizationId, author, editingReply, onSubmit, onCancelEdit }) => {
   const [content, setContent] = useState(editingReply?.content || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -200,7 +202,7 @@ const ReplyForm: React.FC<{
       if (editingReply) {
         await AnnotationService.updateReply(annotationId, editingReply.id, { content });
       } else {
-        await AnnotationService.createReply(author, { annotationId, content });
+        await AnnotationService.createReply({ ...author, organizationId }, { annotationId, content });
       }
       setContent('');
       onSubmit();
@@ -275,6 +277,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useStore();
+  const { config } = useLocale();
 
   // State
   const [replies, setReplies] = useState<AnnotationReply[]>([]);
@@ -327,9 +330,9 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
   // Mark as read
   useEffect(() => {
     if (isOpen && user?.uid && !annotation.readBy.includes(user.uid)) {
-      AnnotationService.markAsRead(annotation.id, user.uid);
+      AnnotationService.markAsRead(annotation.id, user.uid, annotation.organizationId);
     }
-  }, [isOpen, annotation.id, annotation.readBy, user?.uid]);
+  }, [isOpen, annotation.id, annotation.readBy, annotation.organizationId, user?.uid]);
 
   // Handle reply submission
   const handleReplySubmit = useCallback(() => {
@@ -343,14 +346,14 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
   // Handle delete reply
   const handleDeleteReply = useCallback(async (replyId: string) => {
-    await AnnotationService.deleteReply(annotation.id, replyId);
+    await AnnotationService.deleteReply(annotation.id, replyId, annotation.organizationId);
     setReplies((prev) => prev.filter((r) => r.id !== replyId));
     setDeleteReplyId(null);
-  }, [annotation.id]);
+  }, [annotation.id, annotation.organizationId]);
 
   // Handle toggle pin
   const handleTogglePin = useCallback(async () => {
-    const newPinned = await AnnotationService.togglePin(annotation.id);
+    const newPinned = await AnnotationService.togglePin(annotation.id, annotation.organizationId);
     if (newPinned !== null) {
       onAnnotationUpdate?.({
         ...annotation,
@@ -509,7 +512,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />
                   <span>
-                    {createdDate.toLocaleDateString('fr-FR')} a {createdDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    {createdDate.toLocaleDateString(config.intlLocale)} a {createdDate.toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
@@ -575,7 +578,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                   <Check className="w-4 h-4" />
                   <span>
                     Résolu par {annotation.resolvedBy.displayName} le{' '}
-                    {new Date(annotation.resolvedAt).toLocaleDateString('fr-FR')}
+                    {new Date(annotation.resolvedAt).toLocaleDateString(config.intlLocale)}
                   </span>
                 </div>
                 {annotation.resolutionNotes && (
@@ -644,6 +647,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
         {author && (
           <ReplyForm
             annotationId={annotation.id}
+            organizationId={annotation.organizationId}
             author={author}
             editingReply={editingReply}
             onSubmit={handleReplySubmit}

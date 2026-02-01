@@ -27,6 +27,8 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 
 // ============================================================================
 // Types
@@ -459,7 +461,7 @@ class SecurityAnomalyDetectionService {
     try {
       const now = new Date();
       const hour = parseInt(
-        new Intl.DateTimeFormat('fr-FR', {
+        new Intl.DateTimeFormat(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
           hour: 'numeric',
           hour12: false,
           timeZone: timezone

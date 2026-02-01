@@ -10,6 +10,7 @@ import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../theme/chartTheme';
 import { RISK_LEVELS } from '../../constants/RiskConstants';
+import { useLocale } from '@/hooks/useLocale';
 
 interface ProjectDashboardProps {
     project: Project;
@@ -54,6 +55,7 @@ const renderActiveShape = (props: any) => {
 };
 
 export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, milestones, relatedRisks }) => {
+    const { config } = useLocale();
     const [activeTaskIndex, setActiveTaskIndex] = useState<number | null>(null);
 
     // Calculate project health
@@ -90,7 +92,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
     // Task distribution with colors
     const taskDistribution = useMemo(() => [
-        { name: 'À faire', value: (project.tasks || []).filter(t => t.status === 'A faire').length, color: 'hsl(var(--muted-foreground) / 0.55)' },
+        { name: 'À faire', value: (project.tasks || []).filter(t => t.status === 'À faire').length, color: 'hsl(var(--muted-foreground) / 0.55)' },
         { name: 'En cours', value: (project.tasks || []).filter(t => t.status === 'En cours').length, color: SENTINEL_PALETTE.secondary },
         { name: 'Terminé', value: (project.tasks || []).filter(t => t.status === 'Terminé').length, color: SENTINEL_PALETTE.success }
     ].filter(d => d.value > 0), [project.tasks]);
@@ -397,7 +399,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                     <div className="flex items-center justify-between">
                                         <span className="font-bold text-sm text-foreground group-hover:text-brand-600 transition-colors">{milestone.title}</span>
                                         <span className="text-xs text-muted-foreground font-mono">
-                                            {new Date(milestone.targetDate).toLocaleDateString('fr-FR')}
+                                            {new Date(milestone.targetDate).toLocaleDateString(config.intlLocale)}
                                         </span>
                                     </div>
                                     {milestone.description && (

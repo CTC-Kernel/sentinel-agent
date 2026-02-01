@@ -93,7 +93,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
     const partial = updatedMeasures.filter((m) => m.status === 'partial').length;
     const notImplemented = updatedMeasures.filter((m) => m.status === 'not_implemented').length;
     const total = updatedMeasures.length;
-    const maturityScore = total > 0 ? Math.round(((implemented + partial * PARTIAL_CONTROL_WEIGHT) / total) * 100) : 0;
+    const maturityScore = total > 0 ? Math.round(((implemented + partial * PARTIAL_CONTROL_WEIGHT) / total) * 100) : 100;
 
     onChange({
       ...baseline,

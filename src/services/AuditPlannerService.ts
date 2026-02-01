@@ -1,6 +1,7 @@
 
 import { Risk, Asset, Audit } from '../types';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 export interface AuditSuggestion {
     name: string;
@@ -9,7 +10,7 @@ export interface AuditSuggestion {
     reason: string;
     relatedAssetIds: string[];
     relatedRiskIds: string[];
-    priority: 'High' | 'Medium' | 'Low';
+    priority: 'Élevée' | 'Moyenne' | 'Faible';
 }
 
 export class AuditPlannerService {
@@ -59,7 +60,7 @@ export class AuditPlannerService {
                 reason: `Risque élevé détecté (Score: ${risk.score}).`,
                 relatedAssetIds: [risk.assetId],
                 relatedRiskIds: [risk.id],
-                priority: risk.score >= 20 ? 'High' : 'Medium'
+                priority: risk.score >= RISK_THRESHOLDS.CRITICAL ? 'Élevée' : 'Moyenne'
             });
         });
 
@@ -84,7 +85,7 @@ export class AuditPlannerService {
                 reason: `Actif critique identifié (${asset.type}).`,
                 relatedAssetIds: [asset.id],
                 relatedRiskIds: [],
-                priority: 'High'
+                priority: 'Élevée'
             });
         });
 
@@ -109,7 +110,7 @@ export class AuditPlannerService {
                     reason: 'Présence de risques liés au référentiel ISO 27001.',
                     relatedAssetIds: [],
                     relatedRiskIds: isoRisks.map(r => r.id).slice(0, 10), // Limit to first 10
-                    priority: 'High'
+                    priority: 'Élevée'
                 });
             }
         }

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, Database, Download, Trash2, CheckCircle2, RefreshCw, AlertTriangle } from '../../ui/Icons';
 import { Button } from '../../ui/button';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { BackupMetadata } from '../../../services/backupService';
 
 interface BackupListProps {
@@ -21,6 +21,7 @@ export const BackupList: React.FC<BackupListProps> = ({
     onDownload,
     onDelete
 }) => {
+    const { dateFnsLocale } = useLocale();
     const getStatusColor = (status: string): string => {
         switch (status) {
             case 'completed': return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
@@ -102,10 +103,10 @@ export const BackupList: React.FC<BackupListProps> = ({
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">
-                                        {format(new Date(backup.createdAt), "d MMM yyyy", { locale: fr })}
+                                        {format(new Date(backup.createdAt), "d MMM yyyy", { locale: dateFnsLocale })}
                                     </p>
                                     <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">
-                                        {format(new Date(backup.createdAt), "HH:mm", { locale: fr })} • {backup.collections.length} collections
+                                        {format(new Date(backup.createdAt), "HH:mm", { locale: dateFnsLocale })} • {backup.collections.length} collections
                                     </p>
                                 </div>
                             </div>

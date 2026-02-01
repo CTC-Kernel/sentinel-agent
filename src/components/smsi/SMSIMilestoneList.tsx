@@ -8,6 +8,7 @@ import { cn } from '../../utils/cn';
 import { motion } from 'framer-motion';
 import { Badge } from '../ui/Badge';
 import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG, PHASE_STYLES, MILESTONE_STATUS_STYLES } from './constants';
+import { useLocale } from '@/hooks/useLocale';
 
 interface SMSIMilestoneListProps {
     milestones: Milestone[];
@@ -22,6 +23,7 @@ export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
     onAddMilestone,
     filterPhase
 }) => {
+    const { config } = useLocale();
     const displayedMilestones = filterPhase
         ? milestones.filter(m => m.phase === filterPhase)
         : milestones;
@@ -118,7 +120,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
                         "text-sm font-medium",
                         isOverdue ? "text-error-text" : "text-muted-foreground"
                     )}>
-                        {dueDate.toLocaleDateString('fr-FR')}
+                        {dueDate.toLocaleDateString(config.intlLocale)}
                     </div>
                     <div className="text-xs text-muted-foreground">Échéance</div>
                 </div>

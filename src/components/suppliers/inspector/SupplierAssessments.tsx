@@ -5,6 +5,7 @@ import { SupplierQuestionnaireResponse } from '../../../types';
 import { EnhancedAssessmentResponse, VendorAssessmentStatus, getDaysUntil } from '../../../types/vendorAssessment';
 import { Button } from '../../ui/button';
 import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/hooks/useLocale';
 
 interface SupplierAssessmentsProps {
   canEdit: boolean;
@@ -122,6 +123,7 @@ const ExpirationBadge: React.FC<{ dueDate?: string | null; status: string }> = (
 // Next review date component
 const NextReviewBadge: React.FC<{ nextReviewDate?: string | null }> = ({ nextReviewDate }) => {
   const { t } = useTranslation();
+  const { config } = useLocale();
 
   if (!nextReviewDate) return null;
 
@@ -141,7 +143,7 @@ const NextReviewBadge: React.FC<{ nextReviewDate?: string | null }> = ({ nextRev
     <span className="text-xs text-slate-500 dark:text-slate-300 flex items-center gap-1">
       <Calendar className="w-3 h-3" />
       {t('vendorAssessment.nextReview', 'Next review: {{date}}', {
-        date: date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
+        date: date.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short', year: 'numeric' }),
       })}
     </span>
   );
@@ -154,6 +156,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
   onViewAssessment,
 }) => {
   const { t } = useTranslation();
+  const { config } = useLocale();
   const [statusFilter, setStatusFilter] = useState<VendorAssessmentStatus | 'all'>('all');
 
   // Filter assessments
@@ -295,7 +298,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                         <p className="text-sm text-slate-500 dark:text-slate-300 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {updatedAt ? updatedAt.toLocaleDateString('fr-FR') : t('common.unknownDate', 'Unknown date')}
+                          {updatedAt ? updatedAt.toLocaleDateString(config.intlLocale) : t('common.unknownDate', 'Unknown date')}
                         </p>
                         <ExpirationBadge dueDate={assessment.dueDate} status={assessment.status} />
                         {assessment.status === 'Reviewed' && <NextReviewBadge nextReviewDate={enhanced.nextReviewDate} />}

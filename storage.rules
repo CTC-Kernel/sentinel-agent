@@ -24,6 +24,10 @@ service firebase.storage {
       return request.auth.token.role;
     }
     
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.superAdmin == true;
+    }
+
     function isAdmin() {
       return request.auth != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'super_admin');
     }
@@ -103,7 +107,9 @@ service firebase.storage {
     // no tenant-specific data is stored in this path.
     match /releases/{allPaths=**} {
       allow read: if isAuthenticated(); // Authenticated downloads via signed URLs from Cloud Function
-      allow write: if isAuthenticated() && canWriteCritical() && isValidFileSize(200) && request.resource.contentType.matches('application/.*|text/.*'); // Admin/RSSI only for uploads
+      allow write: if isSuperAdmin()
+        && request.resource.size < 500 * 1024 * 1024
+        && request.resource.contentType.matches('application/.*');
     }
 
     // Agent Downloads - Authenticated read for agent installers
@@ -111,7 +117,9 @@ service firebase.storage {
     // Same rationale as /releases above - platform-level binaries, no tenant data.
     match /agents/downloads/{allPaths=**} {
       allow read: if isAuthenticated(); // Authenticated downloads for agent installers
-      allow write: if isAuthenticated() && canWriteCritical() && isValidFileSize(500) && request.resource.contentType.matches('application/.*|text/.*'); // Admin/RSSI only for uploads
+      allow write: if isSuperAdmin()
+        && request.resource.size < 200 * 1024 * 1024
+        && request.resource.contentType.matches('application/.*');
     }
   }
 }

@@ -25,6 +25,8 @@ import {
 import { cn } from '../../lib/utils';
 import { useStore } from '../../store';
 import { hasPermission } from '../../utils/permissions';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 /**
  * Compute compliance score from actual check results.
@@ -82,7 +84,7 @@ const formatLastSeen = (dateStr: string): string => {
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     if (days < 7) return `${days}j`;
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, { day: '2-digit', month: 'short' });
 };
 
 // Format relative time for offline agents

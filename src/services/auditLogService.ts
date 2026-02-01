@@ -784,7 +784,7 @@ export class AuditLogService {
         if (entries.length === 0) return;
 
         try {
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
 
             for (let i = 0; i < entries.length; i += BATCH_SIZE) {
                 const chunk = entries.slice(i, i + BATCH_SIZE);

@@ -26,6 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useLocale } from '@/hooks/useLocale';
 import {
   Server,
   Shield,
@@ -366,6 +367,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
   onDrillDown,
 }) => {
   const { t } = useTranslation();
+  const { config } = useLocale();
   const navigate = useNavigate();
   const { organization } = useStore();
   const [metrics, setMetrics] = useState<OTExposureMetrics | null>(null);
@@ -397,7 +399,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
     if (!metrics?.trend) return [];
 
     return metrics.trend.slice(-7).map((point) => ({
-      date: new Date(point.date).toLocaleDateString('fr-FR', { weekday: 'short' }),
+      date: new Date(point.date).toLocaleDateString(config.intlLocale, { weekday: 'short' }),
       critical: point.critical,
       high: point.total - point.critical,
     }));

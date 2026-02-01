@@ -14,7 +14,7 @@ import {
     Plus
 } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface AuditLog {
     id: string;
@@ -37,6 +37,7 @@ interface TimelineViewProps {
 }
 
 export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, className }) => {
+    const { dateFnsLocale } = useLocale();
 
     // Wait, if I remove 'user', useStore might return other things I'm not using?
     // The original line was: const { user } = useStore();
@@ -190,7 +191,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                         {log.action}
                                     </span>
                                     <span className="text-xs text-slate-500 dark:text-slate-300 font-mono">
-                                        {format(log.timestamp, "HH:mm", { locale: fr })}
+                                        {format(log.timestamp, "HH:mm", { locale: dateFnsLocale })}
                                     </span>
                                 </div>
 
@@ -200,7 +201,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 </div>
 
                                 <div className="text-xs text-slate-500 dark:text-muted-foreground mb-3">
-                                    {format(log.timestamp, "d MMMM yyyy", { locale: fr })}
+                                    {format(log.timestamp, "d MMMM yyyy", { locale: dateFnsLocale })}
                                 </div>
 
                                 {log.changes && log.changes.length > 0 && (
@@ -265,7 +266,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-4 w-4 text-slate-400" />
                                                 <span className="text-sm font-medium dark:text-white">
-                                                    {format(selectedLog.timestamp, "d MMM yyyy, HH:mm", { locale: fr })}
+                                                    {format(selectedLog.timestamp, "d MMM yyyy, HH:mm", { locale: dateFnsLocale })}
                                                 </span>
                                             </div>
                                         </div>

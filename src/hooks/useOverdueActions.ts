@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   collection,
   query,
@@ -121,6 +122,7 @@ export function useOverdueActions(
   tenantId: string | undefined,
   maxItems: number = 10
 ): OverdueActionsResult {
+  const { t } = useTranslation();
   const [actions, setActions] = useState<OverdueActionItem[]>([]);
   const [count, setCount] = useState<number>(0);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
@@ -151,7 +153,8 @@ export function useOverdueActions(
     // Loading is derived, no set state needed.
 
 
-    let unsubscribe: Unsubscribe | null = null;
+    const unsubRef = { current: null as Unsubscribe | null };
+    let cancelled = false;
 
     const setupListener = async () => {
       try {
@@ -167,7 +170,7 @@ export function useOverdueActions(
           limit(maxItems * 2) // Fetch more to filter overdue
         );
 
-        unsubscribe = onSnapshot(
+        const unsub = onSnapshot(
           actionsQuery,
           (snapshot) => {
             const overdueItems: OverdueActionItem[] = [];
@@ -184,7 +187,7 @@ export function useOverdueActions(
               if (daysOverdue > 0) {
                 overdueItems.push({
                   id: doc.id,
-                  title: data.title || data.description || 'Action sans titre',
+                  title: data.title || data.description || t('actions.untitled', { defaultValue: 'Untitled action' }),
                   description: data.description,
                   type: data.type || 'general',
                   status: data.status || 'pending',
@@ -228,6 +231,11 @@ export function useOverdueActions(
             setIsRefetching(false);
           }
         );
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubRef.current = unsub;
       } catch (err) {
         ErrorLogger.error(err, 'useOverdueActions.setupListener');
         setError(err as Error);
@@ -239,9 +247,8 @@ export function useOverdueActions(
     setupListener();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      cancelled = true;
+      unsubRef.current?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- trend is intentionally excluded to prevent re-subscription on trend changes
   }, [tenantId, maxItems, refreshKey]);

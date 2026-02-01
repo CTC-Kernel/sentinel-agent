@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import type { VoxelNode, VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
 import { RISK_THRESHOLDS } from '@/constants/complianceConfig';
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================================================
 // Types
@@ -620,6 +621,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
   onSelectLinkedEntity,
   nodesMap,
 }) => {
+  const { config } = useLocale();
   // Keyboard handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -823,7 +825,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
                 <div className="space-y-1 divide-y divide-slate-700/30">
                   <DetailRow
                     label="Création"
-                    value={new Date(node.createdAt).toLocaleDateString('fr-FR', {
+                    value={new Date(node.createdAt).toLocaleDateString(config.intlLocale, {
                       day: 'numeric',
                       month: 'short',
                       year: 'numeric'
@@ -831,7 +833,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
                   />
                   <DetailRow
                     label="Modification"
-                    value={new Date(node.updatedAt).toLocaleDateString('fr-FR', {
+                    value={new Date(node.updatedAt).toLocaleDateString(config.intlLocale, {
                       day: 'numeric',
                       month: 'short',
                       year: 'numeric'

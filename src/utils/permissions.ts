@@ -3,7 +3,7 @@ export type { ResourceType };
 import { ErrorLogger } from '../services/errorLogger';
 
 export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage' | 'update_own' | 'delete_own';
-export type Role = 'super_admin' | 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
+export type Role = 'super_admin' | 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user' | 'certifier';
 
 type PermissionMatrix = Partial<Record<ResourceType | '*', ActionType[]>>;
 
@@ -125,6 +125,26 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         TlptCampaign: ['read'],
         RecoveryPlan: ['read'],
         // Agent Management (Sprint 10) - No access
+        Agent: [],
+        AgentPolicy: [],
+        AgentReport: []
+    },
+    certifier: {
+        Audit: ['read', 'update'],
+        Control: ['read', 'update'],
+        Document: ['read'],
+        Risk: ['read'],
+        Asset: ['read'],
+        Supplier: ['read'],
+        Project: ['read'],
+        Incident: ['read'],
+        BusinessProcess: ['read'],
+        ProcessingActivity: ['read'],
+        SupplierAssessment: ['read', 'create', 'update'],
+        SupplierIncident: ['read'],
+        BcpDrill: ['read'],
+        TlptCampaign: ['read'],
+        RecoveryPlan: ['read'],
         Agent: [],
         AgentPolicy: [],
         AgentReport: []

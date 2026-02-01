@@ -26,6 +26,8 @@ import { Badge } from '../ui/Badge';
 import { Progress } from '../ui/progress';
 import { Tooltip } from '../ui/Tooltip';
 import type { SimulationResults as SimulationResultsType } from '../../types/fair';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 // ============================================================================
 // Types
@@ -48,7 +50,7 @@ const formatCurrency = (
   currency: 'EUR' | 'USD' | 'GBP' = 'EUR',
   compact: boolean = false
 ): string => {
-  const formatter = new Intl.NumberFormat('fr-FR', {
+  const formatter = new Intl.NumberFormat(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
     style: 'currency',
     currency,
     maximumFractionDigits: compact ? 0 : 2,
@@ -58,7 +60,7 @@ const formatCurrency = (
 };
 
 const formatNumber = (value: number, decimals: number = 2): string => {
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
     maximumFractionDigits: decimals
   }).format(value);
 };

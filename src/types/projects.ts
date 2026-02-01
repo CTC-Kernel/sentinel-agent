@@ -4,7 +4,7 @@ export interface ProjectTask {
     id: string;
     title: string;
     description?: string;
-    status: 'A faire' | 'En cours' | 'Terminé' | 'Bloqué';
+    status: 'À faire' | 'En cours' | 'Terminé' | 'Bloqué';
     assignee?: string;
     assigneeId?: string;
     startDate?: string; // Added for Gantt chart

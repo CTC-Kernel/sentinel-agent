@@ -12,6 +12,7 @@ import { sanitizeData } from '../../../utils/dataSanitizer';
 import { EmptyChartState } from '../../ui/EmptyChartState';
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
 import { ChartTooltip } from '../../ui/ChartTooltip';
+import { useLocale } from '@/hooks/useLocale';
 
 interface AssetInspectorLifecycleProps {
     selectedAsset: Asset;
@@ -27,6 +28,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
     canEdit
 }) => {
     const { t } = useTranslation();
+    const { config } = useLocale();
     const { user } = useStore();
     const [isAddingMaintenance, setIsAddingMaintenance] = useState(false);
     const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({
@@ -138,7 +140,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                 {t('assets.lifecycle.purchasePrice', 'Prix d\'achat (€)')}
                             </div>
                             <div className="text-sm font-medium text-slate-900 dark:text-white">
-                                {selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}
+                                {selectedAsset?.purchasePrice ? new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}
                             </div>
                         </div>
                         <div>
@@ -146,7 +148,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                 {t('assets.lifecycle.maintenance', 'Coût Maintenance (€)')}
                             </div>
                             <div className="px-4 py-3 rounded-3xl bg-slate-50 dark:bg-white/5 text-sm font-bold">
-                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(totalMaintenanceCost)}
+                                {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(totalMaintenanceCost)}
                             </div>
                         </div>
                     </div>
@@ -159,7 +161,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                         {t('assets.lifecycle.currentValue', 'Valeur Actuelle (Net)')}
                                     </p>
                                     <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">
-                                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateDepreciation(selectedAsset.purchasePrice, selectedAsset.purchaseDate || ''))}
+                                        {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(calculateDepreciation(selectedAsset.purchasePrice, selectedAsset.purchaseDate || ''))}
                                     </p>
                                 </div>
                                 <div className="p-4 bg-blue-50 dark:bg-slate-900/20 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
@@ -167,7 +169,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                         {t('common.tco', 'TCO (Coût Total)')}
                                     </p>
                                     <p className="text-xl font-black text-blue-700 dark:text-blue-400">
-                                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}
+                                        {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(calculateTCO())}
                                     </p>
                                 </div>
                             </div>
@@ -195,7 +197,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                             <XAxis dataKey="year" {...CHART_STYLES.axis} />
                                             <YAxis hide />
                                             <RechartsTooltip
-                                                content={<ChartTooltip formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />}
+                                                content={<ChartTooltip formatter={(val: number) => new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(val)} />}
                                                 cursor={{ stroke: CHART_STYLES.cursor, strokeWidth: 1, strokeDasharray: '3 3' }}
                                             />
                                             <Area
@@ -298,7 +300,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                         </div>
                                         {rec.cost && (
                                             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}
+                                                {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(rec.cost)}
                                             </span>
                                         )}
                                     </div>

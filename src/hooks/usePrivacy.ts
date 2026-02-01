@@ -5,6 +5,7 @@ import { ProcessingActivity, UserProfile, Asset, Risk, SystemLog } from '../type
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { PrivacyService } from '../services/PrivacyService';
+import { hasPermission } from '../utils/permissions';
 
 export function usePrivacy() {
     const { user, addToast, t, demoMode } = useStore();
@@ -134,17 +135,21 @@ export function usePrivacy() {
     // Action Handlers
     const handleCreate = async (data: Partial<ProcessingActivity>) => {
         if (!user?.organizationId) return;
+        if (!hasPermission(user, 'ProcessingActivity', 'create')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
         try {
             const newActivity: Omit<ProcessingActivity, 'id'> = {
-                name: data.name || 'Nouveau Traitement',
-                purpose: data.purpose || 'Objectif non défini',
-                manager: data.manager || 'Non assigné',
+                name: data.name || t('privacy.defaultName', { defaultValue: 'New Processing Activity' }),
+                purpose: data.purpose || t('privacy.defaultPurpose', { defaultValue: 'Purpose not defined' }),
+                manager: data.manager || t('privacy.defaultManager', { defaultValue: 'Not assigned' }),
                 status: data.status || 'Actif',
                 legalBasis: data.legalBasis || 'Intérêt Légitime',
                 hasDPIA: data.hasDPIA || false,
                 dataCategories: data.dataCategories || [],
                 dataSubjects: data.dataSubjects || [],
-                retentionPeriod: data.retentionPeriod || '5 ans',
+                retentionPeriod: data.retentionPeriod || '5 years',
                 ...data,
                 organizationId: user.organizationId,
                 createdBy: user.uid,
@@ -155,7 +160,7 @@ export function usePrivacy() {
             if (newId) {
                 pendingSelectId.current = newId;
             }
-            addToast(t('privacy.activityCreated', { defaultValue: 'Traitement créé. Complétez la cartographie des données.' }), "success");
+            addToast(t('privacy.activityCreated', { defaultValue: 'Processing activity created. Complete the data mapping.' }), "success");
             setShowCreateModal(false);
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.create');
@@ -164,10 +169,14 @@ export function usePrivacy() {
 
     const handleUpdate = async (data: Partial<ProcessingActivity>) => {
         if (!selectedActivity || !user) return;
+        if (!hasPermission(user, 'ProcessingActivity', 'update')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
         try {
             await PrivacyService.updateActivity(selectedActivity.id, data, user);
             setIsEditing(false);
-            addToast(t('privacy.toast.activityUpdated', { defaultValue: 'Traitement mis à jour' }), "success");
+            addToast(t('privacy.toast.activityUpdated', { defaultValue: 'Processing activity updated' }), "success");
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.update');
         }
@@ -175,6 +184,10 @@ export function usePrivacy() {
 
     const handleDelete = async (id: string, name: string) => {
         if (!user) return;
+        if (!hasPermission(user, 'ProcessingActivity', 'delete')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
         try {
             await PrivacyService.deleteActivity(id, name, user);
             if (selectedActivity?.id === id) {
@@ -182,7 +195,7 @@ export function usePrivacy() {
                 const remaining = activities.filter(a => a.id !== id);
                 setSelectedActivity(remaining.length > 0 ? remaining[0] : null);
             }
-            addToast(t('privacy.toast.activityDeleted', { defaultValue: 'Traitement supprimé' }), "success");
+            addToast(t('privacy.toast.activityDeleted', { defaultValue: 'Processing activity deleted' }), "success");
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.delete');
         }
@@ -190,6 +203,10 @@ export function usePrivacy() {
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!user?.organizationId) return;
+        if (!hasPermission(user, 'ProcessingActivity', 'update')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -229,9 +246,9 @@ export function usePrivacy() {
             if (toImport.length > 0) {
                 try {
                     await PrivacyService.importActivities(toImport, user);
-                    addToast(t('privacy.toast.activitiesImported', { defaultValue: `${toImport.length} traitements importés`, count: toImport.length }), "success");
+                    addToast(t('privacy.toast.activitiesImported', { defaultValue: `${toImport.length} processing activities imported`, count: toImport.length }), "success");
                 } catch {
-                    addToast(t('privacy.toast.importError', { defaultValue: 'Erreur import CSV' }), "error");
+                    addToast(t('privacy.toast.importError', { defaultValue: 'CSV import error' }), "error");
                 }
             }
         };
@@ -240,9 +257,13 @@ export function usePrivacy() {
 
     const handleStartDPIA = async (activity: ProcessingActivity) => {
         if (!user) return;
+        if (!hasPermission(user, 'ProcessingActivity', 'update')) {
+            addToast(t('common.permissionDenied', { defaultValue: 'Permission denied' }), 'error');
+            return;
+        }
         try {
             const responseId = await PrivacyService.startDPIA(activity, user);
-            addToast(t('privacy.toast.dpiaCreated', { defaultValue: 'Dossier DPIA créé' }), "success");
+            addToast(t('privacy.toast.dpiaCreated', { defaultValue: 'DPIA record created' }), "success");
             setViewingAssessmentId(responseId);
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Privacy.startDPIA');

@@ -2,6 +2,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Vulnerability } from '../types';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '@/utils/dataSanitizer';
 
 // NVD API Configuration - API key moved to Cloud Function proxy
 const NVD_API_BASE_URL = 'https://services.nvd.nist.gov/rest/json';
@@ -295,11 +296,11 @@ export class NVDService {
         try {
           const sentinelVuln = this.convertToSentinelVulnerability(nvdVuln, organizationId);
           
-          await addDoc(vulnerabilitiesRef, {
+          await addDoc(vulnerabilitiesRef, sanitizeData({
             ...sentinelVuln,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
-          });
+          }));
           
           imported++;
         } catch (error) {

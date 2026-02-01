@@ -27,6 +27,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
 import { slideUpVariants } from '../ui/animationVariants';
+import { useLocale } from '@/hooks/useLocale';
 
 interface CISBenchmarkViewProps {
     baselines: CISBaseline[];
@@ -148,6 +149,7 @@ const BaselineCard: React.FC<{
     onToggle: () => void;
     agentDisplayName?: string;
 }> = ({ baseline, isExpanded, onToggle, agentDisplayName }) => {
+    const { config } = useLocale();
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
     const [showAllChecks, setShowAllChecks] = useState(false);
 
@@ -187,7 +189,7 @@ const BaselineCard: React.FC<{
                     <div className="flex items-center gap-4 mt-2">
                         <ScoreChange change={baseline.scoreChange} />
                         <span className="text-xs text-muted-foreground">
-                            Dernier scan: {new Date(baseline.lastScanAt).toLocaleDateString('fr-FR')}
+                            Dernier scan: {new Date(baseline.lastScanAt).toLocaleDateString(config.intlLocale)}
                         </span>
                     </div>
                 </div>

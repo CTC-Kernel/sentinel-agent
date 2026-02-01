@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { toast } from '../../lib/toast';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
+import { useLocale } from '@/hooks/useLocale';
 import {
   getEligibleEbiosAnalyses,
   linkEbiosAnalysis,
@@ -63,6 +64,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
   disabled = false
 }) => {
   const { t, i18n } = useTranslation();
+  const { config } = useLocale();
   const isEnglish = i18n.language === 'en';
   const { organization } = useStore();
   const { user } = useAuth();
@@ -313,7 +315,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
         {dossier.ebiosLastSyncedAt && (
           <p className="text-xs text-slate-500">
             {t('homologation.ebios.lastSynced', 'Dernière synchronisation')}:{' '}
-            {new Date(dossier.ebiosLastSyncedAt).toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', {
+            {new Date(dossier.ebiosLastSyncedAt).toLocaleDateString(config.intlLocale, {
               day: 'numeric',
               month: 'short',
               year: 'numeric',

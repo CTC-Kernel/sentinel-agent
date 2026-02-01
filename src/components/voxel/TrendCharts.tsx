@@ -31,7 +31,7 @@ import {
   CheckCircle2,
 } from '../ui/Icons';
 import { format, parseISO, subDays } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -156,7 +156,7 @@ function generatePredictions(
 
     predictions.push({
       date: format(predictedDate, 'yyyy-MM-dd'),
-      formattedDate: format(predictedDate, 'dd/MM', { locale: fr }),
+      formattedDate: format(predictedDate, 'dd/MM', { locale: dateFnsLocale }),
       nodes: 0,
       risks: 0,
       anomalies: 0,
@@ -342,6 +342,7 @@ export function TrendCharts({
   predictionDays = 30,
 }: TrendChartsProps) {
   const gradientId = useId();
+  const { dateFnsLocale } = useLocale();
   const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange);
   const [data, setData] = useState<TrendDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -391,7 +392,7 @@ export function TrendCharts({
           .sort((a, b) => a.date.localeCompare(b.date))
           .map((snapshot) => ({
             date: snapshot.date,
-            formattedDate: format(parseISO(snapshot.date), 'dd/MM', { locale: fr }),
+            formattedDate: format(parseISO(snapshot.date), 'dd/MM', { locale: dateFnsLocale }),
             nodes: snapshot.metrics?.nodes?.total || 0,
             risks: snapshot.metrics?.risks?.total || 0,
             anomalies: snapshot.metrics?.anomalies?.active || 0,

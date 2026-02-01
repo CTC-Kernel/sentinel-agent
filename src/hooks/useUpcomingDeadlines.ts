@@ -186,7 +186,8 @@ export function useUpcomingDeadlines(
     // Loading is derived, no set state needed.
 
 
-    let unsubscribe: Unsubscribe | null = null;
+    const unsubRef = { current: null as Unsubscribe | null };
+    let cancelled = false;
 
     const setupListener = async () => {
       try {
@@ -204,7 +205,7 @@ export function useUpcomingDeadlines(
           limit(maxItems * 2) // Fetch more to filter
         );
 
-        unsubscribe = onSnapshot(
+        const unsub = onSnapshot(
           actionsQuery,
           (snapshot) => {
             const timelineItems: TimelineItem[] = [];
@@ -277,6 +278,11 @@ export function useUpcomingDeadlines(
             setIsRefetching(false);
           }
         );
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubRef.current = unsub;
       } catch (err) {
         ErrorLogger.error(err, 'useUpcomingDeadlines.setupListener');
         setError(err as Error);
@@ -288,9 +294,8 @@ export function useUpcomingDeadlines(
     setupListener();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      cancelled = true;
+      unsubRef.current?.();
     };
   }, [tenantId, daysAhead, maxItems, refreshKey]);
 

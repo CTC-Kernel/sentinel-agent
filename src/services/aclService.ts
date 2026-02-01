@@ -278,7 +278,8 @@ export function getUserPermissions(
  */
 export async function grantAccess(
   documentId: string,
-  permission: DocumentPermission
+  permission: DocumentPermission,
+  organizationId?: string
 ): Promise<void> {
   try {
     const docRef = doc(db, 'documents', documentId);
@@ -289,6 +290,11 @@ export async function grantAccess(
     }
 
     const currentData = docSnap.data() as Document;
+
+    // IDOR protection: verify document belongs to caller's organization
+    if (organizationId && currentData.organizationId !== organizationId) {
+      throw new Error('Access denied: document does not belong to your organization');
+    }
     const currentAcl = currentData.acl || createDefaultACL();
 
     // Remove any existing permission for the same principal
@@ -319,7 +325,8 @@ export async function grantAccess(
 export async function revokeAccess(
   documentId: string,
   principalType: 'user' | 'role' | 'group',
-  principalId: string
+  principalId: string,
+  organizationId?: string
 ): Promise<void> {
   try {
     const docRef = doc(db, 'documents', documentId);
@@ -330,6 +337,12 @@ export async function revokeAccess(
     }
 
     const currentData = docSnap.data() as Document;
+
+    // IDOR protection: verify document belongs to caller's organization
+    if (organizationId && currentData.organizationId !== organizationId) {
+      throw new Error('Access denied: document does not belong to your organization');
+    }
+
     const currentAcl = currentData.acl;
 
     if (!currentAcl) {
@@ -361,7 +374,8 @@ export async function revokeAccess(
  */
 export async function updateAclSettings(
   documentId: string,
-  defaultAccess: 'classification' | 'explicit'
+  defaultAccess: 'classification' | 'explicit',
+  organizationId?: string
 ): Promise<void> {
   try {
     const docRef = doc(db, 'documents', documentId);
@@ -372,6 +386,12 @@ export async function updateAclSettings(
     }
 
     const currentData = docSnap.data() as Document;
+
+    // IDOR protection: verify document belongs to caller's organization
+    if (organizationId && currentData.organizationId !== organizationId) {
+      throw new Error('Access denied: document does not belong to your organization');
+    }
+
     const currentAcl = currentData.acl || createDefaultACL();
 
     const updatedAcl: DocumentACL = {

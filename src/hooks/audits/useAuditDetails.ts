@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { collection, addDoc, updateDoc, doc, deleteDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, query, where, getDocs, serverTimestamp, increment, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Audit, Finding, AuditChecklist, AuditQuestion, Control, Document, Risk } from '../../types';
@@ -48,15 +48,22 @@ export const useAuditDetails = (
         isSubmittingRef.current = true;
         try {
             const cleanData = sanitizeData(data);
-            await addDoc(collection(db, 'findings'), {
+            const batch = writeBatch(db);
+
+            // Create finding doc
+            const findingRef = doc(collection(db, 'findings'));
+            batch.set(findingRef, {
                 ...cleanData,
                 organizationId: user.organizationId,
                 auditId: selectedAudit.id,
                 createdAt: serverTimestamp()
             });
 
-            const newCount = findings.length + 1;
-            await updateDoc(doc(db, 'audits', selectedAudit.id), sanitizeData({ findingsCount: newCount }));
+            // Atomically increment findings count
+            const auditRef = doc(db, 'audits', selectedAudit.id);
+            batch.update(auditRef, { findingsCount: increment(1) });
+
+            await batch.commit();
             refreshAudits();
             fetchDetails(); // Reload findings
             addToast(t('audits.toast.findingAdded', { defaultValue: "Constat ajouté" }), "success");
@@ -70,9 +77,16 @@ export const useAuditDetails = (
     const handleDeleteFinding = async (findingId: string) => {
         if (!selectedAudit) return;
         try {
-            await deleteDoc(doc(db, 'findings', findingId));
-            const newCount = Math.max(0, findings.length - 1);
-            await updateDoc(doc(db, 'audits', selectedAudit.id), sanitizeData({ findingsCount: newCount }));
+            const batch = writeBatch(db);
+
+            // Delete finding doc
+            batch.delete(doc(db, 'findings', findingId));
+
+            // Atomically decrement findings count
+            const auditRef = doc(db, 'audits', selectedAudit.id);
+            batch.update(auditRef, { findingsCount: increment(-1) });
+
+            await batch.commit();
             refreshAudits();
             setFindings(prev => prev.filter(f => f.id !== findingId));
             addToast(t('audits.toast.findingDeleted', { defaultValue: "Constat supprimé" }), "info");

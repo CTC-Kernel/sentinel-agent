@@ -1,4 +1,7 @@
-export const formatDate = (date: string | Date | undefined | null, locale: string = 'fr-FR'): string => {
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
+
+export const formatDate = (date: string | Date | undefined | null, locale: string = getLocaleConfig(i18n.language as SupportedLocale).intlLocale): string => {
     if (!date) return '-';
     try {
         const d = new Date(date);
@@ -12,7 +15,7 @@ export const formatDate = (date: string | Date | undefined | null, locale: strin
     }
 };
 
-export const formatDateTime = (date: string | Date | undefined | null, locale: string = 'fr-FR'): string => {
+export const formatDateTime = (date: string | Date | undefined | null, locale: string = getLocaleConfig(i18n.language as SupportedLocale).intlLocale): string => {
     if (!date) return '-';
     try {
         const d = new Date(date);

@@ -21,6 +21,7 @@ import {
     Zap
 } from '../../ui/Icons';
 import { cn } from '../../../lib/utils';
+import { useLocale } from '@/hooks/useLocale';
 
 interface PremiumHealthCardProps {
     stats: {
@@ -53,6 +54,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
     loading = false
 }) => {
     const navigate = useNavigate();
+    const { config } = useLocale();
     const effectiveCompliance = complianceScore ?? stats.compliance ?? 0;
 
     // Compliance gauge data
@@ -284,8 +286,8 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                 </div>
                                 <ArrowRight className="w-4 h-4 text-slate-600 opacity-0 group-hover:opacity-70 transition-opacity" />
                             </div>
-                            <div className="text-2xl font-black text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
-                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
+                            <div className="text-2xl font-black text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
+                                {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                             </div>
                             <div className="text-[11px] text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
                                 Exposition

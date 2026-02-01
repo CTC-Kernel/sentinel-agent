@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Check, Calendar, Globe, Shield } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useLocale } from '@/hooks/useLocale';
 import { appleEasing } from '../../utils/microInteractions';
 import type { RegulatoryFramework, ActiveFramework } from '../../types/framework';
 
@@ -78,8 +79,9 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
   const name = framework.localizedNames?.[locale] || framework.name;
   const description = framework.localizedDescriptions?.[locale] || framework.description;
 
-  // Format dates - map locale to Intl locale
-  const intlLocale = locale === 'en' ? 'en-US' : locale === 'de' ? 'de-DE' : 'fr-FR';
+  // Format dates - use locale config for Intl locale
+  const { config: localeConfigObj } = useLocale();
+  const intlLocale = localeConfigObj.intlLocale;
 
   // Convert Timestamp or string to Date
   const toDate = (value: unknown): Date | null => {

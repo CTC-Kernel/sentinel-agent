@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRiskContext } from '../../../hooks/risks/useRiskContext';
 import { useStore } from '../../../store';
+import { useLocale } from '@/hooks/useLocale';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
@@ -50,6 +51,7 @@ const TABS: TabConfig[] = [
 ];
 
 export const RiskContextManager: React.FC = () => {
+  const { config } = useLocale();
   const {
     riskContext,
     loading,
@@ -512,7 +514,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 {reg.deadline && (
                   <div className="flex items-center gap-1.5 text-sm text-slate-500">
                     <Clock className="w-4 h-4" />
-                    {new Date(reg.deadline).toLocaleDateString('fr-FR')}
+                    {new Date(reg.deadline).toLocaleDateString(config.intlLocale)}
                   </div>
                 )}
                 <button

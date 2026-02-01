@@ -18,9 +18,11 @@ import {
     Timestamp,
     Unsubscribe,
     writeBatch,
+    serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '@/utils/dataSanitizer';
 import { RegulatoryFrameworkCode } from '../types/framework';
 import {
     PopulationSuggestion,
@@ -293,11 +295,11 @@ export async function createPopulationSession(
             averageConfidence: 0,
             agentCount: 0,
             createdBy: userId,
-            createdAt: Timestamp.now(),
+            createdAt: serverTimestamp(),
             initialScore,
         };
 
-        const docRef = await addDoc(getSessionsCollection(organizationId), sessionData);
+        const docRef = await addDoc(getSessionsCollection(organizationId), sanitizeData(sessionData));
 
         const session: PopulationSession = {
             id: docRef.id,
@@ -432,10 +434,10 @@ async function generateSuggestionsForSession(
             };
 
             const suggestionRef = doc(getSuggestionsCollection(organizationId));
-            batch.set(suggestionRef, {
+            batch.set(suggestionRef, sanitizeData({
                 ...suggestion,
-                createdAt: Timestamp.now(),
-            });
+                createdAt: serverTimestamp(),
+            }));
 
             suggestions.push({ ...suggestion, id: suggestionRef.id });
             totalConfidence += avgConfidence;
@@ -446,7 +448,7 @@ async function generateSuggestionsForSession(
         const pendingCount = suggestions.filter(s => s.status === 'pending').length;
         const expiredCount = suggestions.filter(s => s.status === 'expired').length;
 
-        batch.update(sessionRef, {
+        batch.update(sessionRef, sanitizeData({
             suggestedRequirements: suggestions.length,
             populationPercent: session.totalRequirements > 0
                 ? Math.round((suggestions.length / session.totalRequirements) * 100)
@@ -462,7 +464,7 @@ async function generateSuggestionsForSession(
                 ? Math.round(totalConfidence / suggestions.length)
                 : 0,
             agentCount: agentIds.size,
-        });
+        }));
 
         await batch.commit();
     } catch (error) {
@@ -513,14 +515,14 @@ export async function updateSuggestionStatus(
     try {
         const suggestionRef = doc(getSuggestionsCollection(organizationId), suggestionId);
 
-        await updateDoc(suggestionRef, {
+        await updateDoc(suggestionRef, sanitizeData({
             status,
             reviewedBy: userId,
-            reviewedAt: Timestamp.now(),
+            reviewedAt: serverTimestamp(),
             ...(options?.modifiedAnswer && { modifiedAnswer: options.modifiedAnswer }),
             ...(options?.modifiedStatus && { modifiedStatus: options.modifiedStatus }),
             ...(options?.reviewNotes && { reviewNotes: options.reviewNotes }),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error as Error, 'AutoPopulationService.updateSuggestionStatus', {
             component: 'AutoPopulationService',
@@ -578,14 +580,14 @@ export async function completeSession(
 
         // Update session
         const sessionRef = doc(getSessionsCollection(organizationId), sessionId);
-        await updateDoc(sessionRef, {
+        await updateDoc(sessionRef, sanitizeData({
             status: 'completed',
-            completedAt: Timestamp.now(),
+            completedAt: serverTimestamp(),
             completedBy: userId,
             finalScore,
             scoreImprovement,
             suggestionsByStatus,
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error as Error, 'AutoPopulationService.completeSession', {
             component: 'AutoPopulationService',

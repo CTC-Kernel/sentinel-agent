@@ -10,7 +10,7 @@ const VAULT_CONFIG = {
   keyRingId: 'sentinel-vault',
   cryptoKeyId: 'documents-key',
   location: 'europe-west1',
-  projectId: process.env.GCLOUD_PROJECT || '',
+  projectId: process.env.GCP_PROJECT || admin.app().options.projectId || '',
 };
 
 /**

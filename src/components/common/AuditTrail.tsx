@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useActivityLogs } from '../../hooks/useActivityLogs';
 import { Loader2, History, ArrowRight, User } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface AuditTrailProps {
     resourceId: string;
@@ -11,7 +11,8 @@ interface AuditTrailProps {
 }
 
 export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className }) => {
-    // We use the existing hook but need to filter client-side for now 
+    const { dateFnsLocale } = useLocale();
+    // We use the existing hook but need to filter client-side for now
     // Optimization: ideally update hook to accept resourceId in query
     const { logs, loading } = useActivityLogs(100);
 
@@ -67,7 +68,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                                             else if (ts) d = new Date(ts);
                                             else return '-';
 
-                                            return !isNaN(d.getTime()) ? format(d, "d MMM yyyy 'à' HH:mm", { locale: fr }) : '-';
+                                            return !isNaN(d.getTime()) ? format(d, "d MMM yyyy 'à' HH:mm", { locale: dateFnsLocale }) : '-';
                                         } catch { return '-'; }
                                     })()}
                                 </span>

@@ -27,6 +27,8 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { Progress } from '../ui/progress';
 import type { FAIRModelConfig } from '../../types/fair';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 // ============================================================================
 // Types
@@ -63,7 +65,7 @@ const formatCurrency = (
   currency: 'EUR' | 'USD' | 'GBP' = 'EUR',
   compact: boolean = false
 ): string => {
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,

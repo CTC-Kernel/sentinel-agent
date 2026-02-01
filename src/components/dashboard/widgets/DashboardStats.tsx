@@ -36,7 +36,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     topRisks,
     activeIncidents
 }) => {
-    const { t } = useLocale();
+    const { t, config } = useLocale();
     // Fallback if prop is missing but exists in stats
     const effectiveComplianceScore = complianceScore ?? stats.compliance ?? 0;
     const { generateContent, loading: aiLoading } = useAIGemini();
@@ -258,8 +258,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 <Activity className="w-4 h-4 text-info group-hover/item:text-info/80 transition-colors" />
                             </div>
                             <div className="mt-auto">
-                                <div className="text-xl font-bold text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
-                                    {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
+                                <div className="text-xl font-bold text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
+                                    {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                                 </div>
                                 <span className="text-xs font-medium text-info cursor-help" title="Calculé sur la base de l'exposition au risque et de la valeur des actifs (Top 20 risques).">* Exposition estimée</span>
                             </div>

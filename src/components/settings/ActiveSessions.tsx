@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Tooltip } from '../ui/Tooltip';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface Session {
     id: string;
@@ -20,6 +20,7 @@ interface Session {
 
 export const ActiveSessions: React.FC = () => {
     const { t, addToast } = useStore();
+    const { dateFnsLocale } = useLocale();
     const [showRevokeAllConfirm, setShowRevokeAllConfirm] = useState(false);
 
     // TODO: Replace with real session data from Firebase Auth
@@ -122,7 +123,7 @@ export const ActiveSessions: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-1 mt-1.5 text-[11px] font-medium text-muted-foreground">
                                     <Clock className="w-3 h-3" />
-                                    {session.isCurrent ? (t('settings.onlineNow') || 'En ligne maintenant') : `${t('settings.lastActive') || 'Dernière activité'} : ${format(session.lastActive, "d MMM à HH:mm", { locale: fr })}`}
+                                    {session.isCurrent ? (t('settings.onlineNow') || 'En ligne maintenant') : `${t('settings.lastActive') || 'Dernière activité'} : ${format(session.lastActive, "d MMM à HH:mm", { locale: dateFnsLocale })}`}
                                 </div>
                             </div>
                         </div>

@@ -167,7 +167,7 @@ async function calculateDocumentsScore(db, organizationId) {
     const status = data.status || '';
     const expirationDate = data.expirationDate || data.validUntil || '';
 
-    const isNotDraft = status !== 'Brouillon' && status !== 'Draft';
+    const isNotDraft = status !== 'Brouillon';
     const isNotExpired = !expirationDate || expirationDate >= now;
 
     if (isNotDraft && isNotExpired) {
@@ -208,7 +208,7 @@ async function calculateAuditsScore(db, organizationId) {
   }
 
   const compliant = findings.filter(
-    (f) => f.status === 'Conforme' || f.status === 'Compliant' || f.status === 'Résolu'
+    (f) => f.status === 'Conforme' || f.status === 'Résolu'
   ).length;
 
   return {

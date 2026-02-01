@@ -34,6 +34,8 @@ import { AutoPopulationService } from '../../services/AutoPopulationService';
 import { RegulatoryFrameworkCode } from '../../types/framework';
 import { CrossFrameworkEntry } from '../../types/autoPopulation';
 import { AGENT_CHECK_DEFINITIONS, AgentCheckId } from '../../types/agentEvidence';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 interface CrossFrameworkMatrixProps {
     className?: string;
@@ -75,7 +77,7 @@ const formatRelativeTime = (dateStr: string): string => {
     if (hours < 1) return 'À l\'instant';
     if (hours < 24) return `${hours}h`;
     if (days < 7) return `${days}j`;
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, { day: '2-digit', month: 'short' });
 };
 
 // Status cell component

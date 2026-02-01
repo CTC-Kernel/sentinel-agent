@@ -5,11 +5,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { X, Calendar, Mail, Clock, FileText, Plus, Trash2 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { useForm, useWatch, useFieldArray, FieldArrayPath } from 'react-hook-form';
 import { cn } from '../../lib/utils';
+import { useLocale } from '@/hooks/useLocale';
 import {
     ReportFrequency,
     ReportTemplateId,
@@ -38,6 +40,8 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
     onSchedule,
     defaultTemplateId = 'custom'
 }) => {
+    const { t } = useTranslation();
+    const { config } = useLocale();
     const { register, handleSubmit, control, setValue, reset, formState: { isSubmitting, isDirty } } = useForm<ScheduledReportFormData>({
         defaultValues: {
             name: '',
@@ -135,7 +139,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
             await onSchedule(formData);
             onClose();
         } catch {
-            setFormError('Erreur lors de la planification du rapport');
+            setFormError(t('reports.scheduleError', { defaultValue: 'Error scheduling report' }));
         }
     };
 
@@ -286,7 +290,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <p className="text-sm text-blue-700 dark:text-blue-300">
                         <Clock className="inline h-4 w-4 mr-1" />
-                        Prochaine exécution: <strong>{nextRun.toLocaleDateString('fr-FR', {
+                        Prochaine exécution: <strong>{nextRun.toLocaleDateString(config.intlLocale, {
                             weekday: 'long',
                             year: 'numeric',
                             month: 'long',
@@ -328,7 +332,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             className="flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 font-medium"
                         >
                             <Plus className="h-4 w-4" />
-                            Ajouter un destinataire
+                            {t('reports.addRecipient', { defaultValue: 'Add recipient' })}
                         </button>
                     </div>
                 </div>

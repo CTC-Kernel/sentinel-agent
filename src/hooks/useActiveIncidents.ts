@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   collection,
   query,
@@ -125,6 +126,7 @@ export function useActiveIncidents(
   tenantId: string | undefined,
   maxItems: number = 5
 ): ActiveIncidentsResult {
+  const { t } = useTranslation();
   const [incidents, setIncidents] = useState<IncidentListItem[]>([]);
   const [count, setCount] = useState<number>(0);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
@@ -153,7 +155,8 @@ export function useActiveIncidents(
     // Loading is derived, no set state needed.
 
 
-    let unsubscribe: Unsubscribe | null = null;
+    const unsubRef = { current: null as Unsubscribe | null };
+    let cancelled = false;
 
     const setupListener = async () => {
       try {
@@ -168,14 +171,14 @@ export function useActiveIncidents(
           limit(maxItems)
         );
 
-        unsubscribe = onSnapshot(
+        const unsub = onSnapshot(
           activeIncidentsQuery,
           (snapshot) => {
             const incidentItems: IncidentListItem[] = snapshot.docs.map((doc) => {
               const data = doc.data();
               return {
                 id: doc.id,
-                title: data.title || 'Incident sans titre',
+                title: data.title || t('incidents.untitled', { defaultValue: 'Untitled incident' }),
                 description: data.description || '',
                 severity: data.severity || 'Moyenne',
                 status: data.status || 'Nouveau',
@@ -211,6 +214,11 @@ export function useActiveIncidents(
             setIsRefetching(false);
           }
         );
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubRef.current = unsub;
       } catch (err) {
         ErrorLogger.error(err, 'useActiveIncidents.setupListener');
         setError(err as Error);
@@ -222,9 +230,8 @@ export function useActiveIncidents(
     setupListener();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      cancelled = true;
+      unsubRef.current?.();
     };
   }, [tenantId, maxItems, refreshKey]);
 

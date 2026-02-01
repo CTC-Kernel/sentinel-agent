@@ -211,6 +211,29 @@ export class EbiosService {
   ): Promise<void> {
     try {
       const analysisRef = doc(db, 'organizations', organizationId, 'ebiosAnalyses', analysisId);
+
+      // Cascade: clean up potential subcollections under the analysis doc
+      const subcollectionNames = ['threatSources', 'attackScenarios'];
+      for (const subcollName of subcollectionNames) {
+        const subcollRef = collection(db, 'organizations', organizationId, 'ebiosAnalyses', analysisId, subcollName);
+        const subcollSnap = await getDocs(subcollRef);
+        if (!subcollSnap.empty) {
+          const deletePromises = subcollSnap.docs.map(subDoc => deleteDoc(subDoc.ref));
+          await Promise.all(deletePromises);
+        }
+      }
+
+      // Cascade: nullify references in homologation dossiers
+      const homologationsRef = collection(db, 'organizations', organizationId, 'homologations');
+      const homologationsQuery = query(homologationsRef, where('linkedEbiosAnalysisId', '==', analysisId));
+      const homologationsSnap = await getDocs(homologationsQuery);
+      if (!homologationsSnap.empty) {
+        const updatePromises = homologationsSnap.docs.map(hDoc =>
+          updateDoc(hDoc.ref, { linkedEbiosAnalysisId: null })
+        );
+        await Promise.all(updatePromises);
+      }
+
       await deleteDoc(analysisRef);
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.deleteAnalysis', {

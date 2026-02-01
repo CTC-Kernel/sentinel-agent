@@ -58,7 +58,7 @@ export interface CustomRole {
     organizationId: string;
     name: string;
     description?: string;
-    permissions: Partial<Record<string, ('create' | 'read' | 'update' | 'delete' | 'manage')[]>>;
+    permissions: Partial<Record<string, ('create' | 'read' | 'update' | 'delete' | 'manage' | 'update_own' | 'delete_own')[]>>;
     createdAt: string;
     updatedAt: string;
 }

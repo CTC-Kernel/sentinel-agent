@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { Risk, Incident, Control, Asset, Project } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { RISK_THRESHOLDS, CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, isActionableStatus } from '../constants/complianceConfig';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export interface DailyStats {
     date: string; // YYYY-MM-DD
@@ -79,7 +80,7 @@ export class StatsService {
                 }
             };
 
-            await setDoc(docRef, { ...stats, organizationId });
+            await setDoc(docRef, sanitizeData({ ...stats, organizationId }));
             ErrorLogger.info('Daily stats snapshot created', 'StatsService.snapshotDailyStats', { metadata: { date: today } });
 
         } catch (error) {

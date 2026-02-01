@@ -13,6 +13,9 @@ import {
 } from 'firebase/firestore';
 import { functions, db, auth } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '@/utils/dataSanitizer';
+import { getLocaleConfig, type SupportedLocale } from '@/config/localeConfig';
+import i18n from '@/i18n';
 
 
 // Constants
@@ -375,7 +378,7 @@ export const VaultAuditService = {
 
       const docRef = await addDoc(
         collection(db, DOCUMENT_AUDIT_LOGS_COLLECTION),
-        logEntry
+        sanitizeData(logEntry)
       );
 
       return docRef.id;
@@ -549,7 +552,7 @@ export const VaultAuditService = {
 
     try {
       const date = new Date(timestamp);
-      return new Intl.DateTimeFormat('fr-FR', {
+      return new Intl.DateTimeFormat(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
         dateStyle: 'medium',
         timeStyle: 'short',
       }).format(date);

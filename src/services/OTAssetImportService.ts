@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '@/utils/dataSanitizer';
 import type {
   Asset,
   NetworkSegment,
@@ -431,7 +432,7 @@ export async function importOTAssets(
           updatedAt: serverTimestamp()
         };
 
-        batch.set(assetRef, asset);
+        batch.set(assetRef, sanitizeData(asset));
         createdAssets.push({ id: assetRef.id, name: row.data.name });
       }
 

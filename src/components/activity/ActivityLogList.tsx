@@ -5,7 +5,7 @@ import { DataTable } from '../ui/DataTable';
 import { SystemLog } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { Activity, User, Shield } from '../ui/Icons';
 import { useStore } from '../../store';
 
@@ -18,6 +18,7 @@ interface ActivityLogListProps {
 
 export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading, hasMore, onLoadMore }) => {
     const { t } = useStore();
+    const { dateFnsLocale } = useLocale();
 
     const columns = useMemo<ColumnDef<SystemLog>[]>(() => [
         {
@@ -26,10 +27,10 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
             cell: ({ row }) => (
                 <div className="flex flex-col">
                     <span className="font-medium text-slate-900 dark:text-white">
-                        {format(new Date(row.original.timestamp), 'dd MMM yyyy', { locale: fr })}
+                        {format(new Date(row.original.timestamp), 'dd MMM yyyy', { locale: dateFnsLocale })}
                     </span>
                     <span className="text-xs text-slate-500">
-                        {format(new Date(row.original.timestamp), 'HH:mm:ss', { locale: fr })}
+                        {format(new Date(row.original.timestamp), 'HH:mm:ss', { locale: dateFnsLocale })}
                     </span>
                 </div>
             ),

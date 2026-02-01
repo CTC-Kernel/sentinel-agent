@@ -192,10 +192,10 @@ export class ScoreService {
 
     const sum = history.reduce((acc, h) => acc + h.global, 0);
     const avg = sum / history.length;
-    const diff = currentScore - avg;
+    const percentChange = avg !== 0 ? ((currentScore - avg) / avg) * 100 : (currentScore > 0 ? 100 : 0);
 
-    if (diff > TREND_THRESHOLD) return 'up';
-    if (diff < -TREND_THRESHOLD) return 'down';
+    if (percentChange > TREND_THRESHOLD) return 'up';
+    if (percentChange < -TREND_THRESHOLD) return 'down';
     return 'stable';
   }
 

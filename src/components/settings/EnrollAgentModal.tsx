@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
+import { useLocale } from '@/hooks/useLocale';
 import {
     ShieldCheck,
     Copy,
@@ -157,6 +158,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
     loadingReleases
 }) => {
     const { t } = useStore();
+    const { config } = useLocale();
     const [activeTab, setActiveTab] = useState<'download' | 'docs' | 'faq' | 'support'>('download');
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
@@ -299,7 +301,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                                         v{releaseInfo.currentVersion}
                                                     </Badge>
                                                     <span className="text-[11px] text-slate-400">
-                                                        {releaseInfo.releaseDate && new Date(releaseInfo.releaseDate).toLocaleDateString('fr-FR')}
+                                                        {releaseInfo.releaseDate && new Date(releaseInfo.releaseDate).toLocaleDateString(config.intlLocale)}
                                                     </span>
                                                 </div>
                                             )}

@@ -43,12 +43,6 @@ exports.generateAgentReport = onCall(
     }
 
 
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
-
     try {
       const startTime = Date.now();
       const reportRef = db
@@ -202,12 +196,6 @@ exports.fetchComplianceReportData = onCall(
     }
 
 
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
-
     try {
       return await fetchComplianceData(organizationId, filters || {}, dateRange || {});
     } catch (error) {
@@ -241,12 +229,6 @@ exports.fetchFleetHealthReportData = onCall(
     }
 
 
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
-
     try {
       return await fetchFleetHealthData(organizationId, filters || {}, dateRange || {});
     } catch (error) {
@@ -279,12 +261,6 @@ exports.fetchExecutiveSummaryData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
-
-    const userDoc = await db.collection('users').doc(auth.uid).get();
-    const userData = userDoc.data();
-    if (!userData || userData.organizationId !== organizationId) {
-      throw new HttpsError('permission-denied', 'Access denied to this organization');
-    }
 
     try {
       return await fetchExecutiveData(organizationId, dateRange || {});
@@ -461,7 +437,8 @@ async function fetchComplianceData(organizationId, filters, dateRange) {
   let agentsQuery = db
     .collection('organizations')
     .doc(organizationId)
-    .collection('agents');
+    .collection('agents')
+    .limit(1000);
 
   const agentsSnapshot = await agentsQuery.get();
   const agents = agentsSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -582,6 +559,7 @@ async function fetchFleetHealthData(organizationId, filters, dateRange) {
     .collection('organizations')
     .doc(organizationId)
     .collection('agents')
+    .limit(1000)
     .get();
 
   const agents = agentsSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));

@@ -14,6 +14,7 @@
 import { useState, useCallback, useMemo, useEffect, useTransition } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { ErrorHandler, ErrorSeverity, ErrorCategory } from '../utils/errorHandler';
 
 /**
@@ -162,6 +163,7 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
   onSuccess,
   syncWithUrl = false
 }: UseInspectorOptions<T, TFormData>): UseInspectorReturn {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -245,11 +247,11 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
 
       if (result === true) {
         ErrorHandler.handle(
-          new Error(`${moduleName} mis à jour avec succès`),
+          new Error(t('inspector.updateSuccess', { name: moduleName, defaultValue: '{{name}} updated successfully' })),
           `${moduleName}.handleUpdate`,
           {
             severity: ErrorSeverity.LOW,
-            userMessage: `${entityName || moduleName} mis à jour avec succès`,
+            userMessage: t('inspector.updateSuccess', { name: entityName || moduleName, defaultValue: '{{name}} updated successfully' }),
             showToast: true
           }
         );
@@ -272,14 +274,14 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
       ErrorHandler.handle(error, `${moduleName}.handleUpdate`, {
         severity: ErrorSeverity.HIGH,
         category: ErrorCategory.DATABASE,
-        userMessage: `Erreur lors de la mise à jour de ${entityName || moduleName}`,
+        userMessage: t('inspector.updateError', { name: entityName || moduleName, defaultValue: 'Error updating {{name}}' }),
         logToSentry: true,
         showToast: true
       });
     } finally {
       setSaving(false);
     }
-  }, [entity, actions, moduleName, entityName, onSuccess]);
+  }, [entity, actions, moduleName, entityName, onSuccess, t]);
 
   // Gérer la création
   const handleCreate = useCallback(async (data: unknown) => {
@@ -302,11 +304,11 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
 
       if (result === true) {
         ErrorHandler.handle(
-          new Error(`${moduleName} créé avec succès`),
+          new Error(t('inspector.createSuccess', { name: moduleName, defaultValue: '{{name}} created successfully' })),
           `${moduleName}.handleCreate`,
           {
             severity: ErrorSeverity.LOW,
-            userMessage: `${moduleName} créé avec succès`,
+            userMessage: t('inspector.createSuccess', { name: moduleName, defaultValue: '{{name}} created successfully' }),
             showToast: true
           }
         );
@@ -329,14 +331,14 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
       ErrorHandler.handle(error, `${moduleName}.handleCreate`, {
         severity: ErrorSeverity.HIGH,
         category: ErrorCategory.DATABASE,
-        userMessage: `Erreur lors de la création de ${moduleName}`,
+        userMessage: t('inspector.createError', { name: moduleName, defaultValue: 'Error creating {{name}}' }),
         logToSentry: true,
         showToast: true
       });
     } finally {
       setSaving(false);
     }
-  }, [actions, moduleName, onSuccess]);
+  }, [actions, moduleName, onSuccess, t]);
 
   // Gérer la suppression
   const handleDelete = useCallback(async () => {
@@ -358,11 +360,11 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
       await actions.onDelete(entity.id, entityName || 'Item');
 
       ErrorHandler.handle(
-        new Error(`${moduleName} supprimé avec succès`),
+        new Error(t('inspector.deleteSuccess', { name: moduleName, defaultValue: '{{name}} deleted successfully' })),
         `${moduleName}.handleDelete`,
         {
           severity: ErrorSeverity.LOW,
-          userMessage: `${entityName || moduleName} supprimé avec succès`,
+          userMessage: t('inspector.deleteSuccess', { name: entityName || moduleName, defaultValue: '{{name}} deleted successfully' }),
           showToast: true
         }
       );
@@ -372,14 +374,14 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
       ErrorHandler.handle(error, `${moduleName}.handleDelete`, {
         severity: ErrorSeverity.HIGH,
         category: ErrorCategory.DATABASE,
-        userMessage: `Erreur lors de la suppression de ${entityName || moduleName}`,
+        userMessage: t('inspector.deleteError', { name: entityName || moduleName, defaultValue: 'Error deleting {{name}}' }),
         logToSentry: true,
         showToast: true
       });
     } finally {
       setLoading(false);
     }
-  }, [entity, actions, moduleName, entityName, onSuccess]);
+  }, [entity, actions, moduleName, entityName, onSuccess, t]);
 
   // Breadcrumbs
   const breadcrumbs = useMemo(() => {
@@ -390,15 +392,15 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
     if (isCreateMode) {
       return [
         { label: moduleName, onClick: () => navigate(-1) },
-        { label: 'Nouveau' }
+        { label: t('inspector.new', { defaultValue: 'New' }) }
       ];
     }
 
     return [
       { label: moduleName, onClick: () => navigate(-1) },
-      { label: entityName || 'Détails' }
+      { label: entityName || t('inspector.details', { defaultValue: 'Details' }) }
     ];
-  }, [customBreadcrumbs, isCreateMode, moduleName, entityName, navigate]);
+  }, [customBreadcrumbs, isCreateMode, moduleName, entityName, navigate, t]);
 
   return useMemo(() => ({
     activeTab,

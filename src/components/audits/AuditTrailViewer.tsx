@@ -18,9 +18,11 @@ import {
     AlertCircle
 } from '../ui/Icons';
 import { useAuditLogs, type AuditLog } from '../../hooks/audit/useAuditLogs';
+import { useLocale } from '@/hooks/useLocale';
 
 export const AuditTrailViewer: React.FC = () => {
     const { user } = useStore();
+    const { config } = useLocale();
     const { logs, loading } = useAuditLogs(user?.organizationId);
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
     const [filters, setFilters] = useState({
@@ -274,7 +276,7 @@ export const AuditTrailViewer: React.FC = () => {
 
                                 <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
                                     <Calendar className="h-3 w-3" />
-                                    <span>{log.timestamp.toLocaleString('fr-FR')}</span>
+                                    <span>{log.timestamp.toLocaleString(config.intlLocale)}</span>
                                 </div>
 
                                 {log.changes && log.changes.length > 0 && (
@@ -317,7 +319,7 @@ export const AuditTrailViewer: React.FC = () => {
                                 <div>
                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Date</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
-                                        {selectedLog.timestamp.toLocaleString('fr-FR')}
+                                        {selectedLog.timestamp.toLocaleString(config.intlLocale)}
                                     </p>
                                 </div>
                             </div>

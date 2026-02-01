@@ -13,6 +13,8 @@ import {
 } from 'recharts';
 import { slideUpVariants } from '../ui/animationVariants';
 import { AgentRealtimeMetrics } from '../../types/agent';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 import { SENTINEL_PALETTE, CHART_STYLES, ChartGradients } from '../../theme/chartTheme';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Cpu, HardDrive, Activity, Network } from '../ui/Icons';
@@ -37,7 +39,7 @@ const formatBytes = (bytes: number | undefined): string => {
 // Format time for X axis
 const formatTime = (timestamp: string): string => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return date.toLocaleTimeString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
 // Individual metric card component

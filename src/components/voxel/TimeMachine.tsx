@@ -23,7 +23,7 @@ import {
   Info,
 } from '../ui/Icons';
 import { format, subDays, addDays, isAfter, isBefore, isEqual } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarPicker } from '@/components/ui/Calendar';
 import { Badge } from '@/components/ui/Badge';
@@ -241,6 +241,7 @@ export function TimeMachine({
   onSnapshotSelect,
   onCompare,
 }: TimeMachineProps) {
+  const { dateFnsLocale } = useLocale();
   // State
   const [selectedDate, setSelectedDate] = useState<Date>(subDays(new Date(), 1));
   const [compareDate, setCompareDate] = useState<Date | null>(null);
@@ -441,7 +442,7 @@ export function TimeMachine({
                 <div>
                   <h2 className="text-lg font-bold text-white">Time Machine</h2>
                   <Badge variant="soft" className="text-xs mt-0.5">
-                    {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
+                    {format(selectedDate, 'dd MMM yyyy', { locale: dateFnsLocale })}
                   </Badge>
                 </div>
               </div>
@@ -488,7 +489,7 @@ export function TimeMachine({
                     onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {format(selectedDate, 'PPP', { locale: fr })}
+                    {format(selectedDate, 'PPP', { locale: dateFnsLocale })}
                   </Button>
 
                   {isCalendarOpen && (
@@ -577,7 +578,7 @@ export function TimeMachine({
                       aria-expanded={isCompareCalendarOpen}
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      {compareDate ? format(compareDate, 'PPP', { locale: fr }) : "Sélectionnez une date"}
+                      {compareDate ? format(compareDate, 'PPP', { locale: dateFnsLocale }) : "Sélectionnez une date"}
                     </Button>
 
                     {isCompareCalendarOpen && (

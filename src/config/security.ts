@@ -151,7 +151,7 @@ export const configureSecurity = (app: Express) => {
       Object.keys(req.query).forEach((key) => {
         const value = req.query[key];
         if (typeof value === 'string') {
-          req.query[key] = value.replace(/[^a-zA-Z0-9_\-\s]/g, '');
+          req.query[key] = value.replace(/[<>{}()|\\`'"]/g, '');
         }
       });
     }

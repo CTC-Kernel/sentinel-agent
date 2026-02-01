@@ -162,7 +162,7 @@ export class BackupService {
         }
 
         try {
-          const BATCH_SIZE = 500;
+          const BATCH_SIZE = 450;
           let batch = writeBatch(db);
           let batchCount = 0;
 

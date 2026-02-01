@@ -36,7 +36,7 @@ import { Button } from '../ui/button';
 import { VaultAuditService, AuditLogEntry, DocumentAction, AuditFilters } from '@/services/vaultAuditService';
 import { getUserAvatarUrl } from '@/utils/avatarUtils';
 import { format, formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface DocumentAuditTrailProps {
   /** Document ID to show audit trail for (null for organization-wide) */
@@ -85,6 +85,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
   showExport = true,
   className = '',
 }) => {
+  const { dateFnsLocale } = useLocale();
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -233,7 +234,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
   const formatRelativeTime = (timestamp: string | null) => {
     if (!timestamp) return 'N/A';
     try {
-      return formatDistanceToNow(new Date(timestamp), { addSuffix: true, locale: fr });
+      return formatDistanceToNow(new Date(timestamp), { addSuffix: true, locale: dateFnsLocale });
     } catch {
       return timestamp;
     }
@@ -243,7 +244,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
   const formatFullTimestamp = (timestamp: string | null) => {
     if (!timestamp) return 'N/A';
     try {
-      return format(new Date(timestamp), 'dd MMM yyyy HH:mm:ss', { locale: fr });
+      return format(new Date(timestamp), 'dd MMM yyyy HH:mm:ss', { locale: dateFnsLocale });
     } catch {
       return timestamp;
     }

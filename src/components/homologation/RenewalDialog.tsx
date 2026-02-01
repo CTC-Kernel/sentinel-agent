@@ -18,7 +18,7 @@ import {
   FileText
 } from '../ui/Icons';
 import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import {
@@ -54,6 +54,7 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { organization } = useStore();
+  const { dateFnsLocale } = useLocale();
   const { user } = useAuth();
   const isEnglish = i18n.language === 'en';
 
@@ -147,11 +148,11 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
               </div>
               <span>
                 {dossier.validityStartDate
-                  ? format(parseISO(dossier.validityStartDate), 'dd MMM yyyy', { locale: fr })
+                  ? format(parseISO(dossier.validityStartDate), 'dd MMM yyyy', { locale: dateFnsLocale })
                   : 'N/A'}{' '}
                 →{' '}
                 {dossier.validityEndDate
-                  ? format(parseISO(dossier.validityEndDate), 'dd MMM yyyy', { locale: fr })
+                  ? format(parseISO(dossier.validityEndDate), 'dd MMM yyyy', { locale: dateFnsLocale })
                   : 'N/A'}
               </span>
             </div>

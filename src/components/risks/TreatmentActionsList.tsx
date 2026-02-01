@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { TreatmentActionForm } from './TreatmentActionForm';
 import { format, parseISO, isPast, isToday } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface TreatmentActionsListProps {
     actions: TreatmentAction[];
@@ -34,6 +34,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
     onDirtyChange
 }) => {
     const { t } = useTranslation();
+    const { dateFnsLocale } = useLocale();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -206,7 +207,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                             <span className={`inline-flex items-center gap-1 text-xs ${deadlineStatus ? deadlineStatus.color + ' px-1.5 py-0.5 rounded-full border' : 'text-muted-foreground'
                                                 }`}>
                                                 <Calendar className="h-3 w-3" />
-                                                {deadlineStatus ? deadlineStatus.label : format(parseISO(action.deadline), 'dd MMM yyyy', { locale: fr })}
+                                                {deadlineStatus ? deadlineStatus.label : format(parseISO(action.deadline), 'dd MMM yyyy', { locale: dateFnsLocale })}
                                             </span>
                                         )}
                                     </div>

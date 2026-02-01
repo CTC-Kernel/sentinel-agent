@@ -4,6 +4,7 @@ import { X, Shield, Activity, Globe, Award, TrendingUp, Calendar, Target, Zap } 
 import { Badge } from '../ui/Badge';
 import { HunterProfileService, HunterProfile as HunterProfileData } from '../../services/HunterProfileService';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useLocale } from '@/hooks/useLocale';
 
 interface HunterProfile {
     name: string;
@@ -222,6 +223,7 @@ interface Achievement {
 }
 
 export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, onClose, hunterName }) => {
+    const { config } = useLocale();
     const [hunterProfile, setHunterProfile] = useState<HunterProfileData | null>(null);
 
     useEffect(() => {
@@ -481,7 +483,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                 {/* Member Since */}
                                                 <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-border/40 dark:border-white/5">
                                                     <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">Membre depuis</div>
-                                                    <div className="font-bold text-slate-900 dark:text-white">{new Date(hunterProfile?.user?.createdAt || '2023-01-01').toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })}</div>
+                                                    <div className="font-bold text-slate-900 dark:text-white">{new Date(hunterProfile?.user?.createdAt || '2023-01-01').toLocaleDateString(config.intlLocale, { year: 'numeric', month: 'long' })}</div>
                                                 </div>
                                             </div>
                                         </div>

@@ -30,7 +30,8 @@ export const useAutoNotification = (
                 notificationIdRef.current = null;
             }
         };
-    }, [condition, notification, notificationKey, addNotification, removeNotification]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- notificationKey (JSON.stringify of notification) is sufficient; including notification object causes infinite re-renders
+    }, [condition, notificationKey, addNotification, removeNotification]);
 
     // Separate effect for unmount cleanup only
     useEffect(() => {

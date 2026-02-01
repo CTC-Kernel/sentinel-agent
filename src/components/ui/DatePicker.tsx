@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as CalendarIcon } from './Icons';
 import { Calendar } from './Calendar';
+import { useLocale } from '@/hooks/useLocale';
 
 interface DatePickerProps {
     label: string;
@@ -23,6 +24,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     placeholder = "Sélectionner une date...",
     disabled = false
 }) => {
+    const { config } = useLocale();
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +51,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         }
     };
 
-    const displayValue = value ? new Date(value).toLocaleDateString('fr-FR', {
+    const displayValue = value ? new Date(value).toLocaleDateString(config.intlLocale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric'

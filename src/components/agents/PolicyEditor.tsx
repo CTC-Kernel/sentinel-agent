@@ -83,6 +83,7 @@ import { slideUpVariants, staggerContainerVariants } from '../ui/animationVarian
 import { ErrorLogger } from '../../services/errorLogger';
 import { hasPermission } from '../../utils/permissions';
 import { toast } from '@/lib/toast';
+import { useLocale } from '@/hooks/useLocale';
 
 interface PolicyEditorProps {
     groups?: AgentGroup[];
@@ -332,10 +333,10 @@ const PolicyForm: React.FC<{
         // Validate
         const validationErrors = validatePolicyRules(rules);
         if (!name.trim()) {
-            validationErrors.push('Name is required');
+            validationErrors.push('Le nom est requis');
         }
         if (scope === 'group' && targetGroupIds.length === 0) {
-            validationErrors.push('Select at least one target group');
+            validationErrors.push('Sélectionnez au moins un groupe cible');
         }
 
         if (validationErrors.length > 0) {
@@ -393,12 +394,12 @@ const PolicyForm: React.FC<{
                         <Input
                             id="policyName"
                             value={name}
-                            onChange={(e) => { setName(e.target.value); setErrors(prev => prev.filter(e => e !== 'Name is required')); }}
+                            onChange={(e) => { setName(e.target.value); setErrors(prev => prev.filter(e => e !== 'Le nom est requis')); }}
                             placeholder="Nom de la politique"
-                            className={cn(errors.includes('Name is required') && 'border-destructive ring-destructive/20')}
+                            className={cn(errors.includes('Le nom est requis') && 'border-destructive ring-destructive/20')}
                         />
-                        {errors.includes('Name is required') && (
-                            <p className="text-destructive text-xs mt-1">Name is required</p>
+                        {errors.includes('Le nom est requis') && (
+                            <p className="text-destructive text-xs mt-1">Le nom est requis</p>
                         )}
                     </div>
                     <div>
@@ -677,6 +678,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     className,
 }) => {
     const { user, t } = useStore();
+    const { config } = useLocale();
     const organizationId = user?.organizationId;
     const [policies, setPolicies] = useState<AgentPolicy[]>([]);
     const [loading, setLoading] = useState(true);
@@ -1161,7 +1163,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
                             {selectedPolicy.lastDeployedAt && (
                                 <span>
                                     Dernier déploiement:{' '}
-                                    {new Date(selectedPolicy.lastDeployedAt).toLocaleDateString('fr-FR')}
+                                    {new Date(selectedPolicy.lastDeployedAt).toLocaleDateString(config.intlLocale)}
                                 </span>
                             )}
                             <span>

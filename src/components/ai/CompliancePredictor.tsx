@@ -40,6 +40,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 import { slideUpVariants } from '../ui/animationVariants';
+import { useLocale } from '@/hooks/useLocale';
 
 interface CompliancePredictorProps {
     frameworkId?: string;
@@ -128,6 +129,7 @@ const PredictionCard: React.FC<{
     prediction: ScorePrediction;
     isPrimary?: boolean;
 }> = ({ prediction, isPrimary = false }) => {
+    const { config } = useLocale();
     const getStatusIcon = () => {
         if (prediction.isReached) {
             return <CheckCircle className="h-5 w-5 text-success" />;
@@ -140,7 +142,7 @@ const PredictionCard: React.FC<{
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return '-';
-        return new Date(dateString).toLocaleDateString('fr-FR', {
+        return new Date(dateString).toLocaleDateString(config.intlLocale, {
             day: 'numeric',
             month: 'short',
             year: 'numeric',

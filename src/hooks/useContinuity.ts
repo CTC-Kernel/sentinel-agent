@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { collection, addDoc, deleteDoc, updateDoc, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, updateDoc, doc, writeBatch, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
@@ -113,6 +113,21 @@ export const useContinuity = () => {
 
         setLoading(true);
         try {
+            // Cascade delete: clean up related drills
+            const drillsQuery = query(
+                collection(db, 'bcp_drills'),
+                where('processId', '==', id),
+                where('organizationId', '==', user.organizationId)
+            );
+            const drillsSnap = await getDocs(drillsQuery);
+            if (!drillsSnap.empty) {
+                const batch = writeBatch(db);
+                drillsSnap.docs.forEach(drillDoc => {
+                    batch.delete(drillDoc.ref);
+                });
+                await batch.commit();
+            }
+
             await deleteDoc(doc(db, 'business_processes', id));
             await logAction(user, 'DELETE', 'BusinessProcess', `Deleted process: ${id}`);
             addToast(t('continuity.toastDeleted'), 'success');
@@ -253,7 +268,7 @@ export const useContinuity = () => {
                 return;
             }
 
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
             let batch = writeBatch(db);
             let count = 0;
             let batchCount = 0;
@@ -497,6 +512,21 @@ export const useContinuity = () => {
 
         setLoading(true);
         try {
+            // Cascade: clean up business_processes that reference this recovery plan via drpDocumentId
+            const processesQuery = query(
+                collection(db, 'business_processes'),
+                where('organizationId', '==', user.organizationId),
+                where('drpDocumentId', '==', id)
+            );
+            const processesSnap = await getDocs(processesQuery);
+            if (!processesSnap.empty) {
+                const batch = writeBatch(db);
+                processesSnap.docs.forEach(processDoc => {
+                    batch.update(processDoc.ref, { drpDocumentId: null, updatedAt: serverTimestamp() });
+                });
+                await batch.commit();
+            }
+
             await deleteDoc(doc(db, 'recovery_plans', id));
             await logAction(user, 'DELETE', 'RecoveryPlan', `Deleted PRA: ${id}`);
             addToast(t('continuity.toast.recoveryDeleted', { defaultValue: "Plan de reprise supprimé" }), 'success');

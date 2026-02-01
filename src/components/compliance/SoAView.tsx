@@ -27,7 +27,7 @@ interface SoAViewProps {
 
 export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = 'ISO27001', handlers, onSeed }) => {
     const { user, addToast } = useStore();
-    const { t } = useLocale();
+    const { t, config } = useLocale();
     const [versions, setVersions] = useState<SoAVersion[]>([]);
     const [exportingPdf, setExportingPdf] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
@@ -38,9 +38,9 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
     // Calculate current stats
     const currentStats = {
         totalControls: controls.length,
-        applicableControls: controls.filter(c => c.applicability !== 'Non applicable' && c.status !== 'Non applicable').length,
-        implementedControls: controls.filter(c => c.status === 'Implémenté').length,
-        partialControls: controls.filter(c => c.status === 'Partiel').length,
+        applicableControls: controls.filter(c => c.applicability !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.NOT_APPLICABLE).length,
+        implementedControls: controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length,
+        partialControls: controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length,
     };
 
     // Load version history
@@ -92,7 +92,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             const newVersion = {
                 organizationId: user.organizationId,
                 framework,
-                version: versions.length + 1,
+                version: (versions?.length || 0) + 1,
                 generatedAt: serverTimestamp(),
                 generatedBy: user.uid,
                 generatedByName: user.displayName || user.email || 'Unknown',
@@ -127,7 +127,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
 
             if (isHistorical && versionData) {
                 doc.setFontSize(10);
-                doc.text(`Généré le: ${new Date(versionData.generatedAt).toLocaleDateString('fr-FR')}`, 14, 28);
+                doc.text(`Généré le: ${new Date(versionData.generatedAt).toLocaleDateString(config.intlLocale)}`, 14, 28);
                 doc.text(`Par: ${versionData.generatedByName}`, 14, 34);
             }
 
@@ -205,7 +205,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                             <History className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                             <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
-                                Version {selectedVersion.version} - {new Date(selectedVersion.generatedAt).toLocaleDateString('fr-FR')}
+                                Version {selectedVersion.version} - {new Date(selectedVersion.generatedAt).toLocaleDateString(config.intlLocale)}
                             </span>
                             <button
                                 onClick={() => setSelectedVersion(null)}
@@ -295,7 +295,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                             <div>
                                                 <div className="flex items-center gap-2 text-sm text-slate-900 dark:text-white">
                                                     <Clock className="h-3 w-3 text-slate-400" />
-                                                    {new Date(version.generatedAt).toLocaleDateString('fr-FR', {
+                                                    {new Date(version.generatedAt).toLocaleDateString(config.intlLocale, {
                                                         day: 'numeric',
                                                         month: 'long',
                                                         year: 'numeric',
@@ -377,7 +377,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5 bg-white dark:bg-slate-900">
                             {displayControls.map(item => {
-                                const isNonApplicable = item.applicability === 'Non applicable' || item.status === 'Non applicable';
+                                const isNonApplicable = item.applicability === CONTROL_STATUS.NOT_APPLICABLE || item.status === CONTROL_STATUS.NOT_APPLICABLE;
                                 const missingJustification = isNonApplicable && (!item.justification || item.justification.trim() === '');
 
                                 return (
@@ -451,9 +451,9 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                         </td>
                                         <td className="px-4 py-3">
                                             <Badge status={
-                                                item.status === 'Implémenté' ? 'success' :
-                                                    item.status === 'Non applicable' ? 'neutral' :
-                                                        item.status === 'Partiel' ? 'warning' : 'error'
+                                                item.status === CONTROL_STATUS.IMPLEMENTED ? 'success' :
+                                                    item.status === CONTROL_STATUS.NOT_APPLICABLE ? 'neutral' :
+                                                        item.status === CONTROL_STATUS.PARTIAL ? 'warning' : 'error'
                                             } variant="soft">
                                                 {item.status}
                                             </Badge>

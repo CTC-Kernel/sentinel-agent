@@ -13,6 +13,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SessionMonitor } from '../../services/sessionMonitoringService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Shield, AlertTriangle, Activity, Clock, Users } from '../ui/Icons';
@@ -41,6 +42,7 @@ interface SecurityMetrics {
 }
 
 export const SecurityDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [metrics, setMetrics] = useState<SecurityMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -152,7 +154,7 @@ export const SecurityDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500 dark:text-slate-400">Chargement des métriques de sécurité...</div>
+        <div className="text-slate-500 dark:text-slate-400">{t('security.loadingMetrics', { defaultValue: 'Loading security metrics...' })}</div>
       </div>
     );
   }
@@ -160,7 +162,7 @@ export const SecurityDashboard: React.FC = () => {
   if (!metrics) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500 dark:text-slate-400">Impossible de charger les métriques</div>
+        <div className="text-slate-500 dark:text-slate-400">{t('security.loadError', { defaultValue: 'Failed to load metrics' })}</div>
       </div>
     );
   }
@@ -172,10 +174,10 @@ export const SecurityDashboard: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Shield className="w-6 h-6" />
-            Tableau de Bord Sécurité BMAD
+            {t('security.dashboardTitle', { defaultValue: 'BMAD Security Dashboard' })}
           </h2>
           <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
-            Monitoring en temps réel des métriques de sécurité
+            {t('security.realtimeMonitoring', { defaultValue: 'Real-time monitoring...' })}
           </p>
         </div>
 
@@ -237,7 +239,7 @@ export const SecurityDashboard: React.FC = () => {
 
         {metrics.anomalies.recent.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            ✅ Aucune anomalie détectée
+            {t('security.noAnomalies', { defaultValue: 'No anomalies detected' })}
           </div>
         ) : (
           <div className="space-y-3">

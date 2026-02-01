@@ -32,6 +32,7 @@ import {
 
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
+import { useLocale } from '@/hooks/useLocale';
 import { useVoxels } from '../hooks/useVoxels';
 import { useActiveFrameworks } from '../hooks/useFrameworks';
 import { aiService } from '../services/aiService';
@@ -100,12 +101,12 @@ const formatSafeDate = (date: unknown): string => {
   try {
     if (typeof date === 'object' && date !== null && 'seconds' in date) {
       const ts = date as { seconds: number };
-      return new Date(ts.seconds * 1000).toLocaleDateString('fr-FR');
+      return new Date(ts.seconds * 1000).toLocaleDateString(config.intlLocale);
     }
-    if (date instanceof Date) return date.toLocaleDateString('fr-FR');
+    if (date instanceof Date) return date.toLocaleDateString(config.intlLocale);
     if (typeof date === 'string') {
       const d = new Date(date);
-      return isNaN(d.getTime()) ? date : d.toLocaleDateString('fr-FR');
+      return isNaN(d.getTime()) ? date : d.toLocaleDateString(config.intlLocale);
     }
     return String(date);
   } catch {
@@ -257,6 +258,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
 export const VoxelView: React.FC = () => {
   const { user } = useAuth();
   const { addToast, activeFramework, setActiveFramework, t } = useStore();
+  const { config } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 

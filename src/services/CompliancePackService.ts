@@ -7,6 +7,9 @@ import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset, Project
 import { format } from 'date-fns';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
 import { ErrorLogger } from './errorLogger';
+import { CONTROL_STATUS } from '../constants/complianceConfig';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 
 export class CompliancePackService {
 
@@ -66,7 +69,7 @@ export class CompliancePackService {
             const readmeContent = `
 PACK DE CONFORMITÉ - SENTINEL GRC
 =================================
-Généré le: ${new Date().toLocaleString('fr-FR')}
+Généré le: ${new Date().toLocaleString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale)}
 Organisation: ${data.organizationName}
 
 CONTENU DU PACK:
@@ -246,10 +249,10 @@ L'intégrité de ces données est garantie par le système.
                             currentY,
                             30, // Radius
                             [
-                                { label: 'Implémenté', value: soaMetrics.implemented_controls, color: '#10B981' },
-                                { label: 'En cours', value: soaMetrics.planned_controls, color: '#F59E0B' },
-                                { label: 'Non commencé', value: soaMetrics.not_started, color: '#EF4444' },
-                                { label: 'Non applicable', value: soaMetrics.not_applicable, color: '#CBD5E1' }
+                                { label: CONTROL_STATUS.IMPLEMENTED, value: soaMetrics.implemented_controls, color: '#10B981' },
+                                { label: CONTROL_STATUS.IN_PROGRESS, value: soaMetrics.planned_controls, color: '#F59E0B' },
+                                { label: CONTROL_STATUS.NOT_STARTED, value: soaMetrics.not_started, color: '#EF4444' },
+                                { label: CONTROL_STATUS.NOT_APPLICABLE, value: soaMetrics.not_applicable, color: '#CBD5E1' }
                             ],
                             `${soaMetrics.compliance_coverage}%`
                         );

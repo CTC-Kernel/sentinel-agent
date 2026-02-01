@@ -17,7 +17,7 @@ import {
   isToday,
   isFuture,
 } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { ErrorLogger } from '@/services/errorLogger';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -132,7 +132,7 @@ function DayCell({
   const tooltipContent = (
     <div className="text-xs">
       <div className="font-medium">
-        {format(date, 'EEEE d MMMM yyyy', { locale: fr })}
+        {format(date, 'EEEE d MMMM yyyy', { locale: dateFnsLocale })}
       </div>
       {data?.hasData ? (
         <div className="mt-1 space-y-0.5">
@@ -220,6 +220,7 @@ export function CalendarHeatmap({
   onDayClick,
   onLoadSnapshot,
 }: CalendarHeatmapProps) {
+  const { dateFnsLocale } = useLocale();
   const [year, setYear] = useState(initialYear);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [activityData, setActivityData] = useState<Map<string, DayData>>(new Map());
@@ -526,7 +527,7 @@ export function CalendarHeatmap({
                   className="gap-2"
                 >
                   <Activity className="h-4 w-4" />
-                  Charger le snapshot du {format(parseISO(selectedDate), 'd MMM', { locale: fr })}
+                  Charger le snapshot du {format(parseISO(selectedDate), 'd MMM', { locale: dateFnsLocale })}
                 </Button>
               )}
             </div>

@@ -4,7 +4,7 @@ import i18n from '../i18n';
 export const projectTaskSchema = z.object({
     title: z.string().min(1, i18n.t('validation.required')),
     description: z.string().optional(),
-    status: z.enum(['A faire', 'En cours', 'Terminé', 'Bloqué']).default('A faire'),
+    status: z.enum(['À faire', 'En cours', 'Terminé', 'Bloqué']).default('À faire'),
     assignee: z.string().optional(),
     assigneeId: z.string().optional(),
     startDate: z.string().optional(),

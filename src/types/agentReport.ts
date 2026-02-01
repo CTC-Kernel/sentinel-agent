@@ -9,6 +9,8 @@
 
 import type { AgentOS, AgentStatus } from './agent';
 import type { PolicyScope } from './agentPolicy';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 
 // ============================================================================
 // Report Types
@@ -619,7 +621,7 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
                 { id: 'top-issues', title: 'Problèmes principaux', type: 'list', enabled: true, order: 3 },
                 { id: 'recommendations', title: 'Recommandations', type: 'list', enabled: true, order: 4 },
             ],
-            locale: 'fr-FR',
+            locale: getLocaleConfig(i18n.language as SupportedLocale).intlLocale,
             timezone: 'Europe/Paris',
         },
         tags: ['compliance', 'monthly', 'recommended'],
@@ -646,7 +648,7 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
                 { id: 'performance', title: 'Métriques de performance', type: 'metrics', enabled: true, order: 3 },
                 { id: 'anomalies', title: 'Résumé des anomalies', type: 'table', enabled: true, order: 4 },
             ],
-            locale: 'fr-FR',
+            locale: getLocaleConfig(i18n.language as SupportedLocale).intlLocale,
             timezone: 'Europe/Paris',
         },
         tags: ['health', 'weekly', 'recommended'],
@@ -673,7 +675,7 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
                 { id: 'risks', title: 'Risques', type: 'summary', enabled: true, order: 3 },
                 { id: 'next-steps', title: 'Prochaines étapes', type: 'list', enabled: true, order: 4 },
             ],
-            locale: 'fr-FR',
+            locale: getLocaleConfig(i18n.language as SupportedLocale).intlLocale,
             timezone: 'Europe/Paris',
         },
         tags: ['executive', 'quarterly', 'management'],
@@ -698,7 +700,7 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
                 { id: 'by-agent', title: 'Par agent', type: 'table', enabled: true, order: 1 },
                 { id: 'unauthorized', title: 'Logiciels non autorisés', type: 'table', enabled: true, order: 2 },
             ],
-            locale: 'fr-FR',
+            locale: getLocaleConfig(i18n.language as SupportedLocale).intlLocale,
             timezone: 'Europe/Paris',
         },
         tags: ['inventory', 'export', 'data'],

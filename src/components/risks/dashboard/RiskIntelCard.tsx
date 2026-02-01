@@ -9,13 +9,14 @@ import { PremiumCard } from '../../ui/PremiumCard';
 import { RISK_ACCEPTANCE_THRESHOLD, RISK_LEVELS } from '../../../constants/RiskConstants';
 import { cn } from '../../../utils/cn';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface RiskIntelCardProps {
     risks: Risk[];
 }
 
 export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
+    const { dateFnsLocale } = useLocale();
 
     // --- 1. Compute Metrics ---
     const metrics = useMemo(() => {
@@ -72,7 +73,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                             Global Risk Intel
                         </h2>
                         <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
-                            État de santé du registre au {format(new Date(), 'd MMMM yyyy', { locale: fr })}
+                            État de santé du registre au {format(new Date(), 'd MMMM yyyy', { locale: dateFnsLocale })}
                         </p>
                     </div>
 

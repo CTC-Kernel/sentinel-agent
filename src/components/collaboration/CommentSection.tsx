@@ -6,7 +6,7 @@ import { Send, MessageSquare, Reply } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 import { cn } from '../../utils/cn';
 import { useZodForm } from '../../hooks/useZodForm';
 import { SubmitHandler } from 'react-hook-form';
@@ -21,6 +21,7 @@ interface CommentSectionProps {
 export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, documentId, className }) => {
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const { user } = useStore();
+    const { dateFnsLocale } = useLocale();
 
     // Use hook for comments subcollection
     const { data: comments, add: addRaw } = useFirestoreCollection<Comment>(
@@ -105,7 +106,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                                 {comment.userName}
                             </span>
                             <span className="text-xs text-slate-500 dark:text-muted-foreground">
-                                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: fr })}
+                                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: dateFnsLocale })}
                             </span>
                         </div>
                         <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">

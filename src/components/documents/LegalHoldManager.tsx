@@ -26,7 +26,6 @@ import {
   Trash2,
 } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '../ui/input';
@@ -79,7 +78,7 @@ interface LegalHoldManagerProps {
 }
 
 export function LegalHoldManager({ className }: LegalHoldManagerProps) {
-  const { t } = useLocale();
+  const { t, dateFnsLocale } = useLocale();
   const { user, organization } = useStore();
   const organizationId = organization?.id;
   const { documents } = useDocumentsData(organizationId);
@@ -287,7 +286,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
 
   const formatDate = (timestamp: { toDate: () => Date } | undefined) => {
     if (!timestamp) return '-';
-    return format(timestamp.toDate(), 'dd MMM yyyy HH:mm', { locale: fr });
+    return format(timestamp.toDate(), 'dd MMM yyyy HH:mm', { locale: dateFnsLocale });
   };
 
   const filteredDocuments = useMemo(() => {

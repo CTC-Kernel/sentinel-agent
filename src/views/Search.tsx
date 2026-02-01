@@ -11,8 +11,11 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { useGlobalSearch, SearchResult } from '../hooks/useGlobalSearch';
+import { useStore } from '../store';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 export const Search: React.FC = () => {
+    const { t } = useStore();
     const [searchParams] = useSearchParams();
     const [queryText, setQueryText] = useState(searchParams.get('q') || '');
     const [activeFilter, setActiveFilter] = useState<string>('all');
@@ -73,7 +76,7 @@ export const Search: React.FC = () => {
             className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
-            <SEO title="Recherche Avancée" description="Recherchez dans tous vos actifs, risques, documents et projets" />
+            <SEO title={t('search.title', { defaultValue: 'Advanced Search' })} description={t('search.seoDescription', { defaultValue: 'Search across all your assets, risks, documents and projects' })} />
             {showAdvancedSearch && (
                 <AdvancedSearch
                     onSearch={handleAdvancedSearch}
@@ -82,8 +85,8 @@ export const Search: React.FC = () => {
             )}
 
             <PageHeader
-                title="Recherche Avancée"
-                subtitle="Recherchez dans tous vos actifs, risques, documents et projets."
+                title={t('search.title', { defaultValue: 'Advanced Search' })}
+                subtitle={t('search.subtitle', { defaultValue: 'Search across all your assets, risks, documents and projects.' })}
                 icon={<SearchIcon className="h-6 w-6 text-white" strokeWidth={2.5} />}
             />
 
@@ -92,63 +95,63 @@ export const Search: React.FC = () => {
                     <SearchIcon className="h-6 w-6 text-slate-500" />
                 </div>
                 <input value={queryText}
-                    aria-label="Rechercher"
+                    aria-label={t('search.search', { defaultValue: 'Search' })}
                     type="text"
-                    placeholder="Rechercher quelque chose..."
+                    placeholder={t('search.placeholder', { defaultValue: 'Search for something...' })}
                     className="flex-1 bg-transparent border-none focus:ring-0 text-lg dark:text-white py-3 font-medium placeholder-gray-400"
                     onChange={e => setQueryText(e.target.value)}
                 />
                 {loading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-600 mr-4"></div>}
                 <button
-                    aria-label="Filtres"
+                    aria-label={t('search.filters', { defaultValue: 'Filters' })}
                     onClick={() => setShowAdvancedSearch(true)}
                     className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm shadow-lg transition-all hover:scale-105 flex items-center gap-2"
                 >
                     <Filter className="h-4 w-4" />
-                    Filtres
+                    {t('search.filters', { defaultValue: 'Filters' })}
                 </button>
             </div>
 
             {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2 items-center">
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Filtres actifs:</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{t('search.activeFilters', { defaultValue: 'Active filters' })}:</span>
                     {advancedFilters.status && (
                         <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
-                            Statut: {advancedFilters.status}
+                            {t('search.status', { defaultValue: 'Status' })}: {advancedFilters.status}
                         </span>
                     )}
                     {advancedFilters.owner && (
                         <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-bold">
-                            Propriétaire: {advancedFilters.owner}
+                            {t('search.owner', { defaultValue: 'Owner' })}: {advancedFilters.owner}
                         </span>
                     )}
                     {advancedFilters.criticality && (
                         <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-xs font-bold">
-                            Criticité: {advancedFilters.criticality}
+                            {t('search.criticality', { defaultValue: 'Criticality' })}: {advancedFilters.criticality}
                         </span>
                     )}
                     {(advancedFilters.dateFrom || advancedFilters.dateTo) && (
                         <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-xs font-bold">
-                            Période: {advancedFilters.dateFrom || '...'} → {advancedFilters.dateTo || '...'}
+                            {t('search.period', { defaultValue: 'Period' })}: {advancedFilters.dateFrom || '...'} → {advancedFilters.dateTo || '...'}
                         </span>
                     )}
                     <button
-                        aria-label="Effacer les filtres"
+                        aria-label={t('search.clearFilters', { defaultValue: 'Clear filters' })}
                         onClick={clearAdvancedFilters}
                         className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                     >
-                        Effacer
+                        {t('search.clear', { defaultValue: 'Clear' })}
                     </button>
                 </div>
             )}
 
             <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                 {[
-                    { id: 'all', label: 'Tout' },
-                    { id: 'asset', label: 'Actifs' },
-                    { id: 'risk', label: 'Risques' },
-                    { id: 'document', label: 'Documents' },
-                    { id: 'project', label: 'Projets' }
+                    { id: 'all', label: t('search.all', { defaultValue: 'All' }) },
+                    { id: 'asset', label: t('search.assets', { defaultValue: 'Assets' }) },
+                    { id: 'risk', label: t('search.risks', { defaultValue: 'Risks' }) },
+                    { id: 'document', label: t('search.documents', { defaultValue: 'Documents' }) },
+                    { id: 'project', label: t('search.projects', { defaultValue: 'Projects' }) }
                 ].map(filter => (
                     <button
                         aria-label={filter.label}
@@ -169,12 +172,12 @@ export const Search: React.FC = () => {
                     <div className="space-y-6">
                         <EmptyState
                             icon={SearchIcon}
-                            title="Aucun résultat"
-                            description={`Aucun élément ne correspond à "${queryText}"`}
+                            title={t('search.noResults', { defaultValue: 'No results' })}
+                            description={t('search.noResultsDescription', { query: queryText, defaultValue: 'No items match "{{query}}"' })}
                         />
                         <div className="glass-premium p-6 rounded-3xl border border-border/40 space-y-4">
                             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                Essayez avec des termes différents, ou parcourez directement les sections :
+                                {t('search.tryDifferentTerms', { defaultValue: 'Try different terms, or browse sections directly:' })}
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <button
@@ -185,8 +188,8 @@ export const Search: React.FC = () => {
                                         <AlertTriangle className="h-5 w-5 text-orange-500" />
                                     </div>
                                     <div>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Parcourir les risques</span>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Registre des risques</p>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{t('search.browseRisks', { defaultValue: 'Browse risks' })}</span>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('search.riskRegister', { defaultValue: 'Risk register' })}</p>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
                                 </button>
@@ -198,8 +201,8 @@ export const Search: React.FC = () => {
                                         <ShieldCheck className="h-5 w-5 text-blue-500" />
                                     </div>
                                     <div>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Voir les actifs</span>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Inventaire des actifs</p>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{t('search.viewAssets', { defaultValue: 'View assets' })}</span>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('search.assetInventory', { defaultValue: 'Asset inventory' })}</p>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
                                 </button>
@@ -211,8 +214,8 @@ export const Search: React.FC = () => {
                                         <FileText className="h-5 w-5 text-emerald-500" />
                                     </div>
                                     <div>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Consulter les controles</span>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Cadre de conformite</p>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{t('search.viewControls', { defaultValue: 'View controls' })}</span>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('search.complianceFramework', { defaultValue: 'Compliance framework' })}</p>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
                                 </button>
@@ -251,7 +254,7 @@ export const Search: React.FC = () => {
                                         </span>
                                     )}
                                     {result.score !== undefined && (
-                                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${result.score >= 8 ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : result.score >= 5 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'}`}>
+                                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${result.score >= RISK_THRESHOLDS.HIGH ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : result.score >= RISK_THRESHOLDS.MEDIUM ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'}`}>
                                             Score: {result.score}
                                         </span>
                                     )}

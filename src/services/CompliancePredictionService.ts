@@ -17,10 +17,13 @@ import {
     addDoc,
     Unsubscribe,
     limit,
+    serverTimestamp,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { TREND_THRESHOLD } from '../constants/complianceConfig';
+import { sanitizeData } from '@/utils/dataSanitizer';
 import {
     CompliancePrediction,
     TrendAnalysis,
@@ -246,8 +249,8 @@ export function calculateTrend(
 
     // Determine direction
     let direction: TrendDirection = 'stable';
-    if (weeklyChange > 1) direction = 'up';
-    else if (weeklyChange < -1) direction = 'down';
+    if (weeklyChange > TREND_THRESHOLD) direction = 'up';
+    else if (weeklyChange < -TREND_THRESHOLD) direction = 'down';
 
     // Calculate velocity (points per day)
     const velocity = history.length >= 2
@@ -535,12 +538,12 @@ export async function requestScriptExecution(
             targetAgentIds,
             requestedBy: userId,
             status: 'pending',
-            createdAt: new Date().toISOString(),
+            createdAt: serverTimestamp() as unknown as string,
         };
 
         const docRef = await addDoc(
             collection(db, 'organizations', organizationId, 'scriptExecutionRequests'),
-            request
+            sanitizeData(request)
         );
 
         return docRef.id;

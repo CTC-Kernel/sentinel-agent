@@ -14,6 +14,8 @@ import {
   type TimelineItem,
 } from '../../hooks/useUpcomingDeadlines';
 import { ChevronRight, Calendar, AlertTriangle, RefreshCw, CalendarCheck } from '../ui/Icons';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 /**
  * Props for PMTimelineWidget
@@ -72,7 +74,7 @@ function formatDueDate(dateString: string): string {
   if (!dateString) return 'Sans echeance';
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
       weekday: 'short',
       day: 'numeric',
       month: 'short',

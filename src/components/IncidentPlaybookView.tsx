@@ -109,7 +109,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         evidence,
         notes,
         user?.uid,
-        user?.displayName
+        user?.displayName,
+        user?.organizationId
       );
 
       await loadResponse();
@@ -131,7 +132,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         await IncidentPlaybookService.escalateIncident(
           response.id,
           'Escalade manuelle',
-          ['management']
+          ['management'],
+          user?.organizationId
         );
         await loadResponse();
         addToast(t('incidents.playbook.escalated', { defaultValue: 'Incident escaladé' }), 'success');
@@ -148,7 +150,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     setConfirmMessage('Voulez-vous marquer cette response comme terminée ?');
     setConfirmAction(async () => {
       try {
-        await IncidentPlaybookService.completeResponse(response.id, notes);
+        await IncidentPlaybookService.completeResponse(response.id, notes, user?.organizationId);
         await updateIncident(incident.id, sanitizeData({
           status: 'Résolu',
           dateResolved: new Date().toISOString(),

@@ -7,6 +7,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { useLocale } from '@/hooks/useLocale';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Milestone } from '../../types/ebios';
 import { Badge } from '../ui/Badge';
@@ -53,6 +54,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
     linkedItems = []
 }) => {
     const { t } = useStore();
+    const { config } = useLocale();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -157,7 +159,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                             <div>
                                 <p className="font-medium text-red-700 dark:text-red-400">{t('smsi.inspector.overdue', { defaultValue: 'Jalon en retard' })}</p>
                                 <p className="text-sm text-red-600/80 dark:text-red-400/80">
-                                    Échéance dépassée depuis le {new Date(milestone.dueDate).toLocaleDateString('fr-FR')}
+                                    Échéance dépassée depuis le {new Date(milestone.dueDate).toLocaleDateString(config.intlLocale)}
                                 </p>
                             </div>
                         </div>

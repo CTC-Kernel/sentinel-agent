@@ -2,7 +2,7 @@ import React from 'react';
 import { DocumentVersion } from '../../types';
 import { Clock, Download } from '../ui/Icons';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 interface DocumentVersionHistoryProps {
     versions: DocumentVersion[];
@@ -10,6 +10,7 @@ interface DocumentVersionHistoryProps {
 }
 
 export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ versions, currentVersionId }) => {
+    const { dateFnsLocale } = useLocale();
 
     if (versions.length === 0) {
         return <div className="text-center py-8 text-slate-500 dark:text-slate-300 text-sm">Aucune version antérieure disponible.</div>;
@@ -37,7 +38,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ 
                                     {version.changeLog || 'Mise à jour standard'}
                                 </div>
                                 <div className="text-xs text-slate-500 dark:text-slate-300 mt-0.5 flex items-center gap-2">
-                                    <span>{version.uploadedAt ? format(new Date(version.uploadedAt), 'PPP à p', { locale: fr }) : 'Date inconnue'}</span>
+                                    <span>{version.uploadedAt ? format(new Date(version.uploadedAt), 'PPP à p', { locale: dateFnsLocale }) : 'Date inconnue'}</span>
                                     {version.id === currentVersionId && (
                                         <span className="bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded text-[11px] font-bold">ACTUEL</span>
                                     )}

@@ -47,6 +47,7 @@ import {
     Zap
 } from '../../ui/Icons';
 import { Skeleton, CardSkeleton } from '../../ui/Skeleton';
+import { useLocale } from '@/hooks/useLocale';
 
 interface IncidentOverviewProps {
     incidents: Incident[];
@@ -82,6 +83,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, agents = [], loading = false }) => {
+    const { config } = useLocale();
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
@@ -220,7 +222,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
             cumulative += count - resolvedCount;
 
             data.push({
-                date: i === 0 ? 'Auj.' : i <= 6 ? `J-${i}` : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+                date: i === 0 ? 'Auj.' : i <= 6 ? `J-${i}` : d.toLocaleDateString(config.intlLocale, { day: '2-digit', month: 'short' }),
                 nouveaux: count,
                 resolus: resolvedCount,
                 cumul: Math.max(0, cumulative)
@@ -760,7 +762,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                     <div
                                         key={di || 'unknown'}
                                         className={`flex-1 aspect-square rounded-lg ${getHeatColor(day.count)} transition-all duration-normal ease-apple hover:scale-110 hover:shadow-md cursor-pointer relative group/cell border border-border/10`}
-                                        title={`${day.date.toLocaleDateString('fr-FR')}: ${day.count} incident(s)`}
+                                        title={`${day.date.toLocaleDateString(config.intlLocale)}: ${day.count} incident(s)`}
                                     >
                                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-md text-foreground text-[10px] font-black px-2 py-1 rounded border border-border/40 shadow-premium opacity-0 group-hover/cell:opacity-100 transition-all duration-normal ease-apple whitespace-nowrap pointer-events-none z-10 translate-y-1 group-hover/cell:translate-y-0">
                                             {day.count} incident{day.count > 1 ? 's' : ''}

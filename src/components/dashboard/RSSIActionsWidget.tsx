@@ -13,6 +13,8 @@ import {
   type ActionListItem,
 } from '../../hooks/useAssignedActions';
 import { ChevronRight, Clock, AlertCircle, RefreshCw, CheckCircle } from '../ui/Icons';
+import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
+import i18n from '../../i18n';
 
 /**
  * Props for RSSIActionsWidget
@@ -71,7 +73,7 @@ function formatDueDate(dateString: string): string {
   if (!dateString) return 'Sans echeance';
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
       day: 'numeric',
       month: 'short',
     });

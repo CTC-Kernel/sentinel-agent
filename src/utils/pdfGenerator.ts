@@ -1,5 +1,7 @@
 
 import { BusinessProcess, BcpDrill } from '../types';
+import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
+import i18n from '../i18n';
 
 /**
  * Generate a Business Continuity Plan (BCP) Report
@@ -131,7 +133,7 @@ Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${d
 
             // Drills Table - positioned below title but with reduced width to not overlap donut
             const drillData = drills.map(d => [
-                d.date ? new Date(d.date).toLocaleDateString('fr-FR') : 'N/A',
+                d.date ? new Date(d.date).toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale) : 'N/A',
                 d.type || 'N/A',
                 d.notes ? (d.notes.length > 30 ? d.notes.substring(0, 27) + '...' : d.notes) : '-',
                 d.result || 'N/A'

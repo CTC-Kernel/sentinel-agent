@@ -414,15 +414,15 @@ export const Documents: React.FC = () => {
                 trustType="integrity"
                 actions={canCreate && (
                     <div className="flex items-center gap-2">
-                        <CustomTooltip content="Créer depuis un modèle">
+                        <CustomTooltip content={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}>
                             <Button
-                                aria-label="Créer depuis un modèle"
+                                aria-label={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}
                                 onClick={handleOpenTemplateModal}
                                 variant="outline"
                                 className="gap-2"
                             >
                                 <FileText className="h-4 w-4" />
-                                Modèles
+                                {t('documents.templates', { defaultValue: 'Templates' })}
                             </Button>
                         </CustomTooltip>
                         <CustomTooltip content={t('documents.newDocument')}>
@@ -547,15 +547,15 @@ export const Documents: React.FC = () => {
 
                                                 {canCreate && (
                                                     <>
-                                                        <CustomTooltip content="Créer depuis un modèle">
+                                                        <CustomTooltip content={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}>
                                                             <Button
-                                                                aria-label="Créer depuis un modèle"
+                                                                aria-label={t('documents.createFromTemplate', { defaultValue: 'Create from template' })}
                                                                 onClick={handleOpenTemplateModal}
                                                                 variant="outline"
                                                                 className="gap-2"
                                                             >
                                                                 <FileText className="h-4 w-4" />
-                                                                Modèles
+                                                                {t('documents.templates', { defaultValue: 'Templates' })}
                                                             </Button>
                                                         </CustomTooltip>
                                                         <CustomTooltip content={t('documents.newDocument')}>
@@ -661,8 +661,8 @@ export const Documents: React.FC = () => {
             <Drawer
                 isOpen={showCreateModal || (isEditing && !!selectedDocument)}
                 onClose={handleCloseDrawer}
-                title={isEditing ? "Modifier le document" : templateData ? "Nouveau Document depuis Modèle" : "Nouveau Document"}
-                subtitle={isEditing && selectedDocument ? selectedDocument.title : templateData ? templateData.title : "Créer un nouveau document"}
+                title={isEditing ? t('documents.editDocument', { defaultValue: 'Edit Document' }) : templateData ? t('documents.newFromTemplate', { defaultValue: 'New Document from Template' }) : t('documents.newDocument', { defaultValue: 'New Document' })}
+                subtitle={isEditing && selectedDocument ? selectedDocument.title : templateData ? templateData.title : t('documents.createNewDocument', { defaultValue: 'Create a new document' })}
                 width="max-w-6xl"
                 disableScroll={true}
                 hasUnsavedChanges={isFormDirty}

@@ -44,23 +44,30 @@ export const useComplianceDataSeeder = () => {
 
         // RBAC Check
         if (!canEditResource(user, 'Control')) {
-            toast.error(t('compliance.permissionDenied') || "Permission refusée : Vous n'avez pas les droits pour gérer les contrôles.");
+            toast.error(t('compliance.permissionDenied', { defaultValue: 'Permission denied: You do not have rights to manage controls.' }));
             return;
         }
 
         const seedData = getSeedDataForFramework(framework);
         if (seedData.length === 0) {
-            toast.error(t('compliance.noSeedData') || `Aucune donnée de démarrage disponible pour ${framework}`);
+            toast.error(t('compliance.noSeedData', { defaultValue: `No seed data available for ${framework}`, framework }));
             return;
         }
 
         setSeeding(true);
         try {
-            const batch = writeBatch(db);
+            const BATCH_LIMIT = 450;
             const controlsCol = collection(db, 'controls');
+            let batch = writeBatch(db);
             let count = 0;
+            let batchCount = 0;
 
             for (const control of seedData) {
+                if (batchCount >= BATCH_LIMIT) {
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    batchCount = 0;
+                }
                 const newDocRef = doc(controlsCol);
                 batch.set(newDocRef, sanitizeData({
                     code: control.code,
@@ -76,9 +83,12 @@ export const useComplianceDataSeeder = () => {
                     maturity: 0
                 }));
                 count++;
+                batchCount++;
             }
 
-            await batch.commit();
+            if (batchCount > 0) {
+                await batch.commit();
+            }
 
             await AuditLogService.logImport(
                 user.organizationId,
@@ -88,13 +98,13 @@ export const useComplianceDataSeeder = () => {
                 `Compliance Framework Import (${framework})`
             );
 
-            toast.success(t('compliance.importSuccess', { count, framework }) || `${count} contrôles ${framework} importés avec succès`);
+            toast.success(t('compliance.importSuccess', { defaultValue: `${count} ${framework} controls imported successfully`, count, framework }));
 
         } catch (error) {
             if (import.meta.env.DEV) {
                 console.error('Seeder Error:', error);
             }
-            toast.error(t('compliance.importError') || "Erreur lors de l'import des données");
+            toast.error(t('compliance.importError', { defaultValue: 'Error importing data' }));
         } finally {
             setSeeding(false);
         }

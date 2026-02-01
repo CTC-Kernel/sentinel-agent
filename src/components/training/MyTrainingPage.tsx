@@ -35,6 +35,7 @@ import { TrainingService } from '../../services/TrainingService';
 import { toast } from '@/lib/toast';
 import { staggerContainer, staggerItem } from '../../utils/microInteractions';
 import type { TrainingAssignment, TrainingCourse } from '../../types/training';
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================================================
 // Types
@@ -80,6 +81,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
   onRefresh,
 }) => {
   const { t } = useStore();
+  const { config } = useLocale();
   const { user } = useAuth();
   const courses = useCourses();
   const isLoading = useTrainingLoading();
@@ -209,8 +211,8 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
     const courseName = course?.title || assignment.courseId;
     const userName = user?.displayName || user?.email || '';
     const completedDate = assignment.completedAt
-      ? assignment.completedAt.toDate().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
-      : new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+      ? assignment.completedAt.toDate().toLocaleDateString(config.intlLocale, { year: 'numeric', month: 'long', day: 'numeric' })
+      : new Date().toLocaleDateString(config.intlLocale, { year: 'numeric', month: 'long', day: 'numeric' });
 
     // Generate a client-side certificate via a printable window
     // TODO: Replace with Cloud Function PDF generation (e.g., functions/generateCertificate) for production use

@@ -17,6 +17,7 @@ import {
   where,
   orderBy,
   Timestamp,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { addDays, differenceInDays, isBefore } from 'date-fns';
 import { db } from '@/firebase';
@@ -56,8 +57,6 @@ export async function createPolicy(
   }
 ): Promise<RetentionPolicy> {
   try {
-    const now = Timestamp.now();
-
     const policyData: Omit<RetentionPolicy, 'id'> = {
       organizationId,
       name,
@@ -72,7 +71,7 @@ export async function createPolicy(
       isActive: true,
       priority: options?.priority ?? 0,
       createdBy,
-      createdAt: now,
+      createdAt: serverTimestamp() as unknown as Timestamp,
     };
 
     const policyRef = await addDoc(
@@ -126,7 +125,7 @@ export async function updatePolicy(
     }
 
     const updateData: Record<string, unknown> = {
-      updatedAt: Timestamp.now(),
+      updatedAt: serverTimestamp(),
       updatedBy,
     };
 

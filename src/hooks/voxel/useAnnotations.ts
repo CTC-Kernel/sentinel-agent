@@ -225,7 +225,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
 
       // Mark as read when selected
       if (annotation && user?.uid && !annotation.readBy.includes(user.uid)) {
-        AnnotationService.markAsRead(annotation.id, user.uid);
+        AnnotationService.markAsRead(annotation.id, user.uid, organizationId);
       }
     },
     [onAnnotationSelect, user?.uid]
@@ -358,7 +358,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
       setIsSaving(true);
 
       try {
-        return await AnnotationService.createReply(currentAuthor, { annotationId, content });
+        return await AnnotationService.createReply({ ...currentAuthor, organizationId }, { annotationId, content });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to create reply');
         return null;
@@ -389,23 +389,23 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
     setIsSaving(true);
 
     try {
-      return await AnnotationService.deleteReply(annotationId, replyId);
+      return await AnnotationService.deleteReply(annotationId, replyId, organizationId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete reply');
       return false;
     } finally {
       setIsSaving(false);
     }
-  }, []);
+  }, [organizationId]);
 
   // Actions
   const togglePin = useCallback(async (annotationId: string): Promise<boolean> => {
     try {
-      return await AnnotationService.togglePin(annotationId);
+      return await AnnotationService.togglePin(annotationId, organizationId);
     } catch {
       return false;
     }
-  }, []);
+  }, [organizationId]);
 
   const resolveIssue = useCallback(
     async (annotationId: string, notes?: string): Promise<VoxelAnnotation | null> => {
@@ -423,9 +423,9 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
   const markAsRead = useCallback(
     async (annotationId: string): Promise<void> => {
       if (!user?.uid) return;
-      await AnnotationService.markAsRead(annotationId, user.uid);
+      await AnnotationService.markAsRead(annotationId, user.uid, organizationId);
     },
-    [user?.uid]
+    [user?.uid, organizationId]
   );
 
   const refresh = useCallback(async (): Promise<void> => {

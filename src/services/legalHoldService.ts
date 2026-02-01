@@ -21,6 +21,7 @@ import {
   writeBatch,
   arrayUnion,
   arrayRemove,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import type { LegalHold, LegalHoldStatus } from '@/types/vault';
@@ -48,7 +49,7 @@ export async function createLegalHold(
   }
 ): Promise<LegalHold> {
   try {
-    const now = Timestamp.now();
+    const now = serverTimestamp();
 
     const holdData: Omit<LegalHold, 'id'> = {
       organizationId,
@@ -56,7 +57,7 @@ export async function createLegalHold(
       reason,
       description: options?.description,
       createdBy,
-      createdAt: now,
+      createdAt: now as unknown as Timestamp,
       documentIds,
       affectedDocumentIds: documentIds,
       status: 'active',
@@ -120,7 +121,7 @@ export async function releaseLegalHold(
       throw new Error('Legal hold is already released');
     }
 
-    const now = Timestamp.now();
+    const now = serverTimestamp();
 
     // Update the legal hold
     await updateDoc(holdRef, sanitizeData({
@@ -258,7 +259,7 @@ export async function addDocumentToHold(
       return; // Document already in hold
     }
 
-    const now = Timestamp.now();
+    const now = serverTimestamp();
     const batch = writeBatch(db);
 
     // Update the legal hold
@@ -310,7 +311,7 @@ export async function removeDocumentFromHold(
       return; // Document not in hold
     }
 
-    const now = Timestamp.now();
+    const now = serverTimestamp();
     const batch = writeBatch(db);
 
     // Update the legal hold
@@ -428,7 +429,7 @@ export async function updateLegalHold(
     }
 
     const updateData: Record<string, unknown> = {
-      updatedAt: Timestamp.now(),
+      updatedAt: serverTimestamp(),
       updatedBy,
     };
 

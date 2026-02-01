@@ -3,12 +3,12 @@ import { ProjectTask } from '../../types';
 import { CalendarDays, Edit, Trash2 } from '../ui/Icons';
 
 interface KanbanColumnProps {
-    status: 'A faire' | 'En cours' | 'Terminé';
+    status: 'À faire' | 'En cours' | 'Terminé';
     tasks: ProjectTask[];
     canEdit: boolean;
     draggedTaskId: string | null;
     onDragOver: (e: React.DragEvent) => void;
-    onDrop: (e: React.DragEvent, status: 'A faire' | 'En cours' | 'Terminé') => void;
+    onDrop: (e: React.DragEvent, status: 'À faire' | 'En cours' | 'Terminé') => void;
     onDragStart: (e: React.DragEvent, taskId: string) => void;
     onEditTask: (task: ProjectTask) => void;
     onDeleteTask: (taskId: string) => void;

@@ -157,12 +157,14 @@ export const USER_DEFAULT_LAYOUT: WidgetLayout[] = [
  * Role to default layout mapping
  */
 export const ROLE_DEFAULT_LAYOUTS: Record<UserRole, WidgetLayout[]> = {
+  super_admin: ADMIN_DEFAULT_LAYOUT,
   direction: DIRECTION_DEFAULT_LAYOUT,
   rssi: RSSI_DEFAULT_LAYOUT,
   project_manager: PROJECT_MANAGER_DEFAULT_LAYOUT,
   auditor: AUDITOR_DEFAULT_LAYOUT,
   admin: ADMIN_DEFAULT_LAYOUT,
   user: USER_DEFAULT_LAYOUT,
+  certifier: USER_DEFAULT_LAYOUT,
 };
 
 /**

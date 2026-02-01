@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { useStore } from '../../store';
@@ -27,6 +28,7 @@ import {
     TrendingUp, TrendingDown, RefreshCw,
 } from '../ui/Icons';
 import { Button } from '../ui/button';
+import { useLocale } from '@/hooks/useLocale';
 import { Badge } from '../ui/Badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -239,6 +241,7 @@ interface UptimeChartProps {
 }
 
 const UptimeChart: React.FC<UptimeChartProps> = ({ data }) => {
+    const { config } = useLocale();
     if (data.length === 0) {
         return (
             <div className="h-32 flex items-center justify-center text-muted-foreground text-sm">
@@ -269,7 +272,7 @@ const UptimeChart: React.FC<UptimeChartProps> = ({ data }) => {
                             </div>
                         </div>
                         <span className="text-[11px] text-muted-foreground">
-                            {date.toLocaleDateString('fr-FR', { day: '2-digit' })}
+                            {date.toLocaleDateString(config.intlLocale, { day: '2-digit' })}
                         </span>
                     </div>
                 );
@@ -326,6 +329,8 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
     onExport,
     className = '',
 }) => {
+    const { t } = useTranslation();
+    const { config } = useLocale();
     const { user } = useStore();
     const [data, setData] = useState<FleetHealthReportData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -351,7 +356,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                 setData(reportData);
             } catch (err) {
                 ErrorLogger.error(err, 'FleetHealthReport.fetchData');
-                setError('Erreur lors du chargement des données');
+                setError(t('reports.loadError', { defaultValue: 'Error loading data' }));
             } finally {
                 setLoading(false);
             }
@@ -367,9 +372,9 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
         setExporting(true);
 
         try {
-            const config: ReportConfig = {
+            const reportConfig: ReportConfig = {
                 type: 'fleet_health',
-                name: `Rapport santé fleet - ${new Date().toLocaleDateString('fr-FR')}`,
+                name: `Rapport santé fleet - ${new Date().toLocaleDateString(config.intlLocale)}`,
                 dateRange,
                 filters,
                 format,
@@ -378,13 +383,13 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
                 includeRecommendations: true,
                 includeExecutiveSummary: true,
                 sections: [],
-                locale: 'fr-FR',
+                locale: config.intlLocale,
                 timezone: 'Europe/Paris',
             };
 
             const reportId = await AgentReportService.generateReport(
                 user.organizationId,
-                config,
+                reportConfig,
                 user.uid
             );
 
@@ -448,7 +453,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
         return (
             <div className={`glass-premium rounded-2xl p-8 text-center border border-border/40 shadow-sm ${className}`}>
                 <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground">Aucune donnée disponible</p>
+                <p className="text-sm text-muted-foreground">{t('reports.noData', { defaultValue: 'No data available' })}</p>
             </div>
         );
     }

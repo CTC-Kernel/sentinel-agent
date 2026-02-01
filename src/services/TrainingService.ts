@@ -126,7 +126,7 @@ export class TrainingService {
 
       const docRef = await addDoc(
         collection(db, `organizations/${organizationId}/${this.CATALOG_COLLECTION}`),
-        courseData
+        sanitizeData(courseData)
       );
 
       // Audit log
@@ -557,7 +557,7 @@ export class TrainingService {
 
       const docRef = await addDoc(
         collection(db, `organizations/${organizationId}/${this.CAMPAIGNS_COLLECTION}`),
-        campaignData
+        sanitizeData(campaignData)
       );
 
       // Audit log

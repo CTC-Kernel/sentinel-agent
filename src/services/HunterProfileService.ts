@@ -273,15 +273,15 @@ export class HunterProfileService {
         if (stats.totalContributions >= 100) {
             achievements.push({
                 icon: '🏆',
-                title: 'Century Club',
-                description: '100+ contributions to the community',
+                title: 'Club des Cent',
+                description: '100+ contributions à la communauté',
                 date: user.createdAt || new Date().toISOString()
             });
         } else if (stats.totalContributions >= 50) {
             achievements.push({
                 icon: '🥇',
-                title: 'Dedicated Hunter',
-                description: '50+ contributions to the community',
+                title: 'Chasseur Dévoué',
+                description: '50+ contributions à la communauté',
                 date: user.createdAt || new Date().toISOString()
             });
         }
@@ -290,8 +290,8 @@ export class HunterProfileService {
         if (stats.accuracyRate >= 95) {
             achievements.push({
                 icon: '🎯',
-                title: 'Precision Expert',
-                description: '95%+ accuracy rate',
+                title: 'Expert en Précision',
+                description: 'Taux de précision 95%+',
                 date: new Date().toISOString()
             });
         }
@@ -300,8 +300,8 @@ export class HunterProfileService {
         if (stats.reputationScore >= 4.5) {
             achievements.push({
                 icon: '⭐',
-                title: 'Trusted Contributor',
-                description: '4.5+ reputation score',
+                title: 'Contributeur de Confiance',
+                description: 'Score de réputation 4.5+',
                 date: new Date().toISOString()
             });
         }
@@ -310,8 +310,8 @@ export class HunterProfileService {
         if (stats.threatsThisMonth >= 20) {
             achievements.push({
                 icon: '🔥',
-                title: 'On Fire',
-                description: '20+ contributions this month',
+                title: 'En Feu',
+                description: '20+ contributions ce mois-ci',
                 date: new Date().toISOString()
             });
         }

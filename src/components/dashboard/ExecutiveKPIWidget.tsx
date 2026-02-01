@@ -59,7 +59,7 @@ function ErrorState({
         onClick={onRetry}
         className="px-4 py-2 text-sm font-medium text-white bg-destructive hover:bg-destructive/80 rounded-md transition-colors"
       >
-        Reessayer
+        Réessayer
       </button>
     </div>
   );
@@ -138,16 +138,16 @@ export function ExecutiveKPIWidget({
     risksValue === 0
       ? 'Aucun risque critique'
       : risksValue === 1
-        ? '1 necessite votre attention'
-        : `${risksValue} necessitent votre attention`;
+        ? '1 nécessite votre attention'
+        : `${risksValue} nécessitent votre attention`;
 
   // Generate subtitle for audits
   const auditsSubtitle =
     auditsValue === 0
-      ? 'Aucun controle en cours'
+      ? 'Aucun contrôle en cours'
       : auditsValue === 1
-        ? '1 verification en cours'
-        : `${auditsValue} verifications en cours`;
+        ? '1 vérification en cours'
+        : `${auditsValue} vérifications en cours`;
 
   return (
     <div
@@ -156,9 +156,9 @@ export function ExecutiveKPIWidget({
         className
       )}
       role="region"
-      aria-label="Indicateurs cles de performance"
+      aria-label="Indicateurs clés de performance"
     >
-      {/* KPI 1: Score Global (Sante Conformite) */}
+      {/* KPI 1: Score Global (Santé Conformité) */}
       <KPICard
         title={KPI_DEFINITIONS.score_global.title}
         value={scoreLoading ? '-' : scoreValue}
@@ -185,7 +185,7 @@ export function ExecutiveKPIWidget({
         }
       />
 
-      {/* KPI 3: Audits En Cours (Controles Actifs) */}
+      {/* KPI 3: Audits En Cours (Contrôles Actifs) */}
       <KPICard
         title={KPI_DEFINITIONS.audits_en_cours.title}
         value={auditsLoading ? '-' : auditsValue}
