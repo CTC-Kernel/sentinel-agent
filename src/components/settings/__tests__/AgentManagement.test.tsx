@@ -29,6 +29,10 @@ vi.mock('../../../services/AgentService', () => ({
             onAgents([]);
             return () => { };
         }),
+        subscribeToTokens: vi.fn((_orgId, onTokens) => {
+            onTokens([]);
+            return () => { };
+        }),
         generateEnrollmentToken: vi.fn(),
         deleteAgent: vi.fn(),
     }
@@ -58,10 +62,14 @@ const mockAgents = [
 describe('AgentManagement', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(useStore).mockReturnValue({
+        const mockState = {
             user: mockUser,
-            t: (key: string) => key
-        } as unknown as ReturnType<typeof useStore>);
+            t: (key: string) => key,
+            language: 'fr'
+        };
+        vi.mocked(useStore).mockImplementation((selector: any) =>
+            selector ? selector(mockState) : mockState
+        );
 
         // Mock useAuth to return claimsSynced: true so subscriptions are enabled
         vi.mocked(useAuth).mockReturnValue({

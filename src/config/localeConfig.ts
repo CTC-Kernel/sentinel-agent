@@ -252,7 +252,7 @@ export const localeConfig = {
  * console.log(config.dateFormat); // 'dd/MM/yyyy'
  */
 export function getLocaleConfig(locale: SupportedLocale): LocaleConfig {
-  return localeConfig[locale];
+  return localeConfig[locale] || localeConfig.fr;
 }
 
 /**
@@ -266,7 +266,7 @@ export function getLocaleConfig(locale: SupportedLocale): LocaleConfig {
  * format(new Date(), 'PPP', { locale: dfLocale });
  */
 export function getDateFnsLocale(locale: SupportedLocale): Locale {
-  return localeConfig[locale].dateFnsLocale;
+  return (localeConfig[locale] || localeConfig.fr).dateFnsLocale;
 }
 
 /**
@@ -541,7 +541,7 @@ export function createLocalizedNumberSchema(
 ) {
   const { required = true, min, max, integer = false } = options ?? {};
 
-   
+
   let schema = z.number();
 
   if (integer) {

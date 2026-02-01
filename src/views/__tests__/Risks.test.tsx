@@ -65,13 +65,16 @@ vi.mock('../../components/ui/PageHeader', () => ({
 describe('Risks View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(useStore).mockReturnValue({
+        const mockState = {
             user: { organizationId: 'test-org', role: 'admin' },
             addToast: vi.fn(),
             demoMode: false,
             language: 'fr',
             t: (k: string) => k,
-        } as unknown as ReturnType<typeof useStore>);
+        };
+        vi.mocked(useStore).mockImplementation((selector: any) =>
+            selector ? selector(mockState) : mockState
+        );
         vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
             loading: false,

@@ -6,7 +6,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { useStore } from '../../store';
+import { useAuth } from '../../hooks/useAuth';
 import AdminDashboard from '../admin/AdminDashboard';
+
+vi.mock('../../store', () => ({
+    useStore: vi.fn(),
+}));
+
+vi.mock('../../hooks/useAuth', () => ({
+    useAuth: vi.fn(),
+}));
 
 // Mock child components
 vi.mock('../admin/components/GlobalMetrics', () => ({
@@ -32,6 +42,17 @@ vi.mock('../admin/components/AuditLogList', () => ({
 describe('AdminDashboard', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        const mockState = {
+            user: { organizationId: 'test-org', role: 'super_admin' },
+            t: (k: string) => k,
+        };
+        vi.mocked(useStore).mockImplementation((selector: any) =>
+            selector ? selector(mockState) : mockState
+        );
+        vi.mocked(useAuth).mockReturnValue({
+            user: { organizationId: 'test-org', role: 'super_admin' },
+            loading: false,
+        } as any);
     });
 
     it('should render header with title', () => {
