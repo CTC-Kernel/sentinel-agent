@@ -12,8 +12,11 @@ import {
     doc,
     updateDoc,
     addDoc,
-    getDoc
+    getDoc,
+    DocumentSnapshot,
+    DocumentReference
 } from 'firebase/firestore';
+import { UserProfile, Control } from '../../types';
 import { toast } from '@/lib/toast';
 
 // Mock dependencies
@@ -73,14 +76,15 @@ vi.mock('../../utils/permissions', () => ({
 
 describe('useComplianceActions', () => {
     // Mock user
-    const mockUser = {
+    const mockUser: UserProfile = {
         uid: 'user-123',
         email: 'test@example.com',
         organizationId: 'org-1',
-        role: 'admin'
-    };
+        role: 'admin',
+        displayName: 'Test User'
+    } as UserProfile;
 
-    const mockControl = {
+    const mockControl: Control = {
         id: 'ctrl-1',
         code: 'A.1.1',
         name: 'Test Control',
@@ -88,8 +92,10 @@ describe('useComplianceActions', () => {
         status: 'Non commencé',
         framework: 'ISO27001',
         organizationId: 'org-1',
-        applicability: 'Applicable'
-    };
+        applicability: 'Applicable',
+        relatedAssetIds: [],
+        evidenceIds: []
+    } as Control;
 
     const mockT = vi.fn((key: string) => key);
 
@@ -103,22 +109,22 @@ describe('useComplianceActions', () => {
 
         // Setup Firestore Mocks defaults
         vi.mocked(updateDoc).mockResolvedValue(undefined);
-        vi.mocked(addDoc).mockResolvedValue({ id: 'new-doc-id' } as any);
+        vi.mocked(addDoc).mockResolvedValue({ id: 'new-doc-id' } as unknown as DocumentReference);
         vi.mocked(getDoc).mockResolvedValue({
             exists: () => true,
             data: () => ({ organizationId: 'org-1' })
-        } as any);
-        vi.mocked(doc).mockReturnValue({ id: 'mock-doc-ref' } as any);
+        } as unknown as DocumentSnapshot);
+        vi.mocked(doc).mockReturnValue({ id: 'mock-doc-ref' } as unknown as DocumentReference);
     });
 
     describe('initialization', () => {
         it('initializes with updating false', () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser));
             expect(result.current.updating).toBe(false);
         });
 
         it('provides all expected functions', () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser));
             expect(typeof result.current.handleStatusChange).toBe('function');
             expect(typeof result.current.updateControl).toBe('function');
         });
@@ -126,11 +132,11 @@ describe('useComplianceActions', () => {
 
     describe('updateControl', () => {
         it('updates control in Firestore', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser));
 
             let success: boolean | undefined;
             await act(async () => {
-                success = await result.current.updateControl('ctrl-1', { status: 'Implémenté' } as any, 'Updated');
+                success = await result.current.updateControl('ctrl-1', { status: 'Implémenté' } as Partial<Control>, 'Updated');
             });
 
             expect(success).toBe(true);
@@ -141,11 +147,11 @@ describe('useComplianceActions', () => {
         it('handles update errors', async () => {
             vi.mocked(updateDoc).mockRejectedValue(new Error('Update failed'));
 
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser));
 
             let success: boolean | undefined;
             await act(async () => {
-                success = await result.current.updateControl('ctrl-1', { status: 'Implémenté' } as any);
+                success = await result.current.updateControl('ctrl-1', { status: 'Implémenté' } as Partial<Control>);
             });
 
             expect(success).toBe(false);
@@ -155,10 +161,10 @@ describe('useComplianceActions', () => {
 
     describe('handleStatusChange', () => {
         it('updates control status', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser));
 
             await act(async () => {
-                await result.current.handleStatusChange(mockControl as any, 'Implémenté');
+                await result.current.handleStatusChange(mockControl, 'Implémenté');
             });
 
             expect(updateDoc).toHaveBeenCalled();
@@ -168,10 +174,10 @@ describe('useComplianceActions', () => {
 
     describe('handleAssign', () => {
         it('assigns user to control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser));
 
             await act(async () => {
-                await result.current.handleAssign(mockControl as any, 'user-456');
+                await result.current.handleAssign(mockControl, 'user-456');
             });
 
             expect(updateDoc).toHaveBeenCalled();
@@ -183,7 +189,7 @@ describe('useComplianceActions', () => {
 
     describe('createRisk', () => {
         it('creates risk in Firestore', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser));
 
             let riskId: string | null = null;
             await act(async () => {

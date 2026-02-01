@@ -13,9 +13,13 @@ import {
     deleteDoc,
     getDoc,
     getDocs,
-    doc
+    doc,
+    DocumentSnapshot,
+    DocumentReference,
+    QuerySnapshot
 } from 'firebase/firestore';
-import { uploadBytes, getDownloadURL } from 'firebase/storage';
+import { UserProfile } from '../../types';
+import { uploadBytes, getDownloadURL, UploadResult } from 'firebase/storage';
 
 // Mock dependencies
 vi.mock('firebase/firestore', () => ({
@@ -64,12 +68,13 @@ describe('useReports', () => {
     const mockAddToast = vi.fn();
     const mockT = vi.fn((key: string) => key);
 
-    const mockUser = {
+    const mockUser: UserProfile = {
         organizationId: 'org-123',
         uid: 'user-1',
         displayName: 'Test User',
-        email: 'test@example.com'
-    };
+        email: 'test@example.com',
+        role: 'admin'
+    } as UserProfile;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -82,15 +87,15 @@ describe('useReports', () => {
         });
 
         // Setup Firebase Mocks defaults
-        vi.mocked(uploadBytes).mockResolvedValue({ ref: {} } as any);
+        vi.mocked(uploadBytes).mockResolvedValue({ ref: {} } as unknown as UploadResult);
         vi.mocked(getDownloadURL).mockResolvedValue('https://storage.example.com/file.pdf');
-        vi.mocked(addDoc).mockResolvedValue({ id: 'doc-123' } as any);
+        vi.mocked(addDoc).mockResolvedValue({ id: 'doc-123' } as unknown as DocumentReference);
         vi.mocked(getDoc).mockResolvedValue({
             exists: () => true,
             data: () => ({ organizationId: 'org-123' })
-        } as any);
+        } as unknown as DocumentSnapshot);
         vi.mocked(deleteDoc).mockResolvedValue(undefined);
-        vi.mocked(doc).mockReturnValue({ id: 'mock-doc-ref' } as any);
+        vi.mocked(doc).mockReturnValue({ id: 'mock-doc-ref' } as unknown as DocumentReference);
     });
 
     describe('initialization', () => {
@@ -161,7 +166,7 @@ describe('useReports', () => {
             });
 
             expect(addDoc).toHaveBeenCalled();
-            const callArgs = vi.mocked(addDoc).mock.calls[0][1] as any;
+            const callArgs = vi.mocked(addDoc).mock.calls[0][1] as Record<string, unknown>;
             expect(callArgs.title).toBe('Monthly Security Report');
             expect(callArgs.type).toBe('Rapport');
             expect(callArgs.status).toBe('Validé');
@@ -205,12 +210,12 @@ describe('useReports', () => {
                         { id: 'incident-1', data: () => ({ title: 'Incident 1' }) },
                         { id: 'incident-2', data: () => ({ title: 'Incident 2' }) }
                     ]
-                } as any)
+                } as unknown as QuerySnapshot)
                 .mockResolvedValueOnce({
                     docs: [
                         { id: 'doc-1', data: () => ({ title: 'Document 1' }) }
                     ]
-                } as any);
+                } as unknown as QuerySnapshot);
 
             const { result } = renderHook(() => useReports());
 
@@ -248,7 +253,7 @@ describe('useReports', () => {
         it('returns null when user has no organizationId', async () => {
             // Re-mock store without organizationId
             vi.mocked(useStore).mockReturnValue({
-                user: { ...mockUser, organizationId: undefined } as any,
+                user: { ...mockUser, organizationId: undefined } as unknown as UserProfile,
                 addToast: mockAddToast,
                 t: mockT
             });
