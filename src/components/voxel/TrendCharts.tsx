@@ -410,7 +410,7 @@ export function TrendCharts({
     } finally {
       setIsLoading(false);
     }
-  }, [daysForRange]);
+  }, [daysForRange, dateFnsLocale]);
 
   // Fetch data on mount and when time range changes
   useEffect(() => {
@@ -445,7 +445,7 @@ export function TrendCharts({
     const chartData = [...data, ...allPredictions];
 
     return { chartData, warnings };
-  }, [data, showPredictions, predictionDays]);
+  }, [data, showPredictions, predictionDays, dateFnsLocale]);
 
   // Calculate summaries
   const summaries = useMemo(() => {

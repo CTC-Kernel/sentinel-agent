@@ -116,7 +116,7 @@ export const SystemSettings: React.FC = () => {
                 );
             }
         }
-    ], [t]);
+    ], [t, dateFnsLocale]);
 
     // Account Deletion Logic
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

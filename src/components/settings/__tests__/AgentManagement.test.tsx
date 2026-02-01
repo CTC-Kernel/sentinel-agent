@@ -70,6 +70,7 @@ describe('AgentManagement', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.mocked(useStore).mockImplementation(((selector: any) =>
             selector ? selector(mockState) : mockState
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any);
 
         // Mock useAuth to return claimsSynced: true so subscriptions are enabled

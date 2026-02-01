@@ -110,6 +110,8 @@ const StatsSummary: React.FC<{
     stats: SoftwareInventoryStats;
     loading: boolean;
 }> = ({ stats, loading }) => {
+    const { t: ti } = useTranslation();
+
     if (loading) {
         return (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
@@ -120,7 +122,6 @@ const StatsSummary: React.FC<{
         );
     }
 
-    const { t: ti } = useTranslation();
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <KPICard
@@ -155,10 +156,10 @@ const StatsSummary: React.FC<{
 const RiskDistribution: React.FC<{
     byRiskLevel: SoftwareInventoryStats['byRiskLevel'];
 }> = ({ byRiskLevel }) => {
+    const { t: ti } = useTranslation();
     const total = Object.values(byRiskLevel).reduce((a, b) => a + b, 0);
     if (total === 0) return null;
 
-    const { t: ti } = useTranslation();
     const levels: { key: RiskLevel; label: string; color: string }[] = [
         { key: 'critical', label: ti('software.risk.critical', { defaultValue: 'Critical' }), color: 'bg-destructive' },
         { key: 'high', label: ti('software.risk.high', { defaultValue: 'High' }), color: 'bg-orange-500' },

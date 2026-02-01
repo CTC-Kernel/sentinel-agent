@@ -403,7 +403,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
       critical: point.critical,
       high: point.total - point.critical,
     }));
-  }, [metrics?.trend]);
+  }, [metrics?.trend, config.intlLocale]);
 
   // Handle drill-down navigation
   const handleDrillDown = (filter: string) => {

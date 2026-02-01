@@ -72,6 +72,7 @@ describe('Risks View', () => {
             language: 'fr',
             t: (k: string) => k,
         };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.mocked(useStore).mockImplementation((selector: any) =>
             selector ? selector(mockState) : mockState
         );

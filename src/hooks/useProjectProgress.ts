@@ -304,7 +304,6 @@ export function useProjectProgress(
     return () => {
       unsubscribes.forEach((unsub) => unsub());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantId, refreshKey]);
 
   return {

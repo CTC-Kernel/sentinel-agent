@@ -110,7 +110,7 @@ export const UserActivityLog: React.FC = () => {
             }
         );
         return cols;
-    }, [t, viewMode]);
+    }, [t, viewMode, dateFnsLocale]);
 
     return (
         <div className="space-y-8 animate-fade-in-up">

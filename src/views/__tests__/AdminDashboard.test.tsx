@@ -46,12 +46,14 @@ describe('AdminDashboard', () => {
             user: { organizationId: 'test-org', role: 'super_admin' },
             t: (k: string) => k,
         };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.mocked(useStore).mockImplementation((selector: any) =>
             selector ? selector(mockState) : mockState
         );
         vi.mocked(useAuth).mockReturnValue({
             user: { organizationId: 'test-org', role: 'super_admin' },
             loading: false,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
     });
 

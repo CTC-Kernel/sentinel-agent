@@ -162,7 +162,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                 );
             }
         }
-    ], []);
+    ], [dateFnsLocale]);
 
     return (
         <div className="space-y-4">

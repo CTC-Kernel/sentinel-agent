@@ -63,7 +63,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
         if (!milestone?.responsibleId) return t('common.unassigned', { defaultValue: 'Non assigné' });
         const member = teamMembers.find(m => m.id === milestone.responsibleId);
         return member?.displayName || member?.email || milestone.responsibleId;
-    }, [milestone, teamMembers]);
+    }, [milestone, teamMembers, t]);
 
     const handleDelete = async () => {
         if (!milestone || !onDelete) return;

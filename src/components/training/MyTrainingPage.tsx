@@ -259,7 +259,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
     certWindow.document.close();
 
     toast.success(t('training.success.assignmentCompleted'));
-  }, [getCourse, user, t]);
+  }, [getCourse, user, t, config.intlLocale]);
 
   // Filter buttons config
   const filterButtons: { value: FilterType; label: string; icon: React.ElementType<{ className?: string }>; count: number }[] = [

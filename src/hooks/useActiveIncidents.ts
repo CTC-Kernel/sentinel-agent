@@ -233,7 +233,7 @@ export function useActiveIncidents(
       cancelled = true;
       unsubRef.current?.();
     };
-  }, [tenantId, maxItems, refreshKey]);
+  }, [tenantId, maxItems, refreshKey, t]);
 
   return {
     incidents,
