@@ -16,6 +16,19 @@ const { defineString } = require("firebase-functions/params");
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates (H1 fix)
+ */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Risk thresholds
 const HIGH_RISK_CONCENTRATION_THRESHOLD = 70;
 const CRITICAL_CONCENTRATION_THRESHOLD = 50;
@@ -74,13 +87,13 @@ function calculateOverallRisk(provider) {
 function getDORARiskAlertTemplate(orgName, highRiskCount, reassessmentCount, providers, link) {
     const providerRows = providers.slice(0, 5).map(p => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px; font-weight: 500;">${p.name}</td>
+            <td style="padding: 12px; font-weight: 500;">${escapeHtml(p.name)}</td>
             <td style="padding: 12px;">
                 <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600;
                     ${p.category === 'critical' ? 'background-color: #fee2e2; color: #dc2626;' :
                       p.category === 'important' ? 'background-color: #fef3c7; color: #d97706;' :
                       'background-color: #f1f5f9; color: #64748b;'}">
-                    ${p.category}
+                    ${escapeHtml(p.category)}
                 </span>
             </td>
             <td style="padding: 12px; text-align: center;">${p.riskAssessment?.concentration || 0}%</td>

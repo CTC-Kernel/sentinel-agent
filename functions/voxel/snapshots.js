@@ -99,9 +99,9 @@ const calculateComplianceMetrics = async (db, organizationId) => {
             const data = doc.data();
             totalControls++;
 
-            if (data.status === 'implemented' || data.status === 'operational') {
+            if (data.status === 'Implémenté') {
                 implementedControls++;
-            } else if (data.status === 'partial' || data.status === 'in_progress') {
+            } else if (data.status === 'Partiel' || data.status === 'En cours') {
                 partialControls++;
             } else {
                 notImplemented++;

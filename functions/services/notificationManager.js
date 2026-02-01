@@ -95,7 +95,10 @@ class NotificationManager {
 
             if (auditsSnap.empty) return;
 
-            const batch = db.batch();
+            // H2: batch chunking to avoid 500-op limit
+            const BATCH_LIMIT = 450;
+            let batch = db.batch();
+            let batchCount = 0;
 
             for (const doc of auditsSnap.docs) {
                 const audit = doc.data();
@@ -111,18 +114,26 @@ class NotificationManager {
                         const alreadySent = await this.checkIfAlreadyNotified(db, audit.auditorId, link, type);
                         if (alreadySent) continue;
 
-                        await this.queueNotification(batch, db, {
+                        const opsAdded = await this.queueNotification(batch, db, {
                             userId: audit.auditorId,
+                            organizationId: orgId,
                             title: "Rappel d'Audit",
                             message: `L'audit "${audit.name}" est prévu pour le ${audit.date}.`,
                             link,
                             type,
                             emailHtml: getAuditReminderHtml(audit.name, "Auditeur", audit.date, `${appBaseUrl.value()}/audits/${doc.id}`)
                         });
+                        batchCount += opsAdded;
+
+                        if (batchCount >= BATCH_LIMIT) {
+                            await batch.commit();
+                            batch = db.batch();
+                            batchCount = 0;
+                        }
                     }
                 }
             }
-            await batch.commit();
+            if (batchCount > 0) await batch.commit();
 
         } catch (error) {
             logger.error(`Error checking audits for org ${orgId}`, error);
@@ -144,7 +155,10 @@ class NotificationManager {
 
             if (docsSnap.empty) return;
 
-            const batch = db.batch();
+            // H2: batch chunking to avoid 500-op limit
+            const BATCH_LIMIT = 450;
+            let batch = db.batch();
+            let batchCount = 0;
 
             for (const doc of docsSnap.docs) {
                 const document = doc.data();
@@ -157,18 +171,26 @@ class NotificationManager {
                         const alreadySent = await this.checkIfAlreadyNotified(db, document.ownerId, link, type);
                         if (alreadySent) continue;
 
-                        await this.queueNotification(batch, db, {
+                        const opsAdded = await this.queueNotification(batch, db, {
                             userId: document.ownerId,
+                            organizationId: orgId,
                             title: "Révision Documentaire",
                             message: `Le document "${document.title}" doit être révisé.`,
                             link,
                             type,
                             emailHtml: getDocumentReviewHtml(document.title, "Propriétaire", document.nextReviewDate, `${appBaseUrl.value()}/documents/${doc.id}`)
                         });
+                        batchCount += opsAdded;
+
+                        if (batchCount >= BATCH_LIMIT) {
+                            await batch.commit();
+                            batch = db.batch();
+                            batchCount = 0;
+                        }
                     }
                 }
             }
-            await batch.commit();
+            if (batchCount > 0) await batch.commit();
 
         } catch (error) {
             logger.error(`Error checking docs for org ${orgId}`, error);
@@ -189,7 +211,10 @@ class NotificationManager {
 
             if (risksSnap.empty) return;
 
-            const batch = db.batch();
+            // H2: batch chunking to avoid 500-op limit
+            const BATCH_LIMIT = 450;
+            let batch = db.batch();
+            let batchCount = 0;
             let updatesCount = 0;
 
             for (const doc of risksSnap.docs) {
@@ -210,19 +235,28 @@ class NotificationManager {
                             'treatment.slaStatus': 'Breached',
                             'updatedAt': new Date().toISOString()
                         });
+                        batchCount++;
                         updatesCount++;
 
                         const type = 'RISK_SLA_BREACH';
                         const alreadySent = await this.checkIfAlreadyNotified(db, treatment.ownerId, link, type);
                         if (!alreadySent) {
-                            await this.queueNotification(batch, db, {
+                            const opsAdded = await this.queueNotification(batch, db, {
                                 userId: treatment.ownerId,
-                                title: "⚠️ Traitement en Retard (SLA Rompu)",
+                                organizationId: orgId,
+                                title: "Traitement en Retard (SLA Rompu)",
                                 message: `Le plan de traitement pour "${risk.name}" est en retard. Statut mis à jour.`,
                                 link,
                                 type,
                                 emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
                             });
+                            batchCount += opsAdded;
+                        }
+
+                        if (batchCount >= BATCH_LIMIT) {
+                            await batch.commit();
+                            batch = db.batch();
+                            batchCount = 0;
                         }
                     }
 
@@ -231,20 +265,28 @@ class NotificationManager {
                         const type = 'RISK_TREATMENT_DUE';
                         const alreadySent = await this.checkIfAlreadyNotified(db, treatment.ownerId, link, type);
                         if (!alreadySent) {
-                            await this.queueNotification(batch, db, {
+                            const opsAdded = await this.queueNotification(batch, db, {
                                 userId: treatment.ownerId,
-                                title: "Échéance de Traitement Aujourd'hui",
+                                organizationId: orgId,
+                                title: "Echeance de Traitement Aujourd'hui",
                                 message: `Le plan de traitement pour "${risk.name}" doit être terminé ce soir.`,
                                 link,
                                 type,
                                 emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
                             });
+                            batchCount += opsAdded;
+
+                            if (batchCount >= BATCH_LIMIT) {
+                                await batch.commit();
+                                batch = db.batch();
+                                batchCount = 0;
+                            }
                         }
                     }
                 }
             }
 
-            await batch.commit();
+            if (batchCount > 0) await batch.commit();
             if (updatesCount > 0) {
                 logger.info(`Updated ${updatesCount} overdue risks for org ${orgId}`);
             }
@@ -271,7 +313,10 @@ class NotificationManager {
 
             if (assetsSnap.empty) return;
 
-            const batch = db.batch();
+            // H2: batch chunking to avoid 500-op limit
+            const BATCH_LIMIT = 450;
+            let batch = db.batch();
+            let batchCount = 0;
 
             for (const doc of assetsSnap.docs) {
                 const asset = doc.data();
@@ -281,19 +326,27 @@ class NotificationManager {
                     const alreadySent = await this.checkIfAlreadyNotified(db, asset.ownerId, link, type);
 
                     if (!alreadySent) {
-                        await this.queueNotification(batch, db, {
+                        const opsAdded = await this.queueNotification(batch, db, {
                             userId: asset.ownerId,
+                            organizationId: orgId,
                             title: "Maintenance à venir",
                             message: `Maintenance prévue pour "${asset.name}" le ${asset.nextMaintenanceDate}.`,
                             link,
                             type,
                             emailHtml: getMaintenanceHtml(asset.name, asset.nextMaintenanceDate, "Propriétaire", `${appBaseUrl.value()}/asset-inventory`)
                         });
+                        batchCount += opsAdded;
+
+                        if (batchCount >= BATCH_LIMIT) {
+                            await batch.commit();
+                            batch = db.batch();
+                            batchCount = 0;
+                        }
                     }
                 }
             }
 
-            await batch.commit();
+            if (batchCount > 0) await batch.commit();
 
         } catch (error) {
             logger.error(`Error checking assets for org ${orgId}`, error);
@@ -317,7 +370,10 @@ class NotificationManager {
             const snapshot = await processesRef.get();
             if (snapshot.empty) return;
 
-            const batch = db.batch();
+            // H2: batch chunking to avoid 500-op limit
+            const BATCH_LIMIT = 450;
+            let batch = db.batch();
+            let batchCount = 0;
             let notificationCount = 0;
 
             for (const doc of snapshot.docs) {
@@ -352,22 +408,32 @@ class NotificationManager {
                         const alreadyNotified = await this.checkIfAlreadyNotified(db, adminUser.uid, '/continuity', 'DRILL_OVERDUE', `drill_overdue_${process.id}_${new Date().toDateString()}`);
 
                         if (!alreadyNotified) {
-                            await this.queueNotification(batch, db, {
+                            const opsAdded = await this.queueNotification(batch, db, {
                                 userId: adminUser.uid,
+                                organizationId,
                                 title: 'Exercice PCA Requis',
                                 message: `Le processus "${process.name}" n'a pas été testé depuis plus d'un an. Une revue est nécessaire.`,
                                 link: '/continuity',
                                 type: 'DRILL_OVERDUE',
                                 emailHtml: getDrillOverdueHtml(process.name, `${appBaseUrl.value()}/continuity`)
                             });
+                            batchCount += opsAdded;
                             notificationCount++;
+
+                            if (batchCount >= BATCH_LIMIT) {
+                                await batch.commit();
+                                batch = db.batch();
+                                batchCount = 0;
+                            }
                         }
                     }
                 }
             }
 
-            if (notificationCount > 0) {
+            if (batchCount > 0) {
                 await batch.commit();
+            }
+            if (notificationCount > 0) {
                 logger.info(`Queued ${notificationCount} overdue drill notifications for org ${organizationId}`);
             }
         } catch (error) {
@@ -376,14 +442,18 @@ class NotificationManager {
     }
 
     /**
-     * Helper to add notification and email to batch
+     * Helper to add notification and email to batch.
+     * H2: Returns operation count added so callers can track batch size.
      */
-    static async queueNotification(batch, db, { userId, title, message, link, type, emailHtml }) {
-        if (!userId) return;
+    static async queueNotification(batch, db, { userId, organizationId, title, message, link, type, emailHtml }) {
+        if (!userId) return 0;
+
+        let opsAdded = 0;
 
         // 1. Add In-App Notification
         const notifRef = db.collection('notifications').doc();
         batch.set(notifRef, {
+            organizationId: organizationId || null,
             userId,
             title,
             message,
@@ -392,6 +462,7 @@ class NotificationManager {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             type: type || 'SYSTEM'
         });
+        opsAdded++;
 
         // 2. Add Email to Queue
         if (emailHtml) {
@@ -410,11 +481,14 @@ class NotificationManager {
                         status: 'PENDING',
                         createdAt: admin.firestore.FieldValue.serverTimestamp()
                     });
+                    opsAdded++;
                 }
             } catch (error) {
                 logger.warn(`Could not find user ${userId} for email notification`, error);
             }
         }
+
+        return opsAdded;
     }
 }
 

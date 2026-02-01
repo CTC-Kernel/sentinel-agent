@@ -15,6 +15,34 @@ const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
 // Services
 const { N8NService, n8nWebhookSecret } = require('../services/n8nService');
 
+/**
+ * SSRF Protection - Validates that a URL is safe to fetch
+ * Blocks private/internal IPs, localhost, and non-HTTP(S) protocols
+ */
+function isAllowedUrl(url) {
+    try {
+        const parsed = new URL(url);
+        const hostname = parsed.hostname;
+        // Block private/internal IPs and hostnames
+        if (hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname === '0.0.0.0' ||
+            hostname === '::1' ||
+            hostname.startsWith('10.') ||
+            hostname.startsWith('172.') ||
+            hostname.startsWith('192.168.') ||
+            hostname === '169.254.169.254' ||
+            hostname.endsWith('.internal') ||
+            hostname.endsWith('.local') ||
+            parsed.protocol === 'file:') {
+            return false;
+        }
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch {
+        return false;
+    }
+}
+
 // In-memory rate limiter for external API calls (Shodan, HIBP)
 const apiCallCounts = new Map();
 const API_RATE_LIMIT = 5; // per hour per user per API
@@ -263,6 +291,10 @@ exports.fetchEvidence = onCall({
         }
 
         if (providerId === 'website_check') {
+            // SSRF Protection: Validate URL before fetching
+            if (!isAllowedUrl(resourceId)) {
+                throw new HttpsError('invalid-argument', 'Invalid or blocked URL. Only public HTTP(S) URLs are allowed.');
+            }
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -645,7 +677,11 @@ exports.fetchExternalSecurityEvents = onCall({
     }
 
     const { source } = request.data;
-    const organizationId = request.auth.token.organizationId || request.auth.token.sub;
+    const organizationId = request.auth.token.organizationId;
+
+    if (!organizationId) {
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
+    }
 
     if (!source) {
         throw new HttpsError('invalid-argument', 'Source is required.');
@@ -665,6 +701,11 @@ exports.fetchExternalSecurityEvents = onCall({
 
     if (!config.apiKey || !config.url) {
         throw new HttpsError('failed-precondition', `Connector ${source} configuration is incomplete (missing API Key or URL).`);
+    }
+
+    // SSRF Protection: Validate connector URL
+    if (!isAllowedUrl(config.url)) {
+        throw new HttpsError('invalid-argument', 'Invalid or blocked connector URL. Only public HTTP(S) URLs are allowed.');
     }
 
     try {
@@ -720,7 +761,11 @@ exports.fetchScannerVulnerabilities = onCall({
     }
 
     const { scanner } = request.data;
-    const organizationId = request.auth.token.organizationId || request.auth.token.sub;
+    const organizationId = request.auth.token.organizationId;
+
+    if (!organizationId) {
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
+    }
 
     if (!scanner || !['nessus', 'qualys', 'openvas'].includes(scanner)) {
         throw new HttpsError('invalid-argument', 'Scanner must be one of: nessus, qualys, openvas');
@@ -741,6 +786,11 @@ exports.fetchScannerVulnerabilities = onCall({
     if (!config || !config.apiUrl || !config.credentials) {
         throw new HttpsError('failed-precondition',
             `Scanner ${scanner} configuration is incomplete. Please provide API URL and credentials.`);
+    }
+
+    // SSRF Protection: Validate scanner API URL before making requests
+    if (!isAllowedUrl(config.apiUrl)) {
+        throw new HttpsError('invalid-argument', 'Invalid or blocked scanner API URL. Only public HTTP(S) URLs are allowed.');
     }
 
     try {

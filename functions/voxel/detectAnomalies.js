@@ -123,7 +123,7 @@ const detectCoverageGaps = async (db, organizationId) => {
 
     const risksSnap = await db.collection('risks')
         .where('organizationId', '==', organizationId)
-        .where('status', 'in', ['Ouvert', 'En cours', 'open', 'in_progress'])
+        .where('status', 'in', ['Ouvert', 'En cours'])
         .get();
 
     risksSnap.forEach(doc => {
@@ -132,7 +132,7 @@ const detectCoverageGaps = async (db, organizationId) => {
             Array.isArray(risk.mitigationControlIds) &&
             risk.mitigationControlIds.length > 0;
 
-        if (!hasControls && risk.strategy !== 'Accepter' && risk.strategy !== 'accept') {
+        if (!hasControls && risk.strategy !== 'Accepter') {
             anomalies.push(createAnomaly(
                 'coverage_gap',
                 doc.id,
@@ -198,7 +198,7 @@ const detectStaleAssessments = async (db, organizationId) => {
     // Check risk assessments
     const risksSnap = await db.collection('risks')
         .where('organizationId', '==', organizationId)
-        .where('status', 'in', ['Ouvert', 'En cours', 'open', 'in_progress'])
+        .where('status', 'in', ['Ouvert', 'En cours'])
         .get();
 
     risksSnap.forEach(doc => {

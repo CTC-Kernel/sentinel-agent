@@ -36,17 +36,14 @@ exports.deployAgentPolicy = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { policyId } = request.data;
 
     if (!policyId || !organizationId) {
       throw new HttpsError('invalid-argument', 'policyId and organizationId are required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();
@@ -221,17 +218,14 @@ exports.rollbackAgentPolicy = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { deploymentId } = request.data;
 
     if (!deploymentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'deploymentId and organizationId are required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();
@@ -318,16 +312,12 @@ exports.getEffectivePolicy = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { agentId } = request.data;
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
-    }
-
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
     }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();

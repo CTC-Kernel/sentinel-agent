@@ -848,19 +848,22 @@ async function processAgentsForAnomalies(organizationId, agents, thresholdConfig
 
             const allAnomalies = [...metricAnomalies, ...processAnomalies, ...connectionAnomalies];
 
-            // Save anomalies
-            const batch = db.batch();
-            for (const anomaly of allAnomalies) {
-                const ref = db
-                    .collection('organizations')
-                    .doc(organizationId)
-                    .collection('agentAnomalies')
-                    .doc();
-                batch.set(ref, anomaly);
-            }
-
+            // Save anomalies (H2: chunked batches to stay under 500 limit)
             if (allAnomalies.length > 0) {
-                await batch.commit();
+                const BATCH_LIMIT = 450;
+                for (let i = 0; i < allAnomalies.length; i += BATCH_LIMIT) {
+                    const chunk = allAnomalies.slice(i, i + BATCH_LIMIT);
+                    const batch = db.batch();
+                    for (const anomaly of chunk) {
+                        const ref = db
+                            .collection('organizations')
+                            .doc(organizationId)
+                            .collection('agentAnomalies')
+                            .doc();
+                        batch.set(ref, anomaly);
+                    }
+                    await batch.commit();
+                }
                 totalAnomalies += allAnomalies.length;
             }
 
