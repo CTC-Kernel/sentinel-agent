@@ -1,23 +1,24 @@
+
 /**
  * DocumentWorkflowService Tests
- * Story 14-1: Test Coverage 50%
+ * Refactored to use Clean Mocks pattern
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DocumentWorkflowService } from '../DocumentWorkflowService';
+import { logAction } from '../logger';
 
-// Mock Firebase
-const mockUpdateDoc = vi.fn();
+// Mock dependencies
+vi.mock('firebase/firestore', () => ({
+    doc: vi.fn(),
+    updateDoc: vi.fn(),
+    arrayUnion: vi.fn((item) => item),
+    serverTimestamp: vi.fn(() => 'server-timestamp'),
+    getDoc: vi.fn()
+}));
 
 vi.mock('../../firebase', () => ({
     db: {},
-}));
-
-vi.mock('firebase/firestore', () => ({
-    doc: vi.fn(),
-    updateDoc: () => mockUpdateDoc(),
-    arrayUnion: vi.fn((item) => item),
-    serverTimestamp: vi.fn(() => new Date()),
 }));
 
 vi.mock('../logger', () => ({
@@ -43,255 +44,258 @@ vi.mock('../../types/documents', () => ({
     }),
 }));
 
-import { logAction } from '../logger';
-
-const createMockDocument = (status = 'Brouillon', id = 'doc-123') => ({
-    id,
-    title: 'Test Document',
-    status,
-    version: '1.0',
-    owner: 'Owner Name',
-    ownerId: 'owner-123',
-    organizationId: 'org-123',
-});
-
-const createMockUser = (uid = 'user-123') => ({
-    uid,
-    email: 'user@example.com',
-    displayName: 'Test User',
-});
+import { updateDoc, doc } from 'firebase/firestore';
 
 describe('DocumentWorkflowService', () => {
+    // Helper to create mock objects
+    const createMockDocument = (status = 'Brouillon', id = 'doc-123') => ({
+        id,
+        title: 'Test Document',
+        status,
+        version: '1.0',
+        owner: 'Owner Name',
+        ownerId: 'owner-123',
+        organizationId: 'org-123',
+    });
+
+    const createMockUser = (uid = 'user-123') => ({
+        uid,
+        email: 'user@example.com',
+        displayName: 'Test User',
+        organizationId: 'org-123',
+    });
+
     beforeEach(() => {
         vi.clearAllMocks();
-        mockUpdateDoc.mockResolvedValue(undefined);
+        vi.mocked(updateDoc).mockResolvedValue(undefined);
+        vi.mocked(doc).mockReturnValue({ id: 'mock-doc-ref' } as any);
     });
 
     describe('submitForReview', () => {
         it('should submit document for review', async () => {
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = createMockUser('reviewer-user');
             const reviewers = ['reviewer-1', 'reviewer-2'];
 
-            await DocumentWorkflowService.submitForReview(doc as never, user as never, reviewers);
+            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
         });
 
         it('should throw error for invalid transition', async () => {
-            const doc = createMockDocument('Publié');
+            const docData = createMockDocument('Publié');
             const user = createMockUser();
             const reviewers = ['reviewer-1'];
 
             await expect(
-                DocumentWorkflowService.submitForReview(doc as never, user as never, reviewers)
+                DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers)
             ).rejects.toThrow('Transition invalide');
         });
 
         it('should throw error when no valid reviewers', async () => {
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = createMockUser('user-123');
             // All reviewers are invalid (owner or submitter)
             const reviewers = ['user-123', 'owner-123'];
 
             await expect(
-                DocumentWorkflowService.submitForReview(doc as never, user as never, reviewers)
+                DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers)
             ).rejects.toThrow('Sélectionnez au moins un reviewer');
         });
 
         it('should sanitize reviewers list', async () => {
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = createMockUser('user-456');
             // Mixed valid and invalid reviewers
             const reviewers = ['valid-1', 'user-456', '', null, 'valid-2'] as string[];
 
-            await DocumentWorkflowService.submitForReview(doc as never, user as never, reviewers);
+            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
 
         it('should include comment in history', async () => {
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = createMockUser('submitter');
             const reviewers = ['reviewer-1'];
             const comment = 'Please review this document';
 
-            await DocumentWorkflowService.submitForReview(doc as never, user as never, reviewers, comment);
+            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers, comment);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
     });
 
     describe('approveDocument', () => {
         it('should approve document', async () => {
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = createMockUser();
 
-            await DocumentWorkflowService.approveDocument(doc as never, user as never);
+            await DocumentWorkflowService.approveDocument(docData as any, user as any);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
         });
 
         it('should throw error for invalid transition', async () => {
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.approveDocument(doc as never, user as never)
+                DocumentWorkflowService.approveDocument(docData as any, user as any)
             ).rejects.toThrow('Transition invalide');
         });
 
         it('should include comment in history when provided', async () => {
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = createMockUser();
             const comment = 'Looks good, approved';
 
-            await DocumentWorkflowService.approveDocument(doc as never, user as never, comment);
+            await DocumentWorkflowService.approveDocument(docData as any, user as any, comment);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
     });
 
     describe('rejectDocument', () => {
         it('should reject document with comment', async () => {
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = createMockUser();
             const comment = 'Needs revision';
 
-            await DocumentWorkflowService.rejectDocument(doc as never, user as never, comment);
+            await DocumentWorkflowService.rejectDocument(docData as any, user as any, comment);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
         });
 
         it('should throw error without comment', async () => {
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.rejectDocument(doc as never, user as never, '')
+                DocumentWorkflowService.rejectDocument(docData as any, user as any, '')
             ).rejects.toThrow('Un commentaire est requis');
         });
 
         it('should throw error for invalid transition', async () => {
-            const doc = createMockDocument('Publié');
+            const docData = createMockDocument('Publié');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.rejectDocument(doc as never, user as never, 'Comment')
+                DocumentWorkflowService.rejectDocument(docData as any, user as any, 'Comment')
             ).rejects.toThrow('Transition invalide');
         });
     });
 
     describe('publishDocument', () => {
         it('should publish approved document', async () => {
-            const doc = createMockDocument('Approuvé');
+            const docData = createMockDocument('Approuvé');
             const user = createMockUser();
 
-            await DocumentWorkflowService.publishDocument(doc as never, user as never);
+            await DocumentWorkflowService.publishDocument(docData as any, user as any);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
         });
 
         it('should throw error for invalid transition', async () => {
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.publishDocument(doc as never, user as never)
+                DocumentWorkflowService.publishDocument(docData as any, user as any)
             ).rejects.toThrow('Transition invalide');
         });
     });
 
     describe('archiveDocument', () => {
         it('should archive published document', async () => {
-            const doc = createMockDocument('Publié');
+            const docData = createMockDocument('Publié');
             const user = createMockUser();
 
-            await DocumentWorkflowService.archiveDocument(doc as never, user as never);
+            await DocumentWorkflowService.archiveDocument(docData as any, user as any);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
         });
 
         it('should archive with reason', async () => {
-            const doc = createMockDocument('Publié');
+            const docData = createMockDocument('Publié');
             const user = createMockUser();
             const reason = 'No longer relevant';
 
-            await DocumentWorkflowService.archiveDocument(doc as never, user as never, reason);
+            await DocumentWorkflowService.archiveDocument(docData as any, user as any, reason);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
 
         it('should throw error if already archived', async () => {
-            const doc = createMockDocument('Archivé');
+            const docData = createMockDocument('Archivé');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.archiveDocument(doc as never, user as never)
+                DocumentWorkflowService.archiveDocument(docData as any, user as any)
             ).rejects.toThrow('Document déjà archivé');
         });
 
         it('should allow archiving from any non-archived state', async () => {
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = createMockUser();
 
             // Archive should work from any state except Archivé
-            await DocumentWorkflowService.archiveDocument(doc as never, user as never);
+            await DocumentWorkflowService.archiveDocument(docData as any, user as any);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
     });
 
     describe('revertToDraft', () => {
         it('should revert rejected document to draft', async () => {
-            const doc = createMockDocument('Rejeté');
+            const docData = createMockDocument('Rejeté');
             const user = createMockUser();
 
-            await DocumentWorkflowService.revertToDraft(doc as never, user as never);
+            await DocumentWorkflowService.revertToDraft(docData as any, user as any);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
         });
 
         it('should revert in-review document to draft', async () => {
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = createMockUser();
 
-            await DocumentWorkflowService.revertToDraft(doc as never, user as never);
+            await DocumentWorkflowService.revertToDraft(docData as any, user as any);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
 
         it('should include reason in history', async () => {
-            const doc = createMockDocument('Rejeté');
+            const docData = createMockDocument('Rejeté');
             const user = createMockUser();
             const reason = 'Starting over';
 
-            await DocumentWorkflowService.revertToDraft(doc as never, user as never, reason);
+            await DocumentWorkflowService.revertToDraft(docData as any, user as any, reason);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
 
         it('should throw error for published document', async () => {
-            const doc = createMockDocument('Publié');
+            const docData = createMockDocument('Publié');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.revertToDraft(doc as never, user as never)
+                DocumentWorkflowService.revertToDraft(docData as any, user as any)
             ).rejects.toThrow('Impossible de revenir en brouillon');
         });
 
         it('should throw error for approved document', async () => {
-            const doc = createMockDocument('Approuvé');
+            const docData = createMockDocument('Approuvé');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.revertToDraft(doc as never, user as never)
+                DocumentWorkflowService.revertToDraft(docData as any, user as any)
             ).rejects.toThrow('Impossible de revenir en brouillon');
         });
     });
@@ -299,14 +303,14 @@ describe('DocumentWorkflowService', () => {
     describe('error handling', () => {
         it('should log and rethrow errors in submitForReview', async () => {
             const { ErrorLogger } = await import('../errorLogger');
-            mockUpdateDoc.mockRejectedValue(new Error('Database error'));
+            vi.mocked(updateDoc).mockRejectedValue(new Error('Database error'));
 
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = createMockUser('submitter');
             const reviewers = ['reviewer-1'];
 
             await expect(
-                DocumentWorkflowService.submitForReview(doc as never, user as never, reviewers)
+                DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers)
             ).rejects.toThrow('Database error');
 
             expect(ErrorLogger.error).toHaveBeenCalled();
@@ -314,13 +318,13 @@ describe('DocumentWorkflowService', () => {
 
         it('should log and rethrow errors in approveDocument', async () => {
             const { ErrorLogger } = await import('../errorLogger');
-            mockUpdateDoc.mockRejectedValue(new Error('Database error'));
+            vi.mocked(updateDoc).mockRejectedValue(new Error('Database error'));
 
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.approveDocument(doc as never, user as never)
+                DocumentWorkflowService.approveDocument(docData as any, user as any)
             ).rejects.toThrow('Database error');
 
             expect(ErrorLogger.error).toHaveBeenCalled();
@@ -329,30 +333,32 @@ describe('DocumentWorkflowService', () => {
 
     describe('workflow history', () => {
         it('should create history item with correct structure', async () => {
-            const doc = createMockDocument('Brouillon');
+            const docData = createMockDocument('Brouillon');
             const user = {
                 uid: 'user-123',
                 displayName: 'John Doe',
                 email: 'john@example.com',
+                organizationId: 'org-123',
             };
             const reviewers = ['reviewer-1'];
 
-            await DocumentWorkflowService.submitForReview(doc as never, user as never, reviewers);
+            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
 
         it('should use email when displayName is not available', async () => {
-            const doc = createMockDocument('En revue');
+            const docData = createMockDocument('En revue');
             const user = {
                 uid: 'user-123',
                 email: 'user@example.com',
+                organizationId: 'org-123',
                 // No displayName
             };
 
-            await DocumentWorkflowService.approveDocument(doc as never, user as never);
+            await DocumentWorkflowService.approveDocument(docData as any, user as any);
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(updateDoc).toHaveBeenCalled();
         });
     });
 });

@@ -5,19 +5,22 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TreatmentActionForm } from '../TreatmentActionForm';
 import { TreatmentActionsList } from '../TreatmentActionsList';
 import { TreatmentAction } from '../../../types';
 
 // Mock store
 vi.mock('../../../store', () => ({
-    useStore: () => ({language: 'fr',
+    useStore: () => ({
+        language: 'fr',
         t: (key: string, options?: Record<string, unknown>) => {
             if (options && 'defaultValue' in options) {
                 return (options as { defaultValue?: string }).defaultValue || key;
             }
             return key;
-        }}),
+        }
+    }),
 }));
 
 // Mock react-i18next
@@ -142,6 +145,7 @@ describe('TreatmentActionForm', () => {
     });
 
     it('should show validation error when title is empty', async () => {
+        const user = userEvent.setup();
         const onSave = vi.fn();
         const onCancel = vi.fn();
 
@@ -153,10 +157,11 @@ describe('TreatmentActionForm', () => {
             />
         );
 
-        fireEvent.click(screen.getByText('Ajouter une action'));
+        const submitButton = screen.getByText('Ajouter une action');
+        await user.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText('Le titre est requis')).toBeInTheDocument();
+            expect(screen.getByText('Title is required')).toBeInTheDocument();
         });
         expect(onSave).not.toHaveBeenCalled();
     });

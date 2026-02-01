@@ -15,6 +15,10 @@ vi.mock('../../firebase', () => ({
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(() => ({})),
     doc: vi.fn(() => ({})),
+    getDoc: vi.fn(() => Promise.resolve({
+        exists: () => true,
+        data: () => ({ organizationId: 'org-1' })
+    })),
     addDoc: vi.fn(() => Promise.resolve({ id: 'new-activity-id' })),
     updateDoc: vi.fn(() => Promise.resolve()),
     deleteDoc: vi.fn(() => Promise.resolve()),

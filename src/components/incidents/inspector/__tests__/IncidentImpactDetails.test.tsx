@@ -15,6 +15,8 @@ vi.mock('../../../ui/Icons', () => ({
     AlertTriangle: () => <span data-testid="alert-triangle-icon" />
 }));
 
+import { MemoryRouter } from 'react-router-dom';
+
 // Mock Badge
 vi.mock('../../../ui/Badge', () => ({
     Badge: ({ children, status, size }: { children: React.ReactNode; status: string; size?: string }) => (
@@ -156,37 +158,61 @@ describe('IncidentImpactDetails', () => {
 
     describe('affected asset section', () => {
         it('renders asset header', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Actif Impacté')).toBeInTheDocument();
         });
 
         it('renders server icon', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByTestId('server-icon')).toBeInTheDocument();
         });
 
         it('displays linked asset name', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Main Database Server')).toBeInTheDocument();
         });
 
         it('displays asset type badge', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Matériel')).toBeInTheDocument();
         });
 
         it('shows no asset message when not linked', () => {
-            render(<IncidentImpactDetails {...defaultProps} incident={incidentNoLinks} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} incident={incidentNoLinks} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Aucun actif lié')).toBeInTheDocument();
         });
 
         it('shows not found when asset missing', () => {
-            render(<IncidentImpactDetails {...defaultProps} incident={incidentMissingAsset} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} incident={incidentMissingAsset} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Actif introuvable')).toBeInTheDocument();
         });
@@ -194,31 +220,51 @@ describe('IncidentImpactDetails', () => {
 
     describe('affected process section', () => {
         it('renders service header', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Service Impacté')).toBeInTheDocument();
         });
 
         it('renders activity icon', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByTestId('activity-icon')).toBeInTheDocument();
         });
 
         it('displays linked process name', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Order Processing')).toBeInTheDocument();
         });
 
         it('shows no service message when not linked', () => {
-            render(<IncidentImpactDetails {...defaultProps} incident={incidentNoLinks} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} incident={incidentNoLinks} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Aucun service lié')).toBeInTheDocument();
         });
 
         it('shows not found when process missing', () => {
-            render(<IncidentImpactDetails {...defaultProps} incident={incidentMissingProcess} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} incident={incidentMissingProcess} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Processus introuvable')).toBeInTheDocument();
         });
@@ -226,49 +272,81 @@ describe('IncidentImpactDetails', () => {
 
     describe('related risk section', () => {
         it('renders risk header', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Risque Lié')).toBeInTheDocument();
         });
 
         it('renders alert triangle icon', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByTestId('alert-triangle-icon')).toBeInTheDocument();
         });
 
         it('displays linked risk threat', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Data Breach')).toBeInTheDocument();
         });
 
         it('displays linked risk scenario', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Unauthorized access to sensitive data')).toBeInTheDocument();
         });
 
         it('displays score label', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Score')).toBeInTheDocument();
         });
 
         it('displays risk score', () => {
-            render(<IncidentImpactDetails {...defaultProps} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('18/25')).toBeInTheDocument();
         });
 
         it('shows no risk message when not linked', () => {
-            render(<IncidentImpactDetails {...defaultProps} incident={incidentNoLinks} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} incident={incidentNoLinks} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Aucun risque lié')).toBeInTheDocument();
         });
 
         it('shows not found when risk missing', () => {
-            render(<IncidentImpactDetails {...defaultProps} incident={incidentMissingRisk} />);
+            render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} incident={incidentMissingRisk} />
+                </MemoryRouter>
+            );
 
             expect(screen.getByText('Risque introuvable')).toBeInTheDocument();
         });
@@ -276,14 +354,22 @@ describe('IncidentImpactDetails', () => {
 
     describe('risk score colors', () => {
         it('uses red color for high score >= 15', () => {
-            const { container } = render(<IncidentImpactDetails {...defaultProps} />);
+            const { container } = render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(container.querySelector('.text-destructive')).toBeInTheDocument();
         });
 
-        it('uses orange color for medium score >= 8', () => {
+        it('uses orange color for medium score >= 5', () => {
             const incidentMediumRisk = { ...mockIncident, relatedRiskId: 'risk-2' };
-            const { container } = render(<IncidentImpactDetails {...defaultProps} incident={incidentMediumRisk} />);
+            const { container } = render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} incident={incidentMediumRisk} />
+                </MemoryRouter>
+            );
 
             expect(container.querySelector('.text-warning')).toBeInTheDocument();
         });
@@ -307,11 +393,13 @@ describe('IncidentImpactDetails', () => {
             ];
             const incidentLowRisk = { ...mockIncident, relatedRiskId: 'risk-low' };
             const { container } = render(
-                <IncidentImpactDetails
-                    {...defaultProps}
-                    incident={incidentLowRisk}
-                    risks={lowRisks}
-                />
+                <MemoryRouter>
+                    <IncidentImpactDetails
+                        {...defaultProps}
+                        incident={incidentLowRisk}
+                        risks={lowRisks}
+                    />
+                </MemoryRouter>
             );
 
             expect(container.querySelector('.text-success')).toBeInTheDocument();
@@ -320,19 +408,31 @@ describe('IncidentImpactDetails', () => {
 
     describe('styling', () => {
         it('has glass-premium containers', () => {
-            const { container } = render(<IncidentImpactDetails {...defaultProps} />);
+            const { container } = render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(container.querySelectorAll('.glass-premium').length).toBe(3);
         });
 
         it('has grid layout', () => {
-            const { container } = render(<IncidentImpactDetails {...defaultProps} />);
+            const { container } = render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(container.querySelector('.grid')).toBeInTheDocument();
         });
 
         it('risk section spans 2 columns on md', () => {
-            const { container } = render(<IncidentImpactDetails {...defaultProps} />);
+            const { container } = render(
+                <MemoryRouter>
+                    <IncidentImpactDetails {...defaultProps} />
+                </MemoryRouter>
+            );
 
             expect(container.querySelector('.md\\:col-span-2')).toBeInTheDocument();
         });

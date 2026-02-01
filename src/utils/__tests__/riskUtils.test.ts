@@ -18,44 +18,44 @@ import {
 import { Risk, Control } from '../../types';
 
 describe('getRiskLevel', () => {
-  describe('Low risk (1-9)', () => {
-    it('should return Faible for scores 1-9', () => {
+  describe('Low risk (< 5)', () => {
+    it('should return Faible for scores < 5', () => {
       expect(getRiskLevel(1).label).toBe('Faible');
-      expect(getRiskLevel(5).label).toBe('Faible');
-      expect(getRiskLevel(9).label).toBe('Faible');
+      expect(getRiskLevel(4).label).toBe('Faible');
     });
 
     it('should have success status', () => {
-      expect(getRiskLevel(5).status).toBe('success');
+      expect(getRiskLevel(4).status).toBe('success');
     });
   });
 
-  describe('Medium risk (10-14)', () => {
-    it('should return Moyen for scores 10-14', () => {
-      expect(getRiskLevel(10).label).toBe('Moyen');
-      expect(getRiskLevel(12).label).toBe('Moyen');
-      expect(getRiskLevel(14).label).toBe('Moyen');
+  describe('Medium risk (5-9)', () => {
+    it('should return Moyen for scores 5-9', () => {
+      expect(getRiskLevel(5).label).toBe('Moyen');
+      expect(getRiskLevel(7).label).toBe('Moyen');
+      expect(getRiskLevel(9).label).toBe('Moyen');
     });
 
     it('should have info status', () => {
-      expect(getRiskLevel(10).status).toBe('info'); // Assuming Moyen maps to Info, check your types if needed
+      expect(getRiskLevel(7).status).toBe('info');
     });
   });
 
-  describe('High risk (15-19)', () => {
-    it('should return Élevé for scores 15-19', () => {
-      expect(getRiskLevel(15).label).toBe('Élevé');
-      expect(getRiskLevel(17).label).toBe('Élevé');
-      expect(getRiskLevel(19).label).toBe('Élevé');
+  describe('High risk (10-14)', () => {
+    it('should return Élevé for scores 10-14', () => {
+      expect(getRiskLevel(10).label).toBe('Élevé');
+      expect(getRiskLevel(12).label).toBe('Élevé');
+      expect(getRiskLevel(14).label).toBe('Élevé');
     });
 
     it('should have warning status', () => {
-      expect(getRiskLevel(15).status).toBe('warning');
+      expect(getRiskLevel(10).status).toBe('warning');
     });
   });
 
-  describe('Critical risk (20-25)', () => {
-    it('should return Critique for scores 20-25', () => {
+  describe('Critical risk (>= 15)', () => {
+    it('should return Critique for scores >= 15', () => {
+      expect(getRiskLevel(15).label).toBe('Critique');
       expect(getRiskLevel(20).label).toBe('Critique');
       expect(getRiskLevel(25).label).toBe('Critique');
     });
@@ -67,12 +67,12 @@ describe('getRiskLevel', () => {
 
   describe('boundary values', () => {
     it('should correctly classify at boundaries', () => {
-      expect(getRiskLevel(9).label).toBe('Faible');
-      expect(getRiskLevel(10).label).toBe('Moyen');
-      expect(getRiskLevel(14).label).toBe('Moyen');
-      expect(getRiskLevel(15).label).toBe('Élevé');
-      expect(getRiskLevel(19).label).toBe('Élevé');
-      expect(getRiskLevel(20).label).toBe('Critique');
+      expect(getRiskLevel(4).label).toBe('Faible');
+      expect(getRiskLevel(5).label).toBe('Moyen');
+      expect(getRiskLevel(9).label).toBe('Moyen');
+      expect(getRiskLevel(10).label).toBe('Élevé');
+      expect(getRiskLevel(14).label).toBe('Élevé');
+      expect(getRiskLevel(15).label).toBe('Critique');
     });
   });
 });

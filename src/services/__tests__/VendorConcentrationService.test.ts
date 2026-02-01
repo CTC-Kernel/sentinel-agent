@@ -12,7 +12,7 @@ import {
   getHHILevel,
   getDependencyLevel,
   isSPOF,
-  getImpactLevel,
+  getVendorImpactLevel,
   getUrgencyLevel,
   getDependencyLevelColor,
   getDependencyLevelBgColor,
@@ -167,38 +167,38 @@ describe('VendorConcentrationService - SPOF Detection', () => {
 // ============================================================================
 
 describe('VendorConcentrationService - Impact Level', () => {
-  describe('getImpactLevel', () => {
+  describe('getVendorImpactLevel', () => {
     it('should return critical for high critical count', () => {
-      expect(getImpactLevel(5, 10)).toBe('critical');
-      expect(getImpactLevel(6, 10)).toBe('critical');
+      expect(getVendorImpactLevel(5, 10)).toBe('critical');
+      expect(getVendorImpactLevel(6, 10)).toBe('critical');
     });
 
     it('should return critical for high critical ratio', () => {
-      expect(getImpactLevel(3, 5)).toBe('critical'); // 60%
-      expect(getImpactLevel(5, 8)).toBe('critical'); // 62.5%
+      expect(getVendorImpactLevel(3, 5)).toBe('critical'); // 60%
+      expect(getVendorImpactLevel(5, 8)).toBe('critical'); // 62.5%
     });
 
     it('should return high for moderate critical count', () => {
-      expect(getImpactLevel(3, 10)).toBe('high');
-      expect(getImpactLevel(4, 15)).toBe('high');
+      expect(getVendorImpactLevel(3, 10)).toBe('high');
+      expect(getVendorImpactLevel(4, 15)).toBe('high');
     });
 
     it('should return high for moderate critical ratio', () => {
-      expect(getImpactLevel(3, 8)).toBe('high'); // 37.5%
+      expect(getVendorImpactLevel(3, 8)).toBe('high'); // 37.5%
     });
 
     it('should return medium for low critical count', () => {
-      expect(getImpactLevel(1, 10)).toBe('medium');
-      expect(getImpactLevel(2, 20)).toBe('medium');
+      expect(getVendorImpactLevel(1, 10)).toBe('medium');
+      expect(getVendorImpactLevel(2, 20)).toBe('medium');
     });
 
     it('should return medium for low critical ratio', () => {
-      expect(getImpactLevel(1, 8)).toBe('medium'); // 12.5%
+      expect(getVendorImpactLevel(1, 8)).toBe('medium'); // 12.5%
     });
 
     it('should return low for no critical services', () => {
-      expect(getImpactLevel(0, 10)).toBe('low');
-      expect(getImpactLevel(0, 0)).toBe('low');
+      expect(getVendorImpactLevel(0, 10)).toBe('low');
+      expect(getVendorImpactLevel(0, 0)).toBe('low');
     });
   });
 });
@@ -364,7 +364,7 @@ describe('VendorConcentrationService - Edge Cases', () => {
   });
 
   it('should handle zero services correctly', () => {
-    expect(getImpactLevel(0, 0)).toBe('low');
+    expect(getVendorImpactLevel(0, 0)).toBe('low');
     expect(getDependencyLevel(0, 0, 0)).toBe('low');
   });
 
@@ -419,7 +419,7 @@ describe('VendorConcentrationService - Integration Scenarios', () => {
     const categoryShare = 40;
 
     const dependencyLevel = getDependencyLevel(totalServices, criticalServices, categoryShare);
-    const impactLevel = getImpactLevel(criticalServices, totalServices);
+    const impactLevel = getVendorImpactLevel(criticalServices, totalServices);
     const urgency = getUrgencyLevel(impactLevel);
     const isSinglePoint = isSPOF(3, categoryShare, criticalServices);
 
@@ -436,7 +436,7 @@ describe('VendorConcentrationService - Integration Scenarios', () => {
     const criticalServices = 5;
 
     expect(isSPOF(vendorCount, marketShare, criticalServices)).toBe(true);
-    expect(getImpactLevel(criticalServices, 8)).toBe('critical');
+    expect(getVendorImpactLevel(criticalServices, 8)).toBe('critical');
     expect(getUrgencyLevel('critical')).toBe('immediate');
   });
 });

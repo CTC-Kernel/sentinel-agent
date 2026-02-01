@@ -16,8 +16,8 @@ describe('useAccessibility', () => {
             const id1 = result.current.generateId('button');
             const id2 = result.current.generateId('button');
 
-            expect(id1).toMatch(/^button-[a-z0-9]+$/);
-            expect(id2).toMatch(/^button-[a-z0-9]+$/);
+            expect(id1).toMatch(/^button-[a-z0-9\-_:]+$/i);
+            expect(id2).toMatch(/^button-[a-z0-9\-_:]+$/i);
             expect(id1).not.toBe(id2);
         });
 

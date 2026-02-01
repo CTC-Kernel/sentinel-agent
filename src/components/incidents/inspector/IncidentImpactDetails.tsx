@@ -107,7 +107,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                                         </div>
                                         <div className="text-right">
                                             <span className="block text-xs font-bold uppercase text-muted-foreground">Score</span>
-                                            <span className={`font-bold transition-colors ${risk.score >= RISK_THRESHOLDS.CRITICAL ? 'text-destructive' : risk.score >= RISK_THRESHOLDS.HIGH ? 'text-warning' : 'text-success'}`}>
+                                            <span className={`font-bold transition-colors ${risk.score >= RISK_THRESHOLDS.CRITICAL ? 'text-destructive' : risk.score >= RISK_THRESHOLDS.MEDIUM ? 'text-warning' : 'text-success'}`}>
                                                 {risk.score}/25
                                             </span>
                                         </div>

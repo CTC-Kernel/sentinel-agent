@@ -242,7 +242,8 @@ describe('DashboardService', () => {
                 expect.anything(),
                 expect.objectContaining({
                     summary: 'Summary without metrics',
-                    metricsSnapshot: undefined
+                    metricsSnapshot: null,
+                    updatedAt: expect.any(String)
                 }),
                 { merge: true }
             );

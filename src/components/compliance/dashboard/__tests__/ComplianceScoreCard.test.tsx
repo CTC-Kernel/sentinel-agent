@@ -179,8 +179,8 @@ describe('ComplianceScoreCard', () => {
         it('handles empty controls array', () => {
             render(<ComplianceScoreCard controls={[]} currentFramework="ISO27001" />);
 
-            // Should display 0% somewhere in the component
-            expect(screen.getAllByText('0%').length).toBeGreaterThan(0);
+            // Should display 100% (default when no actionable controls)
+            expect(screen.getAllByText('100%').length).toBeGreaterThan(0);
         });
 
         it('excludes Non applicable from calculations', () => {

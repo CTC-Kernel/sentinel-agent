@@ -52,6 +52,7 @@ vi.mock('../auditLogService', () => ({
         logDelete: vi.fn().mockResolvedValue(undefined),
         logCreate: vi.fn().mockResolvedValue(undefined),
         logStatusChange: vi.fn().mockResolvedValue(undefined),
+        logImport: vi.fn().mockResolvedValue(undefined),
     },
 }));
 

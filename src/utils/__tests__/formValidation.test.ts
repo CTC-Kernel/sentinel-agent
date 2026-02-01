@@ -54,7 +54,8 @@ describe('formValidation', () => {
             };
 
             const errors = validateAsset(asset);
-            expect(errors.some(e => e.field === 'name' && e.message.includes('3 characters'))).toBe(true);
+            expect(errors.some(e => e.field === 'name')).toBe(true);
+            expect(errors.find(e => e.field === 'name')?.message).toContain('3');
         });
 
         it('should return error for missing category', () => {

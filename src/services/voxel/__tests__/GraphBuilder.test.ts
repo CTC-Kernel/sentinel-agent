@@ -222,7 +222,7 @@ describe('GraphBuilder', () => {
     it('should map control status based on implementation', () => {
       const nonCompliantControl: Control = {
         ...mockControl,
-        status: 'Non conforme',
+        status: 'Non commencé',
       };
 
       const input: GraphBuilderInput = {

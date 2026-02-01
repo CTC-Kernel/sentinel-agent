@@ -22,6 +22,7 @@ vi.mock('firebase/firestore', () => ({
     getDoc: vi.fn().mockResolvedValue({ exists: () => false, data: () => null }),
     doc: vi.fn().mockReturnValue({}),
     updateDoc: vi.fn().mockResolvedValue(undefined),
+    serverTimestamp: vi.fn(() => ({ _serverTimestamp: true })),
 }));
 
 // Mock firebase db
