@@ -56,17 +56,14 @@ exports.getAgentStatus = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { agentId } = request.data;
 
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();
@@ -127,7 +124,8 @@ exports.getAgentMetricsHistory = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { agentId, hours } = request.data;
     const safeHours = Math.min(Number(hours) || 24, 168);
 
@@ -135,10 +133,6 @@ exports.getAgentMetricsHistory = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();

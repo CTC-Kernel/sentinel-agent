@@ -7,9 +7,14 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { logger } = require("firebase-functions");
+const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 
-const db = admin.firestore();
+// Secrets
+const nvdApiKey = defineSecret("NVD_API_KEY");
+
+// H3: db initialized inside handlers to avoid module-level initialization issues
+// const db = admin.firestore(); -- REMOVED
 
 // NVD API configuration
 const NVD_API_BASE = 'https://services.nvd.nist.gov/rest/json/cves/2.0';
@@ -28,7 +33,7 @@ async function fetchNvdData(cveId) {
             headers: {
                 'Accept': 'application/json',
                 // Add API key if available (increases rate limit)
-                ...(process.env.NVD_API_KEY && { 'apiKey': process.env.NVD_API_KEY })
+                ...(nvdApiKey.value() && { 'apiKey': nvdApiKey.value() })
             }
         });
 
@@ -196,8 +201,11 @@ const dailyCveEnrichment = onSchedule({
     memory: '512MiB',
     timeoutSeconds: 540, // 9 minutes
     region: 'europe-west1',
+    secrets: [nvdApiKey],
 }, async () => {
     logger.info("Starting daily CVE enrichment...");
+    // H3: Initialize db inside handler
+    const db = admin.firestore();
 
     try {
         // Fetch KEV data once for all orgs
@@ -255,8 +263,10 @@ const dailyCveEnrichment = onSchedule({
             // Fetch EPSS data in bulk
             const epssData = await fetchEpssData(cveIds);
 
-            // Process each vulnerability
-            const batch = db.batch();
+            // Process each vulnerability (H2: chunked batches to stay under 500 limit)
+            const BATCH_LIMIT = 450;
+            let batch = db.batch();
+            let batchOpCount = 0;
             let enrichedCount = 0;
             let errorCount = 0;
 
@@ -335,6 +345,7 @@ const dailyCveEnrichment = onSchedule({
                     updateData.timeline = timeline;
 
                     batch.update(vulnDoc.ref, updateData);
+                    batchOpCount++;
                     enrichedCount++;
 
                     // Create alert for newly discovered KEV
@@ -358,6 +369,14 @@ const dailyCveEnrichment = onSchedule({
                             read: false,
                             createdAt: admin.firestore.FieldValue.serverTimestamp(),
                         });
+                        batchOpCount++;
+                    }
+
+                    // H2: Flush batch if approaching limit
+                    if (batchOpCount >= BATCH_LIMIT) {
+                        await batch.commit();
+                        batch = db.batch();
+                        batchOpCount = 0;
                     }
 
                 } catch (error) {
@@ -366,8 +385,8 @@ const dailyCveEnrichment = onSchedule({
                 }
             }
 
-            // Commit batch
-            if (enrichedCount > 0) {
+            // Commit remaining batch
+            if (batchOpCount > 0) {
                 await batch.commit();
                 logger.info(`Enriched ${enrichedCount} vulnerabilities for ${organizationId} (${errorCount} errors)`);
             }
@@ -392,6 +411,8 @@ const dailyVulnerabilityCorrelation = onSchedule({
     region: 'europe-west1',
 }, async () => {
     logger.info("Starting vulnerability correlation update...");
+    // H3: Initialize db inside handler
+    const db = admin.firestore();
 
     try {
         const orgsSnap = await db.collection('organizations').get();
@@ -421,13 +442,15 @@ const dailyVulnerabilityCorrelation = onSchedule({
                 vulnsByCve.get(cveId).push(data);
             }
 
-            // Create/update correlation documents
+            // Create/update correlation documents (H2: chunked batches)
             const correlationsRef = db
                 .collection('organizations')
                 .doc(organizationId)
                 .collection('vulnerabilityCorrelations');
 
-            const batch = db.batch();
+            const CORR_BATCH_LIMIT = 450;
+            let batch = db.batch();
+            let corrBatchCount = 0;
 
             for (const [cveId, vulns] of vulnsByCve.entries()) {
                 const agentIds = new Set();
@@ -468,9 +491,19 @@ const dailyVulnerabilityCorrelation = onSchedule({
                 };
 
                 batch.set(correlationsRef.doc(cveId), correlation, { merge: true });
+                corrBatchCount++;
+
+                // H2: Flush batch if approaching limit
+                if (corrBatchCount >= CORR_BATCH_LIMIT) {
+                    await batch.commit();
+                    batch = db.batch();
+                    corrBatchCount = 0;
+                }
             }
 
-            await batch.commit();
+            if (corrBatchCount > 0) {
+                await batch.commit();
+            }
             logger.info(`Updated ${vulnsByCve.size} correlations for ${organizationId}`);
         }
 

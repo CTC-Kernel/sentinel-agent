@@ -16,6 +16,19 @@ const { defineString } = require("firebase-functions/params");
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates (H1 fix)
+ */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Dormant account thresholds (days)
 const DORMANT_THRESHOLDS = {
     warning: 60,   // 60 days without login
@@ -81,9 +94,9 @@ function calculateDaysUntil(deadline) {
 function getDormantAccountsEmailTemplate(orgName, dormantAccounts, link) {
     const formatAccountRow = (account) => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px; font-weight: 500;">${account.userName}</td>
-            <td style="padding: 12px;">${account.userEmail}</td>
-            <td style="padding: 12px;">${account.role || 'N/A'}</td>
+            <td style="padding: 12px; font-weight: 500;">${escapeHtml(account.userName)}</td>
+            <td style="padding: 12px;">${escapeHtml(account.userEmail)}</td>
+            <td style="padding: 12px;">${escapeHtml(account.role || 'N/A')}</td>
             <td style="padding: 12px; text-align: center;">
                 ${account.neverLoggedIn ?
                     '<span style="color: #dc2626; font-weight: 600;">Jamais</span>' :
@@ -95,7 +108,7 @@ function getDormantAccountsEmailTemplate(orgName, dormantAccounts, link) {
                     ${account.status === 'detected' ? 'background-color: #fef3c7; color: #d97706;' :
                       account.status === 'contacted' ? 'background-color: #dbeafe; color: #2563eb;' :
                       'background-color: #f1f5f9; color: #64748b;'}">
-                    ${account.status}
+                    ${escapeHtml(account.status)}
                 </span>
             </td>
         </tr>
@@ -179,9 +192,9 @@ function getDormantAccountsEmailTemplate(orgName, dormantAccounts, link) {
 function getReviewReminderEmailTemplate(reviewerName, reviews, daysUntilDeadline, link) {
     const formatReviewRow = (review) => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px; font-weight: 500;">${review.userName}</td>
-            <td style="padding: 12px;">${review.userEmail}</td>
-            <td style="padding: 12px;">${review.userRole || 'N/A'}</td>
+            <td style="padding: 12px; font-weight: 500;">${escapeHtml(review.userName)}</td>
+            <td style="padding: 12px;">${escapeHtml(review.userEmail)}</td>
+            <td style="padding: 12px;">${escapeHtml(review.userRole || 'N/A')}</td>
             <td style="padding: 12px; text-align: center;">${review.permissionCount || 0}</td>
         </tr>
     `;

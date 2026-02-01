@@ -17,16 +17,45 @@ const { CRITICAL_RISK_THRESHOLD } = require('../callable/calculateComplianceScor
 const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 /**
- * Basic HTML Sanitization to prevent arbitrary injection
- * Removes script tags and other dangerous elements
+ * HTML Sanitization to prevent arbitrary injection in email content
+ * Removes script tags, iframes, embeds, objects, forms, and dangerous attributes
  */
 function sanitizeHtml(html) {
-    if (!html) return '';
+    if (!html || typeof html !== 'string') return '';
     return html
+        // Remove dangerous elements
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-        .replace(/on\w+="[^"]*"/gi, '')
-        .replace(/on\w+='[^']*'/gi, '')
-        .replace(/href="javascript:[^"]*"/gi, '');
+        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+        .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+        .replace(/<embed\b[^>]*\/?>/gi, '')
+        .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
+        // Remove event handlers (both double and single quoted, and unquoted)
+        .replace(/\bon\w+\s*=\s*"[^"]*"/gi, '')
+        .replace(/\bon\w+\s*=\s*'[^']*'/gi, '')
+        .replace(/\bon\w+\s*=\s*[^\s>]*/gi, '')
+        // Remove dangerous URL schemes
+        .replace(/href\s*=\s*"javascript:[^"]*"/gi, '')
+        .replace(/href\s*=\s*'javascript:[^']*'/gi, '')
+        .replace(/src\s*=\s*"javascript:[^"]*"/gi, '')
+        .replace(/src\s*=\s*'javascript:[^']*'/gi, '')
+        .replace(/href\s*=\s*"data:[^"]*"/gi, '')
+        .replace(/href\s*=\s*'data:[^']*'/gi, '')
+        .replace(/src\s*=\s*"data:[^"]*"/gi, '')
+        .replace(/src\s*=\s*'data:[^']*'/gi, '');
+}
+
+/**
+ * Escape HTML entities for user-provided text content
+ * Use this for plain text values interpolated into HTML templates
+ */
+function escapeHtmlEntities(input) {
+    if (typeof input !== 'string') return '';
+    return input
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
 }
 
 // Secrets
