@@ -581,15 +581,12 @@ async function shouldNotify(db, userId, link, contentMatch) {
         .limit(1)
         .get();
 
-    let alreadyNotified = false;
-    notifsSnap.forEach(doc => {
-        const data = doc.data();
-        if (data.title.includes(contentMatch) || data.message.includes(contentMatch)) {
-            alreadyNotified = true;
-        }
+    const existingMatch = notifsSnap.docs.some(d => {
+        const data = d.data();
+        return data.title === contentMatch;
     });
 
-    return !alreadyNotified;
+    return !existingMatch;
 }
 
 async function sendNotificationAndEmail(db, params) {
@@ -680,7 +677,7 @@ async function checkUpcomingAudits(db, organizationId) {
                 const auditorId = auditorDoc.id;
                 const auditorData = auditorDoc.data();
 
-                if (await shouldNotify(db, auditorId, '/audits', audit.name)) {
+                if (await shouldNotify(db, auditorId, '/audits', 'Audit a venir: ' + audit.name)) {
                     await sendNotificationAndEmail(db, {
                         organizationId,
                         userId: auditorId,
@@ -707,6 +704,7 @@ async function checkUpcomingAudits(db, organizationId) {
 async function checkOverdueDocuments(db, organizationId) {
     const docsSnap = await db.collection('documents')
         .where('organizationId', '==', organizationId)
+        .where('nextReviewDate', '<=', new Date().toISOString())
         .get();
 
     for (const doc of docsSnap.docs) {
@@ -723,7 +721,7 @@ async function checkOverdueDocuments(db, organizationId) {
                 const ownerId = ownerDoc.id;
                 const ownerData = ownerDoc.data();
 
-                if (await shouldNotify(db, ownerId, '/documents', document.title)) {
+                if (await shouldNotify(db, ownerId, '/documents', 'Document a reviser: ' + document.title)) {
                     await sendNotificationAndEmail(db, {
                         organizationId,
                         userId: ownerId,
@@ -753,6 +751,7 @@ async function checkUpcomingMaintenance(db, organizationId) {
 
     const assetsSnap = await db.collection('assets')
         .where('organizationId', '==', organizationId)
+        .limit(500)
         .get();
 
     for (const doc of assetsSnap.docs) {
@@ -773,7 +772,7 @@ async function checkUpcomingMaintenance(db, organizationId) {
                     const ownerId = ownerDoc.id;
                     const ownerData = ownerDoc.data();
 
-                    if (await shouldNotify(db, ownerId, '/assets', asset.name)) {
+                    if (await shouldNotify(db, ownerId, '/assets', 'Maintenance a prevoir : ' + asset.name)) {
                         await sendNotificationAndEmail(db, {
                             organizationId,
                             userId: ownerId,
@@ -860,7 +859,7 @@ async function checkOverdueRisks(db, organizationId) {
 
             if (!userData || !userData.email) continue;
 
-            if (await shouldNotify(db, userId, '/risks', risk.threat)) {
+            if (await shouldNotify(db, userId, '/risks', 'Revue de risque en retard : ' + risk.threat)) {
                 await sendNotificationAndEmail(db, {
                     organizationId,
                     userId,
@@ -886,6 +885,7 @@ async function checkOverdueRisks(db, organizationId) {
 async function checkCriticalRisks(db, organizationId) {
     const risksSnap = await db.collection('risks')
         .where('organizationId', '==', organizationId)
+        .where('riskLevel', 'in', ['Critique', 'Critical'])
         .get();
 
     const criticalRisksWithoutMitigation = [];
@@ -906,7 +906,7 @@ async function checkCriticalRisks(db, organizationId) {
             const adminId = adminDoc.id;
             const adminData = adminDoc.data();
 
-            if (await shouldNotify(db, adminId, '/risks', 'risque(s) critique(s)')) {
+            if (await shouldNotify(db, adminId, '/risks', criticalRisksWithoutMitigation.length + ' risque(s) critique(s) sans attenuation')) {
                 await sendNotificationAndEmail(db, {
                     organizationId,
                     userId: adminId,
@@ -950,7 +950,7 @@ async function checkExpiringContracts(db, organizationId) {
                     if (ownerSnap.exists) {
                         const ownerData = ownerSnap.data();
 
-                        if (await shouldNotify(db, supplier.ownerId, '/suppliers', supplier.name)) {
+                        if (await shouldNotify(db, supplier.ownerId, '/suppliers', 'Fin de contrat : ' + supplier.name)) {
                             await sendNotificationAndEmail(db, {
                                 organizationId,
                                 userId: supplier.ownerId,

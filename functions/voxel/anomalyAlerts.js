@@ -119,6 +119,7 @@ const checkRateLimit = async (db, organizationId, config) => {
         .collection('voxel_anomaly_alerts')
         .where('organizationId', '==', organizationId)
         .where('sentAt', '>=', oneHourAgo)
+        .limit(100)
         .get();
 
     return recentAlertsSnap.size < config.maxAlertsPerHour;
@@ -436,9 +437,10 @@ exports.testAnomalyAlert = onCall({
         if (channel === 'inApp') {
             await createInAppNotification(db, request.auth.uid, organizationId, testAnomaly);
         } else if (channel === 'email') {
-            const userDoc = await db.collection('users').doc(request.auth.uid).get();
-            if (userDoc.exists) {
-                await sendEmailNotification(userDoc.data(), testAnomaly);
+            // Fetch user email from token for email test
+            const userEmail = request.auth.token.email;
+            if (userEmail) {
+                await sendEmailNotification({ email: userEmail }, testAnomaly);
             }
         }
 

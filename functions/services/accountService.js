@@ -63,7 +63,7 @@ class AccountService {
 
             // 2. Delete All Users (Auth + Firestore)
             logger.info(`Deleting users for org ${organizationId}...`);
-            const usersSnap = await db.collection('users').where('organizationId', '==', organizationId).get();
+            const usersSnap = await db.collection('users').where('organizationId', '==', organizationId).limit(500).get();
             const deleteUserPromises = usersSnap.docs.map(async (userDoc) => {
                 const uid = userDoc.id;
                 try {

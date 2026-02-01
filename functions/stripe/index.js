@@ -62,9 +62,8 @@ exports.createCheckoutSession = onCall({
         interval: z.enum(['month', 'year']).default('month')
     }), request.data);
 
-    // SECURITY: Force organizationId from the authenticated user's profile, not from request data
-    const callerDoc = await db.collection('users').doc(request.auth.uid).get();
-    const organizationId = callerDoc.data()?.organizationId;
+    // SECURITY: Force organizationId from the authenticated user's token claims, not from request data
+    const organizationId = request.auth.token.organizationId;
     if (!organizationId) {
         throw new HttpsError('failed-precondition', 'User has no organization');
     }

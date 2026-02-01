@@ -29,7 +29,10 @@ function isAllowedUrl(url) {
             hostname === '0.0.0.0' ||
             hostname === '::1' ||
             hostname.startsWith('10.') ||
-            hostname.startsWith('172.') ||
+            (hostname.startsWith('172.') && (() => {
+                const parts = hostname.split('.').map(Number);
+                return parts[1] >= 16 && parts[1] <= 31;
+            })()) ||
             hostname.startsWith('192.168.') ||
             hostname === '169.254.169.254' ||
             hostname.endsWith('.internal') ||

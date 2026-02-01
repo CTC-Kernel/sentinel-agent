@@ -2,6 +2,7 @@ const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const { HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
+const crypto = require('crypto');
 
 const n8nWebhookSecret = defineSecret("N8N_WEBHOOK_SECRET");
 
@@ -26,8 +27,19 @@ class N8NService {
         const authHeader = request.get('Authorization');
         const customHeader = request.get('X-N8N-Secret');
 
-        if (authHeader && authHeader === `Bearer ${secret}`) return true;
-        if (customHeader && customHeader === secret) return true;
+        if (authHeader) {
+            const expected = `Bearer ${secret}`;
+            if (authHeader.length === expected.length &&
+                crypto.timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected))) {
+                return true;
+            }
+        }
+        if (customHeader) {
+            if (customHeader.length === secret.length &&
+                crypto.timingSafeEqual(Buffer.from(customHeader), Buffer.from(secret))) {
+                return true;
+            }
+        }
 
         return false;
     }
@@ -101,6 +113,12 @@ class N8NService {
         const db = admin.firestore();
         // handling generated PDF link
         if (data.url && data.auditId) {
+            // Before updating, verify the audit belongs to the organization
+            const auditDoc = await db.collection('audits').doc(data.auditId).get();
+            if (!auditDoc.exists || auditDoc.data().organizationId !== organizationId) {
+                throw new Error('Access denied: audit does not belong to this organization');
+            }
+
             await db.collection('audits').doc(data.auditId).update({
                 reportUrl: data.url,
                 status: 'Terminé',
