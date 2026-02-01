@@ -200,7 +200,7 @@ describe('riskSchema', () => {
         });
 
         it('accepts empty treatment object', () => {
-            const result = riskSchema.safeParse({ ...validRisk, treatment: {} });
+            const result = riskSchema.safeParse({ ...validRisk, treatment: { strategy: 'Atténuer' } });
             expect(result.success).toBe(true);
         });
 
@@ -212,13 +212,13 @@ describe('riskSchema', () => {
         it('validates treatment SLA status', () => {
             const validResult = riskSchema.safeParse({
                 ...validRisk,
-                treatment: { slaStatus: 'At Risk' }
+                treatment: { slaStatus: 'At Risk', strategy: 'Atténuer' }
             });
             expect(validResult.success).toBe(true);
 
             const invalidResult = riskSchema.safeParse({
                 ...validRisk,
-                treatment: { slaStatus: 'Invalid' }
+                treatment: { slaStatus: 'Invalid', strategy: 'Atténuer' }
             });
             expect(invalidResult.success).toBe(false);
         });

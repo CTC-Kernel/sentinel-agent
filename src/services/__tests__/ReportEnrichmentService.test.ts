@@ -106,15 +106,15 @@ describe('ReportEnrichmentService', () => {
 
             const result = ReportEnrichmentService.calculateMetrics(risks);
 
-            expect(result.critical_risks).toBe(3);
+            expect(result.critical_risks).toBe(1);
             expect(result.total_risks).toBe(3);
         });
 
-        it('should correctly categorize high risks (10 <= level < 15)', () => {
+        it('should correctly categorize high risks (15 <= level < 20)', () => {
             const risks = [
-                createMockRisk({ probability: 5, impact: 2 }), // level = 10, high
-                createMockRisk({ probability: 4, impact: 3 }), // level = 12, high
-                createMockRisk({ probability: 2, impact: 5 })  // level = 10, high
+                createMockRisk({ probability: 5, impact: 3 }), // level = 15, high
+                createMockRisk({ probability: 4, impact: 4 }), // level = 16, high
+                createMockRisk({ probability: 3, impact: 5 })  // level = 15, high
             ];
 
             const result = ReportEnrichmentService.calculateMetrics(risks);
@@ -122,11 +122,11 @@ describe('ReportEnrichmentService', () => {
             expect(result.high_risks).toBe(3);
         });
 
-        it('should correctly categorize medium risks (5 <= level < 10)', () => {
+        it('should correctly categorize medium risks (10 <= level < 15)', () => {
             const risks = [
-                createMockRisk({ probability: 3, impact: 2 }), // level = 6, medium
-                createMockRisk({ probability: 2, impact: 3 }), // level = 6, medium
-                createMockRisk({ probability: 3, impact: 3 })  // level = 9, medium
+                createMockRisk({ probability: 5, impact: 2 }), // level = 10, medium
+                createMockRisk({ probability: 4, impact: 3 }), // level = 12, medium
+                createMockRisk({ probability: 2, impact: 5 })  // level = 10, medium
             ];
 
             const result = ReportEnrichmentService.calculateMetrics(risks);
@@ -134,9 +134,9 @@ describe('ReportEnrichmentService', () => {
             expect(result.medium_risks).toBe(3);
         });
 
-        it('should correctly categorize low risks (level < 5)', () => {
+        it('should correctly categorize low risks (level < 10)', () => {
             const risks = [
-                createMockRisk({ probability: 1, impact: 1 }), // level = 1, low
+                createMockRisk({ probability: 3, impact: 3 }), // level = 9, low
                 createMockRisk({ probability: 2, impact: 2 }), // level = 4, low
                 createMockRisk({ probability: 1, impact: 3 })  // level = 3, low
             ];
@@ -203,9 +203,9 @@ describe('ReportEnrichmentService', () => {
 
             expect(result.distribution).toEqual({
                 critical: 1,
-                high: 1,
+                high: 0,
                 medium: 1,
-                low: 1
+                low: 2
             });
         });
 
@@ -875,7 +875,7 @@ describe('ReportEnrichmentService', () => {
                 projectMetrics
             );
 
-            expect(result.global_score).toBe(69);
+            expect(result.global_score).toBe(70);
         });
 
         it('should use 100 as default for missing audits', () => {

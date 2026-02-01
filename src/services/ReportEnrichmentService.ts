@@ -293,8 +293,8 @@ export class ReportEnrichmentService {
         const notStarted = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length;
 
         const actionable = controls.filter(c => isActionableStatus(c.status)).length;
-        const coverage = actionable > 0 ? Math.round(((implemented + partial * PARTIAL_CONTROL_WEIGHT) / actionable) * 100) : 100;
-        const readiness = actionable > 0 ? Math.round(((implemented + partial + planned) / actionable) * 100) : 100;
+        const coverage = actionable > 0 ? Math.round(((implemented + partial * PARTIAL_CONTROL_WEIGHT) / actionable) * 100) : 0;
+        const readiness = actionable > 0 ? Math.round(((implemented + partial + planned) / actionable) * 100) : 0;
 
         return {
             total_controls: total,

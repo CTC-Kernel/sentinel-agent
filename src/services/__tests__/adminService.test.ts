@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../store', () => ({
+vi.mock('../../store', () => ({
     useStore: {
         getState: () => ({
             user: {
