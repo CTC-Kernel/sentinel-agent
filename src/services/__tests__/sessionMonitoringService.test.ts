@@ -54,8 +54,9 @@ describe('SessionMonitoringService', () => {
             expect(stored).toBeTruthy();
 
             const session = JSON.parse(stored!);
-            expect(session.userId).toBe('user-123');
-            expect(session.email).toBe('test@example.com');
+            // Expect hashed values following FNV-1a implementation
+            expect(session.userId).toMatch(/^hashed_[0-9a-f]{8}$/);
+            expect(session.email).toMatch(/^hashed_[0-9a-f]{8}$/);
         });
 
         it('should clear session for null user', () => {

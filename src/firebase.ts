@@ -24,9 +24,9 @@ const firebaseConfig = {
 
 const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket'] as const;
 for (const key of requiredKeys) {
-    if (!firebaseConfig[key]) {
-        console.error(`Missing Firebase config: ${key}`);
-    }
+  if (!firebaseConfig[key]) {
+    console.error(`Missing Firebase config: ${key}`);
+  }
 }
 
 export const app = initializeApp(firebaseConfig);
@@ -38,7 +38,7 @@ let appCheck: AppCheck | null = null;
 export let isAppCheckFailed = false;
 
 // Initialize App Check with ReCAPTCHA Enterprise
-if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test') {
+if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test' && import.meta.env.VITE_USE_EMULATORS !== 'true') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
   const appCheckDebugToken = (import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN || import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN) as string | undefined;
 

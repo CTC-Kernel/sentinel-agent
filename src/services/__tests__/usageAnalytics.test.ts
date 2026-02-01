@@ -19,7 +19,11 @@ describe('UsageAnalytics', () => {
         // Mock localStorage
         Object.defineProperty(window, 'localStorage', {
             value: {
-                getItem: vi.fn(() => null),
+                getItem: vi.fn((key) => {
+                    if (key === 'sentinel_cookie_consent') return 'true';
+                    if (key === 'sentinel_cookie_consent_details') return JSON.stringify({ tracking: true, analytics: true, essential: true });
+                    return null;
+                }),
                 setItem: vi.fn(),
                 removeItem: vi.fn()
             },

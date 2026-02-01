@@ -117,8 +117,9 @@ describe('SecureStorage', () => {
         it('should handle demoMode fallback', () => {
             mockLocalStorage['demoMode'] = 'true';
 
+            // Should return null for insecure items (no fallback)
             const result = SecureStorage.getSecureItem('demoMode');
-            expect(result).toBe(true);
+            expect(result).toBeNull();
         });
     });
 

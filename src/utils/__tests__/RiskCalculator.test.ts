@@ -42,23 +42,23 @@ describe('RiskCalculator', () => {
     });
 
     describe('getCriticalityLabel', () => {
-        it('should return Faible for score < 5', () => {
+        it('should return Faible for score < 10', () => {
             expect(RiskCalculator.getCriticalityLabel(1)).toBe('Faible');
-            expect(RiskCalculator.getCriticalityLabel(4)).toBe('Faible');
+            expect(RiskCalculator.getCriticalityLabel(9)).toBe('Faible');
         });
 
-        it('should return Moyen for score 5-9', () => {
-            expect(RiskCalculator.getCriticalityLabel(5)).toBe('Moyen');
-            expect(RiskCalculator.getCriticalityLabel(9)).toBe('Moyen');
+        it('should return Moyen for score 10-14', () => {
+            expect(RiskCalculator.getCriticalityLabel(10)).toBe('Moyen');
+            expect(RiskCalculator.getCriticalityLabel(14)).toBe('Moyen');
         });
 
-        it('should return Élevé for score 10-14', () => {
-            expect(RiskCalculator.getCriticalityLabel(10)).toBe('Élevé');
-            expect(RiskCalculator.getCriticalityLabel(14)).toBe('Élevé');
+        it('should return Élevé for score 15-19', () => {
+            expect(RiskCalculator.getCriticalityLabel(15)).toBe('Élevé');
+            expect(RiskCalculator.getCriticalityLabel(19)).toBe('Élevé');
         });
 
-        it('should return Critique for score >= 15', () => {
-            expect(RiskCalculator.getCriticalityLabel(15)).toBe('Critique');
+        it('should return Critique for score >= 20', () => {
+            expect(RiskCalculator.getCriticalityLabel(20)).toBe('Critique');
             expect(RiskCalculator.getCriticalityLabel(25)).toBe('Critique');
         });
     });

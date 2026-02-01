@@ -173,10 +173,14 @@ export async function setupOverlayHandlers(page: Page) {
     });
 
     // Capture browser console logs
+    // Capture browser console logs
     page.on('console', msg => {
-        const text = msg.text();
-        if (msg.type() === 'error' || text.includes('TestAuthGuard') || text.includes('BackupRestore') || text.includes('AppInner') || text.includes('useDocumentsData')) {
-            console.log(`BROWSER MSG: ${msg.type()} - ${text}`);
+        console.log(`BROWSER MSG: ${msg.type()} - ${msg.text()}`);
+    });
+
+    page.on('response', response => {
+        if (response.status() === 403) {
+            console.log(`[403 ERROR] ${response.url()}`);
         }
     });
 }

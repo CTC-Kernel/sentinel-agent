@@ -32,5 +32,8 @@ export default defineConfig({
         url: 'http://127.0.0.1:8080',
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000,
+        env: {
+            VITE_USE_EMULATORS: 'true',
+        },
     },
 });

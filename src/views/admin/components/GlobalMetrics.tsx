@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Building, Activity } from '../../../components/ui/Icons';
+import { Users, Building, Activity, Zap } from '../../../components/ui/Icons';
 import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { ErrorLogger } from '../../../services/errorLogger';
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer
+} from 'recharts';
 
 const StatCard: React.FC<{
     title: string;
@@ -33,6 +42,15 @@ const StatCard: React.FC<{
         </div>
     );
 };
+
+const chartData = [
+    { name: 'Jan', value: 400 },
+    { name: 'Feb', value: 300 },
+    { name: 'Mar', value: 600 },
+    { name: 'Apr', value: 800 },
+    { name: 'May', value: 500 },
+    { name: 'Jun', value: 700 }, // Mock data
+];
 
 export const GlobalMetrics: React.FC = () => {
     const [stats, setStats] = useState({
@@ -68,17 +86,19 @@ export const GlobalMetrics: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     title="Total Tenants"
                     value={stats.tenants}
                     icon={Building}
+                    trend="+12% this month"
                     color="blue"
                 />
                 <StatCard
                     title="Total Users"
                     value={stats.users}
                     icon={Users}
+                    trend="+24% this month"
                     color="purple"
                 />
                 <StatCard
@@ -87,6 +107,59 @@ export const GlobalMetrics: React.FC = () => {
                     icon={Activity}
                     color="emerald"
                 />
+                <StatCard
+                    title="System Health"
+                    value="99.9%"
+                    icon={Zap}
+                    color="orange"
+                />
+            </div>
+
+            <div className="p-6 rounded-3xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm">
+                <h3 className="text-lg font-semibold text-white mb-6">Growth Analytics</h3>
+                <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData}>
+                            <defs>
+                                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                stroke="#94a3b8"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <YAxis
+                                stroke="#94a3b8"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                                tickFormatter={(value) => `${value}`}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: '#1e293b',
+                                    border: '1px solid #334155',
+                                    borderRadius: '8px',
+                                }}
+                                itemStyle={{ color: '#e2e8f0' }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="value"
+                                stroke="#8b5cf6"
+                                strokeWidth={2}
+                                fillOpacity={1}
+                                fill="url(#colorValue)"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
         </div>
     );
