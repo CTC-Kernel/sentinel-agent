@@ -6,12 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { SystemHealth } from '../SystemHealth';
-
-// Mock auto-generated config/version (gitignored, does not exist in CI)
-vi.mock('../../../../config/version', () => ({
-    BUILD_VERSION: '0.0.0-test',
-    BUILD_TIMESTAMP: '2024-01-01T00:00:00.000Z',
-}));
+import { BUILD_VERSION } from '../../../../config/version';
 
 // Mock ConnectivityService
 vi.mock('../../../../services/connectivityService', () => ({
@@ -115,7 +110,7 @@ describe('SystemHealth', () => {
         render(<SystemHealth />);
 
         await waitFor(() => {
-            expect(screen.getByText('v0.0.0-test')).toBeInTheDocument();
+            expect(screen.getByText(`v${BUILD_VERSION}`)).toBeInTheDocument();
         }, { timeout: 10000 });
     });
 
