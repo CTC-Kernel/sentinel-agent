@@ -25,6 +25,13 @@ vi.mock('../../../../services/errorLogger', () => ({
     },
 }));
 
+// Mock useStore
+vi.mock('../../../../store', () => ({
+    useStore: vi.fn().mockReturnValue({
+        user: { organizationId: 'test-org-id' },
+    }),
+}));
+
 // Mock URL and Blob for export functionality
 const mockRevokeObjectURL = vi.fn();
 const mockCreateObjectURL = vi.fn().mockReturnValue('blob:mock-url');
