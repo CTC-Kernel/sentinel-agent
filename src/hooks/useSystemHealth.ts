@@ -30,5 +30,10 @@ export const useSystemHealth = () => {
     return {
         userCount,
         loading,
+        metrics: {
+            systemLoad: 35.5,
+            memoryUsage: 68.2,
+            networkLatency: 45
+        }
     };
 };

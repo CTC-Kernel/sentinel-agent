@@ -207,19 +207,19 @@ describe('PrivacyDetails', () => {
         it('renders name input field', () => {
             render(<PrivacyDetails {...defaultProps} isEditing={true} />);
 
-            expect(screen.getByText("Nom de l'activité")).toBeInTheDocument();
+            expect(screen.getByText("Nom de l'activité *")).toBeInTheDocument();
         });
 
         it('renders manager select', () => {
             render(<PrivacyDetails {...defaultProps} isEditing={true} />);
 
-            expect(screen.getByText('Responsable du traitement')).toBeInTheDocument();
+            expect(screen.getByText('Responsable du traitement *')).toBeInTheDocument();
         });
 
         it('renders purpose textarea', () => {
             render(<PrivacyDetails {...defaultProps} isEditing={true} />);
 
-            expect(screen.getByText('Finalité du traitement')).toBeInTheDocument();
+            expect(screen.getByText('Finalité du traitement *')).toBeInTheDocument();
         });
 
         it('renders custom select for manager', () => {
@@ -238,7 +238,7 @@ describe('PrivacyDetails', () => {
         it('calls setValue when manager changed', () => {
             render(<PrivacyDetails {...defaultProps} isEditing={true} />);
 
-            const select = screen.getByRole('combobox', { name: 'Responsable du traitement' });
+            const select = screen.getByRole('combobox', { name: 'Responsable du traitement *' });
             fireEvent.change(select, { target: { value: 'user-2' } });
 
             expect(mockSetValue).toHaveBeenCalledWith('managerId', 'user-2', { shouldDirty: true });

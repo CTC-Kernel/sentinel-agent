@@ -52,6 +52,8 @@ vi.mock('react-i18next', () => ({
                 'certifier.loginButton': 'Login',
                 'certifier.newPartner': 'New Partner?',
                 'certifier.registerLink': 'Register',
+                'certifier.loginSuccess': 'Connexion réussie',
+                'certifier.loginWelcome': 'Bienvenue sur le portail certificateur',
             };
             return translations[key] || key;
         },

@@ -23,15 +23,18 @@ vi.mock('../../firebase', () => ({
 }));
 
 // Mock store
+// Mock store
+const mockT = (key: string, options?: Record<string, unknown>) => {
+    if (options && 'defaultValue' in options) {
+        return (options as { defaultValue?: string }).defaultValue || key;
+    }
+    return key;
+};
+
 vi.mock('../../store', () => ({
     useStore: () => ({
         user: { organizationId: 'org-123' },
-        t: (key: string, options?: Record<string, unknown>) => {
-            if (options && 'defaultValue' in options) {
-                return (options as { defaultValue?: string }).defaultValue || key;
-            }
-            return key;
-        }
+        t: mockT
     })
 }));
 
@@ -78,12 +81,23 @@ describe('useResourceLogs', () => {
     });
 
     describe('initialization', () => {
-        it('initializes with loading state', () => {
-            mockGetDocs.mockImplementation(() => new Promise(() => { }));
+        it('initializes with loading state', async () => {
+            let resolvePromise: (value: unknown) => void;
+            const promise = new Promise(resolve => { resolvePromise = resolve; });
+            mockGetDocs.mockReturnValue(promise);
 
             const { result } = renderHook(() => useResourceLogs('Risk', 'risk-123'));
 
             expect(result.current.loading).toBe(true);
+
+            // Cleanup: resolve the promise to avoid open handles
+            act(() => {
+                resolvePromise!({ docs: [], empty: true });
+            });
+
+            await waitFor(() => {
+                expect(result.current.loading).toBe(false);
+            });
         });
 
         it('fetches logs when resourceId is provided', async () => {

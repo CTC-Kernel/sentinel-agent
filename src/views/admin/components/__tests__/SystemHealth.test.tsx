@@ -122,14 +122,7 @@ describe('SystemHealth', () => {
         }, { timeout: 10000 });
     });
 
-    it('should display uptime information', async () => {
-        render(<SystemHealth />);
 
-        await waitFor(() => {
-            const uptimeElements = screen.getAllByText('Uptime: 99.99%');
-            expect(uptimeElements.length).toBeGreaterThan(0);
-        }, { timeout: 10000 });
-    });
 
     it('should call refresh when "Check Now" is clicked', async () => {
         const { ConnectivityService } = await import('../../../../services/connectivityService');

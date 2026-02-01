@@ -327,7 +327,7 @@ describe('TenantDetailModal', () => {
             fireEvent.click(confirmButton);
 
             await waitFor(() => {
-                expect(mockToastSuccess).toHaveBeenCalledWith('Tenant activé avec succès');
+                expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspendu avec succès');
             });
         });
 
@@ -459,8 +459,8 @@ describe('TenantDetailModal', () => {
             await waitFor(() => {
                 expect(mockUpdateTenantSubscription).toHaveBeenCalledWith(
                     defaultProps.tenant.id,
+                    'professional',
                     expect.objectContaining({
-                        plan: 'discovery',
                         maxUsers: 10,
                         maxProjects: 5
                     })

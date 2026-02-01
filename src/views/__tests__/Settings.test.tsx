@@ -9,13 +9,17 @@ import { MemoryRouter } from 'react-router-dom';
 // ---------------------------------------------------------------------
 
 vi.mock('../../store', () => ({
-    useStore: vi.fn().mockReturnValue({
-        t: (k: string) => k,
-        user: {
-            uid: 'test-user',
-            role: 'admin',
-            permissions: { Settings: ['read', 'manage'] }
-        }
+    useStore: vi.fn((selector) => {
+        const state = {
+            t: (k: string) => k,
+            user: {
+                uid: 'test-user',
+                role: 'admin',
+                permissions: { Settings: ['read', 'manage'] }
+            },
+            language: 'fr',
+        };
+        return selector ? selector(state) : state;
     }),
 }));
 

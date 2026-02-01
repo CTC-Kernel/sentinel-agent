@@ -122,7 +122,7 @@ describe('DashboardEditModeToggle', () => {
 
     await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     expect(screen.getByText(/réinitialiser votre dashboard/i)).toBeInTheDocument();
   });
 
@@ -166,7 +166,7 @@ describe('DashboardEditModeToggle', () => {
 
     // Open dialog
     await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
 
     // Click cancel
     await user.click(screen.getByRole('button', { name: /annuler/i }));

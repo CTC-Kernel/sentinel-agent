@@ -52,7 +52,7 @@ describe('UsageAnalytics', () => {
             analytics.trackPageView('/test');
             const events = analytics.getEvents();
 
-            expect(events[0].sessionId).toMatch(/^session_\d+_\w+$/);
+            expect(events[0].sessionId).toMatch(/^session_[a-zA-Z0-9-]+$/);
         });
     });
 

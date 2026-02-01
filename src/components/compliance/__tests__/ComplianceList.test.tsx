@@ -13,6 +13,22 @@ vi.mock('../../../hooks/useAgentData', () => ({
     useControlAgentVerification: vi.fn(() => ({ status: 'none', hasResults: false }))
 }));
 
+// Mock useLocale
+vi.mock('../../../hooks/useLocale', () => ({
+    useLocale: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'compliance.missing': 'Manquante',
+                'compliance.progress': 'Progression',
+                'compliance.noControlsFound': 'Aucun contrôle trouvé',
+                'compliance.controlsNotLoaded': 'Les contrôles n\'ont pas été chargés.',
+                'compliance.noControlsMatchSearch': 'Aucun contrôle ne correspond à votre recherche.'
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 // Mock complianceData
 vi.mock('../../../data/complianceData', () => ({
     ISO_DOMAINS: [

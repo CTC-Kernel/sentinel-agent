@@ -14,7 +14,7 @@ import { useConnectivity } from '../hooks/useConnectivity';
 
 export const SystemHealth: React.FC = () => {
     const { t } = useTranslation();
-    const { userCount, loading } = useSystemHealth();
+    const { userCount, loading, metrics } = useSystemHealth();
     const { user } = useStore();
     const { authStatus, dbStatus, storageStatus, edgeStatus } = useConnectivity();
 
@@ -56,6 +56,9 @@ export const SystemHealth: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { label: t('systemHealth.metrics.activeUsers'), value: loading ? '...' : userCount, icon: Users, color: 'text-brand-500', sub: t('systemHealth.metrics.totalAccounts') },
+                    { label: t('systemHealth.metrics.systemLoad'), value: loading ? '...' : `${Math.round(metrics.systemLoad)}%`, icon: Cpu, color: 'text-warning-500', sub: '4 Cores' },
+                    { label: t('systemHealth.metrics.memory'), value: loading ? '...' : `${Math.round(metrics.memoryUsage)}%`, icon: HardDrive, color: 'text-info-500', sub: '16GB Total' },
+                    { label: t('systemHealth.metrics.latency'), value: loading ? '...' : `${Math.round(metrics.networkLatency)}ms`, icon: Zap, color: 'text-success-500', sub: 'Low Latency' },
                 ].map((metric) => (
                     <motion.div
                         key={metric.label || 'unknown'}

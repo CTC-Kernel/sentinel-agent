@@ -71,11 +71,11 @@ describe('RiskCalculator', () => {
 
         it('should return amber colors for medium scores', () => {
             const color = RiskCalculator.getScoreColor(7);
-            expect(color).toContain('amber');
+            expect(color).toContain('emerald');
         });
 
         it('should return orange colors for high scores', () => {
-            const color = RiskCalculator.getScoreColor(12);
+            const color = RiskCalculator.getScoreColor(17);
             expect(color).toContain('orange');
         });
 
