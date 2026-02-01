@@ -63,7 +63,7 @@ const SIZE_CONFIG = {
  * Category labels in French
  */
 const CATEGORY_LABELS: Record<string, string> = {
-  controls: 'Controles',
+  controls: 'Contrôles',
   documents: 'Documents',
   actions: 'Actions',
   milestones: 'Jalons',
@@ -279,8 +279,8 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
       )}
     >
       <Target className="w-8 h-8 mb-2 text-blue-500" aria-hidden="true" />
-      <p className={sizeConfig.itemText}>Aucune donnee de progression</p>
-      <p className="text-xs mt-1">Commencez par ajouter des controles et actions</p>
+      <p className={sizeConfig.itemText}>Aucune donnée de progression</p>
+      <p className="text-xs mt-1">Commencez par ajouter des contrôles et actions</p>
     </div>
   );
 }

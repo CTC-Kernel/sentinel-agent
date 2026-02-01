@@ -185,7 +185,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
   assessments,
   onAssessControl
 }) => {
-  const { t } = useLocale();
+  const { t, config: localeConfig } = useLocale();
   const domainInfo = ISO_DOMAINS.find(d => d.id === domain);
 
   const getControlAssessment = (code: string) => {

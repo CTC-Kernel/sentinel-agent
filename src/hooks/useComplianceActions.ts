@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission } from '../utils/permissions';
+import { CONTROL_STATUS } from '../constants/complianceConfig';
 
 export const useComplianceActions = (user: UserProfile | null) => {
     const { t } = useTranslation();
@@ -299,7 +300,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleApplicabilityChange = async (control: Control, isApplicable: boolean) => {
-        const newStatus = isApplicable ? 'Non commencé' : 'Non applicable';
+        const newStatus = isApplicable ? CONTROL_STATUS.NOT_STARTED : CONTROL_STATUS.NOT_APPLICABLE;
         const newApplicability = isApplicable ? 'Applicable' : 'Non applicable';
 
         const success = await updateControl(control.id, {
