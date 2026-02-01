@@ -128,15 +128,14 @@ exports.connectIntegration = onCall({
     }
 
     try {
-        const userRef = admin.firestore().collection("users").doc(request.auth.uid);
-        const userSnap = await userRef.get();
-        const userData = userSnap.data();
+        const tokenRole = request.auth.token.role;
+        const tokenOrgId = request.auth.token.organizationId;
 
-        if (!userData) {
-            throw new HttpsError('failed-precondition', 'User profile is missing.');
+        if (tokenOrgId !== organizationId && !request.auth.token.superAdmin) {
+            throw new HttpsError('permission-denied', 'Organization mismatch.');
         }
 
-        if (userData.organizationId !== organizationId || userData.role !== 'admin') {
+        if (!['admin'].includes(tokenRole) && !request.auth.token.superAdmin) {
             const orgRef = admin.firestore().collection("organizations").doc(organizationId);
             const orgSnap = await orgRef.get();
             if (!orgSnap.exists || orgSnap.data().ownerId !== request.auth.uid) {
@@ -183,6 +182,10 @@ exports.fetchEvidence = onCall({
 
     if (!organizationId || !providerId || !resourceId) {
         throw new HttpsError('invalid-argument', 'Missing required fields.');
+    }
+
+    if (organizationId !== request.auth.token.organizationId && !request.auth.token.superAdmin) {
+        throw new HttpsError('permission-denied', 'Organization mismatch.');
     }
 
     try {

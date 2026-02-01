@@ -81,6 +81,7 @@ const stableConstraintKey = (c: QueryConstraint): string => {
 };
 
 import { useStore } from '../store';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export const useFirestoreCollection = <T = DocumentData>(
     collectionName: string,
@@ -240,7 +241,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     const updateMutation = useMutation({
         mutationKey: ['firestore', 'update', collectionName],
         mutationFn: async ({ id, data }: { id: string, data: UpdateData<DocumentData> }) => {
-            await updateDocument(collectionName, id, data);
+            await updateDocument(collectionName, id, sanitizeData(data));
         },
         onSuccess: async () => {
             if (!realtime) {

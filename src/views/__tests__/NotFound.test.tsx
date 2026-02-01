@@ -60,6 +60,22 @@ vi.mock('../../components/ui/Icons', () => ({
     Home: () => <span>Home</span>
 }));
 
+// Mock useStore for translations
+vi.mock('../../store', () => ({
+    useStore: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'notFound.title': 'Page introuvable',
+                'notFound.description': 'Désolé, la page que vous recherchez semble introuvable ou n\'existe plus.',
+                'notFound.backToDashboard': 'Retour au Tableau de Bord',
+                'common.back': 'Retour',
+                'notFound.report': 'Signaler'
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 describe('NotFound View', () => {
     beforeEach(() => {
         vi.clearAllMocks();

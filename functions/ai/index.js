@@ -550,6 +550,10 @@ exports.migrateUserKeys = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
+    if (!request.auth.token.superAdmin) {
+        throw new HttpsError('permission-denied', 'Only super admins can run migrations.');
+    }
+
     const db = admin.firestore();
     const usersRef = db.collection('users');
     let totalMigrated = 0;

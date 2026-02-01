@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from './Icons';
 import { Button } from './button';
-import { useStore } from '../../store';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
     isOpen: boolean;

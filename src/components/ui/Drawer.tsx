@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Button } from './button';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, AlertTriangle } from './Icons';
-import { useStore } from '../../store';
+import { useTranslation } from 'react-i18next';
 
 // Apple-style cubic-bezier for smooth, spring-like animations
 const APPLE_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
@@ -37,10 +37,10 @@ export const Drawer: React.FC<DrawerProps> = ({
     width = 'max-w-2xl',
     disableScroll = false,
     hasUnsavedChanges = false,
-    unsavedChangesMessage = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?',
+    unsavedChangesMessage,
     beforeClose
 }) => {
-    const { t } = useStore();
+    const { t } = useTranslation();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
     const handleClose = useCallback(() => {
@@ -117,7 +117,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                                         variant="ghost"
                                                         size="icon"
                                                         className="rounded-full text-muted-foreground hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
-                                                        aria-label={t('common.ui.close')}
+                                                        aria-label={t('common.close', { defaultValue: 'Fermer' })}
                                                     >
                                                         <X className="h-5 w-5" />
                                                     </Button>
@@ -170,10 +170,10 @@ export const Drawer: React.FC<DrawerProps> = ({
                                         </div>
                                         <div className="flex-1">
                                             <Dialog.Title className="text-lg font-semibold text-foreground">
-                                                {t('common.ui.unsavedChanges.title')}
+                                                {t('common.unsavedChanges', { defaultValue: 'Modifications non sauvegardées' })}
                                             </Dialog.Title>
                                             <p className="mt-2 text-sm text-muted-foreground">
-                                                {unsavedChangesMessage || t('common.ui.unsavedChanges.message')}
+                                                {unsavedChangesMessage || t('common.unsavedChangesMessage', { defaultValue: 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?' })}
                                             </p>
                                         </div>
                                     </div>
@@ -182,13 +182,13 @@ export const Drawer: React.FC<DrawerProps> = ({
                                             variant="ghost"
                                             onClick={handleCancelClose}
                                         >
-                                            {t('common.ui.unsavedChanges.continue')}
+                                            {t('common.continueEditing', { defaultValue: "Continuer l'édition" })}
                                         </Button>
                                         <Button
                                             variant="destructive"
                                             onClick={handleConfirmClose}
                                         >
-                                            {t('common.ui.unsavedChanges.discard')}
+                                            {t('common.leaveWithoutSaving', { defaultValue: 'Quitter sans sauvegarder' })}
                                         </Button>
                                     </div>
                                 </Dialog.Panel>

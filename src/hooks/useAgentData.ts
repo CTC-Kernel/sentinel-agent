@@ -5,12 +5,13 @@ import { subscribeToAgents } from '../services/AgentService';
 import { SentinelAgent, AgentResult } from '../types/agent';
 import { ErrorLogger } from '../services/errorLogger';
 import {
-    collectionGroup,
+    collection,
     query,
     where,
     orderBy,
     limit,
     onSnapshot,
+    getDocs,
     Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';

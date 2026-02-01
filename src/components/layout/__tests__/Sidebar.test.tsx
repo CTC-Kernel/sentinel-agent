@@ -156,25 +156,21 @@ describe('Sidebar', () => {
         it('shows overlay when mobile open', () => {
             renderSidebar(true);
 
-            const overlay = document.querySelector('[aria-hidden="true"]');
-            expect(overlay).toBeInTheDocument();
+            expect(screen.getByTestId('mobile-overlay')).toBeInTheDocument();
         });
 
         it('does not show overlay when mobile closed', () => {
             renderSidebar(false);
 
-            const overlay = document.querySelector('[aria-hidden="true"]');
-            expect(overlay).not.toBeInTheDocument();
+            expect(screen.queryByTestId('mobile-overlay')).not.toBeInTheDocument();
         });
 
         it('closes when overlay clicked', () => {
             renderSidebar(true);
 
-            const overlay = document.querySelector('[aria-hidden="true"]');
-            if (overlay) {
-                fireEvent.click(overlay);
-                expect(mockSetMobileOpen).toHaveBeenCalledWith(false);
-            }
+            const overlay = screen.getByTestId('mobile-overlay');
+            fireEvent.click(overlay);
+            expect(mockSetMobileOpen).toHaveBeenCalledWith(false);
         });
     });
 
